@@ -39,8 +39,22 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
 
   const winnerName = comp.winner === "A" ? comp.vendorA : comp.winner === "B" ? comp.vendorB : null;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: comp.faq.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-slate-500 mb-10">
         <Link href="/" className="hover:text-white transition-colors">Home</Link>

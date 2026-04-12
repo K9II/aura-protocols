@@ -23,6 +23,8 @@ const categoryColors: Record<string, string> = {
   Wellness: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20",
 };
 
+const BASE_URL = "https://aura-protocols.vercel.app";
+
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const product = products.find((p) => p.slug === slug);
@@ -34,8 +36,28 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   const colorClass = categoryColors[product.category] ?? "text-slate-400 bg-slate-400/10 border-slate-400/20";
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    category: product.category,
+    url: `${BASE_URL}/products/${product.slug}`,
+    brand: { "@type": "Brand", name: "Aura Protocols" },
+    offers: {
+      "@type": "Offer",
+      url: product.affiliate.url,
+      seller: { "@type": "Organization", name: product.affiliate.vendor },
+      availability: "https://schema.org/InStock",
+    },
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-slate-500 mb-10">
         <Link href="/" className="hover:text-white transition-colors">Home</Link>

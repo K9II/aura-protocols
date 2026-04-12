@@ -96,6 +96,8 @@ function renderSection(section: Section, i: number) {
   }
 }
 
+const BASE_URL = "https://aura-protocols.vercel.app";
+
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = posts.find((p) => p.slug === slug);
@@ -104,8 +106,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const related = posts.filter((p) => p.slug !== post.slug).slice(0, 2);
   const colorClass = categoryColors[post.category] ?? "text-slate-400 bg-slate-400/10";
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    author: { "@type": "Organization", name: "Aura Protocols", url: BASE_URL },
+    publisher: { "@type": "Organization", name: "Aura Protocols", url: BASE_URL },
+    url: `${BASE_URL}/blog/${post.slug}`,
+    datePublished: post.date,
+    articleSection: post.category,
+  };
+
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-slate-500 mb-10">
         <Link href="/" className="hover:text-white transition-colors">Home</Link>

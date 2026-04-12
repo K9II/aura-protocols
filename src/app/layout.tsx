@@ -6,15 +6,38 @@ import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
+const BASE_URL = "https://aura-protocols.vercel.app";
+
 export const metadata: Metadata = {
-  title: "Aura Protocols — Premium Peptide Research",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "Aura Protocols — Premium Peptide Research",
+    template: "%s | Aura Protocols",
+  },
   description:
     "Discover high-purity research peptides sourced from the most trusted suppliers. Expert guides, verified vendors, and transparent affiliate partnerships.",
-  keywords: ["peptides", "BPC-157", "TB-500", "semaglutide", "research peptides", "peptide affiliate"],
+  keywords: ["peptides", "BPC-157", "TB-500", "semaglutide", "research peptides", "peptide affiliate", "buy peptides", "peptide vendor review"],
+  authors: [{ name: "Aura Protocols", url: BASE_URL }],
+  creator: "Aura Protocols",
   openGraph: {
-    title: "Aura Protocols",
-    description: "Premium peptide research & trusted vendor directory.",
+    title: "Aura Protocols — Premium Peptide Research",
+    description: "Expert-curated research peptides from the most trusted suppliers.",
     type: "website",
+    url: BASE_URL,
+    siteName: "Aura Protocols",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Aura Protocols — Premium Peptide Research",
+    description: "Expert-curated research peptides from the most trusted suppliers.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  alternates: {
+    canonical: BASE_URL,
   },
 };
 
