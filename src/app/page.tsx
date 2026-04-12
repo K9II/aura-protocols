@@ -38,12 +38,10 @@ const categoryBorderClass: Record<string, string> = {
 };
 
 const vendorGrid = [
-  { name: "Peptide Sciences",          commission: "10%", url: "https://www.peptidesciences.com/" },
-  { name: "Core Peptides",             commission: "12%", url: "https://corepeptides.com/" },
+  { name: "Core Peptides",             commission: "12%", url: "https://www.corepeptides.com/" },
   { name: "Limitless Life Nootropics", commission: "15%", url: "https://limitlesslifenootropics.com/" },
   { name: "Swiss Chems",               commission: "10%", url: "https://swisschems.is/" },
   { name: "Behemoth Labz",             commission: "12%", url: "https://behemothlabz.com/" },
-  { name: "Blue Sky Peptides",         commission: "10%", url: "https://blueskypeptides.com/" },
 ];
 
 const postPillClass: Record<string, string> = {
