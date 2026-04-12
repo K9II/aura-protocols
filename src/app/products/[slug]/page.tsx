@@ -6,8 +6,9 @@ export function generateStaticParams() {
   return products.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const product = products.find((p) => p.slug === params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const product = products.find((p) => p.slug === slug);
   if (!product) return {};
   return {
     title: `${product.name} — Aura Protocols`,
@@ -22,8 +23,9 @@ const categoryColors: Record<string, string> = {
   Wellness: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20",
 };
 
-export default function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const product = products.find((p) => p.slug === params.slug);
+export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const product = products.find((p) => p.slug === slug);
   if (!product) notFound();
 
   const related = products.filter(
