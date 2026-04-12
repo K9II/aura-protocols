@@ -3,7 +3,7 @@ import { products } from "@/data/products";
 import { posts } from "@/data/posts";
 import { comparisons } from "@/data/comparisons";
 
-const BASE_URL = "https://aura-protocols.vercel.app";
+const BASE_URL = "https://shop.auraprotocols.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
@@ -11,7 +11,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/products`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/compare`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE_URL}/about`,   lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE_URL}/privacy`, lastModified: new Date(), changeFrequency: "yearly",  priority: 0.3 },
+    { url: `${BASE_URL}/terms`,   lastModified: new Date(), changeFrequency: "yearly",  priority: 0.3 },
   ];
 
   const productPages: MetadataRoute.Sitemap = products.map((p) => ({

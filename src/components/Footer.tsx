@@ -33,8 +33,16 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/5 py-4 text-center text-xs text-slate-600">
-        &copy; {new Date().getFullYear()} Aura Protocols. All rights reserved.
+      <div className="border-t border-white/5 max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex gap-6">
+          <Link href="/privacy" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+            Privacy Policy
+          </Link>
+          <Link href="/terms" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+            Terms of Service
+          </Link>
+        </div>
+        <p className="text-xs text-slate-600">&copy; {new Date().getFullYear()} Aura Protocols. All rights reserved.</p>
       </div>
     </footer>
   );

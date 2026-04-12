@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Syne } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const syne = Syne({ subsets: ["latin"], variable: "--font-display" });
 
-const BASE_URL = "https://aura-protocols.vercel.app";
+const BASE_URL = "https://shop.auraprotocols.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -39,14 +40,17 @@ export const metadata: Metadata = {
   alternates: {
     canonical: BASE_URL,
   },
+  verification: {
+    google: "19ef2131f7ff3aa2",
+  },
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="aurora-bg min-h-screen flex flex-col">
+    <html lang="en" className={`${inter.variable} ${syne.variable}`}>
+      <body className={`aurora-bg min-h-screen flex flex-col`}>
         {/* FTC Affiliate Disclosure */}
         <div className="disclosure">
           Affiliate Disclosure: Aura Protocols earns commissions from qualifying purchases via affiliate links. This does not affect our editorial independence.
