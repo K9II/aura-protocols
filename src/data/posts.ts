@@ -110,10 +110,10 @@ export const posts: Post[] = [
       },
       {
         type: "cta",
-        text: "View BPC-157 at Peptide Sciences",
+        text: "View BPC-157 at Core Peptides",
         productSlug: "bpc-157",
-        vendor: "Peptide Sciences",
-        affiliateUrl: "https://www.peptidesciences.com/bpc-157",
+        vendor: "Core Peptides",
+        affiliateUrl: "https://www.corepeptides.com/peptides/bpc-157/?attribute_pa_size=5mg",
       },
       {
         type: "disclaimer",

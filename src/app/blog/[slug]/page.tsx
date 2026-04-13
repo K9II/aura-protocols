@@ -74,6 +74,11 @@ function renderSection(section: Section, i: number) {
           <div>
             <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">Recommended Vendor</p>
             <p className="font-bold text-white">{section.vendor}</p>
+            {section.productSlug && (
+              <Link href={`/products/${section.productSlug}`} className="text-xs text-cyan-400 hover:underline mt-1 inline-block">
+                View compound details →
+              </Link>
+            )}
           </div>
           <a
             href={section.affiliateUrl}
@@ -96,7 +101,7 @@ function renderSection(section: Section, i: number) {
   }
 }
 
-const BASE_URL = "https://aura-protocols.vercel.app";
+const BASE_URL = "https://shop.auraprotocols.com";
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

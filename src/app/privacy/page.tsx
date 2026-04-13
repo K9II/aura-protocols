@@ -46,7 +46,7 @@ export default function PrivacyPage() {
             This site contains affiliate links to third-party vendor websites. When you click one of these links, you are redirected to an external site operated by that vendor. The vendor may set cookies or use other tracking technologies to attribute your visit and any resulting purchase to Aura Protocols for commission purposes.
           </p>
           <p className="mt-4">
-            We do not have access to or control over the tracking data collected by third-party vendors. Our current affiliate partners include Peptide Sciences, Core Peptides, Limitless Life Nootropics, Swiss Chems, Behemoth Labz, and Blue Sky Peptides. We encourage you to review the privacy policies of any vendor site you visit.
+            We do not have access to or control over the tracking data collected by third-party vendors. Our current affiliate partners include Core Peptides, Limitless Life Nootropics, Swiss Chems, and Behemoth Labz. We encourage you to review the privacy policies of any vendor site you visit.
           </p>
         </section>
 
