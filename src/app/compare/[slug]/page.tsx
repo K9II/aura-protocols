@@ -10,9 +10,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const comp = comparisons.find((c) => c.slug === slug);
   if (!comp) return {};
+  const title = `${comp.vendorA} vs ${comp.vendorB} — Aura Protocols`;
   return {
-    title: `${comp.vendorA} vs ${comp.vendorB} — Aura Protocols`,
+    title,
     description: comp.intro,
+    openGraph: {
+      title,
+      description: comp.intro,
+      url: `https://shop.auraprotocols.com/compare/${comp.slug}`,
+      images: [{ url: `/compare/${comp.slug}/opengraph-image`, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: comp.intro,
+      images: [`/compare/${comp.slug}/opengraph-image`],
+    },
   };
 }
 

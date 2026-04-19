@@ -13,6 +13,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${product.name} — Aura Protocols`,
     description: product.description,
+    openGraph: {
+      title: `${product.name} — Aura Protocols`,
+      description: product.description,
+      url: `https://shop.auraprotocols.com/products/${product.slug}`,
+      images: [{ url: `/products/${product.slug}/opengraph-image`, width: 1200, height: 630, alt: product.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} — Aura Protocols`,
+      description: product.description,
+      images: [`/products/${product.slug}/opengraph-image`],
+    },
   };
 }
 
@@ -23,7 +35,7 @@ const categoryColors: Record<string, string> = {
   Wellness: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20",
 };
 
-const BASE_URL = "https://aura-protocols.vercel.app";
+const BASE_URL = "https://shop.auraprotocols.com";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

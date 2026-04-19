@@ -56,7 +56,7 @@ export const products: Product[] = [
     benefits: ["Appetite suppression", "Blood sugar regulation", "Fat loss support", "Cardiovascular benefits"],
     affiliate: {
       vendor: "Core Peptides",
-      url: "https://www.corepeptides.com/peptides/semaglutide-glp-1/?attribute_pa_size=3mg",
+      url: "https://www.corepeptides.com/peptides/semaglutide-glp-1-3mg/",
       commission: "12%",
     },
     badge: "Top Rated",
@@ -72,7 +72,7 @@ export const products: Product[] = [
     benefits: ["GH pulse optimization", "Lean muscle support", "Improved sleep quality", "Fat metabolism"],
     affiliate: {
       vendor: "Limitless Life Nootropics",
-      url: "https://limitlesslifenootropics.com/cart.php?action=add&product_id=191",
+      url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac/",
       commission: "15%",
     },
     featured: true,
@@ -87,7 +87,7 @@ export const products: Product[] = [
     benefits: ["Libido enhancement", "Sexual function support", "Mood elevation", "Melanocortin activation"],
     affiliate: {
       vendor: "Swiss Chems",
-      url: "https://swisschems.is/shop/?add-to-cart=560",
+      url: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/",
       commission: "10%",
     },
     featured: false,
@@ -102,7 +102,7 @@ export const products: Product[] = [
     benefits: ["Natural GH stimulation", "Anti-aging support", "Lean body composition", "Improved energy"],
     affiliate: {
       vendor: "Core Peptides",
-      url: "https://www.corepeptides.com/?add-to-cart=258",
+      url: "https://www.corepeptides.com/peptides/sermorelin/",
       commission: "12%",
     },
     featured: false,

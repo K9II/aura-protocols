@@ -14,6 +14,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${post.title} — Aura Protocols`,
     description: post.excerpt,
+    openGraph: {
+      title: `${post.title} — Aura Protocols`,
+      description: post.excerpt,
+      url: `https://shop.auraprotocols.com/blog/${post.slug}`,
+      images: [{ url: `/blog/${post.slug}/opengraph-image`, width: 1200, height: 630, alt: post.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${post.title} — Aura Protocols`,
+      description: post.excerpt,
+      images: [`/blog/${post.slug}/opengraph-image`],
+    },
   };
 }
 
