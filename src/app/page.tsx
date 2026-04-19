@@ -27,8 +27,8 @@ const vendors = [
   {
     name: "Core Peptides",
     commission: "12%",
-    specialty: "GLP-1 & Recovery",
-    note: "Best-in-class semaglutide, BPC-157, and TB-500 with same-day US shipping.",
+    specialty: "Recovery & Performance",
+    note: "Top-tier BPC-157, TB-500, and Sermorelin with same-day US shipping and batch COAs.",
     href: "https://www.corepeptides.com",
   },
   {
