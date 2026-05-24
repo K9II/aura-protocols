@@ -189,13 +189,6 @@ export const posts: Post[] = [
         text: "Neither semaglutide nor tirzepatide is approved for general use outside of specific medical indications. Research applications require appropriate institutional oversight.",
       },
       {
-        type: "cta",
-        text: "View Semaglutide at Core Peptides",
-        productSlug: "semaglutide",
-        vendor: "Core Peptides",
-        affiliateUrl: "https://corepeptides.com/semaglutide",
-      },
-      {
         type: "disclaimer",
         text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
       },
@@ -275,7 +268,7 @@ export const posts: Post[] = [
         text: "View CJC-1295 / Ipamorelin at Limitless Life Nootropics",
         productSlug: "cjc-1295-ipamorelin",
         vendor: "Limitless Life Nootropics",
-        affiliateUrl: "https://limitlesslifenootropics.com/cjc-1295-ipamorelin",
+        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac/",
       },
       {
         type: "disclaimer",
@@ -314,13 +307,6 @@ export const posts: Post[] = [
         ],
       },
       {
-        type: "cta",
-        text: "View Semaglutide at Core Peptides",
-        productSlug: "semaglutide",
-        vendor: "Core Peptides",
-        affiliateUrl: "https://corepeptides.com/semaglutide",
-      },
-      {
         type: "h2",
         text: "2. CJC-1295 / Ipamorelin — Indirect Fat Loss via GH",
       },
@@ -342,7 +328,7 @@ export const posts: Post[] = [
         text: "View CJC-1295 / Ipamorelin at Limitless Life Nootropics",
         productSlug: "cjc-1295-ipamorelin",
         vendor: "Limitless Life Nootropics",
-        affiliateUrl: "https://limitlesslifenootropics.com/cjc-1295-ipamorelin",
+        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac/",
       },
       {
         type: "h2",
@@ -416,13 +402,6 @@ export const posts: Post[] = [
       {
         type: "p",
         text: "In men, PT-141 has been studied both as a standalone compound and in combination with PDE5 inhibitors. Research shows improvements in erectile function scores, with the central pathway providing benefit even in cases where vascular approaches are insufficient. The dual mechanism — central desire activation plus possible peripheral effects — makes it a distinctive research subject.",
-      },
-      {
-        type: "cta",
-        text: "View PT-141 at Swiss Chems",
-        productSlug: "pt-141",
-        vendor: "Swiss Chems",
-        affiliateUrl: "https://swisschems.is/product/pt-141",
       },
       {
         type: "h2",

@@ -11,14 +11,15 @@ export default function AboutPage() {
 
       <div className="space-y-6 text-slate-400 leading-relaxed">
         <p>
-          Aura Protocols is an independent research peptide resource founded in 2026. Our mission is simple: cut through
-          the noise in the peptide vendor space and give researchers the information they need to source compounds they
-          can actually trust.
+          Aura Protocols was built out of frustration. After spending months trying to evaluate peptide vendors —
+          chasing down COAs, cross-referencing Reddit threads, and finding that most "review" sites were just
+          thinly-disguised ad pages — it became clear the space needed an editorially independent voice.
         </p>
         <p>
-          The peptide industry is crowded with inconsistent quality, misleading COA claims, and opaque sourcing. We
-          built this platform to be different — fully transparent, affiliate-disclosed, and editorially independent.
-          Every vendor recommendation is based on documented purity standards, not who pays us the most.
+          We are a small independent team focused on one thing: giving researchers the information they need to source
+          compounds they can actually trust. Every vendor recommendation is based on documented purity standards.
+          Commission rates do not influence rankings — vendors who don't meet our documentation standards don't
+          appear on this site, regardless of what they offer us.
         </p>
 
         {/* Stats bar */}
@@ -26,7 +27,7 @@ export default function AboutPage() {
           {[
             { stat: "25+", label: "Indexed pages" },
             { stat: "6", label: "Compounds reviewed" },
-            { stat: "4", label: "Vetted vendors" },
+            { stat: "3", label: "Vetted vendors" },
             { stat: "100%", label: "FTC compliant" },
           ].map(({ stat, label }) => (
             <div key={label} className="text-center">
