@@ -8,6 +8,7 @@ export default function EngineCTABanner() {
   const [dismissed, setDismissed] = useState(false);
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage.getItem(KEY) === "1") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from localStorage on mount; SSR-safe (default false renders on server, hydrates, then this checks persisted dismissal)
       setDismissed(true);
     }
   }, []);
