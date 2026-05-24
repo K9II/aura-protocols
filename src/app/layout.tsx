@@ -3,6 +3,7 @@ import { Inter, Syne } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import EngineCTABanner from "@/components/EngineCTABanner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const syne = Syne({ subsets: ["latin"], variable: "--font-display" });
@@ -53,6 +54,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${syne.variable}`}>
       <body className={`aurora-bg min-h-screen flex flex-col`}>
+        <EngineCTABanner />
         {/* FTC Affiliate Disclosure */}
         <div className="disclosure">
           Affiliate Disclosure: Aura Protocols earns commissions from qualifying purchases via affiliate links. This does not affect our editorial independence.
