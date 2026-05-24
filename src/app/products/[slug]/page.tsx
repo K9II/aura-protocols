@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { products } from "@/data/products";
+import EngineCTACard from "@/components/EngineCTACard";
 
 export function generateStaticParams() {
   return products.map((p) => ({ slug: p.slug }));
@@ -176,6 +177,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
       )}
+
+      <EngineCTACard />
     </div>
   );
 }

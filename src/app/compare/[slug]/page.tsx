@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { comparisons } from "@/data/comparisons";
+import EngineCTACard from "@/components/EngineCTACard";
 
 export function generateStaticParams() {
   return comparisons.map((c) => ({ slug: c.slug }));
@@ -222,6 +223,8 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
           ))}
         </div>
       </section>
+
+      <EngineCTACard />
 
       {/* Affiliate disclosure */}
       <p className="text-xs text-slate-600 border-t border-white/5 pt-6 leading-relaxed">
