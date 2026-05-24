@@ -1,3 +1,23 @@
+export type LinkPart = {
+  href: string;
+  text: string;
+  external?: boolean;   // if true, render <a target="_blank" rel>
+  sponsored?: boolean;  // if true, append "sponsored" to rel
+};
+
+export type Part = string | LinkPart;
+
+export type Section = {
+  type: "intro" | "h2" | "h3" | "p" | "ul" | "callout" | "cta" | "disclaimer" | "faq";
+  text?: string;
+  items?: string[];
+  productSlug?: string;
+  vendor?: string;
+  affiliateUrl?: string;
+  parts?: Part[];
+  faq?: Array<{ q: string; a: string }>;
+};
+
 export type Post = {
   slug: string;
   title: string;
@@ -6,15 +26,8 @@ export type Post = {
   date: string;
   readTime: string;
   content: Section[];
-};
-
-export type Section = {
-  type: "intro" | "h2" | "h3" | "p" | "ul" | "callout" | "cta" | "disclaimer";
-  text?: string;
-  items?: string[];
-  productSlug?: string;
-  vendor?: string;
-  affiliateUrl?: string;
+  wordCount?: number;
+  lastUpdated?: string;
 };
 
 export const posts: Post[] = [
