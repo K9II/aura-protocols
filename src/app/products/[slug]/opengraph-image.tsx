@@ -28,9 +28,11 @@ export default async function Image({
     join(process.cwd(), "public/fonts/Syne-Bold.ttf")
   );
 
-  const accent = product
-    ? (categoryAccent[product.category] ?? "#00d4ff")
-    : "#00d4ff";
+  const accent = product ? (categoryAccent[product.category] ?? "#00d4ff") : "#00d4ff";
+  const name = product?.name ?? "Research Peptide";
+  const category = product?.category ?? "Research Compound";
+  const vendor = product?.affiliate.vendor ?? "";
+  const benefits = product?.benefits.slice(0, 3) ?? [];
 
   return new ImageResponse(
     (
@@ -40,157 +42,191 @@ export default async function Image({
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
-          padding: "60px 72px",
           position: "relative",
+          overflow: "hidden",
         }}
       >
+        {/* Left accent bar */}
         <div
           style={{
             position: "absolute",
-            top: -60,
-            left: -60,
-            width: 420,
-            height: 420,
-            borderRadius: "50%",
-            background: `radial-gradient(circle, ${accent}22 0%, transparent 70%)`,
+            left: 0,
+            top: 0,
+            width: 8,
+            height: "100%",
+            background: accent,
           }}
         />
+
+        {/* Glow */}
         <div
           style={{
             position: "absolute",
-            bottom: -80,
-            right: -40,
-            width: 360,
-            height: 360,
+            top: -100,
+            right: -60,
+            width: 500,
+            height: 500,
             borderRadius: "50%",
-            background:
-              "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)",
+            background: `radial-gradient(circle, ${accent}28 0%, transparent 65%)`,
           }}
         />
 
-        <div
-          style={{ display: "flex", alignItems: "center", marginBottom: 24 }}
-        >
-          <div
-            style={{
-              border: `1px solid ${accent}44`,
-              background: `${accent}15`,
-              color: accent,
-              fontSize: 14,
-              fontFamily: "Syne",
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              padding: "6px 16px",
-              borderRadius: 999,
-            }}
-          >
-            {product?.category ?? "Research Compound"}
-          </div>
-          {product?.badge && (
-            <div
-              style={{
-                marginLeft: 12,
-                background: "linear-gradient(135deg, #00d4ff, #8b5cf6)",
-                color: "#fff",
-                fontSize: 12,
-                fontFamily: "Syne",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                padding: "6px 14px",
-                borderRadius: 999,
-              }}
-            >
-              {product.badge}
-            </div>
-          )}
-        </div>
-
-        <div
-          style={{
-            fontFamily: "Syne",
-            fontSize:
-              product?.name && product.name.length > 20 ? 64 : 80,
-            fontWeight: 800,
-            color: "#e2e8f0",
-            letterSpacing: "-0.03em",
-            lineHeight: 1.1,
-            marginBottom: 20,
-            flex: 1,
-          }}
-        >
-          {product?.name ?? "Research Peptide"}
-        </div>
-
-        {product?.benefits[0] && (
-          <div
-            style={{
-              fontFamily: "Syne",
-              fontSize: 22,
-              color: "#64748b",
-              marginBottom: 40,
-            }}
-          >
-            {product.benefits[0]}
-          </div>
-        )}
-
+        {/* Outer layout */}
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderTop: "1px solid rgba(255,255,255,0.08)",
-            paddingTop: 24,
+            width: "100%",
+            padding: "56px 72px 52px 88px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                background: "linear-gradient(135deg, #00d4ff, #8b5cf6)",
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <div style={{ color: "#fff", fontSize: 18, fontWeight: 800 }}>
-                A
-              </div>
-            </div>
-            <div
-              style={{
-                fontFamily: "Syne",
-                fontSize: 20,
-                fontWeight: 700,
-                color: "#e2e8f0",
-              }}
-            >
-              Aura Protocols
-            </div>
-          </div>
+          {/* Left column */}
           <div
             style={{
-              fontFamily: "Syne",
-              fontSize: 15,
-              color: "#00d4ff",
-              opacity: 0.7,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              flex: 1,
             }}
           >
-            shop.auraprotocols.com
+            {/* Top: badges + name grouped */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+              {/* Category row */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    background: `${accent}20`,
+                    border: `1px solid ${accent}55`,
+                    color: accent,
+                    fontSize: 14,
+                    fontFamily: "Syne",
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    padding: "7px 18px",
+                    borderRadius: 999,
+                  }}
+                >
+                  {category}
+                </div>
+                {product?.badge ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      color: "#e2e8f0",
+                      fontSize: 13,
+                      fontFamily: "Syne",
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      padding: "7px 16px",
+                      borderRadius: 999,
+                    }}
+                  >
+                    {product.badge}
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Product name */}
+              <div
+                style={{
+                  display: "flex",
+                  fontFamily: "Syne",
+                  fontSize: name.length > 20 ? 60 : name.length > 15 ? 72 : 96,
+                  fontWeight: 800,
+                  color: "#f1f5f9",
+                  letterSpacing: "-0.04em",
+                  lineHeight: 1.1,
+                  maxWidth: 580,
+                  flexWrap: "wrap",
+                }}
+              >
+                {name}
+              </div>
+            </div>
+
+            {/* Bottom bar */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    background: "linear-gradient(135deg, #00d4ff, #8b5cf6)",
+                    borderRadius: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <div style={{ display: "flex", color: "#fff", fontSize: 18, fontWeight: 800, fontFamily: "Syne" }}>
+                    A
+                  </div>
+                </div>
+                <div style={{ display: "flex", fontFamily: "Syne", fontSize: 18, color: "#94a3b8" }}>
+                  Aura Protocols
+                </div>
+              </div>
+              {vendor ? (
+                <div style={{ display: "flex", fontFamily: "Syne", fontSize: 16, color: accent, opacity: 0.8 }}>
+                  {"via " + vendor}
+                </div>
+              ) : null}
+            </div>
           </div>
+
+          {/* Right column — benefits */}
+          {benefits.length > 0 ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                gap: 14,
+                marginLeft: 48,
+                marginRight: 8,
+                width: 260,
+                flexShrink: 0,
+              }}
+            >
+              {benefits.map((b, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 12,
+                    padding: "14px 18px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: accent,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ display: "flex", fontFamily: "Syne", fontSize: 16, color: "#cbd5e1" }}>
+                    {b}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     ),
     {
       ...size,
-      fonts: [
-        { name: "Syne", data: syneBold, style: "normal", weight: 700 },
-      ],
+      fonts: [{ name: "Syne", data: syneBold, style: "normal", weight: 700 }],
     }
   );
 }

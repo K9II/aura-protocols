@@ -73,7 +73,7 @@ export const products: Product[] = [
     benefits: ["GH pulse optimization", "Lean muscle support", "Improved sleep quality", "Fat metabolism"],
     affiliate: {
       vendor: "Limitless Life Nootropics",
-      url: "https://limitlesslifenootropics.com/cart.php?action=add&product_id=191",
+      url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac/",
       commission: "15%",
     },
     featured: true,

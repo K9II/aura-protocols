@@ -118,10 +118,10 @@ export default function HomePage() {
         <div className="max-w-3xl mx-auto mt-16">
           <div className="glass flex flex-col sm:flex-row items-center justify-around gap-6 px-8 py-6">
             {[
-              { stat: "6+", label: "Researched Compounds" },
-              { stat: "3", label: "Vetted Vendors" },
-              { stat: "COA", label: "Verified Purity" },
-              { stat: "100%", label: "FTC Compliant" },
+              { stat: "COA", label: "Third-Party Tested" },
+              { stat: "0", label: "Pay-to-Play Vendors" },
+              { stat: "100%", label: "Affiliate Disclosed" },
+              { stat: "Manual", label: "Review Required" },
             ].map(({ stat, label }) => (
               <div key={label} className="text-center">
                 <p className="font-display text-2xl font-bold" style={{ color: "var(--cyan)" }}>
