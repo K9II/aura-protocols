@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { posts } from "@/data/posts";
-import type { Section } from "@/data/posts";
+import type { Section, LinkPart } from "@/data/posts";
 import EngineCTAInline from "@/components/EngineCTAInline";
 import EngineCTACard from "@/components/EngineCTACard";
 
@@ -62,7 +62,34 @@ function renderSection(section: Section, i: number) {
     case "p":
       return (
         <p key={i} className="text-slate-400 leading-relaxed my-4">
-          {section.text}
+          {section.parts
+            ? section.parts.map((part, j) => {
+                if (typeof part === "string") return part;
+                const p = part as LinkPart;
+                if (p.external) {
+                  return (
+                    <a
+                      key={j}
+                      href={p.href}
+                      target="_blank"
+                      rel={p.sponsored ? "noopener noreferrer sponsored" : "noopener noreferrer"}
+                      className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2"
+                    >
+                      {p.text}
+                    </a>
+                  );
+                }
+                return (
+                  <Link
+                    key={j}
+                    href={p.href}
+                    className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2"
+                  >
+                    {p.text}
+                  </Link>
+                );
+              })
+            : section.text}
         </p>
       );
     case "ul":
@@ -109,6 +136,20 @@ function renderSection(section: Section, i: number) {
         <p key={i} className="text-xs text-slate-600 border-t border-white/5 pt-6 mt-8 leading-relaxed">
           {section.text}
         </p>
+      );
+    case "faq":
+      return (
+        <section key={i} className="my-10">
+          <h2 className="text-2xl font-bold text-white mt-10 mb-4">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            {section.faq?.map((item, j) => (
+              <div key={j} className="glass p-5">
+                <p className="font-semibold text-white mb-2">{item.q}</p>
+                <p className="text-sm text-slate-400 leading-relaxed">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
       );
     default:
       return null;
