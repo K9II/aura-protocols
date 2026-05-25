@@ -147,13 +147,8 @@ body {
 }
 
 /* Beehiiv form centering */
-.beehiiv-center,
-.beehiiv-center > * {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 .beehiiv-center iframe {
+  display: block;
   margin-left: auto;
   margin-right: auto;
 }
