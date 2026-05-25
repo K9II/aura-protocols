@@ -4,10 +4,13 @@ import EmailCapture from "@/components/EmailCapture";
 import { LEAD_MAGNET } from "@/lib/constants";
 
 describe("EmailCapture", () => {
-  it("renders the lead magnet title and a Beehiiv iframe pointing at the configured embed URL", () => {
-    render(<EmailCapture />);
+  it("renders the lead magnet title and injects the Beehiiv loader script with the configured form id", async () => {
+    const { container } = render(<EmailCapture />);
     expect(screen.getByText(LEAD_MAGNET.title)).toBeInTheDocument();
-    const iframe = screen.getByTitle(/email signup/i) as HTMLIFrameElement;
-    expect(iframe.src).toContain(LEAD_MAGNET.beehiivEmbedUrl);
+    const script = container.querySelector(
+      `script[data-beehiiv-form="${LEAD_MAGNET.beehiivFormId}"]`,
+    ) as HTMLScriptElement | null;
+    expect(script).not.toBeNull();
+    expect(script?.src).toContain(LEAD_MAGNET.beehiivLoaderSrc);
   });
 });

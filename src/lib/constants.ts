@@ -5,8 +5,9 @@ export const EXTERNAL_REL = "noopener noreferrer";
 export const LEAD_MAGNET = {
   title: "The Peptide Protocol Cheat Sheet",
   blurb: "One page. Doses, stacks, timing, COA red flags. Free PDF.",
-  beehiivPublicationId: "PLACEHOLDER_PUB_ID",
-  beehiivEmbedUrl: "https://embeds.beehiiv.com/PLACEHOLDER_PUB_ID",
+  beehiivPublicationId: "pub_923fd119-6bff-4ca5-9bcf-0250796fde4d",
+  beehiivFormId: "d60dc7cc-99e5-426c-acac-dfcd3a72198b",
+  beehiivLoaderSrc: "https://subscribe-forms.beehiiv.com/v3/loader.js",
 };
 
 export const PLAYBOOK = {
