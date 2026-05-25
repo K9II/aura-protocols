@@ -39,7 +39,7 @@ export default function ValuePropTriad() {
           key={p.title}
           className={`rounded-2xl border bg-gradient-to-br ${p.accent} p-6 overflow-visible`}
         >
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-300">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-300 pt-1">
             {p.eyebrow}
           </p>
           <h3 className="font-display mt-2 text-2xl font-bold text-white leading-snug pb-0.5">{p.title}</h3>
