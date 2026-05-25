@@ -146,6 +146,18 @@ body {
   animation: marquee 24s linear infinite;
 }
 
+/* Beehiiv form centering */
+.beehiiv-center,
+.beehiiv-center > * {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.beehiiv-center iframe {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Disclosure banner */
 .disclosure {
   font-size: 0.75rem;
