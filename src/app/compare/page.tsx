@@ -13,7 +13,7 @@ export default function ComparePage() {
       <p className="text-xs uppercase tracking-widest text-violet-400 font-semibold mb-2">Vendor Comparisons</p>
       <h1 className="text-4xl font-extrabold text-white mb-4">Compare Peptide Vendors</h1>
       <p className="text-slate-400 mb-12 leading-relaxed max-w-2xl">
-        We independently compare the top research peptide suppliers across purity, pricing, catalog depth, and affiliate commission — so you can choose with confidence.
+        We independently compare the top research peptide suppliers across purity, pricing, catalog depth, and shipping — so you can choose with confidence.
       </p>
 
       <div className="space-y-5">
