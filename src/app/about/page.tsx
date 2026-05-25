@@ -25,9 +25,9 @@ export default function AboutPage() {
         {/* Stats bar */}
         <div className="glass p-6 grid grid-cols-2 sm:grid-cols-4 gap-6 my-8">
           {[
-            { stat: "25+", label: "Indexed pages" },
+            { stat: "4", label: "Research categories" },
             { stat: "6", label: "Compounds reviewed" },
-            { stat: "3", label: "Vetted vendors" },
+            { stat: "4", label: "Vetted vendors" },
             { stat: "100%", label: "FTC compliant" },
           ].map(({ stat, label }) => (
             <div key={label} className="text-center">

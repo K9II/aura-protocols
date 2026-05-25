@@ -125,21 +125,25 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
       <section className="mb-12">
         <h2 className="text-2xl font-bold text-white mb-6">Category Breakdown</h2>
         <div className="glass overflow-hidden">
-          <div className="grid grid-cols-4 gap-4 px-6 py-3 border-b border-white/5 text-xs uppercase tracking-widest text-slate-500 font-semibold">
-            <div className="col-span-2">Category</div>
-            <div>{comp.vendorA}</div>
-            <div>{comp.vendorB}</div>
-          </div>
-          {comp.scores.map((s, i) => (
-            <div key={i} className="grid grid-cols-4 gap-4 px-6 py-4 border-b border-white/5 last:border-0 items-center">
-              <div className="col-span-2">
-                <p className="text-sm font-semibold text-white">{s.category}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{s.note}</p>
+          <div className="overflow-x-auto">
+            <div className="min-w-[400px]">
+              <div className="grid grid-cols-4 gap-4 px-6 py-3 border-b border-white/5 text-xs uppercase tracking-widest text-slate-500 font-semibold">
+                <div className="col-span-2">Category</div>
+                <div>{comp.vendorA}</div>
+                <div>{comp.vendorB}</div>
               </div>
-              <ScoreBar score={s.vendorA} />
-              <ScoreBar score={s.vendorB} />
+              {comp.scores.map((s, i) => (
+                <div key={i} className="grid grid-cols-4 gap-4 px-6 py-4 border-b border-white/5 last:border-0 items-center">
+                  <div className="col-span-2">
+                    <p className="text-sm font-semibold text-white">{s.category}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{s.note}</p>
+                  </div>
+                  <ScoreBar score={s.vendorA} />
+                  <ScoreBar score={s.vendorB} />
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </section>
 

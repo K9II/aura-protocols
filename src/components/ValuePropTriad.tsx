@@ -37,9 +37,9 @@ export default function ValuePropTriad() {
       {pillars.map((p) => (
         <div
           key={p.title}
-          className={`rounded-2xl border bg-gradient-to-br ${p.accent} p-6 overflow-visible`}
+          className={`rounded-2xl border bg-gradient-to-br ${p.accent} px-6 pt-8 pb-6 overflow-visible`}
         >
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-300 pt-1">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-300">
             {p.eyebrow}
           </p>
           <h3 className="font-display mt-2 text-2xl font-bold text-white">{p.title}</h3>

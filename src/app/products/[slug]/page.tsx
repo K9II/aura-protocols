@@ -134,9 +134,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               Buy from {product.affiliate.vendor} →
             </a>
 
-            <p className="text-xs text-slate-500 mt-4 leading-relaxed">
-              Affiliate link — Aura Protocols earns a commission at no extra cost to you. We only recommend vendors we trust.
-            </p>
           </div>
 
           {/* Trust badges */}
