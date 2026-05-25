@@ -90,7 +90,7 @@ export const products: Product[] = [
       url: "https://swisschems.is/?add-to-cart=560",
       commission: "10%",
     },
-    featured: false,
+    featured: true,
   },
   {
     id: "sermorelin",
@@ -105,7 +105,7 @@ export const products: Product[] = [
       url: "https://www.corepeptides.com/?add-to-cart=258",
       commission: "12%",
     },
-    featured: false,
+    featured: true,
   },
 ];
 
