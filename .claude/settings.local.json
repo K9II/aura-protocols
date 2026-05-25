@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(update-config)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "WebSearch",
+      "Bash(npm run:*)",
+      "WebFetch(domain:www.corepeptides.com)",
+      "Bash(xargs grep *)",
+      "Bash(curl -L \"https://fonts.gstatic.com/s/syne/v22/8vIS7w4qzmVxsWxjBZRjr0FKM_04uQ.ttf\" -o \"c:/Users/kadam/k9_AI_Projects/aura-protocols/public/fonts/Syne-Bold.ttf\")",
+      "Bash(curl -s \"https://fonts.googleapis.com/css2?family=Syne:wght@700\" -H \"User-Agent: Mozilla/5.0\")",
+      "Bash(mkdir -p \"C:/Users/kadam/k9_AI_Projects/aura-protocols/.claude/commands\")",
+      "Bash(cp \"C:/Users/kadam/k9_AI_Projects/aura-protocols/.claude/skills/validate.md\" \"C:/Users/kadam/k9_AI_Projects/aura-protocols/.claude/commands/validate.md\")"
+    ]
+  },
+  "env": {
+    "ECC_GATEGUARD": "off",
+    "ECC_DISABLED_HOOKS": "pre:edit-write:gateguard-fact-force,pre:bash:gateguard-fact-force"
+  }
+}
