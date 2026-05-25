@@ -28,13 +28,6 @@ export default async function Image({
       ? comp.vendorB
       : null;
 
-  const loserName =
-    comp?.winner === "A"
-      ? comp.vendorB
-      : comp?.winner === "B"
-      ? comp.vendorA
-      : null;
-
   return new ImageResponse(
     (
       <div

@@ -23,18 +23,18 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 pt-16 pb-12 md:pt-24">
+      <section className="mx-auto max-w-6xl px-6 pt-16 pb-12 text-center md:pt-24">
         <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">
           Personalized peptide protocols
         </p>
         <h1 className="font-display mt-3 text-4xl font-bold text-white md:text-6xl">
           Stop guessing your stack.<br />Tune it to your biometrics.
         </h1>
-        <p className="mt-5 max-w-2xl text-lg text-slate-300">
+        <p className="mt-5 max-w-2xl mx-auto text-lg text-slate-300">
           Aura reads your wearable data and returns a peptide protocol tuned to your actual
           recovery, sleep, and stress — not a generic forum stack. Free. Independent.
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <a
             href={ENGINE_URL}
             target="_blank"
