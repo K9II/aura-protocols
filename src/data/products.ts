@@ -46,23 +46,22 @@ export const products: Product[] = [
     },
     featured: true,
   },
-  // Semaglutide hidden — Core Peptides delisted it; restore when vendor is confirmed
-  // {
-  //   id: "semaglutide",
-  //   name: "Semaglutide",
-  //   slug: "semaglutide",
-  //   category: "Weight Management",
-  //   description:
-  //     "GLP-1 receptor agonist widely studied for appetite regulation, blood sugar control, and body composition.",
-  //   benefits: ["Appetite suppression", "Blood sugar regulation", "Fat loss support", "Cardiovascular benefits"],
-  //   affiliate: {
-  //     vendor: "Ignite Peptides",
-  //     url: "https://ignitepeptides.com/?add-to-cart=2888",
-  //     commission: "TBD",
-  //   },
-  //   badge: "Top Rated",
-  //   featured: true,
-  // },
+  {
+    id: "semaglutide",
+    name: "Semaglutide (GLP-1)",
+    slug: "semaglutide",
+    category: "Weight Management",
+    description:
+      "GLP-1 receptor agonist widely studied for appetite regulation, blood sugar control, and body composition.",
+    benefits: ["Appetite suppression", "Blood sugar regulation", "Fat loss support", "Cardiovascular benefits"],
+    affiliate: {
+      vendor: "GLP-1 Research Lab",
+      url: "https://glp1researchlab.com?raf=ref6072993",
+      commission: "30%",
+    },
+    badge: "Top Rated",
+    featured: true,
+  },
   {
     id: "cjc-1295-ipamorelin",
     name: "CJC-1295 / Ipamorelin",

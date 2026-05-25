@@ -45,7 +45,7 @@ export const comparisons: Comparison[] = [
       { category: "Pricing", vendorA: 4, vendorB: 4, note: "Both are competitively priced; Swiss Chems edges ahead on some niche compounds" },
       { category: "Shipping Speed", vendorA: 5, vendorB: 3, note: "Core Peptides ships same-day domestically; Swiss Chems has longer international lead times" },
       { category: "COA Accessibility", vendorA: 5, vendorB: 4, note: "Core Peptides provides COAs per batch; Swiss Chems documentation varies by compound" },
-      { category: "Affiliate Commission", vendorA: 5, vendorB: 3, note: "Core Peptides offers 12% flat vs Swiss Chems at 10%" },
+      { category: "Affiliate Commission", vendorA: 3, vendorB: 5, note: "Swiss Chems offers 20% via referral link vs Core Peptides at 12%" },
     ],
     vendorASummary:
       "Core Peptides has emerged as one of the most trusted US-based peptide vendors, particularly for GLP-1 compounds like semaglutide and tirzepatide. Their catalog covers the highest-demand research compounds with clean documentation, fast domestic shipping, and a 12% affiliate commission.",
