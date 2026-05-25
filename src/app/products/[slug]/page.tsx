@@ -123,8 +123,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="space-y-4">
           <div className="glass p-6 glow-cyan sticky top-24">
             <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">Recommended Vendor</p>
-            <p className="text-lg font-bold text-white mb-1">{product.affiliate.vendor}</p>
-            <p className="text-sm text-emerald-400 font-semibold mb-5">{product.affiliate.commission} affiliate commission</p>
+            <p className="text-lg font-bold text-white mb-5">{product.affiliate.vendor}</p>
 
             <a
               href={product.affiliate.url}
