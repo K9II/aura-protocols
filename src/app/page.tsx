@@ -27,7 +27,7 @@ export default function HomePage() {
         <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">
           Personalized peptide protocols
         </p>
-        <h1 className="font-display mt-3 text-4xl font-bold text-white md:text-6xl">
+        <h1 className="font-display mt-3 text-4xl font-bold text-white leading-tight md:text-6xl md:leading-[1.1]">
           Stop guessing your stack.<br />Tune it to your biometrics.
         </h1>
         <p className="mt-5 max-w-2xl mx-auto text-lg text-slate-300">
