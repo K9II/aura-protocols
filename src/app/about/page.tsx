@@ -12,13 +12,13 @@ export default function AboutPage() {
       <div className="space-y-6 text-slate-400 leading-relaxed">
         <p>
           Aura Protocols was built out of frustration. After spending months trying to evaluate peptide vendors —
-          chasing down COAs, cross-referencing Reddit threads, and finding that most "review" sites were just
+          chasing down COAs, cross-referencing Reddit threads, and finding that most &ldquo;review&rdquo; sites were just
           thinly-disguised ad pages — it became clear the space needed an editorially independent voice.
         </p>
         <p>
           We are a small independent team focused on one thing: giving researchers the information they need to source
           compounds they can actually trust. Every vendor recommendation is based on documented purity standards.
-          Commission rates do not influence rankings — vendors who don't meet our documentation standards don't
+          Commission rates do not influence rankings — vendors who don&apos;t meet our documentation standards don&apos;t
           appear on this site, regardless of what they offer us.
         </p>
 
@@ -77,7 +77,7 @@ export default function AboutPage() {
           feature vendors who do not meet our purity and documentation benchmarks regardless of what they offer us.
         </p>
         <p>
-          All affiliate links are labeled with <code className="text-xs bg-white/5 px-1.5 py-0.5 rounded">rel="sponsored"</code> per
+          All affiliate links are labeled with <code className="text-xs bg-white/5 px-1.5 py-0.5 rounded">rel=&quot;sponsored&quot;</code> per
           FTC and Google guidelines.
         </p>
 
