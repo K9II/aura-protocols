@@ -88,7 +88,7 @@ export const products: Product[] = [
     affiliate: {
       vendor: "Swiss Chems",
       url: "https://swisschems.is/?add-to-cart=560",
-      commission: "10%",
+      commission: "20%",
     },
     featured: true,
   },

@@ -67,19 +67,18 @@ export const comparisons: Comparison[] = [
       "Broadest catalog including SARMs and ancillaries",
       "Strong international shipping network",
       "Competitive pricing on niche peptides",
-      "Tiered affiliate commission (up to 15%)",
+      "20% affiliate commission via referral link",
     ],
     vendorBCons: [
       "Slower US domestic shipping vs Core Peptides",
       "COA detail varies by compound",
-      "Lower base commission rate (10%)",
     ],
     verdict:
-      "US researchers focused on GLP-1, recovery, or growth hormone compounds should go with Core Peptides — better commission, faster shipping, and cleaner documentation. If you need SARMs alongside your peptides, or you're sourcing internationally, Swiss Chems is the stronger option.",
+      "US researchers focused on GLP-1, recovery, or growth hormone compounds should go with Core Peptides — faster shipping and cleaner documentation. If you need SARMs alongside your peptides, or you're sourcing internationally, Swiss Chems is the stronger option — and their 20% affiliate commission is the highest in the space.",
     vendorAUrl: "https://www.corepeptides.com",
     vendorBUrl: "https://swisschems.is",
     vendorACommission: "12%",
-    vendorBCommission: "10%",
+    vendorBCommission: "20%",
     faq: [
       {
         q: "Which vendor has better purity testing?",
@@ -95,7 +94,7 @@ export const comparisons: Comparison[] = [
       },
       {
         q: "Which has better affiliate commissions?",
-        a: "Core Peptides offers a flat 12% commission. Swiss Chems starts at 10% with tiered increases for higher referral volumes. For most affiliates, Core Peptides provides better baseline earnings.",
+        a: "Swiss Chems offers 20% commission via referral link, making them one of the highest-paying vendors in the research peptide space. Core Peptides offers a flat 12%. For affiliates, Swiss Chems has the stronger commission structure.",
       },
     ],
   },
@@ -115,7 +114,7 @@ export const comparisons: Comparison[] = [
       { category: "Pricing", vendorA: 3, vendorB: 4, note: "Swiss Chems is more competitive on individual compound pricing" },
       { category: "Shipping Speed", vendorA: 5, vendorB: 3, note: "Limitless ships same-day domestically; Swiss Chems has longer international lead times" },
       { category: "COA Accessibility", vendorA: 4, vendorB: 4, note: "Both provide COAs; detail is comparable across their core peptide offerings" },
-      { category: "Affiliate Commission", vendorA: 5, vendorB: 3, note: "Limitless offers 15% vs Swiss Chems at 10% — a meaningful gap" },
+      { category: "Affiliate Commission", vendorA: 3, vendorB: 5, note: "Swiss Chems offers 20% vs Limitless at 15% — highest in the space" },
     ],
     vendorASummary:
       "Limitless Life Nootropics (also known as Limitless Biotech) has carved out a strong niche in growth hormone secretagogues and performance peptide stacks. Their pre-blended CJC-1295/Ipamorelin combinations, 15% affiliate commission, and USA manufacturing make them a top choice for GH-focused research programs.",
@@ -140,20 +139,19 @@ export const comparisons: Comparison[] = [
       "Good option for PT-141 and niche compounds",
     ],
     vendorBCons: [
-      "Lower affiliate commission (10%)",
       "Longer US domestic shipping times",
       "COA detail can vary by compound",
     ],
     verdict:
-      "If your research content focuses on growth hormone optimization, anti-aging, or performance stacks — and you want the highest commission rate — Limitless Life Nootropics is the clear winner. For broader compound access including SARMs, or for international sourcing, Swiss Chems is the more versatile pick.",
+      "If your research content focuses on growth hormone optimization, anti-aging, or performance stacks, Limitless Biotech is the stronger catalog pick. For the highest affiliate commission in the space (20%) and broader compound access including SARMs, Swiss Chems wins.",
     vendorAUrl: "https://limitlesslifenootropics.com",
     vendorBUrl: "https://swisschems.is",
     vendorACommission: "15%",
-    vendorBCommission: "10%",
+    vendorBCommission: "20%",
     faq: [
       {
         q: "Which has better affiliate commissions?",
-        a: "Limitless Life Nootropics offers 15% commission vs Swiss Chems at 10%. On $5,000 in referred sales per month, that's $750 vs $500 — a $250/month difference that compounds significantly at scale.",
+        a: "Swiss Chems offers 20% commission via referral link vs Limitless Biotech at 15%. On $5,000 in referred sales per month, that's $1,000 vs $750 — Swiss Chems has the edge at scale.",
       },
       {
         q: "Which is better for CJC-1295/Ipamorelin?",
