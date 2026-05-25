@@ -1,6 +1,8 @@
 import { LEAD_MAGNET } from "@/lib/constants";
 
 export default function EmailCapture() {
+  if (LEAD_MAGNET.beehiivPublicationId === "PLACEHOLDER_PUB_ID") return null;
+
   return (
     <section className="rounded-2xl border border-white/10 bg-[#0d1117] p-8">
       <h3 className="font-display text-2xl font-bold text-white">{LEAD_MAGNET.title}</h3>
