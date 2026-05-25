@@ -20,10 +20,10 @@ export default function EmailCapture() {
   if (LEAD_MAGNET.beehiivPublicationId === "PLACEHOLDER_PUB_ID") return null;
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-[#0d1117] p-8">
+    <section className="rounded-2xl border border-white/10 bg-[#0d1117] p-8 text-center">
       <h3 className="font-display text-2xl font-bold text-white">{LEAD_MAGNET.title}</h3>
-      <p className="mt-2 text-slate-300">{LEAD_MAGNET.blurb}</p>
-      <div ref={containerRef} className="mt-4" />
+      <p className="mt-2 text-slate-300 max-w-xl mx-auto">{LEAD_MAGNET.blurb}</p>
+      <div ref={containerRef} className="mt-4 flex justify-center" />
     </section>
   );
 }

@@ -42,7 +42,7 @@ export default function ValuePropTriad() {
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-300">
             {p.eyebrow}
           </p>
-          <h3 className="font-display mt-2 text-2xl font-bold text-white">{p.title}</h3>
+          <h3 className="font-display mt-2 text-2xl font-bold text-white pl-px">{p.title}</h3>
           <p className="mt-3 text-slate-300">{p.body}</p>
           {p.external ? (
             <a
