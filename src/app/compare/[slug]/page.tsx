@@ -109,7 +109,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
               <span className="badge absolute -top-3 left-1/2 -translate-x-1/2">Top Pick</span>
             )}
             <p className="font-bold text-white text-lg mb-4">{v.name}</p>
-            <
+            <a
               href={v.url}
               target="_blank"
               rel="noopener noreferrer sponsored"
