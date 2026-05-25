@@ -101,16 +101,15 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
       {/* Head-to-head hero */}
       <div className="grid grid-cols-2 gap-4 mb-12">
         {[
-          { name: comp.vendorA, url: comp.vendorAUrl, commission: comp.vendorACommission, isWinner: comp.winner === "A" },
-          { name: comp.vendorB, url: comp.vendorBUrl, commission: comp.vendorBCommission, isWinner: comp.winner === "B" },
+          { name: comp.vendorA, url: comp.vendorAUrl, isWinner: comp.winner === "A" },
+          { name: comp.vendorB, url: comp.vendorBUrl, isWinner: comp.winner === "B" },
         ].map((v) => (
           <div key={v.name} className={`glass p-6 text-center relative ${v.isWinner ? "border-cyan-400/30 glow-cyan" : ""}`}>
             {v.isWinner && (
               <span className="badge absolute -top-3 left-1/2 -translate-x-1/2">Top Pick</span>
             )}
-            <p className="font-bold text-white text-lg mb-1">{v.name}</p>
-            <p className="text-sm text-emerald-400 font-semibold mb-4">{v.commission} commission</p>
-            <a
+            <p className="font-bold text-white text-lg mb-4">{v.name}</p>
+            <
               href={v.url}
               target="_blank"
               rel="noopener noreferrer sponsored"
@@ -153,7 +152,6 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             pros: comp.vendorAPros,
             cons: comp.vendorACons,
             url: comp.vendorAUrl,
-            commission: comp.vendorACommission,
             isWinner: comp.winner === "A",
           },
           {
@@ -162,7 +160,6 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             pros: comp.vendorBPros,
             cons: comp.vendorBCons,
             url: comp.vendorBUrl,
-            commission: comp.vendorBCommission,
             isWinner: comp.winner === "B",
           },
         ].map((v) => (
@@ -170,7 +167,6 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             <div>
               {v.isWinner && <span className="badge mb-2 inline-block">Top Pick</span>}
               <h3 className="text-xl font-bold text-white">{v.name}</h3>
-              <p className="text-emerald-400 text-sm font-semibold">{v.commission} affiliate commission</p>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed">{v.summary}</p>
             <div>
