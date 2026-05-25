@@ -234,4 +234,202 @@ export const comparisons: Comparison[] = [
       },
     ],
   },
+  {
+    slug: "glp1-research-lab-vs-core-peptides",
+    vendorA: "GLP-1 Research Lab",
+    vendorB: "Core Peptides",
+    headline: "GLP-1 Research Lab vs Core Peptides (2026): Best for GLP-1 Research?",
+    intro:
+      "GLP-1 Research Lab and Core Peptides both serve the growing GLP-1 research market, but from very different angles. GLP-1 Research Lab is laser-focused on semaglutide and tirzepatide with an industry-leading 30% affiliate commission, while Core Peptides offers a broader peptide catalog with strong domestic shipping. Here's how they compare for GLP-1 researchers.",
+    winner: "A",
+    winnerReason:
+      "For affiliates and researchers focused exclusively on GLP-1 compounds, GLP-1 Research Lab wins on commission (30%), cookie window (90 days), and catalog specialization. Core Peptides is the stronger pick if you need GLP-1 alongside recovery and performance peptides in one order.",
+    scores: [
+      { category: "Purity & Testing", vendorA: 5, vendorB: 4, note: "Both provide third-party testing; GLP-1 Research Lab is USA-sourced with consistent COA publishing" },
+      { category: "Catalog Size", vendorA: 2, vendorB: 4, note: "GLP-1 Research Lab focuses exclusively on GLP-1 compounds; Core Peptides has a broader peptide catalog" },
+      { category: "Pricing", vendorA: 4, vendorB: 4, note: "Competitive pricing across both vendors for GLP-1 compounds" },
+      { category: "Shipping Speed", vendorA: 4, vendorB: 5, note: "Core Peptides has a slight edge with same-day domestic shipping" },
+      { category: "COA Accessibility", vendorA: 5, vendorB: 4, note: "GLP-1 Research Lab publishes COAs consistently for all compounds" },
+      { category: "Affiliate Commission", vendorA: 5, vendorB: 3, note: "GLP-1 Research Lab offers 30% with a 90-day cookie vs Core Peptides at 12%" },
+    ],
+    vendorASummary:
+      "GLP-1 Research Lab is a USA-sourced, third-party tested vendor specializing in GLP-1 receptor agonists including semaglutide and tirzepatide. Their 30% affiliate commission and 90-day cookie window make them one of the highest-paying partnerships in the research peptide space.",
+    vendorBSummary:
+      "Core Peptides is a well-established US-based vendor with a broad peptide catalog spanning recovery, growth hormone, and wellness compounds. Their 12% affiliate commission, same-day domestic shipping, and batch-specific COAs make them a reliable partner for multi-compound research programs.",
+    vendorAPros: [
+      "30% affiliate commission — highest in the GLP-1 space",
+      "90-day cookie window",
+      "USA-sourced with third-party testing",
+      "Specialized GLP-1/tirzepatide catalog",
+      "Tier-2 affiliate commission (5%) on referred affiliates",
+    ],
+    vendorACons: [
+      "Narrow catalog — GLP-1 compounds only",
+      "Not a fit for recovery or performance peptide research",
+    ],
+    vendorBPros: [
+      "Broad peptide catalog for multi-compound research",
+      "Same-day domestic US shipping",
+      "12% affiliate commission",
+      "Batch-specific COAs published consistently",
+    ],
+    vendorBCons: [
+      "12% commission vs GLP-1 Research Lab's 30%",
+      "Semaglutide delisted as of April 2026",
+    ],
+    verdict:
+      "If your content focuses on GLP-1 research, weight management, or metabolic health, GLP-1 Research Lab is the stronger affiliate partner — 30% commission, 90-day cookies, and a focused catalog built around this exact use case. For researchers who need GLP-1 compounds alongside recovery or performance peptides in one place, Core Peptides is the more versatile option.",
+    vendorAUrl: "https://glp1researchlab.com?raf=ref6072993",
+    vendorBUrl: "https://www.corepeptides.com",
+    vendorACommission: "30%",
+    vendorBCommission: "12%",
+    faq: [
+      {
+        q: "Which has better affiliate commissions for GLP-1 content?",
+        a: "GLP-1 Research Lab pays 30% commission with a 90-day cookie window — significantly higher than Core Peptides at 12%. For GLP-1 focused content, the commission gap is substantial.",
+      },
+      {
+        q: "Does Core Peptides still carry semaglutide?",
+        a: "No. Core Peptides delisted semaglutide as of April 2026. GLP-1 Research Lab is the recommended source for semaglutide and tirzepatide research.",
+      },
+      {
+        q: "Which is better for BPC-157 and recovery peptides?",
+        a: "Core Peptides is the stronger choice for recovery peptides like BPC-157 and TB-500. GLP-1 Research Lab focuses exclusively on GLP-1 compounds.",
+      },
+    ],
+  },
+  {
+    slug: "ignite-peptides-vs-core-peptides",
+    vendorA: "Ignite Peptides",
+    vendorB: "Core Peptides",
+    headline: "Ignite Peptides vs Core Peptides (2026): Which US Vendor Wins?",
+    intro:
+      "Ignite Peptides and Core Peptides are two of the most competitive US-based research peptide vendors, both offering high-purity compounds with fast domestic shipping. Ignite brings a strong breadth of catalog including GH secretagogues and GLP-1 compounds, while Core Peptides has built its reputation on documentation quality and reliability. Here's the full breakdown.",
+    winner: "tie",
+    winnerReason:
+      "Both vendors are strong US-based options. Ignite Peptides stands out for catalog breadth and GLP-1/GH secretagogue availability, while Core Peptides leads on documentation consistency and established reputation. The right choice depends on your research focus.",
+    scores: [
+      { category: "Purity & Testing", vendorA: 4, vendorB: 4, note: "Both provide third-party HPLC testing with COAs available" },
+      { category: "Catalog Size", vendorA: 5, vendorB: 3, note: "Ignite carries BPC-157, TB-500, Sermorelin, CJC-1295, Ipamorelin, and GLP-1 compounds" },
+      { category: "Pricing", vendorA: 4, vendorB: 4, note: "Competitive pricing on both sides; Ignite edges ahead on GLP-1 pricing" },
+      { category: "Shipping Speed", vendorA: 4, vendorB: 5, note: "Both ship domestically; Core Peptides offers same-day shipping" },
+      { category: "COA Accessibility", vendorA: 4, vendorB: 5, note: "Core Peptides publishes batch-specific COAs more consistently across their catalog" },
+      { category: "Affiliate Commission", vendorA: 3, vendorB: 3, note: "Ignite commission TBD via affiliate portal; Core Peptides at 12%" },
+    ],
+    vendorASummary:
+      "Ignite Peptides is a Minnesota-based research peptide vendor (est. 2022) with one of the broadest catalogs in the domestic space — covering BPC-157, TB-500, Sermorelin, CJC-1295 No DAC, Ipamorelin, and GLP-1 compounds. Their dosage calculator and clean UX make them a standout for newer researchers.",
+    vendorBSummary:
+      "Core Peptides has earned a strong reputation for documentation quality and domestic shipping reliability. Their 12% affiliate commission and batch-specific COAs make them a consistent partner, particularly for recovery and performance peptide research.",
+    vendorAPros: [
+      "Broad catalog including GLP-1 and GH secretagogues",
+      "US-based (Minnesota) — fast domestic shipping",
+      "Built-in dosage calculator",
+      "Established since 2022 with growing reputation",
+      "Competitive GLP-1 pricing",
+    ],
+    vendorACons: [
+      "Affiliate commission rate not publicly listed",
+      "Newer vendor vs Core Peptides' longer track record",
+      "PT-141 not currently listed",
+    ],
+    vendorBPros: [
+      "12% affiliate commission",
+      "Batch-specific COAs published consistently",
+      "Same-day domestic shipping",
+      "Established reputation in the space",
+    ],
+    vendorBCons: [
+      "Semaglutide delisted as of April 2026",
+      "Narrower catalog vs Ignite",
+    ],
+    verdict:
+      "Both are solid US-based options. Choose Ignite Peptides if you need GLP-1 compounds alongside GH secretagogues and want a one-stop domestic source. Choose Core Peptides if documentation consistency and an established affiliate commission (12%) are your priorities.",
+    vendorAUrl: "https://ignitepeptides.com",
+    vendorBUrl: "https://www.corepeptides.com",
+    vendorACommission: "TBD",
+    vendorBCommission: "12%",
+    faq: [
+      {
+        q: "Is Ignite Peptides legit?",
+        a: "Yes. Ignite Peptides is a Minnesota-based vendor established in 2022 with third-party tested compounds and a growing reputation in the US research peptide market.",
+      },
+      {
+        q: "Which carries more compounds?",
+        a: "Ignite Peptides has a broader catalog, carrying BPC-157, TB-500, Sermorelin, CJC-1295 No DAC, Ipamorelin, and GLP-1 compounds. Core Peptides focuses on a tighter selection of high-demand compounds.",
+      },
+      {
+        q: "Which is better for semaglutide?",
+        a: "Ignite Peptides carries GLP-1 (semaglutide) at competitive pricing. Core Peptides delisted semaglutide in April 2026.",
+      },
+    ],
+  },
+  {
+    slug: "behemoth-labz-vs-swiss-chems",
+    vendorA: "Behemoth Labz",
+    vendorB: "Swiss Chems",
+    headline: "Behemoth Labz vs Swiss Chems (2026): Best for Broad-Catalog Peptide Research?",
+    intro:
+      "Behemoth Labz and Swiss Chems both offer broader-than-average research peptide catalogs, and both carry compounds beyond the standard BPC-157/TB-500/Sermorelin stack. Behemoth specializes in nasal spray delivery formats, while Swiss Chems brings SARMs and international reach alongside their peptide catalog. Here's how they compare.",
+    winner: "B",
+    winnerReason:
+      "Swiss Chems edges ahead on affiliate commission (20%), catalog breadth including SARMs, and international availability. Behemoth Labz is the stronger pick for researchers specifically interested in nasal spray delivery formats or PT-141.",
+    scores: [
+      { category: "Purity & Testing", vendorA: 4, vendorB: 4, note: "Both provide third-party testing; COA accessibility is comparable" },
+      { category: "Catalog Size", vendorA: 4, vendorB: 5, note: "Swiss Chems carries peptides, SARMs, and ancillaries; Behemoth specializes in nasal spray formats" },
+      { category: "Pricing", vendorA: 4, vendorB: 4, note: "Both competitive; Behemoth has edge on nasal spray formats" },
+      { category: "Shipping Speed", vendorA: 4, vendorB: 3, note: "Behemoth ships domestically; Swiss Chems has longer international lead times" },
+      { category: "COA Accessibility", vendorA: 4, vendorB: 4, note: "Both provide COAs with comparable detail across their core compounds" },
+      { category: "Affiliate Commission", vendorA: 3, vendorB: 5, note: "Swiss Chems offers 20% via referral; Behemoth starts at 7% scaling to 20% with active content marketing" },
+    ],
+    vendorASummary:
+      "Behemoth Labz has carved a niche in nasal spray delivery formats for research peptides — including BPC-157, TB-500 combo, Ipamorelin, and PT-141. Their tiered affiliate program (7–20%) rewards active content creators, making them a strong partner for affiliates who produce consistent output.",
+    vendorBSummary:
+      "Swiss Chems operates one of the broadest catalogs in the research chemical space — peptides, SARMs, oral peptides, and ancillary compounds — with a strong international shipping network and a flat 20% affiliate commission via referral link.",
+    vendorAPros: [
+      "Nasal spray formats — unique delivery option",
+      "BPC-157 + TB-500 combo nasal spray",
+      "PT-141 available in both nasal spray and vial",
+      "Tiered commission up to 20% for active creators",
+      "Domestic US shipping",
+    ],
+    vendorACons: [
+      "Base affiliate commission starts at 7%",
+      "No Sermorelin, CJC-1295, or semaglutide",
+      "Smaller catalog focused on spray formats",
+    ],
+    vendorBPros: [
+      "Flat 20% affiliate commission via referral link",
+      "Broadest catalog including SARMs and ancillaries",
+      "Strong international shipping network",
+      "10% discount code for your audience",
+    ],
+    vendorBCons: [
+      "Slower US domestic shipping vs Behemoth",
+      "No nasal spray delivery formats",
+    ],
+    verdict:
+      "For affiliates building content around nasal spray peptide delivery or PT-141 specifically, Behemoth Labz is a unique and valuable addition. For pure commission efficiency and catalog breadth — especially if your audience spans SARMs and ancillaries — Swiss Chems at 20% flat is the stronger partner.",
+    vendorAUrl: "https://behemothlabz.com",
+    vendorBUrl: "https://swisschems.is",
+    vendorACommission: "7–20%",
+    vendorBCommission: "20%",
+    faq: [
+      {
+        q: "What makes Behemoth Labz different from other vendors?",
+        a: "Behemoth Labz specializes in nasal spray delivery formats for research peptides — a format that most US vendors don't carry. This includes BPC-157 nasal spray, a BPC-157/TB-500 combo spray, Ipamorelin, and PT-141.",
+      },
+      {
+        q: "Which has better affiliate commissions?",
+        a: "Swiss Chems offers a flat 20% commission via referral link. Behemoth Labz starts at 7% but scales to 15–20% with active content marketing. Swiss Chems is simpler and higher from day one.",
+      },
+      {
+        q: "Does Swiss Chems carry nasal spray peptides?",
+        a: "No. Swiss Chems focuses on standard vial/powder formats. If nasal spray delivery is your research focus, Behemoth Labz is the better source.",
+      },
+      {
+        q: "Which is better for PT-141?",
+        a: "Both carry PT-141. Swiss Chems offers competitive pricing in standard vial format; Behemoth Labz is unique in offering PT-141 as a nasal spray alongside the traditional vial option.",
+      },
+    ],
+  },
 ];
