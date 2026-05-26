@@ -45,17 +45,12 @@ export default function ProductCard({ product }: { product: Product }) {
 
       {/* Footer */}
       <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
-        <Link href={`/products/${product.slug}`} className="text-xs text-cyan-400 font-semibold hover:underline">
+        <Link href={`/products/${product.slug}`} className="text-xs text-slate-400 hover:text-white transition-colors">
           Learn more →
         </Link>
-        <a
-          href={product.affiliate.url}
-          target="_blank"
-          rel="noopener noreferrer sponsored"
-          className="btn-primary text-xs py-2 px-4"
-        >
+        <Link href={`/products/${product.slug}`} className="btn-primary text-xs py-2 px-4">
           Buy Now
-        </a>
+        </Link>
       </div>
     </div>
   );

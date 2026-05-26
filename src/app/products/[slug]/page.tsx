@@ -49,6 +49,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   const colorClass = categoryColors[product.category] ?? "text-slate-400 bg-slate-400/10 border-slate-400/20";
 
+  const sortedVendors = [...product.vendors].sort((a, b) => {
+    const parse = (c: string) => parseFloat(c) || -1;
+    return parse(b.commission) - parse(a.commission);
+  });
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -57,12 +62,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     category: product.category,
     url: `${BASE_URL}/products/${product.slug}`,
     brand: { "@type": "Brand", name: "Aura Protocols" },
-    offers: {
+    offers: product.vendors.map((v) => ({
       "@type": "Offer",
-      url: product.affiliate.url,
-      seller: { "@type": "Organization", name: product.affiliate.vendor },
+      url: v.url,
+      seller: { "@type": "Organization", name: v.vendor },
       availability: "https://schema.org/InStock",
-    },
+    })),
   };
 
   return (
@@ -119,37 +124,34 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
 
-        {/* Sidebar — Purchase CTA */}
+        {/* Sidebar — Where to Buy */}
         <div className="space-y-4">
           <div className="glass p-6 glow-cyan sticky top-24">
-            <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">Recommended Vendor</p>
-            <p className="text-lg font-bold text-white mb-5">{product.affiliate.vendor}</p>
-
-            <a
-              href={product.affiliate.url}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              className="btn-primary w-full text-center text-sm py-3 block"
-            >
-              Buy from {product.affiliate.vendor} →
-            </a>
-
-          </div>
-
-          {/* Trust badges */}
-          <div className="glass p-5 space-y-3">
-            {[
-              { icon: "✓", label: "COA Verified Vendor" },
-              { icon: "✓", label: "HPLC Purity Tested" },
-              { icon: "✓", label: "Third-Party Tested" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-3 text-sm">
-                <span className="w-5 h-5 rounded-full bg-emerald-400/10 text-emerald-400 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {item.icon}
-                </span>
-                <span className="text-slate-300">{item.label}</span>
-              </div>
-            ))}
+            <p className="text-xs uppercase tracking-widest text-cyan-400 font-semibold mb-1">Independently Reviewed</p>
+            <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+              We only list vendors that publish third-party, batch-specific COAs.
+            </p>
+            <div className="space-y-3">
+              {sortedVendors.map((v, i) => (
+                <div key={v.vendor} className={i > 0 ? "pt-3 border-t border-white/5" : ""}>
+                  <p className="text-sm font-semibold text-white mb-1">{v.vendor}</p>
+                  {v.note && (
+                    <p className="text-xs text-slate-500 mb-2">{v.note}</p>
+                  )}
+                  <a
+                    href={v.url}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    className={`w-full text-center text-xs py-2 block ${i === 0 ? "btn-primary" : "btn-outline"}`}
+                  >
+                    Buy Direct from {v.vendor} →
+                  </a>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-slate-600 mt-5 pt-4 border-t border-white/5 leading-relaxed">
+              Affiliate disclosure: links above are affiliate partnerships. We may earn a commission at no cost to you.
+            </p>
           </div>
         </div>
       </div>

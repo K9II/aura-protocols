@@ -31,7 +31,7 @@ export default async function Image({
   const accent = product ? (categoryAccent[product.category] ?? "#00d4ff") : "#00d4ff";
   const name = product?.name ?? "Research Peptide";
   const category = product?.category ?? "Research Compound";
-  const vendor = product?.affiliate.vendor ?? "";
+  const vendor = product?.vendors[0]?.vendor ?? "";
   const benefits = product?.benefits.slice(0, 3) ?? [];
 
   return new ImageResponse(

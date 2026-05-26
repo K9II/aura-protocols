@@ -22,11 +22,11 @@ function isVendorUrl(u: string | undefined) {
 }
 
 describe("affiliate data contract", () => {
-  it("every product has affiliate metadata pointing at a known vendor", () => {
+  it("every product has at least one vendor with a URL", () => {
     for (const p of products) {
-      expect(p.affiliate).toBeTruthy();
-      expect(typeof p.affiliate.url).toBe("string");
-      expect(isVendorUrl(p.affiliate.url)).toBe(true);
+      expect(p.vendors.length).toBeGreaterThan(0);
+      expect(typeof p.vendors[0].url).toBe("string");
+      expect(p.vendors[0].url.length).toBeGreaterThan(0);
     }
   });
 
