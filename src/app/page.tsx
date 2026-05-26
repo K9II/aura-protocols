@@ -40,7 +40,8 @@ export default function HomePage() {
               Independent · COA-Verified · Protocol-Engineered
             </p>
             <h1 className="font-display text-4xl font-bold text-white md:text-5xl leading-tight mb-5">
-              The compound reference built for researchers who verify everything.
+              Your biology is unique.<br />
+              Your protocol should match it.
             </h1>
             <p className="text-slate-400 leading-relaxed mb-8 max-w-xl">
               Third-party, batch-specific COAs required from every vendor we list. Zero pay-to-play placements.
