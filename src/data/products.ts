@@ -58,7 +58,8 @@ export const products: Product[] = [
       "GLP-1 receptor agonist widely studied for appetite regulation, blood sugar control, and body composition.",
     benefits: ["Appetite suppression", "Blood sugar regulation", "Fat loss support", "Cardiovascular benefits"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com?raf=ref6072993", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/?aff=84", commission: "30%" },
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
     badge: "Top Rated",
@@ -87,7 +88,7 @@ export const products: Product[] = [
       "Melanocortin receptor agonist studied for its role in libido and sexual health in both men and women.",
     benefits: ["Libido enhancement", "Sexual function support", "Mood elevation", "Melanocortin activation"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/?add-to-cart=560", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%", note: "Nasal spray + vial formats" },
     ],
     featured: true,
@@ -115,6 +116,7 @@ export const products: Product[] = [
       "Triple receptor agonist targeting GLP-1, GIP, and glucagon receptors. Phase 3 trials recorded up to 24.2% body weight reduction — the highest of any compound in its class.",
     benefits: ["Triple-receptor agonism", "Appetite suppression", "Fat mass reduction", "Metabolic regulation"],
     vendors: [
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
@@ -130,7 +132,7 @@ export const products: Product[] = [
       "Synthetic GHRH analog that stimulates endogenous growth hormone release. Studied for visceral fat reduction, body composition, and metabolic health.",
     benefits: ["Visceral fat reduction", "GH pulse stimulation", "Lean body composition", "Metabolic support"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
@@ -145,7 +147,7 @@ export const products: Product[] = [
       "Synthetic fragment of human growth hormone (hGH 176-191) studied for its role in fat metabolism and lipolysis without affecting blood sugar or IGF-1 levels.",
     benefits: ["Targeted fat metabolism", "Lipolysis stimulation", "No IGF-1 interference", "No blood sugar impact"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
     ],
     featured: false,
@@ -159,7 +161,7 @@ export const products: Product[] = [
       "Synthetic tetrapeptide (Ala-Glu-Asp-Gly) studied for its role in telomerase activation, cellular longevity, and regulation of the pineal gland's melatonin output.",
     benefits: ["Telomerase activation", "Cellular longevity", "Melatonin regulation", "Anti-aging support"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
       { vendor: "Core Peptides", url: "https://www.corepeptides.com", commission: "12%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
     ],

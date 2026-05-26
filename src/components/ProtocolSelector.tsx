@@ -15,6 +15,7 @@ type Protocol = {
   border: string;
   glow: string;
   tileBg: string;
+  dot: string;
   slugs: string[];
   track: string[];
 };
@@ -30,6 +31,7 @@ const protocols: Protocol[] = [
     border: "border-emerald-400/40",
     glow: "shadow-[0_0_24px_rgba(52,211,153,0.15)]",
     tileBg: "bg-emerald-400/5 hover:bg-emerald-400/10",
+    dot: "bg-emerald-400",
     slugs: ["bpc-157", "tb-500"],
     track: ["HRV", "Resting heart rate", "Sleep quality", "Inflammation markers"],
   },
@@ -43,6 +45,7 @@ const protocols: Protocol[] = [
     border: "border-rose-400/40",
     glow: "shadow-[0_0_24px_rgba(251,113,133,0.15)]",
     tileBg: "bg-rose-400/5 hover:bg-rose-400/10",
+    dot: "bg-rose-400",
     slugs: ["semaglutide", "retatrutide", "aod-9604"],
     track: ["Fasting glucose", "Body weight", "Waist circumference", "DEXA body fat %"],
   },
@@ -56,6 +59,7 @@ const protocols: Protocol[] = [
     border: "border-violet-400/40",
     glow: "shadow-[0_0_24px_rgba(167,139,250,0.15)]",
     tileBg: "bg-violet-400/5 hover:bg-violet-400/10",
+    dot: "bg-violet-400",
     slugs: ["cjc-1295-ipamorelin", "sermorelin", "tesamorelin"],
     track: ["IGF-1 levels", "Sleep quality", "Lean mass", "Recovery time"],
   },
@@ -69,6 +73,7 @@ const protocols: Protocol[] = [
     border: "border-cyan-400/40",
     glow: "shadow-[0_0_24px_rgba(0,212,255,0.15)]",
     tileBg: "bg-cyan-400/5 hover:bg-cyan-400/10",
+    dot: "bg-cyan-400",
     slugs: ["epithalon", "mots-c", "pt-141"],
     track: ["Metabolic panel", "Mitochondrial markers", "Hormonal panels", "Biological age"],
   },
@@ -135,7 +140,7 @@ export default function ProtocolSelector() {
                 {p.tagline}
               </p>
               {isActive && (
-                <span className={`absolute top-3 right-3 w-1.5 h-1.5 rounded-full ${p.accent.replace("text-", "bg-")}`} />
+                <span className={`absolute top-3 right-3 w-1.5 h-1.5 rounded-full ${p.dot}`} />
               )}
             </button>
           );
