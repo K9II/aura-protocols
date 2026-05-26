@@ -32,6 +32,186 @@ export type Post = {
 
 export const posts: Post[] = [
   {
+    slug: "pt-141-melanocortin-bremelanotide-guide",
+    title:
+      "PT-141 (Bremelanotide): Hypothalamic Activation, the Brain-to-Spine Arousal Cascade, and Post-RARP Research",
+    excerpt:
+      "How PT-141 binds MC3R and MC4R to initiate arousal centrally, why this matters for post-prostatectomy ED research, and the full melanocortin analog family from α-MSH to setmelanotide.",
+    category: "Wellness",
+    date: "June 2026",
+    readTime: "12 min read",
+    content: [
+      {
+        type: "intro",
+        text: "PT-141, generically known as bremelanotide, occupies a distinct position in the peptide research landscape. Unlike the PDE5 inhibitors that dominate mainstream erectile dysfunction treatment, PT-141 doesn't act on vascular smooth muscle at all. It acts on the brain. This central mechanism — binding melanocortin receptors in the hypothalamus to initiate a neurological cascade rather than dilating blood vessels — is what makes PT-141 relevant to researchers studying populations where peripheral interventions consistently underperform. Among the most studied: men who have undergone radical prostatectomy for prostate cancer. This guide covers PT-141's mechanism of action at the receptor level, the clinical rationale for its use in post-surgical ED research, and where it sits within the broader melanocortin peptide family.",
+      },
+      {
+        type: "h2",
+        text: "How PT-141 Works: Melanocortin Receptor Binding",
+      },
+      {
+        type: "p",
+        text: "The melanocortin system is a network of five G-protein-coupled receptors (MC1R through MC5R), each with distinct tissue distribution and physiological roles. PT-141 demonstrates binding affinity primarily at MC3R and MC4R — the two subtypes most implicated in sexual function and autonomic regulation.",
+      },
+      {
+        type: "h3",
+        text: "MC4R: The Key Receptor for Sexual Function",
+      },
+      {
+        type: "p",
+        text: "MC4R is expressed densely in the paraventricular nucleus (PVN) of the hypothalamus, one of the brain's primary integration centers for sexual arousal, autonomic output, and hormone regulation. When PT-141 binds MC4R in the PVN, it triggers a downstream cascade involving activation of oxytocinergic neurons, dopaminergic pathway stimulation, and spinal cord signal propagation to the sacral parasympathetic nerves.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Activation of oxytocinergic neurons, which project to the spinal cord and influence penile erection and sexual motivation",
+          "Dopaminergic pathway stimulation in the mesolimbic system, contributing to desire and arousal",
+          "Spinal cord signal propagation to the sacral parasympathetic nerves, which ultimately drive engorgement",
+        ],
+      },
+      {
+        type: "h3",
+        text: "The Critical Mechanistic Difference",
+      },
+      {
+        type: "p",
+        text: "Sildenafil (Viagra) and tadalafil (Cialis) inhibit phosphodiesterase type 5, an enzyme that breaks down cGMP in vascular smooth muscle. The result: vasodilation and increased blood flow to erectile tissue. But this mechanism depends entirely on an intact nerve signal arriving first. Without a functioning nerve pathway delivering nitric oxide to the tissue, there is no cGMP to preserve. PDE5 inhibitors have nothing to amplify. PT-141 bypasses this requirement. The signal originates above the peripheral nervous system — meaning it may retain efficacy in neurogenic ED where the downstream pathway is compromised, provided sufficient central connectivity remains.",
+      },
+      {
+        type: "h2",
+        text: "PT-141 in Post-RARP Research",
+      },
+      {
+        type: "h3",
+        text: "What RARP Does to Erectile Function",
+      },
+      {
+        type: "p",
+        text: "Robot-Assisted Radical Prostatectomy is the gold standard surgical intervention for localized prostate cancer. The procedure removes the prostate gland entirely, and in doing so, places the neurovascular bundles running alongside the prostate — the cavernous nerves — at significant risk. Even in nerve-sparing techniques, traction, thermal injury, and inflammation during surgery cause neurapraxia — a temporary (and sometimes permanent) disruption of nerve conduction.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Bilateral nerve-sparing: 54–70% ED rate at 12 months",
+          "Unilateral nerve-sparing: 70–80% ED rate",
+          "Non-nerve-sparing: >90% ED rate",
+        ],
+      },
+      {
+        type: "h3",
+        text: "Why PDE5 Inhibitors Underperform Post-RARP",
+      },
+      {
+        type: "p",
+        text: "In the early post-RARP window, cavernous nerve conduction is impaired. The nitric oxide signal that PDE5 inhibitors depend on is absent or severely diminished. Multiple clinical studies have found that on-demand PDE5 inhibitor use produces a meaningful erection in only 30–40% of post-RP patients in the first year — significantly below the 60–80% response rates seen in vasculogenic ED.",
+      },
+      {
+        type: "h3",
+        text: "The Central Mechanism Argument",
+      },
+      {
+        type: "p",
+        text: "Because PT-141 initiates arousal centrally — via MC4R in the hypothalamus, projecting down through spinal cord pathways — it does not require an intact cavernous nerve signal at the peripheral level. Research on MC4R agonists in animal models of cavernous nerve injury has demonstrated that centrally-mediated erections can occur even after bilateral cavernous nerve resection, suggesting the spinal pathway retains independent function. Note: No large-scale RCTs have been published specifically evaluating PT-141 in post-RARP patients as of mid-2026. The mechanistic rationale is well-grounded, and melanocortin agonist research in neurogenic ED is an active area.",
+      },
+      {
+        type: "h3",
+        text: "Beyond Erection — Orgasmic Dysfunction Post-RARP",
+      },
+      {
+        type: "p",
+        text: "Prostatectomy eliminates ejaculation, but orgasm — the neurological event — persists in most patients, often described as qualitatively different. PT-141's dopaminergic and oxytocinergic effects on the reward pathway may be relevant to orgasm quality independent of erection. This remains a research-stage hypothesis.",
+      },
+      {
+        type: "h2",
+        text: "The Melanocortin Peptide Analog Family",
+      },
+      {
+        type: "p",
+        text: "α-MSH is a 13-amino acid peptide derived from pro-opiomelanocortin (POMC). It has broad melanocortin receptor affinity and regulates skin pigmentation (MC1R), energy homeostasis, inflammation, and sexual function (MC3R/MC4R). Its short half-life makes it impractical as a therapeutic agent — all synthetic analogs in this family were developed to address this limitation.",
+      },
+      {
+        type: "h3",
+        text: "Melanotan I — Afamelanotide (Scenesse)",
+      },
+      {
+        type: "p",
+        text: "MC1R-selective synthetic analog. FDA-approved 2019 for erythropoietic protoporphyria (EPP), a rare genetic disorder causing extreme sun sensitivity. Produces skin darkening with minimal sexual side effects due to MC1R selectivity. Not studied for sexual function.",
+      },
+      {
+        type: "h3",
+        text: "Melanotan II (MT-II)",
+      },
+      {
+        type: "p",
+        text: "Non-selective cyclic analog developed in the early 1990s at the University of Arizona. Binds MC1R, MC3R, MC4R, and MC5R simultaneously — producing tanning, appetite suppression, and spontaneous erections as simultaneous effects. Researchers observed erection effects in clinical subjects before tanning was visible. High side effect burden (nausea, facial flushing, spontaneous erections) limited clinical viability. The foundational research compound from which PT-141 was derived.",
+      },
+      {
+        type: "h3",
+        text: "PT-141 / Bremelanotide (Vyleesi)",
+      },
+      {
+        type: "p",
+        text: "Derived from MT-II with modified structure to retain MC3R/MC4R selectivity while reducing MC1R activity. Substantially less tanning effect, preserved sexual arousal effects. FDA-approved 2019 as Vyleesi for hypoactive sexual desire disorder (HSDD) in premenopausal women — the first centrally-acting FDA-approved treatment for female sexual dysfunction. RECONNECT trials (1,200+ women): statistically significant improvement in satisfying sexual events and distress reduction vs placebo.",
+      },
+      {
+        type: "h3",
+        text: "Setmelanotide (Imcivree)",
+      },
+      {
+        type: "p",
+        text: "Highly MC4R-selective. FDA-approved 2020 for chronic weight management in genetic obesity caused by POMC, PCSK1, or LEPR deficiency. Demonstrates the MC4R pathway's established role in energy and appetite — the same pathway PT-141 engages for sexual function.",
+      },
+      {
+        type: "h2",
+        text: "PT-141 in Women's Research",
+      },
+      {
+        type: "p",
+        text: "The FDA approval of bremelanotide as Vyleesi for HSDD in premenopausal women is the clearest clinical validation of the melanocortin pathway in human sexual function to date. Most common adverse effects in trials: nausea (40%), flushing (20%), injection site reactions, transient blood pressure increases. These mirror the MT-II side effect profile and inform dosing caution in research contexts.",
+      },
+      {
+        type: "callout",
+        text: "PT-141 (bremelanotide) is available through research vendors for laboratory and investigational use only. It is not approved for the indications described above outside of the FDA-approved Vyleesi formulation, which requires a prescription. Nothing in this article constitutes medical advice. Consult a qualified physician for any therapeutic application.",
+      },
+      {
+        type: "cta",
+        text: "View PT-141 at Swiss Chems",
+        productSlug: "pt-141",
+        vendor: "Swiss Chems",
+        affiliateUrl: "https://swisschems.is/",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Why doesn't PT-141 cause tanning like Melanotan II?",
+            a: "PT-141 has significantly reduced activity at MC1R — the receptor responsible for melanin production. This was a deliberate modification from MT-II, which stimulated all four receptor subtypes including MC1R. PT-141 retains functional selectivity toward MC3R and MC4R with minimal pigmentation effect.",
+          },
+          {
+            q: "Can PT-141 work if Viagra doesn't?",
+            a: "The mechanistic argument is yes — specifically in neurogenic ED where the peripheral nerve signal is compromised. PDE5 inhibitors require an intact nitric oxide signal from the cavernous nerve; PT-141 initiates arousal centrally and may bypass a damaged peripheral pathway. This is not established in large RCTs for post-prostatectomy patients specifically, but the physiological rationale is supported by preclinical and mechanistic research.",
+          },
+          {
+            q: "What's the difference between PT-141 and Vyleesi?",
+            a: "Vyleesi is the FDA-approved, pharmaceutical-grade injectable formulation of bremelanotide for HSDD in premenopausal women. Research-grade PT-141 from peptide vendors is the same molecule produced for laboratory use. Purity, sterility, and dosing consistency vary significantly between pharmaceutical and research-grade sources.",
+          },
+          {
+            q: "How does PT-141 compare to other post-RARP options?",
+            a: "Current standard-of-care includes oral PDE5 inhibitors, intracavernosal injections (alprostadil), penile rehabilitation programs, and vacuum erection devices. PT-141 is not part of standard urological practice post-RARP; its potential relevance lies in its different mechanism of action for patients who don't respond adequately to PDE5 inhibitors. Any post-surgical sexual health protocol should be managed by a urologist.",
+          },
+          {
+            q: "Is PT-141 being studied for prostate cancer survivors specifically?",
+            a: "As of mid-2026, there are no published large-scale RCTs specifically evaluating PT-141 in post-RARP patients. The mechanistic rationale exists and melanocortin agonists are actively discussed in sexual medicine research, but dedicated prostate cancer survivor trials remain a gap in the published literature.",
+          },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "bpc-157-complete-guide",
     title: "BPC-157: The Complete Research Guide",
     excerpt:
