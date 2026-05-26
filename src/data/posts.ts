@@ -32,6 +32,274 @@ export type Post = {
 
 export const posts: Post[] = [
   {
+    slug: "peptide-protocol-cheat-sheet",
+    title: "Peptide Protocol Cheat Sheet: Quick-Reference Guide for Researchers",
+    excerpt:
+      "All 11 compounds on Aura Protocols — mechanism, category, research status, and key differentiators — in one scannable reference.",
+    category: "Buyer's Guide",
+    date: "June 2026",
+    readTime: "10 min read",
+    content: [
+      {
+        type: "intro",
+        text: "This cheat sheet covers every compound currently featured on Aura Protocols — organized by research category, with the key mechanism, studied effects, and differentiators you need to compare them at a glance. Each entry is a compressed summary; click through to the full product page or deep-dive article for complete literature breakdowns.",
+      },
+      {
+        type: "h2",
+        text: "Recovery & Tissue Repair",
+      },
+      {
+        type: "h3",
+        text: "BPC-157 (Body Protection Compound-157)",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Synthetic pentadecapeptide derived from human gastric juice",
+          "Mechanism: Upregulates growth hormone receptors in tendon fibroblasts; modulates nitric oxide production; promotes angiogenesis at injury sites",
+          "Primary research areas: Tendon/ligament repair, gut mucosal healing, anti-inflammatory effects, neuroprotection",
+          "Administration routes studied: Subcutaneous, intramuscular, oral/intragastric, topical",
+          "Key differentiator: One of few peptides with gut-specific preclinical data; stable in gastric acid",
+          "Research status: Extensive rodent models, no completed human RCTs",
+        ],
+      },
+      {
+        type: "h3",
+        text: "TB-500 (Thymosin Beta-4)",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Synthetic analogue of endogenous Thymosin Beta-4",
+          "Mechanism: Promotes actin polymerization; accelerates cell migration to injury sites; stimulates new blood vessel formation",
+          "Primary research areas: Wound healing, cardiac tissue repair, tendon and muscle recovery, anti-fibrotic effects",
+          "Administration routes studied: Subcutaneous, intravenous (preclinical)",
+          "Key differentiator: Systemic distribution via blood vessel recruitment — can act at sites distant from injection",
+          "Research status: Phase I/II human trials for cardiac repair; broader applications remain preclinical",
+        ],
+      },
+      {
+        type: "cta",
+        text: "View BPC-157 at Core Peptides",
+        productSlug: "bpc-157",
+        vendor: "Core Peptides",
+        affiliateUrl: "https://www.corepeptides.com/peptides/bpc-157/?attribute_pa_size=5mg",
+      },
+      {
+        type: "h2",
+        text: "Weight Management & Metabolic Research",
+      },
+      {
+        type: "h3",
+        text: "Semaglutide",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: GLP-1 receptor agonist",
+          "Mechanism: Slows gastric emptying; suppresses appetite via hypothalamic GLP-1R activation; stimulates glucose-dependent insulin secretion",
+          "Primary research areas: Obesity, type 2 diabetes, cardiovascular risk reduction",
+          "Key data: STEP trials — avg 15–17% body weight reduction over 68 weeks; SELECT trial — 20% reduction in major adverse cardiovascular events",
+          "Key differentiator: The most clinically documented peptide for weight loss; FDA approved as Ozempic (T2D) and Wegovy (obesity)",
+          "Research status: Multiple large-scale RCTs completed; most evidence-backed compound in this category",
+        ],
+      },
+      {
+        type: "h3",
+        text: "Retatrutide",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Triple agonist — GLP-1R, GIPR, and glucagon receptor",
+          "Mechanism: Combines GLP-1 appetite suppression + GIP metabolic signaling + glucagon-driven energy expenditure",
+          "Primary research areas: Severe obesity, metabolic syndrome",
+          "Key data: Phase II SURMOUNT trial — up to 24% body weight reduction over 48 weeks; most potent weight loss signal of any peptide in clinical trials to date",
+          "Key differentiator: Triple receptor engagement produces additive effects not seen in dual agonists; investigational only",
+          "Research status: Phase III trials underway (2026); not yet FDA approved",
+        ],
+      },
+      {
+        type: "h3",
+        text: "AOD-9604",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Synthetic C-terminal fragment of human growth hormone (hGH176–191)",
+          "Mechanism: Stimulates fat breakdown (lipolysis) via β3-adrenergic receptors; inhibits new fat formation (lipogenesis) without affecting IGF-1 or blood glucose",
+          "Primary research areas: Adipose tissue reduction, metabolic health",
+          "Key differentiator: Isolated fat-loss mechanism with none of the anabolic or diabetogenic effects of full hGH — arguably the cleanest GH-derived fat loss research compound",
+          "Research status: Human Phase IIb trial (Metabolic Pharmaceuticals) — statistically significant fat loss, development halted for commercial reasons not safety",
+        ],
+      },
+      {
+        type: "cta",
+        text: "View Semaglutide at GLP-1 Research Lab",
+        productSlug: "semaglutide",
+        vendor: "GLP-1 Research Lab",
+        affiliateUrl: "https://glp1researchlab.com/?aff=84",
+      },
+      {
+        type: "h2",
+        text: "Growth & Performance",
+      },
+      {
+        type: "h3",
+        text: "CJC-1295 / Ipamorelin (Stack)",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: GHRH analogue (CJC-1295) + selective ghrelin receptor agonist (Ipamorelin)",
+          "Mechanism: CJC-1295 raises baseline GH via GHRH receptor; Ipamorelin amplifies individual GH pulses via GHSR — dual-axis stimulation produces synergistic effect",
+          "Primary research areas: Lean mass, visceral fat reduction, bone density, sleep quality, recovery",
+          "Key differentiator: Ipamorelin does not elevate cortisol or prolactin — cleaner GH stimulation than GHRP-2/GHRP-6; preserves physiological pulsatile rhythm unlike exogenous GH",
+          "Research status: Strong preclinical base; Ipamorelin had Phase II human trials (Novo Nordisk, for GI motility)",
+        ],
+      },
+      {
+        type: "h3",
+        text: "Sermorelin",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: GHRH analogue (first 29 amino acids of endogenous GHRH)",
+          "Mechanism: Binds pituitary GHRH receptors to stimulate natural GH pulse; shorter half-life than CJC-1295 (~10–20 min vs. 6–8 days with DAC)",
+          "Primary research areas: Age-related GH decline, body composition, hormonal restoration",
+          "Key differentiator: FDA approved (1997, withdrawn for commercial reasons) — one of the best-characterized GHRH analogues; often studied in older populations with blunted GH secretion",
+          "Research status: Historical clinical trials completed; widely documented in age management literature",
+        ],
+      },
+      {
+        type: "h3",
+        text: "Tesamorelin",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Synthetic GHRH analogue (stabilized full-length GHRH1–44)",
+          "Mechanism: Binds pituitary GHRH receptors; more potent GH stimulation than Sermorelin due to full-length sequence; preferential effect on visceral adipose tissue",
+          "Primary research areas: HIV-associated lipodystrophy, visceral adiposity, cardiovascular risk markers",
+          "Key differentiator: FDA approved as Egrifta for HIV-related belly fat — the only GHRH analogue with full regulatory approval and confirmed visceral fat reduction in humans",
+          "Research status: Phase III RCTs completed; approved 2010, Egrifta SV approved 2019",
+        ],
+      },
+      {
+        type: "cta",
+        text: "View CJC-1295 / Ipamorelin at Limitless Life Nootropics",
+        productSlug: "cjc-1295-ipamorelin",
+        vendor: "Limitless Life Nootropics",
+        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac/",
+      },
+      {
+        type: "h2",
+        text: "Wellness & Longevity",
+      },
+      {
+        type: "h3",
+        text: "PT-141 (Bremelanotide)",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Melanocortin receptor agonist (MC3R / MC4R)",
+          "Mechanism: Acts centrally in the hypothalamus — initiates arousal via neurological cascade, not vascular dilation; dopaminergic + oxytocinergic pathway activation",
+          "Primary research areas: Hypoactive sexual desire disorder (HSDD), erectile dysfunction (neurogenic), female sexual arousal disorder",
+          "Key differentiator: Only sexual health peptide with a direct FDA approval pathway — approved as Vyleesi (2019) for HSDD in premenopausal women; unique central (non-vascular) mechanism",
+          "Research status: RECONNECT trials (1,200+ women) completed; multiple Phase II trials in men",
+        ],
+      },
+      {
+        type: "h3",
+        text: "Epithalon (Epitalon)",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Synthetic tetrapeptide (Ala-Glu-Asp-Gly)",
+          "Mechanism: Stimulates pineal gland melatonin production; activates telomerase enzyme to slow telomere shortening; antioxidant and circadian rhythm modulation",
+          "Primary research areas: Longevity, circadian dysregulation, telomere biology, age-related hormonal decline",
+          "Key differentiator: Developed in the 1980s by the St. Petersburg Institute of Bioregulation — one of the longest-studied longevity peptides with 30+ years of Russian clinical data",
+          "Research status: Predominantly Russian-language clinical literature; limited Western RCT base",
+        ],
+      },
+      {
+        type: "h3",
+        text: "MOTS-c",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Mitochondria-derived peptide (encoded in mitochondrial 12S rRNA)",
+          "Mechanism: Activates AMPK pathway; regulates glucose and lipid metabolism; reduces oxidative stress; improves insulin sensitivity",
+          "Primary research areas: Metabolic syndrome, exercise performance, insulin resistance, aging",
+          "Key differentiator: Discovered 2015 — one of the newest peptides on this list; endogenous origin (your own mitochondria produce it) distinguishes it from synthetic analogues; levels decline with age",
+          "Research status: Preclinical (primarily rodent and cell studies); human trials emerging",
+        ],
+      },
+      {
+        type: "cta",
+        text: "View PT-141 at Swiss Chems",
+        productSlug: "pt-141",
+        vendor: "Swiss Chems",
+        affiliateUrl: "https://swisschems.is/ref/6782/",
+      },
+      {
+        type: "h2",
+        text: "How to Use This Reference",
+      },
+      {
+        type: "p",
+        text: "The most common research design errors come from selecting a compound based on desired outcome alone without accounting for mechanism specificity. A few rules of thumb that emerge from this table:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Mechanism before compound — identify which biological pathway you're targeting, then select the compound that engages it most precisely",
+          "Regulatory history matters — FDA approvals (Tesamorelin, PT-141, Semaglutide) signal human safety data exists at therapeutic doses; compounds without that history require more conservative study design",
+          "GH secretagogues are not interchangeable — Sermorelin, CJC-1295, and Tesamorelin all stimulate GH via GHRH receptors but have meaningfully different half-lives, potency, and clinical data sets",
+          "Central vs. peripheral matters for sexual health — PT-141 operates upstream of PDE5 inhibitors; combining them targets different nodes of the same pathway",
+          "Recovery compounds differ in systemic vs. local action — BPC-157 has a strong local effect; TB-500 distributes systemically via vasculature and is better suited to diffuse or multi-site injury models",
+        ],
+      },
+      {
+        type: "callout",
+        text: "All compounds on this page are for research purposes only. They are not approved for human use outside of specific FDA-approved formulations under medical supervision. This reference does not constitute medical advice.",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Which peptide has the strongest clinical evidence?",
+            a: "Semaglutide, by a significant margin. It has completed Phase III RCTs in tens of thousands of subjects, has two FDA approvals, and multiple large-scale cardiovascular outcome trials. Tesamorelin and PT-141 are the next best-evidenced, each with FDA approval in a specific indication. Most others remain at the preclinical or Phase I/II stage.",
+          },
+          {
+            q: "What's the difference between a GHRH analogue and a GHSR agonist?",
+            a: "GHRH analogues (Sermorelin, CJC-1295, Tesamorelin) bind pituitary GHRH receptors to stimulate GH release from the pituitary's own stores. GHSR agonists (Ipamorelin) bind ghrelin receptors to amplify GH pulse amplitude. They act on different receptors within the GH axis, which is why combining them (CJC-1295 + Ipamorelin) produces a synergistic effect greater than either alone.",
+          },
+          {
+            q: "Can recovery peptides and GH secretagogues be stacked?",
+            a: "In research design, compounds with non-overlapping mechanisms are commonly studied together. BPC-157 (tissue repair via angiogenesis, NO modulation) and CJC-1295/Ipamorelin (GH axis stimulation) have distinct mechanisms with no documented pharmacological conflict. Stacking for research purposes should be approached with awareness of each compound's individual effect profile before combined study design is attempted.",
+          },
+          {
+            q: "What does 'research use only' actually mean?",
+            a: "Research-grade peptides from vendors like those featured on Aura Protocols are sold for laboratory and investigational use — not for human administration outside of supervised clinical settings. Purity standards, sterility, and regulatory oversight differ significantly from pharmaceutical-grade compounds. Buyers are responsible for understanding and complying with applicable laws in their jurisdiction.",
+          },
+          {
+            q: "How do I choose between Semaglutide and Retatrutide for a weight loss study?",
+            a: "Semaglutide is GLP-1 only with the most complete clinical literature. Retatrutide adds GIP and glucagon receptor engagement for a larger magnitude of effect — up to 24% weight loss vs. ~17% for semaglutide. If you're studying maximum weight reduction potential, Retatrutide's Phase II data is compelling. If you need a compound with the deepest existing evidence base, Semaglutide is the benchmark. Retatrutide remains investigational with Phase III ongoing.",
+          },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "pt-141-melanocortin-bremelanotide-guide",
     title:
       "PT-141 (Bremelanotide): Hypothalamic Activation, the Brain-to-Spine Arousal Cascade, and Post-RARP Research",
@@ -178,7 +446,7 @@ export const posts: Post[] = [
         text: "View PT-141 at Swiss Chems",
         productSlug: "pt-141",
         vendor: "Swiss Chems",
-        affiliateUrl: "https://swisschems.is/",
+        affiliateUrl: "https://swisschems.is/ref/6782/",
       },
       {
         type: "faq",

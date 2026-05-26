@@ -72,7 +72,7 @@ export const comparisons: Comparison[] = [
     verdict:
       "US researchers focused on recovery or growth hormone compounds should go with Core Peptides — faster shipping and cleaner documentation. If you need SARMs alongside your peptides, or you're sourcing internationally, Swiss Chems is the stronger option.",
     vendorAUrl: "https://www.corepeptides.com",
-    vendorBUrl: "https://swisschems.is",
+    vendorBUrl: "https://swisschems.is/ref/6782/",
     faq: [
       {
         q: "Which vendor has better purity testing?",
@@ -133,7 +133,7 @@ export const comparisons: Comparison[] = [
     verdict:
       "If your research focuses on growth hormone optimization, anti-aging, or performance stacks, Limitless Biotech is the stronger catalog pick. For broader compound access including SARMs and ancillaries, Swiss Chems wins.",
     vendorAUrl: "https://limitlesslifenootropics.com",
-    vendorBUrl: "https://swisschems.is",
+    vendorBUrl: "https://swisschems.is/ref/6782/",
     faq: [
       {
         q: "Which is better for CJC-1295/Ipamorelin?",
@@ -256,7 +256,7 @@ export const comparisons: Comparison[] = [
     ],
     verdict:
       "If your research focuses on GLP-1 compounds, weight management, or metabolic health, GLP-1 Research Lab is the stronger pick — specialized catalog and a 90-day cookie. For researchers who need GLP-1 compounds alongside recovery or performance peptides in one order, Core Peptides is the more versatile option.",
-    vendorAUrl: "https://glp1researchlab.com?raf=ref6072993",
+    vendorAUrl: "https://glp1researchlab.com/?aff=84",
     vendorBUrl: "https://www.corepeptides.com",
     faq: [
       {
@@ -375,7 +375,7 @@ export const comparisons: Comparison[] = [
     verdict:
       "For researchers specifically interested in nasal spray peptide delivery or PT-141, Behemoth Labz is a unique and valuable source. For catalog breadth — especially if your research spans SARMs and ancillaries — Swiss Chems is the stronger option.",
     vendorAUrl: "https://behemothlabz.com",
-    vendorBUrl: "https://swisschems.is",
+    vendorBUrl: "https://swisschems.is/ref/6782/",
     faq: [
       {
         q: "What makes Behemoth Labz different from other vendors?",
