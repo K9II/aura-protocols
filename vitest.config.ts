@@ -11,6 +11,9 @@ export default defineConfig({
     include: ["tests/**/*.test.{ts,tsx}"],
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "server-only": path.resolve(__dirname, "./tests/server-only-mock.ts"),
+    },
   },
 });
