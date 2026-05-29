@@ -7,8 +7,9 @@ const VENDOR_HOSTS = [
   "limitlesslifenootropics.com",
   "swisschems.is",
   "behemothlabz.com",
-  "blueskypeptide.com",
-  "peptidesciences.com",
+  "glp1researchlab.com",
+  "ignitepeptides.com",
+  "apollopeptidesciences.com",
 ];
 
 function isVendorUrl(u: string | undefined) {
