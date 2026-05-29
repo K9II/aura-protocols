@@ -9,6 +9,23 @@ export interface TemplateSkeleton {
 }
 
 export const TEMPLATE_SKELETONS: Record<ProtocolTemplateId, TemplateSkeleton> = {
+  METABOLIC: {
+    headline: "Metabolic Stack — GLP-1 class + AOD-9604 for body composition support",
+    steps: [
+      { compound: "Semaglutide", dose: "0.25–1.0 mg/week subcutaneous (titrate slowly)", timing: "Once weekly, same day each week", rationale: "GLP-1 receptor agonist; supports satiety signaling and glycemic regulation" },
+      { compound: "Retatrutide (optional, advanced)", dose: "2.0–4.0 mg/week subcutaneous", timing: "Once weekly; do not combine with Semaglutide", rationale: "Triple agonist (GLP-1/GIP/glucagon); research-phase compound requiring clinical supervision" },
+      { compound: "AOD-9604", dose: "250–500 mcg/day subcutaneous", timing: "Fasted AM injection", rationale: "GH fragment targeting lipolysis; does not raise IGF-1 or fasting glucose" },
+    ],
+    lifestyle: ["Caloric deficit of 300–500 kcal/day recommended", "Protein floor: 1.8 g/kg bodyweight/day to preserve lean mass", "Resistance training ≥ 3x/week to offset muscle-sparing risk", "Monitor fasting glucose weekly during ramp"],
+    cycle: "Semaglutide: continuous titration under clinical guidance. AOD-9604: 4 weeks on, 2 weeks off.",
+    caveats: [
+      "Semaglutide and Retatrutide are prescription-grade GLP-1 agonists. Educational use only — obtain via licensed clinician.",
+      "Do NOT combine Semaglutide with Retatrutide or other GLP-1 medications.",
+      "Contraindicated with personal or family history of medullary thyroid carcinoma or MEN2.",
+      "Common side effects: nausea, vomiting, injection-site reactions. Titrate slowly.",
+      "Consult a clinician before starting if you use insulin or other diabetes medications.",
+    ],
+  },
   RECOVERY: {
     headline: "Recovery Stack — BPC-157 ± TB-500 with sleep + load management",
     steps: [

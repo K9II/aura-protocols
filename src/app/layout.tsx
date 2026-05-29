@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Syne } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { BASE_URL } from "@/lib/constants";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const syne = Syne({ subsets: ["latin"], variable: "--font-syne" });
+const syne = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-syne", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

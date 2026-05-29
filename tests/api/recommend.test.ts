@@ -5,7 +5,8 @@ const { recommendMock, getUserMock, insertMock, selectMock, orderMock, eqMock, f
   const biometricRow = { source: "WHOOP", captured_at: "2026-05-23T07:00:00Z", recovery_score: 40, hrv_ms: 30, resting_hr_bpm: 55, sleep_hours: 6 };
   const selectMock = vi.fn().mockReturnValue(biometricRow);
   const orderMock = vi.fn().mockReturnValue({ limit: () => ({ data: [biometricRow] }) });
-  const eqMock = vi.fn().mockReturnValue({ order: orderMock });
+  const maybeSingleMock = vi.fn().mockResolvedValue({ data: null, error: null });
+  const eqMock = vi.fn().mockReturnValue({ order: orderMock, maybeSingle: maybeSingleMock });
   const fromMock = vi.fn(() => ({
     select: () => ({ eq: eqMock }),
     insert: () => ({ select: () => ({ single: insertMock }) }),

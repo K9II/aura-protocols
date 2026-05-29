@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { recommend } from "@/lib/recommend";
 import type { BiometricSnapshot } from "@/lib/terra/schema";
+import { ProfileContextSchema } from "@/lib/profile/schema";
 
 export const runtime = "nodejs";
 
@@ -29,7 +30,16 @@ export async function POST(_request: Request) {
     return NextResponse.json({ error: "no_data", message: "Connect a wearable or upload manual data first." }, { status: 400 });
   }
 
-  const { rules, output } = await recommend(series);
+  const { data: profileRow } = await supabase
+    .from("profiles")
+    .select("age, biological_sex, weight_kg, activity_level, primary_goal, current_medications, using_peptides, peptides_detail, interested_in_rx, budget_tier, onboarding_complete")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const profileParsed = ProfileContextSchema.safeParse(profileRow ?? {});
+  const profile = profileParsed.success ? profileParsed.data : null;
+
+  const { rules, output } = await recommend(series, profile);
 
   const { data: saved } = await supabase
     .from("protocol_recommendations")

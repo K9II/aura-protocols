@@ -14,8 +14,9 @@ describe("personalizeProtocol", () => {
     createMock.mockResolvedValue({
       content: [{ type: "text", text: JSON.stringify({
         template: "RECOVERY", headline: "Personalized recovery stack",
-        steps: [{ compound: "BPC-157", dose: "250 mcg/day", timing: "AM", rationale: "soft tissue" }],
+        steps: [{ compound: "BPC-157", dose: "250 mcg/day", timing: "AM", rationale: "soft tissue", resonance: 0.82, resonanceReason: "recovery score 40 trending down 7d", titration: null }],
         lifestyle: ["Sleep 8h"], cycle: "4 on / 2 off", caveats: ["Stop on adverse signal"],
+        protein: [], vitamins: [], foods: [],
       }) }],
     });
 
@@ -28,7 +29,9 @@ describe("personalizeProtocol", () => {
     expect(createMock).toHaveBeenCalledOnce();
     const args = createMock.mock.calls[0][0];
     expect(Array.isArray(args.system)).toBe(true);
+    expect(args.system.length).toBe(2);
     expect(args.system[0].cache_control).toEqual({ type: "ephemeral" });
+    expect(args.system[1].cache_control).toEqual({ type: "ephemeral" });
     expect(out.template).toBe("RECOVERY");
     expect(out.headline).toMatch(/recovery/i);
   });

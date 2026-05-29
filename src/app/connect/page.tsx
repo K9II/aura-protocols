@@ -19,6 +19,14 @@ export default async function ConnectPage() {
     );
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("onboarding_complete")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profile?.onboarding_complete) redirect("/onboarding");
+
   const { count } = await supabase
     .from("biometric_snapshots")
     .select("*", { count: "exact", head: true })
