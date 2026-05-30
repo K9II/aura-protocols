@@ -27,6 +27,7 @@ export const products: Product[] = [
       "Body Protection Compound-157. One of the most studied peptides for tissue repair, gut health, and joint recovery.",
     benefits: ["Joint & tendon repair", "Gut lining support", "Anti-inflammatory", "Accelerated healing"],
     vendors: [
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866", commission: "15%" },
       { vendor: "Core Peptides", url: "https://www.corepeptides.com/peptides/bpc-157/?attribute_pa_size=5mg", commission: "12%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%", note: "Nasal spray format" },
@@ -43,6 +44,7 @@ export const products: Product[] = [
       "Thymosin Beta-4 fragment known for promoting systemic healing, reducing inflammation, and supporting muscle repair.",
     benefits: ["Systemic tissue healing", "Reduced inflammation", "Muscle repair", "Improved flexibility"],
     vendors: [
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/tb-500?uid=106&oid=1&affid=10866", commission: "15%" },
       { vendor: "Core Peptides", url: "https://www.corepeptides.com/peptides/tb-500/?attribute_pa_size=5mg", commission: "12%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%", note: "BPC-157 + TB-500 combo spray" },
@@ -74,7 +76,7 @@ export const products: Product[] = [
       "A synergistic blend of growth hormone releasing hormone analog and growth hormone secretagogue for optimized GH pulses.",
     benefits: ["GH pulse optimization", "Lean muscle support", "Improved sleep quality", "Fat metabolism"],
     vendors: [
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac/", commission: "15%" },
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866", commission: "15%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
     featured: true,
