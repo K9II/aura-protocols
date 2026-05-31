@@ -85,7 +85,7 @@ export const products: Product[] = [
       "Melanocortin receptor agonist studied for its role in libido and sexual health in both men and women.",
     benefits: ["Libido enhancement", "Sexual function support", "Mood elevation", "Melanocortin activation"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
     ],
     featured: true,
   },
