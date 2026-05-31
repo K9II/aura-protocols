@@ -80,10 +80,10 @@ export const posts: Post[] = [
       },
       {
         type: "cta",
-        text: "View BPC-157 at Core Peptides",
+        text: "View BPC-157 at Limitless Life Nootropics",
         productSlug: "bpc-157",
-        vendor: "Core Peptides",
-        affiliateUrl: "https://www.corepeptides.com/peptides/bpc-157/?attribute_pa_size=5mg",
+        vendor: "Limitless Life Nootropics",
+        affiliateUrl: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866",
       },
       {
         type: "h2",
@@ -191,7 +191,7 @@ export const posts: Post[] = [
         text: "View CJC-1295 / Ipamorelin at Limitless Life Nootropics",
         productSlug: "cjc-1295-ipamorelin",
         vendor: "Limitless Life Nootropics",
-        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac/",
+        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866",
       },
       {
         type: "h2",
@@ -571,10 +571,10 @@ export const posts: Post[] = [
       },
       {
         type: "cta",
-        text: "View BPC-157 at Core Peptides",
+        text: "View BPC-157 at Limitless Life Nootropics",
         productSlug: "bpc-157",
-        vendor: "Core Peptides",
-        affiliateUrl: "https://www.corepeptides.com/peptides/bpc-157/?attribute_pa_size=5mg",
+        vendor: "Limitless Life Nootropics",
+        affiliateUrl: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866",
       },
       {
         type: "disclaimer",
@@ -729,7 +729,7 @@ export const posts: Post[] = [
         text: "View CJC-1295 / Ipamorelin at Limitless Life Nootropics",
         productSlug: "cjc-1295-ipamorelin",
         vendor: "Limitless Life Nootropics",
-        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac/",
+        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866",
       },
       {
         type: "disclaimer",

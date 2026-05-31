@@ -28,9 +28,6 @@ export const products: Product[] = [
     benefits: ["Joint & tendon repair", "Gut lining support", "Anti-inflammatory", "Accelerated healing"],
     vendors: [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866", commission: "15%" },
-      { vendor: "Core Peptides", url: "https://www.corepeptides.com/peptides/bpc-157/?attribute_pa_size=5mg", commission: "12%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
-      { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%", note: "Nasal spray format" },
     ],
     badge: "Best Seller",
     featured: true,
@@ -45,9 +42,6 @@ export const products: Product[] = [
     benefits: ["Systemic tissue healing", "Reduced inflammation", "Muscle repair", "Improved flexibility"],
     vendors: [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/tb-500?uid=106&oid=1&affid=10866", commission: "15%" },
-      { vendor: "Core Peptides", url: "https://www.corepeptides.com/peptides/tb-500/?attribute_pa_size=5mg", commission: "12%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
-      { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%", note: "BPC-157 + TB-500 combo spray" },
     ],
     featured: true,
   },
@@ -62,7 +56,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/?aff=84", commission: "30%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/?rfsn=9131640.7592e7", commission: "20%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
     badge: "Top Rated",
     featured: true,
@@ -77,7 +70,6 @@ export const products: Product[] = [
     benefits: ["GH pulse optimization", "Lean muscle support", "Improved sleep quality", "Fat metabolism"],
     vendors: [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866", commission: "15%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
     featured: true,
   },
@@ -91,21 +83,6 @@ export const products: Product[] = [
     benefits: ["Libido enhancement", "Sexual function support", "Mood elevation", "Melanocortin activation"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
-      { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%", note: "Nasal spray + vial formats" },
-    ],
-    featured: true,
-  },
-  {
-    id: "sermorelin",
-    name: "Sermorelin",
-    slug: "sermorelin",
-    category: "Growth & Performance",
-    description:
-      "Growth hormone releasing hormone analogue that stimulates the pituitary to naturally increase GH production.",
-    benefits: ["Natural GH stimulation", "Anti-aging support", "Lean body composition", "Improved energy"],
-    vendors: [
-      { vendor: "Core Peptides", url: "https://www.corepeptides.com/peptides/sermorelin-5mg/", commission: "12%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
     featured: true,
   },
@@ -119,8 +96,6 @@ export const products: Product[] = [
     benefits: ["Triple-receptor agonism", "Appetite suppression", "Fat mass reduction", "Metabolic regulation"],
     vendors: [
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/?rfsn=9131640.7592e7", commission: "20%" },
-      { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
     badge: "Phase 3",
     featured: true,
@@ -135,8 +110,6 @@ export const products: Product[] = [
     benefits: ["Visceral fat reduction", "GH pulse stimulation", "Lean body composition", "Metabolic support"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
-      { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
     featured: true,
   },
@@ -150,7 +123,6 @@ export const products: Product[] = [
     benefits: ["Targeted fat metabolism", "Lipolysis stimulation", "No IGF-1 interference", "No blood sugar impact"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
-      { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
     ],
     featured: false,
   },
@@ -164,10 +136,21 @@ export const products: Product[] = [
     benefits: ["Telomerase activation", "Cellular longevity", "Melatonin regulation", "Anti-aging support"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
-      { vendor: "Core Peptides", url: "https://www.corepeptides.com", commission: "12%" },
-      { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
     ],
     featured: false,
+  },
+  {
+    id: "sermorelin",
+    name: "Sermorelin",
+    slug: "sermorelin",
+    category: "Growth & Performance",
+    description:
+      "Growth hormone releasing hormone analogue that stimulates the pituitary to naturally increase GH production.",
+    benefits: ["Natural GH stimulation", "Anti-aging support", "Lean body composition", "Improved energy"],
+    vendors: [
+      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
+    ],
+    featured: true,
   },
   {
     id: "mots-c",
@@ -178,7 +161,7 @@ export const products: Product[] = [
       "Mitochondrial-derived peptide that regulates metabolic homeostasis, improves insulin sensitivity, and supports cellular energy production. Active in clinical trials for metabolic disease.",
     benefits: ["Mitochondrial optimization", "Insulin sensitivity", "Metabolic homeostasis", "Cellular energy support"],
     vendors: [
-      { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
     ],
     featured: false,
   },
