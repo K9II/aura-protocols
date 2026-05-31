@@ -125,7 +125,7 @@ export const products: Product[] = [
       "Synthetic fragment of human growth hormone (hGH 176-191) studied for its role in fat metabolism and lipolysis without affecting blood sugar or IGF-1 levels.",
     benefits: ["Targeted fat metabolism", "Lipolysis stimulation", "No IGF-1 interference", "No blood sugar impact"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/hgh-fragment-176-191/?ref=6782", commission: "20%" },
     ],
     featured: false,
   },
