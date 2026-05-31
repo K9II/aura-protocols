@@ -71,7 +71,7 @@ export const comparisons: Comparison[] = [
     ],
     verdict:
       "If your research focuses on growth hormone optimization, anti-aging, or performance stacks, Limitless Biotech is the stronger catalog pick. For broader compound access including SARMs and ancillaries, Swiss Chems wins.",
-    vendorAUrl: "https://limitlesslifenootropics.com",
+    vendorAUrl: "https://www.limitlesslifenootropics.com/?_ef_transaction_id=&oid=1&affid=10866",
     vendorBUrl: "https://swisschems.is/ref/6782/",
     faq: [
       {
