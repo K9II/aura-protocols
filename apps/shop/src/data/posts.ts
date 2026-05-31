@@ -244,7 +244,7 @@ export const posts: Post[] = [
         text: "View PT-141 at Swiss Chems",
         productSlug: "pt-141",
         vendor: "Swiss Chems",
-        affiliateUrl: "https://swisschems.is/ref/6782/",
+        affiliateUrl: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=6782",
       },
       {
         type: "h2",
@@ -446,7 +446,7 @@ export const posts: Post[] = [
         text: "View PT-141 at Swiss Chems",
         productSlug: "pt-141",
         vendor: "Swiss Chems",
-        affiliateUrl: "https://swisschems.is/ref/6782/",
+        affiliateUrl: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=6782",
       },
       {
         type: "faq",
@@ -789,7 +789,7 @@ export const posts: Post[] = [
         text: "View CJC-1295 / Ipamorelin at Limitless Life Nootropics",
         productSlug: "cjc-1295-ipamorelin",
         vendor: "Limitless Life Nootropics",
-        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac/",
+        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866",
       },
       {
         type: "h2",
