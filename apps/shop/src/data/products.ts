@@ -44,6 +44,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/tb-500?uid=106&oid=1&affid=10866", commission: "15%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/tb500-10mg/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/tb-500-2?aff=84", commission: "30%" },
     ],
     featured: true,
   },
@@ -86,6 +87,7 @@ export const products: Product[] = [
     benefits: ["Libido enhancement", "Sexual function support", "Mood elevation", "Melanocortin activation"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/pt-141-bremelanotide?aff=84", commission: "30%" },
     ],
     featured: true,
   },
@@ -99,6 +101,7 @@ export const products: Product[] = [
     benefits: ["Triple-receptor agonism", "Appetite suppression", "Fat mass reduction", "Metabolic regulation"],
     vendors: [
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-3r-10mg/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/ggg-tri-agonist-retatrutide-2?aff=84", commission: "30%" },
     ],
     badge: "Phase 3",
     featured: true,
@@ -113,6 +116,7 @@ export const products: Product[] = [
     benefits: ["Visceral fat reduction", "GH pulse stimulation", "Lean body composition", "Metabolic support"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/tesamorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/tesamorelin?aff=84", commission: "30%" },
     ],
     featured: true,
   },
@@ -126,6 +130,7 @@ export const products: Product[] = [
     benefits: ["Targeted fat metabolism", "Lipolysis stimulation", "No IGF-1 interference", "No blood sugar impact"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/hgh-fragment-176-191/?ref=6782", commission: "20%" },
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/aod-9604?_ef_transaction_id=&oid=1&affid=10866", commission: "15%" },
     ],
     featured: false,
   },
@@ -153,6 +158,7 @@ export const products: Product[] = [
     benefits: ["Natural GH stimulation", "Anti-aging support", "Lean body composition", "Improved energy"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/sermorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/sermorelin?_ef_transaction_id=&oid=1&affid=10866", commission: "15%" },
     ],
     featured: true,
   },
@@ -166,6 +172,8 @@ export const products: Product[] = [
     benefits: ["Mitochondrial optimization", "Insulin sensitivity", "Metabolic homeostasis", "Cellular energy support"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/mots-c-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/mots-c?_ef_transaction_id=&oid=1&affid=10866", commission: "15%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/mots-c?aff=84", commission: "30%" },
     ],
     featured: false,
   },
@@ -179,6 +187,8 @@ export const products: Product[] = [
     benefits: ["Skin regeneration", "Collagen synthesis", "Hair follicle support", "Antioxidant activity"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/ghk-cu-copper-peptide/?ref=6782", commission: "20%" },
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ghk-cu?_ef_transaction_id=&oid=1&affid=10866", commission: "15%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/ghk-cu?aff=84", commission: "30%" },
     ],
     featured: false,
   },
@@ -192,6 +202,8 @@ export const products: Product[] = [
     benefits: ["Muscle protein synthesis", "Lean tissue growth", "Recovery support", "Extended half-life vs. native IGF-1"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/igf-1-lr3-1mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/igf-1lr3/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/igf-1-lr3?aff=84", commission: "30%" },
     ],
     featured: false,
   },
@@ -205,6 +217,8 @@ export const products: Product[] = [
     benefits: ["Mitochondrial energy production", "DNA repair support", "Cellular longevity", "Cognitive function"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/nad-coenzyme-peptide-1-vial-100-mg/?ref=6782", commission: "20%" },
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/nad/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/nad?aff=84", commission: "30%" },
     ],
     featured: false,
   },
