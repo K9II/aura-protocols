@@ -112,7 +112,7 @@ export const products: Product[] = [
       "Synthetic GHRH analog that stimulates endogenous growth hormone release. Studied for visceral fat reduction, body composition, and metabolic health.",
     benefits: ["Visceral fat reduction", "GH pulse stimulation", "Lean body composition", "Metabolic support"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/tesamorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%" },
     ],
     featured: true,
   },
@@ -138,7 +138,7 @@ export const products: Product[] = [
       "Synthetic tetrapeptide (Ala-Glu-Asp-Gly) studied for its role in telomerase activation, cellular longevity, and regulation of the pineal gland's melatonin output.",
     benefits: ["Telomerase activation", "Cellular longevity", "Melatonin regulation", "Anti-aging support"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/epitalon-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/epithalon-50mg/?rfsn=9131640.7592e7", commission: "20%" },
     ],
     featured: false,
@@ -152,7 +152,7 @@ export const products: Product[] = [
       "Growth hormone releasing hormone analogue that stimulates the pituitary to naturally increase GH production.",
     benefits: ["Natural GH stimulation", "Anti-aging support", "Lean body composition", "Improved energy"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/sermorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%" },
     ],
     featured: true,
   },
@@ -165,7 +165,7 @@ export const products: Product[] = [
       "Mitochondrial-derived peptide that regulates metabolic homeostasis, improves insulin sensitivity, and supports cellular energy production. Active in clinical trials for metabolic disease.",
     benefits: ["Mitochondrial optimization", "Insulin sensitivity", "Metabolic homeostasis", "Cellular energy support"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/mots-c-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
     ],
     featured: false,
   },
