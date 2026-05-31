@@ -28,6 +28,7 @@ export const products: Product[] = [
     benefits: ["Joint & tendon repair", "Gut lining support", "Anti-inflammatory", "Accelerated healing"],
     vendors: [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866", commission: "15%" },
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/bpc157-10mg/?rfsn=9131640.7592e7", commission: "20%" },
     ],
     badge: "Best Seller",
     featured: true,
@@ -42,6 +43,7 @@ export const products: Product[] = [
     benefits: ["Systemic tissue healing", "Reduced inflammation", "Muscle repair", "Improved flexibility"],
     vendors: [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/tb-500?uid=106&oid=1&affid=10866", commission: "15%" },
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/tb500-10mg/?rfsn=9131640.7592e7", commission: "20%" },
     ],
     featured: true,
   },
@@ -55,7 +57,7 @@ export const products: Product[] = [
     benefits: ["Appetite suppression", "Blood sugar regulation", "Fat loss support", "Cardiovascular benefits"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/?aff=84", commission: "30%" },
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7", commission: "20%" },
     ],
     badge: "Top Rated",
     featured: true,
@@ -70,6 +72,7 @@ export const products: Product[] = [
     benefits: ["GH pulse optimization", "Lean muscle support", "Improved sleep quality", "Fat metabolism"],
     vendors: [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866", commission: "15%" },
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/cjc1295-ipamorelin/?rfsn=9131640.7592e7", commission: "20%" },
     ],
     featured: true,
   },
@@ -95,7 +98,7 @@ export const products: Product[] = [
       "Triple receptor agonist targeting GLP-1, GIP, and glucagon receptors. Phase 3 trials recorded up to 24.2% body weight reduction — the highest of any compound in its class.",
     benefits: ["Triple-receptor agonism", "Appetite suppression", "Fat mass reduction", "Metabolic regulation"],
     vendors: [
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-3r-10mg/?rfsn=9131640.7592e7", commission: "20%" },
     ],
     badge: "Phase 3",
     featured: true,
@@ -136,6 +139,7 @@ export const products: Product[] = [
     benefits: ["Telomerase activation", "Cellular longevity", "Melatonin regulation", "Anti-aging support"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/epithalon-50mg/?rfsn=9131640.7592e7", commission: "20%" },
     ],
     featured: false,
   },
