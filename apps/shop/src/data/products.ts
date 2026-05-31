@@ -169,6 +169,45 @@ export const products: Product[] = [
     ],
     featured: false,
   },
+  {
+    id: "ghk-cu",
+    name: "GHK-Cu (Copper Peptide)",
+    slug: "ghk-cu",
+    category: "Wellness",
+    description:
+      "Naturally occurring copper-binding tripeptide (Gly-His-Lys) studied for skin regeneration, wound healing, hair follicle stimulation, and collagen synthesis. Declines naturally with age.",
+    benefits: ["Skin regeneration", "Collagen synthesis", "Hair follicle support", "Antioxidant activity"],
+    vendors: [
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/ghk-cu-copper-peptide/?ref=6782", commission: "20%" },
+    ],
+    featured: false,
+  },
+  {
+    id: "igf-1-lr3",
+    name: "IGF-1 LR3",
+    slug: "igf-1-lr3",
+    category: "Growth & Performance",
+    description:
+      "Long-acting analog of insulin-like growth factor 1 with extended half-life. Studied for muscle protein synthesis, lean tissue growth, and recovery — a common pairing with CJC-1295 / Ipamorelin stacks.",
+    benefits: ["Muscle protein synthesis", "Lean tissue growth", "Recovery support", "Extended half-life vs. native IGF-1"],
+    vendors: [
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/igf-1-lr3-1mg-price-is-per-vial/?ref=6782", commission: "20%" },
+    ],
+    featured: false,
+  },
+  {
+    id: "nad-plus",
+    name: "NAD+ (Nicotinamide Adenine Dinucleotide)",
+    slug: "nad-plus",
+    category: "Wellness",
+    description:
+      "Coenzyme central to mitochondrial energy production, DNA repair, and cellular longevity. Levels decline with age; supplementation is studied for metabolic health, cognitive function, and healthspan.",
+    benefits: ["Mitochondrial energy production", "DNA repair support", "Cellular longevity", "Cognitive function"],
+    vendors: [
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/nad-coenzyme-peptide-1-vial-100-mg/?ref=6782", commission: "20%" },
+    ],
+    featured: false,
+  },
 ];
 
 export const categories = [...new Set(products.map((p) => p.category))];
