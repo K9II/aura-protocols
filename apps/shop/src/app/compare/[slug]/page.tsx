@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { comparisons } from "@/data/comparisons";
+import { goUrl } from "@/lib/affiliate";
 import EngineCTACard from "@/components/EngineCTACard";
 
 export function generateStaticParams() {
@@ -101,8 +102,8 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
       {/* Head-to-head hero */}
       <div className="grid grid-cols-2 gap-4 mb-12">
         {[
-          { name: comp.vendorA, url: comp.vendorAUrl, isWinner: comp.winner === "A" },
-          { name: comp.vendorB, url: comp.vendorBUrl, isWinner: comp.winner === "B" },
+          { name: comp.vendorA, url: goUrl(comp.vendorA), isWinner: comp.winner === "A" },
+          { name: comp.vendorB, url: goUrl(comp.vendorB), isWinner: comp.winner === "B" },
         ].map((v) => (
           <div key={v.name} className={`glass p-6 text-center relative ${v.isWinner ? "border-cyan-400/30 glow-cyan" : ""}`}>
             {v.isWinner && (
@@ -155,7 +156,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             summary: comp.vendorASummary,
             pros: comp.vendorAPros,
             cons: comp.vendorACons,
-            url: comp.vendorAUrl,
+            url: goUrl(comp.vendorA),
             isWinner: comp.winner === "A",
           },
           {
@@ -163,7 +164,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             summary: comp.vendorBSummary,
             pros: comp.vendorBPros,
             cons: comp.vendorBCons,
-            url: comp.vendorBUrl,
+            url: goUrl(comp.vendorB),
             isWinner: comp.winner === "B",
           },
         ].map((v) => (

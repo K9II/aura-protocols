@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { products } from "@/data/products";
+import { goUrl } from "@/lib/affiliate";
 import EngineCTACard from "@/components/EngineCTACard";
 
 export function generateStaticParams() {
@@ -139,7 +140,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     <p className="text-xs text-slate-500 mb-2">{v.note}</p>
                   )}
                   <a
-                    href={v.url}
+                    href={goUrl(v.vendor, product.slug)}
                     target="_blank"
                     rel="noopener noreferrer sponsored"
                     className={`w-full text-center text-xs py-2 block ${i === 0 ? "btn-primary" : "btn-outline"}`}
