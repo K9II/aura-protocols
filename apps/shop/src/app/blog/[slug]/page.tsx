@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { posts } from "@/data/posts";
 import type { Section, LinkPart } from "@/data/posts";
+import { goUrl } from "@/lib/affiliate";
 import EngineCTAInline from "@/components/EngineCTAInline";
 import EngineCTACard from "@/components/EngineCTACard";
 
@@ -122,7 +123,7 @@ function renderSection(section: Section, i: number) {
             )}
           </div>
           <a
-            href={section.affiliateUrl}
+            href={section.vendor ? goUrl(section.vendor, section.productSlug) : section.affiliateUrl}
             target="_blank"
             rel="noopener noreferrer sponsored"
             className="btn-primary text-sm py-2.5 px-6 whitespace-nowrap"

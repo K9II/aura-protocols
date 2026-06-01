@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
+import { buildAffiliateRedirects } from "./src/lib/affiliate";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return buildAffiliateRedirects();
+  },
 };
 
 export default nextConfig;
