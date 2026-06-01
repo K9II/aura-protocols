@@ -49,3 +49,6 @@ recovery-codes.txt
 *.txt
 
 .vercel
+
+# Superpowers brainstorm mockups
+.superpowers/

@@ -1,0 +1,21 @@
+<!-- DRAFT — not final. The Clinical "c" glyph + pulse hand-off needs the same
+     companion design pass the Protocols "p" received. Do not ship as-is. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="170" height="150" viewBox="0 0 170 150" fill="none" stroke="url(#g)" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="9">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(6,4) skewX(-7)">
+    <g stroke-width="14">
+      <path d="M30,128 L70,20"/>
+      <path d="M70,20 L110,128"/>
+    </g>
+    <!-- flow-through pulse pointing toward the c -->
+    <path stroke-width="6" d="M34,110 L46,86 L58,86 L64,68 L70,108 L76,86 L92,86 L106,86 L118,84"/>
+    <!-- c built from rotated aura rings -->
+    <path stroke-width="8" d="M144.9,56.7 A20,20 0 1 0 144.9,87.3"/>
+    <path stroke-width="5" opacity="0.55" d="M140.4,62 A13,13 0 1 0 140.4,82"/>
+  </g>
+</svg>

@@ -166,18 +166,33 @@ export default async function Image() {
             >
               <div
                 style={{
-                  width: 44,
-                  height: 44,
+                  width: 48,
+                  height: 48,
                   background: "linear-gradient(135deg, #00d4ff, #8b5cf6)",
-                  borderRadius: 10,
+                  borderRadius: 11,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <div style={{ color: "#fff", fontSize: 22, fontWeight: 800, fontFamily: "Syne" }}>
-                  A
-                </div>
+                <svg
+                  width="30"
+                  height="28"
+                  viewBox="0 0 160 150"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeLinecap="round"
+                  strokeLinejoin="miter"
+                  strokeMiterlimit={9}
+                >
+                  <g transform="translate(6,4) skewX(-7)">
+                    <g strokeWidth={15}>
+                      <path d="M30,128 L70,20" />
+                      <path d="M70,20 L110,128" />
+                    </g>
+                    <path strokeWidth={8} d="M36,108 L48,86 L60,86 L66,68 L72,108 L78,86 L98,86 L112,72" />
+                  </g>
+                </svg>
               </div>
               <div
                 style={{
