@@ -138,7 +138,7 @@ export const posts: Post[] = [
         text: "View Semaglutide at GLP-1 Research Lab",
         productSlug: "semaglutide",
         vendor: "GLP-1 Research Lab",
-        affiliateUrl: "https://glp1researchlab.com/?aff=84",
+        affiliateUrl: "https://glp1researchlab.com/product/glp-1-semaglutide-2?aff=84",
       },
       {
         type: "h2",
