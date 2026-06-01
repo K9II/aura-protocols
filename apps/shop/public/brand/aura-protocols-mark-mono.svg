@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="150" viewBox="0 0 160 150" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="9">
+  <g transform="translate(6,4) skewX(-7)">
+    <g stroke-width="14">
+      <path d="M30,128 L70,20"/>
+      <path d="M70,20 L110,128"/>
+    </g>
+    <path d="M124,46 A26,26 0 1 1 124,98" stroke-width="3.5" opacity="0.26"/>
+    <path stroke-width="6" d="M34,110 L46,86 L58,86 L64,68 L70,108 L76,86 L92,86 L106,86 L118,87 L124,90 A19,19 0 1 0 124,52 L124,116"/>
+  </g>
+</svg>

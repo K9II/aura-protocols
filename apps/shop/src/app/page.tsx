@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AuraLockup from "@/components/AuraLockup";
 import EmailCapture from "@/components/EmailCapture";
 import ProtocolSelector from "@/components/ProtocolSelector";
 import { products } from "@/data/products";
@@ -32,6 +33,9 @@ export default function HomePage() {
     <>
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-10 md:pt-24">
+        <div className="flex justify-center mb-12">
+          <AuraLockup className="w-full max-w-[340px] h-auto" />
+        </div>
         <div className="flex flex-col lg:flex-row lg:items-center gap-12">
 
           {/* Left column */}

@@ -245,3 +245,60 @@ h1, h2, h3 {
   border-color: rgba(0, 212, 255, 0.25);
   box-shadow: 0 4px 24px rgba(0, 212, 255, 0.08);
 }
+
+/* === Brand logo (AuraMark / AuraLockup) === */
+.aura-wordmark { font-family: var(--font-display), "Space Grotesk", system-ui, sans-serif; }
+
+@keyframes auraDraw {
+  0%   { stroke-dashoffset: 100; }
+  55%  { stroke-dashoffset: 0; }
+  82%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -100; }
+}
+@keyframes auraDrawOnce {
+  from { stroke-dashoffset: 100; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes auraRun {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  4%   { opacity: 1; }
+  53%  { offset-distance: 100%; opacity: 1; }
+  58%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes auraRunOnce {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  6%   { opacity: 1; }
+  94%  { offset-distance: 100%; opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+@keyframes auraFlash {
+  0%, 50% { opacity: 0; transform: scale(0.2); }
+  56%     { opacity: 1; transform: scale(1.5); }
+  72%     { opacity: 0; transform: scale(2.1); }
+  100%    { opacity: 0; }
+}
+
+/* dash setup for any animated mark */
+.aura-svg .aura-glow,
+.aura-svg .aura-pulse { stroke-dasharray: 100; }
+.aura-svg .aura-glow  { filter: blur(2.5px); opacity: 0.55; }
+.aura-svg .aura-comet { offset-rotate: 0deg; filter: drop-shadow(0 0 5px #6fe8ff); }
+.aura-svg .aura-spark { transform-box: fill-box; transform-origin: center; filter: drop-shadow(0 0 4px #aef0ff); }
+
+/* hero: continuously live — the pulse keeps drawing the p, sweeping, and repeating */
+.aura-loop .aura-glow,
+.aura-loop .aura-pulse { animation: auraDraw 3.4s cubic-bezier(.5,0,.2,1) infinite; }
+.aura-loop .aura-comet { animation: auraRun 3.4s cubic-bezier(.5,0,.2,1) infinite; }
+.aura-loop .aura-spark { animation: auraFlash 3.4s ease-out infinite; }
+
+/* play once on mount (navbar) */
+.aura-once .aura-glow,
+.aura-once .aura-pulse { animation: auraDrawOnce 1.8s cubic-bezier(.5,0,.2,1) both; }
+.aura-once .aura-comet { animation: auraRunOnce 1.8s cubic-bezier(.5,0,.2,1) both; }
+.aura-once .aura-spark { animation: auraFlash 1.9s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aura-glow, .aura-pulse { animation: none !important; stroke-dashoffset: 0 !important; }
+  .aura-comet, .aura-spark { display: none !important; }
+}

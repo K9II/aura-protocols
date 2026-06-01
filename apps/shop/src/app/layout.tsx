@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EngineCTABanner from "@/components/EngineCTABanner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const syne = { variable: "" };
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
+});
 
 const BASE_URL = "https://shop.auraprotocols.com";
 
@@ -52,7 +56,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${syne.variable}`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className={`aurora-bg min-h-screen flex flex-col`}>
         <EngineCTABanner />
         {/* FTC Affiliate Disclosure */}

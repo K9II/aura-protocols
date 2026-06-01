@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import AuraMark from "@/components/AuraMark";
 
 const links = [
   { label: "Products", href: "/products" },
@@ -16,11 +17,9 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 glass border-b border-white/5">
       <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-white font-black text-sm">
-            A
-          </span>
-          <span className="font-bold text-lg tracking-tight">
+        <Link href="/" className="flex items-center gap-2.5 group" aria-label="Aura Protocols home">
+          <AuraMark size={34} mode="once" />
+          <span className="aura-wordmark font-bold text-lg tracking-tight text-white">
             Aura <span className="gradient-brand">Protocols</span>
           </span>
         </Link>
