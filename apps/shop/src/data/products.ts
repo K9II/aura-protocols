@@ -57,7 +57,7 @@ export const products: Product[] = [
       "GLP-1 receptor agonist widely studied for appetite regulation, blood sugar control, and body composition.",
     benefits: ["Appetite suppression", "Blood sugar regulation", "Fat loss support", "Cardiovascular benefits"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/glp-1-semaglutide-2?aff=84", commission: "30%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7", commission: "20%" },
     ],
     badge: "Top Rated",
