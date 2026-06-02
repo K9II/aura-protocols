@@ -130,7 +130,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <div className="glass p-6 glow-cyan sticky top-24">
             <p className="text-xs uppercase tracking-widest text-cyan-400 font-semibold mb-1">Independently Reviewed</p>
             <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-              We only list vendors that publish third-party, batch-specific COAs.
+              We only list vendors that provide third-party, batch-specific COAs.
             </p>
             <div className="space-y-3">
               {sortedVendors.map((v, i) => (

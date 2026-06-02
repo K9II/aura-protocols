@@ -979,7 +979,7 @@ export const posts: Post[] = [
       },
       {
         type: "p",
-        text: "Every vendor we feature on Aura Protocols must provide publicly accessible, batch-specific COAs from accredited third-party laboratories. We manually review these documents before listing any product. If a vendor's documentation doesn't meet our standards, they don't appear on this site — regardless of commission rates.",
+        text: "Every vendor we feature on Aura Protocols must provide batch-specific COAs from accredited third-party laboratories. We manually review these documents before listing any product. If a vendor's documentation doesn't meet our standards, they don't appear on this site — regardless of commission rates.",
       },
       {
         type: "callout",
