@@ -1,5 +1,9 @@
-"""Convert the attorney intake markdown to a styled PDF."""
+"""Convert a markdown document to a styled PDF.
+
+Usage: python scripts/md_to_pdf.py <source.md> [output.pdf]
+"""
 import re
+import sys
 from pathlib import Path
 
 from reportlab.lib import colors
@@ -19,8 +23,8 @@ from reportlab.platypus import (
 )
 
 
-SRC = Path("docs/clinical/2026-05-25-attorney-intake.md")
-DST = Path("docs/clinical/2026-05-25-attorney-intake.pdf")
+SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("input.md")
+DST = Path(sys.argv[2]) if len(sys.argv) > 2 else SRC.with_suffix(".pdf")
 
 NAVY = colors.HexColor("#1F3A5F")
 NAVY_LIGHT = colors.HexColor("#2C5A8A")
@@ -145,8 +149,7 @@ def convert(src: Path, dst: Path) -> None:
         rightMargin=0.85 * inch,
         topMargin=0.85 * inch,
         bottomMargin=0.85 * inch,
-        title="Aura Clinical — Healthcare Attorney Consultation Intake",
-        author="Kearney Adams Jr.",
+        title=src.stem,
     )
 
     story = []

@@ -1,4 +1,7 @@
-"""Convert the attorney intake markdown to a styled .docx."""
+"""Convert a markdown document to a styled .docx.
+
+Usage: python scripts/md_to_docx.py <source.md> [output.docx]
+"""
 import re
 import sys
 from pathlib import Path
@@ -11,8 +14,8 @@ from docx.oxml import OxmlElement
 from docx.shared import Inches, Pt, RGBColor
 
 
-SRC = Path("docs/clinical/2026-05-25-attorney-intake.md")
-DST = Path("docs/clinical/2026-05-25-attorney-intake.docx")
+SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("input.md")
+DST = Path(sys.argv[2]) if len(sys.argv) > 2 else SRC.with_suffix(".docx")
 
 BODY_FONT = "Calibri"
 HEADING_FONT = "Calibri"
