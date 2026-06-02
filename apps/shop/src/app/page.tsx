@@ -41,7 +41,7 @@ export default function HomePage() {
           {/* Left column */}
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-4">
-              Biometric Intelligence · Peptide Research · Independently Verified
+              Biometric Intelligence · Peptide Research · Editorially Independent
             </p>
             <h1 className="font-display text-4xl font-bold text-white md:text-5xl leading-tight mb-5">
               Your data, sequenced.<br />
