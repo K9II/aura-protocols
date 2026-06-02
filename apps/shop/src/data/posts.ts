@@ -490,7 +490,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "BPC-157 (Body Protection Compound-157) is a synthetic pentadecapeptide derived from a protective protein found in human gastric juice. It has become one of the most widely studied peptides in regenerative research, with a growing body of literature pointing to remarkable tissue-healing properties across multiple systems.",
+        text: "BPC-157 (Body Protection Compound-157) is a synthetic pentadecapeptide derived from a protective protein found in human gastric juice. It has become one of the most widely studied peptides in regenerative research, with a growing body of preclinical literature documenting tissue-healing effects across multiple systems.",
       },
       {
         type: "h2",
@@ -714,9 +714,9 @@ export const posts: Post[] = [
         type: "ul",
         items: [
           "Increased lean body mass in multiple animal models",
-          "Reduction in adipose tissue, particularly visceral fat",
+          "Reduction in adipose tissue in animal models, particularly visceral fat",
           "Improved sleep quality (GH is primarily secreted during slow-wave sleep)",
-          "Enhanced recovery from exercise-induced muscle damage",
+          "Enhanced recovery from exercise-induced muscle damage in preclinical studies",
           "Improved bone mineral density markers in aging models",
         ],
       },
@@ -844,7 +844,7 @@ export const posts: Post[] = [
           "Acts centrally via melanocortin receptors — not vascular",
           "Studied in both male and female sexual dysfunction models",
           "FDA approved version (Vyleesi) exists for hypoactive sexual desire disorder in premenopausal women",
-          "Shown to increase sexual desire and arousal independent of hormonal status",
+          "Studied for effects on sexual desire and arousal independent of hormonal status",
           "Effects reported within 45–60 minutes in clinical studies",
         ],
       },

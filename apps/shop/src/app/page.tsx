@@ -10,7 +10,7 @@ import { ENGINE_URL, EXTERNAL_REL } from "@/lib/constants";
 export const metadata: Metadata = {
   title: "Aura Protocols — Research Peptide Protocols, Independently Reviewed",
   description:
-    "We read the signals your wearable already tracks — HRV, sleep, recovery, glucose — and match them to published peptide research. Every compound vetted against the literature, every vendor batch-COA verified.",
+    "We read the signals your wearable already tracks — HRV, sleep, recovery, glucose — and match them to published peptide research. Every compound vetted against the literature; every vendor required to provide batch-specific, third-party COAs.",
   alternates: { canonical: "/" },
 };
 
@@ -19,7 +19,7 @@ const latestPosts = posts.slice(0, 3);
 const trustChips = [
   "Biometric sequencing",
   "Matched to the literature",
-  "Batch-COA verified",
+  "Batch-COA required",
   "Built on the evidence",
 ];
 
@@ -51,7 +51,7 @@ export default function HomePage() {
               Every night, your wearable sequences the signals that define you — HRV, sleep, recovery, glucose.
               Aura matches that data to the peptide literature and surfaces only the compounds studied for your markers.
               No stack-of-the-week. We exist to hold peptides to the standard the research deserves — every compound
-              vetted against the literature, every vendor batch-COA verified.
+              vetted against the literature, every vendor required to provide batch-specific, third-party COAs.
             </p>
 
             {/* Trust chips */}
