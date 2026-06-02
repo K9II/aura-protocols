@@ -29,6 +29,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866", commission: "15%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/bpc157-10mg/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/bpc-157-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     badge: "Best Seller",
     featured: true,
@@ -45,6 +46,7 @@ export const products: Product[] = [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/tb-500?uid=106&oid=1&affid=10866", commission: "15%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/tb500-10mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/tb-500-2?aff=84", commission: "30%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/tb-500/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     featured: true,
   },
@@ -59,6 +61,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/glp-1-semaglutide-2?aff=84", commission: "30%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/semaglutide-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     badge: "Top Rated",
     featured: true,
@@ -74,6 +77,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866", commission: "15%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/cjc1295-ipamorelin/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/cjc-ipamorelin/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     featured: true,
   },
@@ -88,6 +92,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/pt-141-bremelanotide?aff=84", commission: "30%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/pt-141-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     featured: true,
   },
@@ -102,6 +107,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-3r-10mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/ggg-tri-agonist-retatrutide-2?aff=84", commission: "30%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/retatrutide-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     badge: "Phase 3",
     featured: true,
@@ -117,6 +123,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/tesamorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%" },
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/tesamorelin?aff=84", commission: "30%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/tesa-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     featured: true,
   },
@@ -159,6 +166,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/sermorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/sermorelin?_ef_transaction_id=&oid=1&affid=10866", commission: "15%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/sermorelin-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     featured: true,
   },
@@ -174,6 +182,7 @@ export const products: Product[] = [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/mots-c-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/mots-c?_ef_transaction_id=&oid=1&affid=10866", commission: "15%" },
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/mots-c?aff=84", commission: "30%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/mots-c-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     featured: false,
   },
@@ -189,6 +198,7 @@ export const products: Product[] = [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/ghk-cu-copper-peptide/?ref=6782", commission: "20%" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ghk-cu?_ef_transaction_id=&oid=1&affid=10866", commission: "15%" },
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/ghk-cu?aff=84", commission: "30%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ghk-cu-100mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     featured: false,
   },
@@ -219,6 +229,7 @@ export const products: Product[] = [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/nad-coenzyme-peptide-1-vial-100-mg/?ref=6782", commission: "20%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/nad/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/nad?aff=84", commission: "30%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/nad-500mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     featured: false,
   },
