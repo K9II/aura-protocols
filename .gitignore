@@ -48,6 +48,17 @@ affiliate-outreach.md
 recovery-codes.txt
 *.txt
 
+# Sensitive business/legal docs & binaries — never commit to this PUBLIC repo
+# (PDFs are also excluded from Vercel deploy via .vercelignore)
+docs/**/*.pdf
+docs/**/*.docx
+
+# Office/Word lock & temp files
+~$*
+
+# One-off screenshots (excluded from deploy via .vercelignore too)
+scripts/*.png
+
 .vercel
 
 # Superpowers brainstorm mockups

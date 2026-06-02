@@ -2,6 +2,25 @@ export const ENGINE_URL = "https://auraprotocols.com";
 export const AFFILIATE_REL = "noopener noreferrer sponsored";
 export const EXTERNAL_REL = "noopener noreferrer";
 
+export const CLINICAL_WAITLIST_URL = "/clinical-waitlist";
+
+export const HERO_COPY = {
+  eyebrow: "Wearable-personalized · COA-verified · Cash-pay clinical",
+  h1Line1: "The peptide protocol for life after GLP-1 —",
+  h1Line2: "tuned to your wearable.",
+  subhead:
+    "Coming off Ozempic or Zepbound? Lost muscle, sleeping worse, libido off? Connect your Whoop, Oura, or Apple Health and the Engine builds a peptide protocol matched to your recovery, sleep, and HRV. Prescribed by US-licensed MDs when you're ready.",
+  primaryCta: "Connect a wearable — free →",
+  secondaryCta: "or browse the protocol library →",
+  tertiary: "Already know you want it prescribed? Join the Aura Clinical waitlist →",
+  trustStrip: [
+    "LegitScript Pending",
+    "COA-required vendors",
+    "Reviewed by US-licensed MDs",
+    "100% FTC-compliant",
+  ],
+};
+
 export const LEAD_MAGNET = {
   title: "The Peptide Protocol Cheat Sheet",
   blurb: "One page. Doses, stacks, timing, COA red flags. Free PDF.",
