@@ -10,17 +10,17 @@ import { ENGINE_URL, EXTERNAL_REL } from "@/lib/constants";
 export const metadata: Metadata = {
   title: "Aura Protocols — Research Peptide Protocols, Independently Reviewed",
   description:
-    "Third-party COA verification required. Zero pay-to-play. Connect your wearable and get a protocol engineered to your biometric data.",
+    "We read the signals your wearable already tracks — HRV, sleep, recovery, glucose — and match them to published peptide research. Every compound vetted against the literature, every vendor batch-COA verified.",
   alternates: { canonical: "/" },
 };
 
 const latestPosts = posts.slice(0, 3);
 
 const trustChips = [
-  "Batch COA required",
-  "0 pay-to-play",
-  "Manually reviewed",
-  "Biometric-synced protocols",
+  "Biometric sequencing",
+  "Matched to the literature",
+  "Batch-COA verified",
+  "Built on the evidence",
 ];
 
 export default function HomePage() {
@@ -41,15 +41,17 @@ export default function HomePage() {
           {/* Left column */}
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-4">
-              Independent · COA-Verified · Protocol-Engineered
+              Biometric Intelligence · Peptide Research · Independently Verified
             </p>
             <h1 className="font-display text-4xl font-bold text-white md:text-5xl leading-tight mb-5">
-              Your biology is unique.<br />
-              Your protocol should match it.
+              Your data, sequenced.<br />
+              The research, matched.
             </h1>
             <p className="text-slate-400 leading-relaxed mb-8 max-w-xl">
-              Third-party, batch-specific COAs required from every vendor we list. Zero pay-to-play placements.
-              Connect your wearable and the Engine engineers a protocol to your actual biometric data.
+              Every night, your wearable sequences the signals that define you — HRV, sleep, recovery, glucose.
+              Aura matches that data to the peptide literature and surfaces only the compounds studied for your markers.
+              No stack-of-the-week. We exist to hold peptides to the standard the research deserves — every compound
+              vetted against the literature, every vendor batch-COA verified.
             </p>
 
             {/* Trust chips */}
@@ -67,11 +69,11 @@ export default function HomePage() {
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-3">
-              <a href="#protocols" className="btn-primary">
-                Browse protocols →
+              <a href={ENGINE_URL} target="_blank" rel={EXTERNAL_REL} className="btn-primary">
+                Connect your wearable →
               </a>
-              <a href={ENGINE_URL} target="_blank" rel={EXTERNAL_REL} className="btn-outline">
-                Connect a wearable →
+              <a href="#protocols" className="btn-outline">
+                Explore the research →
               </a>
             </div>
           </div>
