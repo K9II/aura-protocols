@@ -26,9 +26,9 @@ export default function AboutPage() {
         <div className="glass p-6 grid grid-cols-2 sm:grid-cols-4 gap-6 my-8">
           {[
             { stat: "4", label: "Research categories" },
-            { stat: "6", label: "Compounds reviewed" },
-            { stat: "4", label: "Vetted vendors" },
-            { stat: "100%", label: "FTC compliant" },
+            { stat: "14", label: "Compounds reviewed" },
+            { stat: "5", label: "Vetted vendors" },
+            { stat: "100%", label: "Affiliate links disclosed" },
           ].map(({ stat, label }) => (
             <div key={label} className="text-center">
               <p className="font-display text-2xl font-bold text-cyan-400">{stat}</p>
