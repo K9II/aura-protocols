@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ENGINE_URL, EXTERNAL_REL, CLINICAL_WAITLIST_URL } from "@/lib/constants";
+import { ENGINE_URL, EXTERNAL_REL } from "@/lib/constants";
 
 export default function PathLadder() {
   return (
@@ -48,7 +48,7 @@ export default function PathLadder() {
           <p className="text-slate-400 leading-relaxed mb-6 flex-1">
             Compounded peptides via a US-licensed MD — planned. Target $249–$499/mo, cash-pay. Join the waitlist for early access.
           </p>
-          <Link href={CLINICAL_WAITLIST_URL} className="btn-outline self-start">
+          <Link href="/clinical-waitlist" className="btn-outline self-start">
             Join the waitlist →
           </Link>
         </div>
