@@ -22,10 +22,11 @@ export const HERO_COPY = {
 };
 
 export const LEAD_MAGNET = {
-  title: "The Peptide Protocol Cheat Sheet",
-  blurb: "One page. Doses, stacks, timing, COA red flags. Free PDF.",
+  title: "Get your peptide starting protocol — free",
+  blurb:
+    "Pick your #1 goal and we'll send a research-backed starting point — doses, timing, and COA-verified sources — to your inbox.",
   beehiivPublicationId: "pub_923fd119-6bff-4ca5-9bcf-0250796fde4d",
-  beehiivFormId: "d60dc7cc-99e5-426c-acac-dfcd3a72198b",
+  beehiivFormId: "c2f90365-7069-4921-8029-64ff73ba87f8",
   beehiivLoaderSrc: "https://subscribe-forms.beehiiv.com/v3/loader.js",
 };
 
