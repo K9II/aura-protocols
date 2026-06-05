@@ -20,7 +20,7 @@ export default function EmailCapture() {
   if (LEAD_MAGNET.beehiivPublicationId === "PLACEHOLDER_PUB_ID") return null;
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-[#0d1117] p-4 text-center sm:p-8">
+    <section className="rounded-2xl border border-white/10 bg-[#0d1117] px-2 py-5 text-center sm:p-8">
       <div ref={containerRef} className="beehiiv-center" />
     </section>
   );
