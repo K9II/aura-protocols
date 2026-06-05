@@ -5,7 +5,7 @@ import EmailCapture from "@/components/EmailCapture";
 import ProtocolSelector from "@/components/ProtocolSelector";
 import { products } from "@/data/products";
 import { posts } from "@/data/posts";
-import { ENGINE_URL, EXTERNAL_REL } from "@/lib/constants";
+import { ENGINE_URL, EXTERNAL_REL, LEAD_MAGNET } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Aura Protocols — Research Peptide Protocols, Independently Reviewed",
@@ -153,8 +153,16 @@ export default function HomePage() {
       </section>
 
       {/* Email */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <EmailCapture />
+      <section className="mx-auto max-w-3xl px-6 py-16 text-center">
+        <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">
+          {LEAD_MAGNET.title}
+        </h2>
+        <p className="mx-auto mt-4 max-w-xl text-lg text-slate-300">
+          {LEAD_MAGNET.blurb}
+        </p>
+        <div className="mt-8">
+          <EmailCapture />
+        </div>
       </section>
     </>
   );
