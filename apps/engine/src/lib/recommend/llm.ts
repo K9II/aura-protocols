@@ -60,11 +60,22 @@ TREND REASONING — the user payload includes a "trends" object:
   rhr:      { ... },
   sleep:    { ... },
   recovery: { ... },
-  glucose?: { ... }   // present only if user has CGM data
+  glucose?: { ... },  // present only if user has CGM data
+  weight?:  { ... }   // present only if the user logs body weight; reason about rate of change
 }
-Reason about TRAJECTORY, not just snapshot values. A user with HRV 50ms trending down 7d (delta -8) is in a different state than HRV 50ms trending up 7d (delta +6) — the first signals declining recovery and should bump RECOVERY-template resonance scores upward; the second signals normalization. Cite the direction in resonanceReason where it drives the score.
+Reason about TRAJECTORY, not just snapshot values. A user with HRV 50ms trending down 7d (delta -8) is in a different state than HRV 50ms trending up 7d (delta +6) — the first signals declining recovery and should bump RECOVERY-template resonance scores upward; the second signals normalization. Cite the direction in resonanceReason where it drives the score. For weight, a fast downward trend alongside low recovery argues for lean-mass-preserving choices (adequate protein, resistance-training emphasis) — surface that in lifestyle/rationale where it applies.
 
-Personalize tone and rationale to the biometric signals and trends supplied. Do not invent biometric values that were not supplied.`;
+PROFILE SIGNALS — the user payload also includes a "profile" object. Use these structured fields where present (do not invent them, and never frame any of them as a diagnosis or as treatment of a medical condition):
+{
+  primary_goal, budget_tier, using_peptides,   // already governed by the rules above
+  glp1_status?:      "never" | "current" | "recently_stopped",
+  menopause_status?: "pre" | "peri" | "post" | "not_applicable"
+}
+- glp1_status="current": the rules summary will carry the current_glp1_medication_detected contraindication — honor the contraindication contract (refuse, do not stack another GLP-1).
+- glp1_status="recently_stopped": the user is in a post-GLP-1 window. Lean-mass preservation and metabolic re-regulation are especially relevant — weight trajectory and body-composition reasoning carry more weight. Do NOT assume they are still medicated.
+- menopause_status="peri" or "post": account for the associated shifts in recovery, sleep quality, and body composition in your rationale where the biometrics support it. Frame as context for the protocol, never as a menopause treatment.
+
+Personalize tone and rationale to the biometric signals, trends, and profile signals supplied. Do not invent biometric values that were not supplied.`;
 
 const SYSTEM_PROMPT_NUTRITION = `NUTRITION SECTION INSTRUCTIONS:
 

@@ -36,6 +36,30 @@ describe("personalizeProtocol", () => {
     expect(out.headline).toMatch(/recovery/i);
   });
 
+  it("documents the Spec-1 profile signals and weight trend in the system prompt", async () => {
+    createMock.mockResolvedValue({
+      content: [{ type: "text", text: JSON.stringify({
+        template: "METABOLIC", headline: "stack",
+        steps: [{ compound: "AOD-9604", dose: "300 mcg/day", timing: "AM", rationale: "lipolysis", resonance: 0.6, resonanceReason: "body_comp goal", titration: null }],
+        lifestyle: [], cycle: "ongoing", caveats: ["educational only"], protein: [], vitamins: [], foods: [],
+      }) }],
+    });
+
+    await personalizeProtocol({
+      template: "METABOLIC",
+      rules: { template: "METABOLIC", triggers: ["glp1_recently_stopped"], contraindications: [], doseCeilings: {} },
+      series: [{ source: "MANUAL", capturedAt: "2026-05-23T07:00:00Z" }],
+      profile: { using_peptides: false, interested_in_rx: false, onboarding_complete: true, glp1_status: "recently_stopped", menopause_status: "post" },
+    });
+
+    const calls = createMock.mock.calls;
+    const promptText = calls[calls.length - 1][0].system.map((b: { text: string }) => b.text).join("\n");
+    expect(promptText).toContain("glp1_status");
+    expect(promptText).toContain("recently_stopped");
+    expect(promptText).toContain("menopause_status");
+    expect(promptText).toMatch(/weight/i);
+  });
+
   it("throws when the LLM returns malformed JSON", async () => {
     createMock.mockResolvedValue({ content: [{ type: "text", text: "not json" }] });
     await expect(personalizeProtocol({
