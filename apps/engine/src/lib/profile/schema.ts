@@ -13,6 +13,9 @@ export const UserProfileSchema = z.object({
   peptides_detail: z.string().nullable().optional(),
   interested_in_rx: z.boolean().default(false),
   budget_tier: z.enum(BUDGET_TIERS).nullable().optional(),
+  glp1_status: z.enum(["never", "current", "recently_stopped"]).nullable().optional(),
+  glp1_stopped_month: z.string().nullable().optional(),
+  menopause_status: z.enum(["pre", "peri", "post", "not_applicable"]).nullable().optional(),
   onboarding_complete: z.boolean().default(false),
 });
 

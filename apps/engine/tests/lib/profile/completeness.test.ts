@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { computeCompletenessScore } from "@/lib/profile/completeness";
+import { UserProfileSchema } from "@/lib/profile/schema";
 import type { ProfileContext } from "@/lib/profile/schema";
 
 const fullProfile: ProfileContext = {
@@ -40,5 +41,22 @@ describe("computeCompletenessScore", () => {
     expect(score).toBeGreaterThan(0);
     expect(score).toBeLessThan(100);
     expect(nextPrompt).toBeTruthy();
+  });
+});
+
+describe("UserProfileSchema wedge fields", () => {
+  it("accepts glp1 + menopause enums", () => {
+    const parsed = UserProfileSchema.partial().safeParse({
+      glp1_status: "recently_stopped",
+      glp1_stopped_month: "2026-04",
+      menopause_status: "peri",
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.glp1_status).toBe("recently_stopped");
+  });
+
+  it("rejects an invalid glp1_status", () => {
+    const parsed = UserProfileSchema.partial().safeParse({ glp1_status: "sometimes" });
+    expect(parsed.success).toBe(false);
   });
 });
