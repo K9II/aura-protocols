@@ -78,3 +78,17 @@ export const BiometricTrendsSchema = z.object({
 export type TrendDirection = z.infer<typeof TrendDirectionSchema>;
 export type TrendMetric = z.infer<typeof TrendMetricSchema>;
 export type BiometricTrends = z.infer<typeof BiometricTrendsSchema>;
+
+export const TensionIdSchema = z.enum(["overreaching", "hormonal_shift", "metabolic_rebound"]);
+export const TensionSeveritySchema = z.enum(["watch", "elevated", "high"]);
+
+export const TensionSchema = z.object({
+  id: TensionIdSchema,
+  severity: TensionSeveritySchema,
+  drivers: z.array(z.string()),
+  implication: z.string(),
+});
+
+export type TensionId = z.infer<typeof TensionIdSchema>;
+export type TensionSeverity = z.infer<typeof TensionSeveritySchema>;
+export type Tension = z.infer<typeof TensionSchema>;
