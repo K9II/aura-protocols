@@ -33,7 +33,7 @@ export async function POST(_request: Request) {
 
   const { data: profileRow } = await supabase
     .from("profiles")
-    .select("age, biological_sex, weight_kg, activity_level, primary_goal, current_medications, using_peptides, peptides_detail, interested_in_rx, budget_tier, onboarding_complete")
+    .select("age, biological_sex, weight_kg, activity_level, primary_goal, current_medications, using_peptides, peptides_detail, interested_in_rx, budget_tier, onboarding_complete, glp1_status, glp1_stopped_month, menopause_status")
     .eq("id", user.id)
     .maybeSingle();
 
