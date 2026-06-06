@@ -44,12 +44,12 @@ export default function HomePage() {
               Biometric Intelligence · Peptide Research · Editorially Independent
             </p>
             <h1 className="font-display text-4xl font-bold text-white md:text-5xl leading-tight mb-5">
-              Your data, sequenced.<br />
-              The research, matched.
+              The peptide research<br />
+              that matches <em>your</em> data.
             </h1>
             <p className="text-slate-400 leading-relaxed mb-8 max-w-xl">
               Every night, your wearable sequences the signals that define you — HRV, sleep, recovery, glucose.
-              Aura matches that data to the peptide literature and surfaces only the compounds studied for your markers.
+              Aura matches that data to the peptide literature and surfaces only the compounds studied against those markers.
               No stack-of-the-week. We exist to hold peptides to the standard the research deserves — every compound
               vetted against the literature, every vendor required to provide batch-specific, third-party COAs.
             </p>
