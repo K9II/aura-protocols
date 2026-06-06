@@ -1,5 +1,31 @@
 import { describe, it, expect } from "vitest";
 import { normalizeTerraDaily } from "@/lib/terra/normalize";
+import { BiometricSnapshotSchema } from "@/lib/terra/schema";
+
+describe("BiometricSnapshotSchema extensions", () => {
+  it("validates a minimal weight-only snapshot with metricDate", () => {
+    const parsed = BiometricSnapshotSchema.safeParse({
+      source: "MANUAL",
+      capturedAt: "2026-06-06T07:00:00Z",
+      metricDate: "2026-06-06",
+      weightKg: 81.2,
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.weightKg).toBe(81.2);
+  });
+
+  it("accepts hormone + nutrition + menstrual fields", () => {
+    const parsed = BiometricSnapshotSchema.safeParse({
+      source: "OURA",
+      capturedAt: "2026-06-06T07:00:00Z",
+      metricDate: "2026-06-06",
+      fshMiuMl: 42, lhMiuMl: 18, e3gNgMl: 30, pdgUgMl: 1.1,
+      caloriesKcal: 2100, proteinG: 150, carbsG: 180, fatG: 70,
+      menstrualPhase: "follicular", cycleDay: 12,
+    });
+    expect(parsed.success).toBe(true);
+  });
+});
 
 describe("normalizeTerraDaily", () => {
   it("maps a Whoop daily payload to BiometricSnapshot", () => {
