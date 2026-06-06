@@ -5,7 +5,15 @@ import { useRouter } from "next/navigation";
 import { BUDGET_TIER_LABELS } from "@/lib/constants";
 import type { BudgetTierId } from "@/lib/constants";
 
-type Step1 = { age: string; biological_sex: string; weight_kg: string; activity_level: string };
+type Step1 = { age: string; biological_sex: string; weight: string; weight_unit: "lbs" | "kg"; activity_level: string };
+
+const LBS_PER_KG = 2.2046226218;
+function toKg(weight: string, unit: "lbs" | "kg"): number | null {
+  const n = parseFloat(weight);
+  if (!Number.isFinite(n)) return null;
+  const kg = unit === "lbs" ? n / LBS_PER_KG : n;
+  return Math.round(kg * 10) / 10;
+}
 type Step2 = {
   primary_goal: string; current_medications: string; using_peptides: boolean; peptides_detail: string;
   glp1_status: string; glp1_stopped_month: string; menopause_status: string;
@@ -31,7 +39,7 @@ export default function IntakeForm() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [step1, setStep1] = useState<Step1>({ age: "", biological_sex: "", weight_kg: "", activity_level: "" });
+  const [step1, setStep1] = useState<Step1>({ age: "", biological_sex: "", weight: "", weight_unit: "lbs", activity_level: "" });
   const [step2, setStep2] = useState<Step2>({
     primary_goal: "", current_medications: "", using_peptides: false, peptides_detail: "",
     glp1_status: "", glp1_stopped_month: "", menopause_status: "",
@@ -43,7 +51,7 @@ export default function IntakeForm() {
     await postProfile({
       age: step1.age ? parseInt(step1.age, 10) : null,
       biological_sex: step1.biological_sex || null,
-      weight_kg: step1.weight_kg ? parseFloat(step1.weight_kg) : null,
+      weight_kg: toKg(step1.weight, step1.weight_unit),
       activity_level: step1.activity_level || null,
     });
     setSaving(false);
@@ -105,8 +113,14 @@ export default function IntakeForm() {
             </select>
           </div>
           <div>
-            <label className={labelClass}>Weight (kg)</label>
-            <input type="number" className={inputClass} placeholder="e.g. 80" value={step1.weight_kg} onChange={(e) => setStep1({ ...step1, weight_kg: e.target.value })} />
+            <label className={labelClass}>Weight</label>
+            <div className="flex gap-2">
+              <input type="number" className={inputClass} placeholder={step1.weight_unit === "lbs" ? "e.g. 180" : "e.g. 80"} value={step1.weight} onChange={(e) => setStep1({ ...step1, weight: e.target.value })} />
+              <select className={inputClass + " w-24 flex-none"} value={step1.weight_unit} onChange={(e) => setStep1({ ...step1, weight_unit: e.target.value as "lbs" | "kg" })}>
+                <option value="lbs">lbs</option>
+                <option value="kg">kg</option>
+              </select>
+            </div>
           </div>
           <div>
             <label className={labelClass}>Activity Level</label>
