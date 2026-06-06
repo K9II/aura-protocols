@@ -21,6 +21,7 @@ function directionFor(metric: string, delta: number | null): TrendDirection {
     sleep: 0.3,
     recovery: 5,
     glucose: 5,
+    weight: 0.3,
   };
   const t = thresholds[metric] ?? 0;
   if (Math.abs(delta) < t) return "flat";
@@ -59,11 +60,13 @@ function trendMetric(
 
 export function computeTrends(series: BiometricSnapshot[]): BiometricTrends {
   const hasGlucose = series.some((s) => typeof s.glucoseAvgMgdl === "number");
+  const hasWeight = series.some((s) => typeof s.weightKg === "number");
   return {
     hrv: trendMetric(series, (s) => s.hrvMs, "hrv"),
     rhr: trendMetric(series, (s) => s.restingHrBpm, "rhr"),
     sleep: trendMetric(series, (s) => s.sleepHours, "sleep"),
     recovery: trendMetric(series, (s) => s.recoveryScore, "recovery", 0),
     ...(hasGlucose ? { glucose: trendMetric(series, (s) => s.glucoseAvgMgdl, "glucose", 0) } : {}),
+    ...(hasWeight ? { weight: trendMetric(series, (s) => s.weightKg, "weight") } : {}),
   };
 }
