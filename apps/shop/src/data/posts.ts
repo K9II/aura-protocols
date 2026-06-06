@@ -46,7 +46,7 @@ export const posts: Post[] = [
       },
       {
         type: "h2",
-        text: "The Data Tells You You're Wrecked — Then Goes Quiet",
+        text: "It Measures Everything. It Decides Nothing.",
       },
       {
         type: "p",
