@@ -36,6 +36,19 @@ describe("recommend", () => {
     expect(out.rules.template).toBe("RECOVERY");
     expect(out.rules.triggers).toContain("recovery_chronically_low");
   });
+
+  it("includes tensions in the result", async () => {
+    const series = Array.from({ length: 7 }, () => ({
+      source: "WHOOP" as const,
+      capturedAt: "2026-05-23T07:00:00Z",
+      recoveryScore: 35,
+      hrvMs: 28,
+      sleepHours: 6,
+    }));
+    const out = await recommend(series);
+    expect(Array.isArray(out.tensions)).toBe(true);
+    expect(out.tensions.some((t) => t.id === "overreaching")).toBe(true);
+  });
 });
 
 describe("computeTrends weight", () => {

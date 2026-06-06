@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { ANTHROPIC_MAX_TOKENS, ANTHROPIC_MODEL } from "@/lib/constants";
 import type { ProtocolTemplateId } from "@/lib/constants";
 import { ProtocolOutputSchema } from "@/lib/recommend/schema";
-import type { BiometricTrends, ProtocolOutput, RulesSummary } from "@/lib/recommend/schema";
+import type { BiometricTrends, ProtocolOutput, RulesSummary, Tension } from "@/lib/recommend/schema";
 import { TEMPLATE_SKELETONS } from "@/lib/recommend/templates";
 import type { BiometricSnapshot } from "@/lib/terra/schema";
 import type { ProfileContext } from "@/lib/profile/schema";
@@ -108,6 +108,7 @@ export interface PersonalizeInput {
   rules: RulesSummary;
   series: BiometricSnapshot[];
   trends?: BiometricTrends | null;
+  tensions?: Tension[];
   profile?: ProfileContext | null;
 }
 

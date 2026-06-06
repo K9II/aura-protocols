@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import RecommendationCard from "@/components/RecommendationCard";
 import VendorRail from "@/components/VendorRail";
 import EngineLogDrawer from "@/components/EngineLogDrawer";
-import type { ProtocolOutput, RulesSummary } from "@/lib/recommend/schema";
+import type { ProtocolOutput, RulesSummary, Tension } from "@/lib/recommend/schema";
 import type { ProfileContext } from "@/lib/profile/schema";
 import type { RoutingDecision } from "@/components/ClinicalRouter";
 import { routeByVendor, type RailItem } from "@/lib/recommend/vendor-router";
@@ -103,7 +103,7 @@ export default function RecommendationClient({
       setError(((await res.json().catch(() => ({}))) as { message?: string }).message ?? "Could not generate. Try again.");
       return;
     }
-    const j = (await res.json()) as { id: string; output: ProtocolOutput; rules: RulesSummary };
+    const j = (await res.json()) as { id: string; output: ProtocolOutput; rules: RulesSummary; tensions?: Tension[] };
     const rules: RulesSummary = j.rules ?? FALLBACK_RULES;
     setRec({ id: j.id, output: j.output, rules });
     setLiveSafetyOnly(rules.contraindications.length > 0);

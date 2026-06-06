@@ -40,7 +40,7 @@ export async function POST(_request: Request) {
   const profileParsed = ProfileContextSchema.safeParse(profileRow ?? {});
   const profile = profileParsed.success ? profileParsed.data : null;
 
-  const { rules, output } = await recommend(series, profile);
+  const { rules, tensions, output } = await recommend(series, profile);
 
   const { data: saved } = await supabase
     .from("protocol_recommendations")
@@ -48,5 +48,5 @@ export async function POST(_request: Request) {
     .select()
     .single();
 
-  return NextResponse.json({ id: saved?.id, rules, output });
+  return NextResponse.json({ id: saved?.id, rules, tensions, output });
 }
