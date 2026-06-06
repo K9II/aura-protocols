@@ -44,4 +44,18 @@ describe("POST /api/upload", () => {
     expect(insertMock.mock.calls[0][0].user_id).toBe("u-1");
     expect(insertMock.mock.calls[0][0].recovery_score).toBe(60);
   });
+
+  it("persists extended columns (weight + hormone)", async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: "u-1" } } });
+    const res = await POST(request({
+      capturedAt: "2026-06-06T07:00:00Z",
+      metricDate: "2026-06-06",
+      weightKg: 81.2,
+      fshMiuMl: 42,
+    }));
+    expect(res.status).toBe(200);
+    expect(insertMock).toHaveBeenCalledWith(
+      expect.objectContaining({ weight_kg: 81.2, fsh_miu_ml: 42, metric_date: "2026-06-06" }),
+    );
+  });
 });
