@@ -13,7 +13,7 @@ export async function POST(_request: Request) {
 
   const { data: rows } = await supabase
     .from("biometric_snapshots")
-    .select("source, captured_at, recovery_score, hrv_ms, resting_hr_bpm, sleep_hours, deep_sleep_hours, rem_sleep_hours, steps, active_calories, glucose_avg_mgdl, glucose_variability")
+    .select("source, captured_at, recovery_score, hrv_ms, resting_hr_bpm, sleep_hours, deep_sleep_hours, rem_sleep_hours, steps, active_calories, glucose_avg_mgdl, glucose_variability, weight_kg")
     .eq("user_id", user.id)
     .order("captured_at", { ascending: false })
     .limit(14);
@@ -24,6 +24,7 @@ export async function POST(_request: Request) {
     deepSleepHours: r.deep_sleep_hours, remSleepHours: r.rem_sleep_hours,
     steps: r.steps, activeCalories: r.active_calories,
     glucoseAvgMgdl: r.glucose_avg_mgdl, glucoseVariability: r.glucose_variability,
+    weightKg: r.weight_kg,
   }));
 
   if (series.length === 0) {
@@ -32,7 +33,7 @@ export async function POST(_request: Request) {
 
   const { data: profileRow } = await supabase
     .from("profiles")
-    .select("age, biological_sex, weight_kg, activity_level, primary_goal, current_medications, using_peptides, peptides_detail, interested_in_rx, budget_tier, onboarding_complete")
+    .select("age, biological_sex, weight_kg, activity_level, primary_goal, current_medications, using_peptides, peptides_detail, interested_in_rx, budget_tier, onboarding_complete, glp1_status, glp1_stopped_month, menopause_status")
     .eq("id", user.id)
     .maybeSingle();
 

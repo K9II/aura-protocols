@@ -1,0 +1,10 @@
+{
+  "_note": "constructed-from-docs 2026-06-06 — Terra Hormone = fertility/cycle hormones",
+  "metadata": { "end_time": "2026-06-06T07:00:00Z" },
+  "hormone_data": {
+    "lh_mIU_per_ml": 18.4,
+    "fsh_mIU_per_ml": 42.1,
+    "e3g_ng_per_ml": 30.6,
+    "pdg_ug_per_ml": 1.2
+  }
+}

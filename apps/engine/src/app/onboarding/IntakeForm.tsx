@@ -5,8 +5,19 @@ import { useRouter } from "next/navigation";
 import { BUDGET_TIER_LABELS } from "@/lib/constants";
 import type { BudgetTierId } from "@/lib/constants";
 
-type Step1 = { age: string; biological_sex: string; weight_kg: string; activity_level: string };
-type Step2 = { primary_goal: string; current_medications: string; using_peptides: boolean; peptides_detail: string };
+type Step1 = { age: string; biological_sex: string; weight: string; weight_unit: "lbs" | "kg"; activity_level: string };
+
+const LBS_PER_KG = 2.2046226218;
+function toKg(weight: string, unit: "lbs" | "kg"): number | null {
+  const n = parseFloat(weight);
+  if (!Number.isFinite(n)) return null;
+  const kg = unit === "lbs" ? n / LBS_PER_KG : n;
+  return Math.round(kg * 10) / 10;
+}
+type Step2 = {
+  primary_goal: string; current_medications: string; using_peptides: boolean; peptides_detail: string;
+  glp1_status: string; glp1_stopped_month: string; menopause_status: string;
+};
 type Step3 = { interested_in_rx: boolean; budget_tier: string };
 
 const ACTIVITY_LABELS = { sedentary: "Sedentary", moderate: "Moderate", active: "Active", athlete: "Athlete" };
@@ -17,6 +28,8 @@ const GOAL_LABELS = {
   performance: "Athletic Performance",
   longevity: "Longevity",
 };
+const GLP1_LABELS = { never: "Never used", current: "Currently taking", recently_stopped: "Recently stopped" };
+const MENOPAUSE_LABELS = { pre: "Pre-menopausal", peri: "Perimenopausal", post: "Post-menopausal", not_applicable: "Not applicable" };
 
 async function postProfile(data: Record<string, unknown>) {
   await fetch("/api/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
@@ -26,8 +39,11 @@ export default function IntakeForm() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [step1, setStep1] = useState<Step1>({ age: "", biological_sex: "", weight_kg: "", activity_level: "" });
-  const [step2, setStep2] = useState<Step2>({ primary_goal: "", current_medications: "", using_peptides: false, peptides_detail: "" });
+  const [step1, setStep1] = useState<Step1>({ age: "", biological_sex: "", weight: "", weight_unit: "lbs", activity_level: "" });
+  const [step2, setStep2] = useState<Step2>({
+    primary_goal: "", current_medications: "", using_peptides: false, peptides_detail: "",
+    glp1_status: "", glp1_stopped_month: "", menopause_status: "",
+  });
   const [step3, setStep3] = useState<Step3>({ interested_in_rx: false, budget_tier: "" });
 
   async function nextStep1() {
@@ -35,7 +51,7 @@ export default function IntakeForm() {
     await postProfile({
       age: step1.age ? parseInt(step1.age, 10) : null,
       biological_sex: step1.biological_sex || null,
-      weight_kg: step1.weight_kg ? parseFloat(step1.weight_kg) : null,
+      weight_kg: toKg(step1.weight, step1.weight_unit),
       activity_level: step1.activity_level || null,
     });
     setSaving(false);
@@ -49,6 +65,9 @@ export default function IntakeForm() {
       current_medications: step2.current_medications || null,
       using_peptides: step2.using_peptides,
       peptides_detail: step2.peptides_detail || null,
+      glp1_status: step2.glp1_status || null,
+      glp1_stopped_month: step2.glp1_status === "recently_stopped" ? (step2.glp1_stopped_month || null) : null,
+      menopause_status: step1.biological_sex === "female" ? (step2.menopause_status || null) : null,
     });
     setSaving(false);
     setStep(3);
@@ -94,8 +113,14 @@ export default function IntakeForm() {
             </select>
           </div>
           <div>
-            <label className={labelClass}>Weight (kg)</label>
-            <input type="number" className={inputClass} placeholder="e.g. 80" value={step1.weight_kg} onChange={(e) => setStep1({ ...step1, weight_kg: e.target.value })} />
+            <label className={labelClass}>Weight</label>
+            <div className="flex gap-2">
+              <input type="number" className={inputClass} placeholder={step1.weight_unit === "lbs" ? "e.g. 180" : "e.g. 80"} value={step1.weight} onChange={(e) => setStep1({ ...step1, weight: e.target.value })} />
+              <select className={inputClass + " w-24 flex-none"} value={step1.weight_unit} onChange={(e) => setStep1({ ...step1, weight_unit: e.target.value as "lbs" | "kg" })}>
+                <option value="lbs">lbs</option>
+                <option value="kg">kg</option>
+              </select>
+            </div>
           </div>
           <div>
             <label className={labelClass}>Activity Level</label>
@@ -131,6 +156,28 @@ export default function IntakeForm() {
             <div>
               <label className={labelClass}>Which peptides?</label>
               <input type="text" className={inputClass} placeholder="e.g. BPC-157, TB-500" value={step2.peptides_detail} onChange={(e) => setStep2({ ...step2, peptides_detail: e.target.value })} />
+            </div>
+          )}
+          <div>
+            <label className={labelClass}>GLP-1 history</label>
+            <select className={inputClass} value={step2.glp1_status} onChange={(e) => setStep2({ ...step2, glp1_status: e.target.value })}>
+              <option value="">Select…</option>
+              {Object.entries(GLP1_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
+          {step2.glp1_status === "recently_stopped" && (
+            <div>
+              <label className={labelClass}>When did you stop? (month)</label>
+              <input type="month" className={inputClass} value={step2.glp1_stopped_month} onChange={(e) => setStep2({ ...step2, glp1_stopped_month: e.target.value })} />
+            </div>
+          )}
+          {step1.biological_sex === "female" && (
+            <div>
+              <label className={labelClass}>Menopause status</label>
+              <select className={inputClass} value={step2.menopause_status} onChange={(e) => setStep2({ ...step2, menopause_status: e.target.value })}>
+                <option value="">Select…</option>
+                {Object.entries(MENOPAUSE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
             </div>
           )}
           <div className="flex gap-3">

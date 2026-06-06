@@ -12,6 +12,8 @@ vi.mock("@/lib/recommend/llm", () => ({
 }));
 
 import { recommend } from "@/lib/recommend";
+import { computeTrends } from "@/lib/recommend/trends";
+import type { BiometricSnapshot } from "@/lib/terra/schema";
 
 describe("recommend", () => {
   it("returns rules summary + LLM output for a healthy series", async () => {
@@ -33,5 +35,22 @@ describe("recommend", () => {
     const out = await recommend(series);
     expect(out.rules.template).toBe("RECOVERY");
     expect(out.rules.triggers).toContain("recovery_chronically_low");
+  });
+});
+
+describe("computeTrends weight", () => {
+  it("emits a weight metric only when a snapshot carries weightKg", () => {
+    const base = (capturedAt: string, weightKg: number | null): BiometricSnapshot => ({
+      source: "MANUAL", capturedAt, weightKg,
+    });
+    const withWeight = computeTrends([
+      base("2026-06-01T07:00:00Z", 90),
+      base("2026-06-08T07:00:00Z", 88),
+    ]);
+    expect(withWeight.weight).toBeDefined();
+    expect(withWeight.weight?.current).toBe(88);
+
+    const withoutWeight = computeTrends([base("2026-06-01T07:00:00Z", null)]);
+    expect(withoutWeight.weight).toBeUndefined();
   });
 });

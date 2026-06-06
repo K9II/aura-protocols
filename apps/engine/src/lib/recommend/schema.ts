@@ -72,6 +72,7 @@ export const BiometricTrendsSchema = z.object({
   sleep: TrendMetricSchema,
   recovery: TrendMetricSchema,
   glucose: TrendMetricSchema.optional(),
+  weight: TrendMetricSchema.optional(),
 });
 
 export type TrendDirection = z.infer<typeof TrendDirectionSchema>;

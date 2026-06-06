@@ -1,0 +1,9 @@
+{
+  "_note": "constructed-from-docs 2026-06-06",
+  "metadata": { "end_time": "2026-06-06T07:00:00Z" },
+  "measurements_data": { "measurements": [{ "weight_kg": 81.4, "bodyfat_percentage": 18.5 }] },
+  "glucose_data": { "day_avg_blood_glucose_mg_per_dL": 96, "glucose_variability": 22 },
+  "blood_pressure_data": { "day_avg": { "systolic_bp": 118, "diastolic_bp": 76 } },
+  "hydration_data": { "day_total_water_consumption_ml": 2400 },
+  "oxygen_data": { "vo2max_ml_per_min_per_kg": 47.2 }
+}
