@@ -1,0 +1,17 @@
+{
+  "_note": "constructed-from-docs 2026-06-06",
+  "metadata": { "end_time": "2026-06-06T07:00:00Z" },
+  "sleep_durations_data": {
+    "asleep": {
+      "duration_asleep_state_seconds": 27000,
+      "duration_to_fall_asleep_seconds": 720
+    },
+    "awake": { "duration_awake_state_seconds": 1800 },
+    "sleep_stages": {
+      "deep_sleep_state_seconds": 4500,
+      "rem_sleep_state_seconds": 6000
+    },
+    "sleep_efficiency_pct": 88
+  },
+  "heart_rate_data": { "summary": { "avg_hrv_rmssd": 64, "avg_hrv_sdnn": 58 } }
+}

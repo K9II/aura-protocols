@@ -47,10 +47,39 @@ function normalizeDaily(raw: Raw): Partial<BiometricSnapshot> {
   };
 }
 
+function normalizeSleep(raw: Raw): Partial<BiometricSnapshot> {
+  const sd = raw.sleep_durations_data ?? {};
+  return {
+    sleepHours: secondsToHours(sd.asleep?.duration_asleep_state_seconds),
+    deepSleepHours: secondsToHours(sd.sleep_stages?.deep_sleep_state_seconds),
+    remSleepHours: secondsToHours(sd.sleep_stages?.rem_sleep_state_seconds),
+    awakeHours: secondsToHours(sd.awake?.duration_awake_state_seconds),
+    sleepLatencyMin: secondsToMinutes(sd.asleep?.duration_to_fall_asleep_seconds),
+    sleepEfficiencyPct: num(sd.sleep_efficiency_pct),
+    sleepHrvRmssdMs: num(raw.heart_rate_data?.summary?.avg_hrv_rmssd),
+    sleepHrvSdnnMs: num(raw.heart_rate_data?.summary?.avg_hrv_sdnn),
+  };
+}
+
+function normalizeBody(raw: Raw): Partial<BiometricSnapshot> {
+  const measurements = raw.measurements_data?.measurements ?? [];
+  const latest = measurements.length ? measurements[measurements.length - 1] : {};
+  return {
+    weightKg: num(latest.weight_kg),
+    bodyfatPct: num(latest.bodyfat_percentage),
+    glucoseAvgMgdl: num(raw.glucose_data?.day_avg_blood_glucose_mg_per_dL),
+    glucoseVariability: num(raw.glucose_data?.glucose_variability),
+    systolicBp: num(raw.blood_pressure_data?.day_avg?.systolic_bp),
+    diastolicBp: num(raw.blood_pressure_data?.day_avg?.diastolic_bp),
+    hydrationMl: num(raw.hydration_data?.day_total_water_consumption_ml),
+    vo2max: num(raw.oxygen_data?.vo2max_ml_per_min_per_kg),
+  };
+}
+
 const NORMALIZERS: Record<TerraModel, (raw: Raw) => Partial<BiometricSnapshot>> = {
   daily: normalizeDaily,
-  sleep: () => ({}),        // implemented in Task 6
-  body: () => ({}),         // implemented in Task 6
+  sleep: normalizeSleep,
+  body: normalizeBody,
   activity: () => ({}),     // implemented in Task 7
   menstruation: () => ({}), // implemented in Task 7
   hormone: () => ({}),      // implemented in Task 8

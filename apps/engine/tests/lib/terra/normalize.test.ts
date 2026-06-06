@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { normalizeTerraDaily, normalizeTerraPayload, mapTerraType } from "@/lib/terra/normalize";
 import { BiometricSnapshotSchema } from "@/lib/terra/schema";
 import dailyFixture from "../../fixtures/terra/daily.json";
+import sleepFixture from "../../fixtures/terra/sleep.json";
+import bodyFixture from "../../fixtures/terra/body.json";
 
 describe("BiometricSnapshotSchema extensions", () => {
   it("validates a minimal weight-only snapshot with metricDate", () => {
@@ -91,5 +93,36 @@ describe("normalizeTerraPayload — daily", () => {
     expect(out.source).toBe("OURA");
     expect(out.metricDate).toBe("2026-06-06");
     expect(out.recoveryScore).toBeUndefined();
+  });
+});
+
+describe("normalizeTerraPayload — sleep", () => {
+  it("maps sleep-owned columns and nothing else", () => {
+    const out = normalizeTerraPayload("sleep", sleepFixture, "OURA");
+    expect(out.sleepHours).toBeCloseTo(7.5, 1);
+    expect(out.deepSleepHours).toBeCloseTo(1.25, 2);
+    expect(out.remSleepHours).toBeCloseTo(1.67, 2);
+    expect(out.awakeHours).toBeCloseTo(0.5, 2);
+    expect(out.sleepLatencyMin).toBeCloseTo(12, 1);
+    expect(out.sleepEfficiencyPct).toBe(88);
+    expect(out.sleepHrvRmssdMs).toBe(64);
+    expect(out.sleepHrvSdnnMs).toBe(58);
+    expect(out.weightKg).toBeUndefined();
+    expect(out.recoveryScore).toBeUndefined();
+  });
+});
+
+describe("normalizeTerraPayload — body", () => {
+  it("maps body-owned columns and nothing else", () => {
+    const out = normalizeTerraPayload("body", bodyFixture, "WITHINGS");
+    expect(out.weightKg).toBe(81.4);
+    expect(out.bodyfatPct).toBe(18.5);
+    expect(out.glucoseAvgMgdl).toBe(96);
+    expect(out.glucoseVariability).toBe(22);
+    expect(out.systolicBp).toBe(118);
+    expect(out.diastolicBp).toBe(76);
+    expect(out.hydrationMl).toBe(2400);
+    expect(out.vo2max).toBeCloseTo(47.2, 1);
+    expect(out.sleepHours).toBeUndefined();
   });
 });
