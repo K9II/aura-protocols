@@ -32,3 +32,54 @@ describe("TensionSchema", () => {
     expect(parsed.success).toBe(false);
   });
 });
+
+import { detectTensions } from "@/lib/recommend/tension";
+import type { BiometricSnapshot } from "@/lib/terra/schema";
+import type { BiometricTrends, TrendMetric } from "@/lib/recommend/schema";
+import type { ProfileContext } from "@/lib/profile/schema";
+
+const FLAT: TrendMetric = { current: null, mean7d: null, delta7d: null, direction: "flat" };
+
+function trends(overrides: Partial<BiometricTrends> = {}): BiometricTrends {
+  return { hrv: { ...FLAT }, rhr: { ...FLAT }, sleep: { ...FLAT }, recovery: { ...FLAT }, ...overrides };
+}
+
+function snap(overrides: Partial<BiometricSnapshot> = {}): BiometricSnapshot {
+  return { source: "MANUAL", capturedAt: "2026-06-06T07:00:00Z", ...overrides } as BiometricSnapshot;
+}
+
+function profile(overrides: Partial<ProfileContext> = {}): ProfileContext {
+  return overrides as ProfileContext;
+}
+
+describe("detectTensions — overreaching", () => {
+  it("does not fire on clean data", () => {
+    expect(detectTensions([snap()], trends(), profile())).toEqual([]);
+  });
+
+  it("fires at 'watch' on a single soft signal", () => {
+    const t = detectTensions([snap()], trends({ recovery: { ...FLAT, current: 40 } }), profile());
+    expect(t).toHaveLength(1);
+    expect(t[0].id).toBe("overreaching");
+    expect(t[0].severity).toBe("watch");
+    expect(t[0].drivers).toContain("recovery_low");
+  });
+
+  it("fires at 'elevated' on two drivers", () => {
+    const t = detectTensions(
+      [snap({ strain: 16 })],
+      trends({ recovery: { ...FLAT, current: 40 } }),
+      profile(),
+    );
+    expect(t[0].severity).toBe("elevated");
+  });
+
+  it("fires at 'high' on three+ drivers", () => {
+    const t = detectTensions(
+      [snap({ strain: 16, sleepHrvRmssdMs: 25 })],
+      trends({ recovery: { ...FLAT, current: 40 }, hrv: { ...FLAT, direction: "down" }, rhr: { ...FLAT, direction: "up" } }),
+      profile(),
+    );
+    expect(t[0].severity).toBe("high");
+  });
+});
