@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { verifyTerraSignature } from "@/lib/terra/client";
-import { normalizeTerraDaily } from "@/lib/terra/normalize";
+import { mapTerraType, normalizeTerraPayload } from "@/lib/terra/normalize";
+import { coalesceRow, toRow } from "@/lib/terra/merge";
 import { TerraWebhookPayloadSchema } from "@/lib/terra/schema";
 
 export const runtime = "nodejs";
@@ -31,17 +32,26 @@ export async function POST(request: Request) {
 
   if (!conn) return NextResponse.json({ error: "no_connection" }, { status: 404 });
 
-  const rows = (payload.data ?? []).map((d) => {
-    const snap = normalizeTerraDaily({ ...(d as object), provider: conn.provider });
-    return {
-      user_id: conn.user_id, source: snap.source, captured_at: snap.capturedAt,
-      recovery_score: snap.recoveryScore, hrv_ms: snap.hrvMs, resting_hr_bpm: snap.restingHrBpm,
-      sleep_hours: snap.sleepHours, deep_sleep_hours: snap.deepSleepHours, rem_sleep_hours: snap.remSleepHours,
-      steps: snap.steps, active_calories: snap.activeCalories,
-      glucose_avg_mgdl: snap.glucoseAvgMgdl, glucose_variability: snap.glucoseVariability, raw: snap.raw,
-    };
-  });
+  const model = mapTerraType(payload.type);
+  let merged = 0;
 
-  if (rows.length > 0) await admin.from("biometric_snapshots").insert(rows);
-  return NextResponse.json({ ok: true, inserted: rows.length });
+  for (const d of payload.data ?? []) {
+    const snap = normalizeTerraPayload(model, d as Record<string, unknown>, conn.provider);
+    const row = toRow(conn.user_id, snap);
+
+    const { data: existing } = await admin
+      .from("biometric_snapshots")
+      .select("*")
+      .eq("user_id", conn.user_id)
+      .eq("metric_date", row.metric_date)
+      .maybeSingle();
+
+    const next = coalesceRow((existing as never) ?? null, row);
+    await admin
+      .from("biometric_snapshots")
+      .upsert(next, { onConflict: "user_id,metric_date" });
+    merged += 1;
+  }
+
+  return NextResponse.json({ ok: true, model, merged });
 }

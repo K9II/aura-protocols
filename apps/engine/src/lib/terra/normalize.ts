@@ -134,7 +134,9 @@ export function normalizeTerraPayload(
   const capturedAt = capturedAtOf(raw);
   const metricDate = capturedAt.slice(0, 10);
   const owned = model === "unknown" ? {} : NORMALIZERS[model](raw);
-  return { source, capturedAt, metricDate, raw, ...owned };
+  // Spread owned first so the explicit identity fields below win the type
+  // (per-model normalizers never emit source/capturedAt/metricDate).
+  return { ...owned, source, capturedAt, metricDate, raw };
 }
 
 // ---- legacy single-shape normalizer (kept; used by older callers/tests) ----
