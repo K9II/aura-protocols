@@ -78,4 +78,42 @@ describe("applySafetyFloor", () => {
     const out = applySafetyFloor("RECOVERY", [snap()], profile({ current_medications: "ozempic" }));
     expect(out.contraindications).not.toContain("current_glp1_medication_detected");
   });
+
+  it("flags current_glp1_medication_detected for METABOLIC + structured glp1_status=current with no free text", () => {
+    const out = applySafetyFloor("METABOLIC", [snap()], profile({ glp1_status: "current" }));
+    expect(out.contraindications).toContain("current_glp1_medication_detected");
+  });
+  it("does NOT flag glp1 contraindication for structured glp1_status=current on non-METABOLIC", () => {
+    const out = applySafetyFloor("RECOVERY", [snap()], profile({ glp1_status: "current" }));
+    expect(out.contraindications).not.toContain("current_glp1_medication_detected");
+  });
+  it("does NOT double-list the glp1 contraindication when both structured and free text indicate current use", () => {
+    const out = applySafetyFloor("METABOLIC", [snap()], profile({ glp1_status: "current", current_medications: "ozempic weekly" }));
+    expect(out.contraindications.filter((c) => c === "current_glp1_medication_detected")).toHaveLength(1);
+  });
+  it("adds glp1_recently_stopped trigger when glp1_status=recently_stopped", () => {
+    const out = applySafetyFloor("METABOLIC", [snap()], profile({ glp1_status: "recently_stopped" }));
+    expect(out.triggers).toContain("glp1_recently_stopped");
+  });
+  it("does NOT add glp1_recently_stopped trigger for glp1_status=never", () => {
+    const out = applySafetyFloor("METABOLIC", [snap()], profile({ glp1_status: "never" }));
+    expect(out.triggers).not.toContain("glp1_recently_stopped");
+  });
+  it("adds menopause_peri trigger when menopause_status=peri", () => {
+    const out = applySafetyFloor("GH", [snap()], profile({ menopause_status: "peri" }));
+    expect(out.triggers).toContain("menopause_peri");
+  });
+  it("adds menopause_post trigger when menopause_status=post", () => {
+    const out = applySafetyFloor("GH", [snap()], profile({ menopause_status: "post" }));
+    expect(out.triggers).toContain("menopause_post");
+  });
+  it("does NOT add a menopause trigger for pre or not_applicable", () => {
+    expect(applySafetyFloor("GH", [snap()], profile({ menopause_status: "pre" })).triggers.some((t) => t.startsWith("menopause_"))).toBe(false);
+    expect(applySafetyFloor("GH", [snap()], profile({ menopause_status: "not_applicable" })).triggers.some((t) => t.startsWith("menopause_"))).toBe(false);
+  });
+  it("adds no Spec-1 triggers or contraindications when profile is null", () => {
+    const out = applySafetyFloor("METABOLIC", [snap()], null);
+    expect(out.contraindications).not.toContain("current_glp1_medication_detected");
+    expect(out.triggers.some((t) => t === "glp1_recently_stopped" || t.startsWith("menopause_"))).toBe(false);
+  });
 });

@@ -62,7 +62,17 @@ export function applySafetyFloor(
   if (rhr !== null && rhr < 40) contraindications.push("bradycardia_resting_hr_below_40");
   if (rhr !== null && rhr > 100) contraindications.push("tachycardia_resting_hr_above_100");
 
-  if (template === "METABOLIC" && detectMedications(profile?.current_medications, GLP1_KEYWORDS)) {
+  // Structured Spec-1 intake signals (positioning-neutral context for the LLM layer).
+  if (profile?.glp1_status === "recently_stopped") triggers.push("glp1_recently_stopped");
+  if (profile?.menopause_status === "peri") triggers.push("menopause_peri");
+  if (profile?.menopause_status === "post") triggers.push("menopause_post");
+
+  // GLP-1 contraindication: trust the structured intake field OR a free-text medication
+  // match. A single push keeps the contraindication from being listed twice.
+  if (
+    template === "METABOLIC" &&
+    (profile?.glp1_status === "current" || detectMedications(profile?.current_medications, GLP1_KEYWORDS))
+  ) {
     contraindications.push("current_glp1_medication_detected");
   }
   if (template === "RECOVERY" && detectMedications(profile?.current_medications, ANTICOAGULANT_KEYWORDS)) {
