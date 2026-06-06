@@ -17,6 +17,7 @@ type Row = [compound: string, dose: string, freq: string, route: string, fda?: b
 const RECOVERY: Row[] = [
   ["BPC-157", "250–500 mcg/day", "Daily", "SubQ / oral"],
   ["TB-500", "5–10 mg load · 2–2.5 mg maint", "2×/wk → weekly", "SubQ / IM"],
+  ["GHK-Cu", "1–2 mg/day", "Daily", "SubQ / topical"],
 ];
 const WEIGHT: Row[] = [
   ["Semaglutide", "0.25 mg → 2.4 mg", "Weekly", "SubQ", true],
@@ -28,11 +29,13 @@ const GROWTH: Row[] = [
   ["Ipamorelin", "100–300 mcg/dose", "2–3×/day (fasted)", "SubQ"],
   ["Sermorelin", "200–500 mcg/day", "Daily (pre-sleep)", "SubQ"],
   ["Tesamorelin", "1–2 mg/day", "Daily", "SubQ", true],
+  ["IGF-1 LR3", "20–50 mcg/day", "Daily (post-train)", "SubQ / IM"],
 ];
 const WELLNESS: Row[] = [
   ["PT-141", "0.5–2 mg/dose", "As needed (1–4h before)", "SubQ", true],
   ["Epithalon", "5–10 mg/day", "10–20 days, 2×/yr", "SubQ / IV"],
   ["MOTS-c", "5–10 mg/week", "Weekly", "SubQ"],
+  ["NAD+", "100–500 mg/dose", "2–3×/week", "SubQ / IV"],
 ];
 
 const STACKS: [string, string][] = [
@@ -61,6 +64,9 @@ const MECHANISMS: [string, string][] = [
   ["Actin regulator", "TB-500 — cell migration + new vessel formation at injury sites"],
   ["Tetrapeptide", "Epithalon — telomerase activation + pineal melatonin support"],
   ["Mitokine", "MOTS-c — AMPK activation, mitochondrial glucose/lipid regulation"],
+  ["Copper peptide", "GHK-Cu — copper delivery, collagen/elastin synthesis, tissue remodeling"],
+  ["IGF-1 analogue", "IGF-1 LR3 — IGF-1R activation, muscle protein synthesis, extended half-life"],
+  ["Coenzyme", "NAD+ — mitochondrial energy, sirtuin/PARP DNA repair (cofactor, not a peptide)"],
 ];
 
 const RED_FLAGS = [

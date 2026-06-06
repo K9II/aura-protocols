@@ -4,7 +4,6 @@ import { posts } from "@/data/posts";
 import type { Section, LinkPart } from "@/data/posts";
 import { goUrl } from "@/lib/affiliate";
 import EngineCTAInline from "@/components/EngineCTAInline";
-import EngineCTACard from "@/components/EngineCTACard";
 
 export function generateStaticParams() {
   return posts.map((p) => ({ slug: p.slug }));
@@ -212,8 +211,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {post.content.map((section, i) => renderSection(section, i))}
         <EngineCTAInline />
       </article>
-
-      <EngineCTACard />
 
       {/* Related posts */}
       {related.length > 0 && (

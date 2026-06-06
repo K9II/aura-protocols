@@ -35,7 +35,7 @@ export const posts: Post[] = [
     slug: "peptide-protocol-cheat-sheet",
     title: "Peptide Protocol Cheat Sheet: Quick-Reference Guide for Researchers",
     excerpt:
-      "All 11 compounds on Aura Protocols — mechanism, category, research status, and key differentiators — in one scannable reference.",
+      "All 14 compounds on Aura Protocols — mechanism, category, research status, and key differentiators — in one scannable reference.",
     category: "Buyer's Guide",
     date: "June 2026",
     readTime: "10 min read",
@@ -76,6 +76,21 @@ export const posts: Post[] = [
           "Administration routes studied: Subcutaneous, intravenous (preclinical)",
           "Key differentiator: Systemic distribution via blood vessel recruitment — can act at sites distant from injection",
           "Research status: Phase I/II human trials for cardiac repair; broader applications remain preclinical",
+        ],
+      },
+      {
+        type: "h3",
+        text: "GHK-Cu (Copper Peptide)",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Naturally occurring copper-binding tripeptide (Gly-His-Lys)",
+          "Mechanism: Binds and shuttles copper ions into cells; upregulates collagen and elastin synthesis; modulates antioxidant enzymes and matrix remodeling (MMP regulation)",
+          "Primary research areas: Skin regeneration, wound healing, collagen synthesis, hair-follicle stimulation",
+          "Administration routes studied: Topical, subcutaneous",
+          "Key differentiator: Endogenous peptide whose plasma levels decline with age; one of the best-characterized compounds in dermatological and topical research literature",
+          "Research status: Extensive in vitro, animal, and cosmetic/topical human studies; systemic human RCTs limited",
         ],
       },
       {
@@ -187,6 +202,21 @@ export const posts: Post[] = [
         ],
       },
       {
+        type: "h3",
+        text: "IGF-1 LR3",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Long-acting analogue of insulin-like growth factor 1 (Arg3 substitution + 13-amino-acid N-terminal extension)",
+          "Mechanism: Activates the IGF-1 receptor to drive muscle protein synthesis and cell proliferation; reduced binding to IGF-binding proteins gives a markedly longer half-life than native IGF-1",
+          "Primary research areas: Muscle protein synthesis, lean-tissue growth, recovery",
+          "Administration routes studied: Subcutaneous (preclinical)",
+          "Key differentiator: Extended half-life vs. native IGF-1; commonly studied alongside GH-axis stacks (CJC-1295 / Ipamorelin) for additive anabolic signaling",
+          "Research status: Preclinical and laboratory research; no FDA-approved human therapeutic use",
+        ],
+      },
+      {
         type: "cta",
         text: "View CJC-1295 / Ipamorelin at Limitless Life Nootropics",
         productSlug: "cjc-1295-ipamorelin",
@@ -237,6 +267,21 @@ export const posts: Post[] = [
           "Primary research areas: Metabolic syndrome, exercise performance, insulin resistance, aging",
           "Key differentiator: Discovered 2015 — one of the newest peptides on this list; endogenous origin (your own mitochondria produce it) distinguishes it from synthetic analogues; levels decline with age",
           "Research status: Preclinical (primarily rodent and cell studies); human trials emerging",
+        ],
+      },
+      {
+        type: "h3",
+        text: "NAD+ (Nicotinamide Adenine Dinucleotide)",
+      },
+      {
+        type: "ul",
+        items: [
+          "Class: Essential coenzyme (nicotinamide adenine dinucleotide) — a metabolic cofactor rather than a peptide, included for longevity-research context",
+          "Mechanism: Central electron carrier in mitochondrial energy production; required substrate for sirtuin and PARP enzymes that govern DNA repair and the cellular stress response",
+          "Primary research areas: Mitochondrial energy metabolism, DNA repair, cellular longevity, cognitive function",
+          "Administration routes studied: Subcutaneous, intravenous, intranasal (research and precursor studies)",
+          "Key differentiator: Endogenous levels decline with age; one of the most-studied longevity cofactors — note it is a coenzyme, not a peptide",
+          "Research status: Active human research into NAD+ and its precursors; direct-NAD+ clinical evidence still emerging",
         ],
       },
       {
