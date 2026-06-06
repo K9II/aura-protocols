@@ -37,7 +37,8 @@ export default async function ConnectPage() {
   return (
     <main className="mx-auto max-w-md px-6 py-20">
       <h1 className="text-3xl font-bold text-white">Connect your wearable</h1>
-      <p className="mt-3 text-slate-300">Whoop, Oura, Apple Health, Garmin, Fitbit, Dexcom CGM. We use Terra to abstract the OAuth flow.</p>
+      <p className="mt-3 text-slate-300">Whoop, Oura, Garmin, Fitbit, Dexcom CGM. We use Terra to abstract the OAuth flow.</p>
+      <p className="mt-2 text-sm text-slate-400">Apple Health, Samsung Health, and Google Fit are coming with our mobile app.</p>
       <div className="mt-6"><ConnectButton /></div>
       <p className="mt-6 text-sm text-slate-400">
         Don&apos;t have a supported wearable? <a href="/upload" className="text-cyan-300 underline">Paste manual data</a>.

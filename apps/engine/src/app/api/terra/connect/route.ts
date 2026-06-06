@@ -10,7 +10,9 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = (await request.json().catch(() => ({}))) as { providers?: string[] };
-  const providers = body.providers?.length ? body.providers : ["WHOOP","OURA","APPLE","GARMIN","FITBIT","DEXCOM"];
+  // Web-API providers only. Apple/Samsung/Google Fit are mobile-SDK-only and
+  // require the native app — do not offer them through the web connect widget.
+  const providers = body.providers?.length ? body.providers : ["WHOOP","OURA","GARMIN","FITBIT","DEXCOM"];
 
   const origin = new URL(request.url).origin;
   try {

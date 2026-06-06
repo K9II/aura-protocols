@@ -9,13 +9,22 @@ export const DISCLAIMER =
 
 export const PRESCRIBE_CTA_COPY = "Get this prescribed at Aura Clinical →";
 
+// Backend (web-API) providers only. Apple Health, Samsung Health, and Google
+// Fit are mobile-SDK-only and will arrive with the native app — see
+// FUTURE_WEARABLES below. Do not add them here until the mobile SDK ships.
 export const SUPPORTED_WEARABLES = [
   { id: "WHOOP", label: "Whoop" },
   { id: "OURA", label: "Oura" },
-  { id: "APPLE", label: "Apple Health" },
   { id: "GARMIN", label: "Garmin" },
   { id: "FITBIT", label: "Fitbit" },
   { id: "DEXCOM", label: "Dexcom CGM" },
+] as const;
+
+// Mobile-SDK-only sources — surfaced as "coming soon", not yet connectable.
+export const FUTURE_WEARABLES = [
+  { id: "APPLE", label: "Apple Health" },
+  { id: "SAMSUNG", label: "Samsung Health" },
+  { id: "GOOGLE", label: "Google Fit" },
 ] as const;
 
 export type WearableId = (typeof SUPPORTED_WEARABLES)[number]["id"];

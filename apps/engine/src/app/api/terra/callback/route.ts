@@ -3,7 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
-const PROVIDERS = new Set(["WHOOP","OURA","APPLE","GARMIN","FITBIT","DEXCOM"]);
+const PROVIDERS = new Set(["WHOOP","OURA","GARMIN","FITBIT","DEXCOM"]);
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
