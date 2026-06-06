@@ -34,6 +34,39 @@ function detectOverreaching(series: BiometricSnapshot[], trends: BiometricTrends
   };
 }
 
+// Gated tensions: gate alone = watch, +1–2 biometric drivers = elevated, +3 = high.
+function severityGated(bioDriverCount: number): TensionSeverity {
+  if (bioDriverCount >= 3) return "high";
+  if (bioDriverCount >= 1) return "elevated";
+  return "watch";
+}
+
+function detectHormonalShift(
+  series: BiometricSnapshot[],
+  trends: BiometricTrends,
+  profile: ProfileContext | null,
+): Tension | null {
+  if (profile?.menopause_status !== "peri" && profile?.menopause_status !== "post") return null;
+
+  const bio: string[] = [];
+  const fsh = avg(series.map((s) => s.fshMiuMl));
+  if (fsh !== null && fsh > 25) bio.push("fsh_high");
+  const e3g = avg(series.map((s) => s.e3gNgMl));
+  if (e3g !== null && e3g < 5) bio.push("estrogen_low");
+  const pdg = avg(series.map((s) => s.pdgUgMl));
+  if (pdg !== null && pdg < 1) bio.push("progesterone_low");
+  if (trends.sleep.direction === "down") bio.push("sleep_declining");
+  const skin = avg(series.map((s) => s.skinTempDeltaC));
+  if (skin !== null && skin > 0.3) bio.push("thermoregulation_shift");
+
+  return {
+    id: "hormonal_shift",
+    severity: severityGated(bio.length),
+    drivers: ["endocrine_transition_reported", ...bio],
+    implication: "Endocrine baseline is shifting and affecting sleep/recovery; account for it in dosing.",
+  };
+}
+
 export function detectTensions(
   series: BiometricSnapshot[],
   trends: BiometricTrends,
@@ -42,5 +75,7 @@ export function detectTensions(
   const out: Tension[] = [];
   const o = detectOverreaching(series, trends);
   if (o) out.push(o);
+  const h = detectHormonalShift(series, trends, profile);
+  if (h) out.push(h);
   return out;
 }

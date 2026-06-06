@@ -83,3 +83,31 @@ describe("detectTensions — overreaching", () => {
     expect(t[0].severity).toBe("high");
   });
 });
+
+describe("detectTensions — hormonal_shift", () => {
+  it("does NOT fire without the menopause gate, even with biometric signals", () => {
+    const t = detectTensions(
+      [snap({ fshMiuMl: 40, skinTempDeltaC: 0.6 })],
+      trends({ sleep: { ...FLAT, direction: "down" } }),
+      profile({ menopause_status: "pre" }),
+    );
+    expect(t.find((x) => x.id === "hormonal_shift")).toBeUndefined();
+  });
+
+  it("fires at 'watch' on the gate alone (neutral biometrics)", () => {
+    const t = detectTensions([snap()], trends(), profile({ menopause_status: "peri" }));
+    const h = t.find((x) => x.id === "hormonal_shift");
+    expect(h?.severity).toBe("watch");
+    expect(h?.drivers).toEqual(["endocrine_transition_reported"]);
+  });
+
+  it("escalates to 'high' on gate + three biometric drivers", () => {
+    const t = detectTensions(
+      [snap({ fshMiuMl: 40, e3gNgMl: 2, skinTempDeltaC: 0.6 })],
+      trends({ sleep: { ...FLAT, direction: "down" } }),
+      profile({ menopause_status: "post" }),
+    );
+    const h = t.find((x) => x.id === "hormonal_shift");
+    expect(h?.severity).toBe("high");
+  });
+});
