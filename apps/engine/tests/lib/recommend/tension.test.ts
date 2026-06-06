@@ -139,3 +139,29 @@ describe("detectTensions — metabolic_rebound", () => {
     expect(m?.severity).toBe("high");
   });
 });
+
+describe("detectTensions — composition + neutrality", () => {
+  it("returns multiple coexisting tensions", () => {
+    const t = detectTensions(
+      [snap({ strain: 16, proteinG: 40 })],
+      trends({ recovery: { ...FLAT, current: 40 }, weight: { ...FLAT, direction: "up" } }),
+      profile({ glp1_status: "recently_stopped" }),
+    );
+    const ids = t.map((x) => x.id).sort();
+    expect(ids).toEqual(["metabolic_rebound", "overreaching"]);
+  });
+
+  it("never leaks positioning verbiage into id or implication", () => {
+    const t = detectTensions(
+      [snap({ strain: 16, fshMiuMl: 40, proteinG: 40, skinTempDeltaC: 0.6 })],
+      trends({ recovery: { ...FLAT, current: 40 }, sleep: { ...FLAT, direction: "down" }, weight: { ...FLAT, direction: "up" } }),
+      profile({ menopause_status: "peri", glp1_status: "recently_stopped" }),
+    );
+    expect(t.length).toBeGreaterThanOrEqual(3);
+    const banned = /perimenopause|menopause|glp-?1|post-glp/i;
+    for (const x of t) {
+      expect(x.id).not.toMatch(banned);
+      expect(x.implication).not.toMatch(banned);
+    }
+  });
+});
