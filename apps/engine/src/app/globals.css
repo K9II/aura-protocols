@@ -13,3 +13,13 @@ html, body {
   color: #e2e8f0;
   font-family: var(--font-sans);
 }
+
+/* Dark-mode native form controls: keep the open <option> list readable.
+   Without this, options render white-on-white (invisible until hovered). */
+select {
+  color-scheme: dark;
+}
+select option {
+  background-color: var(--color-surface);
+  color: #e2e8f0;
+}
