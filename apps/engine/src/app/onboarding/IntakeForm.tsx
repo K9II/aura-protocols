@@ -115,8 +115,8 @@ export default function IntakeForm() {
           <div>
             <label className={labelClass}>Weight</label>
             <div className="flex gap-2">
-              <input type="number" className={inputClass} placeholder={step1.weight_unit === "lbs" ? "e.g. 180" : "e.g. 80"} value={step1.weight} onChange={(e) => setStep1({ ...step1, weight: e.target.value })} />
-              <select className={inputClass + " w-24 flex-none"} value={step1.weight_unit} onChange={(e) => setStep1({ ...step1, weight_unit: e.target.value as "lbs" | "kg" })}>
+              <input type="number" inputMode="decimal" className={inputClass + " flex-1 min-w-0"} placeholder={step1.weight_unit === "lbs" ? "e.g. 180" : "e.g. 80"} value={step1.weight} onChange={(e) => setStep1({ ...step1, weight: e.target.value })} />
+              <select className="w-24 flex-none rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30" value={step1.weight_unit} onChange={(e) => setStep1({ ...step1, weight_unit: e.target.value as "lbs" | "kg" })}>
                 <option value="lbs">lbs</option>
                 <option value="kg">kg</option>
               </select>
