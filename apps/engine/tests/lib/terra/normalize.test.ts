@@ -4,6 +4,8 @@ import { BiometricSnapshotSchema } from "@/lib/terra/schema";
 import dailyFixture from "../../fixtures/terra/daily.json";
 import sleepFixture from "../../fixtures/terra/sleep.json";
 import bodyFixture from "../../fixtures/terra/body.json";
+import activityFixture from "../../fixtures/terra/activity.json";
+import menstruationFixture from "../../fixtures/terra/menstruation.json";
 
 describe("BiometricSnapshotSchema extensions", () => {
   it("validates a minimal weight-only snapshot with metricDate", () => {
@@ -123,6 +125,26 @@ describe("normalizeTerraPayload — body", () => {
     expect(out.diastolicBp).toBe(76);
     expect(out.hydrationMl).toBe(2400);
     expect(out.vo2max).toBeCloseTo(47.2, 1);
+    expect(out.sleepHours).toBeUndefined();
+  });
+});
+
+describe("normalizeTerraPayload — activity", () => {
+  it("maps activity-owned columns", () => {
+    const out = normalizeTerraPayload("activity", activityFixture, "STRAVA");
+    expect(out.strain).toBeCloseTo(14.6, 1);
+    expect(out.workoutCount).toBe(1);
+    expect(out.activeCalories).toBe(540);
+    expect(out.steps).toBe(12400);
+    expect(out.weightKg).toBeUndefined();
+  });
+});
+
+describe("normalizeTerraPayload — menstruation", () => {
+  it("maps menstrual phase + cycle day", () => {
+    const out = normalizeTerraPayload("menstruation", menstruationFixture, "OURA");
+    expect(out.menstrualPhase).toBe("follicular");
+    expect(out.cycleDay).toBe(12);
     expect(out.sleepHours).toBeUndefined();
   });
 });

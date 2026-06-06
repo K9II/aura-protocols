@@ -76,12 +76,29 @@ function normalizeBody(raw: Raw): Partial<BiometricSnapshot> {
   };
 }
 
+function normalizeActivity(raw: Raw): Partial<BiometricSnapshot> {
+  return {
+    strain: num(raw.strain_data?.strain_level),
+    workoutCount: (num(raw.workout_count) ?? 1) as number,
+    activeCalories: num(raw.calories_data?.net_activity_calories),
+    steps: num(raw.distance_data?.steps) as number | null,
+  };
+}
+
+function normalizeMenstruation(raw: Raw): Partial<BiometricSnapshot> {
+  const m = raw.menstruation_data ?? {};
+  return {
+    menstrualPhase: typeof m.current_phase === "string" ? m.current_phase : null,
+    cycleDay: num(m.day_in_cycle) as number | null,
+  };
+}
+
 const NORMALIZERS: Record<TerraModel, (raw: Raw) => Partial<BiometricSnapshot>> = {
   daily: normalizeDaily,
   sleep: normalizeSleep,
   body: normalizeBody,
-  activity: () => ({}),     // implemented in Task 7
-  menstruation: () => ({}), // implemented in Task 7
+  activity: normalizeActivity,
+  menstruation: normalizeMenstruation,
   hormone: () => ({}),      // implemented in Task 8
   nutrition: () => ({}),    // implemented in Task 8
   athlete: () => ({}),      // static profile — no snapshot contribution
