@@ -67,6 +67,28 @@ function detectHormonalShift(
   };
 }
 
+function detectMetabolicRebound(
+  series: BiometricSnapshot[],
+  trends: BiometricTrends,
+  profile: ProfileContext | null,
+): Tension | null {
+  if (profile?.glp1_status !== "recently_stopped") return null;
+
+  const bio: string[] = [];
+  if (trends.weight?.direction === "up") bio.push("weight_rising");
+  const protein = avg(series.map((s) => s.proteinG));
+  if (protein !== null && protein < 80) bio.push("protein_low");
+  const strain = avg(series.map((s) => s.strain));
+  if (strain !== null && strain < 6) bio.push("activity_low");
+
+  return {
+    id: "metabolic_rebound",
+    severity: severityGated(bio.length),
+    drivers: ["post_intervention_window", ...bio],
+    implication: "Post-intervention metabolic window; prioritize lean-mass preservation and metabolic stability.",
+  };
+}
+
 export function detectTensions(
   series: BiometricSnapshot[],
   trends: BiometricTrends,
@@ -77,5 +99,7 @@ export function detectTensions(
   if (o) out.push(o);
   const h = detectHormonalShift(series, trends, profile);
   if (h) out.push(h);
+  const m = detectMetabolicRebound(series, trends, profile);
+  if (m) out.push(m);
   return out;
 }

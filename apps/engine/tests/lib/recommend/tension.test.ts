@@ -111,3 +111,31 @@ describe("detectTensions — hormonal_shift", () => {
     expect(h?.severity).toBe("high");
   });
 });
+
+describe("detectTensions — metabolic_rebound", () => {
+  it("does NOT fire without the recently_stopped gate", () => {
+    const t = detectTensions(
+      [snap({ proteinG: 40 })],
+      trends({ weight: { ...FLAT, direction: "up" } }),
+      profile({ glp1_status: "never" }),
+    );
+    expect(t.find((x) => x.id === "metabolic_rebound")).toBeUndefined();
+  });
+
+  it("fires at 'watch' on the gate alone", () => {
+    const t = detectTensions([snap()], trends(), profile({ glp1_status: "recently_stopped" }));
+    const m = t.find((x) => x.id === "metabolic_rebound");
+    expect(m?.severity).toBe("watch");
+    expect(m?.drivers).toEqual(["post_intervention_window"]);
+  });
+
+  it("escalates to 'high' on gate + three biometric drivers", () => {
+    const t = detectTensions(
+      [snap({ proteinG: 40, strain: 3 })],
+      trends({ weight: { ...FLAT, direction: "up" } }),
+      profile({ glp1_status: "recently_stopped" }),
+    );
+    const m = t.find((x) => x.id === "metabolic_rebound");
+    expect(m?.severity).toBe("high");
+  });
+});
