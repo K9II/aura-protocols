@@ -6,6 +6,8 @@ import sleepFixture from "../../fixtures/terra/sleep.json";
 import bodyFixture from "../../fixtures/terra/body.json";
 import activityFixture from "../../fixtures/terra/activity.json";
 import menstruationFixture from "../../fixtures/terra/menstruation.json";
+import hormoneFixture from "../../fixtures/terra/hormone.json";
+import nutritionFixture from "../../fixtures/terra/nutrition.json";
 
 describe("BiometricSnapshotSchema extensions", () => {
   it("validates a minimal weight-only snapshot with metricDate", () => {
@@ -146,5 +148,26 @@ describe("normalizeTerraPayload — menstruation", () => {
     expect(out.menstrualPhase).toBe("follicular");
     expect(out.cycleDay).toBe(12);
     expect(out.sleepHours).toBeUndefined();
+  });
+});
+
+describe("normalizeTerraPayload — hormone", () => {
+  it("maps fertility/cycle hormones (menopause-wedge signals)", () => {
+    const out = normalizeTerraPayload("hormone", hormoneFixture, "OURA");
+    expect(out.lhMiuMl).toBeCloseTo(18.4, 1);
+    expect(out.fshMiuMl).toBeCloseTo(42.1, 1);
+    expect(out.e3gNgMl).toBeCloseTo(30.6, 1);
+    expect(out.pdgUgMl).toBeCloseTo(1.2, 1);
+  });
+});
+
+describe("normalizeTerraPayload — nutrition", () => {
+  it("maps nutrition day-summary macros + water", () => {
+    const out = normalizeTerraPayload("nutrition", nutritionFixture, "MANUAL");
+    expect(out.caloriesKcal).toBe(2180);
+    expect(out.proteinG).toBe(152);
+    expect(out.carbsG).toBe(184);
+    expect(out.fatG).toBe(71);
+    expect(out.hydrationMl).toBe(2600);
   });
 });
