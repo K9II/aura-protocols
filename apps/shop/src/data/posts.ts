@@ -33,7 +33,7 @@ export type Post = {
 export const posts: Post[] = [
   {
     slug: "wearable-engine-personalized-peptide-protocol",
-    title: "Your Wearable Knows You're Wrecked. It Doesn't Tell You What to Do About It.",
+    title: "Your Wearable Has the Data. Aura Builds the Protocol.",
     excerpt:
       "Whoop, Oura, and Apple Health measure your recovery, sleep, and HRV — then go silent. The Aura Engine turns that data into a research peptide protocol tuned to you.",
     category: "Buyer's Guide",
