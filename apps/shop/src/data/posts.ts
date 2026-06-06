@@ -32,6 +32,151 @@ export type Post = {
 
 export const posts: Post[] = [
   {
+    slug: "wearable-engine-personalized-peptide-protocol",
+    title: "Your Wearable Knows You're Wrecked. It Doesn't Tell You What to Do About It.",
+    excerpt:
+      "Whoop, Oura, and Apple Health measure your recovery, sleep, and HRV — then go silent. The Aura Engine turns that data into a research peptide protocol tuned to you.",
+    category: "Buyer's Guide",
+    date: "June 2026",
+    readTime: "9 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Your wearable is very good at one thing: telling you something is wrong. A 31% recovery score. A red night of sleep. HRV trending down for the third straight week. What it never tells you is the only thing you actually want to know — what to do about it. This is the gap the Aura Engine was built to close.",
+      },
+      {
+        type: "h2",
+        text: "The Data Tells You You're Wrecked — Then Goes Quiet",
+      },
+      {
+        type: "p",
+        text: "Recovery scores, sleep stages, resting heart rate, HRV — modern wearables surface a remarkable amount of signal about how your body is actually doing. But signal isn't a plan. You can stare at a week of poor recovery and tanking HRV and still have no idea which lever to pull. The dashboard measures the problem with precision and then hands the entire interpretation — and every decision — back to you.",
+      },
+      {
+        type: "p",
+        text: "For most people that means guesswork: a supplement someone mentioned on a podcast, a generic protocol copied from a forum, or nothing at all. The measurement is personalized down to the millisecond. The response is a shrug.",
+      },
+      {
+        type: "h2",
+        text: "Why Generic Peptide Protocols Miss",
+      },
+      {
+        type: "p",
+        text: "Peptide research is full of one-size-fits-all templates — fixed doses, fixed timing, fixed stacks pulled from a generic article. The problem is that none of them account for the one variable that matters most: your actual physiology, right now.",
+      },
+      {
+        type: "ul",
+        items: [
+          "A template can't see that your sleep collapsed this month — the exact context a recovery- or sleep-oriented protocol should respond to",
+          "A template can't tell whether your HRV is stable or in free-fall, which changes how aggressively a research protocol should be approached",
+          "A template assumes you're a starting point everyone shares — you're not; your baseline is your own",
+          "A template never updates — your data changes weekly, but the protocol on the forum was written once and frozen",
+        ],
+      },
+      {
+        type: "h2",
+        text: "What the Aura Engine Actually Does",
+      },
+      {
+        type: "p",
+        text: "The Engine connects to the wearable you already wear — Whoop, Oura, or Apple Health — and reads the metrics that matter: recovery, sleep quality, and HRV. It then maps that data to a research peptide protocol matched to where you actually are, not to a generic average. Instead of a static table you have to interpret, you get a starting point that reflects your own recovery, sleep, and stress signals.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Connect — link Whoop, Oura, or Apple Health in about a minute; no new hardware to buy",
+          "Read — the Engine analyzes your recovery, sleep, and HRV trends",
+          "Map — it builds a research peptide protocol tuned to that data, with dosing, timing, and COA-verified sourcing",
+          "Adapt — as your data shifts, the protocol logic shifts with it, instead of staying frozen",
+        ],
+      },
+      {
+        type: "h2",
+        text: "The After-GLP-1 Problem It Was Built For",
+      },
+      {
+        type: "p",
+        text: "Nowhere is the data-without-direction gap clearer than coming off a GLP-1. Millions of people are cycling off Ozempic, Wegovy, and Zepbound — and their wearables light up with exactly the problems that follow: lost lean mass, worse sleep, blunted recovery, and flat energy. The numbers spell out the fallout in detail. They still don't say what to do next.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Muscle loss after rapid weight loss shows up as degraded recovery and strain tolerance",
+          "Sleep disruption post-GLP-1 is visible in your sleep stages and HRV long before you can articulate it",
+          "Libido and energy changes correlate with the same recovery and stress signals your wearable already tracks",
+          "This is precisely the situation where a protocol matched to your data beats a generic recommendation",
+        ],
+      },
+      {
+        type: "h2",
+        text: "How It Works, Start to Finish",
+      },
+      {
+        type: "ul",
+        items: [
+          "Step 1 — Connect a wearable for free at auraprotocols.com (Whoop, Oura, or Apple Health)",
+          "Step 2 — The Engine reads your recovery, sleep, and HRV and identifies what your data is pointing to",
+          "Step 3 — You get a research peptide protocol tuned to that picture — compounds, dosing, timing, and where to source COA-verified material",
+          "Step 4 — When you're ready to move from research to a supervised plan, a US-licensed MD-prescribed path is available",
+        ],
+      },
+      {
+        type: "h2",
+        text: "Why Personalized Beats a Template",
+      },
+      {
+        type: "ul",
+        items: [
+          "It starts from your baseline, not a stranger's average",
+          "It adjusts as your wearable data changes week to week",
+          "It points only to COA-verified sources, so identity and purity aren't a guess",
+          "It removes the research-design guesswork that stops most people before they start",
+        ],
+      },
+      {
+        type: "h2",
+        text: "Whoop Tells You the What. Aura Tells You the What-to-Do.",
+      },
+      {
+        type: "p",
+        text: "Wearables won the measurement war. They are extraordinary at telling you the what — what your recovery is, what your sleep did, what your HRV is doing. The Aura Engine is built for the next step that none of them take: the what-to-do. It treats your wearable not as a scoreboard but as an input — the starting data for a protocol that's actually yours.",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Do I need to buy new hardware?",
+            a: "No. The Engine works with the wearable you already have — Whoop, Oura, or Apple Health. Connecting takes about a minute and there's nothing new to purchase.",
+          },
+          {
+            q: "Is connecting a wearable free?",
+            a: "Yes. You can connect a wearable and get a data-matched starting protocol for free at auraprotocols.com. The optional MD-prescribed path is a separate, supervised step you choose only when you're ready.",
+          },
+          {
+            q: "How is this different from the protocol templates I can find for free?",
+            a: "A free template is written once, for an average person, and never updates. The Engine builds from your own recovery, sleep, and HRV data and adapts as that data changes. The template guesses; the Engine starts from your numbers.",
+          },
+          {
+            q: "Why does this matter specifically after a GLP-1?",
+            a: "Coming off Ozempic, Wegovy, or Zepbound tends to produce muscle loss, worse sleep, and blunted recovery — all of which show up clearly in wearable data. That makes it a near-ideal case for a protocol matched to your data rather than a generic recommendation.",
+          },
+          {
+            q: "Are these protocols medical advice?",
+            a: "No. Aura's research protocols are for informational and research purposes only and are not medical advice. The compounds referenced are for research use. A supervised, MD-prescribed path is available separately when you want clinical oversight.",
+          },
+        ],
+      },
+      {
+        type: "callout",
+        text: "The peptide compounds referenced by the Engine and across Aura Protocols are for research purposes only. They are not approved for human use outside of specific FDA-approved formulations under medical supervision. Nothing here constitutes medical advice.",
+      },
+      {
+        type: "disclaimer",
+        text: "This article may contain affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "pt-141-melanocortin-bremelanotide-guide",
     title:
       "PT-141 (Bremelanotide): Hypothalamic Activation, the Brain-to-Spine Arousal Cascade, and Post-RARP Research",
