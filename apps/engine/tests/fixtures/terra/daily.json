@@ -1,0 +1,12 @@
+{
+  "_note": "constructed-from-docs 2026-06-06 — swap for real sandbox capture in Spec 5",
+  "metadata": { "end_time": "2026-06-06T07:00:00Z", "start_time": "2026-06-05T22:00:00Z" },
+  "scores": { "recovery": 71 },
+  "heart_rate_data": { "summary": { "resting_hr_bpm": 53, "avg_hrv_rmssd": 66 } },
+  "distance_data": { "steps": 8800 },
+  "active_durations_data": { "activity_seconds": 1800 },
+  "stress_data": { "avg_stress_level": 28 },
+  "respiration_data": { "breaths_data": { "avg_breaths_per_min": 14.2 } },
+  "oxygen_data": { "avg_saturation_percentage": 97 },
+  "temperature_data": { "skin_temperature_delta_c": -0.2, "body_temperature_c": 36.6 }
+}

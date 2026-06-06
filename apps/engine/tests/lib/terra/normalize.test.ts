@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { normalizeTerraDaily } from "@/lib/terra/normalize";
+import { normalizeTerraDaily, normalizeTerraPayload, mapTerraType } from "@/lib/terra/normalize";
 import { BiometricSnapshotSchema } from "@/lib/terra/schema";
+import dailyFixture from "../../fixtures/terra/daily.json";
 
 describe("BiometricSnapshotSchema extensions", () => {
   it("validates a minimal weight-only snapshot with metricDate", () => {
@@ -59,5 +60,36 @@ describe("normalizeTerraDaily", () => {
     expect(out.source).toBe("OURA");
     expect(out.recoveryScore).toBeNull();
     expect(out.hrvMs).toBeNull();
+  });
+});
+
+describe("normalizeTerraPayload — daily", () => {
+  it("maps the daily model into daily-owned columns", () => {
+    const out = normalizeTerraPayload("daily", dailyFixture, "WHOOP");
+    expect(out.source).toBe("WHOOP");
+    expect(out.metricDate).toBe("2026-06-06");
+    expect(out.recoveryScore).toBe(71);
+    expect(out.hrvMs).toBe(66);
+    expect(out.restingHrBpm).toBe(53);
+    expect(out.steps).toBe(8800);
+    expect(out.stressAvg).toBe(28);
+    expect(out.respirationBpm).toBeCloseTo(14.2, 1);
+    expect(out.spo2Pct).toBe(97);
+    expect(out.bodyTempC).toBe(36.6);
+    expect(out.skinTempDeltaC).toBe(-0.2);
+    expect(out.weightKg).toBeUndefined();
+  });
+
+  it("mapTerraType lowercases and falls back unknown types", () => {
+    expect(mapTerraType("Sleep")).toBe("sleep");
+    expect(mapTerraType("activity")).toBe("activity");
+    expect(mapTerraType("garbage")).toBe("unknown");
+  });
+
+  it("unknown model returns only base identity fields, no throw", () => {
+    const out = normalizeTerraPayload("unknown", { metadata: { end_time: "2026-06-06T07:00:00Z" } }, "OURA");
+    expect(out.source).toBe("OURA");
+    expect(out.metricDate).toBe("2026-06-06");
+    expect(out.recoveryScore).toBeUndefined();
   });
 });
