@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import RecommendationClient from "./RecommendationClient";
-import type { ProtocolOutput } from "@/lib/recommend/schema";
+import type { ProtocolOutput, Tension } from "@/lib/recommend/schema";
 import { ProfileContextSchema } from "@/lib/profile/schema";
 import { computeCompletenessScore } from "@/lib/profile/completeness";
 import { resolveRouting } from "@/components/ClinicalRouter";
@@ -18,7 +18,7 @@ export default async function RecommendationPage() {
   const [{ data: latest }, { data: profileRow }] = await Promise.all([
     supabase
       .from("protocol_recommendations")
-      .select("id, output, created_at, rules_summary")
+      .select("id, output, created_at, rules_summary, tensions")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -49,7 +49,7 @@ export default async function RecommendationPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <RecommendationClient
-        initial={latest ? { id: latest.id as string, output: latest.output as unknown as ProtocolOutput, rules: (latest.rules_summary as unknown as RulesSummary) ?? { template: "RECOVERY", triggers: [], contraindications: [], doseCeilings: {} } } : null}
+        initial={latest ? { id: latest.id as string, output: latest.output as unknown as ProtocolOutput, rules: (latest.rules_summary as unknown as RulesSummary) ?? { template: "RECOVERY", triggers: [], contraindications: [], doseCeilings: {} }, tensions: (latest.tensions as unknown as Tension[]) ?? [] } : null}
         profile={profile}
         completenessScore={completenessScore}
         nextPrompt={nextPrompt}
