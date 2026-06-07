@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveRouting } from "@/components/ClinicalRouter";
+import { resolveRouting } from "@/lib/recommend/routing";
 import type { ProfileContext } from "@/lib/profile/schema";
 import type { RulesSummary } from "@/lib/recommend/schema";
 

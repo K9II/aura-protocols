@@ -1,21 +1,11 @@
 "use client";
 
 import { CLINICAL_URL } from "@/lib/constants";
-import type { ProfileContext } from "@/lib/profile/schema";
-import type { RulesSummary } from "@/lib/recommend/schema";
+import type { RoutingDecision } from "@/lib/recommend/routing";
 
-export type RoutingDecision = "clinical_only" | "clinical_primary" | "affiliate_primary";
-
-export interface RoutingInput {
-  profile: ProfileContext | null;
-  rules: RulesSummary;
-}
-
-export function resolveRouting(input: RoutingInput): RoutingDecision {
-  if (input.rules.contraindications.length > 0) return "clinical_only";
-  if (input.profile?.interested_in_rx) return "clinical_primary";
-  return "affiliate_primary";
-}
+// Re-exported so existing type-only importers keep their import path. The
+// routing logic itself lives in @/lib/recommend/routing (server-safe).
+export type { RoutingDecision, RoutingInput } from "@/lib/recommend/routing";
 
 interface ClinicalRouterProps {
   decision: RoutingDecision;
