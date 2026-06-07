@@ -31,14 +31,22 @@ const GOAL_LABELS = {
 const GLP1_LABELS = { never: "Never used", current: "Currently taking", recently_stopped: "Recently stopped" };
 const MENOPAUSE_LABELS = { pre: "Pre-menopausal", peri: "Perimenopausal", post: "Post-menopausal", not_applicable: "Not applicable" };
 
-async function postProfile(data: Record<string, unknown>) {
-  await fetch("/api/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+const SAVE_ERROR = "Couldn't save your answers. Check your connection and try again.";
+
+async function postProfile(data: Record<string, unknown>): Promise<boolean> {
+  try {
+    const res = await fetch("/api/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export default function IntakeForm() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [step1, setStep1] = useState<Step1>({ age: "", biological_sex: "", weight: "", weight_unit: "lbs", activity_level: "" });
   const [step2, setStep2] = useState<Step2>({
     primary_goal: "", current_medications: "", using_peptides: false, peptides_detail: "",
@@ -47,20 +55,21 @@ export default function IntakeForm() {
   const [step3, setStep3] = useState<Step3>({ interested_in_rx: false, budget_tier: "" });
 
   async function nextStep1() {
-    setSaving(true);
-    await postProfile({
+    setSaving(true); setError(null);
+    const ok = await postProfile({
       age: step1.age ? parseInt(step1.age, 10) : null,
       biological_sex: step1.biological_sex || null,
       weight_kg: toKg(step1.weight, step1.weight_unit),
       activity_level: step1.activity_level || null,
     });
     setSaving(false);
+    if (!ok) { setError(SAVE_ERROR); return; }
     setStep(2);
   }
 
   async function nextStep2() {
-    setSaving(true);
-    await postProfile({
+    setSaving(true); setError(null);
+    const ok = await postProfile({
       primary_goal: step2.primary_goal || null,
       current_medications: step2.current_medications || null,
       using_peptides: step2.using_peptides,
@@ -70,17 +79,19 @@ export default function IntakeForm() {
       menopause_status: step1.biological_sex === "female" ? (step2.menopause_status || null) : null,
     });
     setSaving(false);
+    if (!ok) { setError(SAVE_ERROR); return; }
     setStep(3);
   }
 
   async function finish() {
-    setSaving(true);
-    await postProfile({
+    setSaving(true); setError(null);
+    const ok = await postProfile({
       interested_in_rx: step3.interested_in_rx,
       budget_tier: step3.budget_tier || null,
       onboarding_complete: true,
     });
     setSaving(false);
+    if (!ok) { setError(SAVE_ERROR); return; }
     router.push("/connect");
   }
 
@@ -95,6 +106,8 @@ export default function IntakeForm() {
           <div key={n} className={`h-1 flex-1 rounded-full transition-colors ${n <= step ? "bg-cyan-500" : "bg-white/10"}`} />
         ))}
       </div>
+
+      {error && <p className="mb-4 text-sm text-red-300">{error}</p>}
 
       {step === 1 && (
         <div className="space-y-4">
