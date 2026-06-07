@@ -8,6 +8,15 @@ export default async function UploadPage() {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/connect?next=/upload");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("onboarding_complete")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profile?.onboarding_complete) redirect("/onboarding");
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-20">
       <h1 className="text-3xl font-bold text-white">Manual upload</h1>
