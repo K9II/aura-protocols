@@ -5,7 +5,7 @@ import RecommendationCard from "@/components/RecommendationCard";
 import type { TelemetryDisplay } from "@/components/RecommendationCard";
 import IntakeForm from "@/app/onboarding/IntakeForm";
 import VendorRail from "@/components/VendorRail";
-import type { ProtocolOutput, RulesSummary } from "@/lib/recommend/schema";
+import type { ProtocolOutput, RulesSummary, Tension } from "@/lib/recommend/schema";
 import type { RoutingDecision } from "@/components/ClinicalRouter";
 import { routeByVendor, type RailItem } from "@/lib/recommend/vendor-router";
 import { products } from "@/data/products";
@@ -91,6 +91,27 @@ const DEMO_TELEMETRY: TelemetryDisplay = {
   hrvSparkPath: "M0,14 L12,12 L24,10 L36,14 L48,16 L60,13 L72,11 L84,15 L96,18 L100,16",
   recoverySparkPath: "M0,8 L12,10 L24,12 L36,14 L48,13 L60,15 L72,14 L84,16 L96,17 L100,18",
 };
+
+const DEMO_TENSIONS: Tension[] = [
+  {
+    id: "overreaching",
+    severity: "high",
+    drivers: ["strain_high", "hrv_down_7d", "recovery_low", "rhr_up_7d"],
+    implication: "Recovery capacity is lagging training load; favor restoration over stimulus.",
+  },
+  {
+    id: "metabolic_rebound",
+    severity: "elevated",
+    drivers: ["post_intervention_window", "weight_rising", "protein_low"],
+    implication: "Post-intervention metabolic window; prioritize lean-mass preservation and metabolic stability.",
+  },
+  {
+    id: "hormonal_shift",
+    severity: "watch",
+    drivers: ["endocrine_transition_reported"],
+    implication: "Endocrine baseline is shifting and affecting sleep/recovery; account for it in dosing.",
+  },
+];
 
 type Scene = "onboarding" | "terminal";
 
@@ -178,6 +199,7 @@ export default function DemoPage() {
               id={recId}
               output={output}
               rules={rules}
+              tensions={DEMO_TENSIONS}
               routing={routing}
               telemetry={DEMO_TELEMETRY}
               sessionId="AUR-7X42-M91K"

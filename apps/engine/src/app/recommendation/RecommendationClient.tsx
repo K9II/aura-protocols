@@ -11,7 +11,7 @@ import { routeByVendor, type RailItem } from "@/lib/recommend/vendor-router";
 import { products } from "@/data/products";
 import { PROTOCOL_LABELS } from "@/lib/constants";
 
-interface RecState { id: string; output: ProtocolOutput; rules: RulesSummary; }
+interface RecState { id: string; output: ProtocolOutput; rules: RulesSummary; tensions?: Tension[]; }
 
 const FALLBACK_RULES: RulesSummary = { template: "RECOVERY", triggers: [], contraindications: [], doseCeilings: {} };
 
@@ -105,7 +105,7 @@ export default function RecommendationClient({
     }
     const j = (await res.json()) as { id: string; output: ProtocolOutput; rules: RulesSummary; tensions?: Tension[] };
     const rules: RulesSummary = j.rules ?? FALLBACK_RULES;
-    setRec({ id: j.id, output: j.output, rules });
+    setRec({ id: j.id, output: j.output, rules, tensions: j.tensions ?? [] });
     setLiveSafetyOnly(rules.contraindications.length > 0);
   }
 
@@ -144,6 +144,7 @@ export default function RecommendationClient({
             id={rec.id}
             output={rec.output}
             rules={rec.rules}
+            tensions={rec.tensions ?? []}
             routing={liveCardRouting}
             protocolAgeDays={protocolAgeDays}
             onRegenerate={generate}

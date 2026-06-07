@@ -1,12 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import type { ProtocolOutput, RulesSummary, NutritionItem, FoodItem, TitrationPhase } from "@/lib/recommend/schema";
+import type { ProtocolOutput, RulesSummary, NutritionItem, FoodItem, TitrationPhase, Tension, TensionSeverity } from "@/lib/recommend/schema";
 import type { RoutingDecision } from "@/components/ClinicalRouter";
 import { CLINICAL_URL, DISCLAIMER } from "@/lib/constants";
 import FeedbackWidget from "@/components/FeedbackWidget";
 
 type Tab = "peptides" | "protein" | "vitamins" | "foods";
+
+const SEVERITY: Record<TensionSeverity, string> = {
+  watch: "#fbbf24",
+  elevated: "#fb923c",
+  high: "#fb7185",
+};
+
+function humanizeTensionId(id: string): string {
+  return id.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export interface TelemetryDisplay {
   hrvAvg: string; hrvTrend: "up" | "down" | "neutral";
@@ -29,6 +39,7 @@ export interface RecommendationCardProps {
   protocolAgeDays?: number | null;
   onRegenerate?: () => void;
   loading?: boolean;
+  tensions?: Tension[];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -466,10 +477,48 @@ function BottomSection({ rules, routing, onRegenerate, loading }: {
   );
 }
 
+// ─── Tensions band ────────────────────────────────────────────────────────────
+
+function TensionsBand({ tensions }: { tensions: Tension[] }) {
+  if (tensions.length === 0) return null;
+  return (
+    <div style={{ borderTop: "1px solid rgba(255,255,255,.06)", background: "linear-gradient(180deg,#0a0f1a,#06080f)", padding: "12px 18px" }}>
+      <div style={{ fontSize: 9, letterSpacing: ".22em", color: "#fb7185", textTransform: "uppercase", marginBottom: 10 }}>
+        ▸ Tensions Detected · {tensions.length} active
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {tensions.map((t) => {
+          const color = SEVERITY[t.severity] ?? "#fbbf24";
+          const shown = t.drivers.slice(0, 3);
+          const extra = t.drivers.length - shown.length;
+          return (
+            <div key={t.id} style={{ borderLeft: `2px solid ${color}`, paddingLeft: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: color, boxShadow: `0 0 6px ${color}`, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#fff", letterSpacing: ".02em" }}>{humanizeTensionId(t.id)}</span>
+                <span style={{ fontSize: 8, letterSpacing: ".14em", textTransform: "uppercase", color, border: `1px solid ${color}`, borderRadius: 4, padding: "1px 6px" }}>{t.severity}</span>
+              </div>
+              <div style={{ fontSize: 10, color: "#94a3b8", lineHeight: 1.5, marginBottom: 5 }}>{t.implication}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                {shown.map((d) => (
+                  <span key={d} style={{ fontSize: 8.5, color: "#cbd5e1", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 4, padding: "2px 6px", fontFamily: "'JetBrains Mono',ui-monospace,monospace" }}>{d}</span>
+                ))}
+                {extra > 0 && (
+                  <span style={{ fontSize: 8.5, color: "#64748b", padding: "2px 4px" }}>+{extra}</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export default function RecommendationCard({
-  id, output, rules, routing, telemetry, sessionId, protocolAgeDays, onRegenerate, loading,
+  id, output, rules, routing, telemetry, sessionId, protocolAgeDays, onRegenerate, loading, tensions = [],
 }: RecommendationCardProps) {
   const sid = sessionId ?? "AUR-0000-0000";
   const source = "Wearable · Terra";
@@ -502,6 +551,9 @@ export default function RecommendationCard({
           <BiosignaturePanel steps={output.steps} sessionId={sid} />
           <RightPanel output={output} routing={routing} />
         </div>
+
+        {/* Tensions band (hidden when none) */}
+        <TensionsBand tensions={tensions} />
 
         {/* Bottom: reasoning log + cmd bar */}
         <BottomSection rules={rules} routing={routing} onRegenerate={onRegenerate} loading={loading} />
