@@ -44,7 +44,7 @@ export async function POST(_request: Request) {
 
   const { data: saved } = await supabase
     .from("protocol_recommendations")
-    .insert({ user_id: user.id, template: rules.template, rules_summary: rules, llm_summary: { model: "claude-opus-4-7" }, output })
+    .insert({ user_id: user.id, template: rules.template, rules_summary: rules, llm_summary: { model: "claude-opus-4-7" }, output, tensions })
     .select()
     .single();
 
