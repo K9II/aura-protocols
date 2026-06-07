@@ -4,7 +4,7 @@ import { resolveDashboardRoute } from "@/lib/recommend/dashboard-route";
 import { computeCompletenessScore } from "@/lib/profile/completeness";
 import { ProfileContextSchema } from "@/lib/profile/schema";
 import { PROTOCOL_LABELS } from "@/lib/constants";
-import type { ProtocolOutput } from "@/lib/recommend/schema";
+import { ProtocolOutputSchema } from "@/lib/recommend/schema";
 import ProtocolSummaryCard from "@/components/dashboard/ProtocolSummaryCard";
 import ConnectionsCard, { type ConnectionItem } from "@/components/dashboard/ConnectionsCard";
 import GoalProfileCard from "@/components/dashboard/GoalProfileCard";
@@ -62,7 +62,8 @@ export default async function DashboardPage() {
     revoked: c.revoked_at != null,
   }));
 
-  const output = (recRes.data?.output ?? null) as ProtocolOutput | null;
+  const outputParsed = ProtocolOutputSchema.safeParse(recRes.data?.output);
+  const output = outputParsed.success ? outputParsed.data : null;
   const protocol = output
     ? {
         templateLabel: PROTOCOL_LABELS[output.template],
@@ -70,10 +71,10 @@ export default async function DashboardPage() {
       }
     : null;
 
-  const newestSnapshotAt = (snapRes.data?.[0]?.captured_at as string | undefined) ?? null;
+  const newestSnapshotAt = snapRes.data?.[0]?.captured_at ?? null;
   const snapshotCount = snapRes.count ?? 0;
   const hasData = snapshotCount > 0;
-  const recCreatedAt = (recRes.data?.created_at as string | undefined) ?? null;
+  const recCreatedAt = recRes.data?.created_at ?? null;
 
   // Freshness (v1): newer data than the protocol → nudge to regenerate.
   let freshness: string;
