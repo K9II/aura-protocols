@@ -1,8 +1,11 @@
 "use client";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function SignInForm() {
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/dashboard";
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -11,9 +14,10 @@ export default function SignInForm() {
     e.preventDefault();
     setStatus("sending");
     const supabase = getSupabaseBrowserClient();
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/connect` },
+      options: { emailRedirectTo: redirectTo },
     });
     if (error) { setStatus("error"); setErrorMsg(error.message); return; }
     setStatus("sent");

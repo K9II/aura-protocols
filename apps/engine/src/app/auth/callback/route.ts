@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") ?? "/connect";
+  const next = url.searchParams.get("next") ?? "/dashboard";
 
   if (code) {
     const supabase = await getSupabaseServerClient();
