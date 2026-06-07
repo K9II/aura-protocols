@@ -4,8 +4,8 @@ import RecommendationClient from "./RecommendationClient";
 import type { ProtocolOutput, Tension } from "@/lib/recommend/schema";
 import { ProfileContextSchema } from "@/lib/profile/schema";
 import { computeCompletenessScore } from "@/lib/profile/completeness";
-import { resolveRouting } from "@/components/ClinicalRouter";
-import type { RoutingDecision } from "@/components/ClinicalRouter";
+import { resolveRouting } from "@/lib/recommend/routing";
+import type { RoutingDecision } from "@/lib/recommend/routing";
 import type { RulesSummary } from "@/lib/recommend/schema";
 
 export const runtime = "nodejs";
