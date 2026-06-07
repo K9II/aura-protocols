@@ -48,6 +48,7 @@ export default async function RecommendationPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
+      <a href="/dashboard" className="mb-6 inline-flex text-sm text-cyan-300 hover:underline">← Dashboard</a>
       <RecommendationClient
         initial={latest ? { id: latest.id as string, output: latest.output as unknown as ProtocolOutput, rules: (latest.rules_summary as unknown as RulesSummary) ?? { template: "RECOVERY", triggers: [], contraindications: [], doseCeilings: {} }, tensions: (latest.tensions as unknown as Tension[]) ?? [] } : null}
         profile={profile}

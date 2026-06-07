@@ -13,7 +13,7 @@ export default function UploadClient() {
     setStatus("sending");
     const res = await fetch("/api/upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(snap) });
     if (!res.ok) { setStatus("error"); setErrorMsg("Could not save your data. Try again."); return; }
-    router.push("/recommendation");
+    router.push("/dashboard");
   }
 
   return (
