@@ -3,6 +3,16 @@ import crypto from "node:crypto";
 
 const TERRA_BASE = "https://api.tryterra.co/v2";
 
+/**
+ * True only when both Terra credentials are present and non-empty. Empty env
+ * vars (the common deploy gap) would otherwise send blank auth headers and get
+ * a 401 from Terra surfaced as an opaque 5xx. Callers gate the connect flow on
+ * this so users are routed to manual upload instead of hitting a dead button.
+ */
+export function isTerraConfigured(): boolean {
+  return Boolean(process.env.TERRA_DEV_ID && process.env.TERRA_API_KEY);
+}
+
 export async function createTerraWidgetSession(params: {
   referenceId: string;
   providers: string[];

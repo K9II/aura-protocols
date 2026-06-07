@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { createTerraWidgetSession } from "@/lib/terra/client";
+import { createTerraWidgetSession, isTerraConfigured } from "@/lib/terra/client";
 
 export const runtime = "nodejs";
 
@@ -8,6 +8,12 @@ export async function POST(request: Request) {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  // Terra not provisioned yet — fail cleanly so the client can route to manual
+  // upload instead of attempting a credential-less call that 5xxs.
+  if (!isTerraConfigured()) {
+    return NextResponse.json({ error: "terra_unavailable" }, { status: 503 });
+  }
 
   const body = (await request.json().catch(() => ({}))) as { providers?: string[] };
   // Web-API providers only. Apple/Samsung/Google Fit are mobile-SDK-only and
