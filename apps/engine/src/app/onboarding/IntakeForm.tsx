@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BUDGET_TIER_LABELS } from "@/lib/constants";
 import type { BudgetTierId } from "@/lib/constants";
-
-type Step1 = { age: string; biological_sex: string; weight: string; weight_unit: "lbs" | "kg"; activity_level: string };
+import { emptyIntakeState } from "@/lib/profile/intake-state";
+import type { IntakeState } from "@/lib/profile/intake-state";
 
 const LBS_PER_KG = 2.2046226218;
 function toKg(weight: string, unit: "lbs" | "kg"): number | null {
@@ -14,11 +14,6 @@ function toKg(weight: string, unit: "lbs" | "kg"): number | null {
   const kg = unit === "lbs" ? n / LBS_PER_KG : n;
   return Math.round(kg * 10) / 10;
 }
-type Step2 = {
-  primary_goal: string; current_medications: string; using_peptides: boolean; peptides_detail: string;
-  glp1_status: string; glp1_stopped_month: string; menopause_status: string;
-};
-type Step3 = { interested_in_rx: boolean; budget_tier: string };
 
 const ACTIVITY_LABELS = { sedentary: "Sedentary", moderate: "Moderate", active: "Active", athlete: "Athlete" };
 const GOAL_LABELS = {
@@ -42,17 +37,15 @@ async function postProfile(data: Record<string, unknown>): Promise<boolean> {
   }
 }
 
-export default function IntakeForm() {
+export default function IntakeForm({ initial }: { initial?: IntakeState }) {
   const router = useRouter();
+  const seed = initial ?? emptyIntakeState();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [step1, setStep1] = useState<Step1>({ age: "", biological_sex: "", weight: "", weight_unit: "lbs", activity_level: "" });
-  const [step2, setStep2] = useState<Step2>({
-    primary_goal: "", current_medications: "", using_peptides: false, peptides_detail: "",
-    glp1_status: "", glp1_stopped_month: "", menopause_status: "",
-  });
-  const [step3, setStep3] = useState<Step3>({ interested_in_rx: false, budget_tier: "" });
+  const [step1, setStep1] = useState(seed.step1);
+  const [step2, setStep2] = useState(seed.step2);
+  const [step3, setStep3] = useState(seed.step3);
 
   async function nextStep1() {
     setSaving(true); setError(null);
@@ -92,7 +85,7 @@ export default function IntakeForm() {
     });
     setSaving(false);
     if (!ok) { setError(SAVE_ERROR); return; }
-    router.push("/connect");
+    router.push("/dashboard");
   }
 
   const inputClass = "w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30";
