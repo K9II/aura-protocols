@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from("profiles")
-    .upsert({ id: user.id, ...parsed.data }, { onConflict: "id" })
+    .upsert({ id: user.id, email: user.email, ...parsed.data }, { onConflict: "id" })
     .select()
     .single();
 
