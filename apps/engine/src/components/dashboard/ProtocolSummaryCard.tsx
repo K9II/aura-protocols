@@ -1,3 +1,5 @@
+import { DISCLAIMER } from "@/lib/constants";
+
 interface Props {
   // Present when the user has a generated protocol.
   protocol: { templateLabel: string; topCompounds: string[] } | null;
@@ -25,6 +27,7 @@ export default function ProtocolSummaryCard({ protocol, hasData, dataDays }: Pro
         <a href="/recommendation" className="mt-4 inline-flex rounded-lg bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-cyan-300">
           View full protocol →
         </a>
+        <p className="mt-3 text-xs italic text-slate-400">{DISCLAIMER}</p>
       </section>
     );
   }
@@ -39,6 +42,7 @@ export default function ProtocolSummaryCard({ protocol, hasData, dataDays }: Pro
         <a href="/recommendation" className="mt-4 inline-flex rounded-lg bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-cyan-300">
           Generate your protocol →
         </a>
+        <p className="mt-3 text-xs italic text-slate-400">{DISCLAIMER}</p>
       </section>
     );
   }
