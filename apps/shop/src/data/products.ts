@@ -137,6 +137,7 @@ export const products: Product[] = [
     benefits: ["Mitochondrial membrane-stabilization research", "Oxidative-stress reduction in studies", "ATP-production research models", "Age-related mitochondrial-decline studies"],
     vendors: [
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/ss31-elamipretide/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ss31-peptide-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
     ],
     badge: "New",
     featured: true,
