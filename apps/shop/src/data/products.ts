@@ -128,6 +128,20 @@ export const products: Product[] = [
     featured: true,
   },
   {
+    id: "ss-31",
+    name: "SS-31 (Elamipretide)",
+    slug: "ss-31",
+    category: "Wellness",
+    description:
+      "Mitochondria-targeted tetrapeptide that binds directly to cardiolipin in the inner mitochondrial membrane, stabilizing membrane structure and reducing oxidative stress at the site of energy production.",
+    benefits: ["Mitochondrial membrane-stabilization research", "Oxidative-stress reduction in studies", "ATP-production research models", "Age-related mitochondrial-decline studies"],
+    vendors: [
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/ss31-elamipretide/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
+    ],
+    badge: "New",
+    featured: true,
+  },
+  {
     id: "aod-9604",
     name: "AOD-9604",
     slug: "aod-9604",
