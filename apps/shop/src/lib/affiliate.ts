@@ -8,6 +8,7 @@ const VENDOR_IDS: Record<string, string> = {
   "Apollo Peptide Sciences": "apollo",
   "GLP-1 Research Lab": "glp1-lab",
   "Ignite Peptides": "ignite",
+  "Main Peptides": "main-peptides",
 };
 
 export function vendorId(vendorName: string): string {
