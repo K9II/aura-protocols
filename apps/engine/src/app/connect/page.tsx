@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { isTerraConfigured } from "@/lib/terra/client";
 import ConnectButton from "@/components/ConnectButton";
 import SignInForm from "./SignInForm";
 
@@ -35,8 +36,7 @@ export default async function ConnectPage() {
   if (!profile?.onboarding_complete) redirect("/onboarding");
 
   // No trap: an onboarded user always sees the connect/upload UI so they can
-  // add a second device or refresh stale data. (Removed the old
-  // biometric_snapshots count > 0 → redirect("/recommendation").)
+  // add a second device or refresh stale data.
   return (
     <main className="mx-auto max-w-md px-6 py-20">
       <a href="/dashboard" className="text-sm text-cyan-300 hover:underline">← Back to dashboard</a>
