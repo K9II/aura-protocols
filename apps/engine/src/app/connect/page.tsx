@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { isTerraConfigured } from "@/lib/terra/client";
-import ConnectButton from "@/components/ConnectButton";
 import SignInForm from "./SignInForm";
 
 export const runtime = "nodejs";
@@ -35,17 +33,17 @@ export default async function ConnectPage() {
   // manual upload on onboarding). This is a real gate, not state encoding.
   if (!profile?.onboarding_complete) redirect("/onboarding");
 
-  // No trap: an onboarded user always sees the connect/upload UI so they can
-  // add a second device or refresh stale data.
   return (
     <main className="mx-auto max-w-md px-6 py-20">
       <a href="/dashboard" className="text-sm text-cyan-300 hover:underline">← Back to dashboard</a>
       <h1 className="mt-4 text-3xl font-bold text-white">Connect your wearable</h1>
-      <p className="mt-3 text-slate-300">Whoop, Oura, Garmin, Fitbit, Dexcom CGM. We use Terra to abstract the OAuth flow.</p>
-      <p className="mt-2 text-sm text-slate-400">Apple Health, Samsung Health, and Google Fit are coming with our mobile app.</p>
-      <div className="mt-6"><ConnectButton /></div>
+      <div className="mt-6 rounded-2xl border border-violet-500/30 bg-violet-500/10 px-6 py-8 text-center">
+        <div className="text-3xl">🔧</div>
+        <p className="mt-3 text-lg font-semibold text-white">Under Construction</p>
+        <p className="mt-2 text-sm text-slate-300">Wearable integrations are being finalized. Manual data upload is available in the meantime.</p>
+      </div>
       <p className="mt-6 text-sm text-slate-400">
-        Don&apos;t have a supported wearable? <a href="/upload" className="text-cyan-300 underline">Paste manual data</a>.
+        <a href="/upload" className="text-cyan-300 underline">Upload data manually</a> to generate your protocol now.
       </p>
     </main>
   );

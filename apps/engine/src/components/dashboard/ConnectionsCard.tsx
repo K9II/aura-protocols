@@ -43,9 +43,9 @@ export default function ConnectionsCard({ connections }: { connections: Connecti
       )}
 
       <div className="mt-4 flex flex-wrap gap-3">
-        <a href="/connect" className="inline-flex rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">
-          Connect more
-        </a>
+        <span className="inline-flex cursor-not-allowed rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-500" title="Coming soon">
+          Connect wearable (coming soon)
+        </span>
         <a href="/upload" className="inline-flex rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">
           Upload data
         </a>
