@@ -33,21 +33,6 @@ export default function AboutPage() {
           exact physiological state of your body, in real time.
         </p>
 
-        {/* Stats bar */}
-        <div className="glass p-6 grid grid-cols-2 sm:grid-cols-4 gap-6 my-8">
-          {[
-            { stat: "4", label: "Research categories" },
-            { stat: "14", label: "Compounds reviewed" },
-            { stat: "5", label: "Vetted vendors" },
-            { stat: "0", label: "Sponsored rankings" },
-          ].map(({ stat, label }) => (
-            <div key={label} className="text-center">
-              <p className="font-display text-2xl font-bold text-cyan-400">{stat}</p>
-              <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider">{label}</p>
-            </div>
-          ))}
-        </div>
-
         <h2 className="text-xl font-bold text-white pt-2">Core Pillars</h2>
 
         <div className="glass p-8 space-y-5">
