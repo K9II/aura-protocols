@@ -11,7 +11,22 @@ export default function AboutPage() {
       <p className="text-sm uppercase tracking-wider text-slate-500 mb-10">Where Biometrics Meet Bio-Harmonization</p>
 
       <div className="space-y-6 text-slate-400 leading-relaxed">
-        <p className="text-lg text-slate-300 font-medium">
+
+        <h2 className="text-xl font-bold text-white pt-2">Our Story</h2>
+        <p>Aura Protocols was not built in a boardroom. It was built from a problem.</p>
+        <p>
+          Our founders — biohackers, data engineers, and longevity researchers — watched a pattern repeat itself across
+          the peptide research community: sophisticated protocols, expensive compounds, zero feedback mechanism.
+          Researchers were timing everything on intuition. Recovery impacts went unmeasured. There was no objective
+          signal telling anyone whether anything was working.
+        </p>
+        <p>The question we asked was simple: what if your wearable already had the answer?</p>
+        <p>
+          We built Aura Protocols around that question — a platform that aggregates your biometric data and pairs it
+          with structured research protocols, replacing assumption with signal and guesswork with evidence.
+        </p>
+
+        <p className="text-lg text-slate-300 font-medium pt-2">
           Generalized wellness is a guess. Aura Protocols is not.
         </p>
         <p>
@@ -23,14 +38,14 @@ export default function AboutPage() {
         <h2 className="text-xl font-bold text-white pt-2">Driven by Data. Optimized for Life.</h2>
         <p>
           Every human system communicates in signals: heart rate variability, sleep architecture, metabolic output,
-          systemic inflammation trends. These are not abstract health metrics — they are the feedback loop that
-          traditional wellness models ignore entirely.
+          systemic inflammation trends. These are not abstract metrics — they are the feedback loop that traditional
+          wellness models ignore entirely.
         </p>
         <p className="text-white font-medium">Aura Protocols reads that loop.</p>
         <p>
           Our platform integrates with Oura, Whoop, Apple Watch, and Garmin, converting wearable telemetry into a
-          structured research dashboard. The result: peptide protocols aligned not to a population average, but to the
-          exact physiological state of your body, in real time.
+          structured research dashboard. The result: research protocols correlated to your own physiological
+          baseline — not a population average.
         </p>
 
         <h2 className="text-xl font-bold text-white pt-2">Core Pillars</h2>
@@ -47,11 +62,11 @@ export default function AboutPage() {
             ],
             [
               "Hyper-Individualization",
-              "One-size protocols don't exist here. Your biomarker trends are the protocol.",
+              "One-size protocols don't exist here. Your biomarker data drives the research framework.",
             ],
             [
               "Community of Excellence",
-              "A vetted network of researchers and high-performers committed to measurable longevity.",
+              "A vetted network of researchers and high-performers committed to long-term performance optimization.",
             ],
           ].map(([title, desc]) => (
             <div key={title} className="flex gap-4">
@@ -71,7 +86,7 @@ export default function AboutPage() {
             ["Quantify", "Establish baseline vitals through your biometric device of choice."],
             ["Research", "Access our curated database of cellular peptide compounds."],
             ["Align", "Correlate research timing with your circadian and metabolic data."],
-            ["Refine", "Analyze physiological shifts to continuously optimize recovery, cognition, and output."],
+            ["Refine", "Track physiological shifts to analyze how your body responds across recovery, cognitive clarity, and output metrics over time."],
           ].map(([title, desc], i) => (
             <div key={title} className="flex gap-4">
               <span className="font-display text-sm font-bold text-cyan-400 mt-0.5 w-5 flex-shrink-0">
@@ -85,30 +100,18 @@ export default function AboutPage() {
           ))}
         </div>
 
-        <h2 className="text-xl font-bold text-white pt-2">Our Story</h2>
-        <p>Aura Protocols was not built in a boardroom. It was built from a problem.</p>
-        <p>
-          Our founders — biohackers, data engineers, and longevity researchers — watched a pattern repeat itself across
-          the peptide research community: sophisticated protocols, expensive compounds, zero feedback mechanism.
-          Researchers were timing everything on intuition. Recovery impacts went unmeasured. There was no objective
-          signal telling anyone whether anything was working.
-        </p>
-        <p>The question we asked was simple: what if your wearable already had the answer?</p>
-        <p>
-          We built Aura Protocols around that question. A platform that aggregates your biometric data and pairs it
-          with structured research protocols — replacing assumption with signal, and guesswork with evidence.
-        </p>
-
         <h2 className="text-xl font-bold text-white pt-2">Join the Evolution</h2>
         <p>
-          Accelerated recovery. Enhanced neurological function. Metabolic precision. The data that drives each is
-          already on your wrist.
+          Recovery. Cognitive clarity. Metabolic performance. Whether your research focus spans tissue repair,
+          neurological study, or metabolic tracking — the feedback mechanism now exists.
         </p>
+        <p>Your data is the compass. Aura Protocols is the map.</p>
         <p className="font-semibold text-white">Welcome to Aura Protocols.</p>
 
         <p className="text-sm text-slate-500 border-t border-white/5 pt-6">
-          All products referenced on this site are intended for research purposes only and are not intended to diagnose,
-          treat, cure, or prevent any disease. Always consult a qualified healthcare professional before use.
+          All products referenced on this site are intended for in vitro research purposes only and are not intended
+          to diagnose, treat, cure, or prevent any disease. Nothing on this site constitutes medical advice. Always
+          consult a qualified healthcare professional before use.
         </p>
       </div>
     </div>
