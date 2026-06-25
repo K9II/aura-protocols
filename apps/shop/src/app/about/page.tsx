@@ -1,25 +1,36 @@
 export const metadata = {
   title: "About — Aura Protocols",
-  description: "Learn about Aura Protocols, our mission, vendor vetting methodology, and how we approach research peptide education.",
+  description: "Aura Protocols bridges advanced peptide research and real-time biometrics, giving high-performers the data infrastructure to move beyond guesswork.",
 };
 
 export default function AboutPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
-      <p className="text-xs uppercase tracking-widest text-cyan-400 font-semibold mb-2">About Us</p>
-      <h1 className="font-display text-4xl font-bold text-white mb-6">Built for serious researchers</h1>
+      <p className="text-xs uppercase tracking-widest text-cyan-400 font-semibold mb-2">About Aura Protocols</p>
+      <h1 className="font-display text-4xl font-bold text-white mb-3">The Science of Synergy</h1>
+      <p className="text-sm uppercase tracking-wider text-slate-500 mb-10">Where Biometrics Meet Bio-Harmonization</p>
 
       <div className="space-y-6 text-slate-400 leading-relaxed">
-        <p>
-          Aura Protocols was built out of frustration. After spending months trying to evaluate peptide vendors —
-          chasing down COAs, cross-referencing Reddit threads, and finding that most &ldquo;review&rdquo; sites were just
-          thinly-disguised ad pages — it became clear the space needed an editorially independent voice.
+        <p className="text-lg text-slate-300 font-medium">
+          Generalized wellness is a guess. Aura Protocols is not.
         </p>
         <p>
-          We are a small independent team focused on one thing: giving researchers the information they need to source
-          compounds they can actually trust. Every vendor recommendation is based on documented purity standards.
-          Commission rates do not influence rankings — vendors who don&apos;t meet our documentation standards don&apos;t
-          appear on this site, regardless of what they offer us.
+          We exist at the intersection of advanced peptide research and real-time human biometrics — built for the
+          researcher, the high-performer, and the individual who refuses to operate on assumption. Your body is already
+          generating precise physiological data every hour of every day. We built the infrastructure to use it.
+        </p>
+
+        <h2 className="text-xl font-bold text-white pt-2">Driven by Data. Optimized for Life.</h2>
+        <p>
+          Every human system communicates in signals: heart rate variability, sleep architecture, metabolic output,
+          systemic inflammation trends. These are not abstract health metrics — they are the feedback loop that
+          traditional wellness models ignore entirely.
+        </p>
+        <p className="text-white font-medium">Aura Protocols reads that loop.</p>
+        <p>
+          Our platform integrates with Oura, Whoop, Apple Watch, and Garmin, converting wearable telemetry into a
+          structured research dashboard. The result: peptide protocols aligned not to a population average, but to the
+          exact physiological state of your body, in real time.
         </p>
 
         {/* Stats bar */}
@@ -28,7 +39,7 @@ export default function AboutPage() {
             { stat: "4", label: "Research categories" },
             { stat: "14", label: "Compounds reviewed" },
             { stat: "5", label: "Vetted vendors" },
-            { stat: "100%", label: "Affiliate links disclosed" },
+            { stat: "0", label: "Sponsored rankings" },
           ].map(({ stat, label }) => (
             <div key={label} className="text-center">
               <p className="font-display text-2xl font-bold text-cyan-400">{stat}</p>
@@ -37,20 +48,26 @@ export default function AboutPage() {
           ))}
         </div>
 
-        <h2 className="text-xl font-bold text-white pt-2">Our vendor vetting process</h2>
-        <p>
-          Every vendor featured on Aura Protocols is evaluated against the same criteria before we link to a single
-          product. We review documentation, check third-party testing records, and assess the checkout and customer
-          service experience.
-        </p>
+        <h2 className="text-xl font-bold text-white pt-2">Core Pillars</h2>
 
         <div className="glass p-8 space-y-5">
           {[
-            ["Third-Party COAs", "Every vendor must provide independent Certificates of Analysis for each batch. Generic or undated COAs do not pass."],
-            ["HPLC Purity Testing", "We look for vendors who test to ≥98% purity via High-Performance Liquid Chromatography from accredited labs."],
-            ["Transparent Sourcing", "No mystery suppliers. We favor vendors who disclose synthesis origin, QA processes, and storage standards."],
-            ["Shipping & Fulfillment", "Domestic US shipping, discreet packaging, and reliable tracking are baseline requirements."],
-            ["FTC Compliance", "Affiliate relationships are disclosed on every page, on every link. Always. No exceptions."],
+            [
+              "Rigorous Research",
+              "We synthesize peer-reviewed peptide data into a structured, navigable research library built to academic standards.",
+            ],
+            [
+              "Device-Agnostic Integration",
+              "Oura, Whoop, Garmin, Apple Watch. We read your hardware; you read your results.",
+            ],
+            [
+              "Hyper-Individualization",
+              "One-size protocols don't exist here. Your biomarker trends are the protocol.",
+            ],
+            [
+              "Community of Excellence",
+              "A vetted network of researchers and high-performers committed to measurable longevity.",
+            ],
           ].map(([title, desc]) => (
             <div key={title} className="flex gap-4">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
@@ -62,24 +79,47 @@ export default function AboutPage() {
           ))}
         </div>
 
-        <h2 className="text-xl font-bold text-white pt-2">What we cover</h2>
+        <h2 className="text-xl font-bold text-white pt-2">The Peak Performance Loop</h2>
+
+        <div className="glass p-8 space-y-5">
+          {[
+            ["Quantify", "Establish baseline vitals through your biometric device of choice."],
+            ["Research", "Access our curated database of cellular peptide compounds."],
+            ["Align", "Correlate research timing with your circadian and metabolic data."],
+            ["Refine", "Analyze physiological shifts to continuously optimize recovery, cognition, and output."],
+          ].map(([title, desc], i) => (
+            <div key={title} className="flex gap-4">
+              <span className="font-display text-sm font-bold text-cyan-400 mt-0.5 w-5 flex-shrink-0">
+                {i + 1}.
+              </span>
+              <div>
+                <p className="font-semibold text-white">{title}</p>
+                <p className="text-sm text-slate-400">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <h2 className="text-xl font-bold text-white pt-2">Our Story</h2>
+        <p>Aura Protocols was not built in a boardroom. It was built from a problem.</p>
         <p>
-          Our content spans the four primary research categories: recovery peptides (BPC-157, TB-500), weight management
-          compounds (GLP-1 analogues), growth hormone secretagogues (CJC-1295/Ipamorelin, Sermorelin), and wellness
-          peptides (PT-141). Each compound has a dedicated research guide, and vendors are compared head-to-head in our
-          comparison series.
+          Our founders — biohackers, data engineers, and longevity researchers — watched a pattern repeat itself across
+          the peptide research community: sophisticated protocols, expensive compounds, zero feedback mechanism.
+          Researchers were timing everything on intuition. Recovery impacts went unmeasured. There was no objective
+          signal telling anyone whether anything was working.
+        </p>
+        <p>The question we asked was simple: what if your wearable already had the answer?</p>
+        <p>
+          We built Aura Protocols around that question. A platform that aggregates your biometric data and pairs it
+          with structured research protocols — replacing assumption with signal, and guesswork with evidence.
         </p>
 
-        <h2 className="text-xl font-bold text-white pt-2">Affiliate transparency</h2>
+        <h2 className="text-xl font-bold text-white pt-2">Join the Evolution</h2>
         <p>
-          Aura Protocols earns commissions when you purchase through our links — this is how the site is funded. It does
-          not change our editorial standards. Vendors are evaluated independently of commission rates, and we decline to
-          feature vendors who do not meet our purity and documentation benchmarks regardless of what they offer us.
+          Accelerated recovery. Enhanced neurological function. Metabolic precision. The data that drives each is
+          already on your wrist.
         </p>
-        <p>
-          All affiliate links are labeled with <code className="text-xs bg-white/5 px-1.5 py-0.5 rounded">rel=&quot;sponsored&quot;</code> per
-          FTC and Google guidelines.
-        </p>
+        <p className="font-semibold text-white">Welcome to Aura Protocols.</p>
 
         <p className="text-sm text-slate-500 border-t border-white/5 pt-6">
           All products referenced on this site are intended for research purposes only and are not intended to diagnose,
