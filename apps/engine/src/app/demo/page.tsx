@@ -355,9 +355,14 @@ function SafetyFloorPanel({
           </span>
         )}
         {hasContra ? (
-          <span className="text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">
-            ⚠ {rules.contraindications.length} contraindication{rules.contraindications.length > 1 ? "s" : ""}
-          </span>
+          <>
+            <span className="text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">
+              ⚠ {rules.contraindications.length} contraindication{rules.contraindications.length > 1 ? "s" : ""}
+            </span>
+            <span className="text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">
+              → routed to Aura Clinical
+            </span>
+          </>
         ) : (
           <span className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
             ✓ no contraindications
@@ -933,6 +938,9 @@ export default function DemoPage() {
     [activeScenario, profileCtx],
   );
 
+  // Contraindications override routing to clinical_only — user must see a clinician.
+  const effectiveRouting: RoutingDecision = liveRules.contraindications.length > 0 ? "clinical_only" : routing;
+
   const railGroups = useMemo(() => {
     const { protocol } = scenario;
     // Map compound display names to product catalog slugs where they differ.
@@ -1053,15 +1061,17 @@ export default function DemoPage() {
               output={scenario.protocol}
               rules={liveRules}
               tensions={scenario.tensions}
-              routing={routing}
+              routing={effectiveRouting}
               telemetry={scenario.telemetry}
               sessionId={scenario.sessionId}
               protocolAgeDays={3}
             />
-            <VendorRail
-              groups={railGroups}
-              templateLabel={PROTOCOL_LABELS[activeScenario]}
-            />
+            {effectiveRouting !== "clinical_only" && (
+              <VendorRail
+                groups={railGroups}
+                templateLabel={PROTOCOL_LABELS[activeScenario]}
+              />
+            )}
           </>
         )}
       </main>
