@@ -58,11 +58,19 @@ export default function VendorCard({ group, accent, index }: Props) {
 
       <ul className="mb-4 space-y-2 border-y border-white/5 py-3">
         {group.items.map((item) => (
-          <li
-            key={item.slug}
-            className="flex flex-col gap-0.5 text-xs"
-          >
-            <span className="font-medium text-slate-200">{item.name}</span>
+          <li key={item.slug} className="flex flex-col gap-0.5 text-xs">
+            {item.url ? (
+              <a
+                href={item.url}
+                target="_blank"
+                rel={AFFILIATE_REL}
+                className="font-medium text-slate-200 underline-offset-2 hover:text-cyan-300 hover:underline transition-colors"
+              >
+                {item.name} ↗
+              </a>
+            ) : (
+              <span className="font-medium text-slate-200">{item.name}</span>
+            )}
             {item.dose && (
               <span className="text-[11px] text-slate-500">{item.dose}</span>
             )}

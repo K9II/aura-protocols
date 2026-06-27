@@ -935,13 +935,20 @@ export default function DemoPage() {
 
   const railGroups = useMemo(() => {
     const { protocol } = scenario;
+    // Map compound display names to product catalog slugs where they differ.
+    const SLUG_MAP: Record<string, string> = {
+      "CJC-1295 (no-DAC)": "cjc-1295-ipamorelin",
+      "Ipamorelin": "cjc-1295-ipamorelin",
+    };
+    // Deduplicate items sharing the same slug (CJC + Ipa → one combo entry).
+    const seenSlugs = new Set<string>();
     const items: RailItem[] = [
-      ...protocol.steps.map((s) => ({
-        slug: s.compound.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        name: s.compound,
-        dose: s.dose,
-        category: "Peptides",
-      })),
+      ...protocol.steps.flatMap((s) => {
+        const slug = SLUG_MAP[s.compound] ?? s.compound.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-$/, "");
+        if (seenSlugs.has(slug)) return [];
+        seenSlugs.add(slug);
+        return [{ slug, name: s.compound, dose: s.dose, category: "Peptides" }];
+      }),
       ...(protocol.vitamins ?? []).map((v) => ({
         slug: `slot-vitamin-${v.name.toLowerCase().replace(/\s+/g, "-")}`,
         name: v.name,

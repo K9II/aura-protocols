@@ -5,6 +5,7 @@ export interface RailItem {
   name: string;
   dose?: string;
   category: string;
+  url?: string;
 }
 
 export interface VendorGroupLive {
@@ -126,7 +127,11 @@ export function routeByVendor(
       kind: "live",
       vendor: best.vendor,
       url: best.url,
-      items: assignedSlugs.map((s) => slugToItem.get(s)!),
+      items: assignedSlugs.map((s) => {
+        const item = slugToItem.get(s)!;
+        const vendorUrl = itemCandidates.get(s)!.find((c) => c.vendor === best!.vendor)?.url;
+        return vendorUrl ? { ...item, url: vendorUrl } : item;
+      }),
     });
 
     for (const s of assignedSlugs) remaining.delete(s);
