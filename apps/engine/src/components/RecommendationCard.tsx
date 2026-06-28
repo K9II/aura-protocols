@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import type { ProtocolOutput, RulesSummary, NutritionItem, FoodItem, TitrationPhase, Tension, TensionSeverity } from "@/lib/recommend/schema";
 import type { RoutingDecision } from "@/components/ClinicalRouter";
 import { CLINICAL_URL, DISCLAIMER } from "@/lib/constants";
@@ -102,11 +102,99 @@ function TelemetryPanel({ t }: { t: TelemetryDisplay | null | undefined }) {
   );
 }
 
+// ─── Biosignature math ────────────────────────────────────────────────────────
+
+const BS_CX = 210, BS_CY = 210, BS_R = 160;
+
+function bsParseNum(s: string | null | undefined): number {
+  const m = s?.match(/[\d.]+/);
+  return m ? parseFloat(m[0]) : 0;
+}
+function bsParseSleepH(s: string | null | undefined): number {
+  const h = s?.match(/(\d+)h/), m = s?.match(/(\d+)m/);
+  return (h ? +h[1] : 0) + (m ? +m[1] / 60 : 0);
+}
+function bsNorm(v: number, lo: number, hi: number) {
+  return Math.max(0.1, Math.min(1, (v - lo) / (hi - lo)));
+}
+
+type BsPt = [number, number];
+
+function buildBsPoints(t: TelemetryDisplay | null | undefined): BsPt[] {
+  const scores = [
+    bsNorm(bsParseNum(t?.hrvAvg),          15, 70),  // top       HRV
+    bsNorm(bsParseNum(t?.sleepEff),        55, 95),  // top-right SleepEff
+    bsNorm(bsParseSleepH(t?.sleepAvg),      5,  9),  // right     SleepHours
+    bsNorm(bsParseNum(t?.remRatio),         12, 28),  // bot-right REM
+    bsNorm(bsParseNum(t?.recovery),         20, 95),  // bottom    Recovery
+    bsNorm(bsParseNum(t?.deepSleep),         7, 22),  // bot-left  DeepSleep
+    bsNorm(18 - bsParseNum(t?.strain),       2, 14),  // left      Strain (inv)
+    bsNorm(bsParseNum(t?.spo2),            95, 100),  // top-left  SpO2
+  ];
+  return scores.map((s, i) => {
+    const a = (i * 45 - 90) * (Math.PI / 180);
+    return [BS_CX + s * BS_R * Math.cos(a), BS_CY + s * BS_R * Math.sin(a)];
+  });
+}
+
+const BS_NEUTRAL_PTS: BsPt[] = Array.from({ length: 8 }, (_, i) => {
+  const a = (i * 45 - 90) * (Math.PI / 180);
+  return [BS_CX + 0.65 * BS_R * Math.cos(a), BS_CY + 0.65 * BS_R * Math.sin(a)];
+});
+
+function bsPtsToD(pts: BsPt[]): string {
+  return `M${pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" L")} Z`;
+}
+
 // ─── Center panel ─────────────────────────────────────────────────────────────
 
-function BiosignaturePanel({ steps, sessionId }: { steps: ProtocolOutput["steps"]; sessionId: string }) {
+function BiosignaturePanel({
+  steps, sessionId, telemetry,
+}: {
+  steps: ProtocolOutput["steps"];
+  sessionId: string;
+  telemetry?: TelemetryDisplay | null;
+}) {
   const t1 = steps[0]?.compound ?? "—";
   const t2 = steps[1]?.compound ?? null;
+
+  const targetPts = useMemo(
+    () => (telemetry ? buildBsPoints(telemetry) : BS_NEUTRAL_PTS),
+    [telemetry],
+  );
+
+  const pathRef = useRef<SVGPathElement | null>(null);
+  const rafRef  = useRef(0);
+  const fromRef = useRef<BsPt[]>(BS_NEUTRAL_PTS);
+  const [animKey, setAnimKey] = useState(0);
+
+  useEffect(() => {
+    cancelAnimationFrame(rafRef.current);
+    const from = fromRef.current;
+    const to   = targetPts;
+    const t0   = performance.now();
+    const dur  = 700;
+
+    function tick(now: number) {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3); // cubic ease-out
+      const pts = from.map(([fx, fy], i) => [
+        fx + (to[i][0] - fx) * e,
+        fy + (to[i][1] - fy) * e,
+      ] as BsPt);
+      if (pathRef.current) pathRef.current.setAttribute("d", bsPtsToD(pts));
+      if (p < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        fromRef.current = targetPts;
+      }
+    }
+
+    setAnimKey((k) => k + 1);
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [targetPts]);
+
   return (
     <div style={{ background: "radial-gradient(ellipse 65% 80% at 50% 45%,rgba(0,212,255,.06) 0%,rgba(139,92,246,.04) 35%,rgba(4,6,15,0) 75%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "18px 14px 10px" }}>
       <div style={{ fontSize: 9, letterSpacing: ".22em", color: "#64748b", textTransform: "uppercase", marginBottom: 4 }}>Your Biosignature</div>
@@ -114,56 +202,101 @@ function BiosignaturePanel({ steps, sessionId }: { steps: ProtocolOutput["steps"
       <svg style={{ width: "100%", maxWidth: 340, aspectRatio: "1", margin: "4px 0" }} viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="rc-bg" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#00d4ff" stopOpacity="0.18"/>
-            <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.05"/>
+            <stop offset="0%"   stopColor="#00d4ff" stopOpacity="0.18"/>
+            <stop offset="50%"  stopColor="#8b5cf6" stopOpacity="0.05"/>
             <stop offset="100%" stopColor="#04060f" stopOpacity="0"/>
           </radialGradient>
           <linearGradient id="rc-ln" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00d4ff"/><stop offset="100%" stopColor="#8b5cf6"/>
+            <stop offset="0%"   stopColor="#00d4ff"/>
+            <stop offset="100%" stopColor="#8b5cf6"/>
           </linearGradient>
           <filter id="rc-gw">
             <feGaussianBlur stdDeviation="3" result="b"/>
             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
         </defs>
-        <circle cx="210" cy="210" r="200" fill="url(#rc-bg)"/>
-        <circle cx="210" cy="210" r="190" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
-        <circle cx="210" cy="210" r="155" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="2 5"/>
-        <circle cx="210" cy="210" r="115" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="2 5"/>
-        <circle cx="210" cy="210" r="75"  fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="2 5"/>
-        <circle cx="210" cy="210" r="38"  fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.8"/>
+
+        {/* Background */}
+        <circle cx={BS_CX} cy={BS_CY} r="200" fill="url(#rc-bg)"/>
+
+        {/* Rotating outer ring */}
+        <circle cx={BS_CX} cy={BS_CY} r="186" fill="none" stroke="rgba(0,212,255,0.07)" strokeWidth="1" strokeDasharray="4 18">
+          <animateTransform attributeName="transform" type="rotate"
+            from={`0 ${BS_CX} ${BS_CY}`} to={`360 ${BS_CX} ${BS_CY}`}
+            dur="60s" repeatCount="indefinite"/>
+        </circle>
+
+        {/* Static grid rings */}
+        <circle cx={BS_CX} cy={BS_CY} r="190" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+        <circle cx={BS_CX} cy={BS_CY} r="155" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="2 5"/>
+        <circle cx={BS_CX} cy={BS_CY} r="115" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="2 5"/>
+        <circle cx={BS_CX} cy={BS_CY} r="75"  fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="2 5"/>
+        <circle cx={BS_CX} cy={BS_CY} r="38"  fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.8"/>
+
+        {/* Axis labels */}
         <text x="210" y="22"  textAnchor="middle" fill="#475569" fontSize="9" fontFamily="monospace" letterSpacing="2">HRV</text>
         <text x="400" y="213" textAnchor="middle" fill="#475569" fontSize="9" fontFamily="monospace" letterSpacing="2">SLEEP</text>
         <text x="210" y="408" textAnchor="middle" fill="#475569" fontSize="9" fontFamily="monospace" letterSpacing="2">RECOVERY</text>
         <text x="20"  y="213" textAnchor="middle" fill="#475569" fontSize="9" fontFamily="monospace" letterSpacing="2">STRAIN</text>
-        <path d="M210,40 L305,90 L370,210 L320,330 L210,378 L105,335 L50,210 L115,85 Z" fill="rgba(0,212,255,0.05)" stroke="url(#rc-ln)" strokeWidth="1.6"/>
-        <path d="M210,65 Q280,95 320,170 Q355,235 295,310 Q230,355 145,320 Q75,285 70,205 Q70,120 145,90 Q180,75 210,65 Z" fill="none" stroke="rgba(139,92,246,0.55)" strokeWidth="1.2"/>
-        <g stroke="rgba(0,212,255,0.35)" strokeWidth="0.7">
-          <line x1="210" y1="210" x2="210" y2="50"/><line x1="210" y1="210" x2="320" y2="100"/>
-          <line x1="210" y1="210" x2="370" y2="210"/><line x1="210" y1="210" x2="318" y2="320"/>
-          <line x1="210" y1="210" x2="210" y2="370"/><line x1="210" y1="210" x2="100" y2="320"/>
-          <line x1="210" y1="210" x2="50"  y2="210"/><line x1="210" y1="210" x2="100" y2="100"/>
+
+        {/* Axis spokes */}
+        <g stroke="rgba(0,212,255,0.3)" strokeWidth="0.7">
+          {Array.from({ length: 8 }, (_, i) => {
+            const a = (i * 45 - 90) * (Math.PI / 180);
+            return <line key={i} x1={BS_CX} y1={BS_CY} x2={BS_CX + 190 * Math.cos(a)} y2={BS_CY + 190 * Math.sin(a)}/>;
+          })}
         </g>
-        <path d="M80,210 Q110,180 140,210 T200,210 T260,210 T320,210 T340,210" fill="none" stroke="rgba(0,212,255,0.4)" strokeWidth="1" strokeDasharray="1 2"/>
-        <circle cx="320" cy="100" r="14" fill="none" stroke="#fb7185" strokeWidth="1.5" strokeDasharray="2 3" opacity="0.85"/>
+
+        {/* Data polygon — morphs via RAF, draws in via CSS on mount/scenario change */}
+        <path
+          key={animKey}
+          ref={(el) => { pathRef.current = el; }}
+          d={bsPtsToD(fromRef.current)}
+          fill="rgba(0,212,255,0.07)"
+          stroke="url(#rc-ln)"
+          strokeWidth="1.8"
+          strokeDasharray="1200 1200"
+          style={{ animation: "biosig-draw 1s cubic-bezier(0.4,0,0.2,1) forwards" }}
+        />
+
+        {/* Outer axis markers (100% position on each spoke) */}
+        {Array.from({ length: 8 }, (_, i) => {
+          const a = (i * 45 - 90) * (Math.PI / 180);
+          const x = BS_CX + 190 * Math.cos(a), y = BS_CY + 190 * Math.sin(a);
+          const colors = ["#00d4ff","#8b5cf6","#fbbf24","#8b5cf6","#34d399","#8b5cf6","#00d4ff","#8b5cf6"];
+          return <circle key={i} cx={x} cy={y} r={i % 2 === 0 ? 3.5 : 2.5} fill={colors[i]} opacity="0.35"/>;
+        })}
+
+        {/* T1 / T2 compound markers */}
+        <circle cx="320" cy="100" r="14" fill="none" stroke="#fb7185" strokeWidth="1.5" strokeDasharray="2 3" opacity="0.85">
+          <animate attributeName="r"       values="14;17;14" dur="3s"   repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.85;0.4;0.85" dur="3s" repeatCount="indefinite"/>
+        </circle>
         <text x="340" y="93" fill="#fda4af" fontSize="9" fontFamily="monospace" letterSpacing="1">▸ T1</text>
-        <circle cx="100" cy="320" r="14" fill="none" stroke="#fb7185" strokeWidth="1.5" strokeDasharray="2 3" opacity="0.85"/>
+
+        <circle cx="100" cy="320" r="14" fill="none" stroke="#fb7185" strokeWidth="1.5" strokeDasharray="2 3" opacity="0.85">
+          <animate attributeName="r"       values="14;17;14" dur="3.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.85;0.4;0.85" dur="3.5s" repeatCount="indefinite"/>
+        </circle>
         <text x="56" y="345" fill="#fda4af" fontSize="9" fontFamily="monospace" letterSpacing="1">T2 ◂</text>
+
+        {/* N1 / N2 nutrient markers */}
         <circle cx="370" cy="210" r="10" fill="none" stroke="#fbbf24" strokeWidth="1" strokeDasharray="2 4" opacity="0.7"/>
         <text x="384" y="207" fill="#fde68a" fontSize="8" fontFamily="monospace">N1</text>
         <circle cx="210" cy="370" r="10" fill="none" stroke="#34d399" strokeWidth="1" strokeDasharray="2 4" opacity="0.7"/>
         <text x="218" y="390" fill="#6ee7b7" fontSize="8" fontFamily="monospace">N2</text>
-        <circle cx="210" cy="50"  r="4.5" fill="#00d4ff" filter="url(#rc-gw)"/>
-        <circle cx="320" cy="100" r="3.5" fill="#8b5cf6"/>
-        <circle cx="370" cy="210" r="4"   fill="#fbbf24"/>
-        <circle cx="318" cy="320" r="3"   fill="#8b5cf6"/>
-        <circle cx="210" cy="370" r="4.5" fill="#34d399"/>
-        <circle cx="100" cy="320" r="3"   fill="#8b5cf6"/>
-        <circle cx="50"  cy="210" r="3.5" fill="#00d4ff"/>
-        <circle cx="100" cy="100" r="3.5" fill="#8b5cf6"/>
-        <circle cx="210" cy="210" r="8"   fill="#fff" filter="url(#rc-gw)"/>
-        <circle cx="210" cy="210" r="14"  fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.8"/>
+
+        {/* Center glow — pulsing */}
+        <circle cx={BS_CX} cy={BS_CY} r="16" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8">
+          <animate attributeName="r"       values="16;22;16"   dur="2.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.2;0;0.2"  dur="2.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx={BS_CX} cy={BS_CY} r="8" fill="#fff" filter="url(#rc-gw)">
+          <animate attributeName="opacity" values="1;0.55;1"  dur="2.5s" repeatCount="indefinite"/>
+          <animate attributeName="r"       values="8;11;8"    dur="2.5s" repeatCount="indefinite"/>
+        </circle>
       </svg>
+
       {/* Resonance pills */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginTop: 6 }}>
         <ResPill color="cyan">{`T1 · ${t1}`}</ResPill>
@@ -526,7 +659,10 @@ export default function RecommendationCard({
 
   return (
     <>
-      <style>{`@keyframes aura-blink { 50% { opacity: 0; } }`}</style>
+      <style>{`
+        @keyframes aura-blink  { 50% { opacity: 0; } }
+        @keyframes biosig-draw { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
+      `}</style>
       <div style={{ background: "#04060f", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 18, overflow: "hidden", maxWidth: 1240, margin: "0 auto", fontFamily: "'JetBrains Mono',ui-monospace,monospace", color: "#cbd5e1" }}>
 
         {/* Chrome bar */}
@@ -548,7 +684,7 @@ export default function RecommendationCard({
         {/* 3-column grid */}
         <div style={{ display: "grid", gridTemplateColumns: "220px 1fr 300px", minHeight: 580 }}>
           <TelemetryPanel t={telemetry} />
-          <BiosignaturePanel steps={output.steps} sessionId={sid} />
+          <BiosignaturePanel steps={output.steps} sessionId={sid} telemetry={telemetry} />
           <RightPanel output={output} routing={routing} />
         </div>
 
