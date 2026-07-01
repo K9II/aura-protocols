@@ -27,8 +27,8 @@ export const products: Product[] = [
       "Body Protection Compound-157. One of the most studied peptides for tissue repair, gut health, and joint recovery.",
     benefits: ["Studied for tendon & ligament repair", "Researched for gut mucosal healing", "Anti-inflammatory pathways in studies", "Tissue-healing research (preclinical)"],
     vendors: [
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/bpc157-10mg/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/bpc-157-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/bpc/?ref=Aurapro", commission: "10%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com/product/bpc-157/?ref=AuraPro", commission: "7%", note: "Use code AuraPro for 10% off" },
@@ -46,8 +46,8 @@ export const products: Product[] = [
     benefits: ["Studied for systemic tissue healing", "Anti-inflammatory effects in research", "Muscle-repair research models", "Cell-migration studies"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/tb-500-2?aff=84", commission: "30%" },
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/tb-500?uid=106&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/tb500-10mg/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/tb-500?uid=106&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/tb-500/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/tb/?ref=Aurapro", commission: "10%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com/product/tb-500/?ref=AuraPro", commission: "7%", note: "Use code AuraPro for 10% off" },
@@ -80,8 +80,8 @@ export const products: Product[] = [
       "A synergistic blend of growth hormone releasing hormone analog and growth hormone secretagogue for optimized GH pulses.",
     benefits: ["Studied for GH pulse stimulation", "Lean-mass research models", "Sleep-architecture studies", "Lipolysis research"],
     vendors: [
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/cjc1295-ipamorelin/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/cjc-ipamorelin/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/cjcipa/?ref=Aurapro", commission: "10%" },
     ],
@@ -97,7 +97,7 @@ export const products: Product[] = [
     benefits: ["Studied for sexual desire (HSDD trials)", "Central arousal-pathway research", "Melanocortin MC3R/MC4R activation", "FDA-approved as Vyleesi (specific indication)"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/pt-141-bremelanotide?aff=84", commission: "30%" },
-      { vendor: "Swiss Chems", url: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/pt-141-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/pt/?ref=Aurapro", commission: "10%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com/product/pt-141/?ref=AuraPro", commission: "7%", note: "Use code AuraPro for 10% off" },
@@ -132,7 +132,7 @@ export const products: Product[] = [
     benefits: ["Visceral-fat reduction in RCTs", "GH-stimulation research", "Body-composition studies", "FDA-approved as Egrifta (specific indication)"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/tesamorelin?aff=84", commission: "30%" },
-      { vendor: "Swiss Chems", url: "https://swisschems.is/product/tesamorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/tesamorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/tesa-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/tesa/?ref=Aurapro", commission: "10%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com/product/tesamorelin-peptide/?ref=AuraPro", commission: "7%", note: "Use code AuraPro for 10% off" },
@@ -179,7 +179,7 @@ export const products: Product[] = [
       "Synthetic tetrapeptide (Ala-Glu-Asp-Gly) studied for its role in telomerase activation, cellular longevity, and regulation of the pineal gland's melatonin output.",
     benefits: ["Telomerase-activation research", "Longevity study models", "Pineal/melatonin research", "Studied in longevity literature"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/product/epitalon-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/epitalon-10mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/epithalon-50mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/epi/?ref=Aurapro", commission: "10%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com/product/epithalon/?ref=AuraPro", commission: "7%", note: "Use code AuraPro for 10% off" },
@@ -195,7 +195,7 @@ export const products: Product[] = [
       "Growth hormone releasing hormone analogue that stimulates the pituitary to naturally increase GH production.",
     benefits: ["Studied for natural GH stimulation", "Age-related GH-decline research", "Body-composition study models", "GHRH-analogue literature"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/product/sermorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/sermorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/sermorelin?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/sermorelin-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/serm/?ref=Aurapro", commission: "10%" },
@@ -213,7 +213,7 @@ export const products: Product[] = [
     benefits: ["Mitochondrial-function research", "Insulin-sensitivity studies", "AMPK / metabolic research", "Studied in metabolic models"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/mots-c?aff=84", commission: "30%" },
-      { vendor: "Swiss Chems", url: "https://swisschems.is/product/mots-c-10mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/mots-c-10mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/mots-c?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/mots-c-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/motsc/?ref=Aurapro", commission: "10%" },
@@ -231,7 +231,7 @@ export const products: Product[] = [
     benefits: ["Skin-regeneration research", "Collagen-synthesis studies", "Hair-follicle research models", "Antioxidant-activity studies"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/ghk-cu?aff=84", commission: "30%" },
-      { vendor: "Swiss Chems", url: "https://swisschems.is/product/ghk-cu-copper-peptide/?ref=6782", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/ghk-cu-copper-peptide/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ghk-cu?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ghk-cu-100mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/ghk/?ref=Aurapro", commission: "10%" },
@@ -248,7 +248,7 @@ export const products: Product[] = [
     benefits: ["Muscle-protein-synthesis research", "Lean-tissue study models", "Recovery research", "Extended half-life vs. native IGF-1"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/igf-1-lr3?aff=84", commission: "30%" },
-      { vendor: "Swiss Chems", url: "https://swisschems.is/product/igf-1-lr3-1mg-price-is-per-vial/?ref=6782", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/igf-1-lr3-1mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/igf-1lr3/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/igf/?ref=Aurapro", commission: "10%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com/product/igf1-lr3-receptor-grade/?ref=AuraPro", commission: "7%", note: "Use code AuraPro for 10% off" },
@@ -265,7 +265,7 @@ export const products: Product[] = [
     benefits: ["Mitochondrial-energy research", "DNA-repair study models", "Cellular-longevity research", "Cognitive-function studies"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/nad?aff=84", commission: "30%" },
-      { vendor: "Swiss Chems", url: "https://swisschems.is/product/nad-coenzyme-peptide-1-vial-100-mg/?ref=6782", commission: "20%" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/nad-coenzyme-peptide-1-vial-100-mg/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/nad/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/nad-500mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/nad/?ref=Aurapro", commission: "10%" },
