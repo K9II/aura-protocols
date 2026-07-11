@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { products } from "@/data/products";
-import { goUrl } from "@/lib/affiliate";
+import { comparisons } from "@/data/comparisons";
 import EngineCTACard from "@/components/EngineCTACard";
+import VendorCompareList from "@/components/VendorCompareList";
 
 export function generateStaticParams() {
   return products.map((p) => ({ slug: p.slug }));
@@ -54,6 +55,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     const parse = (c: string) => parseFloat(c) || -1;
     return parse(b.commission) - parse(a.commission);
   });
+
+  const vendorNames = new Set(product.vendors.map((v) => v.vendor));
+  const matchingComparison = comparisons.find(
+    (c) => vendorNames.has(c.vendorA) && vendorNames.has(c.vendorB)
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -132,27 +138,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <p className="text-xs text-slate-500 mb-5 leading-relaxed">
               We only list vendors that provide third-party, batch-specific COAs.
             </p>
-            <div className="space-y-3">
-              {sortedVendors.map((v, i) => (
-                <div key={v.vendor} className={i > 0 ? "pt-3 border-t border-white/5" : ""}>
-                  <p className="text-sm font-semibold text-white mb-1">{v.vendor}</p>
-                  {v.note && (
-                    <p className="text-xs text-slate-500 mb-2">{v.note}</p>
-                  )}
-                  <a
-                    href={goUrl(v.vendor, product.slug)}
-                    target="_blank"
-                    rel="noopener noreferrer sponsored"
-                    className={`w-full text-center text-xs py-2 block ${i === 0 ? "btn-primary" : "btn-outline"}`}
-                  >
-                    Buy Direct from {v.vendor} →
-                  </a>
-                </div>
-              ))}
-            </div>
+            <VendorCompareList vendors={sortedVendors} productSlug={product.slug} />
             <p className="text-xs text-slate-600 mt-5 pt-4 border-t border-white/5 leading-relaxed">
               Affiliate disclosure: links above are affiliate partnerships. We may earn a commission at no cost to you.
             </p>
+            <Link
+              href={matchingComparison ? `/compare/${matchingComparison.slug}` : "/compare"}
+              className="block text-center text-xs text-cyan-400 hover:text-cyan-300 mt-4 pt-4 border-t border-white/5"
+            >
+              {matchingComparison
+                ? `Compare ${matchingComparison.vendorA} vs ${matchingComparison.vendorB} →`
+                : "See how our vendors compare →"}
+            </Link>
           </div>
         </div>
       </div>
