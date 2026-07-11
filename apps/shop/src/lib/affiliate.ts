@@ -1,6 +1,5 @@
 import { products } from "../data/products";
 import { posts } from "../data/posts";
-import { comparisons } from "../data/comparisons";
 
 const VENDOR_IDS: Record<string, string> = {
   "Limitless Life Nootropics": "limitless",
@@ -59,11 +58,6 @@ export function buildAffiliateRedirects(): AffiliateRedirect[] {
         add(goSlug(s.vendor, s.productSlug), s.affiliateUrl);
       }
     }
-  }
-
-  for (const c of comparisons) {
-    add(goSlug(c.vendorA), c.vendorAUrl);
-    add(goSlug(c.vendorB), c.vendorBUrl);
   }
 
   return Array.from(map.entries()).map(([slug, destination]) => ({

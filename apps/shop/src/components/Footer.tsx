@@ -66,7 +66,6 @@ export default function Footer() {
           <p className="text-xs uppercase tracking-widest text-slate-500 mb-4 font-semibold">Explore</p>
           <ul className="space-y-2 text-sm text-slate-400">
             <li><Link href="/products" className="hover:text-white transition-colors">All Products</Link></li>
-            <li><Link href="/compare" className="hover:text-white transition-colors">Vendor Comparisons</Link></li>
             <li><Link href="/blog" className="hover:text-white transition-colors">Research Blog</Link></li>
             <li><Link href="/playbook" className="hover:text-white transition-colors">Playbook</Link></li>
             <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>

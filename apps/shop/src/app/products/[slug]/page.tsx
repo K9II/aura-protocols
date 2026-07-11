@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { products } from "@/data/products";
-import { comparisons } from "@/data/comparisons";
 import EngineCTACard from "@/components/EngineCTACard";
 import VendorCompareList from "@/components/VendorCompareList";
 
@@ -55,11 +54,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     const parse = (c: string) => parseFloat(c) || -1;
     return parse(b.commission) - parse(a.commission);
   });
-
-  const vendorNames = new Set(product.vendors.map((v) => v.vendor));
-  const matchingComparison = comparisons.find(
-    (c) => vendorNames.has(c.vendorA) && vendorNames.has(c.vendorB)
-  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -142,14 +136,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <p className="text-xs text-slate-600 mt-5 pt-4 border-t border-white/5 leading-relaxed">
               Affiliate disclosure: links above are affiliate partnerships. We may earn a commission at no cost to you.
             </p>
-            <Link
-              href={matchingComparison ? `/compare/${matchingComparison.slug}` : "/compare"}
-              className="block text-center text-xs text-cyan-400 hover:text-cyan-300 mt-4 pt-4 border-t border-white/5"
-            >
-              {matchingComparison
-                ? `Compare ${matchingComparison.vendorA} vs ${matchingComparison.vendorB} →`
-                : "See how our vendors compare →"}
-            </Link>
           </div>
         </div>
       </div>

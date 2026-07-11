@@ -15,10 +15,15 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-const SCORE_ROWS: [string, "catalogBreadth" | "shippingSpeed" | "coaPractices"][] = [
+const SCORE_ROWS: [
+  string,
+  "catalogBreadth" | "shippingSpeed" | "coaPractices" | "paymentOptions" | "packagingDiscretion",
+][] = [
   ["Catalog Breadth", "catalogBreadth"],
   ["Shipping Speed", "shippingSpeed"],
   ["COA Practices", "coaPractices"],
+  ["Payment Options", "paymentOptions"],
+  ["Packaging Discretion", "packagingDiscretion"],
 ];
 
 export default function VendorCompareList({

@@ -8,6 +8,8 @@ export type VendorProfile = {
     catalogBreadth: number; // 1-5
     shippingSpeed: number; // 1-5, provisional 3 unless independently confirmed
     coaPractices: number; // 1-5
+    paymentOptions: number; // 1-5, provisional 3 unless independently confirmed
+    packagingDiscretion: number; // 1-5, provisional 3 unless independently confirmed
   };
 };
 
@@ -26,7 +28,7 @@ export const vendorProfiles: VendorProfile[] = [
       "Narrower catalog vs broader-catalog vendors on this site",
       "Less established for non-GH peptides",
     ],
-    scores: { catalogBreadth: 4, shippingSpeed: 5, coaPractices: 4 },
+    scores: { catalogBreadth: 4, shippingSpeed: 5, coaPractices: 4, paymentOptions: 3, packagingDiscretion: 3 },
   },
   {
     vendor: "Swiss Chems",
@@ -42,7 +44,7 @@ export const vendorProfiles: VendorProfile[] = [
       "Longer US domestic shipping times than domestic-only vendors",
       "COA detail can vary by compound",
     ],
-    scores: { catalogBreadth: 5, shippingSpeed: 3, coaPractices: 4 },
+    scores: { catalogBreadth: 5, shippingSpeed: 3, coaPractices: 4, paymentOptions: 5, packagingDiscretion: 3 },
   },
   {
     vendor: "Apollo Peptide Sciences",
@@ -57,7 +59,7 @@ export const vendorProfiles: VendorProfile[] = [
       "Shipping speed not independently confirmed — rated provisionally at average",
       "Payment limited to Visa, Discover, and American Express only — no crypto or bank-transfer option",
     ],
-    scores: { catalogBreadth: 4, shippingSpeed: 3, coaPractices: 4 },
+    scores: { catalogBreadth: 4, shippingSpeed: 3, coaPractices: 4, paymentOptions: 2, packagingDiscretion: 3 },
   },
   {
     vendor: "Behemoth Labz",
@@ -72,7 +74,7 @@ export const vendorProfiles: VendorProfile[] = [
       "Does not carry GHK-Cu, NAD+, or the CJC-1295/Ipamorelin blend",
       "Shipping speed not independently confirmed — rated provisionally at average",
     ],
-    scores: { catalogBreadth: 5, shippingSpeed: 3, coaPractices: 4 },
+    scores: { catalogBreadth: 5, shippingSpeed: 3, coaPractices: 4, paymentOptions: 4, packagingDiscretion: 3 },
   },
   {
     vendor: "GLP-1 Research Lab",
@@ -87,7 +89,7 @@ export const vendorProfiles: VendorProfile[] = [
       "Does not carry BPC-157, CJC-1295/Ipamorelin, or AOD-9604",
       "Shipping speed not independently confirmed — rated provisionally at average",
     ],
-    scores: { catalogBreadth: 4, shippingSpeed: 3, coaPractices: 4 },
+    scores: { catalogBreadth: 4, shippingSpeed: 3, coaPractices: 4, paymentOptions: 4, packagingDiscretion: 3 },
   },
   {
     vendor: "Ignite Peptides",
@@ -102,7 +104,7 @@ export const vendorProfiles: VendorProfile[] = [
       "Does not carry AOD-9604, Epithalon, or IGF-1 LR3",
       "Shipping speed not independently confirmed — rated provisionally at average",
     ],
-    scores: { catalogBreadth: 5, shippingSpeed: 3, coaPractices: 4 },
+    scores: { catalogBreadth: 5, shippingSpeed: 3, coaPractices: 4, paymentOptions: 3, packagingDiscretion: 5 },
   },
   {
     vendor: "Main Peptides",
@@ -116,6 +118,6 @@ export const vendorProfiles: VendorProfile[] = [
       "Catalog breadth beyond the compounds already listed on this site is not fully documented yet — treat this profile as provisional pending a full catalog review",
       "Shipping speed not independently confirmed — rated provisionally at average",
     ],
-    scores: { catalogBreadth: 3, shippingSpeed: 3, coaPractices: 4 },
+    scores: { catalogBreadth: 3, shippingSpeed: 3, coaPractices: 4, paymentOptions: 3, packagingDiscretion: 3 },
   },
 ];
