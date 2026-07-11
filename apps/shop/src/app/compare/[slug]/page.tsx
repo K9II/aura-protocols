@@ -1,17 +1,34 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { comparisons } from "@/data/comparisons";
+import { getVendorPairs } from "@/lib/vendorPairs";
 import { goUrl } from "@/lib/affiliate";
 import EngineCTACard from "@/components/EngineCTACard";
+import GeneratedComparisonView from "@/components/GeneratedComparisonView";
 
 export function generateStaticParams() {
-  return comparisons.map((c) => ({ slug: c.slug }));
+  return [
+    ...comparisons.map((c) => ({ slug: c.slug })),
+    ...getVendorPairs().map((p) => ({ slug: p.slug })),
+  ];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const comp = comparisons.find((c) => c.slug === slug);
-  if (!comp) return {};
+  if (!comp) {
+    const pair = getVendorPairs().find((p) => p.slug === slug);
+    if (!pair) return {};
+    const pairTitle = `${pair.vendorA} vs ${pair.vendorB} — Aura Protocols`;
+    return {
+      title: pairTitle,
+      description: `Compare ${pair.vendorA} and ${pair.vendorB} across catalog breadth, shipping, and COA practices for ${pair.sharedProducts.map((p) => p.name).join(", ")}.`,
+      openGraph: {
+        title: pairTitle,
+        url: `https://shop.auraprotocols.com/compare/${pair.slug}`,
+      },
+    };
+  }
   const title = `${comp.vendorA} vs ${comp.vendorB} — Aura Protocols`;
   return {
     title,
@@ -50,7 +67,11 @@ function ScoreBar({ score }: { score: number }) {
 export default async function ComparisonPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const comp = comparisons.find((c) => c.slug === slug);
-  if (!comp) notFound();
+  if (!comp) {
+    const pair = getVendorPairs().find((p) => p.slug === slug);
+    if (!pair) notFound();
+    return <GeneratedComparisonView pair={pair} />;
+  }
 
   const winnerName = comp.winner === "A" ? comp.vendorA : comp.winner === "B" ? comp.vendorB : null;
 
