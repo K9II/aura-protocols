@@ -36,6 +36,7 @@ export const vendorProfiles: VendorProfile[] = [
       "Broadest catalog including SARMs and ancillaries",
       "Strong international shipping network",
       "Good option for PT-141 and niche compounds",
+      "Widest payment options of any vendor on this site — card, bank transfer (Plaid ACH, Coinbase, Zelle, Interac), and 7 cryptocurrencies",
     ],
     cons: [
       "Longer US domestic shipping times than domestic-only vendors",
@@ -54,6 +55,7 @@ export const vendorProfiles: VendorProfile[] = [
     cons: [
       "Does not carry PT-141, Tesamorelin, AOD-9604, Sermorelin, or MOTS-c",
       "Shipping speed not independently confirmed — rated provisionally at average",
+      "Payment limited to Visa, Discover, and American Express only — no crypto or bank-transfer option",
     ],
     scores: { catalogBreadth: 4, shippingSpeed: 3, coaPractices: 4 },
   },
@@ -64,6 +66,7 @@ export const vendorProfiles: VendorProfile[] = [
     pros: [
       "Largest confirmed catalog among approved vendors — carries SS-31, AOD-9604, Epithalon, and IGF-1 LR3 that several other vendors don't stock",
       "Confirmed working discount code and verified affiliate click tracking",
+      "Accepts both cryptocurrency and credit/debit card payment",
     ],
     cons: [
       "Does not carry GHK-Cu, NAD+, or the CJC-1295/Ipamorelin blend",
@@ -78,6 +81,7 @@ export const vendorProfiles: VendorProfile[] = [
     pros: [
       "Broad catalog spanning GLP-1s, wellness peptides (PT-141, NAD+, MOTS-c, GHK-Cu, Tesamorelin), and recovery compounds (TB-500, Ipamorelin, IGF-1 LR3)",
       "Carries the Cagrilintide and Cagri-Sema blend, not available at most other vendors on this site",
+      "Accepts major credit cards and ACH bank transfer",
     ],
     cons: [
       "Does not carry BPC-157, CJC-1295/Ipamorelin, or AOD-9604",
@@ -92,6 +96,7 @@ export const vendorProfiles: VendorProfile[] = [
     pros: [
       "Broadest confirmed catalog among approved vendors — 30+ compounds including several pre-blended stacks",
       "US-domestic operation with confirmed live deep-link tracking",
+      "Ships in plain, unmarked packaging with no indication of contents",
     ],
     cons: [
       "Does not carry AOD-9604, Epithalon, or IGF-1 LR3",
