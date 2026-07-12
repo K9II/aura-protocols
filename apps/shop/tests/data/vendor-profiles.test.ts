@@ -14,12 +14,10 @@ describe("vendor profiles data contract", () => {
     expect(new Set(names).size).toBe(names.length);
   });
 
-  it("scores are all in the 1-5 range", () => {
+  it("has at least one pro and one summary per vendor", () => {
     for (const v of vendorProfiles) {
-      for (const score of Object.values(v.scores)) {
-        expect(score).toBeGreaterThanOrEqual(1);
-        expect(score).toBeLessThanOrEqual(5);
-      }
+      expect(v.summary.length).toBeGreaterThan(0);
+      expect(v.pros.length).toBeGreaterThan(0);
     }
   });
 

@@ -88,6 +88,19 @@ export const products: Product[] = [
     featured: true,
   },
   {
+    id: "bpc-157-tb-500-blend",
+    name: "BPC-157 / TB-500 Blend",
+    slug: "bpc-157-tb-500-blend",
+    category: "Recovery",
+    description:
+      "A pre-blended combination of Body Protection Compound-157 and Thymosin Beta-4, pairing localized tissue-repair research with systemic healing research in a single vial.",
+    benefits: ["Studied for tendon & ligament repair", "Researched for gut mucosal healing", "Studied for systemic tissue healing", "Anti-inflammatory pathways in studies"],
+    vendors: [
+      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/bpc-157-tb-500-blend-2/?aff=84", commission: "30%" },
+    ],
+    featured: false,
+  },
+  {
     id: "pt-141",
     name: "PT-141 (Bremelanotide)",
     slug: "pt-141",
