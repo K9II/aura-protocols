@@ -58,7 +58,7 @@ export const products: Product[] = [
     id: "semaglutide",
     name: "Semaglutide (GLP-1)",
     slug: "semaglutide",
-    category: "Weight Management",
+    category: "Body Composition",
     description:
       "GLP-1 receptor agonist widely studied for appetite regulation, blood sugar control, and body composition.",
     benefits: ["Appetite regulation in clinical trials", "Glycemic-control research", "Body-weight reduction in STEP trials", "Cardiovascular-outcome research (SELECT)"],
@@ -104,7 +104,7 @@ export const products: Product[] = [
     id: "pt-141",
     name: "PT-141 (Bremelanotide)",
     slug: "pt-141",
-    category: "Wellness",
+    category: "Longevity & Wellness",
     description:
       "Melanocortin receptor agonist studied for its role in libido and sexual health in both men and women.",
     benefits: ["Studied for sexual desire (HSDD trials)", "Central arousal-pathway research", "Melanocortin MC3R/MC4R activation", "FDA-approved as Vyleesi (specific indication)"],
@@ -121,7 +121,7 @@ export const products: Product[] = [
     id: "retatrutide",
     name: "Retatrutide",
     slug: "retatrutide",
-    category: "Weight Management",
+    category: "Body Composition",
     description:
       "Triple receptor agonist targeting GLP-1, GIP, and glucagon receptors. Phase 3 trials recorded up to 24.2% body weight reduction — the highest of any compound in its class.",
     benefits: ["Triple-receptor agonism (GLP-1/GIP/glucagon)", "Appetite research in Phase 2 trials", "Body-weight reduction in SURMOUNT data", "Metabolic-regulation research"],
@@ -139,7 +139,7 @@ export const products: Product[] = [
     id: "tesamorelin",
     name: "Tesamorelin",
     slug: "tesamorelin",
-    category: "Growth & Performance",
+    category: "Body Composition",
     description:
       "Synthetic GHRH analog that stimulates endogenous growth hormone release. Studied for visceral fat reduction, body composition, and metabolic health.",
     benefits: ["Visceral-fat reduction in RCTs", "GH-stimulation research", "Body-composition studies", "FDA-approved as Egrifta (specific indication)"],
@@ -156,7 +156,7 @@ export const products: Product[] = [
     id: "ss-31",
     name: "SS-31 (Elamipretide)",
     slug: "ss-31",
-    category: "Wellness",
+    category: "Longevity & Wellness",
     description:
       "Mitochondria-targeted tetrapeptide that binds directly to cardiolipin in the inner mitochondrial membrane, stabilizing membrane structure and reducing oxidative stress at the site of energy production.",
     benefits: ["Mitochondrial membrane-stabilization research", "Oxidative-stress reduction in studies", "ATP-production research models", "Age-related mitochondrial-decline studies"],
@@ -172,7 +172,7 @@ export const products: Product[] = [
     id: "aod-9604",
     name: "AOD-9604",
     slug: "aod-9604",
-    category: "Weight Management",
+    category: "Body Composition",
     description:
       "Synthetic fragment of human growth hormone (hGH 176-191) studied for its role in fat metabolism and lipolysis without affecting blood sugar or IGF-1 levels.",
     benefits: ["Lipolysis research (hGH 176-191)", "Fat-metabolism study models", "No IGF-1 effect in studies", "No glycemic impact in trials"],
@@ -187,7 +187,7 @@ export const products: Product[] = [
     id: "epithalon",
     name: "Epithalon",
     slug: "epithalon",
-    category: "Wellness",
+    category: "Longevity & Wellness",
     description:
       "Synthetic tetrapeptide (Ala-Glu-Asp-Gly) studied for its role in telomerase activation, cellular longevity, and regulation of the pineal gland's melatonin output.",
     benefits: ["Telomerase-activation research", "Longevity study models", "Pineal/melatonin research", "Studied in longevity literature"],
@@ -220,7 +220,7 @@ export const products: Product[] = [
     id: "mots-c",
     name: "MOTS-c",
     slug: "mots-c",
-    category: "Wellness",
+    category: "Longevity & Wellness",
     description:
       "Mitochondrial-derived peptide that regulates metabolic homeostasis, improves insulin sensitivity, and supports cellular energy production. Active in clinical trials for metabolic disease.",
     benefits: ["Mitochondrial-function research", "Insulin-sensitivity studies", "AMPK / metabolic research", "Studied in metabolic models"],
@@ -238,7 +238,7 @@ export const products: Product[] = [
     id: "ghk-cu",
     name: "GHK-Cu (Copper Peptide)",
     slug: "ghk-cu",
-    category: "Wellness",
+    category: "Longevity & Wellness",
     description:
       "Naturally occurring copper-binding tripeptide (Gly-His-Lys) studied for skin regeneration, wound healing, hair follicle stimulation, and collagen synthesis. Declines naturally with age.",
     benefits: ["Skin-regeneration research", "Collagen-synthesis studies", "Hair-follicle research models", "Antioxidant-activity studies"],
@@ -272,7 +272,7 @@ export const products: Product[] = [
     id: "nad-plus",
     name: "NAD+ (Nicotinamide Adenine Dinucleotide)",
     slug: "nad-plus",
-    category: "Wellness",
+    category: "Longevity & Wellness",
     description:
       "Coenzyme central to mitochondrial energy production, DNA repair, and cellular longevity. Levels decline with age; supplementation is studied for metabolic health, cognitive function, and healthspan.",
     benefits: ["Mitochondrial-energy research", "DNA-repair study models", "Cellular-longevity research", "Cognitive-function studies"],

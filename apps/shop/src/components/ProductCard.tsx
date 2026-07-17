@@ -5,9 +5,9 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const categoryColors: Record<string, string> = {
     Recovery: "text-emerald-400 bg-emerald-400/10",
-    "Weight Management": "text-rose-400 bg-rose-400/10",
+    "Body Composition": "text-rose-400 bg-rose-400/10",
     "Growth & Performance": "text-violet-400 bg-violet-400/10",
-    Wellness: "text-cyan-400 bg-cyan-400/10",
+    "Longevity & Wellness": "text-cyan-400 bg-cyan-400/10",
   };
 
   return (

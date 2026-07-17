@@ -32,9 +32,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 const categoryColors: Record<string, string> = {
   Recovery: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
-  "Weight Management": "text-rose-400 bg-rose-400/10 border-rose-400/20",
+  "Body Composition": "text-rose-400 bg-rose-400/10 border-rose-400/20",
   "Growth & Performance": "text-violet-400 bg-violet-400/10 border-violet-400/20",
-  Wellness: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20",
+  "Longevity & Wellness": "text-cyan-400 bg-cyan-400/10 border-cyan-400/20",
 };
 
 const BASE_URL = "https://shop.auraprotocols.com";

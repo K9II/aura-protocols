@@ -12,9 +12,9 @@ export function generateStaticParams() {
 
 const categoryAccent: Record<string, string> = {
   Recovery: "#10b981",
-  "Weight Management": "#f43f5e",
+  "Body Composition": "#f43f5e",
   "Growth & Performance": "#8b5cf6",
-  Wellness: "#00d4ff",
+  "Longevity & Wellness": "#00d4ff",
 };
 
 export default async function Image({
