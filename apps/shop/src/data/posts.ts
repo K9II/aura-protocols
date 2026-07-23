@@ -520,11 +520,24 @@ export const posts: Post[] = [
       },
       {
         type: "p",
-        text: "The choice between semaglutide and tirzepatide for research purposes depends on the specific question being studied. Semaglutide has a longer research track record and more published data. Tirzepatide represents the current frontier of dual-agonist research and shows greater magnitude of effect in weight-focused studies.",
+        parts: [
+          "The choice between ",
+          { href: "/products/semaglutide", text: "semaglutide" },
+          " and tirzepatide for research purposes depends on the specific question being studied. Semaglutide has a longer research track record and more published data — see the ",
+          { href: "/products/retatrutide", text: "retatrutide" },
+          " page for how the newer triple-agonist class compares on trial results. Tirzepatide represents the current frontier of dual-agonist research and shows greater magnitude of effect in weight-focused studies.",
+        ],
       },
       {
         type: "callout",
         text: "Neither semaglutide nor tirzepatide is approved for general use outside of specific medical indications. Research applications require appropriate institutional oversight.",
+      },
+      {
+        type: "cta",
+        text: "View Semaglutide Vendors",
+        productSlug: "semaglutide",
+        vendor: "GLP-1 Research Lab",
+        affiliateUrl: "https://www.glp1researchlab.com/product/semaglutide?aff=84",
       },
       {
         type: "disclaimer",
@@ -633,7 +646,10 @@ export const posts: Post[] = [
       },
       {
         type: "p",
-        text: "Semaglutide remains the most clinically studied peptide for weight loss. As a GLP-1 receptor agonist, it works by slowing gastric emptying, reducing appetite signals in the hypothalamus, and improving insulin sensitivity. The STEP trials showed an average of 15–17% body weight reduction over 68 weeks — results previously unseen outside of bariatric surgery.",
+        parts: [
+          { href: "/products/semaglutide", text: "Semaglutide" },
+          " remains the most clinically studied peptide for weight loss. As a GLP-1 receptor agonist, it works by slowing gastric emptying, reducing appetite signals in the hypothalamus, and improving insulin sensitivity. The STEP trials showed an average of 15–17% body weight reduction over 68 weeks — results previously unseen outside of bariatric surgery.",
+        ],
       },
       {
         type: "ul",
@@ -674,7 +690,13 @@ export const posts: Post[] = [
       },
       {
         type: "p",
-        text: "While BPC-157 is not a direct fat loss compound, its role in gut healing and metabolic regulation deserves mention in weight management research. Gut microbiome health and intestinal barrier integrity are increasingly recognized as critical factors in metabolic health and body composition. BPC-157's documented effects on gut mucosal healing may support an optimal metabolic environment.",
+        parts: [
+          "While ",
+          { href: "/products/bpc-157", text: "BPC-157" },
+          " is not a direct fat loss compound, its role in gut healing and metabolic regulation deserves mention in weight management research — see our ",
+          { href: "/blog/bpc-157-complete-guide", text: "complete BPC-157 research guide" },
+          " for the full mechanism breakdown. Gut microbiome health and intestinal barrier integrity are increasingly recognized as critical factors in metabolic health and body composition. BPC-157's documented effects on gut mucosal healing may support an optimal metabolic environment.",
+        ],
       },
       {
         type: "h2",
@@ -747,7 +769,12 @@ export const posts: Post[] = [
       },
       {
         type: "p",
-        text: "BPC-157's nitric oxide modulating properties have generated interest in its potential role in vascular aspects of sexual function. Nitric oxide is a key mediator of penile erection and clitoral engorgement. While direct sexual health studies on BPC-157 are limited, its effects on NO pathways and vascular health represent an emerging area of research interest.",
+        parts: [
+          { href: "/products/bpc-157", text: "BPC-157" },
+          "'s nitric oxide modulating properties have generated interest in its potential role in vascular aspects of sexual function. Nitric oxide is a key mediator of penile erection and clitoral engorgement. While direct sexual health studies on BPC-157 are limited, its effects on NO pathways and vascular health represent an emerging area of research interest — see our ",
+          { href: "/blog/bpc-157-complete-guide", text: "BPC-157 research guide" },
+          " for more.",
+        ],
       },
       {
         type: "h2",
@@ -755,7 +782,11 @@ export const posts: Post[] = [
       },
       {
         type: "p",
-        text: "Growth hormone and IGF-1 play supporting roles in sexual health — they influence energy, mood, and hormonal balance. Sermorelin, as a GHRH analogue, stimulates natural GH production and has been studied in the context of age-related hormonal decline. In men with low GH status, restoration of GH levels has been associated with improvements in sexual function markers.",
+        parts: [
+          "Growth hormone and IGF-1 play supporting roles in sexual health — they influence energy, mood, and hormonal balance. ",
+          { href: "/products/sermorelin", text: "Sermorelin" },
+          ", as a GHRH analogue, stimulates natural GH production and has been studied in the context of age-related hormonal decline. In men with low GH status, restoration of GH levels has been associated with improvements in sexual function markers.",
+        ],
       },
       {
         type: "h2",
@@ -774,6 +805,13 @@ export const posts: Post[] = [
       {
         type: "callout",
         text: "All compounds discussed are for research purposes only. Sexual health concerns should be addressed with a qualified healthcare professional. PT-141 (Vyleesi) is FDA-approved only for a specific indication in premenopausal women under medical supervision.",
+      },
+      {
+        type: "cta",
+        text: "View PT-141 Vendors",
+        productSlug: "pt-141",
+        vendor: "Swiss Chems",
+        affiliateUrl: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=6782",
       },
       {
         type: "disclaimer",
@@ -856,7 +894,13 @@ export const posts: Post[] = [
       },
       {
         type: "p",
-        text: "Every vendor we feature on Aura Protocols must provide batch-specific COAs from accredited third-party laboratories. We manually review these documents before listing any product. If a vendor's documentation doesn't meet our standards, they don't appear on this site — regardless of commission rates.",
+        parts: [
+          "Every vendor we feature on Aura Protocols must provide batch-specific COAs from accredited third-party laboratories. We manually review these documents before listing any product. If a vendor's documentation doesn't meet our standards, they don't appear on this site — regardless of commission rates. See our full ",
+          { href: "/about", text: "vendor vetting methodology" },
+          " for the complete criteria, or browse the ",
+          { href: "/products", text: "full compound catalog" },
+          " to see which vendors carry a specific peptide.",
+        ],
       },
       {
         type: "callout",

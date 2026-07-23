@@ -45,7 +45,7 @@ export const products: Product[] = [
       "Thymosin Beta-4 fragment known for promoting systemic healing, reducing inflammation, and supporting muscle repair.",
     benefits: ["Studied for systemic tissue healing", "Anti-inflammatory effects in research", "Muscle-repair research models", "Cell-migration studies"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/tb-500-2?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/tb-500?aff=84", commission: "30%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/tb500-10mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/tb-500?uid=106&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/tb-500/?ref=k9@auraprotocols.com", commission: "15%" },
@@ -63,7 +63,7 @@ export const products: Product[] = [
       "GLP-1 receptor agonist widely studied for appetite regulation, blood sugar control, and body composition.",
     benefits: ["Appetite regulation in clinical trials", "Glycemic-control research", "Body-weight reduction in STEP trials", "Cardiovascular-outcome research (SELECT)"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/glp-1-semaglutide-2?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/semaglutide?aff=84", commission: "30%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/semaglutide-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com/product/semaglutide-peptide/", commission: "7%", note: "Use code AuraPro for 10% off" },
@@ -96,7 +96,7 @@ export const products: Product[] = [
       "A pre-blended combination of Body Protection Compound-157 and Thymosin Beta-4, pairing localized tissue-repair research with systemic healing research in a single vial.",
     benefits: ["Studied for tendon & ligament repair", "Researched for gut mucosal healing", "Studied for systemic tissue healing", "Anti-inflammatory pathways in studies"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/bpc-157-tb-500-blend-2/?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/bpc-tb500?aff=84", commission: "30%" },
     ],
     featured: false,
   },
@@ -109,7 +109,7 @@ export const products: Product[] = [
       "Melanocortin receptor agonist studied for its role in libido and sexual health in both men and women.",
     benefits: ["Studied for sexual desire (HSDD trials)", "Central arousal-pathway research", "Melanocortin MC3R/MC4R activation", "FDA-approved as Vyleesi (specific indication)"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/pt-141-bremelanotide?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/pt-141-bremelanotide?aff=84", commission: "30%" },
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/pt-141-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/pt/?ref=Aurapro", commission: "10%" },
@@ -126,7 +126,7 @@ export const products: Product[] = [
       "Triple receptor agonist targeting GLP-1, GIP, and glucagon receptors. Phase 3 trials recorded up to 24.2% body weight reduction — the highest of any compound in its class.",
     benefits: ["Triple-receptor agonism (GLP-1/GIP/glucagon)", "Appetite research in Phase 2 trials", "Body-weight reduction in SURMOUNT data", "Metabolic-regulation research"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/ggg-tri-agonist-retatrutide-2?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/retatrutide?aff=84", commission: "30%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-3r-10mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/retatrutide-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/glpiii/?ref=Aurapro", commission: "10%" },
@@ -144,7 +144,7 @@ export const products: Product[] = [
       "Synthetic GHRH analog that stimulates endogenous growth hormone release. Studied for visceral fat reduction, body composition, and metabolic health.",
     benefits: ["Visceral-fat reduction in RCTs", "GH-stimulation research", "Body-composition studies", "FDA-approved as Egrifta (specific indication)"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/tesamorelin?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/tesamorelin?aff=84", commission: "30%" },
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/tesamorelin-2mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/tesa-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/tesa/?ref=Aurapro", commission: "10%" },
@@ -225,7 +225,7 @@ export const products: Product[] = [
       "Mitochondrial-derived peptide that regulates metabolic homeostasis, improves insulin sensitivity, and supports cellular energy production. Active in clinical trials for metabolic disease.",
     benefits: ["Mitochondrial-function research", "Insulin-sensitivity studies", "AMPK / metabolic research", "Studied in metabolic models"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/mots-c?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/mots-c?aff=84", commission: "30%" },
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/mots-c-10mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/mots-c?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/mots-c-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
@@ -243,7 +243,7 @@ export const products: Product[] = [
       "Naturally occurring copper-binding tripeptide (Gly-His-Lys) studied for skin regeneration, wound healing, hair follicle stimulation, and collagen synthesis. Declines naturally with age.",
     benefits: ["Skin-regeneration research", "Collagen-synthesis studies", "Hair-follicle research models", "Antioxidant-activity studies"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/ghk-cu?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/ghk-cu?aff=84", commission: "30%" },
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/ghk-cu-copper-peptide/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ghk-cu?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ghk-cu-100mg/?ref=k9@auraprotocols.com", commission: "15%" },
@@ -260,7 +260,7 @@ export const products: Product[] = [
       "Long-acting analog of insulin-like growth factor 1 with extended half-life. Studied for muscle protein synthesis, lean tissue growth, and recovery — a common pairing with CJC-1295 / Ipamorelin stacks.",
     benefits: ["Muscle-protein-synthesis research", "Lean-tissue study models", "Recovery research", "Extended half-life vs. native IGF-1"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/igf-1-lr3?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/igf-1-lr3?aff=84", commission: "30%" },
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/igf-1-lr3-1mg-price-is-per-vial/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/igf-1lr3/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/igf/?ref=Aurapro", commission: "10%" },
@@ -277,7 +277,7 @@ export const products: Product[] = [
       "Coenzyme central to mitochondrial energy production, DNA repair, and cellular longevity. Levels decline with age; supplementation is studied for metabolic health, cognitive function, and healthspan.",
     benefits: ["Mitochondrial-energy research", "DNA-repair study models", "Cellular-longevity research", "Cognitive-function studies"],
     vendors: [
-      { vendor: "GLP-1 Research Lab", url: "https://glp1researchlab.com/product/nad?aff=84", commission: "30%" },
+      { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/nad?aff=84", commission: "30%" },
       { vendor: "Swiss Chems", url: "https://swisschems.is/product/nad-coenzyme-peptide-1-vial-100-mg/?ref=6782", commission: "20%", note: "Use code Aura10 for 10% off" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/nad/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/nad-500mg/?ref=k9@auraprotocols.com", commission: "15%" },
