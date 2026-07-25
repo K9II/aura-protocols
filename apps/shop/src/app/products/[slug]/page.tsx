@@ -88,7 +88,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
         {/* Main content */}
-        <div className="md:col-span-2 space-y-8">
+        <div className="order-2 md:order-1 md:col-span-2 space-y-8">
           {/* Header */}
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -126,7 +126,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </div>
 
         {/* Sidebar — Where to Buy */}
-        <div className="space-y-4">
+        <div className="order-1 md:order-2 space-y-4">
           <div className="glass p-6 glow-cyan sticky top-24">
             <p className="text-xs uppercase tracking-widest text-cyan-400 font-semibold mb-1">Independently Reviewed</p>
             <p className="text-xs text-slate-500 mb-5 leading-relaxed">

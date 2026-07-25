@@ -27,10 +27,10 @@ export const vendorProfiles: VendorProfile[] = [
     summary:
       "Swiss Chems operates one of the broader catalogs in the research chemical market — covering peptides, SARMs, oral peptides, and ancillary compounds. Their international shipping network gives them a strong position outside the US domestic market.",
     pros: [
+      "Widest payment options of any vendor on this site — card, bank transfer (Plaid ACH, Coinbase, Zelle, Interac), and 7 cryptocurrencies",
       "Broadest catalog including SARMs and ancillaries",
       "Strong international shipping network",
       "Good option for PT-141 and niche compounds",
-      "Widest payment options of any vendor on this site — card, bank transfer (Plaid ACH, Coinbase, Zelle, Interac), and 7 cryptocurrencies",
     ],
     cons: [
       "Longer US domestic shipping times than domestic-only vendors",
@@ -103,6 +103,19 @@ export const vendorProfiles: VendorProfile[] = [
     ],
     cons: [
       "Catalog breadth beyond the compounds already listed on this site is not fully documented yet — treat this profile as provisional pending a full catalog review",
+      "Shipping speed not independently confirmed — rated provisionally at average",
+    ],
+  },
+  {
+    vendor: "Peak Lab Peptides",
+    summary:
+      "Peak Lab Peptides runs a formal Research Partner / Affiliate program with an explicit RUO-only compliance framework. Added as the sole confirmed vendor for SLU-PP-332.",
+    pros: [
+      "Sole confirmed vendor for SLU-PP-332 on this site",
+      "Documented affiliate program with explicit research-use-only compliance terms",
+    ],
+    cons: [
+      "Catalog breadth beyond SLU-PP-332 not yet reviewed — treat this profile as provisional",
       "Shipping speed not independently confirmed — rated provisionally at average",
     ],
   },
