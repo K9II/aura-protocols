@@ -67,10 +67,6 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable}`}>
       <body className={`aurora-bg min-h-screen flex flex-col`}>
         <EngineCTABanner />
-        {/* FTC Affiliate Disclosure */}
-        <div className="pharmacopoeia text-[11px] text-[color:var(--ink-soft)] bg-[color:var(--paper-deep)] border-b border-[color:var(--line)] px-4 py-2 text-center">
-          Affiliate Disclosure: Aura Protocols earns commissions from qualifying purchases via affiliate links. This does not affect our editorial independence.
-        </div>
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
