@@ -117,7 +117,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
         {/* Sidebar — Where to Buy */}
         <div className="order-1 md:order-2 space-y-4">
-          <div className="p-card p-6 sticky top-24">
+          <div className="bg-[color:var(--paper-deep)] p-6 sticky top-24">
             <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-1">Independently Reviewed</p>
             <p className="text-xs text-[color:var(--ink-soft)] mb-5 leading-relaxed">
               We only list vendors that provide third-party, batch-specific COAs.

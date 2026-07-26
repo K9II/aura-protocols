@@ -401,10 +401,10 @@ h1, h2, h3 {
 .pharmacopoeia .p-see-all { border-bottom: 1px solid var(--specimen); color: var(--specimen); }
 
 /* shared primitives — product/blog/legal pages */
-.pharmacopoeia .p-btn-primary { background: var(--ink); color: var(--paper); transition: background 0.25s ease; }
-.pharmacopoeia .p-btn-primary:hover { background: var(--specimen); }
-.pharmacopoeia .p-btn-outline { color: var(--ink); transition: background 0.25s ease, color 0.25s ease; }
-.pharmacopoeia .p-btn-outline:hover { color: var(--specimen); }
+.pharmacopoeia .p-btn-primary { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); transition: background 0.25s ease, border-color 0.25s ease; }
+.pharmacopoeia .p-btn-primary:hover { background: var(--specimen); border-color: var(--specimen); }
+.pharmacopoeia .p-btn-outline { color: var(--ink); border: 1px solid var(--ink); transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
+.pharmacopoeia .p-btn-outline:hover { color: var(--specimen); border-color: var(--specimen); }
 .pharmacopoeia .p-badge { background: var(--ink); color: var(--paper); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.6rem; display: inline-block; }
 .pharmacopoeia .p-card { background: var(--paper); transition: background 0.3s ease; }
 .pharmacopoeia .p-card:hover { background: var(--paper-deep); }

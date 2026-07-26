@@ -16,7 +16,7 @@ export default function VendorCompareList({
       {vendors.map((v, i) => {
         const fact = vendorProfiles.find((p) => p.vendor === v.vendor)?.pros[0];
         return (
-        <div key={v.vendor} className={i > 0 ? "pt-3 border-t border-[color:var(--line)]" : ""}>
+        <div key={v.vendor} className={`text-center ${i > 0 ? "pt-3 border-t border-[color:var(--line)]" : ""}`}>
           <p className="text-sm font-semibold text-[color:var(--ink)] mb-1">{v.vendor}</p>
           {fact && <p className="text-xs text-[color:var(--ink-soft)] mb-2">{fact}</p>}
           {v.note && <p className="text-xs text-[color:var(--ink-soft)] mb-2">{v.note}</p>}

@@ -25,7 +25,7 @@ const trustChips = [
 const standard = [
   { num: "i.", text: "Every vendor we feature must provide batch-specific COAs from accredited third-party laboratories." },
   { num: "ii.", text: "We manually review that documentation before listing any product." },
-  { num: "iii.", text: "If a vendor doesn't meet the standard, they don't appear here — regardless of commission rate." },
+  { num: "iii.", text: "Research protocols correlated to your own physiological baseline — not a population average." },
 ];
 
 const howItWorks = [
