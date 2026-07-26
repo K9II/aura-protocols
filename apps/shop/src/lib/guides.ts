@@ -4,6 +4,9 @@
 export const PRODUCT_GUIDES: Record<string, string> = {
   "bpc-157": "/blog/bpc-157-complete-guide",
   "retatrutide": "/blog/retatrutide-research-guide",
+  "semaglutide": "/blog/semaglutide-research-guide",
+  "tesamorelin": "/blog/tesamorelin-research-guide",
+  "aod-9604": "/blog/aod-9604-research-guide",
 };
 
 export function learnMoreHref(productSlug: string): string {

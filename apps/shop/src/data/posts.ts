@@ -1126,4 +1126,369 @@ export const posts: Post[] = [
       },
     ],
   },
+  {
+    slug: "semaglutide-research-guide",
+    title: "Semaglutide: The Complete Research Guide",
+    excerpt:
+      "The GLP-1 agonist behind Ozempic and Wegovy has the deepest evidence base of any compound on the site — and the widest gap between the approved drug and what's actually sold as a research compound.",
+    category: "Body Composition",
+    date: "July 2026",
+    readTime: "10 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Semaglutide has more human trial data behind it than every other compound on this site combined — ten completed Phase 3 trials, an FDA approval, and a cardiovascular-outcomes trial on top of that. It's also the compound where the line between \"what the evidence supports\" and \"what's actually in the vial\" matters most. This guide keeps those two facts separate on purpose.",
+      },
+      { type: "h2", text: "What Is Semaglutide?" },
+      {
+        type: "p",
+        text: "Semaglutide is a modified version of human GLP-1 (94% sequence homology) engineered to resist the enzyme, DPP-4, that normally breaks native GLP-1 down within minutes. That structural change is what turns a hormone with a half-life under two minutes into a once-weekly injection.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "Semaglutide acts on three separate physiological systems, and each contributes differently to the weight-loss result:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Pancreas — glucose-dependent insulin release. GLP-1 receptor activation on pancreatic beta cells amplifies insulin secretion, but only when blood glucose is already elevated. This \"glucose-dependent\" qualifier is why the drug carries a comparatively low hypoglycemia risk on its own.",
+          "Stomach — delayed gastric emptying. Slower stomach emptying extends the feeling of fullness after a meal and blunts the post-meal blood sugar spike.",
+          "Brain — appetite suppression via the vagus nerve and hypothalamus. This does most of the weight-loss work. GLP-1 signals reach appetite-control centers largely through vagal afferent neurons carrying signals from the gut to the brainstem, with further modulation of hypothalamic neurons involved in hunger and food reward.",
+        ],
+      },
+      {
+        type: "p",
+        text: "In plain terms: semaglutide doesn't burn fat directly. It reduces how much food you want to eat and how quickly your body processes each meal — the weight loss is a downstream consequence of reduced intake, which is also why the STEP trials paired it with behavioral and dietary counseling rather than testing the drug in isolation.",
+      },
+      { type: "h2", text: "Human Evidence" },
+      {
+        type: "p",
+        text: "This is the strongest evidence base of any compound on the site. The STEP trial program — ten completed Phase 3 randomized controlled trials plus a teen trial — is the basis for FDA approval of Wegovy (2.4 mg/week) for chronic weight management:",
+      },
+      {
+        type: "ul",
+        items: [
+          "STEP 1 (obesity/overweight, no diabetes, 68 weeks): −14.9% body weight vs. −2.4% for placebo.",
+          "STEP 3 (added intensive behavioral therapy, 68 weeks): −16.0% vs. −5.7% for placebo.",
+          "STEP 5 (long-term maintenance, 2 years): −15.2% vs. −2.6% for placebo.",
+          "STEP 8 (head-to-head vs. liraglutide): −15.8% for semaglutide; both semaglutide and liraglutide outperformed placebo.",
+        ],
+      },
+      {
+        type: "p",
+        text: "STEP 1's extension found that weight regain resumed after stopping the drug — participants gained back a majority of the lost weight by 120 weeks. That's directly relevant to anyone expecting a \"cycle on, cycle off\" research protocol to hold results.",
+      },
+      { type: "h2", text: "The Line Between the Approved Drug and What's Sold as \"Research\" Semaglutide" },
+      {
+        type: "callout",
+        text: "This is the compliance-relevant distinction. The evidence above is for FDA-approved Ozempic and Wegovy — specific manufactured pharmaceutical products. What research-peptide vendors sell as \"semaglutide\" is compounded material, and FDA has specifically warned that some compounded products use salt forms — semaglutide sodium or semaglutide acetate — which are chemically different active ingredients than the approved drug, with no evidence they're equivalent. FDA also documented patients self-administering 5–20x the intended dose due to compounded-product measuring errors, and issued 25 warning letters to telehealth companies over false or misleading compounded-GLP-1 marketing.",
+      },
+      {
+        type: "p",
+        text: "The STEP trials are real evidence for the molecule's mechanism and effect — but they were conducted with the approved pharmaceutical product, not a compounded research-vial version. The two are not established as equivalent, and nothing on this page should be read as a claim that they are.",
+      },
+      { type: "h2", text: "Where to Source Semaglutide for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the Semaglutide product page",
+        productSlug: "semaglutide",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is the semaglutide sold by research vendors the same as Ozempic or Wegovy?",
+            a: "No. Ozempic and Wegovy are specific FDA-approved manufactured products. Semaglutide sold for research use is compounded material, sometimes in a different salt form, and has not been established as equivalent to the approved drug.",
+          },
+          {
+            q: "Does the weight loss last after stopping semaglutide?",
+            a: "The STEP 1 trial extension found that most participants regained a majority of the lost weight within about a year of stopping the drug — the effect appears to require continued use, not a one-time reset.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Semaglutide, Mechanism of Action. StatPearls / NCBI Bookshelf. ",
+          { href: "https://www.ncbi.nlm.nih.gov/books/NBK603723/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Chao AM, et al. \"Semaglutide for the treatment of overweight and obesity: A review.\" PMC. ",
+          { href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10092086/", text: "pmc.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. FDA. \"FDA's Concerns with Unapproved GLP-1 Drugs Used for Weight Loss.\" ",
+          { href: "https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Reuters. \"US FDA warns online vendors selling unapproved weight-loss drugs,\" Dec 2024. ",
+          { href: "https://www.reuters.com/business/healthcare-pharmaceuticals/us-fda-warns-online-vendors-selling-unapproved-weight-loss-drugs-2024-12-17/", text: "reuters.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. Schirra J, Göke B. \"The physiological role of GLP-1 in human: incretin, ileal brake or what?\" PubMed, 2005. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/15780430/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. Moiz A, et al. \"Mechanisms of GLP-1 Receptor Agonist-Induced Weight Loss,\" 2025. ",
+          { href: "https://www.sciencedirect.com/science/article/pii/S0002934325000592", text: "sciencedirect.com", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "tesamorelin-research-guide",
+    title: "Tesamorelin: The Complete Research Guide",
+    excerpt:
+      "A genuinely FDA-approved GHRH analogue — but the approval covers one narrow HIV-related indication, not general body composition. Here's exactly what it does and doesn't cover.",
+    category: "Body Composition",
+    date: "July 2026",
+    readTime: "8 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Tesamorelin is one of the few compounds on this site with a real, standing FDA approval. That approval is also much narrower than the way tesamorelin gets discussed in most research-peptide circles — and getting that distinction right is the entire point of this guide.",
+      },
+      { type: "h2", text: "What Is Tesamorelin?" },
+      {
+        type: "p",
+        text: "Tesamorelin is a synthetic growth hormone-releasing hormone (GHRH) analogue, sold under the brand names Egrifta and Egrifta WR.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "Tesamorelin doesn't act on fat tissue directly — it works two steps upstream, by restoring a signal the body normally sends to itself. Growth hormone (GH) is released from the pituitary gland in pulses, triggered by GHRH from the hypothalamus. Tesamorelin is a stabilized version of that same GHRH signal, so it amplifies the body's own pulsatile GH release rather than delivering GH directly. That distinction matters for two reasons:",
+      },
+      {
+        type: "ul",
+        items: [
+          "It preserves the natural feedback loop. GH released this way still triggers the liver to produce IGF-1, which signals back to suppress further GH release — the same brake that keeps GH regulated in healthy physiology. Direct GH injection can override that feedback; a GHRH analogue is designed to work within it.",
+          "GH's downstream effect on fat is the actual lipolytic step. Once GH reaches fat tissue, it stimulates hormone-sensitive lipase, the enzyme that breaks down stored fat into free fatty acids. Visceral fat — the metabolically active fat around organs, as opposed to fat just under the skin — is disproportionately responsive to this GH-driven lipolysis, which is why the drug's effect concentrates there.",
+        ],
+      },
+      {
+        type: "p",
+        text: "One honest caveat worth keeping: a clinical-policy review of the approval data still calls the full mechanism \"unclear\" beyond this GH/IGF-1 chain — the GHRH-to-GH-to-visceral-fat pathway is well-supported, but not every step is fully mapped.",
+      },
+      { type: "h2", text: "FDA Approval — Read the Indication Carefully" },
+      {
+        type: "callout",
+        text: "Real approval, narrow scope. Tesamorelin is FDA-approved as Egrifta (2010) and the reformulated Egrifta WR (approved March 2025) — but specifically for the reduction of excess abdominal fat in HIV-infected adult patients with lipodystrophy. It is not approved for general-population body composition or weight loss.",
+      },
+      {
+        type: "p",
+        text: "Approval was supported by trials showing reductions in visceral adipose tissue, triglycerides, and non-HDL cholesterol, plus increases in lean body mass — in the HIV-lipodystrophy population specifically. Those results don't automatically generalize to a healthy adult using it for general fat loss; that's simply a different population than the one studied.",
+      },
+      { type: "h2", text: "Regulatory Status for Research Use" },
+      {
+        type: "p",
+        text: "What's sold by research-peptide vendors as tesamorelin is not the approved Egrifta pharmaceutical product — it's compounded material intended for research use, outside the approved indication and outside FDA's review of Egrifta's manufacturing and formulation.",
+      },
+      {
+        type: "p",
+        text: "Checked directly against FDA's bulk drug substances list for compounding (fetched July 2026): tesamorelin does not appear in either the active Category 2 table or the nominated-but-withdrawn table.",
+      },
+      { type: "h2", text: "Where to Source Tesamorelin for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the Tesamorelin product page",
+        productSlug: "tesamorelin",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is tesamorelin FDA-approved?",
+            a: "Yes, but only for one narrow indication: reduction of excess abdominal fat in HIV-infected adults with lipodystrophy (brand names Egrifta / Egrifta WR). It is not approved for general fat loss or body composition.",
+          },
+          {
+            q: "Can I use tesamorelin for general fat loss?",
+            a: "That use falls outside the approved indication. What's sold as tesamorelin by research vendors is a research compound, not the approved Egrifta pharmaceutical product, and hasn't been evaluated by FDA for that purpose.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. EATG / Theratechnologies. \"FDA approval for EGRIFTA WR (tesamorelin F8),\" March 2025. ",
+          { href: "https://www.eatg.org/hiv-news/theratechnologies-receives-fda-approval-for-egrifta-wr-tesamorelin-f8-to-treat-excess-visceral-abdominal-fat-in-adults-with-hiv-and-lipodystrophy/", text: "eatg.org", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Molina Healthcare Clinical Policy 131 (Egrifta/Tesamorelin), citing FDA prescribing information and NDA review documents. ",
+          { href: "https://www.molinahealthcare.com/providers/wa/medicaid/resource/PDF/egrifta-tesamorelin-mcp131.pdf", text: "molinahealthcare.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. EGRIFTA WR official HCP site — indication statement. ",
+          { href: "https://hcp.egriftawr.com/moa/", text: "hcp.egriftawr.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Stanley TL, Grinspoon SK. \"Effects of growth hormone-releasing hormone on visceral fat...\" ",
+          { href: "https://www.sciencedirect.com/science/article/abs/pii/S1096637414001208", text: "sciencedirect.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. Vijayakumar A, et al. \"Biological effects of growth hormone on carbohydrate and lipid metabolism,\" 2010. ",
+          { href: "https://www.sciencedirect.com/science/article/abs/pii/S1096637409001178", text: "sciencedirect.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. FDA. \"Certain Bulk Drug Substances for Use in Compounding that May Present Significant Safety Risks.\" ",
+          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "aod-9604-research-guide",
+    title: "AOD-9604: The Complete Research Guide",
+    excerpt:
+      "A growth-hormone fragment marketed on a mechanism its own foundational study didn't confirm — and the one time it was tested for its main proposed use in humans, it failed.",
+    category: "Body Composition",
+    date: "July 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "AOD-9604 gets a very different treatment in this guide than the rest of the Body Composition category. Its one completed human efficacy trial did not work, and its most commonly cited mechanism doesn't hold up against the primary literature it's supposedly based on. Both of those facts lead this guide instead of trailing it.",
+      },
+      { type: "h2", text: "What Is AOD-9604?" },
+      {
+        type: "p",
+        text: "AOD-9604 is a fragment of human growth hormone — just amino acids 176–191, the tail end of the full molecule. Full hGH does two things at once: it promotes fat breakdown (lipolysis), and it drives tissue growth and raises blood sugar, the \"diabetogenic\" effects that make GH itself unsuitable as a casual fat-loss agent. The 176–191 fragment was identified as the region associated with lipolytic activity, with the hope that it would keep the fat-burning effect while dropping the growth and glucose side effects.",
+      },
+      { type: "h2", text: "Mechanism of Action — More Contested Than Most Guides Let On" },
+      {
+        type: "callout",
+        text: "Nearly every vendor and \"peptide guide\" site states as settled fact that AOD-9604 works via the beta-3 adrenergic receptor pathway. That claim traces back to a 2001 study that set out to test exactly that hypothesis — but the peer-reviewed, published version of that same study, in Endocrinology, concluded the opposite of what gets repeated: \"the lipolytic actions of both hGH and AOD9604 are not mediated directly through the β3-AR.\" We don't repeat the beta-3-receptor claim as established fact. The honest statement is that a specific mechanism was hypothesized and tested, and the primary research available did not confirm it.",
+      },
+      { type: "h2", text: "Preclinical Signal" },
+      {
+        type: "p",
+        text: "A 2001 study found AOD-9604 reduced body weight and body fat in obese mice over 14 days of chronic administration, comparable to effects seen with full hGH.",
+      },
+      { type: "h2", text: "Human Evidence" },
+      {
+        type: "callout",
+        text: "AOD-9604 was tested in a Phase 2b human obesity trial — roughly 536 participants, 24 weeks, run by Metabolic Pharmaceuticals. The sponsor's own ASX filing states plainly that results \"do not support the commercial viability of the drug as a treatment for obesity.\" This is a completed, primary-source-confirmed negative result, not an absence of data — an actual failure to beat placebo.",
+      },
+      {
+        type: "p",
+        text: "That's meaningfully different framing than BPC-157, where preclinical work is promising and human trials simply haven't happened yet, or Retatrutide, where the compound isn't approved yet but the data so far is strong. For AOD-9604, the one time it was tested properly in humans for its main proposed use, it didn't work.",
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "AOD-9604 appears in FDA's \"nominated but withdrawn\" table, not the active Category 2 table — the same status as BPC-157. That means it isn't currently restricted via that specific compounding mechanism, but it has never been approved for any indication, and its one completed efficacy trial failed.",
+      },
+      { type: "h2", text: "Where to Source AOD-9604 for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the AOD-9604 product page",
+        productSlug: "aod-9604",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Does AOD-9604 work for weight loss?",
+            a: "Its one completed human efficacy trial — a Phase 2b obesity study of roughly 536 participants — failed to support its use as an obesity treatment, according to the sponsor's own filing. Preclinical (animal) data was more promising, but that hasn't translated into a positive human trial result.",
+          },
+          {
+            q: "Is AOD-9604 FDA-approved?",
+            a: "No. It has never been approved for any indication, and its nomination for FDA's compounding bulk-substances list was withdrawn.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Metabolic Pharmaceuticals. ASX announcement, \"Obesity Drug — Phase 2b Clinical Trial Results,\" Feb 21, 2007 (primary source, sponsor's own filing). ",
+          { href: "https://announcements.asx.com.au/asxpdf/20070221/pdf/3111t0ww55jr72.pdf", text: "announcements.asx.com.au", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Heffernan M, et al. \"The effects of human GH and its lipolytic fragment (AOD9604) on lipid metabolism...\" PubMed, 2001. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/11713213/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Heffernan M, et al. Full peer-reviewed publication. Endocrinology 142(12):5182 — conclusion: lipolytic action \"not mediated directly through the β3-AR.\" ",
+          { href: "https://academic.oup.com/endo/article-abstract/142/12/5182/2988749", text: "academic.oup.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. SEC/ASX filing archive, corroborating dose-group primary endpoint data. ",
+          { href: "https://www.sec.gov/Archives/edgar/vprr/0702/07021963.pdf", text: "sec.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. FDA. \"Certain Bulk Drug Substances for Use in Compounding that May Present Significant Safety Risks\" — nominated-but-withdrawn table. ",
+          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
 ];
