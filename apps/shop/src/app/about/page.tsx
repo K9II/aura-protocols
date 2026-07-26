@@ -5,7 +5,8 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="pharmacopoeia max-w-3xl mx-auto px-6 py-16">
+    <div className="pharmacopoeia">
+    <div className="max-w-3xl mx-auto px-6 py-16">
       <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">About Aura Protocols</p>
       <h1 className="p-serif text-4xl mb-3 text-[color:var(--ink)]">The Science of Synergy</h1>
       <p className="text-sm uppercase tracking-wider text-[color:var(--ink-soft)] mb-10">Where Biometrics Meet Bio-Harmonization</p>
@@ -152,6 +153,7 @@ export default function AboutPage() {
           consult a qualified healthcare professional before use.
         </p>
       </div>
+    </div>
     </div>
   );
 }

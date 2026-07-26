@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 
 export default function ClinicalWaitlistPage() {
   return (
-    <div className="pharmacopoeia mx-auto max-w-3xl px-6 py-16">
+    <div className="pharmacopoeia">
+    <div className="mx-auto max-w-3xl px-6 py-16">
       <p className="text-xs font-semibold uppercase tracking-widest text-[color:var(--specimen)] mb-4">
         Aura Clinical · Coming soon
       </p>
@@ -32,6 +33,7 @@ export default function ClinicalWaitlistPage() {
         </p>
       </div>
       <EmailCapture />
+    </div>
     </div>
   );
 }

@@ -8,7 +8,8 @@ export const metadata = {
 
 export default function BlogPage() {
   return (
-    <div className="pharmacopoeia max-w-4xl mx-auto px-6 py-16">
+    <div className="pharmacopoeia">
+    <div className="max-w-4xl mx-auto px-6 py-16">
       <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">Research Blog</p>
       <h1 className="p-serif text-4xl mb-4 text-[color:var(--ink)]">Latest Articles</h1>
       <p className="text-[color:var(--ink-soft)] mb-12 leading-relaxed">
@@ -29,6 +30,7 @@ export default function BlogPage() {
           </Link>
         ))}
       </div>
+    </div>
     </div>
   );
 }

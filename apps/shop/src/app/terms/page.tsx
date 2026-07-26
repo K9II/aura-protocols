@@ -7,7 +7,8 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="pharmacopoeia max-w-3xl mx-auto px-6 py-16">
+    <main className="pharmacopoeia">
+    <div className="max-w-3xl mx-auto px-6 py-16">
       <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">Legal</p>
       <h1 className="p-serif text-4xl mb-3 text-[color:var(--ink)]">Terms of Service</h1>
       <p className="text-sm text-[color:var(--ink-soft)] mb-10">Last Updated: April 12, 2026</p>
@@ -107,6 +108,7 @@ export default function TermsPage() {
         </section>
 
       </div>
+    </div>
     </main>
   );
 }

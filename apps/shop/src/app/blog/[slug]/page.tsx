@@ -52,7 +52,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   };
 
   return (
-    <div className="pharmacopoeia max-w-3xl mx-auto px-6 py-16">
+    <div className="pharmacopoeia">
+    <div className="max-w-3xl mx-auto px-6 py-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -99,6 +100,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

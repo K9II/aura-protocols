@@ -8,7 +8,8 @@ export const metadata = {
 
 export default function ProductsPage() {
   return (
-    <div className="pharmacopoeia max-w-6xl mx-auto px-6 py-16">
+    <div className="pharmacopoeia">
+    <div className="max-w-6xl mx-auto px-6 py-16">
       <div className="mb-12">
         <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">Catalog</p>
         <h1 className="p-serif text-4xl mb-4 text-[color:var(--ink)]">Research Compounds</h1>
@@ -32,6 +33,7 @@ export default function ProductsPage() {
           </div>
         </section>
       ))}
+    </div>
     </div>
   );
 }

@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 
 export default function PlaybookPage() {
   return (
-    <main className="pharmacopoeia mx-auto max-w-3xl px-6 py-16">
+    <main className="pharmacopoeia">
+    <div className="mx-auto max-w-3xl px-6 py-16">
       <p className="text-sm font-semibold uppercase tracking-widest text-[color:var(--specimen)]">
         Coming back soon
       </p>
@@ -27,6 +28,7 @@ export default function PlaybookPage() {
       <div className="mt-10">
         <EmailCapture />
       </div>
+    </div>
     </main>
   );
 }
