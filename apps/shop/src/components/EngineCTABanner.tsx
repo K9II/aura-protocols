@@ -14,8 +14,8 @@ export default function EngineCTABanner() {
   }, []);
   if (dismissed) return null;
   return (
-    <div className="pharmacopoeia sticky top-0 z-50 w-full bg-[color:var(--ink)] border-b border-[color:var(--line)]">
-      <div className="p-container flex items-center justify-between gap-3 py-2 text-sm text-[color:var(--paper)]">
+    <div className="pharmacopoeia sticky top-0 z-50 w-full bg-[color:var(--paper-deep)] border-b border-[color:var(--line)]">
+      <div className="p-container flex items-center justify-between gap-3 py-2 text-sm text-[color:var(--ink-soft)]">
         <p className="truncate">
           <span className="font-semibold text-[color:var(--specimen)]">New:</span> {ENGINE_CTA_COPY.banner}
         </p>
@@ -24,7 +24,7 @@ export default function EngineCTABanner() {
             href={ENGINE_URL}
             target="_blank"
             rel={EXTERNAL_REL}
-            className="px-3 py-1 font-medium bg-[color:var(--paper)]/10 hover:bg-[color:var(--paper)]/20"
+            className="p-btn-primary px-3 py-1 font-medium"
           >
             {ENGINE_CTA_COPY.bannerAction}
           </a>
@@ -35,7 +35,7 @@ export default function EngineCTABanner() {
               window.localStorage.setItem(KEY, "1");
               setDismissed(true);
             }}
-            className="px-2 py-1 text-[color:var(--paper)]/60 hover:text-[color:var(--paper)]"
+            className="px-2 py-1 text-[color:var(--ink-soft)] hover:text-[color:var(--ink)]"
           >
             ×
           </button>
