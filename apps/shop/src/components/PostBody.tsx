@@ -93,6 +93,16 @@ export function renderSection(section: Section, i: number) {
           </a>
         </div>
       );
+    case "button":
+      return section.productSlug ? (
+        <Link
+          key={i}
+          href={`/products/${section.productSlug}`}
+          className="p-btn-primary inline-block text-sm py-2.5 px-6 my-4"
+        >
+          {section.text} →
+        </Link>
+      ) : null;
     case "disclaimer":
       return (
         <p key={i} className="text-xs text-[color:var(--ink-soft)] border-t border-[color:var(--line)] pt-6 mt-8 leading-relaxed">

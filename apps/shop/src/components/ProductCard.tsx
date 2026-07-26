@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Product } from "@/data/products";
+import { learnMoreHref } from "@/lib/guides";
 
 export default function ProductCard({ product }: { product: Product }) {
   return (
@@ -31,7 +32,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
       {/* Footer */}
       <div className="mt-auto flex items-center justify-between pt-4 border-t border-[color:var(--line)]">
-        <Link href={`/products/${product.slug}`} className="text-xs text-[color:var(--ink-soft)] hover:text-[color:var(--ink)] transition-colors">
+        <Link href={learnMoreHref(product.slug)} className="text-xs text-[color:var(--ink-soft)] hover:text-[color:var(--ink)] transition-colors">
           Learn more →
         </Link>
         <Link href={`/products/${product.slug}`} className="p-btn-primary text-xs py-2 px-4">

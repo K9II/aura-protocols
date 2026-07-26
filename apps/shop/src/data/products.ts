@@ -130,7 +130,7 @@ export const products: Product[] = [
     category: "Body Composition",
     description:
       "Triple receptor agonist targeting GLP-1, GIP, and glucagon receptors. Phase 3 trials recorded up to 24.2% body weight reduction — the highest of any compound in its class.",
-    benefits: ["Triple-receptor agonism (GLP-1/GIP/glucagon)", "Appetite research in Phase 2 trials", "Body-weight reduction in SURMOUNT data", "Metabolic-regulation research"],
+    benefits: ["Triple-receptor agonism (GLP-1/GIP/glucagon)", "Appetite research in Phase 2 trials", "Body-weight reduction in TRIUMPH-1 data", "Metabolic-regulation research"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/retatrutide?aff=84", commission: "30%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-3r-10mg/?rfsn=9131640.7592e7", commission: "20%" },

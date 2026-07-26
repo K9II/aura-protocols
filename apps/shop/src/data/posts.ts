@@ -8,7 +8,7 @@ export type LinkPart = {
 export type Part = string | LinkPart;
 
 export type Section = {
-  type: "intro" | "h2" | "h3" | "p" | "ul" | "callout" | "cta" | "disclaimer" | "faq";
+  type: "intro" | "h2" | "h3" | "p" | "ul" | "callout" | "cta" | "button" | "disclaimer" | "faq";
   text?: string;
   items?: string[];
   productSlug?: string;
@@ -360,98 +360,162 @@ export const posts: Post[] = [
     slug: "bpc-157-complete-guide",
     title: "BPC-157: The Complete Research Guide",
     excerpt:
-      "A deep dive into Body Protection Compound-157 — mechanisms, studied benefits, and what the current literature says.",
+      "Mechanism of action, preclinical evidence, and regulatory status — every claim linked to its source.",
     category: "Recovery",
-    date: "April 2026",
-    readTime: "8 min read",
+    date: "July 2026",
+    readTime: "9 min read",
     content: [
       {
         type: "intro",
-        text: "BPC-157 (Body Protection Compound-157) is a synthetic pentadecapeptide derived from a protective protein found in human gastric juice. It has become one of the most widely studied peptides in regenerative research, with a growing body of preclinical literature documenting tissue-healing effects across multiple systems.",
+        text: "BPC-157 is one of the most searched research peptides for tissue repair. Here's what the preclinical literature actually shows — mechanism, evidence by tissue type, and current regulatory status — with the primary source for every claim.",
       },
+      { type: "h2", text: "What Is BPC-157?" },
       {
-        type: "h2",
-        text: "What Is BPC-157?",
+        type: "p",
+        text: "BPC-157 (Body Protection Compound-157) is a synthetic pentadecapeptide — a 15-amino-acid sequence — derived from a partial sequence of a protective protein identified in human gastric juice. It has been studied since the 1990s, almost entirely in animal and cell-culture models.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "The most consistently reproduced mechanism across the literature is activation of the VEGFR2 pathway, which drives angiogenesis — new blood vessel formation — through downstream Akt–eNOS signaling and nitric oxide production.",
       },
       {
         type: "p",
-        text: "BPC-157 is a 15-amino acid sequence (Gly-Glu-Pro-Pro-Pro-Gly-Lys-Pro-Ala-Asp-Asp-Ala-Gly-Leu-Val) first isolated from human gastric juice. Unlike many peptides that target a single pathway, BPC-157 appears to interact with multiple biological systems simultaneously — which may explain its broad range of studied effects.",
+        text: "In tendon fibroblasts specifically, BPC-157 activates the FAK–paxillin pathway, linked to increased fibroblast outgrowth from tendon explants, better cell survival under stress, and increased fibroblast migration — a proposed mechanism for its studied effects on tendon repair.",
       },
       {
-        type: "h2",
-        text: "Studied Benefits",
+        type: "callout",
+        text: "A 2025 paper proposes a further upstream mechanism — BPC-157 binding SH3 domains on Src-family kinases — based on computational modeling rather than lab experiments. Worth knowing this exists, but it hasn't been confirmed experimentally.",
       },
-      {
-        type: "h3",
-        text: "1. Tendon & Ligament Repair",
-      },
+      { type: "h2", text: "What the Preclinical Research Shows" },
       {
         type: "p",
-        text: "Several animal studies have demonstrated accelerated healing of tendon-to-bone injuries with BPC-157 administration. Research published in the Journal of Physiology-Paris showed significant upregulation of growth hormone receptors in tendon fibroblasts, suggesting a direct mechanism for enhanced connective tissue repair.",
-      },
-      {
-        type: "h3",
-        text: "2. Gut Health & Mucosal Healing",
-      },
-      {
-        type: "p",
-        text: "Given its origin in gastric juice, it's unsurprising that BPC-157 shows strong effects on gastrointestinal tissue. Studies have shown protective effects against NSAID-induced damage, acceleration of intestinal anastomosis healing, and reduction of inflammatory bowel markers. This makes it one of the few peptides with compelling gut-specific research.",
-      },
-      {
-        type: "h3",
-        text: "3. Anti-Inflammatory Effects",
-      },
-      {
-        type: "p",
-        text: "BPC-157 has demonstrated the ability to modulate nitric oxide (NO) production and downregulate pro-inflammatory cytokines. Multiple studies show reductions in acute inflammation following musculoskeletal injuries in rodent models.",
-      },
-      {
-        type: "h3",
-        text: "4. Neurological Support",
-      },
-      {
-        type: "p",
-        text: "Emerging research suggests BPC-157 may support dopaminergic and serotonergic system function, with some studies showing neuroprotective effects following traumatic brain injury in animal models.",
-      },
-      {
-        type: "h2",
-        text: "Administration Routes Studied",
+        text: "All of the following is animal and cell-culture data. By tissue type, per a 2025 systematic review of the orthopaedic sports-medicine literature:",
       },
       {
         type: "ul",
         items: [
-          "Subcutaneous injection — most common in research settings",
-          "Intramuscular injection — used for localized musculoskeletal studies",
-          "Oral/intragastric — studied specifically for gut-related applications",
-          "Topical — limited research, mostly for wound healing models",
+          "Tendon — accelerated fibroblast outgrowth and migration; increased growth hormone receptor expression in tendon fibroblasts",
+          "Muscle — improved healing outcomes reported across multiple animal injury models",
+          "Skin / wound healing — accelerated closure in both acute and chronic wound models",
+          "Gastrointestinal mucosa — restoration of blood supply and vascular perfusion in colitis models, the tissue BPC-157 was originally isolated from",
         ],
       },
+      { type: "h2", text: "Regulatory & Safety Status" },
       {
-        type: "h2",
-        text: "What the Research Doesn't Cover",
+        type: "p",
+        text: "BPC-157 was nominated in September 2023 for FDA's Category 2 list of bulk drug substances — the category for substances the agency says \"may present significant safety risks.\" That nomination was later withdrawn, which is what cleared the way for the review below: the substance became eligible to be formally evaluated for the opposite outcome — legal inclusion on FDA's list of substances compounding pharmacies can prepare.",
+      },
+      {
+        type: "h3",
+        text: "The July 23–24, 2026 FDA Advisory Vote",
       },
       {
         type: "p",
-        text: "It's important to note that virtually all BPC-157 research to date has been conducted in rodent models. There are no completed human clinical trials as of this writing. While the animal data is consistently compelling, extrapolating these results to human physiology requires caution.",
+        text: "Over two days, FDA's Pharmacy Compounding Advisory Committee (PCAC) reviewed seven peptides — including BPC-157 — for possible addition to the Section 503A Bulk Drug Substances List, the roster licensed compounding pharmacies can legally prepare against a prescription. The specific use under review for BPC-157 was treating ulcerative colitis, an inflammatory bowel disease. FDA's own scientific staff told the committee there is a \"lack of evidence\" to support that use and noted the agency has already approved multiple drugs for ulcerative colitis. The committee voted in favor of expanding access anyway — one of six peptides (of seven reviewed) the panel backed; only Emideltide was voted down.",
       },
       {
         type: "callout",
-        text: "BPC-157 has not been approved by the FDA for human use. All research on this compound is preclinical. This article is for informational and educational purposes only.",
-      },
-      {
-        type: "h2",
-        text: "Where to Source BPC-157 for Research",
+        text: "This is a non-binding recommendation, not a rule change or an approval. FDA isn't required to follow PCAC's vote, though it typically does. If FDA moves forward, it happens through formal rulemaking that could take until 2027 or 2028 — this is not something that makes BPC-157 legally compoundable today. NPR's reporting on the vote is direct on this point: \"the decision to place the products on the FDA's official list for compounding doesn't come close to the standards for drug approval.\" As of this writing (July 26, 2026), nothing about BPC-157's actual legal status has changed — it remains not FDA-approved for any human use.",
       },
       {
         type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We recommend sourcing only from vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+        text: "Worth knowing before weighting this vote too heavily: NPR reported that eight new PCAC members were seated ahead of this meeting, most with ties to the peptide industry, and that they voted almost uniformly to loosen restrictions — while FDA's own scientists recommended against all seven substances, citing a lack of reliable human safety and efficacy data. At least one panelist voted no specifically over that dynamic, saying she was \"concerned that we are responding to market induced demand rather than a decision based in solid science.\" We're reporting the vote as real news, not as new evidence that BPC-157 works or is safe for human use — those are separate questions the vote doesn't resolve.",
       },
       {
-        type: "cta",
-        text: "View BPC-157 at Limitless Life Nootropics",
+        type: "p",
+        text: "None of this changes the underlying legal basis for \"Research Use Only\" labeling today: BPC-157 has never been reviewed or approved by FDA as a drug for any human use, and selling an unapproved drug for human use can implicate misbranding and adulteration law independent of its bulk-substance list status.",
+      },
+      {
+        type: "callout",
+        text: "FDA rulemaking and advisory outcomes change over time — this status was verified directly against fda.gov, NPR, and U.S. News reporting on 2026-07-26. If you're making a decision based on current regulatory status, re-verify it directly rather than relying on this page's snapshot.",
+      },
+      {
+        type: "p",
+        text: "Separately, a preclinical review reports no lethal dose was reached across the animal toxicity studies it surveyed. That's animal toxicology, not a human safety guarantee.",
+      },
+      { type: "h2", text: "Where to Source BPC-157 for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the BPC-157 product page",
         productSlug: "bpc-157",
-        vendor: "Limitless Life Nootropics",
-        affiliateUrl: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is BPC-157 approved by the FDA for human use?",
+            a: "No. On July 23, 2026, an FDA advisory committee voted to recommend adding BPC-157 to the list of substances compounding pharmacies can legally prepare — specifically for treating ulcerative colitis, over FDA staff's own objection that the evidence doesn't support it. That's a non-binding recommendation, not an approval; formal FDA rulemaking, if it happens, could take until 2027 or 2028. As of today, BPC-157 remains not FDA-approved for any human use.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Vasireddi N, et al. \"Emerging Use of BPC-157 in Orthopaedic Sports Medicine.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/40756949/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Chang CH, et al. \"The promoting effect of pentadecapeptide BPC 157 on tendon fibroblasts.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/21030672/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"Gastric pentadecapeptide body protection compound BPC 157 and its role in accelerating musculoskeletal soft tissue healing.\" ",
+          { href: "https://link.springer.com/article/10.1007/s00441-019-03016-8", text: "Cell and Tissue Research", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. \"BPC-157 and GHK-Cu in Wound Healing and Tissue Repair: A Review of Clinical Efficacy and Safety.\" ",
+          { href: "https://www.researchgate.net/publication/404069524", text: "ResearchGate", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. \"BPC-157 Binding to SH3 Domains and Activation of Src Family Kinases: In Silico Modeling.\" Preprint, not peer-reviewed. ",
+          { href: "https://www.researchgate.net/publication/398398323", text: "ResearchGate", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. \"Pentadecapeptide BPC 157 enhances the growth hormone receptor expression in tendon fibroblasts.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/25415472/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "7. FDA. \"Substances in Compounding that May Present Significant Safety Risks.\" ",
+          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "FDA.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "8. Stone W. \"FDA panel supports broadening access to peptides popular on the gray market.\" NPR, July 23–24, 2026. ",
+          { href: "https://www.npr.org/2026/07/23/nx-s1-5903202/fda-peptides-restrictions", text: "npr.org", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "9. Smith-Schoenwalder C. \"FDA Committee Votes on These 7 Peptides.\" U.S. News & World Report, July 24, 2026. ",
+          { href: "https://www.usnews.com/news/national-news/articles/2026-07-24/fda-committee-votes-on-7-peptides-what-are-they", text: "usnews.com", external: true },
+        ],
       },
       {
         type: "disclaimer",
@@ -905,6 +969,156 @@ export const posts: Post[] = [
       {
         type: "callout",
         text: "When in doubt, email the vendor and ask for the COA for the specific batch you're purchasing. A trustworthy vendor will respond promptly with complete documentation.",
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "retatrutide-research-guide",
+    title: "Retatrutide: The Complete Research Guide",
+    excerpt:
+      "The triple GIP/GLP-1/glucagon agonist with the strongest weight-loss data of any compound in its class — and a regulatory status well behind the science.",
+    category: "Body Composition",
+    date: "July 2026",
+    readTime: "9 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Retatrutide is a single molecule that activates three separate metabolic receptors at once. Its Phase 3 data is the strongest of anything in this category — and it is also, as of this writing, not approved for any use and not legal to distribute for human consumption. Both things are true at the same time, and this guide treats them that way.",
+      },
+      { type: "h2", text: "What Is Retatrutide?" },
+      {
+        type: "p",
+        text: "Retatrutide is an investigational, once-weekly triple hormone receptor agonist developed by Eli Lilly, activating receptors for GIP (glucose-dependent insulinotropic polypeptide), GLP-1 (glucagon-like peptide-1), and glucagon in a single molecule.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "The reason a triple agonist outperforms a single agonist isn't simply \"three times the appetite suppression\" — it's that the glucagon receptor works through a fundamentally different lever than the other two.",
+      },
+      {
+        type: "ul",
+        items: [
+          "GLP-1 and GIP receptors reduce calories in — the same appetite-suppression and satiety mechanism behind drugs like semaglutide.",
+          "The glucagon receptor increases calories out. Glucagon is usually thought of as insulin's counter-hormone that raises blood sugar, but separately from that, activating its receptor increases energy expenditure and stimulates lipolysis and thermogenesis — the body burning more energy at rest.",
+        ],
+      },
+      {
+        type: "p",
+        text: "The drug's own discovery paper states the rationale directly: body weight loss is \"augmented by the addition of GCGR-mediated increases in energy expenditure to GIPR- and GLP-1R-driven calorie intake reduction.\" In head-to-head comparisons, triple and dual agonists produced similar reductions in food intake, but only the triple agonist showed markedly elevated energy expenditure — the actual reason retatrutide has outperformed semaglutide in trials, not simply a bigger dose of the same mechanism. Separate Phase 2a data also found significant liver fat reduction in participants with fatty liver disease, attributed to the same triple-receptor activity beyond what caloric restriction alone would explain.",
+      },
+      { type: "h2", text: "Human Evidence" },
+      {
+        type: "p",
+        text: "Phase 2 data is peer-reviewed and published in NEJM. Phase 3 topline results (TRIUMPH-1 for obesity; TRANSCEND-T2D-1 for type 2 diabetes) were announced by Lilly in 2026, but as of this writing are press-release results, not yet published in a peer-reviewed journal.",
+      },
+      {
+        type: "ul",
+        items: [
+          "TRIUMPH-1, 12 mg dose, 80 weeks: −28.3% body weight vs. −2.2% for placebo.",
+          "TRIUMPH-1, 4 mg dose (single dose-escalation step), 80 weeks: −19.0% vs. −2.2% for placebo.",
+          "Common adverse events were gastrointestinal (nausea, diarrhea, constipation, vomiting — dose-dependent) and dysesthesia; discontinuation due to adverse events ranged 4.1%–11.3% across doses vs. 4.9% for placebo.",
+        ],
+      },
+      {
+        type: "p",
+        text: "An independent 2026 comparative analysis of 26 randomized trials across 12 GLP-1 drugs and co-agonists projected retatrutide's 12 mg efficacy (24.2% weight loss) ahead of tirzepatide and semaglutide at their evaluated doses — the strongest head-to-head positioning of any compound in this category.",
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Retatrutide is investigational. It has not been approved by FDA for any indication, and current federal policy treats it as research-only: it cannot be legally manufactured or distributed for human use, only for investigational research purposes.",
+      },
+      {
+        type: "callout",
+        text: "A 2026 investigation found clinics and med spas prescribing retatrutide despite its non-approved, research-only status, with some providers acknowledging to patients that it isn't FDA-approved while still marketing it as effective. That practice does not change the compound's actual regulatory status.",
+      },
+      {
+        type: "p",
+        text: "Retatrutide does not appear on FDA's bulk-substances Category 2 or withdrawn-nomination lists at all — unlike BPC-157, it was never eligible for that compounding-eligibility process to begin with, since it has no approved reference drug and no completed marketing application. That's a narrower regulatory status than BPC-157's, not a safer one.",
+      },
+      { type: "h2", text: "Where to Source Retatrutide for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the Retatrutide product page",
+        productSlug: "retatrutide",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is retatrutide FDA-approved?",
+            a: "No. As of this writing it has not been approved for any indication and remains investigational — legally, it can only be manufactured or distributed for research use, not sold as a finished product for human use.",
+          },
+          {
+            q: "Why does retatrutide outperform other GLP-1 drugs in trials?",
+            a: "It's the only compound in wide comparison that also activates the glucagon receptor, which increases energy expenditure rather than just suppressing appetite — a different mechanism than single or dual agonists rely on.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Eli Lilly. \"About retatrutide\" (TRANSCEND-T2D-1 release), March 2026. ",
+          { href: "https://lilly.gcs-web.com/news-releases/news-release-details/lillys-triple-agonist-retatrutide-demonstrated-significant", text: "lilly.gcs-web.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Jastreboff AM, et al. \"Triple–Hormone-Receptor Agonist Retatrutide for Obesity — A Phase 2 Trial.\" NEJM. ",
+          { href: "https://www.nejm.org/doi/full/10.1056/NEJMoa2301972", text: "nejm.org", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Eli Lilly. TRIUMPH-1 Phase 3 topline results, May 2026 (press release, not yet peer-reviewed). ",
+          { href: "https://investor.lilly.com/news-releases/news-release-details/lillys-triple-agonist-retatrutide-delivered-powerful-weight-loss", text: "investor.lilly.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. AJMC. \"Retatrutide Achieves Up to 30.3% Average Weight Loss in Phase 3 TRIUMPH-1 Trial,\" citing Annals of Internal Medicine 26-trial comparative analysis. ",
+          { href: "https://www.ajmc.com/view/retatrutide-achieves-up-to-30-3-average-weight-loss-in-phase-3-triumph-1-trial", text: "ajmc.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. CBS News. \"This weight-loss drug hasn't been approved by the FDA. Doctors are prescribing it anyway.\" 2026 investigation. ",
+          { href: "https://www.cbsnews.com/projects/2026/experimental-weight-loss-drug/", text: "cbsnews.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. IUPHAR review. \"From foe to friend: Repurposing glucagon to treat obesity and type 2 diabetes.\" ",
+          { href: "https://www.sciencedirect.com/science/article/pii/S104366182500502X", text: "sciencedirect.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "7. Coskun T, et al. \"LY3437943, a novel triple glucagon, GIP, and GLP-1 receptor agonist... from discovery to clinical proof of concept.\" Cell Metabolism, 2022. ",
+          { href: "https://www.sciencedirect.com/science/article/pii/S1550413122003126", text: "sciencedirect.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "8. \"Triple hormone receptor agonist retatrutide for metabolic dysfunction-associated steatotic liver disease: a randomized phase 2a trial.\" Nature Medicine. ",
+          { href: "https://www.nature.com/articles/s41591-024-03018-2", text: "nature.com", external: true },
+        ],
       },
       {
         type: "disclaimer",
