@@ -11,14 +11,14 @@ export const metadata: Metadata = {
 
 export default function ClinicalWaitlistPage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <p className="text-xs font-semibold uppercase tracking-widest text-violet-300 mb-4">
+    <div className="pharmacopoeia mx-auto max-w-3xl px-6 py-16">
+      <p className="text-xs font-semibold uppercase tracking-widest text-[color:var(--specimen)] mb-4">
         Aura Clinical · Coming soon
       </p>
-      <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-        Compounded peptides, prescribed by a US-licensed MD.
+      <h1 className="p-serif text-4xl md:text-5xl mb-6 leading-tight text-[color:var(--ink)]">
+        Compounded peptides prescribed by a US-licensed MD
       </h1>
-      <div className="prose prose-invert max-w-none text-slate-300 leading-relaxed space-y-4 mb-10">
+      <div className="max-w-none text-[color:var(--ink-soft)] leading-relaxed space-y-4 mb-10">
         <p>
           Aura Clinical will be the prescription layer of the Aura stack: a planned cash-pay subscription (target
           $249–$499/mo), compounded by a 503A pharmacy under a US-licensed MD&apos;s order. No insurance hassle. No grey-market sourcing.
@@ -27,7 +27,7 @@ export default function ClinicalWaitlistPage() {
           We&apos;re onboarding our medical director and pharmacy partner now. Join the waitlist and you&apos;ll be first
           in line when we open enrollment — including a founder window with locked-in pricing.
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-[color:var(--ink-soft)]">
           Aura Clinical is operated by a separate, regulated entity from this editorial site. Information here is not medical advice.
         </p>
       </div>

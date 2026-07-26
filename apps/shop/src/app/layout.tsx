@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter, Space_Grotesk, Newsreader } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -11,6 +11,13 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   variable: "--font-display",
+});
+// "The Pharmacopoeia" redesign — display serif for the new paper/ink theme.
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["400", "500"],
+  variable: "--font-newsreader",
 });
 
 const BASE_URL = "https://shop.auraprotocols.com";
@@ -57,11 +64,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable}`}>
       <body className={`aurora-bg min-h-screen flex flex-col`}>
         <EngineCTABanner />
         {/* FTC Affiliate Disclosure */}
-        <div className="disclosure">
+        <div className="pharmacopoeia text-[11px] text-[color:var(--ink-soft)] bg-[color:var(--paper-deep)] border-b border-[color:var(--line)] px-4 py-2 text-center">
           Affiliate Disclosure: Aura Protocols earns commissions from qualifying purchases via affiliate links. This does not affect our editorial independence.
         </div>
         <Navbar />

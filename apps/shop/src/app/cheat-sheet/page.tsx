@@ -10,18 +10,18 @@ export const metadata: Metadata = {
 
 export default function CheatSheetPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">
+    <main className="pharmacopoeia mx-auto max-w-3xl px-6 py-16">
+      <p className="text-sm font-semibold uppercase tracking-widest text-[color:var(--specimen)]">
         Free starting protocol
       </p>
-      <h1 className="font-display mt-3 text-4xl font-bold text-white md:text-5xl">
+      <h1 className="p-serif mt-3 text-4xl md:text-5xl text-[color:var(--ink)]">
         Get your peptide starting protocol
       </h1>
-      <p className="mt-4 text-lg text-slate-300">
+      <p className="mt-4 text-lg text-[color:var(--ink-soft)]">
         Tell us your #1 goal and we&apos;ll send a research-backed starting point — doses, timing,
         and COA-verified sources — straight to your inbox.
       </p>
-      <p className="mt-4 text-xs text-slate-500">
+      <p className="mt-4 text-xs text-[color:var(--ink-soft)]">
         Research reference only. Not medical advice.
       </p>
       <div className="mt-10">

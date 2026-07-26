@@ -5,14 +5,14 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-16">
-      <p className="text-xs uppercase tracking-widest text-cyan-400 font-semibold mb-2">About Aura Protocols</p>
-      <h1 className="font-display text-4xl font-bold text-white mb-3">The Science of Synergy</h1>
-      <p className="text-sm uppercase tracking-wider text-slate-500 mb-10">Where Biometrics Meet Bio-Harmonization</p>
+    <div className="pharmacopoeia max-w-3xl mx-auto px-6 py-16">
+      <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">About Aura Protocols</p>
+      <h1 className="p-serif text-4xl mb-3 text-[color:var(--ink)]">The Science of Synergy</h1>
+      <p className="text-sm uppercase tracking-wider text-[color:var(--ink-soft)] mb-10">Where Biometrics Meet Bio-Harmonization</p>
 
-      <div className="space-y-6 text-slate-400 leading-relaxed">
+      <div className="space-y-6 text-[color:var(--ink-soft)] leading-relaxed">
 
-        <h2 className="text-xl font-bold text-white pt-2">Our Story</h2>
+        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Our Story</h2>
         <p>Aura Protocols was not built in a boardroom. It was built from a problem.</p>
         <p>
           Our founders — biohackers, data engineers, and longevity researchers — watched a pattern repeat itself across
@@ -26,7 +26,7 @@ export default function AboutPage() {
           with structured research protocols, replacing assumption with signal and guesswork with evidence.
         </p>
 
-        <p className="text-lg text-slate-300 font-medium pt-2">
+        <p className="text-lg text-[color:var(--ink)] font-medium pt-2">
           Generalized wellness is a guess. Aura Protocols is not.
         </p>
         <p>
@@ -35,22 +35,22 @@ export default function AboutPage() {
           generating precise physiological data every hour of every day. We built the infrastructure to use it.
         </p>
 
-        <h2 className="text-xl font-bold text-white pt-2">Driven by Data. Optimized for Life.</h2>
+        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Driven by Data. Optimized for Life.</h2>
         <p>
           Every human system communicates in signals: heart rate variability, sleep architecture, metabolic output,
           systemic inflammation trends. These are not abstract metrics — they are the feedback loop that traditional
           wellness models ignore entirely.
         </p>
-        <p className="text-white font-medium">Aura Protocols reads that loop.</p>
+        <p className="text-[color:var(--ink)] font-medium">Aura Protocols reads that loop.</p>
         <p>
           Our platform integrates with Oura, Whoop, Apple Watch, and Garmin, converting wearable telemetry into a
           structured research dashboard. The result: research protocols correlated to your own physiological
           baseline — not a population average.
         </p>
 
-        <h2 className="text-xl font-bold text-white pt-2">Core Pillars</h2>
+        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Core Pillars</h2>
 
-        <div className="glass p-8 space-y-5">
+        <div className="p-card p-8 space-y-5">
           {[
             [
               "Rigorous Research",
@@ -70,18 +70,18 @@ export default function AboutPage() {
             ],
           ].map(([title, desc]) => (
             <div key={title} className="flex gap-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] mt-2 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-white">{title}</p>
-                <p className="text-sm text-slate-400">{desc}</p>
+                <p className="font-semibold text-[color:var(--ink)]">{title}</p>
+                <p className="text-sm text-[color:var(--ink-soft)]">{desc}</p>
               </div>
             </div>
           ))}
         </div>
 
-        <h2 className="text-xl font-bold text-white pt-2">The Peak Performance Loop</h2>
+        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">The Peak Performance Loop</h2>
 
-        <div className="glass p-8 space-y-5">
+        <div className="p-card p-8 space-y-5">
           {[
             ["Quantify", "Establish baseline vitals through your biometric device of choice."],
             ["Research", "Access our curated database of cellular peptide compounds."],
@@ -89,26 +89,64 @@ export default function AboutPage() {
             ["Refine", "Track physiological shifts to analyze how your body responds across recovery, cognitive clarity, and output metrics over time."],
           ].map(([title, desc], i) => (
             <div key={title} className="flex gap-4">
-              <span className="font-display text-sm font-bold text-cyan-400 mt-0.5 w-5 flex-shrink-0">
+              <span className="p-serif-italic text-sm text-[color:var(--specimen)] mt-0.5 w-5 flex-shrink-0">
                 {i + 1}.
               </span>
               <div>
-                <p className="font-semibold text-white">{title}</p>
-                <p className="text-sm text-slate-400">{desc}</p>
+                <p className="font-semibold text-[color:var(--ink)]">{title}</p>
+                <p className="text-sm text-[color:var(--ink-soft)]">{desc}</p>
               </div>
             </div>
           ))}
         </div>
 
-        <h2 className="text-xl font-bold text-white pt-2">Join the Evolution</h2>
+        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Our Vendor Vetting Methodology</h2>
+        <p>
+          We do not list a vendor because they offer the highest commission. Every vendor featured on Aura Protocols
+          is manually reviewed against a fixed checklist before any product page goes live:
+        </p>
+        <div className="p-card p-8 space-y-5">
+          {[
+            [
+              "Third-party COA required",
+              "Batch-specific Certificates of Analysis from an accredited lab (ISO 17025 preferred) — in-house testing alone is not sufficient. See our guide on how to read a peptide COA.",
+            ],
+            [
+              "HPLC + mass spec verification",
+              "We look for both purity (HPLC) and identity confirmation (MS) on file, not purity claims alone.",
+            ],
+            [
+              "Recent testing",
+              "COAs older than 18 months are treated as stale — peptides degrade, and testing should reflect current stock.",
+            ],
+            [
+              "Cited claims only",
+              "Studied-benefit statements on product pages are sourced to peer-reviewed literature (PubMed, ClinicalTrials.gov), not marketing copy.",
+            ],
+          ].map(([title, desc]) => (
+            <div key={title} className="flex gap-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] mt-2 flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-[color:var(--ink)]">{title}</p>
+                <p className="text-sm text-[color:var(--ink-soft)]">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-[color:var(--ink-soft)]">
+          As of this writing, Aura Protocols indexes 30+ pages of vendor-reviewed compound data, comparison research,
+          and buyer's guides — every claim traceable back to a primary source.
+        </p>
+
+        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Join the Evolution</h2>
         <p>
           Recovery. Cognitive clarity. Metabolic performance. Whether your research focus spans tissue repair,
           neurological study, or metabolic tracking — the feedback mechanism now exists.
         </p>
         <p>Your data is the compass. Aura Protocols is the map.</p>
-        <p className="font-semibold text-white">Welcome to Aura Protocols.</p>
+        <p className="font-semibold text-[color:var(--ink)]">Welcome to Aura Protocols.</p>
 
-        <p className="text-sm text-slate-500 border-t border-white/5 pt-6">
+        <p className="text-sm text-[color:var(--ink-soft)] border-t border-[color:var(--line)] pt-6">
           All products referenced on this site are intended for in vitro research purposes only and are not intended
           to diagnose, treat, cure, or prevent any disease. Nothing on this site constitutes medical advice. Always
           consult a qualified healthcare professional before use.

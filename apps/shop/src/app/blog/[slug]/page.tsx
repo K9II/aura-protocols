@@ -30,14 +30,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-const categoryColors: Record<string, string> = {
-  Recovery: "text-emerald-400 bg-emerald-400/10",
-  "Weight Management": "text-rose-400 bg-rose-400/10",
-  "Growth & Performance": "text-violet-400 bg-violet-400/10",
-  Wellness: "text-cyan-400 bg-cyan-400/10",
-  "Buyer's Guide": "text-amber-400 bg-amber-400/10",
-};
-
 const BASE_URL = "https://shop.auraprotocols.com";
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -46,7 +38,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   if (!post) notFound();
 
   const related = posts.filter((p) => p.slug !== post.slug).slice(0, 2);
-  const colorClass = categoryColors[post.category] ?? "text-slate-400 bg-slate-400/10";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -61,31 +52,29 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-16">
+    <div className="pharmacopoeia max-w-3xl mx-auto px-6 py-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-slate-500 mb-10">
-        <Link href="/" className="hover:text-white transition-colors">Home</Link>
+      <nav className="flex items-center gap-2 text-sm text-[color:var(--ink-soft)] mb-10">
+        <Link href="/" className="hover:text-[color:var(--ink)] transition-colors">Home</Link>
         <span>/</span>
-        <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
+        <Link href="/blog" className="hover:text-[color:var(--ink)] transition-colors">Blog</Link>
         <span>/</span>
-        <span className="text-slate-300 line-clamp-1">{post.title}</span>
+        <span className="text-[color:var(--ink)] line-clamp-1">{post.title}</span>
       </nav>
 
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${colorClass}`}>
-            {post.category}
-          </span>
-          <span className="text-xs text-slate-500">{post.date}</span>
-          <span className="text-xs text-slate-500">{post.readTime}</span>
+          <span className="p-chip">{post.category}</span>
+          <span className="text-xs text-[color:var(--ink-soft)]">{post.date}</span>
+          <span className="text-xs text-[color:var(--ink-soft)]">{post.readTime}</span>
         </div>
-        <h1 className="text-4xl font-extrabold text-white leading-tight mb-4">{post.title}</h1>
-        <p className="text-slate-400 text-lg leading-relaxed">{post.excerpt}</p>
+        <h1 className="p-serif text-4xl leading-tight mb-4 text-[color:var(--ink)]">{post.title}</h1>
+        <p className="text-[color:var(--ink-soft)] text-lg leading-relaxed">{post.excerpt}</p>
       </div>
 
       {/* Article body */}
@@ -97,16 +86,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {/* Related posts */}
       {related.length > 0 && (
         <div className="mt-20">
-          <h2 className="text-xl font-bold text-white mb-6">More Research</h2>
+          <h2 className="p-serif text-xl mb-6 text-[color:var(--ink)]">More Research</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {related.map((r) => (
-              <Link key={r.slug} href={`/blog/${r.slug}`} className="glass product-card p-5 block">
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${categoryColors[r.category] ?? "text-slate-400 bg-slate-400/10"}`}>
-                  {r.category}
-                </span>
-                <p className="font-bold text-white mt-2 mb-1">{r.title}</p>
-                <p className="text-xs text-slate-400">{r.readTime}</p>
-                <p className="text-xs text-cyan-400 font-semibold mt-3">Read article →</p>
+              <Link key={r.slug} href={`/blog/${r.slug}`} className="p-card block p-5">
+                <span className="p-cat-label">{r.category}</span>
+                <p className="font-semibold text-[color:var(--ink)] mt-2 mb-1">{r.title}</p>
+                <p className="text-xs text-[color:var(--ink-soft)]">{r.readTime}</p>
+                <p className="text-xs text-[color:var(--specimen)] font-semibold mt-3">Read article →</p>
               </Link>
             ))}
           </div>

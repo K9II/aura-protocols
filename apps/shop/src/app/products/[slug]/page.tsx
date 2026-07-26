@@ -30,13 +30,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-const categoryColors: Record<string, string> = {
-  Recovery: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
-  "Body Composition": "text-rose-400 bg-rose-400/10 border-rose-400/20",
-  "Growth & Performance": "text-violet-400 bg-violet-400/10 border-violet-400/20",
-  "Longevity & Wellness": "text-cyan-400 bg-cyan-400/10 border-cyan-400/20",
-};
-
 const BASE_URL = "https://shop.auraprotocols.com";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -47,8 +40,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const related = products.filter(
     (p) => p.category === product.category && p.id !== product.id
   ).slice(0, 2);
-
-  const colorClass = categoryColors[product.category] ?? "text-slate-400 bg-slate-400/10 border-slate-400/20";
 
   const sortedVendors = [...product.vendors].sort((a, b) => {
     const parse = (c: string) => parseFloat(c) || -1;
@@ -72,18 +63,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-16">
+    <div className="pharmacopoeia max-w-4xl mx-auto px-6 py-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-slate-500 mb-10">
-        <Link href="/" className="hover:text-white transition-colors">Home</Link>
+      <nav className="flex items-center gap-2 text-sm text-[color:var(--ink-soft)] mb-10">
+        <Link href="/" className="hover:text-[color:var(--ink)] transition-colors">Home</Link>
         <span>/</span>
-        <Link href="/products" className="hover:text-white transition-colors">Products</Link>
+        <Link href="/products" className="hover:text-[color:var(--ink)] transition-colors">Products</Link>
         <span>/</span>
-        <span className="text-slate-300">{product.name}</span>
+        <span className="text-[color:var(--ink)]">{product.name}</span>
       </nav>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -92,23 +83,21 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           {/* Header */}
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${colorClass}`}>
-                {product.category}
-              </span>
-              {product.badge && <span className="badge">{product.badge}</span>}
+              <span className="p-chip">{product.category}</span>
+              {product.badge && <span className="p-badge">{product.badge}</span>}
             </div>
-            <h1 className="text-4xl font-extrabold text-white mb-4">{product.name}</h1>
-            <p className="text-slate-400 leading-relaxed text-lg">{product.description}</p>
+            <h1 className="p-serif text-4xl mb-4 text-[color:var(--ink)]">{product.name}</h1>
+            <p className="text-[color:var(--ink-soft)] leading-relaxed text-lg">{product.description}</p>
           </div>
 
           {/* Benefits */}
-          <div className="glass p-6">
-            <h2 className="text-sm uppercase tracking-widest text-cyan-400 font-semibold mb-4">Studied Benefits</h2>
+          <div className="p-card p-6">
+            <h2 className="text-sm uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-4">Studied Benefits</h2>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {product.benefits.map((b) => (
-                <li key={b} className="flex items-start gap-3 text-sm text-slate-300">
-                  <span className="w-5 h-5 rounded-full bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <li key={b} className="flex items-start gap-3 text-sm text-[color:var(--ink-soft)]">
+                  <span className="w-5 h-5 border border-[color:var(--specimen)]/40 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)]" />
                   </span>
                   {b}
                 </li>
@@ -117,9 +106,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </div>
 
           {/* Research disclaimer */}
-          <div className="bg-amber-400/5 border border-amber-400/20 rounded-xl p-5">
-            <p className="text-xs font-semibold text-amber-400 uppercase tracking-widest mb-1">Research Use Only</p>
-            <p className="text-sm text-slate-400 leading-relaxed">
+          <div className="p-callout p-5">
+            <p className="text-xs font-semibold text-[color:var(--specimen)] uppercase tracking-widest mb-1">Research Use Only</p>
+            <p className="text-sm text-[color:var(--ink-soft)] leading-relaxed">
               This compound is intended for laboratory and research purposes only. It is not approved for human consumption and is not intended to diagnose, treat, cure, or prevent any disease. Always consult a qualified healthcare professional.
             </p>
           </div>
@@ -127,13 +116,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
         {/* Sidebar — Where to Buy */}
         <div className="order-1 md:order-2 space-y-4">
-          <div className="glass p-6 glow-cyan sticky top-24">
-            <p className="text-xs uppercase tracking-widest text-cyan-400 font-semibold mb-1">Independently Reviewed</p>
-            <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+          <div className="p-card p-6 sticky top-24">
+            <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-1">Independently Reviewed</p>
+            <p className="text-xs text-[color:var(--ink-soft)] mb-5 leading-relaxed">
               We only list vendors that provide third-party, batch-specific COAs.
             </p>
             <VendorCompareList vendors={sortedVendors} productSlug={product.slug} />
-            <p className="text-xs text-slate-600 mt-5 pt-4 border-t border-white/5 leading-relaxed">
+            <p className="text-xs text-[color:var(--ink-soft)] mt-5 pt-4 border-t border-[color:var(--line)] leading-relaxed">
               Affiliate disclosure: links above are affiliate partnerships. We may earn a commission at no cost to you.
             </p>
           </div>
@@ -143,17 +132,17 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       {/* Related products */}
       {related.length > 0 && (
         <div className="mt-20">
-          <h2 className="text-xl font-bold text-white mb-6">Related in {product.category}</h2>
+          <h2 className="p-serif text-xl mb-6 text-[color:var(--ink)]">Related in {product.category}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {related.map((r) => (
               <Link
                 key={r.id}
                 href={`/products/${r.slug}`}
-                className="glass product-card p-5 block"
+                className="p-card block p-5"
               >
-                <p className="font-bold text-white mb-1">{r.name}</p>
-                <p className="text-sm text-slate-400 line-clamp-2">{r.description}</p>
-                <p className="text-xs text-cyan-400 font-semibold mt-3">View product →</p>
+                <p className="font-semibold text-[color:var(--ink)] mb-1">{r.name}</p>
+                <p className="text-sm text-[color:var(--ink-soft)] line-clamp-2">{r.description}</p>
+                <p className="text-xs text-[color:var(--specimen)] font-semibold mt-3">View product →</p>
               </Link>
             ))}
           </div>

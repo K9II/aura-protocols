@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 function Table({ title, rows }: { title: string; rows: Row[] }) {
   return (
     <div className="mb-2">
-      <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-cyan-700">{title}</h3>
+      <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#A32B1F]">{title}</h3>
       <table className="w-full border-collapse text-[10.5px] leading-tight text-slate-700">
         <thead>
           <tr className="border-b border-slate-300 text-[8.5px] uppercase tracking-wide text-slate-400">
@@ -42,7 +42,7 @@ function Table({ title, rows }: { title: string; rows: Row[] }) {
             <tr key={r[0]} className="border-b border-slate-100">
               <td className="py-0.5 pr-1.5 font-semibold text-slate-900">
                 {r[0]}
-                {r[4] && <span className="ml-1 rounded bg-cyan-100 px-1 text-[7px] font-bold text-cyan-700">FDA</span>}
+                {r[4] && <span className="ml-1 rounded bg-[#A32B1F]/10 px-1 text-[7px] font-bold text-[#A32B1F]">FDA</span>}
               </td>
               <td className="py-0.5 pr-1.5">{r[1]}</td>
               <td className="py-0.5 pr-1.5">{r[2]}</td>
@@ -70,18 +70,18 @@ export default function CheatSheetPrintPage() {
       `}</style>
 
       {/* Screen-only toolbar */}
-      <div className="print:hidden bg-[#0d1117] px-6 py-3 text-center text-sm text-slate-300">
+      <div className="print:hidden bg-[#1C1A15] px-6 py-3 text-center text-sm text-[#EDE9E0]">
         Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">Ctrl/Cmd + P</kbd> → “Save as PDF”. In print options enable
         “Background graphics” for the accent colors.
       </div>
 
       <div className="cheat-sheet mx-auto my-6 max-w-[1000px] bg-white px-8 py-6 text-slate-900 shadow-xl print:my-0 print:shadow-none">
         {/* Header */}
-        <header className="flex items-end justify-between border-b-2 border-cyan-400 pb-3">
+        <header className="flex items-end justify-between border-b-2 border-[#A32B1F] pb-3">
           <div className="flex items-center gap-3">
             <AuraMark size={36} mode="static" />
             <span className="font-display text-xl font-bold tracking-tight">
-              Aura <span className="text-cyan-600">Protocols</span>
+              Aura <span className="text-[#A32B1F]">Protocols</span>
             </span>
           </div>
           <div className="text-right">
@@ -109,7 +109,7 @@ export default function CheatSheetPrintPage() {
               </p>
             </div>
 
-            <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-cyan-700">Common Research Stacks</h3>
+            <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#A32B1F]">Common Research Stacks</h3>
             <div className="grid grid-cols-2 gap-2">
               {STACKS.map(([name, desc]) => (
                 <div key={name} className="rounded border border-slate-200 p-2">
@@ -125,7 +125,7 @@ export default function CheatSheetPrintPage() {
             <Table title="Growth & Performance" rows={GROWTH} />
             <Table title="Wellness & Longevity" rows={WELLNESS} />
 
-            <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-cyan-700">Timing Notes</h3>
+            <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#A32B1F]">Timing Notes</h3>
             <table className="mb-2 w-full border-collapse text-[10px] leading-tight text-slate-700">
               <tbody>
                 {TIMING.map(([k, v]) => (
@@ -137,7 +137,7 @@ export default function CheatSheetPrintPage() {
               </tbody>
             </table>
 
-            <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-cyan-700">Mechanism Quick Reference</h3>
+            <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#A32B1F]">Mechanism Quick Reference</h3>
             <ul className="space-y-1 text-[10px] leading-tight text-slate-700">
               {MECHANISMS.map(([k, v]) => (
                 <li key={k}>

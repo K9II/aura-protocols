@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import AuraLockup from "@/components/AuraLockup";
 import EmailCapture from "@/components/EmailCapture";
-import ProtocolSelector from "@/components/ProtocolSelector";
+import ScrollReveal from "@/components/ScrollReveal";
 import { products } from "@/data/products";
 import { posts } from "@/data/posts";
-import { ENGINE_URL, EXTERNAL_REL, LEAD_MAGNET } from "@/lib/constants";
+import { ENGINE_URL, EXTERNAL_REL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Aura Protocols — Research Peptide Protocols, Independently Reviewed",
@@ -23,147 +22,212 @@ const trustChips = [
   "Built on the evidence",
 ];
 
+const standard = [
+  { num: "i.", text: "Every vendor we feature must provide batch-specific COAs from accredited third-party laboratories." },
+  { num: "ii.", text: "We manually review that documentation before listing any product." },
+  { num: "iii.", text: "If a vendor doesn't meet the standard, they don't appear here — regardless of commission rate." },
+];
+
+const howItWorks = [
+  { num: "I.", title: "Connect", body: "Link Whoop, Oura, or Apple Health in about a minute — no new hardware to buy." },
+  { num: "II.", title: "Read", body: "The Engine analyzes your recovery, sleep, and HRV trends." },
+  { num: "III.", title: "Map", body: "It builds a research peptide protocol tuned to that data — dosing, timing, and COA-verified sourcing." },
+  { num: "IV.", title: "Adapt", body: "As your data shifts, the protocol logic shifts with it, instead of staying frozen." },
+];
+
+const indexSlugs = ["bpc-157", "semaglutide", "sermorelin", "retatrutide", "pt-141", "slu-pp-332"];
+const indexMechanisms: Record<string, string> = {
+  "bpc-157": "Tissue repair, gut mucosal healing, joint recovery",
+  semaglutide: "GLP-1 agonist · appetite regulation, glycemic control",
+  sermorelin: "GHRH analogue · natural pituitary GH stimulation",
+  retatrutide: "Triple agonist · GLP-1, GIP, and glucagon receptors",
+  "pt-141": "Melanocortin agonist · central arousal pathway",
+  "slu-pp-332": "ERR pan-agonist · exercise-mimetic metabolic research",
+};
+const indexCategoryLabels: Record<string, string> = {
+  "slu-pp-332": "Longevity & Wellness · New",
+};
+const indexCards = indexSlugs
+  .map((slug) => products.find((p) => p.slug === slug))
+  .filter((p): p is (typeof products)[number] => Boolean(p));
+
 export default function HomePage() {
-  const tickerItems = products.map((p) => ({
-    name: p.name,
-    vendor: p.vendors[0].vendor,
-  }));
+  const tickerItems = products.map((p) => ({ name: p.name, vendor: p.vendors[0].vendor }));
 
   return (
-    <>
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 pt-16 pb-10 md:pt-24">
-        <div className="flex justify-center mb-12">
-          <AuraLockup className="w-full max-w-[340px] h-auto" />
-        </div>
-        <div className="flex flex-col lg:flex-row lg:items-center gap-12">
-
-          {/* Left column */}
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-4">
-              Biometric Intelligence · Peptide Research · Editorially Independent
-            </p>
-            <h1 className="font-display text-4xl font-bold text-white md:text-5xl leading-tight mb-5">
-              The peptide research<br />
-              that matches <em>your</em> data.
-            </h1>
-            <p className="text-slate-400 leading-relaxed mb-8 max-w-xl">
-              Every night, your wearable sequences the signals that define you — HRV, sleep, recovery, glucose.
-              Aura matches that data to the peptide literature and surfaces only the compounds studied against those markers.
-              No stack-of-the-week. We exist to hold peptides to the standard the research deserves — every compound
-              vetted against the literature, every vendor required to provide batch-specific, third-party COAs.
-            </p>
-
-            {/* Trust chips */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {trustChips.map((chip) => (
-                <span
-                  key={chip}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-300 bg-white/[0.04] border border-white/10 rounded-full px-3 py-1.5"
+    <div className="pharmacopoeia">
+      <ScrollReveal />
+      <div className="p-container">
+        {/* Hero */}
+        <section className="hero pt-[52px] pb-16">
+          <div className="grid gap-14 lg:grid-cols-[1.3fr_1fr] items-start">
+            {/* Left column */}
+            <div>
+              <p className="eyebrow-live load-in load-1 text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)] mb-4">
+                Biometric Intelligence · Peptide Research · Editorially Independent
+              </p>
+              <h1 className="load-in load-2 p-serif text-[clamp(34px,4vw,53px)] leading-[1.14] mb-[22px] text-balance">
+                The peptide research that matches <em>your</em> data.
+              </h1>
+              <p className="load-in load-3 text-[16px] text-[color:var(--ink-soft)] max-w-[52ch] mb-[26px]">
+                Every night, your wearable sequences the signals that define you — HRV, sleep, recovery, glucose.
+                Aura matches that data to the peptide literature and surfaces only the compounds studied against
+                those markers. No stack-of-the-week. We exist to hold peptides to the standard the research
+                deserves — every compound vetted against the literature, every vendor required to provide
+                batch-specific, third-party COAs.
+              </p>
+              <div className="flex flex-wrap gap-2.5 mb-[30px]">
+                {trustChips.map((chip, i) => (
+                  <span
+                    key={chip}
+                    className={`p-chip load-in text-[11.5px] tracking-[0.05em] uppercase px-3 py-[7px]`}
+                    style={{ animationDelay: `${0.42 + i * 0.08}s` }}
+                  >
+                    {chip}
+                  </span>
+                ))}
+              </div>
+              <div className="load-in load-6 flex gap-5 items-center">
+                <a
+                  href={ENGINE_URL}
+                  target="_blank"
+                  rel={EXTERNAL_REL}
+                  className="cta-primary text-[13px] tracking-[0.08em] uppercase text-[color:var(--paper)] bg-[color:var(--ink)] px-[22px] py-3 inline-block"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 flex-shrink-0" />
-                  {chip}
-                </span>
-              ))}
+                  Connect your wearable →
+                </a>
+                <a href="#index" className="cta-secondary text-[13px] tracking-[0.08em] uppercase pb-0.5">
+                  Explore the research →
+                </a>
+              </div>
             </div>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-3">
-              <a href={ENGINE_URL} target="_blank" rel={EXTERNAL_REL} className="btn-primary">
-                Connect your wearable →
-              </a>
-              <a href="#protocols" className="btn-outline">
-                Explore the research →
-              </a>
-            </div>
-          </div>
-
-          {/* Right column — compound index ticker */}
-          <div className="lg:w-72 xl:w-80 flex-shrink-0">
-            <div className="glass rounded-2xl overflow-hidden border border-white/8">
-              {/* Header */}
-              <div className="px-5 py-4 border-b border-white/8 flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">Compound Index</p>
-                </div>
+            {/* Right column — compound index ticker */}
+            <div className="load-in load-5 border border-[color:var(--line)] bg-[color:var(--paper-deep)] overflow-hidden">
+              <div className="flex justify-between items-baseline px-[22px] py-[18px] border-b border-[color:var(--line)]">
+                <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Compound Index</p>
                 <div className="text-right">
-                  <p className="text-2xl font-display font-bold text-white">{products.length}</p>
-                  <p className="text-xs text-slate-500">reviewed</p>
+                  <p className="p-serif-italic text-2xl leading-none">{products.length}</p>
+                  <p className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--ink-soft)]">Reviewed</p>
                 </div>
               </div>
 
-              {/* Scrolling ticker */}
-              <div className="h-64 overflow-hidden relative">
-                {/* Fade masks */}
-                <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-[#0d1117] to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#0d1117] to-transparent z-10 pointer-events-none" />
-
-                <div className="animate-scroll-up">
-                  {/* Render twice for seamless loop */}
+              <div className="ticker-viewport h-[268px]">
+                <div className="ticker-track">
                   {[...tickerItems, ...tickerItems].map((item, i) => (
-                    <div
-                      key={i}
-                      className="px-5 py-3 border-b border-white/5 flex items-center justify-between gap-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{item.name}</p>
-                        <p className="text-xs text-slate-500 truncate">{item.vendor}</p>
-                      </div>
-                      <span className="text-xs font-semibold text-emerald-400 flex-shrink-0 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                        COA ✓
+                    <div key={i} className="ticker-row flex justify-between items-baseline gap-3 px-[22px] py-[11px]">
+                      <span className="name text-sm">
+                        <span className="text-[color:var(--specimen)] text-xs mr-1.5">✓</span>
+                        {item.name}
                       </span>
+                      <span className="text-[11.5px] italic text-[color:var(--ink-soft)] flex-shrink-0">{item.vendor}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="px-5 py-3 border-t border-white/8">
-                <p className="text-xs text-slate-600">Updated manually · Every vendor reviewed</p>
+              <div className="px-[22px] py-3 text-[11px] text-[color:var(--ink-soft)] border-t border-[color:var(--line)]">
+                Updated manually · Every vendor reviewed
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Protocol selector */}
-      <section id="protocols" className="mx-auto max-w-6xl px-6 py-10">
-        <ProtocolSelector />
-      </section>
+        {/* Our Standard */}
+        <section className="p-reveal py-16">
+          <div className="text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)] mb-3.5">Our Standard</div>
+          <div className="grid gap-10 md:grid-cols-3">
+            {standard.map((c) => (
+              <div key={c.num} className="flex gap-4">
+                <span className="p-serif-italic text-[22px] text-[color:var(--specimen)] flex-shrink-0">{c.num}</span>
+                <p className="text-[14.5px] text-[color:var(--ink-soft)]">{c.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-      {/* Latest posts */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="font-display text-4xl font-bold text-white">Latest from the library</h2>
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {latestPosts.map((post) => (
-            <Link
-              key={post.slug}
-              href={`/blog/${post.slug}`}
-              className="block rounded-xl border border-white/10 bg-[#0d1117] p-6 transition hover:border-cyan-400/40"
-            >
-              <p className="text-xs font-semibold uppercase tracking-widest text-cyan-300">
-                {post.category}
-              </p>
-              <h3 className="font-display mt-2 text-xl font-bold text-white">{post.title}</h3>
-              <p className="mt-3 line-clamp-3 text-slate-400">{post.excerpt}</p>
+        {/* Compound Index grid */}
+        <section id="index" className="p-reveal py-16">
+          <div className="flex justify-between items-baseline flex-wrap gap-3 mb-[34px]">
+            <h2 className="p-serif text-[28px]">The Compound Index</h2>
+            <Link href="/products" className="p-see-all text-xs tracking-[0.06em] uppercase pb-0.5">
+              View all products →
             </Link>
-          ))}
-        </div>
-      </section>
+          </div>
+          <div className="p-index-grid grid gap-px md:grid-cols-3">
+            {indexCards.map((p) => (
+              <Link key={p.slug} href={`/products/${p.slug}`} className="p-index-card block px-[22px] pt-[22px] pb-5">
+                <div className="text-[10.5px] tracking-[0.1em] uppercase text-[color:var(--specimen)] mb-2.5">
+                  {indexCategoryLabels[p.slug] ?? p.category}
+                </div>
+                <h4 className="p-serif text-[19px] mb-1.5">{p.name}</h4>
+                <p className="text-[13px] italic text-[color:var(--ink-soft)] mb-[18px] min-h-[34px]">
+                  {indexMechanisms[p.slug]}
+                </p>
+                <span className="p-view text-[11.5px] tracking-[0.06em] uppercase border-t border-[color:var(--line)] pt-3 flex items-center gap-1.5">
+                  View product <span className="p-arrow">→</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-      {/* Email */}
-      <section className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">
-          {LEAD_MAGNET.title}
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-slate-300">
-          {LEAD_MAGNET.blurb}
-        </p>
-        <div className="mt-8">
-          <EmailCapture />
-        </div>
-      </section>
-    </>
+        {/* How It Works */}
+        <section className="p-reveal py-16">
+          <div className="text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)] mb-6">How It Works</div>
+          <div className="grid gap-[30px_48px] md:grid-cols-2">
+            {howItWorks.map((step) => (
+              <div key={step.num} className="p-roman flex gap-[18px] pl-[18px]">
+                <span className="p-serif-italic text-xl text-[color:var(--specimen)] w-8 flex-shrink-0">{step.num}</span>
+                <div>
+                  <h5 className="text-[15.5px] mb-1">{step.title}</h5>
+                  <p className="text-[13.5px] text-[color:var(--ink-soft)] m-0">{step.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* From the Blog */}
+        <section className="p-reveal py-16">
+          <div className="flex justify-between items-baseline flex-wrap gap-3 mb-[34px]">
+            <h2 className="p-serif text-[28px]">From the Blog</h2>
+            <Link href="/blog" className="p-see-all text-xs tracking-[0.06em] uppercase pb-0.5">
+              View all posts →
+            </Link>
+          </div>
+          <div>
+            {latestPosts.map((post) => (
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="p-library-entry grid gap-[30px] py-[26px] md:grid-cols-[1fr_3fr]">
+                <div className="text-[11px] tracking-[0.08em] uppercase text-[color:var(--ink-soft)]">
+                  {post.category}
+                  <span className="block mt-1 text-[color:var(--specimen)]">{post.readTime}</span>
+                </div>
+                <div>
+                  <h4 className="p-serif-italic text-[21px] mb-2">{post.title}</h4>
+                  <p className="text-sm text-[color:var(--ink-soft)] max-w-[62ch] m-0">{post.excerpt}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Subscribe */}
+        <section className="p-reveal py-16">
+          <div className="flex justify-between items-center gap-10 flex-wrap">
+            <div>
+              <h2 className="p-serif-italic text-[26px] max-w-[30ch] mb-1.5">Get your peptide starting protocol — free</h2>
+              <p className="text-[13.5px] text-[color:var(--ink-soft)] m-0">
+                Pick your #1 goal and we&apos;ll send a research-backed starting point — doses, timing, and
+                COA-verified sources — to your inbox.
+              </p>
+            </div>
+            <div className="flex-shrink-0 w-full sm:w-auto">
+              <EmailCapture />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }

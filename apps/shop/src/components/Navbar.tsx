@@ -14,62 +14,67 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 glass border-b border-white/5">
-      <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group" aria-label="Aura Protocols home">
-          <AuraMark size={34} mode="once" />
-          <span className="aura-wordmark font-bold text-lg tracking-tight text-white">
-            Aura <span className="gradient-brand">Protocols</span>
-          </span>
-        </Link>
-
-        {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="text-sm font-medium text-slate-400 hover:text-white transition-colors"
-            >
-              {l.label}
-            </Link>
-          ))}
-          <Link href="/products" className="btn-primary text-sm py-2 px-4">
-            Shop Now
+    <header className="pharmacopoeia sticky top-0 z-50">
+      <nav className="p-top">
+        <div className="p-container flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5" aria-label="Aura Protocols home">
+            <AuraMark size={30} mode="loop" />
+            <span className="p-serif-italic text-[21px] tracking-tight">Aura Protocols</span>
           </Link>
-        </div>
 
-        {/* Mobile toggle */}
-        <button
-          className="md:hidden text-slate-400 hover:text-white"
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {open ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+          {/* Desktop links */}
+          <div className="hidden md:flex items-center gap-8">
+            <div className="p-navlinks flex gap-[30px] text-[12.5px] tracking-[0.08em] uppercase text-[color:var(--ink-soft)]">
+              {links.map((l) => (
+                <Link key={l.href} href={l.href}>
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+            <Link
+              href="/products"
+              className="p-nav-cta text-xs tracking-[0.06em] uppercase bg-[color:var(--ink)] text-[color:var(--paper)] px-4 py-2.5"
+            >
+              Shop Now
+            </Link>
+          </div>
+
+          {/* Mobile toggle */}
+          <button
+            className="md:hidden text-[color:var(--ink-soft)] hover:text-[color:var(--ink)]"
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {open ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden glass border-t border-white/5 px-6 py-4 flex flex-col gap-4">
+        <div className="md:hidden border-t border-[color:var(--line)] bg-[color:var(--paper)] px-[28px] py-4 flex flex-col gap-4">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="text-sm font-medium text-slate-400 hover:text-white transition-colors"
+              className="text-sm font-medium text-[color:var(--ink-soft)] hover:text-[color:var(--ink)] transition-colors"
               onClick={() => setOpen(false)}
             >
               {l.label}
             </Link>
           ))}
-          <Link href="/products" className="btn-primary text-sm py-2 px-4 text-center" onClick={() => setOpen(false)}>
+          <Link
+            href="/products"
+            className="p-nav-cta text-xs tracking-[0.06em] uppercase bg-[color:var(--ink)] text-[color:var(--paper)] px-4 py-2.5 text-center"
+            onClick={() => setOpen(false)}
+          >
             Shop Now
           </Link>
         </div>

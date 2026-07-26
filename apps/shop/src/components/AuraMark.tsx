@@ -39,8 +39,8 @@ export default function AuraMark({
     >
       <defs>
         <linearGradient id="auraGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#00d4ff" />
-          <stop offset="100%" stopColor="#8b5cf6" />
+          <stop offset="0%" stopColor="#1C1A15" />
+          <stop offset="100%" stopColor="#A32B1F" />
         </linearGradient>
       </defs>
       <g transform="translate(6,4) skewX(-7)">
@@ -59,11 +59,11 @@ export default function AuraMark({
             <circle
               className="aura-comet"
               r={4}
-              fill="#eafcff"
+              fill="#EDE9E0"
               stroke="none"
               style={{ offsetPath: `path('${PULSE}')` }}
             />
-            <circle className="aura-spark" cx={124} cy={116} r={5} fill="#eafcff" stroke="none" />
+            <circle className="aura-spark" cx={124} cy={116} r={5} fill="#EDE9E0" stroke="none" />
           </>
         )}
       </g>

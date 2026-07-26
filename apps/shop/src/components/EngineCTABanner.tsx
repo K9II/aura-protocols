@@ -14,17 +14,17 @@ export default function EngineCTABanner() {
   }, []);
   if (dismissed) return null;
   return (
-    <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-cyan-500/20 via-violet-500/20 to-cyan-500/20 backdrop-blur border-b border-white/10">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 text-sm text-white">
+    <div className="pharmacopoeia sticky top-0 z-50 w-full bg-[color:var(--ink)] border-b border-[color:var(--line)]">
+      <div className="p-container flex items-center justify-between gap-3 py-2 text-sm text-[color:var(--paper)]">
         <p className="truncate">
-          <span className="font-semibold text-cyan-300">New:</span> {ENGINE_CTA_COPY.banner}
+          <span className="font-semibold text-[color:var(--specimen)]">New:</span> {ENGINE_CTA_COPY.banner}
         </p>
         <div className="flex shrink-0 items-center gap-2">
           <a
             href={ENGINE_URL}
             target="_blank"
             rel={EXTERNAL_REL}
-            className="rounded-md bg-white/10 px-3 py-1 font-medium hover:bg-white/20"
+            className="px-3 py-1 font-medium bg-[color:var(--paper)]/10 hover:bg-[color:var(--paper)]/20"
           >
             {ENGINE_CTA_COPY.bannerAction}
           </a>
@@ -35,7 +35,7 @@ export default function EngineCTABanner() {
               window.localStorage.setItem(KEY, "1");
               setDismissed(true);
             }}
-            className="rounded-md px-2 py-1 text-white/60 hover:text-white"
+            className="px-2 py-1 text-[color:var(--paper)]/60 hover:text-[color:var(--paper)]"
           >
             ×
           </button>
