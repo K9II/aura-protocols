@@ -7,6 +7,7 @@ export const PRODUCT_GUIDES: Record<string, string> = {
   "semaglutide": "/blog/semaglutide-research-guide",
   "tesamorelin": "/blog/tesamorelin-research-guide",
   "aod-9604": "/blog/aod-9604-research-guide",
+  "kpv": "/blog/kpv-research-guide",
 };
 
 export function learnMoreHref(productSlug: string): string {

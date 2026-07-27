@@ -1491,4 +1491,137 @@ export const posts: Post[] = [
       },
     ],
   },
+  {
+    slug: "kpv-research-guide",
+    title: "KPV: The Complete Research Guide",
+    excerpt:
+      "A three-amino-acid fragment of alpha-MSH studied almost entirely in colitis models and human cell lines — with no completed human trials, and a fresh non-binding FDA compounding vote as of July 2026.",
+    category: "Recovery",
+    date: "July 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "KPV is one of the smallest peptides on this site — just three amino acids — and one of the most consistently studied for anti-inflammatory activity outside a human body. The evidence base here is real but narrow: strong, repeated preclinical signal, zero completed human trials, and a regulatory status that moved twice in the last few months. This guide keeps all three of those facts in view at once.",
+      },
+      { type: "h2", text: "What Is KPV?" },
+      {
+        type: "p",
+        text: "KPV (Lysine-Proline-Valine) is a synthetic tripeptide corresponding to residues 11–13 of alpha-melanocyte-stimulating hormone (alpha-MSH) — the C-terminal fragment of the same hormone system that gives rise to compounds like PT-141 and Melanotan II. Unlike those relatives, KPV's research interest isn't in the melanocortin receptor's pigmentation or appetite pathway at all — it's in an anti-inflammatory effect that shows up even when that receptor pathway is blocked.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "The core finding across the KPV literature is that its anti-inflammatory activity is largely independent of the melanocortin-1 receptor (MC1R) that mediates most of alpha-MSH's other effects — one of the original studies found KPV rescued MC1R-deficient mice from colitis just as effectively as normal mice, direct evidence the receptor isn't required for the effect.",
+      },
+      {
+        type: "ul",
+        items: [
+          "PepT1-mediated uptake. KPV is a substrate for PepT1, a di/tripeptide transporter expressed in the small intestine and specifically upregulated in the colon during inflammatory bowel disease — meaning KPV is preferentially taken up exactly where gut inflammation is already active, in both epithelial and immune cells.",
+          "NF-κB and MAPK inhibition. Once inside the cell, nanomolar concentrations of KPV inhibit activation of the NF-κB and MAP kinase pathways — two of the central signaling routes that turn on production of pro-inflammatory cytokines like TNF-α, IL-1β, and IL-6.",
+        ],
+      },
+      {
+        type: "p",
+        text: "In plain terms: KPV doesn't work by activating a hormone receptor the way its parent molecule alpha-MSH does. It gets pulled into inflamed tissue by a transporter that inflammation itself switches on, then quiets the intracellular signaling that keeps the inflammatory response running.",
+      },
+      { type: "h2", text: "Research Evidence" },
+      {
+        type: "callout",
+        text: "Every completed KPV efficacy study to date is preclinical — animal models or isolated human cell lines, not human clinical trials. There is no published human trial demonstrating KPV works as a treatment for any condition.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Murine colitis models. KPV showed significant anti-inflammatory effects in two distinct mouse models of inflammatory bowel disease (DSS colitis and CD45RBhi transfer colitis), reducing inflammatory infiltrates and myeloperoxidase activity, and rescuing MC1R-deficient mice from death during DSS colitis.",
+          "Oral dosing via PepT1. A separate study found oral KPV reduced disease severity, colonic inflammation, and pro-inflammatory cytokine expression in both DSS- and TNBS-induced colitis in mice — notable because it demonstrated an oral route working through the PepT1 transporter, not just injection.",
+          "Colitis-associated cancer model. A 2016 follow-up found KPV reduced colonic tumor formation in a mouse model of colitis-driven cancer, attributed to the same PepT1-mediated anti-inflammatory activity.",
+          "Human cell lines (not human trials). The mechanism work confirming NF-κB/MAPK inhibition and PepT1 uptake was done in human intestinal epithelial cell lines (Caco2-BBE, HT29-CL.19A) and human Jurkat T cells — real human tissue, but isolated cells in a dish, not a human clinical trial.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "KPV is not FDA-approved for any use. Checked directly against FDA's bulk drug substances page for compounding (fetched July 2026): KPV currently sits in the \"nominated but withdrawn\" table, not the active Category 2 restricted table — the same status as BPC-157 and AOD-9604. FDA's own stated reason for flagging it in the first place remains on record: \"FDA has not identified any human exposure data on drug products containing KPV administered via any route of administration... the agency lacks sufficient information to know whether the drug would cause harm when administered to humans.\"",
+      },
+      {
+        type: "callout",
+        text: "On July 23, 2026, an FDA Pharmacy Compounding Advisory Committee (PCAC) panel voted to recommend allowing compounding pharmacies to manufacture KPV, alongside BPC-157, TB-500, and MOTS-c. That vote is non-binding — FDA makes the final call, and it's unusual but not unheard of for the agency to go against a PCAC recommendation. Reporting on the panel noted that a majority of the members who voted yes have ties to the peptide industry, which is worth keeping in mind when weighing how much signal to take from the vote itself.",
+      },
+      {
+        type: "p",
+        text: "FDA's own briefing materials for that panel noted that KPV is commonly sold pre-mixed with BPC-157, TB-500, AOD-9604, and Follistatin-344 as a \"regenerative combo\" for muscle, joint, and cartilage repair — a combination-product framing that isn't itself backed by any human trial data for the blend.",
+      },
+      { type: "h2", text: "Where to Source KPV for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the KPV product page",
+        productSlug: "kpv",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Has KPV been tested in humans?",
+            a: "Not in a completed clinical trial. The evidence base is mouse models of colitis and isolated human cell lines (intestinal epithelial cells and T cells) — real biology, but not a human trial demonstrating the peptide works as a treatment.",
+          },
+          {
+            q: "Is KPV legal to buy?",
+            a: "It's sold as a research-use-only compound, not approved by FDA for human use. A July 2026 FDA advisory panel voted to recommend allowing compounding pharmacies to manufacture it, but that vote is non-binding and FDA has not made a final decision.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Kannengiesser K, Maaser C, Heidemann J, et al. \"Melanocortin-derived tripeptide KPV has anti-inflammatory potential in murine models of inflammatory bowel disease.\" Inflamm Bowel Dis. 2008;14(3):324-31. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/18092346/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Dalmasso G, et al. \"PepT1-mediated tripeptide KPV uptake reduces intestinal inflammation.\" Gastroenterology, 2008. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/18061177/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Dalmasso G, Nguyen HTT, Yan Y, et al. \"Critical role of PepT1 in promoting colitis-associated cancer and therapeutic benefits of the anti-inflammatory PepT1-mediated tripeptide KPV in a murine model.\" Cell Mol Gastroenterol Hepatol. 2016;2(3):340-357. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/27458604/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. FDA. Pharmacy Compounding Advisory Committee Briefing Document — KPV (Free Base) and KPV Acetate, July 2026. ",
+          { href: "https://www.fda.gov/media/193346/download", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. FDA. \"Certain Bulk Drug Substances for Use in Compounding that May Present Significant Safety Risks\" — nominated-but-withdrawn table. ",
+          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. Todd S, Lawrence L. \"In win for RFK Jr., FDA advisory panel narrowly votes to allow compounding of unapproved peptides.\" STAT News, July 23, 2026. ",
+          { href: "https://www.statnews.com/2026/07/23/fda-panel-okays-peptides-compound-pharmacies-bpc-157-kpv/", text: "statnews.com", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
 ];
