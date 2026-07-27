@@ -8,11 +8,11 @@ import { useEffect, useRef } from "react";
 const METRICS = [
   { key: "hrv", label: "HRV", unit: "ms", lo: 15, hi: 70, invert: false, dec: 0 },
   { key: "sleepEff", label: "SLEEP EFF", unit: "%", lo: 55, hi: 95, invert: false, dec: 0 },
-  { key: "sleepHrs", label: "SLEEP", unit: "h", lo: 5, hi: 9, invert: false, dec: 1 },
+  { key: "sleepHrs", label: "SLEEP", unit: "h", lo: 5, hi: 9, invert: false, dec: 1, peptide: { name: "Epithalon", slug: "epithalon" } },
   { key: "rem", label: "REM", unit: "%", lo: 12, hi: 28, invert: false, dec: 0 },
-  { key: "recovery", label: "RECOVERY", unit: "", lo: 20, hi: 95, invert: false, dec: 0 },
+  { key: "recovery", label: "RECOVERY", unit: "", lo: 20, hi: 95, invert: false, dec: 0, peptide: { name: "BPC-157", slug: "bpc-157" } },
   { key: "deepSleep", label: "DEEP SLEEP", unit: "%", lo: 7, hi: 22, invert: false, dec: 0 },
-  { key: "strain", label: "STRAIN", unit: "", lo: 2, hi: 14, invert: true, dec: 1 },
+  { key: "strain", label: "STRAIN", unit: "", lo: 2, hi: 14, invert: true, dec: 1, peptide: { name: "CJC-1295", slug: "cjc-1295-ipamorelin" } },
   { key: "spo2", label: "SPO2", unit: "%", lo: 95, hi: 100, invert: false, dec: 0 },
 ] as const;
 
@@ -49,6 +49,7 @@ type Metric = {
   ringX: number;
   ringY: number;
   ringAngle: number;
+  peptide?: { name: string; slug: string };
 };
 
 type CloudPoint = { x: number; y: number; z: number; phase: number; speed: number };
@@ -119,7 +120,7 @@ export default function BiosignatureSphere() {
     ctx.scale(dpr, dpr);
 
     const cx = W / 2, cy = H / 2;
-    const persp = 460, R = 130, ringR = 260;
+    const persp = 460, R = 130, ringR = 235;
 
     const cloud = makeCloudPoints(110, R);
 
@@ -185,6 +186,15 @@ export default function BiosignatureSphere() {
       el.appendChild(document.createTextNode(m.label));
       el.appendChild(document.createElement("br"));
       el.appendChild(valEl);
+      if (m.peptide) {
+        el.appendChild(document.createElement("br"));
+        const link = document.createElement("a");
+        link.className = "p-biosig-peptide";
+        link.href = `/products/${m.peptide.slug}`;
+        link.textContent = m.peptide.name;
+        link.style.pointerEvents = "auto";
+        el.appendChild(link);
+      }
       labelHost.appendChild(el);
       valueEls[m.key] = valEl;
       return el;
@@ -331,7 +341,7 @@ export default function BiosignatureSphere() {
   }, []);
 
   return (
-    <div className="border border-[color:var(--line)] bg-[color:var(--paper-deep)] overflow-hidden">
+    <div className="border border-[color:var(--line)] overflow-hidden">
       <div className="flex justify-between items-baseline px-[22px] py-[18px] border-b border-[color:var(--line)]">
         <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Your Biosignature</p>
         <span className="text-[color:var(--specimen)] text-[9.5px] tracking-[0.08em] uppercase">
