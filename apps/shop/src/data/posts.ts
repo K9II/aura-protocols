@@ -37,7 +37,7 @@ export const posts: Post[] = [
     excerpt:
       "Whoop, Oura, and Apple Health measure your recovery, sleep, and HRV — then go silent. The Aura Engine turns that data into a research peptide protocol tuned to you.",
     category: "Buyer's Guide",
-    date: "June 2026",
+    date: "July 2026",
     readTime: "9 min read",
     content: [
       {

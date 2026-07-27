@@ -11,17 +11,37 @@ function parseDate(date: string): number {
   return new Date(`1 ${date}`).getTime();
 }
 
-const sortedPosts = [...posts].sort((a, b) => parseDate(b.date) - parseDate(a.date));
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category } = await searchParams;
 
-export default function BlogPage() {
+  const sortedPosts = [...posts]
+    .filter((post) => !category || post.category === category)
+    .sort((a, b) => parseDate(b.date) - parseDate(a.date));
+
   return (
     <div className="pharmacopoeia">
     <div className="max-w-4xl mx-auto px-6 py-16">
       <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">Research Blog</p>
       <h1 className="p-serif text-4xl mb-4 text-[color:var(--ink)]">Latest Articles</h1>
-      <p className="text-[color:var(--ink-soft)] mb-12 leading-relaxed">
+      <p className="text-[color:var(--ink-soft)] mb-6 leading-relaxed">
         Evidence-based guides on research peptides, vendor reviews, and buyer education.
       </p>
+
+      {category && (
+        <div className="flex items-center gap-2 mb-8 text-sm">
+          <span className="text-[color:var(--ink-soft)]">Filtering by</span>
+          <span className="p-cat-label">{category}</span>
+          <Link href="/blog" className="p-link">Clear →</Link>
+        </div>
+      )}
+
+      {sortedPosts.length === 0 && (
+        <p className="text-[color:var(--ink-soft)] mb-12">No articles in this category yet.</p>
+      )}
 
       <div className="space-y-6">
         {sortedPosts.map((post) => (

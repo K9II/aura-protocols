@@ -33,7 +33,14 @@ const socials = [
   },
 ];
 
-const blogCategories = ["Buyer's Guides", "Compound Guides", "Wellness"];
+const blogCategories = [
+  "Recovery",
+  "Body Composition",
+  "Growth & Performance",
+  "Weight Management",
+  "Wellness",
+  "Buyer's Guide",
+];
 
 export default function Footer() {
   return (
@@ -83,7 +90,7 @@ export default function Footer() {
             <ul className="text-[13.5px] space-y-2.5">
               {blogCategories.map((cat) => (
                 <li key={cat} className="text-[color:var(--ink-soft)]">
-                  <Link href="/blog" className="hover:text-[color:var(--ink)] transition-colors">
+                  <Link href={`/blog?category=${encodeURIComponent(cat)}`} className="hover:text-[color:var(--ink)] transition-colors">
                     {cat}
                   </Link>
                 </li>
