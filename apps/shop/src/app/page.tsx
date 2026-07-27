@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import EmailCapture from "@/components/EmailCapture";
 import ScrollReveal from "@/components/ScrollReveal";
+import BiosignatureSphere from "@/components/BiosignatureSphere";
 import { products } from "@/data/products";
 import { posts } from "@/data/posts";
 import { ENGINE_URL, EXTERNAL_REL } from "@/lib/constants";
@@ -111,33 +112,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right column — compound index ticker */}
-            <div className="load-in load-5 border border-[color:var(--line)] bg-[color:var(--paper-deep)] overflow-hidden">
-              <div className="flex justify-between items-baseline px-[22px] py-[18px] border-b border-[color:var(--line)]">
-                <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Compound Index</p>
-                <div className="text-right">
-                  <p className="p-serif-italic text-2xl leading-none">{products.length}</p>
-                  <p className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--ink-soft)]">Reviewed</p>
-                </div>
-              </div>
-
-              <div className="ticker-viewport h-[268px]">
-                <div className="ticker-track">
-                  {[...tickerItems, ...tickerItems].map((item, i) => (
-                    <div key={i} className="ticker-row flex justify-between items-baseline gap-3 px-[22px] py-[11px]">
-                      <span className="name text-sm">
-                        <span className="text-[color:var(--specimen)] text-xs mr-1.5">✓</span>
-                        {item.name}
-                      </span>
-                      <span className="text-[11.5px] italic text-[color:var(--ink-soft)] flex-shrink-0">{item.vendor}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="px-[22px] py-3 text-[11px] text-[color:var(--ink-soft)] border-t border-[color:var(--line)]">
-                Updated manually · Every vendor reviewed
-              </div>
+            {/* Right column — live biosignature sphere */}
+            <div className="load-in load-5">
+              <BiosignatureSphere />
             </div>
           </div>
         </section>
@@ -221,18 +198,47 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Subscribe */}
+        {/* Subscribe + Compound Index */}
         <section className="p-reveal py-16">
-          <div className="flex justify-between items-center gap-10 flex-wrap">
+          <div className="grid gap-14 lg:grid-cols-[1.3fr_1fr] items-start">
             <div>
               <h2 className="p-serif-italic text-[26px] max-w-[30ch] mb-1.5">Get your peptide starting protocol — free</h2>
-              <p className="text-[13.5px] text-[color:var(--ink-soft)] m-0">
+              <p className="text-[13.5px] text-[color:var(--ink-soft)] mb-6 max-w-[52ch]">
                 Pick your #1 goal and we&apos;ll send a research-backed starting point — doses, timing, and
                 COA-verified sources — to your inbox.
               </p>
+              <div className="w-full sm:w-auto">
+                <EmailCapture />
+              </div>
             </div>
-            <div className="flex-shrink-0 w-full sm:w-auto">
-              <EmailCapture />
+
+            {/* Compound Index ticker */}
+            <div className="border border-[color:var(--line)] bg-[color:var(--paper-deep)] overflow-hidden">
+              <div className="flex justify-between items-baseline px-[22px] py-[18px] border-b border-[color:var(--line)]">
+                <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Compound Index</p>
+                <div className="text-right">
+                  <p className="p-serif-italic text-2xl leading-none">{products.length}</p>
+                  <p className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--ink-soft)]">Reviewed</p>
+                </div>
+              </div>
+
+              <div className="ticker-viewport h-[268px]">
+                <div className="ticker-track">
+                  {[...tickerItems, ...tickerItems].map((item, i) => (
+                    <div key={i} className="ticker-row flex justify-between items-baseline gap-3 px-[22px] py-[11px]">
+                      <span className="name text-sm">
+                        <span className="text-[color:var(--specimen)] text-xs mr-1.5">✓</span>
+                        {item.name}
+                      </span>
+                      <span className="text-[11.5px] italic text-[color:var(--ink-soft)] flex-shrink-0">{item.vendor}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="px-[22px] py-3 text-[11px] text-[color:var(--ink-soft)] border-t border-[color:var(--line)]">
+                Updated manually · Every vendor reviewed
+              </div>
             </div>
           </div>
         </section>
