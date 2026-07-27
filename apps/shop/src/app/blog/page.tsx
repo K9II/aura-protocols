@@ -6,6 +6,13 @@ export const metadata = {
   description: "In-depth guides, reviews, and research summaries on the most studied peptides.",
 };
 
+// post.date is a "Month YYYY" string (e.g. "July 2026") — parse to sort newest-first.
+function parseDate(date: string): number {
+  return new Date(`1 ${date}`).getTime();
+}
+
+const sortedPosts = [...posts].sort((a, b) => parseDate(b.date) - parseDate(a.date));
+
 export default function BlogPage() {
   return (
     <div className="pharmacopoeia">
@@ -17,7 +24,7 @@ export default function BlogPage() {
       </p>
 
       <div className="space-y-6">
-        {posts.map((post) => (
+        {sortedPosts.map((post) => (
           <Link key={post.slug} href={`/blog/${post.slug}`} className="p-card block p-6">
             <div className="flex items-center gap-3 mb-3">
               <span className="p-cat-label">{post.category}</span>

@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const latestPosts = posts.slice(0, 3);
+function parseDate(date: string): number {
+  return new Date(`1 ${date}`).getTime();
+}
+
+const latestPosts = [...posts].sort((a, b) => parseDate(b.date) - parseDate(a.date)).slice(0, 3);
 
 const trustChips = [
   "Biometric sequencing",
