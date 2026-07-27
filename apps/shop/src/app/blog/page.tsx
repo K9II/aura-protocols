@@ -20,7 +20,10 @@ export default async function BlogPage({
 
   const sortedPosts = [...posts]
     .filter((post) => !category || post.category === category)
-    .sort((a, b) => parseDate(b.date) - parseDate(a.date));
+    .sort((a, b) => {
+      if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+      return parseDate(b.date) - parseDate(a.date);
+    });
 
   return (
     <div className="pharmacopoeia">

@@ -28,6 +28,9 @@ export type Post = {
   content: Section[];
   wordCount?: number;
   lastUpdated?: string;
+  // If true, this post is pinned first on /blog and in "From the Blog" regardless of
+  // date, ahead of every other post — until explicitly unpinned.
+  pinned?: boolean;
 };
 
 export const posts: Post[] = [
@@ -39,6 +42,7 @@ export const posts: Post[] = [
     category: "Buyer's Guide",
     date: "July 2026",
     readTime: "9 min read",
+    pinned: true,
     content: [
       {
         type: "intro",
