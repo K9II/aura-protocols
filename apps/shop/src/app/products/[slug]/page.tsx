@@ -3,6 +3,7 @@ import Link from "next/link";
 import { products } from "@/data/products";
 import EngineCTACard from "@/components/EngineCTACard";
 import VendorCompareList from "@/components/VendorCompareList";
+import { PRODUCT_GUIDES } from "@/lib/guides";
 
 export function generateStaticParams() {
   return products.map((p) => ({ slug: p.slug }));
@@ -45,6 +46,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     const parse = (c: string) => parseFloat(c) || -1;
     return parse(b.commission) - parse(a.commission);
   });
+
+  const guideHref = PRODUCT_GUIDES[product.slug];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -127,6 +130,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               Affiliate disclosure: links above are affiliate partnerships. We may earn a commission at no cost to you.
             </p>
           </div>
+          {guideHref && (
+            <Link href={guideHref} className="p-link text-xs flex items-center gap-1.5 px-1">
+              ← Back to the full research guide
+            </Link>
+          )}
         </div>
       </div>
 
