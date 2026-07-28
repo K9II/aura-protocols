@@ -2,30 +2,32 @@
 
 import { useEffect, useRef } from "react";
 
-// Mirrors the real Engine's BiosignaturePanel axes/bounds (apps/engine RecommendationCard.tsx) —
-// same 8 fields, same normalization ranges. Values here are simulated (no wearable connected
-// on the marketing site); this is a preview of what the sphere becomes once one is.
+// Drawn from the real Engine's tracked biometric fields (apps/engine/src/lib/terra/schema.ts,
+// BiometricSnapshot) — broadened beyond the real BiosignaturePanel's 8-axis radar (which is
+// sleep-heavy: 4 of its 8 axes are sleep stages) so more product categories can be represented.
+// Values here are simulated (no wearable connected on the marketing site).
 const METRICS = [
   { key: "hrv", label: "HRV", unit: "ms", lo: 15, hi: 70, invert: false, dec: 0 },
-  { key: "sleepEff", label: "SLEEP EFF", unit: "%", lo: 55, hi: 95, invert: false, dec: 0 },
-  { key: "sleepHrs", label: "SLEEP", unit: "h", lo: 5, hi: 9, invert: false, dec: 1, peptide: { name: "Epithalon", slug: "epithalon" } },
-  { key: "rem", label: "REM", unit: "%", lo: 12, hi: 28, invert: false, dec: 0 },
+  { key: "glucose", label: "GLUCOSE", unit: "", lo: 72, hi: 118, invert: true, dec: 0, peptide: { name: "Semaglutide", slug: "semaglutide" } },
+  { key: "vo2max", label: "VO2 MAX", unit: "", lo: 30, hi: 55, invert: false, dec: 0, peptide: { name: "SLU-PP-332", slug: "slu-pp-332" } },
   { key: "recovery", label: "RECOVERY", unit: "", lo: 20, hi: 95, invert: false, dec: 0, peptide: { name: "BPC-157", slug: "bpc-157" } },
-  { key: "deepSleep", label: "DEEP SLEEP", unit: "%", lo: 7, hi: 22, invert: false, dec: 0 },
+  { key: "bodyFat", label: "BODY FAT", unit: "%", lo: 10, hi: 28, invert: true, dec: 1, peptide: { name: "Tesamorelin", slug: "tesamorelin" } },
   { key: "strain", label: "STRAIN", unit: "", lo: 2, hi: 14, invert: true, dec: 1, peptide: { name: "CJC-1295", slug: "cjc-1295-ipamorelin" } },
+  { key: "sleepHrs", label: "SLEEP", unit: "h", lo: 5, hi: 9, invert: false, dec: 1, peptide: { name: "Epithalon", slug: "epithalon" } },
   { key: "spo2", label: "SPO2", unit: "%", lo: 95, hi: 100, invert: false, dec: 0 },
 ] as const;
 
 type MetricKey = (typeof METRICS)[number]["key"];
 
-// Same correlation pairs the Engine's tension detector actually runs (overreaching /
-// sleep-quality / restorative), see apps/engine/src/lib/recommend/tension.ts.
+// The overreaching triad (HRV/Recovery/Strain) mirrors the Engine's real tension detector
+// (apps/engine/src/lib/recommend/tension.ts). The other two are illustrative correlations
+// using the broader metric set above, not literal detector output.
 const TENSIONS: { a: MetricKey; b: MetricKey; sev: "watch" | "elevated" | "high"; text: string }[] = [
   { a: "hrv", b: "recovery", sev: "elevated", text: "HRV + RECOVERY — overreaching signal" },
   { a: "hrv", b: "strain", sev: "watch", text: "HRV + STRAIN — overreaching signal" },
   { a: "recovery", b: "strain", sev: "high", text: "RECOVERY + STRAIN — overreaching signal" },
-  { a: "sleepEff", b: "rem", sev: "watch", text: "SLEEP EFF + REM — sleep-quality link" },
-  { a: "deepSleep", b: "recovery", sev: "watch", text: "DEEP SLEEP + RECOVERY — restorative link" },
+  { a: "glucose", b: "bodyFat", sev: "watch", text: "GLUCOSE + BODY FAT — metabolic link" },
+  { a: "vo2max", b: "recovery", sev: "watch", text: "VO2 MAX + RECOVERY — aerobic-capacity link" },
 ];
 const SEV_OPACITY: Record<string, number> = { watch: 0.35, elevated: 0.62, high: 1.0 };
 
@@ -120,7 +122,7 @@ export default function BiosignatureSphere() {
     ctx.scale(dpr, dpr);
 
     const cx = W / 2, cy = H / 2;
-    const persp = 460, R = 130, ringR = 235;
+    const persp = 460, R = 130, ringR = 220;
 
     const cloud = makeCloudPoints(110, R);
 

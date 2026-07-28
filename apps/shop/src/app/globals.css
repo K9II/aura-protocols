@@ -359,8 +359,8 @@ h1, h2, h3 {
 .pharmacopoeia .ticker-viewport { overflow: hidden; position: relative; }
 .pharmacopoeia .ticker-viewport::before,
 .pharmacopoeia .ticker-viewport::after { content: ''; position: absolute; inset-inline: 0; height: 28px; z-index: 2; pointer-events: none; }
-.pharmacopoeia .ticker-viewport::before { top: 0; background: linear-gradient(var(--paper-deep), transparent); }
-.pharmacopoeia .ticker-viewport::after { bottom: 0; background: linear-gradient(transparent, var(--paper-deep)); }
+.pharmacopoeia .ticker-viewport::before { top: 0; background: linear-gradient(var(--paper), transparent); }
+.pharmacopoeia .ticker-viewport::after { bottom: 0; background: linear-gradient(transparent, var(--paper)); }
 @media (prefers-reduced-motion: no-preference) {
   @keyframes tickerScroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
   .pharmacopoeia .ticker-track { animation: tickerScroll 26s linear infinite; }
@@ -421,7 +421,11 @@ h1, h2, h3 {
 .pharmacopoeia .p-cat-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--specimen); }
 
 /* biosignature sphere — fixed-ring metric labels overlaid on the canvas */
-.pharmacopoeia .p-biosig-label { position: absolute; font-size: 9px; letter-spacing: 0.03em; white-space: nowrap; color: var(--ink-soft); pointer-events: none; line-height: 1.25; }
+.pharmacopoeia .p-biosig-label { position: absolute; font-size: 11px; letter-spacing: 0.03em; white-space: nowrap; color: var(--ink-soft); pointer-events: none; line-height: 1.3; }
 .pharmacopoeia .p-biosig-label .v { color: var(--ink); font-weight: 600; }
-.pharmacopoeia .p-biosig-peptide { display: inline-block; margin-top: 1px; font-style: italic; font-size: 9px; color: var(--specimen); text-decoration: none; border-bottom: 1px solid rgba(163, 43, 31, 0.35); transition: border-color 0.2s ease; }
+.pharmacopoeia .p-biosig-peptide { display: inline-block; margin-top: 2px; font-style: italic; font-size: 12px; color: var(--specimen); text-decoration: none; border-bottom: 1px solid rgba(163, 43, 31, 0.35); transition: border-color 0.2s ease; }
 .pharmacopoeia .p-biosig-peptide:hover { border-color: var(--specimen); }
+@media (max-width: 640px) {
+  .pharmacopoeia .p-biosig-label { font-size: 8.5px; }
+  .pharmacopoeia .p-biosig-peptide { font-size: 8.5px; }
+}

@@ -70,7 +70,7 @@ export default function HomePage() {
       <div className="p-container">
         {/* Hero */}
         <section className="hero pt-[52px] pb-16">
-          <div className="grid gap-14 lg:grid-cols-[1.3fr_1fr] items-start">
+          <div className="grid gap-14 lg:grid-cols-[1.15fr_1fr] items-start">
             {/* Left column */}
             <div>
               <p className="eyebrow-live load-in load-1 text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)] mb-4">
@@ -97,16 +97,16 @@ export default function HomePage() {
                   </span>
                 ))}
               </div>
-              <div className="load-in load-6 flex gap-5 items-center">
+              <div className="load-in load-6 flex flex-wrap gap-5 items-center">
                 <a
                   href={ENGINE_URL}
                   target="_blank"
                   rel={EXTERNAL_REL}
-                  className="cta-primary text-[13px] tracking-[0.08em] uppercase text-[color:var(--paper)] bg-[color:var(--ink)] px-[22px] py-3 inline-block"
+                  className="cta-primary whitespace-nowrap text-[13px] tracking-[0.08em] uppercase text-[color:var(--paper)] bg-[color:var(--ink)] px-[22px] py-3 inline-block"
                 >
                   Connect your wearable →
                 </a>
-                <a href="#index" className="cta-secondary text-[13px] tracking-[0.08em] uppercase pb-0.5">
+                <a href="#index" className="cta-secondary whitespace-nowrap text-[13px] tracking-[0.08em] uppercase pb-0.5">
                   Explore the research →
                 </a>
               </div>
@@ -213,7 +213,7 @@ export default function HomePage() {
             </div>
 
             {/* Compound Index ticker */}
-            <div className="border border-[color:var(--line)] bg-[color:var(--paper-deep)] overflow-hidden">
+            <div className="border border-[color:var(--line)] overflow-hidden">
               <div className="flex justify-between items-baseline px-[22px] py-[18px] border-b border-[color:var(--line)]">
                 <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Compound Index</p>
                 <div className="text-right">
