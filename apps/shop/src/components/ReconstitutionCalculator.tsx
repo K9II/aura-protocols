@@ -27,6 +27,7 @@ function floor1(n: number): number {
 }
 
 type DropdownFieldProps = {
+  id: string;
   label: string;
   unit: string;
   options: string[];
@@ -37,6 +38,7 @@ type DropdownFieldProps = {
 };
 
 function DropdownField({
+  id,
   label,
   unit,
   options,
@@ -45,12 +47,17 @@ function DropdownField({
   onSelectChange,
   onCustomChange,
 }: DropdownFieldProps) {
+  const customInputId = `${id}-custom`;
   return (
     <div className="mb-[18px]">
-      <label className="block text-[10.5px] uppercase tracking-[0.08em] text-[color:var(--ink-soft)] mb-1.5">
+      <label
+        htmlFor={id}
+        className="block text-[10.5px] uppercase tracking-[0.08em] text-[color:var(--ink-soft)] mb-1.5"
+      >
         {label}
       </label>
       <select
+        id={id}
         className="p-calc-select w-full bg-transparent border-0 border-b border-[color:var(--line)] pr-5 pl-0.5 py-2 text-base text-[color:var(--ink)] focus:outline-none focus:border-[color:var(--specimen)]"
         value={selectValue}
         onChange={(e) => onSelectChange(e.target.value)}
@@ -64,7 +71,11 @@ function DropdownField({
       </select>
       {selectValue === "custom" && (
         <div className="mt-2 flex items-baseline gap-2">
+          <label htmlFor={customInputId} className="sr-only">
+            Custom {label}
+          </label>
           <input
+            id={customInputId}
             type="number"
             min="0"
             step="any"
@@ -104,6 +115,7 @@ export default function ReconstitutionCalculator() {
         <p className="text-[11px] uppercase tracking-[0.16em] text-[color:var(--specimen)] mb-5">Inputs</p>
 
         <DropdownField
+          id="vial-strength"
           label="Vial Strength"
           unit="mg"
           options={VIAL_OPTIONS}
@@ -113,6 +125,7 @@ export default function ReconstitutionCalculator() {
           onCustomChange={setVialCustom}
         />
         <DropdownField
+          id="bac-water"
           label="Bacteriostatic Water"
           unit="ml"
           options={WATER_OPTIONS}
@@ -122,6 +135,7 @@ export default function ReconstitutionCalculator() {
           onCustomChange={setWaterCustom}
         />
         <DropdownField
+          id="target-dose"
           label="Target Dose"
           unit="mg"
           options={DOSE_OPTIONS}
@@ -131,10 +145,10 @@ export default function ReconstitutionCalculator() {
           onCustomChange={setDoseCustom}
         />
 
-        <div>
-          <p className="text-[10.5px] uppercase tracking-[0.08em] text-[color:var(--ink-soft)] mb-2">
+        <fieldset className="border-0 p-0 m-0">
+          <legend className="p-0 text-[10.5px] uppercase tracking-[0.08em] text-[color:var(--ink-soft)] mb-2">
             Syringe Size
-          </p>
+          </legend>
           <div className="flex flex-col gap-2.5">
             {SYRINGES.map((s) => (
               <label
@@ -156,7 +170,7 @@ export default function ReconstitutionCalculator() {
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
       </div>
 
       {/* Result */}
