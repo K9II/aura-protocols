@@ -93,13 +93,13 @@ function DropdownField({
 }
 
 export default function ReconstitutionCalculator() {
-  const [vialSelect, setVialSelect] = useState("5");
+  const [vialSelect, setVialSelect] = useState("10");
   const [vialCustom, setVialCustom] = useState("");
-  const [waterSelect, setWaterSelect] = useState("2");
+  const [waterSelect, setWaterSelect] = useState("3");
   const [waterCustom, setWaterCustom] = useState("");
-  const [doseSelect, setDoseSelect] = useState("0.5");
+  const [doseSelect, setDoseSelect] = useState("2");
   const [doseCustom, setDoseCustom] = useState("");
-  const [syringeMax, setSyringeMax] = useState<SyringeSize>(50);
+  const [syringeMax, setSyringeMax] = useState<SyringeSize>(100);
 
   const vialMg = resolveField(vialSelect, vialCustom);
   const waterMl = resolveField(waterSelect, waterCustom);
