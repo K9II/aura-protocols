@@ -31,7 +31,7 @@ Pharmacopoeia paper theme (`--paper #EDE9E0`, `--paper-deep #E2DCCC`, `--ink #1C
 
 - Left column: the four inputs, in order — Vial Strength, Bacteriostatic Water, Target Dose (all dropdown-with-custom, see below), then Syringe Size (radio group, stacked vertically — a horizontal row was tried first and overflowed the narrow column, see CSS note below).
 - Right column, separated by a vertical rule: the Result block — big serif-italic headline number, a one-line label under it, the syringe gauge, then a two-item stat row (Concentration, Doses / Vial).
-- Below the card: the Research Use Only + calculator-math disclaimer (see Disclaimers), then a light CTA linking to `/products`.
+- Below the card, in order: the "How This Is Calculated" explainer (see below), the Research Use Only + calculator-math disclaimer (see Disclaimers), then a light CTA linking to `/products`.
 
 **CSS grid pitfall to carry into implementation:** the two-column card is `display:grid; grid-template-columns:1fr 1fr`. Grid items default to `min-width:auto`, which lets wide content (the syringe-size radio row) force its track wider than its `1fr` share and overflow the card's edge. Fix: `min-width:0` on both direct grid children. This was the literal bug hit and fixed during mockup review — implement it correctly the first time rather than rediscovering it.
 
@@ -73,6 +73,16 @@ Even division across `injections` shots (e.g. a 96-unit total dose on a 50-unit 
 - **Multi-injection case:** big number reads `"{injections} × {unitsPerInjection} units"`, label reads `"as {injections} separate injections on a {syringeMax}-unit ({ml}ml) syringe"`, and an additional explanatory line appears below the gauge: `"Total dose is {units} units — more than a {syringeMax}-unit syringe holds in one draw. Split into {injections} injections of {unitsPerInjection} units each (drawn separately, same concentration)."`
 - **Syringe gauge:** a horizontal bar (track in `--paper-deep`, fill in `--specimen` at reduced opacity) plus a round marker ("needle") positioned at the fill percentage, with tick labels at 0 / half / max of the syringe's own scale (0/15/30, 0/25/50, or 0/50/100 depending on which syringe is selected). The gauge always reflects **one injection's worth** — in the split case, that's `unitsPerInjection`, not the raw total, since that's what's actually visible on the syringe barrel at draw time.
 - **Stat row:** Concentration (`X.XX mg/ml`) and Doses / Vial (`vialMg / doseMg`, floored to 1 decimal).
+
+## How This Is Calculated (page section)
+
+A short, static explainer section below the calculator card — the "light explainer" chosen over both a bare calculator and the reference site's full methodology/FAQ/troubleshooting treatment. Not interactive, not tied to the user's current inputs. Content:
+
+- A three-line worked example walking through the same formula as the Calculation section above, using fixed sample numbers (e.g. "5mg vial ÷ 2ml water = 2.5 mg/ml. A 0.5mg dose ÷ 2.5 mg/ml = 0.2ml = 20 units on a U-100 scale."), styled as the page's `p-roman`/numbered-step pattern already used in the homepage's "How It Works" section (`I. / II. / III.`) for visual consistency.
+- One line noting the 100-units-per-ml convention holds across all three syringe sizes (30u/50u/100u), since that's the one non-obvious constant the formula depends on.
+- One line on the multi-injection split, in plain language (e.g. "If a dose needs more units than your syringe holds, the calculator splits it into equal injections instead of overfilling.").
+
+Scoped deliberately short — three short paragraphs/steps, not a full "Understanding Peptide Dosing" article. No FAQ, no troubleshooting matrix, no related-tool cards (still out of scope per Non-goals).
 
 ## Disclaimers
 
