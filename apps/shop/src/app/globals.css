@@ -366,7 +366,6 @@ h1, h2, h3 {
   .pharmacopoeia .ticker-track { animation: tickerScroll 26s linear infinite; }
   .pharmacopoeia .ticker-viewport:hover .ticker-track { animation-play-state: paused; }
 }
-.pharmacopoeia .ticker-row { border-bottom: 1px solid var(--line); }
 
 /* biosignature sphere — live-indicator dot */
 .pharmacopoeia .p-live-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--specimen); margin-right: 5px; vertical-align: middle; }

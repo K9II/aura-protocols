@@ -6,10 +6,11 @@ import { useEffect, useRef } from "react";
 // BiometricSnapshot) — broadened beyond the real BiosignaturePanel's 8-axis radar (which is
 // sleep-heavy: 4 of its 8 axes are sleep stages) so more product categories can be represented.
 // Values here are simulated (no wearable connected on the marketing site).
+// Order matters — index 0 sits at the top of the ring, then clockwise from there.
 const METRICS = [
+  { key: "vo2max", label: "VO2 MAX", unit: "", lo: 30, hi: 55, invert: false, dec: 0, peptide: { name: "SLU-PP-332", slug: "slu-pp-332" } },
   { key: "hrv", label: "HRV", unit: "ms", lo: 15, hi: 70, invert: false, dec: 0 },
   { key: "glucose", label: "GLUCOSE", unit: "", lo: 72, hi: 118, invert: true, dec: 0, peptide: { name: "Semaglutide", slug: "semaglutide" } },
-  { key: "vo2max", label: "VO2 MAX", unit: "", lo: 30, hi: 55, invert: false, dec: 0, peptide: { name: "SLU-PP-332", slug: "slu-pp-332" } },
   { key: "recovery", label: "RECOVERY", unit: "", lo: 20, hi: 95, invert: false, dec: 0, peptide: { name: "BPC-157", slug: "bpc-157" } },
   { key: "bodyFat", label: "BODY FAT", unit: "%", lo: 10, hi: 28, invert: true, dec: 1, peptide: { name: "Tesamorelin", slug: "tesamorelin" } },
   { key: "strain", label: "STRAIN", unit: "", lo: 2, hi: 14, invert: true, dec: 1, peptide: { name: "CJC-1295", slug: "cjc-1295-ipamorelin" } },
@@ -263,13 +264,6 @@ export default function BiosignatureSphere() {
       metrics.forEach((m) => {
         const q = rotateX(rotateY(m.pos, angle), wobble);
         const p = project(q.x, q.y, q.z);
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(m.ringX, m.ringY);
-        ctx.strokeStyle = `rgba(${INK},0.16)`;
-        ctx.lineWidth = 0.6;
-        ctx.stroke();
-
         const n = normOf(m);
         ctx.globalAlpha = 0.4 + 0.5 * n;
         ctx.beginPath();
@@ -295,23 +289,6 @@ export default function BiosignatureSphere() {
       ctx.lineTo(pb.x, pb.y);
       ctx.strokeStyle = `rgba(${SPECIMEN},${(tAlpha * 0.75).toFixed(3)})`;
       ctx.lineWidth = 1.4;
-      ctx.stroke();
-
-      [ma, mb].forEach((m) => {
-        const q = rotateX(rotateY(m.pos, angle), wobble);
-        const p = project(q.x, q.y, q.z);
-        ctx.beginPath();
-        ctx.moveTo(m.ringX, m.ringY);
-        ctx.lineTo(p.x, p.y);
-        ctx.strokeStyle = `rgba(${SPECIMEN},${(tAlpha * 0.55).toFixed(3)})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      });
-
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, ringR, ringR * 0.72, 0, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(${INK},0.08)`;
-      ctx.lineWidth = 1;
       ctx.stroke();
 
       if (now - lastDom > 90) {
@@ -343,8 +320,8 @@ export default function BiosignatureSphere() {
   }, []);
 
   return (
-    <div className="border border-[color:var(--line)] overflow-hidden">
-      <div className="flex justify-between items-baseline px-[22px] py-[18px] border-b border-[color:var(--line)]">
+    <div className="overflow-hidden">
+      <div className="flex justify-between items-baseline px-[22px] py-[18px]">
         <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Your Biosignature</p>
         <span className="text-[color:var(--specimen)] text-[9.5px] tracking-[0.08em] uppercase">
           <span className="p-live-dot" />
@@ -355,7 +332,7 @@ export default function BiosignatureSphere() {
         <canvas ref={canvasRef} className="block w-full h-auto" />
         <div ref={labelHostRef} className="absolute inset-0" />
       </div>
-      <div className="px-[22px] py-3 border-t border-[color:var(--line)] text-[10.5px] text-[color:var(--ink-soft)] flex items-center gap-2 min-h-[38px]">
+      <div className="px-[22px] py-3 text-[10.5px] text-[color:var(--ink-soft)] flex items-center gap-2 min-h-[38px]">
         <span ref={sevDotRef} className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] flex-shrink-0" />
         <span ref={tensionTextRef} className="transition-opacity duration-300">
           Scanning for correlations&hellip;

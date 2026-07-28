@@ -213,8 +213,8 @@ export default function HomePage() {
             </div>
 
             {/* Compound Index ticker */}
-            <div className="border border-[color:var(--line)] overflow-hidden">
-              <div className="flex justify-between items-baseline px-[22px] py-[18px] border-b border-[color:var(--line)]">
+            <div className="overflow-hidden">
+              <div className="flex justify-between items-baseline px-[22px] py-[18px]">
                 <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Compound Index</p>
                 <div className="text-right">
                   <p className="p-serif-italic text-2xl leading-none">{products.length}</p>
@@ -236,7 +236,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="px-[22px] py-3 text-[11px] text-[color:var(--ink-soft)] border-t border-[color:var(--line)]">
+              <div className="px-[22px] py-3 text-[11px] text-[color:var(--ink-soft)]">
                 Updated manually · Every vendor reviewed
               </div>
             </div>
