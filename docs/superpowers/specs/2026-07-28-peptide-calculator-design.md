@@ -11,7 +11,7 @@ Aura wants a "Reconstitution Calculator" page, modeled functionally on a competi
 ## Non-goals
 
 - No compound presets or auto-fill (e.g. "click BPC-157 to fill typical values"). Manual entry only, everything computed from the numbers the user enters.
-- No FAQ, troubleshooting matrix, or "related tools" section — the reference site has these, Aura's version doesn't. Keep the page lean, matching the terse style of `/about` and `/privacy`.
+- No troubleshooting matrix or "related tools" section — the reference site has these, Aura's version doesn't. (FAQ *is* in scope, see below — reversed from the original "lean page" call once the user asked to reuse the reference site's Q&As.)
 - No dosing/medical advice of any kind — the tool computes concentration math from user-supplied numbers only. It never suggests what dose is appropriate, safe, or effective.
 - No commission/price data anywhere on the page (standing site-wide rule).
 - Not touching `ProductCard.tsx` or `data/products.ts`.
@@ -31,7 +31,7 @@ Pharmacopoeia paper theme (`--paper #EDE9E0`, `--paper-deep #E2DCCC`, `--ink #1C
 
 - Left column: the four inputs, in order — Vial Strength, Bacteriostatic Water, Target Dose (all dropdown-with-custom, see below), then Syringe Size (radio group, stacked vertically — a horizontal row was tried first and overflowed the narrow column, see CSS note below).
 - Right column, separated by a vertical rule: the Result block — big serif-italic headline number, a one-line label under it, the syringe gauge, then a two-item stat row (Concentration, Doses / Vial).
-- Below the card, in order: the "How This Is Calculated" explainer, the "Sources" citations, the Research Use Only + calculator-math disclaimer (see Disclaimers), then a light CTA linking to `/products`.
+- Below the card, in order: the "How This Is Calculated" explainer, the "Sources" citations, the "FAQ", the Research Use Only + calculator-math disclaimer (see Disclaimers), then a light CTA linking to `/products`.
 
 **CSS grid pitfall to carry into implementation:** the two-column card is `display:grid; grid-template-columns:1fr 1fr`. Grid items default to `min-width:auto`, which lets wide content (the syringe-size radio row) force its track wider than its `1fr` share and overflow the card's edge. Fix: `min-width:0` on both direct grid children. This was the literal bug hit and fixed during mockup review — implement it correctly the first time rather than rediscovering it.
 
@@ -82,7 +82,26 @@ A short, static explainer section below the calculator card — the "light expla
 - One line noting the 100-units-per-ml convention holds across all three syringe sizes (30u/50u/100u), since that's the one non-obvious constant the formula depends on.
 - One line on the multi-injection split, in plain language (e.g. "If a dose needs more units than your syringe holds, the calculator splits it into equal injections instead of overfilling.").
 
-Scoped deliberately short — three short paragraphs/steps, not a full "Understanding Peptide Dosing" article. No FAQ, no troubleshooting matrix, no related-tool cards (still out of scope per Non-goals).
+Scoped deliberately short — three short paragraphs/steps, not a full "Understanding Peptide Dosing" article. Still no troubleshooting matrix or related-tool cards (out of scope per Non-goals).
+
+## FAQ (page section)
+
+Reuses the reference site's 8 Q&As verbatim (generic concentration-math/syringe-standard content, not proprietary to their page) — no need to invent new ones. Rendered with the site's **existing** FAQ pattern already used on blog posts (`PostBody.tsx`'s `"faq"` case) rather than the reference site's `<details>/<summary>` accordion: `h2` "Frequently Asked Questions", then a `space-y-4` stack of `.p-card p-5` blocks, each a bold question (`p.font-semibold`) over an ink-soft answer paragraph — always-expanded, no accordion JS, consistent with how every other FAQ on the site already renders. This is hand-authored JSX in `calculator/page.tsx` (same classes, not routed through `PostBody`, since the calculator page isn't a `posts.ts` entry).
+
+No `FAQPage` JSON-LD — the site's existing blog-post FAQs don't carry that schema either (only `Article` schema), so this stays consistent with current site behavior rather than introducing a new structured-data pattern.
+
+Content (verbatim from the reference site, verified against its live HTML):
+
+1. **How do I convert a peptide dose into syringe units?** First calculate concentration in mg per mL, then convert that concentration into mg per unit on a U-100 insulin syringe. This calculator performs those steps automatically from vial size, reconstitution volume, and target dose.
+2. **Does syringe size change the mg-per-unit math?** No. U-100 insulin syringes use the same 100-units-per-mL standard across 30-unit, 50-unit, and 100-unit syringe bodies. Syringe size changes visual range and handling comfort, not the underlying per-unit volume.
+3. **What if my target dose is less than 2 units?** Very small doses are harder to measure accurately. The usual fix is to lower concentration by adding more diluent or switch to a syringe that gives better practical readability for the same U-100 standard.
+4. **Why does concentration matter more than vial size alone?** Vial size does not determine dose by itself. The practical dose per unit depends on how much peptide is in the vial and how much liquid was added during reconstitution.
+5. **Can I use this calculator for tirzepatide, semaglutide, and BPC-157?** Yes. The calculator handles the concentration math for any peptide where you know the total vial amount, the reconstitution volume, and the target dose.
+6. **Is bacteriostatic water different from saline or sterile water?** Yes. BAC water includes 0.9% benzyl alcohol as a bacteriostatic preservative, while sterile water has no preservative and saline has sodium chloride instead. Solvent choice changes handling workflow and may change practical stability expectations.
+7. **Can I rely on the example rows as dosing instructions?** No. The example rows are calculation examples only. They show how concentration and syringe math work; they are not medical, prescribing, or protocol instructions.
+8. **Why does the page emphasize U-100 insulin syringes?** Because they are the most common syringe format used for this style of calculation. Their fixed 0.01 mL per unit standard makes conversion logic consistent and easier to explain.
+
+Placed after Sources and before the Disclaimers block in page order.
 
 ## Sources (page section)
 
