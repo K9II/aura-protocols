@@ -71,12 +71,12 @@ const SOURCES = [
   {
     text: "2. DailyMed: Bacteriostatic Water for Injection.",
     href: "https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=87d6e9dc-fe3b-4593-ac9a-d7493d1959c7&type=display",
-    label: "DailyMed",
+    label: "DailyMed — BAC Water",
   },
   {
     text: "3. DailyMed: Sterile Water for Injection.",
     href: "https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=88403fcf-a276-42c0-88b6-bd84a720b564&type=display",
-    label: "DailyMed",
+    label: "DailyMed — Sterile Water",
   },
   {
     text: "4. CDC Injection Safety — Clinical Guidance.",
