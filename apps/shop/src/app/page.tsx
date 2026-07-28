@@ -160,7 +160,10 @@ export default function HomePage() {
 
         {/* How It Works */}
         <section className="p-reveal py-16">
-          <div className="text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)] mb-6">How It Works</div>
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)]">How It Works</span>
+            <span className="p-badge">Under Development</span>
+          </div>
           <div className="grid gap-[30px_48px] md:grid-cols-2">
             {howItWorks.map((step) => (
               <div key={step.num} className="p-roman flex gap-[18px] pl-[18px]">
