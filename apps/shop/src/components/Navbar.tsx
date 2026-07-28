@@ -7,6 +7,7 @@ import AuraMark from "@/components/AuraMark";
 const links = [
   { label: "Products", href: "/products" },
   { label: "Blog", href: "/blog" },
+  { label: "Calculator", href: "/calculator" },
   { label: "About", href: "/about" },
 ];
 
