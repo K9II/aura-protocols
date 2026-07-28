@@ -365,7 +365,7 @@ export default function BiosignatureSphere() {
 
   return (
     <div className="overflow-hidden">
-      <div className="flex justify-between items-baseline px-[22px] py-[18px]">
+      <div className="flex justify-center items-baseline gap-3 px-[22px] py-[18px]">
         <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Your Biosignature</p>
         <span className="text-[color:var(--specimen)] text-[9.5px] tracking-[0.08em] uppercase">
           <span className="p-live-dot" />
@@ -376,7 +376,7 @@ export default function BiosignatureSphere() {
         <canvas ref={canvasRef} className="block w-full h-auto" />
         <div ref={labelHostRef} className="absolute inset-0 pointer-events-none" />
       </div>
-      <div className="px-[22px] py-3 text-[10.5px] text-[color:var(--ink-soft)] flex items-center gap-2 min-h-[38px]">
+      <div className="px-[22px] py-3 text-[10.5px] text-[color:var(--ink-soft)] flex items-center justify-center gap-2 min-h-[38px]">
         <span ref={sevDotRef} className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] flex-shrink-0" />
         <span ref={tensionTextRef} className="transition-opacity duration-300">
           Scanning for correlations&hellip;
