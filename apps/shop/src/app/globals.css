@@ -311,6 +311,13 @@ h1, h2, h3 {
   color: var(--ink);
   font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
 }
+/* <main> itself keeps the dark body background; on pharmacopoeia pages
+   shorter than the viewport that shows through as a black band below
+   the content, above the footer. Match main's bg to the page when it
+   holds a pharmacopoeia root. */
+main:has(> .pharmacopoeia) {
+  background: #EDE9E0;
+}
 @layer base {
   .pharmacopoeia a { color: inherit; text-decoration: none; }
 }
