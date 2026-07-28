@@ -319,6 +319,26 @@ export default function BiosignatureSphere() {
         ctx.fill();
       });
 
+      // Faint background web — every tension pair except the currently-active
+      // one, so the active connector (drawn next, brighter) reads as one
+      // highlighted edge in a larger relationship network rather than an
+      // isolated line appearing out of nowhere.
+      TENSIONS.forEach((pair, i) => {
+        if (i === tIdx) return;
+        const pma = metric(pair.a);
+        const pmb = metric(pair.b);
+        const qa = rotateX(rotateY(pma.pos, angle), wobble);
+        const qb = rotateX(rotateY(pmb.pos, angle), wobble);
+        const pa2 = project(qa.x, qa.y, qa.z);
+        const pb2 = project(qb.x, qb.y, qb.z);
+        ctx.beginPath();
+        ctx.moveTo(pa2.x, pa2.y);
+        ctx.lineTo(pb2.x, pb2.y);
+        ctx.strokeStyle = `rgba(${SPECIMEN_DARK},0.14)`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
       const ma = metric(active.a);
       const mb = metric(active.b);
       const qa = rotateX(rotateY(ma.pos, angle), wobble);
@@ -331,6 +351,21 @@ export default function BiosignatureSphere() {
       ctx.strokeStyle = `rgba(${SPECIMEN_DARK},${(0.35 + tAlpha * 0.6).toFixed(3)})`;
       ctx.lineWidth = 1.4;
       ctx.stroke();
+
+      // Traveling pulse along the active connector — a small glowing dot
+      // moving back and forth, reinforcing the "live signal" framing.
+      const travel = Math.abs(((t * 0.5) % 2) - 1); // 0 -> 1 -> 0
+      const px = lerp(pa.x, pb.x, travel);
+      const py = lerp(pa.y, pb.y, travel);
+      const glowAlpha = 0.4 + tAlpha * 0.5;
+      ctx.beginPath();
+      ctx.arc(px, py, 4, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${SPECIMEN},${(glowAlpha * 0.25).toFixed(3)})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(px, py, 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${SPECIMEN},${glowAlpha.toFixed(3)})`;
+      ctx.fill();
 
       if (now - lastDom > 90) {
         lastDom = now;
