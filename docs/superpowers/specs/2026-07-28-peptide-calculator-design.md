@@ -31,7 +31,7 @@ Pharmacopoeia paper theme (`--paper #EDE9E0`, `--paper-deep #E2DCCC`, `--ink #1C
 
 - Left column: the four inputs, in order — Vial Strength, Bacteriostatic Water, Target Dose (all dropdown-with-custom, see below), then Syringe Size (radio group, stacked vertically — a horizontal row was tried first and overflowed the narrow column, see CSS note below).
 - Right column, separated by a vertical rule: the Result block — big serif-italic headline number, a one-line label under it, the syringe gauge, then a two-item stat row (Concentration, Doses / Vial).
-- Below the card, in order: the "How This Is Calculated" explainer (see below), the Research Use Only + calculator-math disclaimer (see Disclaimers), then a light CTA linking to `/products`.
+- Below the card, in order: the "How This Is Calculated" explainer, the "Sources" citations, the Research Use Only + calculator-math disclaimer (see Disclaimers), then a light CTA linking to `/products`.
 
 **CSS grid pitfall to carry into implementation:** the two-column card is `display:grid; grid-template-columns:1fr 1fr`. Grid items default to `min-width:auto`, which lets wide content (the syringe-size radio row) force its track wider than its `1fr` share and overflow the card's edge. Fix: `min-width:0` on both direct grid children. This was the literal bug hit and fixed during mockup review — implement it correctly the first time rather than rediscovering it.
 
@@ -83,6 +83,17 @@ A short, static explainer section below the calculator card — the "light expla
 - One line on the multi-injection split, in plain language (e.g. "If a dose needs more units than your syringe holds, the calculator splits it into equal injections instead of overfilling.").
 
 Scoped deliberately short — three short paragraphs/steps, not a full "Understanding Peptide Dosing" article. No FAQ, no troubleshooting matrix, no related-tool cards (still out of scope per Non-goals).
+
+## Sources (page section)
+
+Below "How This Is Calculated," a **Sources** section citing the two factual claims the calculator's math depends on — the U-100 syringe-unit convention and the BAC/sterile-water composition it's mixed with. Same visual pattern as blog posts' "References" section (`h2` heading, numbered paragraphs, external links styled `.p-link` with `target="_blank"` and `rel="noopener noreferrer"` — see `PostBody.tsx`'s `p`/`LinkPart` rendering), though this is static content in `calculator/page.tsx` rather than a `posts.ts` entry, since the page isn't a blog post.
+
+Four sources, verified live and on-topic before inclusion (not merely copied from the competitor page — one of its four links pointed to the wrong FDA record ID and was corrected here):
+
+1. **FDA Recognized Consensus Standards — ISO 8537:2016** (sterile single-use syringes for insulin) — `https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfStandards/detail.cfm?standard__identification_no=33873` — backs the 100-units-per-ml / U-100 syringe scale the whole units calculation depends on.
+2. **DailyMed: Bacteriostatic Water for Injection** — `https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=87d6e9dc-fe3b-4593-ac9a-d7493d1959c7&type=display` — composition reference for the BAC water used in reconstitution.
+3. **DailyMed: Sterile Water for Injection** — `https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=88403fcf-a276-42c0-88b6-bd84a720b564&type=display` — composition reference for the preservative-free alternative.
+4. **CDC Injection Safety — Clinical Guidance** — `https://www.cdc.gov/injection-safety/hcp/clinical-guidance/index.html` — general multi-dose-vial and solvent handling guidance.
 
 ## Disclaimers
 
