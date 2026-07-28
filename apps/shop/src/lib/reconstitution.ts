@@ -21,9 +21,16 @@ export type ReconstitutionResult =
 // U-100 insulin-syringe scale: 100 units = 1ml, the same on 30u/50u/100u barrels.
 const UNITS_PER_ML = 100;
 
-// Real inputs are specified to 1-2 decimals in the UI, so rounding derived
-// values to 6 decimal places eliminates IEEE-754 float drift (e.g.
-// 9.3 * 100 === 930.0000000000001) without losing any meaningful precision.
+// Absorbs ~1e-13-scale float noise; 6+ orders of magnitude below any real
+// dosing precision.
+const EPSILON_UNITS = 1e-6;
+
+// Real inputs are specified to 1-2 decimals in the UI, so rounding to 6
+// decimal places eliminates IEEE-754 float drift (e.g. 9.3 * 100 ===
+// 930.0000000000001) without losing any meaningful precision. Only applied
+// to values being returned -- never to a value that feeds back into further
+// arithmetic, since rounding a non-terminating ratio (e.g. 1/3) early is
+// itself lossy and can reintroduce the same class of drift.
 function round6(n: number): number {
   return Math.round(n * 1e6) / 1e6;
 }
@@ -40,16 +47,30 @@ export function calculateReconstitution({
     return { valid: false };
   }
 
-  const concentration = round6(vialMg / waterMl);
+  const concentration = vialMg / waterMl;
   const doseVolumeMl = doseMg / concentration;
-  const totalUnits = round6(doseVolumeMl * UNITS_PER_ML);
-  const dosesPerVial = round6(vialMg / doseMg);
+  const totalUnits = doseVolumeMl * UNITS_PER_ML;
+  const dosesPerVial = vialMg / doseMg;
 
-  // Even split across the fewest injections that each fit the syringe,
-  // rather than filling the syringe and dumping the remainder into an
-  // uneven final shot.
-  const injections = totalUnits > syringeMax ? Math.ceil(totalUnits / syringeMax) : 1;
-  const unitsPerInjection = round6(totalUnits / injections);
+  // Epsilon-tolerant boundary check: totalUnits can drift by float noise
+  // around an exact multiple of syringeMax (e.g. 9.3*100 !== 930 exactly,
+  // or a repeating-decimal concentration like 1/3 propagating drift). The
+  // epsilon absorbs that noise without needing to round concentration or
+  // totalUnits before using them in further arithmetic (rounding those
+  // earlier is itself lossy for non-terminating ratios and can reintroduce
+  // the same class of bug from a different direction).
+  const injections =
+    totalUnits > syringeMax + EPSILON_UNITS
+      ? Math.ceil((totalUnits - EPSILON_UNITS) / syringeMax)
+      : 1;
+  const unitsPerInjection = totalUnits / injections;
 
-  return { valid: true, concentration, totalUnits, injections, unitsPerInjection, dosesPerVial };
+  return {
+    valid: true,
+    concentration: round6(concentration),
+    totalUnits: round6(totalUnits),
+    injections,
+    unitsPerInjection: round6(unitsPerInjection),
+    dosesPerVial: round6(dosesPerVial),
+  };
 }

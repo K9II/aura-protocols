@@ -78,4 +78,28 @@ describe("calculateReconstitution", () => {
     if (!result.valid) return;
     expect(result.dosesPerVial).toBe(3);
   });
+
+  it("handles a non-terminating vial:water ratio without drifting past an exact injection boundary", () => {
+    // 1mg / 3ml = 0.333... mg/ml; a 0.5mg dose is exactly 1.5ml = 150 units.
+    // 150 / 30 = 5 exactly -- this is the case that broke the first fix
+    // attempt, because rounding the repeating-decimal concentration early
+    // introduced enough bias to push totalUnits past the boundary.
+    const result = calculateReconstitution({ vialMg: 1, waterMl: 3, doseMg: 0.5, syringeMax: 30 });
+    expect(result.valid).toBe(true);
+    if (!result.valid) return;
+    expect(result.totalUnits).toBe(150);
+    expect(result.injections).toBe(5);
+    expect(result.unitsPerInjection).toBe(30);
+  });
+
+  it("handles another non-terminating ratio at an exact boundary", () => {
+    // 2mg / 1.5ml = 1.333... mg/ml; a 4mg dose is exactly 3ml = 300 units.
+    // 300 / 30 = 10 exactly.
+    const result = calculateReconstitution({ vialMg: 2, waterMl: 1.5, doseMg: 4, syringeMax: 30 });
+    expect(result.valid).toBe(true);
+    if (!result.valid) return;
+    expect(result.totalUnits).toBe(300);
+    expect(result.injections).toBe(10);
+    expect(result.unitsPerInjection).toBe(30);
+  });
 });
