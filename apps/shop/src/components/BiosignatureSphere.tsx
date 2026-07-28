@@ -34,6 +34,7 @@ const SEV_OPACITY: Record<string, number> = { watch: 0.35, elevated: 0.62, high:
 
 const INK = "28, 24, 19";
 const SPECIMEN = "163, 43, 31";
+const SPECIMEN_DARK = "104, 25, 18";
 
 type Metric = {
   key: MetricKey;
@@ -125,7 +126,7 @@ export default function BiosignatureSphere() {
     const cx = W / 2, cy = H / 2;
     const persp = 460, R = 130, ringR = 220;
 
-    const cloud = makeCloudPoints(110, R);
+    const cloud = makeCloudPoints(130, R);
 
     const metrics: Metric[] = METRICS.map((base) => {
       const start = base.lo + Math.random() * (base.hi - base.lo);
@@ -216,6 +217,46 @@ export default function BiosignatureSphere() {
     let lastDom = 0;
     let raf = 0;
 
+    // Drag-to-rotate: pointer offsets add on top of the ambient auto-rotation
+    // so the sphere still drifts on its own but yields to the cursor.
+    let userYaw = 0;
+    let userPitch = 0;
+    let dragging = false;
+    let lastPX = 0;
+    let lastPY = 0;
+
+    function onPointerDown(e: PointerEvent) {
+      dragging = true;
+      lastPX = e.clientX;
+      lastPY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+      canvas.style.cursor = "grabbing";
+    }
+    function onPointerMove(e: PointerEvent) {
+      if (!dragging) return;
+      const dx = e.clientX - lastPX;
+      const dy = e.clientY - lastPY;
+      lastPX = e.clientX;
+      lastPY = e.clientY;
+      userYaw += dx * 0.008;
+      userPitch = Math.max(-0.9, Math.min(0.9, userPitch + dy * 0.008));
+    }
+    function onPointerUp(e: PointerEvent) {
+      if (!dragging) return;
+      dragging = false;
+      canvas.style.cursor = "grab";
+      try {
+        canvas.releasePointerCapture(e.pointerId);
+      } catch {
+        // pointer capture may already be released by the browser
+      }
+    }
+    canvas.style.cursor = "grab";
+    canvas.style.touchAction = "none";
+    canvas.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+
     function draw(now: number) {
       const dt = Math.min((now - lastFrame) / 1000, 0.05);
       lastFrame = now;
@@ -241,8 +282,8 @@ export default function BiosignatureSphere() {
       const tAlpha = Math.sin(Math.min(tPhase, 1) * Math.PI);
 
       ctx.clearRect(0, 0, W, H);
-      const angle = t * 0.16;
-      const wobble = Math.sin(t * 0.29) * 0.1;
+      const angle = t * 0.16 + userYaw;
+      const wobble = Math.sin(t * 0.29) * 0.1 + userPitch;
 
       const proj = cloud.map((p) => {
         const q = rotateX(rotateY(p, angle), wobble);
@@ -253,7 +294,7 @@ export default function BiosignatureSphere() {
         const p = proj[idx];
         const src = cloud[idx];
         const pulse = 0.6 + 0.4 * Math.sin(t * src.speed * 1.6 + src.phase);
-        const depthAlpha = 0.18 + 0.42 * ((p.z + R) / (2 * R));
+        const depthAlpha = 0.2 + 0.55 * ((p.z + R) / (2 * R));
         const radius = 0.8 + 0.9 * pulse * (((p.z + R) / (2 * R)) * 0.6 + 0.4);
         ctx.beginPath();
         ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
@@ -287,7 +328,7 @@ export default function BiosignatureSphere() {
       ctx.beginPath();
       ctx.moveTo(pa.x, pa.y);
       ctx.lineTo(pb.x, pb.y);
-      ctx.strokeStyle = `rgba(${SPECIMEN},${(tAlpha * 0.75).toFixed(3)})`;
+      ctx.strokeStyle = `rgba(${SPECIMEN_DARK},${(0.35 + tAlpha * 0.6).toFixed(3)})`;
       ctx.lineWidth = 1.4;
       ctx.stroke();
 
@@ -315,6 +356,9 @@ export default function BiosignatureSphere() {
 
     return () => {
       if (raf) cancelAnimationFrame(raf);
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
       labelHost.innerHTML = "";
     };
   }, []);
@@ -330,7 +374,7 @@ export default function BiosignatureSphere() {
       </div>
       <div className="relative">
         <canvas ref={canvasRef} className="block w-full h-auto" />
-        <div ref={labelHostRef} className="absolute inset-0" />
+        <div ref={labelHostRef} className="absolute inset-0 pointer-events-none" />
       </div>
       <div className="px-[22px] py-3 text-[10.5px] text-[color:var(--ink-soft)] flex items-center gap-2 min-h-[38px]">
         <span ref={sevDotRef} className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] flex-shrink-0" />

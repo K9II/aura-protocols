@@ -70,7 +70,7 @@ export default function HomePage() {
       <div className="p-container">
         {/* Hero */}
         <section className="hero pt-[52px] pb-16">
-          <div className="grid gap-14 lg:grid-cols-[1.15fr_1fr] items-start">
+          <div className="grid gap-14 lg:grid-cols-[1fr_1.15fr] items-start">
             {/* Left column */}
             <div>
               <p className="eyebrow-live load-in load-1 text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)] mb-4">
