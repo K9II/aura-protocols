@@ -76,8 +76,8 @@ export default function HomePage() {
               <p className="eyebrow-live load-in load-1 text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)] mb-4">
                 Biometric Intelligence · Peptide Research · Editorially Independent
               </p>
-              <h1 className="load-in load-2 p-serif text-[clamp(34px,4vw,53px)] leading-[1.14] mb-[22px] text-balance">
-                The peptide research that matches <em>your</em> data.
+              <h1 className="load-in load-2 p-serif text-[clamp(30px,3.6vw,47px)] leading-[1.14] mb-[22px] text-balance">
+                The protocol research that matches <em>your</em> biometric-signature
               </h1>
               <p className="load-in load-3 text-[16px] text-[color:var(--ink-soft)] max-w-[52ch] mb-[26px]">
                 Every night, your wearable sequences the signals that define you — HRV, sleep, recovery, glucose.
