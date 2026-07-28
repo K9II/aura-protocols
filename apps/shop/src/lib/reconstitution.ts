@@ -21,6 +21,13 @@ export type ReconstitutionResult =
 // U-100 insulin-syringe scale: 100 units = 1ml, the same on 30u/50u/100u barrels.
 const UNITS_PER_ML = 100;
 
+// Real inputs are specified to 1-2 decimals in the UI, so rounding derived
+// values to 6 decimal places eliminates IEEE-754 float drift (e.g.
+// 9.3 * 100 === 930.0000000000001) without losing any meaningful precision.
+function round6(n: number): number {
+  return Math.round(n * 1e6) / 1e6;
+}
+
 export function calculateReconstitution({
   vialMg,
   waterMl,
@@ -33,16 +40,16 @@ export function calculateReconstitution({
     return { valid: false };
   }
 
-  const concentration = vialMg / waterMl;
+  const concentration = round6(vialMg / waterMl);
   const doseVolumeMl = doseMg / concentration;
-  const totalUnits = doseVolumeMl * UNITS_PER_ML;
-  const dosesPerVial = vialMg / doseMg;
+  const totalUnits = round6(doseVolumeMl * UNITS_PER_ML);
+  const dosesPerVial = round6(vialMg / doseMg);
 
   // Even split across the fewest injections that each fit the syringe,
   // rather than filling the syringe and dumping the remainder into an
   // uneven final shot.
   const injections = totalUnits > syringeMax ? Math.ceil(totalUnits / syringeMax) : 1;
-  const unitsPerInjection = totalUnits / injections;
+  const unitsPerInjection = round6(totalUnits / injections);
 
   return { valid: true, concentration, totalUnits, injections, unitsPerInjection, dosesPerVial };
 }

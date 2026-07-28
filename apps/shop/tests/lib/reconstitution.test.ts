@@ -58,4 +58,24 @@ describe("calculateReconstitution", () => {
     expect(calculateReconstitution({ vialMg: -5, waterMl: 2, doseMg: 0.5, syringeMax: 50 })).toEqual({ valid: false });
     expect(calculateReconstitution({ vialMg: 5, waterMl: 2, doseMg: 0, syringeMax: 50 })).toEqual({ valid: false });
   });
+
+  it("does not overshoot the injection count due to floating-point drift at an exact boundary", () => {
+    // 1mg / 1ml = 1 mg/ml; a 9.3mg dose needs 9.3ml = 930 units exactly.
+    // 930 / 30 = 31 exactly -- naive floating point (9.3 * 100) can drift to
+    // 930.0000000000001 and make Math.ceil overshoot to 32 injections.
+    const result = calculateReconstitution({ vialMg: 1, waterMl: 1, doseMg: 9.3, syringeMax: 30 });
+    expect(result.valid).toBe(true);
+    if (!result.valid) return;
+    expect(result.totalUnits).toBe(930);
+    expect(result.injections).toBe(31);
+    expect(result.unitsPerInjection).toBe(30);
+  });
+
+  it("does not let floating-point drift undershoot dosesPerVial below a whole number", () => {
+    // 0.6 / 0.2 evaluates to 2.9999999999999996 in raw JS floating point.
+    const result = calculateReconstitution({ vialMg: 0.6, waterMl: 1, doseMg: 0.2, syringeMax: 100 });
+    expect(result.valid).toBe(true);
+    if (!result.valid) return;
+    expect(result.dosesPerVial).toBe(3);
+  });
 });
