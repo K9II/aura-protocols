@@ -1,0 +1,137 @@
+# Peptide Reconstitution Calculator — Design Spec
+
+**Date:** 2026-07-28
+**Status:** Approved, ready for implementation plan
+**App:** `apps/shop`
+
+## Problem
+
+Aura wants a "Reconstitution Calculator" page, modeled functionally on a competitor tool (peptideclock.com/tools/peptide-calculator): given a vial's peptide strength, the bacteriostatic (BAC) water used to reconstitute it, and a target dose, tell the user the resulting concentration and exactly how many syringe units to draw. This is a pure trust/SEO play — a genuinely useful, correctly-computed tool that keeps the site's "we hold peptides to the standard the research deserves" positioning, with a light affiliate nudge at the end, not a hard sell.
+
+## Non-goals
+
+- No compound presets or auto-fill (e.g. "click BPC-157 to fill typical values"). Manual entry only, everything computed from the numbers the user enters.
+- No troubleshooting matrix or "related tools" section — the reference site has these, Aura's version doesn't. (FAQ *is* in scope, see below — reversed from the original "lean page" call once the user asked to reuse the reference site's Q&As.)
+- No dosing/medical advice of any kind — the tool computes concentration math from user-supplied numbers only. It never suggests what dose is appropriate, safe, or effective.
+- No commission/price data anywhere on the page (standing site-wide rule).
+- Not touching `ProductCard.tsx` or `data/products.ts`.
+
+## Route & navigation
+
+- New route: `apps/shop/src/app/calculator/page.tsx` → `/calculator`.
+- Added to `Navbar.tsx` as a fourth link (Products, Blog, **Calculator**, About) — primary-tool status, not buried.
+- Added to `sitemap.ts`: `priority: 0.7`, `changeFrequency: "monthly"` (between `/blog` and `/about` in the existing priority ordering).
+- Added to `Footer.tsx`'s "Index" or "Company" column is not required (the Navbar link covers discovery); no footer change unless the user asks for one during implementation review.
+
+## Visual design
+
+Pharmacopoeia paper theme (`--paper #EDE9E0`, `--paper-deep #E2DCCC`, `--ink #1C1A15`, `--ink-soft #4A4438`, `--specimen #A32B1F`, `--line #C9C2AE`), Georgia/Newsreader serif — same theme every other production page (`/products`, `/blog`, `/about`) already uses. Page follows the standard static-page pattern: eyebrow ("Tools") + `h1` ("Reconstitution Calculator") + one-paragraph lede, `max-w` container consistent with `/products`.
+
+**Layout — single bordered card, two-column split** (validated in the visual-companion mockup, "Option A"):
+
+- Left column: the four inputs, in order — Vial Strength, Bacteriostatic Water, Target Dose (all dropdown-with-custom, see below), then Syringe Size (radio group, stacked vertically — a horizontal row was tried first and overflowed the narrow column, see CSS note below).
+- Right column, separated by a vertical rule: the Result block — big serif-italic headline number, a one-line label under it, the syringe gauge, then a two-item stat row (Concentration, Doses / Vial).
+- Below the card, in order: the "How This Is Calculated" explainer, the "Sources" citations, the "FAQ", the Research Use Only + calculator-math disclaimer (see Disclaimers), then a light CTA linking to `/products`.
+
+**CSS grid pitfall to carry into implementation:** the two-column card is `display:grid; grid-template-columns:1fr 1fr`. Grid items default to `min-width:auto`, which lets wide content (the syringe-size radio row) force its track wider than its `1fr` share and overflow the card's edge. Fix: `min-width:0` on both direct grid children. This was the literal bug hit and fixed during mockup review — implement it correctly the first time rather than rediscovering it.
+
+## Inputs
+
+All three numeric inputs use the same pattern: a `<select>` with common preset values plus a trailing **"Custom…"** option; choosing Custom reveals an inline number input (underlined in `--specimen` to mark it as active/custom) that participates in the same calculation.
+
+| Field | Preset options | Unit |
+|---|---|---|
+| Vial Strength | 5, 10, 15, 20, 40 mg | mg |
+| Bacteriostatic Water | 1, 2, 3, 5 ml | ml |
+| Target Dose | 0.5, 1, 2, 4, 8, 12 mg | mg |
+
+Syringe Size is a **radio group**, not a dropdown (it's a fixed physical choice, not a continuous value): **30 units (0.3ml)**, **50 units (0.5ml)**, **100 units (1.0ml)**, defaulting to 50u. All three syringe sizes share the same graduation: **100 units = 1ml** (standard U-100 insulin-syringe scale) — the barrel is physically shorter on the 30u/50u syringes, but a "unit" is the same 0.01ml on all three.
+
+## Calculation
+
+```
+concentration      = vialMg / waterMl                    // mg/ml
+doseVolumeMl        = doseMg / concentration               // ml
+units               = doseVolumeMl * 100                   // 1ml = 100 units, all syringe sizes
+dosesPerVial        = vialMg / doseMg
+```
+
+**Multi-injection split** (this was the last piece of functional feedback during review — the tool must handle a dose that doesn't fit in one draw, not just warn and stop):
+
+```
+injections          = units > syringeMaxUnits ? ceil(units / syringeMaxUnits) : 1
+unitsPerInjection    = units / injections                  // even split, not "fill + remainder"
+```
+
+Even division across `injections` shots (e.g. a 96-unit total dose on a 50-unit syringe becomes **2 × 48 units**, not one 50-unit draw plus a 46-unit remainder). This keeps every actual draw at the same, predictable size.
+
+**Invalid/incomplete state:** if any field is empty or a custom value is non-numeric or ≤ 0, the result block shows em-dashes (`—`) and the label reads "Fill in every field to calculate" — never `NaN`, `Infinity`, or a silently-wrong number. `waterMl = 0` (division by zero) is treated the same as missing/invalid.
+
+## Result display
+
+- **Single-injection case:** big number reads `"{units} units"` (rounded to 1 decimal), label reads `"Draw to this mark on a {syringeMax}-unit ({ml}ml) syringe"`.
+- **Multi-injection case:** big number reads `"{injections} × {unitsPerInjection} units"`, label reads `"as {injections} separate injections on a {syringeMax}-unit ({ml}ml) syringe"`, and an additional explanatory line appears below the gauge: `"Total dose is {units} units — more than a {syringeMax}-unit syringe holds in one draw. Split into {injections} injections of {unitsPerInjection} units each (drawn separately, same concentration)."`
+- **Syringe gauge:** a horizontal bar (track in `--paper-deep`, fill in `--specimen` at reduced opacity) plus a round marker ("needle") positioned at the fill percentage, with tick labels at 0 / half / max of the syringe's own scale (0/15/30, 0/25/50, or 0/50/100 depending on which syringe is selected). The gauge always reflects **one injection's worth** — in the split case, that's `unitsPerInjection`, not the raw total, since that's what's actually visible on the syringe barrel at draw time.
+- **Stat row:** Concentration (`X.XX mg/ml`) and Doses / Vial (`vialMg / doseMg`, floored to 1 decimal).
+
+## How This Is Calculated (page section)
+
+A short, static explainer section below the calculator card — the "light explainer" chosen over both a bare calculator and the reference site's full methodology/FAQ/troubleshooting treatment. Not interactive, not tied to the user's current inputs. Content:
+
+- A three-line worked example walking through the same formula as the Calculation section above, using fixed sample numbers (e.g. "5mg vial ÷ 2ml water = 2.5 mg/ml. A 0.5mg dose ÷ 2.5 mg/ml = 0.2ml = 20 units on a U-100 scale."), styled as the page's `p-roman`/numbered-step pattern already used in the homepage's "How It Works" section (`I. / II. / III.`) for visual consistency.
+- One line noting the 100-units-per-ml convention holds across all three syringe sizes (30u/50u/100u), since that's the one non-obvious constant the formula depends on.
+- One line on the multi-injection split, in plain language (e.g. "If a dose needs more units than your syringe holds, the calculator splits it into equal injections instead of overfilling.").
+
+Scoped deliberately short — three short paragraphs/steps, not a full "Understanding Peptide Dosing" article. Still no troubleshooting matrix or related-tool cards (out of scope per Non-goals).
+
+## FAQ (page section)
+
+Reuses the reference site's 8 Q&As verbatim (generic concentration-math/syringe-standard content, not proprietary to their page) — no need to invent new ones. Rendered with the site's **existing** FAQ pattern already used on blog posts (`PostBody.tsx`'s `"faq"` case) rather than the reference site's `<details>/<summary>` accordion: `h2` "Frequently Asked Questions", then a `space-y-4` stack of `.p-card p-5` blocks, each a bold question (`p.font-semibold`) over an ink-soft answer paragraph — always-expanded, no accordion JS, consistent with how every other FAQ on the site already renders. This is hand-authored JSX in `calculator/page.tsx` (same classes, not routed through `PostBody`, since the calculator page isn't a `posts.ts` entry).
+
+No `FAQPage` JSON-LD — the site's existing blog-post FAQs don't carry that schema either (only `Article` schema), so this stays consistent with current site behavior rather than introducing a new structured-data pattern.
+
+Content (verbatim from the reference site, verified against its live HTML):
+
+1. **How do I convert a peptide dose into syringe units?** First calculate concentration in mg per mL, then convert that concentration into mg per unit on a U-100 insulin syringe. This calculator performs those steps automatically from vial size, reconstitution volume, and target dose.
+2. **Does syringe size change the mg-per-unit math?** No. U-100 insulin syringes use the same 100-units-per-mL standard across 30-unit, 50-unit, and 100-unit syringe bodies. Syringe size changes visual range and handling comfort, not the underlying per-unit volume.
+3. **What if my target dose is less than 2 units?** Very small doses are harder to measure accurately. The usual fix is to lower concentration by adding more diluent or switch to a syringe that gives better practical readability for the same U-100 standard.
+4. **Why does concentration matter more than vial size alone?** Vial size does not determine dose by itself. The practical dose per unit depends on how much peptide is in the vial and how much liquid was added during reconstitution.
+5. **Can I use this calculator for tirzepatide, semaglutide, and BPC-157?** Yes. The calculator handles the concentration math for any peptide where you know the total vial amount, the reconstitution volume, and the target dose.
+6. **Is bacteriostatic water different from saline or sterile water?** Yes. BAC water includes 0.9% benzyl alcohol as a bacteriostatic preservative, while sterile water has no preservative and saline has sodium chloride instead. Solvent choice changes handling workflow and may change practical stability expectations.
+7. **Can I rely on the example rows as dosing instructions?** No. The example rows are calculation examples only. They show how concentration and syringe math work; they are not medical, prescribing, or protocol instructions.
+8. **Why does the page emphasize U-100 insulin syringes?** Because they are the most common syringe format used for this style of calculation. Their fixed 0.01 mL per unit standard makes conversion logic consistent and easier to explain.
+
+Placed after Sources and before the Disclaimers block in page order.
+
+## Sources (page section)
+
+Below "How This Is Calculated," a **Sources** section citing the two factual claims the calculator's math depends on — the U-100 syringe-unit convention and the BAC/sterile-water composition it's mixed with. Same visual pattern as blog posts' "References" section (`h2` heading, numbered paragraphs, external links styled `.p-link` with `target="_blank"` and `rel="noopener noreferrer"` — see `PostBody.tsx`'s `p`/`LinkPart` rendering), though this is static content in `calculator/page.tsx` rather than a `posts.ts` entry, since the page isn't a blog post.
+
+Four sources, verified live and on-topic before inclusion (not merely copied from the competitor page — one of its four links pointed to the wrong FDA record ID and was corrected here):
+
+1. **FDA Recognized Consensus Standards — ISO 8537:2016** (sterile single-use syringes for insulin) — `https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfStandards/detail.cfm?standard__identification_no=33873` — backs the 100-units-per-ml / U-100 syringe scale the whole units calculation depends on.
+2. **DailyMed: Bacteriostatic Water for Injection** — `https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=87d6e9dc-fe3b-4593-ac9a-d7493d1959c7&type=display` — composition reference for the BAC water used in reconstitution.
+3. **DailyMed: Sterile Water for Injection** — `https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=88403fcf-a276-42c0-88b6-bd84a720b564&type=display` — composition reference for the preservative-free alternative.
+4. **CDC Injection Safety — Clinical Guidance** — `https://www.cdc.gov/injection-safety/hcp/clinical-guidance/index.html` — general multi-dose-vial and solvent handling guidance.
+
+## Disclaimers
+
+Both, stacked (per review decision):
+
+1. The exact "Research Use Only" wording already used in the `.p-callout` box on `/products/[slug]`: *"This compound is intended for laboratory and research purposes only. It is not approved for human consumption and is not intended to diagnose, treat, cure, or prevent any disease. Always consult a qualified healthcare professional."*
+2. A calculator-specific line beneath it: *"This tool performs concentration math only — it is not medical advice and does not verify safe or effective dosing. Always verify calculations independently and consult a qualified professional."*
+
+## Monetization
+
+Light CTA only, reusing the existing `EngineCTAInline`-style pattern already used on blog posts — a single bordered/tinted block near the bottom of the page linking to `/products` ("Browse research compounds →"). No per-field or per-result affiliate links, no vendor mentions inside the calculator itself.
+
+## Component structure
+
+- `apps/shop/src/app/calculator/page.tsx` — static shell (metadata, eyebrow/h1/lede, disclaimers, CTA), server component, same shape as `/about/page.tsx`.
+- `apps/shop/src/components/ReconstitutionCalculator.tsx` — the interactive card itself, `"use client"`, owns all input/result state (React `useState`, no external form library needed — four fields). Follows the existing pattern of keeping interactivity in a dedicated client component (`BiosignatureSphere.tsx`) while the page shell stays a server component.
+- New CSS additions to `globals.css`, scoped under `.pharmacopoeia` like everything else in the theme (`.p-calc-*` class names), covering the split-card grid (with the `min-width:0` fix), the custom-value reveal, the radio group, and the gauge — no new design tokens needed, reuses `--paper`/`--ink`/`--specimen`/`--line`.
+
+## Testing
+
+- `apps/shop` already uses Vitest with a top-level `tests/` directory mirroring `src/` (see `tests/data/vendor-profiles.test.ts`, `tests/app/sitemap.test.ts`). Add `tests/lib/reconstitution.test.ts` against a pure calculation function extracted out of the component (e.g. `apps/shop/src/lib/reconstitution.ts`) so it's testable without rendering. Cases to cover explicitly: normal single-injection math, exact-fit (units === syringeMax, no split), one-injection-over (rounds up to 2 injections), large multi-split (4+ injections), and every "empty/invalid field or waterMl = 0" combination returning the invalid state rather than `NaN`/`Infinity`.
+- Manual verification in-browser (per this repo's `/verify` convention) covering: preset-only entry, custom-value entry on all three fields, all three syringe sizes, and the split-injection path — this was already smoke-tested interactively during the design review's live-math mockup, so the implementation should reproduce those same numbers exactly.
