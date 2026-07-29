@@ -8,7 +8,6 @@ const VENDOR_IDS: Record<string, string> = {
   "GLP-1 Research Lab": "glp1-lab",
   "Ignite Peptides": "ignite",
   "Main Peptides": "main-peptides",
-  "Behemoth Labz": "behemoth",
   "Peak Lab Peptides": "peak-lab",
   "Mile High Compounds": "mile-high",
 };

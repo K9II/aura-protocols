@@ -52,21 +52,6 @@ export const vendorProfiles: VendorProfile[] = [
     ],
   },
   {
-    vendor: "Behemoth Labz",
-    summary:
-      "Behemoth Labz carries one of the broadest catalogs on the site (112+ products).",
-    pros: [
-      "Largest confirmed catalog among approved vendors — carries SS-31, AOD-9604, Epithalon, and IGF-1 LR3 that several other vendors don't stock",
-      "Publishes four independent analytical test methods (HPLC, TGA, UV-Vis, FTIR) — more documented testing methods than most vendors on this site",
-      "Additional discount for cryptocurrency payment on top of standard card/debit acceptance",
-    ],
-    cons: [
-      "Does not carry GHK-Cu, NAD+, or the CJC-1295/Ipamorelin blend",
-      "Shipping speed not independently confirmed — rated provisionally at average",
-      "Testing lab name is not disclosed on published COAs",
-    ],
-  },
-  {
     vendor: "GLP-1 Research Lab",
     summary:
       "GLP-1 Research Lab's catalog extends well beyond GLP-1s into wellness and recovery peptides, covering many of the same core compounds carried elsewhere on this site.",
@@ -117,6 +102,19 @@ export const vendorProfiles: VendorProfile[] = [
     cons: [
       "Catalog breadth beyond SLU-PP-332 not yet reviewed — treat this profile as provisional",
       "Shipping speed not independently confirmed — rated provisionally at average",
+    ],
+  },
+  {
+    vendor: "Mile High Compounds",
+    summary:
+      "Mile High Compounds is a broad-catalog research vendor added as a second source for SLU-PP-332 alongside a wide overlap with the core compounds already on this site.",
+    pros: [
+      "Second confirmed source for SLU-PP-332, plus broad overlap across recovery, GLP-1, and longevity compounds",
+      "Customer discount of 10% off with code auraproto",
+    ],
+    cons: [
+      "Newer addition — shipping speed and catalog depth not yet independently confirmed; treat this profile as provisional",
+      "International (.is) fulfillment may mean longer US domestic shipping than domestic-only vendors",
     ],
   },
 ];
