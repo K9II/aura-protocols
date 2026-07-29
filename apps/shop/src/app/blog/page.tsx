@@ -34,6 +34,9 @@ export default async function BlogPage({
     .filter((post) => !category || post.category === category)
     .sort((a, b) => {
       if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+      // Only relevant within a filtered category view — categoryLead has no
+      // effect on the unfiltered "All" order, which pinned already governs.
+      if (category && !!a.categoryLead !== !!b.categoryLead) return a.categoryLead ? -1 : 1;
       return parseDate(b.date) - parseDate(a.date);
     });
 

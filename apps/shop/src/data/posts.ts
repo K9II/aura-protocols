@@ -31,6 +31,10 @@ export type Post = {
   // If true, this post is pinned first on /blog and in "From the Blog" regardless of
   // date, ahead of every other post — until explicitly unpinned.
   pinned?: boolean;
+  // If true, this post sorts first when its own category is filtered on /blog
+  // (e.g. ?category=Stacks) — scoped to that category only, unlike `pinned`,
+  // which is sitewide and also affects the homepage "From the Blog" section.
+  categoryLead?: boolean;
 };
 
 export const posts: Post[] = [
@@ -1874,6 +1878,7 @@ export const posts: Post[] = [
     category: "Stacks",
     date: "July 2026",
     readTime: "5 min read",
+    categoryLead: true,
     content: [
       {
         type: "intro",
