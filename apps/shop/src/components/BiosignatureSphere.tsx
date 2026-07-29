@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import AuraMark from "./AuraMark";
 
 // Drawn from the real Engine's tracked biometric fields (apps/engine/src/lib/terra/schema.ts,
 // BiometricSnapshot) — broadened beyond the real BiosignaturePanel's 8-axis radar (which is
@@ -97,22 +96,19 @@ function makeCloudPoints(n: number, R: number): CloudPoint[] {
 
 export default function BiosignatureSphere() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const frontCanvasRef = useRef<HTMLCanvasElement>(null);
   const labelHostRef = useRef<HTMLDivElement>(null);
   const tensionTextRef = useRef<HTMLSpanElement>(null);
   const sevDotRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const canvasEl = canvasRef.current;
-    const frontCanvasEl = frontCanvasRef.current;
     const labelHostEl = labelHostRef.current;
     const tensionTextNode = tensionTextRef.current;
     const sevDotNode = sevDotRef.current;
-    if (!canvasEl || !frontCanvasEl || !labelHostEl || !tensionTextNode || !sevDotNode) return;
+    if (!canvasEl || !labelHostEl || !tensionTextNode || !sevDotNode) return;
     // Reassign into non-nullable bindings — TS control-flow narrowing above doesn't
     // survive into the nested `draw` closure invoked later via requestAnimationFrame.
     const canvas: HTMLCanvasElement = canvasEl;
-    const frontCanvas: HTMLCanvasElement = frontCanvasEl;
     const labelHost: HTMLDivElement = labelHostEl;
     const tensionTextEl: HTMLSpanElement = tensionTextNode;
     const sevDotEl: HTMLSpanElement = sevDotNode;
@@ -126,16 +122,6 @@ export default function BiosignatureSphere() {
     if (!maybeCtx) return;
     const ctx: CanvasRenderingContext2D = maybeCtx;
     ctx.scale(dpr, dpr);
-
-    // Front occlusion layer: cloud points nearer than the mark's center depth
-    // draw here, above the embedded AuraMark, so the mark reads as sitting
-    // inside the point cloud rather than pasted on top of it.
-    frontCanvas.width = W * dpr;
-    frontCanvas.height = H * dpr;
-    const maybeFrontCtx = frontCanvas.getContext("2d");
-    if (!maybeFrontCtx) return;
-    const frontCtx: CanvasRenderingContext2D = maybeFrontCtx;
-    frontCtx.scale(dpr, dpr);
 
     const cx = W / 2, cy = H / 2;
     const persp = 460, R = 130, ringR = 220;
@@ -296,7 +282,6 @@ export default function BiosignatureSphere() {
       const tAlpha = Math.sin(Math.min(tPhase, 1) * Math.PI);
 
       ctx.clearRect(0, 0, W, H);
-      frontCtx.clearRect(0, 0, W, H);
       const angle = t * 0.16 + userYaw;
       const wobble = Math.sin(t * 0.29) * 0.1 + userPitch;
 
@@ -311,15 +296,10 @@ export default function BiosignatureSphere() {
         const pulse = 0.6 + 0.4 * Math.sin(t * src.speed * 1.6 + src.phase);
         const depthAlpha = 0.2 + 0.55 * ((p.z + R) / (2 * R));
         const radius = 0.8 + 0.9 * pulse * (((p.z + R) / (2 * R)) * 0.6 + 0.4);
-        // Points nearer than the sphere's own center pass in front of the
-        // embedded mark (front canvas, layered above it); farther points
-        // stay behind it (back canvas) — the mark reads as sitting inside
-        // the data rather than pasted on top of it.
-        const layer = p.z >= 0 ? frontCtx : ctx;
-        layer.beginPath();
-        layer.arc(p.x, p.y, radius, 0, Math.PI * 2);
-        layer.fillStyle = `rgba(${INK},${depthAlpha.toFixed(3)})`;
-        layer.fill();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${INK},${depthAlpha.toFixed(3)})`;
+        ctx.fill();
       });
 
       metrics.forEach((m) => {
@@ -429,26 +409,7 @@ export default function BiosignatureSphere() {
       </div>
       <div className="relative">
         <canvas ref={canvasRef} className="block w-full h-auto" />
-        <div
-          className="absolute pointer-events-none z-[5] rounded-full"
-          style={{
-            left: "50%",
-            top: "50%",
-            width: "26%",
-            aspectRatio: "1 / 1",
-            transform: "translate(-50%, -50%)",
-            background: "radial-gradient(circle, var(--paper) 0%, var(--paper) 42%, transparent 72%)",
-            opacity: 0.4,
-          }}
-        />
-        <div
-          className="absolute pointer-events-none z-10"
-          style={{ left: "50%", top: "50%", width: "19.4%", aspectRatio: "160 / 150", transform: "translate(-50%, -50%)" }}
-        >
-          <AuraMark size={160} mode="loop" className="w-full h-full" showEchoRing={false} />
-        </div>
-        <canvas ref={frontCanvasRef} className="absolute inset-0 pointer-events-none z-20" />
-        <div ref={labelHostRef} className="absolute inset-0 pointer-events-none z-30" />
+        <div ref={labelHostRef} className="absolute inset-0 pointer-events-none" />
       </div>
       <div className="px-[22px] py-3 text-[10.5px] text-[color:var(--ink-soft)] flex items-center justify-center gap-2 min-h-[38px]">
         <span ref={sevDotRef} className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] flex-shrink-0" />
