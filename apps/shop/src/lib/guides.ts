@@ -8,6 +8,13 @@ export const PRODUCT_GUIDES: Record<string, string> = {
   "tesamorelin": "/blog/tesamorelin-research-guide",
   "aod-9604": "/blog/aod-9604-research-guide",
   "kpv": "/blog/kpv-research-guide",
+  // Each Stacks product routes to its own guide — approved 2026-07-29.
+  // The comparison piece (wolverine-vs-glow-vs-klow) lives in the blog
+  // library and is cross-linked from all three individual guides, but
+  // isn't itself a "Learn more" target.
+  "bpc-157-tb-500-blend": "/blog/wolverine-stack-research-guide",
+  "glow-stack": "/blog/glow-blend-research-guide",
+  "klow-stack": "/blog/klow-blend-research-guide",
 };
 
 export function learnMoreHref(productSlug: string): string {

@@ -20,6 +20,7 @@ const BLOG_FILTERS: { label: string; value: string }[] = [
   { label: "Body Composition", value: "Body Composition" },
   { label: "Growth & Performance", value: "Growth & Performance" },
   { label: "Longevity & Wellness", value: "Wellness" },
+  { label: "Stacks", value: "Stacks" },
 ];
 
 export default async function BlogPage({

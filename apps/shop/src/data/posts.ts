@@ -1628,4 +1628,342 @@ export const posts: Post[] = [
       },
     ],
   },
+  {
+    slug: "wolverine-stack-research-guide",
+    title: "Wolverine Stack: BPC-157 + TB-500 Research Guide",
+    excerpt:
+      "Why these two peptides are combined, what the literature shows for each, and what's actually established about the pair versus each compound alone.",
+    category: "Stacks",
+    date: "July 2026",
+    readTime: "6 min read",
+    content: [
+      {
+        type: "intro",
+        text: "The Wolverine Stack pairs BPC-157 and TB-500 in a single vial — the two most commonly co-administered peptides in tissue-repair research, and the base every other blend on this site builds on. Here's what each compound contributes, and what's confirmed versus assumed about combining them.",
+      },
+      { type: "h2", text: "What's in a Wolverine Stack" },
+      {
+        type: "p",
+        text: "A standard vial is BPC-157 and TB-500 co-lyophilized in a 1:1 ratio — commonly 10mg of each, 20mg total. Reconstitution and dosing math work the same as for either compound alone; the calculator on this site handles mixed-vial concentration the same way.",
+      },
+      { type: "h2", text: "Two Different Mechanisms in One Vial" },
+      {
+        type: "p",
+        text: "BPC-157 is a synthetic pentadecapeptide first identified from a protective protein in gastric juice. In tendon fibroblasts, it activates the FAK–paxillin pathway, which researchers have linked to increased fibroblast outgrowth, better cell survival under stress, and increased migration from tendon explants.",
+      },
+      {
+        type: "p",
+        text: "TB-500 is a synthetic version of a fragment of thymosin beta-4, a naturally occurring protein your cells use during repair. Its defining mechanism is different from BPC-157's: it binds actin, and the original 1997 study showed it acts as a chemoattractant for endothelial cells — stimulating migration four- to six-fold in vitro. A later review describes thymosin beta-4 more broadly as promoting the mobilization, migration, and differentiation of stem and progenitor cells that go on to form new blood vessels.",
+      },
+      { type: "h2", text: "Why the Two Are Paired" },
+      {
+        type: "p",
+        text: "The two mechanisms are complementary rather than redundant: BPC-157's studied effects center on local tissue survival and fibroblast activity at the injury site, while TB-500's studied effect is recruiting and moving the cells that populate the surrounding area. Vendors and researchers who stack the two are, in effect, targeting the repair site and the cell-migration pipeline feeding it in the same reconstitution.",
+      },
+      {
+        type: "callout",
+        text: "What's not established: neither compound's studies were designed to test the combination. Each peptide's evidence base comes from studies where it was administered alone. Combining two well-studied peptides is not the same as having a study of the combination — that's a real gap, not a technicality.",
+      },
+      {
+        type: "p",
+        parts: [
+          "For the full mechanism and regulatory-status writeup on BPC-157 specifically, see the ",
+          { href: "/blog/bpc-157-complete-guide", text: "complete BPC-157 research guide" },
+          ".",
+        ],
+      },
+      { type: "h2", text: "Sourcing the Wolverine Stack" },
+      {
+        type: "p",
+        text: "We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis for the finished blend, not just the individual peptides.",
+      },
+      {
+        type: "button",
+        text: "View the Wolverine Stack product page",
+        productSlug: "bpc-157-tb-500-blend",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Has the BPC-157 + TB-500 combination itself been studied, or just each peptide separately?",
+            a: "Just each peptide separately, as far as the published literature shows. BPC-157's evidence and TB-500's evidence both come from studies administering each compound alone. No co-administration trial for the specific combination was found in the literature reviewed for this guide.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Chang CH, et al. \"The promoting effect of pentadecapeptide BPC 157 on tendon fibroblasts.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/21030672/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Malinda KM, Goldstein AL, Kleinman HK. \"Thymosin beta 4 stimulates directional migration of human umbilical vein endothelial cells.\" FASEB J, 1997. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/9194528/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"Thymosin β4: a multi-functional regenerative peptide. Basic properties and clinical applications.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/22074294/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "glow-blend-research-guide",
+    title: "GLOW Blend: What GHK-Cu Adds to the Wolverine Stack",
+    excerpt:
+      "GLOW takes the Wolverine Stack's BPC-157 and TB-500 and adds a third peptide studied for a different job entirely: collagen and gene-expression research.",
+    category: "Stacks",
+    date: "July 2026",
+    readTime: "6 min read",
+    content: [
+      {
+        type: "intro",
+        text: "GLOW is the Wolverine Stack — BPC-157 and TB-500 — plus GHK-Cu, a copper-binding tripeptide, co-lyophilized into a single vial. Where Wolverine's two peptides both center on tissue-repair signaling, GHK-Cu's studied mechanism is different: gene expression and collagen remodeling.",
+      },
+      { type: "h2", text: "The Third Peptide: GHK-Cu" },
+      {
+        type: "p",
+        text: "GHK-Cu (glycyl-L-histidyl-L-lysine bound to copper) was first isolated from human plasma in 1973. A 1988 study established that at very low, nontoxic concentrations, it stimulates both synthesis and breakdown of collagen and glycosaminoglycans in fibroblast cultures — the foundational finding behind most of the skin- and tissue-remodeling research that followed.",
+      },
+      { type: "h2", text: "What the Literature Shows" },
+      {
+        type: "p",
+        text: "A 2018 review by Pickart and Margolina in the International Journal of Molecular Sciences surveys the gene-expression data: GHK-Cu applied to skin over 12 weeks improved collagen production in a majority of subjects tested, outperforming both a vitamin C cream and a retinoic acid comparator in the same study, and increased expression of matrix metalloproteinase genes involved in tissue remodeling.",
+      },
+      { type: "h2", text: "Why Add It to Wolverine" },
+      {
+        type: "p",
+        text: "BPC-157 and TB-500 are studied for tissue survival, fibroblast activity, and cell migration at an injury site — the mechanics of repair. GHK-Cu's literature sits one layer up: the quality and composition of the collagen matrix being rebuilt, plus broader gene-expression effects that extend into skin and follicular research. Combining the three is a bet that repair signaling and matrix-remodeling signaling are complementary layers, not that either compound changes how the other works.",
+      },
+      {
+        type: "callout",
+        text: "What's not established: as with Wolverine, no study tests the three-peptide combination directly. Each compound's evidence comes from studies where it was administered alone or, for GHK-Cu, most often applied topically rather than injected alongside BPC-157/TB-500.",
+      },
+      {
+        type: "p",
+        parts: [
+          "For the BPC-157 and TB-500 mechanisms this blend builds on, see the ",
+          { href: "/blog/wolverine-stack-research-guide", text: "Wolverine Stack research guide" },
+          ".",
+        ],
+      },
+      { type: "h2", text: "Sourcing GLOW" },
+      {
+        type: "button",
+        text: "View the GLOW Stack product page",
+        productSlug: "glow-stack",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is GLOW just Wolverine with an extra ingredient, or a different formulation?",
+            a: "It's the same BPC-157/TB-500 pairing found in Wolverine, with GHK-Cu added in the same vial — not a reformulation of the first two. Vendors typically keep the BPC-157/TB-500 ratio consistent with their standalone Wolverine product and add GHK-Cu on top.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Maquart FX, Pickart L, Laurent M, et al. \"Stimulation of collagen synthesis in fibroblast cultures by the tripeptide-copper complex glycyl-L-histidyl-L-lysine-Cu2+.\" FEBS Lett, 1988. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/3169264/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Pickart L, Margolina A. \"Regenerative and Protective Actions of the GHK-Cu Peptide in the Light of the New Gene Data.\" Int J Mol Sci, 2018. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/29986520/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "klow-blend-research-guide",
+    title: "KLOW Blend: What KPV Adds to GLOW",
+    excerpt:
+      "KLOW is GLOW plus a fourth peptide studied for a different pathway entirely: NF-κB inflammatory signaling and gut-lining research.",
+    category: "Stacks",
+    date: "July 2026",
+    readTime: "5 min read",
+    content: [
+      {
+        type: "intro",
+        text: "KLOW is the GLOW blend — BPC-157, TB-500, and GHK-Cu — plus KPV, a tripeptide studied for anti-inflammatory signaling. It's the broadest of the three pre-blended stacks on this site, and the only one that adds an inflammatory-pathway mechanism to the repair-and-remodeling base the other two share.",
+      },
+      { type: "h2", text: "The Fourth Peptide: KPV" },
+      {
+        type: "p",
+        text: "KPV (Lys-Pro-Val) is the C-terminal tripeptide fragment of alpha-MSH, studied independently of alpha-MSH's pigmentation and appetite effects. Its own product guide on this site covers its full profile; the summary relevant to KLOW is its mechanism of action.",
+      },
+      { type: "h2", text: "What the Literature Shows" },
+      {
+        type: "p",
+        text: "A 2008 study in Gastroenterology found that KPV's anti-inflammatory effect is PepT1-mediated — the tripeptide is taken up by the PepT1 transporter in intestinal epithelial and immune cells, where nanomolar concentrations inhibit NF-κB and MAP kinase inflammatory signaling and reduce pro-inflammatory cytokine secretion. In the same study, oral KPV reduced the severity of colitis in two separate mouse models.",
+      },
+      { type: "h2", text: "Why Add It to GLOW" },
+      {
+        type: "p",
+        text: "BPC-157, TB-500, and GHK-Cu are studied for tissue repair and matrix remodeling — three angles on the same broad process. KPV's NF-κB and cytokine-signaling research sits on a separate axis: inflammatory regulation and gut-lining research, distinct from the repair mechanisms of the other three. Researchers extending Glow to Klow are typically adding inflammatory-pathway coverage the base three peptides don't address, not intensifying the repair effect itself.",
+      },
+      {
+        type: "callout",
+        text: "What's not established: the four-peptide combination hasn't been studied as a unit. Each compound's evidence, including KPV's, comes from studies where it was administered alone.",
+      },
+      {
+        type: "p",
+        parts: [
+          "For the full KPV profile, see the ",
+          { href: "/blog/kpv-research-guide", text: "KPV research guide" },
+          "; for BPC-157, TB-500, and GHK-Cu, see the ",
+          { href: "/blog/glow-blend-research-guide", text: "GLOW Blend guide" },
+          ".",
+        ],
+      },
+      { type: "h2", text: "Sourcing KLOW" },
+      {
+        type: "button",
+        text: "View the KLOW Stack product page",
+        productSlug: "klow-stack",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is KLOW better than GLOW, or just different?",
+            a: "Different, not strictly better — they share the same BPC-157/TB-500/GHK-Cu base. KPV's evidence is specifically about NF-κB inflammatory signaling and gut-lining research, a mechanism the other three peptides don't address. Whether that's relevant depends on what the research protocol is actually studying.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Dalmasso G, et al. \"PepT1-Mediated Tripeptide KPV Uptake Reduces Intestinal Inflammation.\" Gastroenterology, 2008. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/18061177/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "wolverine-vs-glow-vs-klow",
+    title: "Wolverine vs. GLOW vs. KLOW: Choosing a Blend",
+    excerpt:
+      "Three pre-blended stacks, each adding one peptide to the last. Here's what actually changes between them, and what stays the same.",
+    category: "Stacks",
+    date: "July 2026",
+    readTime: "5 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Wolverine, GLOW, and KLOW are the same core pairing — BPC-157 and TB-500 — with one peptide added at each step. They're not three unrelated formulas to weigh against each other; they're a single base plus increasingly specific coverage. Here's what each addition actually changes.",
+      },
+      { type: "h2", text: "The Three Stacks at a Glance" },
+      { type: "h3", text: "Wolverine — BPC-157 + TB-500" },
+      {
+        type: "p",
+        parts: [
+          "The base pairing: tissue-repair signaling (BPC-157) plus cell-migration signaling (TB-500). See the ",
+          { href: "/blog/wolverine-stack-research-guide", text: "Wolverine Stack guide" },
+          " for the mechanism detail.",
+        ],
+      },
+      { type: "h3", text: "GLOW — Wolverine + GHK-Cu" },
+      {
+        type: "p",
+        parts: [
+          "Adds a third peptide studied for collagen synthesis and broader gene-expression effects. See the ",
+          { href: "/blog/glow-blend-research-guide", text: "GLOW Blend guide" },
+          ".",
+        ],
+      },
+      { type: "h3", text: "KLOW — GLOW + KPV" },
+      {
+        type: "p",
+        parts: [
+          "Adds a fourth peptide studied for NF-κB inflammatory signaling and gut-lining research. See the ",
+          { href: "/blog/klow-blend-research-guide", text: "KLOW Blend guide" },
+          ".",
+        ],
+      },
+      { type: "h2", text: "What Changes Between Them" },
+      {
+        type: "ul",
+        items: [
+          "Angiogenesis / cell-migration research — present in all three (BPC-157 + TB-500 base)",
+          "Collagen synthesis / gene-expression research — added in GLOW and KLOW only (GHK-Cu)",
+          "NF-κB / anti-inflammatory research — present in KLOW only (KPV)",
+          "Gut-lining / cytokine-signaling research — present in KLOW only (KPV)",
+        ],
+      },
+      { type: "h2", text: "What Doesn't Change" },
+      {
+        type: "p",
+        text: "Vendors that carry more than one of the three typically keep the BPC-157/TB-500 ratio consistent across all of them — GLOW and KLOW aren't a different repair formula, they're the same one with additional peptides layered on top. None of the three has been studied as a combined formulation; every mechanism referenced above comes from research on that individual peptide.",
+      },
+      { type: "h2", text: "Choosing Between Them" },
+      {
+        type: "ul",
+        items: [
+          "Research is specifically about tissue/tendon/muscle repair with no need for the skin or inflammatory angles — Wolverine covers the base mechanisms without the extra peptides",
+          "Research also touches collagen, skin, or follicular pathways — GLOW adds that coverage",
+          "Research also touches inflammatory signaling or gut-lining pathways — KLOW adds that coverage on top of GLOW",
+        ],
+      },
+      {
+        type: "callout",
+        text: "This is a research-use-only comparison of documented mechanisms per compound, not a recommendation that more peptides produce a stronger effect. Each addition is a different, independently studied mechanism — not a dose increase.",
+      },
+      { type: "h2", text: "Sourcing" },
+      {
+        type: "button",
+        text: "View the Wolverine Stack product page",
+        productSlug: "bpc-157-tb-500-blend",
+      },
+      {
+        type: "button",
+        text: "View the GLOW Stack product page",
+        productSlug: "glow-stack",
+      },
+      {
+        type: "button",
+        text: "View the KLOW Stack product page",
+        productSlug: "klow-stack",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Should I just buy KLOW since it has the most peptides?",
+            a: "Not necessarily. Each addition targets a specific, separate mechanism (collagen/gene-expression for GHK-Cu, anti-inflammatory/gut-lining for KPV) rather than making the base repair mechanism stronger. Which stack fits depends on what the research protocol is actually studying, not on peptide count.",
+          },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
 ];
