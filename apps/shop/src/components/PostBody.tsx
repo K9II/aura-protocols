@@ -94,11 +94,15 @@ export function renderSection(section: Section, i: number) {
         </div>
       );
     case "button":
+      // Consecutive "button" sections render as adjacent array items with no
+      // whitespace between them — mr-3 keeps them from touching when two or
+      // more appear back to back (e.g. a comparison post linking every
+      // product discussed), on top of the my-4 that spaces wrapped rows.
       return section.productSlug ? (
         <Link
           key={i}
           href={`/products/${section.productSlug}`}
-          className="p-btn-primary inline-block text-sm py-2.5 px-6 my-4"
+          className="p-btn-primary inline-block text-sm py-2.5 px-6 my-4 mr-3"
         >
           {section.text} →
         </Link>
