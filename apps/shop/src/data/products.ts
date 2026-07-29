@@ -90,16 +90,49 @@ export const products: Product[] = [
   },
   {
     id: "bpc-157-tb-500-blend",
-    name: "BPC-157 / TB-500 Blend",
+    name: "Wolverine Stack (BPC-157 / TB-500)",
     slug: "bpc-157-tb-500-blend",
-    category: "Recovery",
+    category: "Stacks",
     description:
-      "A pre-blended combination of Body Protection Compound-157 and Thymosin Beta-4, pairing localized tissue-repair research with systemic healing research in a single vial.",
+      "The foundational blend research stack: Body Protection Compound-157 paired with Thymosin Beta-4 in a single vial, pairing localized tissue-repair research with systemic healing research. The base every other blend on this page builds on.",
     benefits: ["Studied for tendon & ligament repair", "Researched for gut mucosal healing", "Studied for systemic tissue healing", "Anti-inflammatory pathways in studies"],
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/bpc-tb500?aff=84", commission: "30%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/wolverine-stack-bpc-157-tb-500/?afref=a1b9", commission: "15%" },
+      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/bpc-157-tb-500-blend/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
+      { vendor: "Swiss Chems", url: "https://swisschems.is/product/healing-research/?ref=AuraPro", commission: "20%", note: "Use code mgidseof for 10% off" },
     ],
+    badge: "New",
+    featured: false,
+  },
+  {
+    id: "glow-stack",
+    name: "GLOW Stack (BPC-157 / TB-500 / GHK-Cu)",
+    slug: "glow-stack",
+    category: "Stacks",
+    description:
+      "The Wolverine Stack plus GHK-Cu in one vial — extending tissue-repair research into collagen synthesis, gene-expression, and dermal/follicular pathways alongside the same BPC-157 and TB-500 foundation.",
+    benefits: ["Wolverine Stack's repair pathways, plus", "Collagen & elastin synthesis research", "Broad gene-modulation studies (GHK-Cu)", "Skin & follicular research applications"],
+    vendors: [
+      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/glow-70-research-blend/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/glow70-peptide/?ref=k9@auraprotocols.com", commission: "15%" },
+    ],
+    badge: "New",
+    featured: false,
+  },
+  {
+    id: "klow-stack",
+    name: "KLOW Stack (BPC-157 / TB-500 / GHK-Cu / KPV)",
+    slug: "klow-stack",
+    category: "Stacks",
+    description:
+      "The GLOW Stack plus KPV — a four-peptide blend extending the same tissue-repair and collagen research into anti-inflammatory and gut-lining pathways in a single reconstitution.",
+    benefits: ["GLOW Stack's repair & collagen pathways, plus", "Anti-inflammatory (NF-κB) research (KPV)", "Gut-lining / cytokine-signaling studies", "Broadest single-vial research coverage"],
+    vendors: [
+      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/klow-80-blend/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/bpc-157-tb-500-ghk-cu-kpv-klow80-blend/?ref=k9@auraprotocols.com", commission: "15%" },
+    ],
+    badge: "New",
     featured: false,
   },
   {
