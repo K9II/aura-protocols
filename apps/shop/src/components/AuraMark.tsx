@@ -12,12 +12,15 @@ type AuraMarkProps = {
   /** loop = continuous (hero), once = play on mount then rest (navbar), static = no motion. */
   mode?: "loop" | "once" | "static";
   className?: string;
+  /** Faint arc beside the pulse. Barely visible at navbar scale; default on. */
+  showEchoRing?: boolean;
 };
 
 export default function AuraMark({
   size = 32,
   mode = "once",
   className = "",
+  showEchoRing = true,
 }: AuraMarkProps) {
   const modeClass = mode === "loop" ? "aura-loop" : mode === "once" ? "aura-once" : "";
   const animated = mode !== "static";
@@ -50,7 +53,7 @@ export default function AuraMark({
           <path d="M70,20 L110,128" />
         </g>
         {/* faint aura echo ring */}
-        <path d="M124,46 A26,26 0 1 1 124,98" strokeWidth={3.5} opacity={0.26} />
+        {showEchoRing && <path d="M124,46 A26,26 0 1 1 124,98" strokeWidth={3.5} opacity={0.26} />}
         {/* pulse that draws the p — blurred glow under, crisp stroke over */}
         <path className="aura-glow" pathLength={100} strokeWidth={9} d={PULSE} />
         <path className="aura-pulse" pathLength={100} strokeWidth={6} d={PULSE} />
