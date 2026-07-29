@@ -117,4 +117,17 @@ export const vendorProfiles: VendorProfile[] = [
       "International (.is) fulfillment may mean longer US domestic shipping than domestic-only vendors",
     ],
   },
+  {
+    vendor: "PSPeptides",
+    summary:
+      "PSPeptides is a US-manufactured vendor and the third confirmed source for all three Stacks products (Wolverine, GLOW, and KLOW), alongside a broader catalog of standalone compounds.",
+    pros: [
+      "Third confirmed source for the Wolverine, GLOW, and KLOW stacks — the deepest stack coverage of any single vendor on this site",
+      "US-manufactured, third-party HPLC tested with batch-specific COAs",
+      "Customer discount of 10% off with code AURAPRO10",
+    ],
+    cons: [
+      "Newer addition — shipping speed and full catalog depth not yet independently confirmed; treat this profile as provisional",
+    ],
+  },
 ];
