@@ -106,9 +106,9 @@ export default function HomePage() {
                 >
                   Connect your wearable →
                 </a>
-                <a href="#index" className="cta-secondary whitespace-nowrap text-[13px] tracking-[0.08em] uppercase pb-0.5">
-                  Explore the research →
-                </a>
+                <Link href="/products" className="cta-secondary whitespace-nowrap text-[13px] tracking-[0.08em] uppercase pb-0.5">
+                  Shop →
+                </Link>
               </div>
             </div>
 
