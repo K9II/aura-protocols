@@ -328,10 +328,10 @@ export const posts: Post[] = [
       },
       {
         type: "cta",
-        text: "View PT-141 at Swiss Chems",
+        text: "View PT-141 at PSPeptides",
         productSlug: "pt-141",
-        vendor: "Swiss Chems",
-        affiliateUrl: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=AuraPro",
+        vendor: "PSPeptides",
+        affiliateUrl: "https://pspeptides.com/product/buy-pt-141/?ref=aurapro",
       },
       {
         type: "faq",
@@ -882,8 +882,8 @@ export const posts: Post[] = [
         type: "cta",
         text: "View PT-141 Vendors",
         productSlug: "pt-141",
-        vendor: "Swiss Chems",
-        affiliateUrl: "https://swisschems.is/product/pt-141-10mg-price-is-per-vial/?ref=AuraPro",
+        vendor: "PSPeptides",
+        affiliateUrl: "https://pspeptides.com/product/buy-pt-141/?ref=aurapro",
       },
       {
         type: "disclaimer",

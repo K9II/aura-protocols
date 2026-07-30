@@ -88,7 +88,6 @@ export const products: Product[] = [
       "Melanocortin receptor agonist studied for its role in libido and sexual health in both men and women.",
     benefits: ["Libido enhancement", "Sexual function support", "Mood elevation", "Melanocortin activation"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%", note: "Nasal spray + vial formats" },
     ],
     featured: true,
@@ -132,7 +131,6 @@ export const products: Product[] = [
       "Synthetic GHRH analog that stimulates endogenous growth hormone release. Studied for visceral fat reduction, body composition, and metabolic health.",
     benefits: ["Visceral fat reduction", "GH pulse stimulation", "Lean body composition", "Metabolic support"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com", commission: "TBD" },
     ],
@@ -147,7 +145,6 @@ export const products: Product[] = [
       "Synthetic fragment of human growth hormone (hGH 176-191) studied for its role in fat metabolism and lipolysis without affecting blood sugar or IGF-1 levels.",
     benefits: ["Targeted fat metabolism", "Lipolysis stimulation", "No IGF-1 interference", "No blood sugar impact"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
     ],
     featured: false,
@@ -161,7 +158,6 @@ export const products: Product[] = [
       "Synthetic tetrapeptide (Ala-Glu-Asp-Gly) studied for its role in telomerase activation, cellular longevity, and regulation of the pineal gland's melatonin output.",
     benefits: ["Telomerase activation", "Cellular longevity", "Melatonin regulation", "Anti-aging support"],
     vendors: [
-      { vendor: "Swiss Chems", url: "https://swisschems.is/ref/6782/", commission: "20%" },
       { vendor: "Core Peptides", url: "https://www.corepeptides.com", commission: "12%" },
       { vendor: "Behemoth Labz", url: "https://behemothlabz.com", commission: "7%" },
     ],

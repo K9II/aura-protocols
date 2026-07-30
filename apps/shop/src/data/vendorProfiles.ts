@@ -23,21 +23,6 @@ export const vendorProfiles: VendorProfile[] = [
     ],
   },
   {
-    vendor: "Swiss Chems",
-    summary:
-      "Swiss Chems operates one of the broader catalogs in the research chemical market — covering peptides, SARMs, oral peptides, and ancillary compounds. Their international shipping network gives them a strong position outside the US domestic market.",
-    pros: [
-      "Widest payment options of any vendor on this site — card, bank transfer (Plaid ACH, Coinbase, Zelle, Interac), and 7 cryptocurrencies",
-      "Broadest catalog including SARMs and ancillaries",
-      "Strong international shipping network",
-      "Good option for PT-141 and niche compounds",
-    ],
-    cons: [
-      "Longer US domestic shipping times than domestic-only vendors",
-      "COA detail can vary by compound",
-    ],
-  },
-  {
     vendor: "Apollo Peptide Sciences",
     summary:
       "Apollo Peptide Sciences runs a broad catalog spanning GLP-1 compounds (semaglutide, tirzepatide, retatrutide) alongside standard recovery and longevity peptides.",
