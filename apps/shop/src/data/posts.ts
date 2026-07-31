@@ -2948,6 +2948,7 @@ export const posts: Post[] = [
     category: "Stacks",
     date: "July 2026",
     readTime: "5 min read",
+    pinned: true,
     categoryLead: true,
     content: [
       {

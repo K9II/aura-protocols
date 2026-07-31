@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { posts } from "@/data/posts";
+import BlogList from "@/components/BlogList";
 
 export const metadata = {
   title: "Research Blog — Aura Protocols",
@@ -67,24 +68,7 @@ export default async function BlogPage({
         ))}
       </div>
 
-      {sortedPosts.length === 0 && (
-        <p className="text-[color:var(--ink-soft)] mb-12">No articles in this category yet.</p>
-      )}
-
-      <div className="space-y-6">
-        {sortedPosts.map((post) => (
-          <Link key={post.slug} href={`/blog/${post.slug}`} className="p-card block p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="p-cat-label">{post.category}</span>
-              <span className="text-xs text-[color:var(--ink-soft)]">{post.date}</span>
-              <span className="text-xs text-[color:var(--ink-soft)]">{post.readTime}</span>
-            </div>
-            <h2 className="p-serif-italic text-lg mb-2 text-[color:var(--ink)]">{post.title}</h2>
-            <p className="text-sm text-[color:var(--ink-soft)] leading-relaxed">{post.excerpt}</p>
-            <p className="mt-4 text-xs font-semibold text-[color:var(--specimen)]">Read article →</p>
-          </Link>
-        ))}
-      </div>
+      <BlogList posts={sortedPosts} />
     </div>
     </div>
   );
