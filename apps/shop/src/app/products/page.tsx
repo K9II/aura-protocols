@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import { products, categories } from "@/data/products";
 
@@ -6,7 +7,14 @@ export const metadata = {
   description: "Browse our curated catalog of high-purity research peptides from verified affiliate vendors.",
 };
 
-export default function ProductsPage() {
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category } = await searchParams;
+  const visibleCategories = category ? categories.filter((cat) => cat === category) : categories;
+
   return (
     <div className="pharmacopoeia">
     <div className="max-w-6xl mx-auto px-6 py-16">
@@ -18,7 +26,25 @@ export default function ProductsPage() {
         </p>
       </div>
 
-      {categories.map((cat) => (
+      <div className="flex flex-wrap gap-2 mb-12">
+        <Link
+          href="/products"
+          className={`p-chip ${!category ? "border-[color:var(--specimen)] text-[color:var(--specimen)]" : ""}`}
+        >
+          All
+        </Link>
+        {categories.map((cat) => (
+          <Link
+            key={cat}
+            href={`/products?category=${encodeURIComponent(cat)}`}
+            className={`p-chip ${category === cat ? "border-[color:var(--specimen)] text-[color:var(--specimen)]" : ""}`}
+          >
+            {cat}
+          </Link>
+        ))}
+      </div>
+
+      {visibleCategories.map((cat) => (
         <section key={cat} className="mb-16">
           <h2 className="p-serif text-xl mb-6 flex items-center gap-3 text-[color:var(--ink)]">
             <span className="w-1 h-6 bg-[color:var(--specimen)]" />
