@@ -116,6 +116,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               This compound is intended for laboratory and research purposes only. It is not approved for human consumption and is not intended to diagnose, treat, cure, or prevent any disease. Always consult a qualified healthcare professional.
             </p>
           </div>
+
+          {guideHref && (
+            <Link href={guideHref} className="p-link text-xs flex items-center gap-1.5 px-1">
+              Full Research Guide
+            </Link>
+          )}
         </div>
 
         {/* Sidebar — Where to Buy */}
@@ -130,11 +136,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               Affiliate disclosure: links above are affiliate partnerships. We may earn a commission at no cost to you.
             </p>
           </div>
-          {guideHref && (
-            <Link href={guideHref} className="p-link text-xs flex items-center gap-1.5 px-1">
-              ← Back to the full research guide
-            </Link>
-          )}
         </div>
       </div>
 
