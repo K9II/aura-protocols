@@ -74,6 +74,24 @@ export const products: Product[] = [
     featured: true,
   },
   {
+    id: "tirzepatide",
+    name: "Tirzepatide",
+    slug: "tirzepatide",
+    category: "Body Composition",
+    description:
+      "Dual GIP/GLP-1 receptor agonist studied for synergistic effects on insulin secretion, fat metabolism, and appetite suppression — showing a greater magnitude of weight loss than semaglutide in head-to-head trials.",
+    benefits: ["Dual GIP/GLP-1 receptor agonism", "SURMOUNT trials: 20–22% body-weight reduction over 72 weeks", "~20% greater weight loss than semaglutide in SURMOUNT-5", "Stronger HbA1c reduction in T2D research populations"],
+    vendors: [
+      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-2t-15m/?rfsn=9131640.7592e7", commission: "20%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/glp-tz-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
+      { vendor: "Main Peptides", url: "https://mainpeptides.com/product/glpii/?ref=Aurapro", commission: "10%" },
+      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-tirz/?afref=a1b9", commission: "15%" },
+      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-2-trz/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
+      { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-tirzepatide/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
+    ],
+    featured: true,
+  },
+  {
     id: "cjc-1295-ipamorelin",
     name: "CJC-1295 / Ipamorelin",
     slug: "cjc-1295-ipamorelin",

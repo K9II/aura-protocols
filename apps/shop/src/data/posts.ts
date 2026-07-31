@@ -595,7 +595,9 @@ export const posts: Post[] = [
         parts: [
           "The choice between ",
           { href: "/products/semaglutide", text: "semaglutide" },
-          " and tirzepatide for research purposes depends on the specific question being studied. Semaglutide has a longer research track record and more published data — see the ",
+          " and ",
+          { href: "/products/tirzepatide", text: "tirzepatide" },
+          " for research purposes depends on the specific question being studied. Semaglutide has a longer research track record and more published data — see the ",
           { href: "/products/retatrutide", text: "retatrutide" },
           " page for how the newer triple-agonist class compares on trial results. Tirzepatide represents the current frontier of dual-agonist research and shows greater magnitude of effect in weight-focused studies.",
         ],
