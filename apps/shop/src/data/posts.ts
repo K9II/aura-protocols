@@ -532,6 +532,160 @@ export const posts: Post[] = [
     ],
   },
   {
+    slug: "tb-500-complete-guide",
+    title: "TB-500 (Thymosin Beta-4): The Complete Research Guide",
+    excerpt:
+      "Mechanism of action, preclinical evidence by tissue type, and current regulatory status — the actin-binding peptide most often paired with BPC-157 in recovery research.",
+    category: "Recovery",
+    date: "July 2026",
+    readTime: "8 min read",
+    content: [
+      {
+        type: "intro",
+        text: "TB-500 is the synthetic research fragment of Thymosin Beta-4, a naturally occurring 43-amino-acid peptide present in nearly every human cell. Unlike BPC-157's gastric origin, Thymosin Beta-4's native role is as an actin-regulating protein — and that mechanism is what the tendon, muscle, and cardiac repair literature keeps coming back to.",
+      },
+      { type: "h2", text: "What Is TB-500?" },
+      {
+        type: "p",
+        text: "TB-500 refers to the synthetic version of the biologically active region of Thymosin Beta-4 (Tβ4), a peptide first isolated from thymus tissue and now known to be expressed across most cell types, particularly at sites of tissue injury. It is not a novel discovery so much as a synthesized fragment of a protein the body already produces and upregulates during wound repair.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "Thymosin Beta-4's core, most-replicated mechanism is actin regulation: it binds monomeric G-actin and prevents its polymerization into filaments, which governs cell migration, lamellipodia formation, and cytokinesis. Because nearly every form of tissue repair depends on cells migrating into the injury site, this single mechanism plausibly explains its broad footprint across tendon, muscle, skin, and cardiac research.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Actin-binding — regulates the cytoskeletal dynamics that drive cell migration into injured tissue",
+          "VEGF and angiopoietin-1 induction — promotes angiogenesis, new blood vessel formation to meet healing tissue's metabolic demand",
+          "NF-κB downregulation — a proposed anti-inflammatory pathway relevant to chronic joint and soft-tissue injury",
+          "Akt/mTOR activation — linked to cell survival and reduced apoptosis in injured tissue",
+        ],
+      },
+      { type: "h2", text: "What the Preclinical Research Shows" },
+      {
+        type: "p",
+        text: "As with most peptides in this category, the evidence base is preclinical — animal and cell-culture models, not human trials. By tissue type:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Muscle — a directly cited mechanism: muscle-injury-induced Thymosin Beta-4 acts as a chemoattractant for myoblasts, drawing muscle precursor cells to the injury site",
+          "Tendon & ligament — accelerated cell migration and wound closure attributed to the same actin-regulation mechanism, alongside reduced scar-tissue formation in animal models",
+          "Cardiac — the deepest literature outside of tendon/muscle: reduced infarct size and preserved cardiac function after coronary artery ligation in mouse models, via a proposed two-phase mechanism — an acute anti-apoptotic/anti-inflammatory phase, followed by a chronic phase activating vascular and cardiac progenitor cell growth",
+          "Skin / wound healing — accelerated closure attributed to the same angiogenesis and cell-migration pathways studied in tendon and cardiac models",
+        ],
+      },
+      {
+        type: "callout",
+        text: "All cardiac findings above come from ischemic-injury animal models (primarily mouse), not human cardiology research. TB-500 is not a treatment for cardiovascular disease and none of this literature should be read as clinical evidence.",
+      },
+      { type: "h2", text: "Regulatory & Safety Status" },
+      {
+        type: "p",
+        text: "TB-500 was one of seven peptides FDA's Pharmacy Compounding Advisory Committee (PCAC) formally reviewed on July 23–24, 2026 for possible addition to the Section 503A Bulk Drug Substances List — the same meeting that reviewed BPC-157 (see our BPC-157 guide for the fuller regulatory background). FDA's own scientific staff recommended against adding any of the seven peptides under review, citing insufficient safety and efficacy evidence. The committee voted narrowly to recommend TB-500 anyway, one of six peptides (of seven reviewed) the panel backed — only Emideltide was voted down.",
+      },
+      {
+        type: "callout",
+        text: "This is a non-binding recommendation, not a rule change or an approval. FDA is not required to follow PCAC's vote. If FDA moves forward, it happens through formal rulemaking that could take until 2027 or 2028 — this is not something that makes TB-500 legally compoundable today. As of this writing, TB-500 remains not FDA-approved for any human use, and nothing about its actual legal status has changed as a result of this vote.",
+      },
+      {
+        type: "p",
+        text: "Separately from the bulk-substance list question, selling an unapproved drug for human use can implicate misbranding and adulteration law regardless of Category 2/503A status — the same caveat that applies to every research peptide discussed on this site.",
+      },
+      {
+        type: "callout",
+        text: "FDA rulemaking and advisory outcomes change over time — this status was verified against FDA and news reporting as of 2026-07-31. If you're making a decision based on current regulatory status, re-verify it directly rather than relying on this page's snapshot.",
+      },
+      { type: "h2", text: "Where to Source TB-500 for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the TB-500 product page",
+        productSlug: "tb-500",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is TB-500 the same thing as Thymosin Beta-4?",
+            a: "TB-500 is a synthetic version of a biologically active fragment of Thymosin Beta-4 (Tβ4). The names are often used interchangeably in the research-peptide market, but TB-500 specifically refers to the synthesized research compound, not the full native protein.",
+          },
+          {
+            q: "Is TB-500 approved by the FDA for human use?",
+            a: "No. On July 23, 2026, an FDA advisory committee voted to recommend adding TB-500 to the list of substances compounding pharmacies can legally prepare, over FDA staff's own objection that the evidence doesn't support it. That's a non-binding recommendation, not an approval; formal FDA rulemaking, if it happens, could take until 2027 or 2028. TB-500 remains not FDA-approved for any human use today.",
+          },
+          {
+            q: "Why is TB-500 often paired with BPC-157?",
+            a: "The two compounds are frequently studied together because their proposed mechanisms are complementary rather than redundant — BPC-157's evidence base centers on angiogenesis and gut-mucosal repair via VEGFR2/Akt-eNOS signaling, while TB-500's centers on actin-mediated cell migration. Aura's Wolverine Stack pairs the two for exactly this reason.",
+          },
+          {
+            q: "Does the cardiac research mean TB-500 has cardiovascular applications?",
+            a: "No — the cardiac literature is entirely preclinical, ischemic-injury animal models. It's relevant to researchers studying cardiac repair mechanisms, not evidence of any human cardiovascular benefit.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. \"Thymosin Beta-4 and TB-500 in Tissue Healing, Regeneration, and Musculoskeletal Repair: A Scoping Review.\" ",
+          { href: "https://www.mdpi.com/2076-3417/16/12/6202", text: "MDPI Applied Sciences", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. \"Muscle injury-induced thymosin β4 acts as a chemoattractant for myoblasts.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/20880960/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"Cardioprotection by Thymosin Beta 4.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/27450736/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. \"Thymosin beta4 is cardioprotective after myocardial infarction.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/17600280/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. \"Cardioprotection by systemic dosing of thymosin beta four following ischemic myocardial injury.\" ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3843122/", text: "PMC", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. \"Thymosin β4 and cardiac regeneration: are we missing a beat?\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/22628110/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "7. Stone W. \"FDA panel supports broadening access to peptides popular on the gray market.\" NPR, July 23–24, 2026. ",
+          { href: "https://www.npr.org/2026/07/23/nx-s1-5903202/fda-peptides-restrictions", text: "npr.org", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "semaglutide-vs-tirzepatide",
     title: "Semaglutide vs. Tirzepatide: What the Research Shows",
     excerpt:
@@ -621,79 +775,111 @@ export const posts: Post[] = [
   },
   {
     slug: "cjc-1295-ipamorelin-stack",
-    title: "CJC-1295 / Ipamorelin Stack: Growth Hormone Optimization",
+    title: "CJC-1295 / Ipamorelin: The Complete Research Guide",
     excerpt:
-      "Why this combo has become the gold standard for GH-axis support in research settings.",
+      "Two receptors, one synergistic effect — and one of the few stacks on this site backed by real human clinical data, not just animal models.",
     category: "Growth & Performance",
-    date: "March 2026",
-    readTime: "6 min read",
+    date: "July 2026",
+    readTime: "8 min read",
     content: [
       {
         type: "intro",
-        text: "Among growth hormone secretagogue combinations, CJC-1295 paired with Ipamorelin has emerged as one of the most researched and consistently cited stacks. The synergy between these two compounds — one a GHRH analogue, the other a selective ghrelin mimetic — produces robust, pulsatile GH release with a favorable safety profile compared to exogenous GH administration.",
+        text: "CJC-1295 paired with Ipamorelin is one of the most-cited growth hormone secretagogue combinations in the research-peptide space — and unusually for this site, part of the reason is that a piece of the mechanism has actually been tested in humans, not just animal models.",
       },
-      {
-        type: "h2",
-        text: "Understanding Each Compound",
-      },
-      {
-        type: "h3",
-        text: "CJC-1295 (with DAC)",
-      },
+      { type: "h2", text: "Understanding Each Compound" },
+      { type: "h3", text: "CJC-1295 (with DAC)" },
       {
         type: "p",
-        text: "CJC-1295 is a synthetic analogue of growth hormone-releasing hormone (GHRH). The DAC (Drug Affinity Complex) modification extends its half-life from minutes to approximately 6–8 days by binding to serum albumin. This produces sustained elevation of baseline GH and IGF-1 levels rather than sharp pulses.",
+        text: "CJC-1295 is a synthetic analogue of growth hormone-releasing hormone (GHRH). The DAC (Drug Affinity Complex) modification extends its half-life from minutes to approximately 6–8 days by binding to serum albumin, producing sustained elevation of baseline GH and IGF-1 rather than sharp pulses.",
       },
-      {
-        type: "h3",
-        text: "Ipamorelin",
-      },
+      { type: "h3", text: "Ipamorelin" },
       {
         type: "p",
-        text: "Ipamorelin is a selective growth hormone secretagogue and ghrelin receptor agonist (GHSR). It is notable for its high selectivity — it stimulates GH release without significantly elevating cortisol or prolactin, which distinguishes it from older GH secretagogues like GHRP-2 and GHRP-6.",
+        text: "Ipamorelin is a synthetic pentapeptide and selective agonist at the ghrelin receptor (GHSR-1a) in the pituitary. Its foundational 1998 characterization established it as the first selective GH secretagogue — stimulating GH release without significantly elevating cortisol, ACTH, or prolactin, unlike earlier GHRPs (GHRP-2, GHRP-6), which do raise cortisol and ACTH.",
       },
-      {
-        type: "h2",
-        text: "Why the Combination Works",
-      },
+      { type: "h2", text: "Why the Combination Works" },
       {
         type: "p",
-        text: "CJC-1295 and Ipamorelin act on two distinct receptors within the GH axis — GHRH receptors and ghrelin receptors respectively. When combined, they produce a synergistic amplification of GH pulse amplitude. Research suggests the combination produces GH release 2–10x greater than either compound alone, while maintaining the physiological pulsatile pattern that exogenous GH disrupts.",
+        text: "CJC-1295 and Ipamorelin act on two distinct receptor systems in the GH axis — the GHRH receptor and the ghrelin receptor, respectively. Human studies of ghrelin combined with GHRH found the two peptides stimulate GH release synergistically: the combined GH response exceeded the sum of each peptide's individual response. Mechanistic work on the pituitary receptors found GHRH increases the ghrelin receptor's binding capacity in a dose-dependent way (positive binding cooperativity), and that GH secretagogues potentiate GHRH-induced cAMP production at the cellular level — a plausible molecular basis for the synergy seen in human dosing studies.",
       },
       {
         type: "ul",
         items: [
-          "CJC-1295 raises the baseline 'floor' of GH secretion",
-          "Ipamorelin amplifies individual GH pulses",
-          "Combined effect: higher amplitude pulses on an elevated baseline",
-          "Preserves natural GH rhythm unlike exogenous HGH",
-          "No significant cortisol or prolactin elevation (Ipamorelin selective)",
-        ],
-      },
-      {
-        type: "h2",
-        text: "Studied Effects",
-      },
-      {
-        type: "ul",
-        items: [
-          "Increased lean body mass in multiple animal models",
-          "Reduction in adipose tissue in animal models, particularly visceral fat",
-          "Improved sleep quality (GH is primarily secreted during slow-wave sleep)",
-          "Enhanced recovery from exercise-induced muscle damage in preclinical studies",
-          "Improved bone mineral density markers in aging models",
+          "CJC-1295 raises the baseline of GH secretion via sustained GHRH-receptor activation",
+          "Ipamorelin activates the separate ghrelin-receptor pathway, selectively, without cortisol/ACTH elevation",
+          "Human ghrelin+GHRH dosing studies found the combined GH response exceeds either peptide's individual response",
+          "A human trial of CJC-1295 alone found sustained, dose-dependent GH and IGF-I increases at 30–60 mcg/kg, safe and well tolerated",
         ],
       },
       {
         type: "callout",
-        text: "CJC-1295 and Ipamorelin are research compounds only. They have not been approved by the FDA for human use. All referenced effects are from preclinical studies.",
+        text: "The human data above is for the individual mechanisms (CJC-1295 alone; ghrelin+GHRH synergy) — there is no published human trial of the specific CJC-1295+Ipamorelin combination as sold by research vendors. The synergy mechanism is human-validated; the specific stack is not.",
+      },
+      { type: "h2", text: "What the Broader Research Shows" },
+      {
+        type: "ul",
+        items: [
+          "Increased lean body mass in animal models of sustained GH/IGF-1 elevation",
+          "Reduction in adipose tissue, particularly visceral fat, in animal models",
+          "Improved sleep quality reported in connection with GH's role in slow-wave sleep",
+          "Enhanced recovery from exercise-induced muscle damage in preclinical studies",
+        ],
       },
       {
-        type: "cta",
-        text: "View CJC-1295 / Ipamorelin at Limitless Life Nootropics",
+        type: "callout",
+        text: "CJC-1295 and Ipamorelin are research compounds only. Neither has been approved by the FDA for human use. The lean-mass, fat-reduction, and recovery findings above are from preclinical models, not human trials.",
+      },
+      { type: "h2", text: "Where to Source CJC-1295 / Ipamorelin for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the CJC-1295 / Ipamorelin product page",
         productSlug: "cjc-1295-ipamorelin",
-        vendor: "Limitless Life Nootropics",
-        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is there human evidence for CJC-1295 and Ipamorelin, or is it all animal studies?",
+            a: "Partial. CJC-1295 alone has a published human dosing trial showing sustained, dose-dependent GH/IGF-1 increases. The GHRH+ghrelin synergy mechanism has also been demonstrated in humans. But the specific combination product sold by research vendors has not itself been through a published human trial — the lean-mass and fat-reduction findings for the stack specifically are animal-model data.",
+          },
+          {
+            q: "Why doesn't Ipamorelin raise cortisol like older GH secretagogues?",
+            a: "Its original 1998 characterization found it selectively activates the ghrelin receptor pathway for GH release without the cross-activity on ACTH/cortisol pathways seen with older GHRPs like GHRP-6 and GHRP-2 — a deliberate selectivity improvement, not an accident of dosing.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Teichman SL, et al. \"Prolonged stimulation of growth hormone (GH) and insulin-like growth factor I secretion by CJC-1295, a long-acting analog of GH-releasing hormone, in healthy adults.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/16352683/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Raun K, et al. \"Ipamorelin, the first selective growth hormone secretagogue.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/9849822/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"A low dose of ghrelin stimulates growth hormone (GH) release synergistically with GH-releasing hormone in humans.\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/11549707/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. \"Ghrelin and Growth Hormone (GH) Secretagogues Potentiate GH-Releasing Hormone (GHRH)-Induced Cyclic AMP Production...\" ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/12446584/", text: "PubMed", external: true },
+        ],
       },
       {
         type: "disclaimer",
@@ -987,6 +1173,205 @@ export const posts: Post[] = [
     ],
   },
   {
+    slug: "ss-31-elamipretide-research-guide",
+    title: "SS-31 (Elamipretide): The Complete Research Guide",
+    excerpt:
+      "The mitochondria-targeted peptide behind a real FDA accelerated approval — for a narrow rare-disease indication most research use has nothing to do with.",
+    category: "Longevity & Wellness",
+    date: "July 2026",
+    readTime: "8 min read",
+    content: [
+      {
+        type: "intro",
+        text: "SS-31 has a rarer distinction on this site: it's an FDA-approved drug, under a different name, for a specific rare disease — while the vast majority of research and consumer interest in it has nothing to do with that approved use. Both facts matter, and this guide treats them separately.",
+      },
+      { type: "h2", text: "What Is SS-31?" },
+      {
+        type: "p",
+        text: "SS-31 is a synthetic tetrapeptide with an alternating cationic/aromatic amino acid motif that allows it to cross the plasma membrane without a transporter and accumulate 1,000–5,000-fold at the mitochondrial inner membrane. There, it selectively binds cardiolipin, a phospholipid unique to the inner mitochondrial membrane.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "By binding cardiolipin, SS-31 stabilizes the folded cristae structure of the inner mitochondrial membrane — where the electron transport chain complexes are physically organized. Cell-culture studies found the peptide reduces oxidative cell death, lowers intracellular reactive oxygen species, and preserves membrane potential, all in a dose-dependent manner, which supports the model that cristae stabilization directly protects ATP production capacity during oxidative stress.",
+      },
+      { type: "h2", text: "What the Preclinical Research Shows" },
+      {
+        type: "p",
+        text: "Multiple independent research groups have reported efficacy across a wide range of disease models sharing mitochondrial dysfunction as a common root cause:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Cardiomyopathy and heart failure models",
+          "Skeletal muscle injury and atrophy models",
+          "Ischemia and ischemia-reperfusion injury",
+          "Kidney injury and disease models",
+          "Neurodegenerative disease models",
+          "Friedreich's ataxia (a heritable mitochondrial disease)",
+        ],
+      },
+      { type: "h2", text: "Human Evidence and Regulatory Status" },
+      {
+        type: "p",
+        text: "Unlike most compounds on this site, SS-31 has gone through real human trials and a real FDA approval — for one specific, ultra-rare indication. The TAZPOWER trial (28-week randomized, placebo-controlled, followed by a 168-week open-label extension) tested elamipretide in Barth syndrome, an X-linked genetic disorder that weakens cardiac and skeletal muscle. The 12-week randomized phase missed its primary endpoints, but the open-label extension found significant improvement on the 6-minute walk test (79.7m difference at week 64, 91.0m at week 76) and cardiac outcomes.",
+      },
+      {
+        type: "p",
+        text: "In September 2025, the FDA granted accelerated approval to elamipretide — brand name Forzinity — for muscle strength in Barth syndrome, in adult and pediatric patients, dosed at 40mg subcutaneously once daily. It's the first FDA-approved mitochondrial disease therapy.",
+      },
+      {
+        type: "callout",
+        text: "This approval is narrow: Barth syndrome muscle strength, at a specific dose, under medical supervision. It is not a general approval for mitochondrial health, aging, or any of the broader uses SS-31 is studied for elsewhere. SS-31 sold by research vendors is not Forzinity — it is unapproved bulk peptide material, not established as equivalent in purity or formulation, and not legal to sell for human use outside that approved product.",
+      },
+      { type: "h2", text: "Where to Source SS-31 for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the SS-31 product page",
+        productSlug: "ss-31",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is SS-31 FDA-approved?",
+            a: "Yes, but only for one narrow use: as Forzinity, for muscle strength in Barth syndrome, approved via the FDA's accelerated approval pathway in September 2025. It is not approved for general mitochondrial health, longevity, or any use outside that specific rare-disease indication.",
+          },
+          {
+            q: "Is the SS-31 sold by research vendors the same as Forzinity?",
+            a: "No. Forzinity is a specific FDA-approved manufactured product for a specific indication and dose. SS-31 sold for research use is unapproved bulk peptide material and has not been established as equivalent in purity, formulation, or bioavailability.",
+          },
+          {
+            q: "Does the Barth syndrome approval mean SS-31 is proven for mitochondrial aging or general energy?",
+            a: "No. The approved indication is narrow — muscle strength in a specific genetic disease. The broader mitochondrial-function research (cardiac, kidney, neurodegenerative models) is real but preclinical, and hasn't been tested in the general population the way it was in Barth syndrome patients.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. \"The mitochondria-targeted peptide SS-31 binds lipid bilayers and modulates surface electrostatics as a key component of its mechanism of action.\" PMC. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7247319/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. \"SS-31, a Mitochondria-Targeting Peptide, Ameliorates Kidney Disease.\" PMC. ",
+          { href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9192202/", text: "pmc.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"Long-term efficacy and safety of elamipretide in patients with Barth syndrome: 168-week open-label extension results of TAZPOWER.\" PubMed. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/38602181/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. \"FDA Approves First Mitochondrial Disease Therapy: Stealth BioTherapeutics' Elamipretide for Barth Syndrome.\" United Mitochondrial Disease Foundation. ",
+          { href: "https://umdf.org/fda-approves-elamipretide/", text: "umdf.org", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "slu-pp-332-research-guide",
+    title: "SLU-PP-332: The Complete Research Guide",
+    excerpt:
+      "A pan-ERR agonist developed at Saint Louis University that reproduces the gene-expression signature of aerobic exercise — without exercise.",
+    category: "Longevity & Wellness",
+    date: "July 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "SLU-PP-332 is a research tool compound in the most literal sense — it was built at Saint Louis University to answer a specific scientific question: what happens if you pharmacologically switch on the transcriptional program that exercise normally triggers? The published research is entirely preclinical, but it's real, peer-reviewed, and mechanistically specific.",
+      },
+      { type: "h2", text: "What Is SLU-PP-332?" },
+      {
+        type: "p",
+        text: "SLU-PP-332 is a synthetic pan-agonist of the estrogen-related receptor family — ERRα, ERRβ, and ERRγ — with preferential potency at ERRα. ERRs are orphan nuclear receptors (no known endogenous hormone ligand) that sit downstream of PGC-1α, the master regulator of mitochondrial biogenesis.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "Activating ERRα with SLU-PP-332 induces an acute aerobic-exercise gene-expression program in skeletal muscle in an ERRα-dependent manner — meaning the effect is lost when the receptor is knocked out, direct evidence the mechanism runs through this receptor and not an off-target pathway. In C2C12 muscle cells, treatment substantially induced mitochondrial biogenesis (confirmed via MitoTracker staining) and increased cellular respiration, consistent with the exercise-program interpretation.",
+      },
+      { type: "h2", text: "What the Preclinical Research Shows" },
+      {
+        type: "p",
+        text: "The published studies span in vitro respiration assays and in vivo mouse metabolic models:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Increased mitochondrial biogenesis and cellular respiration in C2C12 myoblasts",
+          "Enhanced exercise capacity in mouse models, without the animals actually exercising",
+          "In diet-induced obese and ob/ob (genetically obese) mice: increased energy expenditure and fatty-acid oxidation",
+          "Progressive weight loss and decreased adipocyte size in high-fat-diet-induced obesity models",
+        ],
+      },
+      {
+        type: "callout",
+        text: "Every finding above is from mouse models and cell culture. There are no published human trials of SLU-PP-332. It has no approved pharmaceutical analog and has not been reviewed by FDA for any bulk-substance or compounding pathway — a narrower regulatory footprint than BPC-157 or TB-500, not a safer one.",
+      },
+      { type: "h2", text: "Where to Source SLU-PP-332 for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the SLU-PP-332 product page",
+        productSlug: "slu-pp-332",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is SLU-PP-332 an 'exercise pill' that's been tested in humans?",
+            a: "No. The exercise-mimetic effects — increased mitochondrial biogenesis, energy expenditure, and exercise capacity — are documented in mouse and cell-culture models only. No published human trial exists.",
+          },
+          {
+            q: "How is SLU-PP-332 different from GLP-1 drugs for weight loss?",
+            a: "GLP-1 agonists work primarily by suppressing appetite. SLU-PP-332's studied mechanism increases energy expenditure and fatty-acid oxidation — the metabolic side of the equation exercise normally drives — rather than reducing food intake.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. \"Synthetic ERRα/β/γ Agonist Induces an ERRα-Dependent Acute Aerobic Exercise Response.\" PubMed. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/36988910/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. \"A Synthetic ERR Agonist Alleviates Metabolic Syndrome.\" Journal of Pharmacology and Experimental Therapeutics, PubMed. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/37739806/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "retatrutide-research-guide",
     title: "Retatrutide: The Complete Research Guide",
     excerpt:
@@ -1137,6 +1522,124 @@ export const posts: Post[] = [
     ],
   },
   {
+    slug: "tirzepatide-research-guide",
+    title: "Tirzepatide: The Complete Research Guide",
+    excerpt:
+      "The dual GIP/GLP-1 agonist behind Mounjaro and Zepbound — and the gap between the approved drug and what's actually sold as a research compound.",
+    category: "Body Composition",
+    date: "July 2026",
+    readTime: "8 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Tirzepatide is one of the few compounds on this site with a completed, FDA-approved drug behind it — twice over, under two different brand names for two different indications. That makes its research-vendor version a different story than BPC-157 or Retatrutide: the question isn't whether the molecule works, it's whether what a research vendor ships is the same thing the trials were run on.",
+      },
+      { type: "h2", text: "What Is Tirzepatide?" },
+      {
+        type: "p",
+        text: "Tirzepatide is a synthetic peptide that activates two separate incretin receptors in one molecule: the GIP (glucose-dependent insulinotropic polypeptide) receptor and the GLP-1 (glucagon-like peptide-1) receptor. It was developed by Eli Lilly and is marketed as Mounjaro (type 2 diabetes) and Zepbound (chronic weight management).",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "Structural and signaling studies describe tirzepatide as an imbalanced, biased dual agonist — it engages the GIP receptor more like native GIP itself, while at the GLP-1 receptor it's biased toward cAMP generation over β-arrestin recruitment. In practical terms: it isn't simply \"semaglutide plus a second appetite hormone.\" The dual-receptor engagement pattern is qualitatively different from a single-agonist GLP-1 drug, which researchers point to as the mechanistic explanation for its larger effect size in head-to-head trials.",
+      },
+      { type: "h2", text: "Human Evidence" },
+      {
+        type: "p",
+        text: "Unlike most compounds on this site, tirzepatide's evidence base is Phase 3, peer-reviewed, and the basis for an actual FDA approval — not preclinical or press-release data.",
+      },
+      {
+        type: "ul",
+        items: [
+          "SURMOUNT-1 (n=2,539, no diabetes): mean weight reduction of 15.0% (5mg), 19.5% (10mg), and 20.9% (15mg) vs. 3.1% for placebo at 72 weeks",
+          "SURMOUNT-5 (head-to-head vs. semaglutide): 20.2% weight loss vs. 13.7% — roughly 47% greater reduction than semaglutide at 72 weeks",
+          "SURMOUNT-1 also recorded significant reductions in systolic and diastolic blood pressure at 72 weeks",
+          "Post hoc SURMOUNT-1 analysis found improvements in both β-cell function and insulin sensitivity in participants with prediabetes",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Tirzepatide has two FDA approvals: Mounjaro (May 13, 2022) for glycemic control in type 2 diabetes, and Zepbound (November 8, 2023) for chronic weight management in adults with a BMI of 30+, or 27+ with a weight-related comorbidity. Both are real, completed approvals — not an investigational or bulk-substance question like BPC-157 or TB-500.",
+      },
+      {
+        type: "callout",
+        text: "The gap is on the supply side, not the science. Tirzepatide sold by research vendors is not Mounjaro or Zepbound — it is unapproved bulk peptide material, has not been established as equivalent to the approved drug in purity, formulation, or bioavailability, and is not legally sold for human use or consumption.",
+      },
+      { type: "h2", text: "Where to Source Tirzepatide for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the Tirzepatide product page",
+        productSlug: "tirzepatide",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is the tirzepatide sold by research vendors the same as Mounjaro or Zepbound?",
+            a: "No. Mounjaro and Zepbound are specific FDA-approved manufactured products. Tirzepatide sold for research use is unapproved bulk peptide material and has not been established as equivalent to the approved drug in purity, formulation, or bioavailability.",
+          },
+          {
+            q: "Why does tirzepatide outperform semaglutide in trials?",
+            a: "It engages both the GIP and GLP-1 receptors with an imbalanced, biased signaling profile rather than simply adding a second appetite-suppressing pathway — SURMOUNT-5 recorded roughly 47% greater weight loss than semaglutide at matched follow-up (20.2% vs. 13.7% at 72 weeks).",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. \"Tirzepatide is an imbalanced and biased dual GIP and GLP-1 receptor agonist.\" PMC. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7526454/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. \"Structural determinants of dual incretin receptor agonism by tirzepatide.\" PMC. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9060465/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"Efficacy and safety of once-weekly tirzepatide for weight management... including the latest SURMOUNT-2 trial.\" PMC. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11445313/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. \"Tirzepatide Treatment and Associated Changes in β-Cell Function and Insulin Sensitivity... A Post Hoc Analysis From the SURMOUNT-1 Trial.\" Diabetes Care. ",
+          { href: "https://diabetesjournals.org/care/article/48/9/1622/163002/Tirzepatide-Treatment-and-Associated-Changes-in", text: "diabetesjournals.org", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. Mounjaro FDA Approval History. Drugs.com. ",
+          { href: "https://www.drugs.com/history/mounjaro.html", text: "drugs.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. Zepbound FDA Approval History. Drugs.com. ",
+          { href: "https://www.drugs.com/history/zepbound.html", text: "drugs.com", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "semaglutide-research-guide",
     title: "Semaglutide: The Complete Research Guide",
     excerpt:
@@ -1271,6 +1774,116 @@ export const posts: Post[] = [
     ],
   },
   {
+    slug: "epithalon-research-guide",
+    title: "Epithalon: The Complete Research Guide",
+    excerpt:
+      "The telomerase-activation data is real and specific to this peptide. The dramatic mortality-reduction numbers you'll see cited alongside it are not — they belong to a different, related substance.",
+    category: "Longevity & Wellness",
+    date: "July 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Epithalon (also spelled Epitalon) is a synthetic tetrapeptide (Ala-Glu-Asp-Gly) developed by Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology as a simplified analog of Epithalamin — a polypeptide fraction extracted from bovine pineal glands. That relationship matters, because the two get conflated constantly in how this compound is marketed, and the evidence quality is not the same for both.",
+      },
+      { type: "h2", text: "What Is Epithalon?" },
+      {
+        type: "p",
+        text: "Epithalon is the specific four-amino-acid sequence Khavinson's team identified as the minimal active fragment of Epithalamin. It's studied for telomerase activation, pineal/melatonin regulation, and longevity in preclinical models.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "The most specific, most-cited finding is direct: adding Epithalon to cultures of telomerase-negative human fetal fibroblasts induced expression of the telomerase catalytic subunit (hTERT), increased telomerase enzymatic activity, and was associated with telomere elongation over the culture period. A companion study from the same group found Epithalon-treated fibroblast cultures exceeded the conventional Hayflick division limit by roughly ten additional population doublings versus untreated controls.",
+      },
+      {
+        type: "callout",
+        text: "This telomerase work is cell-culture data (human fetal fibroblasts), not a human clinical trial. It demonstrates the mechanism is real in vitro, not that taking Epithalon extends telomeres in a living person.",
+      },
+      { type: "h2", text: "The Epithalon vs. Epithalamin Distinction" },
+      {
+        type: "p",
+        text: "This is the single most important thing to get right about this compound. Khavinson's group separately ran a long-term human study — 266 elderly patients over six to eight years — testing Epithalamin (the original pineal-gland extract) and Thymalin (a related thymus extract), and reported striking results: Epithalamin alone associated with a 1.6–1.8-fold mortality reduction, combined Epithalamin+Thymalin with a 2.5-fold reduction, and annual combined treatment over six years with a 4.1-fold reduction.",
+      },
+      {
+        type: "callout",
+        text: "Those mortality numbers are for Epithalamin, the natural pineal extract — not Epithalon, the synthetic single-peptide research compound sold by vendors. They are related substances from the same research program, not the same thing. The mortality study also was not randomized, double-blind, or placebo-controlled to Western trial standards, which is a separate limitation on top of the substance mismatch. Citing this mortality data as evidence for Epithalon specifically is a common but real error in how this compound gets marketed.",
+      },
+      { type: "h2", text: "What the Broader Research Shows" },
+      {
+        type: "ul",
+        items: [
+          "Telomerase (hTERT) induction and telomere elongation in human fibroblast cultures",
+          "Extended replicative lifespan past the Hayflick limit in the same cell-culture model",
+          "Stimulation of melatonin production, studied in connection with pineal gland regulation",
+          "Lifespan-extension effects reported in rodent models",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Epitalon was one of seven peptides FDA's Pharmacy Compounding Advisory Committee (PCAC) reviewed on July 23–24, 2026 for the Section 503A Bulk Drug Substances List — the same meeting that reviewed BPC-157 and TB-500 (see our BPC-157 guide for the fuller background). FDA staff recommended against all seven; the committee voted narrowly to recommend Epitalon anyway, one of six peptides the panel backed — only Emideltide was voted down.",
+      },
+      {
+        type: "callout",
+        text: "This is a non-binding recommendation, not an approval. Formal rulemaking, if FDA pursues it, could take until 2027 or 2028. Epithalon remains not FDA-approved for any human use today.",
+      },
+      { type: "h2", text: "Where to Source Epithalon for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the Epithalon product page",
+        productSlug: "epithalon",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is Epithalon the same thing as Epithalamin?",
+            a: "No. Epithalamin is the original polypeptide extract from bovine pineal glands. Epithalon is a synthetic four-amino-acid analog Khavinson's group identified as its active fragment. The dramatic elderly-mortality data widely cited for this compound family is from Epithalamin trials, not Epithalon.",
+          },
+          {
+            q: "Has Epithalon been shown to extend telomeres in humans?",
+            a: "No published human trial has tested this. The telomerase-activation and telomere-elongation findings are from human fibroblast cell cultures, not living human subjects.",
+          },
+          {
+            q: "Is Epithalon FDA-approved?",
+            a: "No. A July 2026 FDA advisory committee voted to recommend adding it to the compounding-eligible substances list, over FDA staff's own objection, but that's a non-binding recommendation, not an approval. It remains not FDA-approved for any human use.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Khavinson VK, Bondarev IE, Butyugov AA. \"Epithalon peptide induces telomerase activity and telomere elongation in human somatic cells.\" Bulletin of Experimental Biology and Medicine, 2003. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/12937682/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. \"Peptide promotes overcoming of the division limit in human somatic cells.\" PubMed. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/15455129/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Stone W. \"FDA panel supports broadening access to peptides popular on the gray market.\" NPR, July 23–24, 2026. ",
+          { href: "https://www.npr.org/2026/07/23/nx-s1-5903202/fda-peptides-restrictions", text: "npr.org", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "tesamorelin-research-guide",
     title: "Tesamorelin: The Complete Research Guide",
     excerpt:
@@ -1395,6 +2008,189 @@ export const posts: Post[] = [
     ],
   },
   {
+    slug: "ghk-cu-research-guide",
+    title: "GHK-Cu (Copper Peptide): The Complete Research Guide",
+    excerpt:
+      "Discovered in human plasma in 1973, studied for its effect on thousands of genes — from wound healing to hair follicles to the visible signs of skin aging.",
+    category: "Longevity & Wellness",
+    date: "July 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "GHK-Cu has a longer research history than almost anything else on this site — it was first isolated from human plasma in 1973 by Loren Pickart, decades before most peptides now sold for research were synthesized. That history is also why its research base is unusually broad, spanning wound healing, skin regeneration, and hair-follicle biology.",
+      },
+      { type: "h2", text: "What Is GHK-Cu?" },
+      {
+        type: "p",
+        text: "GHK is a naturally occurring tripeptide (glycyl-L-histidyl-L-lysine) with a strong binding affinity for copper ions, forming the complex GHK-Cu. Circulating GHK-Cu levels are known to decline with age.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "GHK-Cu's copper-binding structure enhances copper transport into and out of cells, which underlies several related downstream effects: anti-inflammatory and antioxidant activity, and suppression of the acute-phase inflammatory response that drives excess scarring during wound repair. A 2015 broad gene-expression analysis found GHK-Cu modulates over 4,000 human genes, with significant effects concentrated in extracellular-matrix, Wnt, and TGF-β signaling pathways — a scope well beyond a single-pathway mechanism.",
+      },
+      { type: "h2", text: "What the Research Shows" },
+      {
+        type: "ul",
+        items: [
+          "Stimulates synthesis of collagen, elastin, and glycosaminoglycans in skin",
+          "Restores function of damaged fibroblasts and reduces scarring in wound models",
+          "Accelerates wound healing in skin, and separately in stomach-tissue models",
+          "Hair-follicle sub-analyses of the gene-expression data suggest upregulation of anagen (growth-phase)-promoting gene clusters",
+        ],
+      },
+      {
+        type: "callout",
+        text: "The 4,000-gene modulation finding is a broad genomic association study, not a clinical trial with a measured outcome — it identifies which genes shift, not a guaranteed physiological result. The hair-follicle findings specifically are a sub-analysis of that same gene-expression data, not a dedicated hair-growth clinical trial.",
+      },
+      { type: "h2", text: "Where to Source GHK-Cu for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the GHK-Cu product page",
+        productSlug: "ghk-cu",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is GHK-Cu proven to regrow hair?",
+            a: "Not via a dedicated clinical trial. The hair-follicle evidence is a sub-analysis of a broader gene-expression study, suggesting upregulation of growth-phase gene clusters — a mechanistic signal, not a measured hair-regrowth outcome in a trial.",
+          },
+          {
+            q: "How long has GHK-Cu been studied?",
+            a: "It was first isolated from human plasma in 1973, giving it one of the longest research histories of any compound on this site — decades longer than most synthetic research peptides.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Pickart L, et al. \"GHK Peptide as a Natural Modulator of Multiple Cellular Pathways in Skin Regeneration.\" BioMed Research International, 2015. PMC. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508379/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. \"Skin Regenerative and Anti-Cancer Actions of Copper Peptides.\" MDPI Cosmetics. ",
+          { href: "https://www.mdpi.com/2079-9284/5/2/29", text: "mdpi.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"Expression of Glycosaminoglycans and Small Proteoglycans in Wounds: Modulation by the Tripeptide–Copper Complex Glycyl-L-Histidyl-L-Lysine-Cu2+.\" ScienceDirect. ",
+          { href: "https://www.sciencedirect.com/science/article/pii/S0022202X1541067X", text: "sciencedirect.com", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "igf-1-lr3-research-guide",
+    title: "IGF-1 LR3: The Complete Research Guide",
+    excerpt:
+      "An engineered analog built to outlast native IGF-1 in circulation — and the same mitogenic signaling that makes it interesting for muscle research is the reason it deserves a genuinely honest safety section.",
+    category: "Growth & Performance",
+    date: "July 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "IGF-1 LR3 is not a naturally occurring peptide — it's an engineered analog, built specifically to solve a stability problem native IGF-1 has. That engineering choice is also directly connected to why this compound needs a more careful safety conversation than most on this site.",
+      },
+      { type: "h2", text: "What Is IGF-1 LR3?" },
+      {
+        type: "p",
+        text: "IGF-1 LR3 (Long R3 IGF-1) is a synthetic analog of insulin-like growth factor 1, first characterized by Francis et al. in 1992. It carries two modifications from native IGF-1: an arginine substitution at position 3 (replacing glutamic acid), and a 13-amino-acid N-terminal extension.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "Native IGF-1 is tightly bound by IGF binding proteins (IGFBPs) in circulation, which limits its free, active concentration and its functional half-life to minutes. LR3's structural modifications reduce IGFBP binding by roughly 100- to 1,000-fold while preserving full affinity for the IGF-1 receptor — extending its functional half-life from minutes to approximately 20–30 hours. Receptor activation triggers two major downstream pathways: PI3K/Akt, which drives protein synthesis, and MAPK/ERK, which drives cell proliferation.",
+      },
+      { type: "h2", text: "What the Research Shows" },
+      {
+        type: "ul",
+        items: [
+          "Reduced IGFBP binding and extended half-life relative to native IGF-1, its defining engineered property",
+          "PI3K/Akt/mTOR pathway activation linked to increased muscle protein synthesis in preclinical models",
+          "MAPK/ERK pathway activation, associated with cell proliferation broadly, not muscle tissue specifically",
+        ],
+      },
+      {
+        type: "callout",
+        text: "The same MAPK/ERK proliferative signaling that makes IGF-1 LR3 interesting for muscle-growth research is not muscle-specific — it's a general cell-proliferation pathway. This is the mechanistic basis for the safety section below, not a separate concern.",
+      },
+      { type: "h2", text: "Safety Context: IGF-1 Signaling and Cancer Risk" },
+      {
+        type: "p",
+        text: "IGF-1 stimulates mitosis and inhibits apoptosis (programmed cell death) — a combination that, in epidemiological research, is associated with increased risk of several cancers. Pooled analyses of prospective studies have linked circulating IGF-1 levels to prostate, pre-menopausal breast, colorectal, uterine, bladder, and ovarian cancer risk. Signaling through the IGF-1 receptor is also directly implicated in tumor cell proliferation in laboratory cancer models.",
+      },
+      {
+        type: "callout",
+        text: "This is a real, literature-documented signal about the IGF-1 pathway itself — not a claim that IGF-1 LR3 specifically causes cancer, which hasn't been studied. LR3 was engineered to be more potent and longer-lasting than native IGF-1, which is exactly the property that makes this pathway-level safety signal relevant to it, not less relevant.",
+      },
+      { type: "h2", text: "Where to Source IGF-1 LR3 for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the IGF-1 LR3 product page",
+        productSlug: "igf-1-lr3",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Why is IGF-1 LR3 more potent than regular IGF-1?",
+            a: "Its structural modifications reduce binding to IGF binding proteins (IGFBPs) by roughly 100- to 1,000-fold while keeping full receptor affinity, extending its functional half-life from minutes to 20–30 hours — a stability advantage, not a different mechanism.",
+          },
+          {
+            q: "Does using IGF-1 LR3 increase cancer risk?",
+            a: "This hasn't been directly studied for IGF-1 LR3 specifically. What is well-documented is that the IGF-1 signaling pathway itself — mitosis stimulation and apoptosis inhibition — is epidemiologically associated with several cancers. That's a pathway-level finding worth taking seriously, not a proven outcome for this specific analog.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Francis GL, et al. \"Novel recombinant fusion protein analogues of insulin-like growth factor (IGF)-I indicate the relative importance of IGF-binding protein and receptor binding for enhanced biological potency.\" J Mol Endocrinol, 1992. PMID 1601853.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. \"Insulin-like growth factor 1 (IGF1), IGF binding protein 3 (IGFBP3), and breast cancer risk: pooled individual data analysis of 17 prospective studies.\" PMC. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3113287/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"Role of insulin-like growth factor 1 receptor signalling in cancer.\" PMC. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2361813/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "aod-9604-research-guide",
     title: "AOD-9604: The Complete Research Guide",
     excerpt:
@@ -1493,6 +2289,173 @@ export const posts: Post[] = [
         parts: [
           "5. FDA. \"Certain Bulk Drug Substances for Use in Compounding that May Present Significant Safety Risks\" — nominated-but-withdrawn table. ",
           { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "sermorelin-research-guide",
+    title: "Sermorelin: The Complete Research Guide",
+    excerpt:
+      "A GHRH analog that was actually FDA-approved for over a decade — withdrawn for business reasons, not safety, which is why it can still be legally compounded today.",
+    category: "Growth & Performance",
+    date: "July 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Sermorelin has a regulatory history most compounds on this site don't: it was a real, approved drug for over a decade. What happened after its approval — and specifically why it was withdrawn — is the reason it occupies a stronger legal position today than research-only peptides like BPC-157 or Retatrutide.",
+      },
+      { type: "h2", text: "What Is Sermorelin?" },
+      {
+        type: "p",
+        text: "Sermorelin is a 29-amino-acid analog of human growth hormone-releasing hormone (GHRH), representing the fully bioactive fragment of the native hormone.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "Sermorelin binds the GHRH receptor on pituitary somatotroph cells, stimulating them to synthesize and release growth hormone. Its half-life is short — roughly 11–12 minutes after IV or subcutaneous dosing — meaning it stimulates a natural GH pulse rather than sustaining elevated GH the way exogenous HGH does. Studies specifically found no significant change in prolactin, LH, FSH, insulin, cortisol, glucose, glucagon, or thyroid hormone levels alongside the GH increase — a selectivity profile that supported its original approval.",
+      },
+      { type: "h2", text: "Regulatory History — Why This One Is Different" },
+      {
+        type: "p",
+        text: "Sermorelin was FDA-approved in 1997 (brand names Geref and Geref Diagnostic) for growth hormone deficiency, including in children. In 2008, the manufacturer (EMD Serono) voluntarily discontinued the product and requested withdrawal of its approval — not for safety or efficacy reasons, but because of manufacturing difficulties.",
+      },
+      {
+        type: "callout",
+        text: "This distinction has real legal weight: FDA's own Federal Register determination explicitly states GEREF was not withdrawn from sale for reasons of safety or effectiveness. That specific finding is what allows sermorelin to still be legally compounded today by licensed 503A/503B pharmacies under a valid prescription — a materially stronger legal footing than compounds like BPC-157, which were never approved at all.",
+      },
+      {
+        type: "p",
+        text: "That compounding-pharmacy pathway is distinct from unprescribed sermorelin sold online as a research chemical. A licensed pharmacy dispensing under prescription and medical supervision is a different legal channel than an unlicensed vendor selling bulk peptide labeled research-use-only — both trace back to the same molecule, but only one involves a prescriber and regulatory oversight.",
+      },
+      { type: "h2", text: "Where to Source Sermorelin for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the Sermorelin product page",
+        productSlug: "sermorelin",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Was sermorelin pulled from the market for safety reasons?",
+            a: "No. FDA's own Federal Register determination states explicitly that GEREF (sermorelin) was not withdrawn for reasons of safety or effectiveness — the manufacturer discontinued it in 2008 over manufacturing difficulties. That finding is part of why it remains legally compoundable today.",
+          },
+          {
+            q: "Is research-vendor sermorelin the same as a compounding pharmacy's prescription version?",
+            a: "No. A compounding pharmacy dispenses under a valid prescription with medical oversight. Sermorelin sold online as a research chemical is unprescribed and not intended for human use — same molecule, different legal channel.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. \"Sermorelin: a review of its use in the diagnosis and treatment of children with idiopathic growth hormone deficiency.\" PubMed. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/18031173/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Federal Register. \"Determination That GEREF (Sermorelin Acetate) Injection... Were Not Withdrawn From Sale for Reasons of Safety or Effectiveness.\" ",
+          { href: "https://www.federalregister.gov/documents/2013/03/04/2013-04827/determination-that-geref-sermorelin-acetate-injection-05-milligrams-basevial-and-10-milligrams", text: "federalregister.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "nad-plus-research-guide",
+    title: "NAD+: The Complete Research Guide",
+    excerpt:
+      "The coenzyme every cell depends on for energy and DNA repair — and a real, current human study on whether injecting it directly actually works better than the alternatives.",
+    category: "Longevity & Wellness",
+    date: "July 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "NAD+ is not a novel research peptide — it's a coenzyme present in every living cell, required for energy metabolism and DNA repair. What's actually being studied and debated is the delivery question: whether administering NAD+ itself, rather than the precursor molecules it's normally built from, is the better way to raise it.",
+      },
+      { type: "h2", text: "What Is NAD+?" },
+      {
+        type: "p",
+        text: "Nicotinamide adenine dinucleotide (NAD+) is a coenzyme central to mitochondrial energy production and cellular signaling. Levels decline systemically with age across multiple tissues, a pattern linked in the literature to age-associated metabolic and neurodegenerative conditions.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "NAD+ is a required substrate for two major classes of enzymes: PARPs (poly-ADP-ribose polymerases), which use it to repair DNA damage, and sirtuins, which use it to remove regulatory chemical tags from histones and other proteins — controlling gene expression, DNA repair, mitochondrial function, and inflammatory signaling. Both pathways consume NAD+ directly, which is part of why levels fall under sustained cellular stress.",
+      },
+      { type: "h2", text: "The Delivery Question — Does Direct NAD+ Even Work That Way?" },
+      {
+        type: "p",
+        text: "This is the least-marketed and most important part of the mechanism. At the concentrations used in IV/subcutaneous administration, NAD+ itself is largely hydrolyzed into nicotinamide mononucleotide (NMN) and converted to nicotinamide riboside (NR) before cells actually take it up — meaning the precursor pathway does the intracellular work regardless of which molecule you start with. NAD+'s poor ability to cross cell membranes directly is exactly why NMN and NR are argued by some researchers to be more efficient at raising intracellular NAD+ than administering NAD+ itself.",
+      },
+      {
+        type: "p",
+        text: "A 2026 retrospective real-world tolerability study directly compared four consecutive days of IV NAD+ against IV NR with 30-day follow-up — a rare head-to-head data point in a space that mostly relies on precursor-only research. Oral NMN and NR separately have been shown to roughly double circulating NAD+ after two weeks of supplementation, peaking 3–8 hours after intake.",
+      },
+      {
+        type: "callout",
+        text: "As of this writing, there is no trial directly comparing clinical outcomes — not just NAD+ blood levels — between injectable NAD+ and its precursors. The tolerability comparison exists; the outcome comparison doesn't yet.",
+      },
+      { type: "h2", text: "Where to Source NAD+ for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the NAD+ product page",
+        productSlug: "nad-plus",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is injectable NAD+ actually better than NMN or NR supplements?",
+            a: "Not established. At the doses typically used, injected NAD+ is largely broken down into NMN and converted to NR before cells absorb it — meaning the precursor pathway is doing the work either way. A 2026 study compared tolerability between IV NAD+ and IV NR directly, but no trial has yet compared their actual physiological outcomes.",
+          },
+          {
+            q: "Why does NAD+ decline with age?",
+            a: "NAD+ is consumed as a substrate by PARPs (DNA repair) and sirtuins (gene regulation) — both pathways draw it down under sustained cellular stress, which compounds with age-related increases in DNA damage and metabolic strain.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. \"NAD+ biosynthesis, aging, and disease.\" PMC. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5795269/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. \"It takes two to tango: NAD+ and sirtuins in aging/longevity control.\" PMC. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5514996/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"Intravenous infusion of nicotinamide adenine dinucleotide (NAD+) versus nicotinamide riboside (NR): a retrospective tolerability pilot study in a real-world setting.\" Frontiers in Aging, 2026. PMC. ",
+          { href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12907335/", text: "pmc.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
@@ -1626,6 +2589,111 @@ export const posts: Post[] = [
         parts: [
           "6. Todd S, Lawrence L. \"In win for RFK Jr., FDA advisory panel narrowly votes to allow compounding of unapproved peptides.\" STAT News, July 23, 2026. ",
           { href: "https://www.statnews.com/2026/07/23/fda-panel-okays-peptides-compound-pharmacies-bpc-157-kpv/", text: "statnews.com", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
+    slug: "mots-c-research-guide",
+    title: "MOTS-c: The Complete Research Guide",
+    excerpt:
+      "A peptide hidden inside mitochondrial DNA itself, studied for AMPK-driven metabolic effects — and one of six peptides a July 2026 FDA panel voted to expand access to.",
+    category: "Longevity & Wellness",
+    date: "July 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "MOTS-c has an unusual origin story among research peptides: it isn't encoded in nuclear DNA at all. It's produced from a small open reading frame hidden inside the mitochondrial 12S rRNA gene — a discovery that reframed mitochondria as more than an energy factory.",
+      },
+      { type: "h2", text: "What Is MOTS-c?" },
+      {
+        type: "p",
+        text: "MOTS-c (mitochondrial open reading frame of the 12S rRNA-c) is a 16-amino-acid peptide encoded within mitochondrial DNA rather than the cell nucleus, giving it a direct structural link to cellular energy status.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "The foundational 2015 Cell Metabolism study found MOTS-c inhibits the folate cycle and its linked de novo purine biosynthesis pathway, which drives a greater than 20-fold increase in endogenous AICAR — a natural AMPK activator. That AMPK activation upregulates GLUT4 expression in skeletal muscle, improving glucose uptake. In treated mice, this prevented high-fat-diet-induced weight gain and insulin resistance, and separately prevented age-dependent insulin resistance.",
+      },
+      { type: "h2", text: "What the Preclinical Research Shows" },
+      {
+        type: "ul",
+        items: [
+          "AMPK-pathway activation via a >20-fold increase in endogenous AICAR",
+          "GLUT4 upregulation in skeletal muscle, improving glucose uptake",
+          "Prevention of high-fat-diet-induced obesity and insulin resistance in mouse models",
+          "Prevention of age-dependent insulin resistance in aging mouse models",
+          "Reduced sphingolipid, monoacylglycerol, and dicarboxylate metabolism pathways — pathways normally elevated in obesity and type 2 diabetes",
+        ],
+      },
+      {
+        type: "callout",
+        text: "MOTS-c's mechanism is well-characterized at the molecular and animal-model level. Human trial data remains early — the metabolic effects described above have not been established in human clinical trials.",
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "MOTS-c was one of seven peptides FDA's Pharmacy Compounding Advisory Committee (PCAC) reviewed on July 23–24, 2026 for the Section 503A Bulk Drug Substances List — the same meeting that reviewed BPC-157, TB-500, and Epitalon. FDA staff recommended against all seven; the committee voted narrowly to recommend MOTS-c anyway, one of six peptides the panel backed — only Emideltide was voted down.",
+      },
+      {
+        type: "callout",
+        text: "This is a non-binding recommendation, not an approval. Formal rulemaking, if FDA pursues it, could take until 2027 or 2028. MOTS-c remains not FDA-approved for any human use today.",
+      },
+      { type: "h2", text: "Where to Source MOTS-c for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the MOTS-c product page",
+        productSlug: "mots-c",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "How is MOTS-c different from other metabolic peptides on this site?",
+            a: "It's encoded directly in mitochondrial DNA rather than the cell nucleus — a structurally distinct origin from peptides like GHK-Cu or the GH secretagogues. Its studied mechanism (AMPK activation via AICAR) is also distinct from GLP-1 appetite-suppression pathways.",
+          },
+          {
+            q: "Is MOTS-c FDA-approved?",
+            a: "No. A July 2026 FDA advisory committee voted to recommend it for the compounding-eligible substances list, over FDA staff's own objection, but that's a non-binding recommendation, not an approval.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Lee C, et al. \"The Mitochondrial-Derived Peptide MOTS-c Promotes Metabolic Homeostasis and Reduces Obesity and Insulin Resistance.\" Cell Metabolism, 2015. ",
+          { href: "https://www.cell.com/cell-metabolism/fulltext/S1550-4131(15)00061-3", text: "cell.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. \"MOTS-c: A novel mitochondrial-derived peptide regulating muscle and fat metabolism.\" PubMed. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/27216708/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"MOTS-c Functionally Prevents Metabolic Disorders.\" PubMed. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/36677050/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Stone W. \"FDA panel supports broadening access to peptides popular on the gray market.\" NPR, July 23–24, 2026. ",
+          { href: "https://www.npr.org/2026/07/23/nx-s1-5903202/fda-peptides-restrictions", text: "npr.org", external: true },
         ],
       },
       {
