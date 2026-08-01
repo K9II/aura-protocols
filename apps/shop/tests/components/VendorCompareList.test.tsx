@@ -4,7 +4,7 @@ import VendorCompareList from "@/components/VendorCompareList";
 
 const twoVendors = [
   { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/x", commission: "15%" },
-  { vendor: "Swiss Chems", url: "https://swisschems.is/x", commission: "20%" },
+  { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/x", commission: "20%" },
 ];
 
 const fiveVendors = [
@@ -24,7 +24,7 @@ describe("VendorCompareList", () => {
   it("renders a Buy Direct link for every vendor", () => {
     render(<VendorCompareList vendors={twoVendors} productSlug="bpc-157" />);
     expect(screen.getByText(/Buy Direct from Limitless Life Nootropics/)).toBeInTheDocument();
-    expect(screen.getByText(/Buy Direct from Swiss Chems/)).toBeInTheDocument();
+    expect(screen.getByText(/Buy Direct from Mile High Compounds/)).toBeInTheDocument();
   });
 
   it("never renders a dollar sign, the word commission, or affiliate/tracking language", () => {
