@@ -20,6 +20,7 @@ export const PRODUCT_GUIDES: Record<string, string> = {
   "tesamorelin": "/blog/tesamorelin-research-guide",
   "aod-9604": "/blog/aod-9604-research-guide",
   "kpv": "/blog/kpv-research-guide",
+  "dsip": "/blog/dsip-research-guide",
   // Each Stacks product routes to its own guide — approved 2026-07-29.
   // The comparison piece (wolverine-vs-glow-vs-klow) lives in the blog
   // library and is cross-linked from all three individual guides, but

@@ -3042,4 +3042,167 @@ export const posts: Post[] = [
       },
     ],
   },
+  {
+    slug: "dsip-research-guide",
+    title: "DSIP (Delta Sleep-Inducing Peptide): The Complete Research Guide",
+    excerpt:
+      "A nine-amino-acid peptide studied since the 1970s for slow-wave sleep and opioid-withdrawal effects — with no identified receptor to this day, and the sole peptide a July 2026 FDA panel voted to reject rather than approve.",
+    category: "Longevity & Wellness",
+    date: "August 2026",
+    readTime: "8 min read",
+    content: [
+      {
+        type: "intro",
+        text: "DSIP has one of the longest research histories of any peptide on this site — over 50 years — and one of the least resolved. It was isolated chasing a specific hypothesis (a circulating factor that induces sleep), and decades later that hypothesis still hasn't been confirmed or closed out. This guide covers what's actually been studied, and treats the unresolved parts as unresolved rather than smoothing them over.",
+      },
+      { type: "h2", text: "What Is DSIP?" },
+      {
+        type: "p",
+        text: "Delta Sleep-Inducing Peptide (DSIP) is a synthetic nonapeptide (Trp-Ala-Gly-Gly-Asp-Ala-Ser-Gly-Glu) first isolated in 1977 by the Swiss Schoenenberger-Monnier group from the cerebral venous blood of rabbits during slow-wave sleep. The name describes the original hypothesis, not a settled mechanism: infusing the isolated material into rabbit brain ventricles produced spindle and delta EEG activity alongside reduced motor activity — the signature of deep, slow-wave sleep.",
+      },
+      {
+        type: "p",
+        text: "The peptide is also notably unstable in vitro, with a reported half-life around 15 minutes due to rapid enzymatic degradation — a practical constraint that shows up throughout the dosing and study-design literature.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "callout",
+        text: "After nearly 50 years of research, DSIP has no confirmed receptor, no identified precursor gene, and no confirmed endogenous source — a 2006 review by two of the field's own researchers calls it \"a still unresolved riddle.\"",
+      },
+      {
+        type: "p",
+        text: "That doesn't mean nothing is known — it means the observed effects are better documented than the mechanism producing them:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Broad neuroendocrine activity. DSIP-like immunoreactive material has been detected in brain tissue and peripheral organs via radioimmunoassay and immunohistochemistry, and the compound has been reported to affect electrophysiological activity, brain neurotransmitter levels, circadian and locomotor patterns, and hormonal output — not a single, narrow sleep switch.",
+          "Proposed but unconfirmed receptor targets. Researchers have hypothesized interaction with NMDA receptors and alpha-1 adrenergic pathways, but no receptor has been definitively identified or cloned for DSIP.",
+          "U-shaped dose-response. Early reviews describe a U-shaped dose-and-timing curve for activity — more isn't simply better, which complicates both study design and any research dosing protocol.",
+        ],
+      },
+      {
+        type: "p",
+        text: "The leading alternative explanation in the literature — proposed by Kovalzon and Strekalova — is that a broader family of \"DSIP-like peptides,\" not DSIP itself, may account for the effects attributed to it, based on their distribution in neurosecretory brain regions and the activity of related natural and synthetic analogues.",
+      },
+      { type: "h2", text: "Research Evidence" },
+      {
+        type: "callout",
+        text: "The human evidence for DSIP is real but old: a handful of small, non-blinded studies from the early-to-mid 1980s, not replicated since, and no modern registered clinical trial.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Insomnia (Kaeser, 1984). Seven patients with severe insomnia received 10 injections of DSIP; sleep was reported normalized at 3–7 month follow-up in 6 of the 7 cases, with improved daytime mood and performance. Pre-existing substance dependency was noted as a complicating factor.",
+          "Opiate and alcohol withdrawal (Dick, Grandjean & Tissot, 1983). DSIP was given intravenously as the sole treatment to 67 withdrawal patients (39 opiate, 28 alcohol); of 49 evaluable patients, 48 showed a beneficial effect, with rapid onset and lasting resolution of somatic withdrawal symptoms — anxiety resolved more slowly, over hours. No major adverse effects were reported.",
+          "Broader neurobiological reviews. Later reviews (Graf & Kastin, 1984; Kovalzon & Strekalova, 2006) catalog DSIP's reported effects on sleep, stress hormones, and locomotor activity, while explicitly flagging the absence of a confirmed receptor or gene as an open problem, not a settled footnote.",
+        ],
+      },
+      {
+        type: "p",
+        text: "There is no DSIP entry in ClinicalTrials.gov with modern controlled-trial data. The studies above are real, published, peer-reviewed clinical reports — but small, unblinded, decades old, and never independently replicated at scale.",
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "DSIP is not FDA-approved for any use. Under the compounding name \"Emideltide,\" it was originally nominated for the 503A bulk drug substances list by Wells Pharmacy Network and LDT Health Solutions on behalf of the International Peptide Society — a nomination the sponsors later withdrew. FDA proceeded to evaluate the substance anyway, convening a Pharmacy Compounding Advisory Committee (PCAC) meeting on July 23–24, 2026 to consider Emideltide alongside six other peptides, including BPC-157, TB-500, KPV, and MOTS-c.",
+      },
+      {
+        type: "callout",
+        text: "Unlike those four — all recommended for the 503A list by the same panel — Emideltide (DSIP) was the one compound the July 2026 PCAC voted to reject, 6 in favor to 7 against with 1 abstention. Epitalon and Semax, reviewed the same day, were both approved. DSIP is the outlier in this cohort, not part of the same regulatory tailwind.",
+      },
+      {
+        type: "p",
+        text: "Committee members voting against cited low-quality and outdated efficacy evidence (\"the last study on this was 30 years old\"), poor characterization and possible peptide-related impurities, ambiguity between emideltide free base and emideltide acetate as distinct substances under one nomination, and the existence of already-approved therapies for insomnia and opioid withdrawal. As with every PCAC vote, this is a non-binding recommendation to FDA, not a final agency decision — but it points the opposite direction from BPC-157, TB-500, KPV, and MOTS-c's recommendations at the same meeting.",
+      },
+      { type: "h2", text: "Where to Source DSIP for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the DSIP product page",
+        productSlug: "dsip",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Does DSIP have a known mechanism?",
+            a: "Not a confirmed one. Despite effects reported since the 1970s, DSIP has no identified receptor and no identified precursor gene — a 2006 peer-reviewed review by researchers in the field calls it \"a still unresolved riddle,\" and that remains the state of the literature.",
+          },
+          {
+            q: "Has DSIP been tested in humans?",
+            a: "Yes, but only in small, unblinded studies from the early-to-mid 1980s — an insomnia trial (7 patients) and a withdrawal-symptom trial (67 patients, 49 evaluable). Both reported largely positive results, but neither has been replicated in a modern controlled trial, and there's no current ClinicalTrials.gov entry for DSIP.",
+          },
+          {
+            q: "Is DSIP legal to buy?",
+            a: "It's sold as a research-use-only compound, not approved by FDA for human use. A July 2026 FDA advisory panel voted 6-7 (with 1 abstention) to reject adding it to the 503A compounding list — the only one of seven peptides reviewed at that meeting to be voted down rather than recommended.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Monnier M, Dudler L, Gächter R, et al. \"The delta sleep inducing peptide (DSIP): comparative properties of the original and synthetic nonapeptide.\" Experientia. 1977;33(4):548-52. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/862769/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Kovalzon VM, Strekalova TV. \"Delta sleep-inducing peptide (DSIP): a still unresolved riddle.\" J Neurochem. 2006;97(2):303-309. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/16539679/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Graf MV, Kastin AJ. \"Delta-sleep-inducing peptide (DSIP): an update.\" Neurosci Biobehav Rev. 1984;8(1):83-93. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/6145137/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Dick P, Grandjean ME, Tissot R. \"Successful treatment of withdrawal symptoms with delta sleep-inducing peptide, a neuropeptide with potential agonistic activity on opiate receptors.\" Neuropsychobiology. 1983;10(4):205-8. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/6328354/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. Kaeser HE. \"A clinical trial with DSIP.\" Eur Neurol. 1984;23(5):386-8. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/6391926/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. FDA. \"Certain Bulk Drug Substances for Use in Compounding that May Present Significant Safety Risks\" — nominated-but-withdrawn table (Emideltide/DSIP). ",
+          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "7. \"The PEPTIDE-L Wave Rolls On! PCAC Adds Two More Bulk Drug Substances for the 503A List.\" The FDA Law Blog, July 2026. ",
+          { href: "https://www.thefdalawblog.com/2026/07/the-peptide-l-wave-rolls-on-pcac-adds-two-more-bulk-drug-substances-for-the-503a-list/", text: "thefdalawblog.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "8. \"FDA advisory committee backs two more peptides, rejects one for compounding list.\" Regulatory Affairs Professionals Society (RAPS), July 2026. ",
+          { href: "https://www.raps.org/resource/fda-advisory-committee-backs-two-more-peptides-rejects-one-for-compounding-list.html", text: "raps.org", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
 ];

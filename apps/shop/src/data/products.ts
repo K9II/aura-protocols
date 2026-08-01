@@ -396,6 +396,24 @@ export const products: Product[] = [
     ],
     featured: false,
   },
+  {
+    id: "dsip",
+    name: "DSIP (Delta Sleep-Inducing Peptide)",
+    slug: "dsip",
+    category: "Longevity & Wellness",
+    description:
+      "Nonapeptide first isolated from rabbit cerebral venous blood in the 1970s, studied for slow-wave sleep promotion, stress-axis modulation, and opioid-withdrawal research — despite decades of study, its receptor and precursor gene remain unidentified.",
+    benefits: ["Slow-wave (delta) sleep research since the 1970s", "Small human studies in opiate/alcohol withdrawal", "Studied stress-axis and HPA modulation", "No confirmed receptor identified after 50 years"],
+    vendors: [
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/dsip-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
+      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/dsip-delta-sleep-inducing-peptide?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
+      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/dsip/?afref=a1b9", commission: "15%" },
+      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/dsip/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
+      { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-dsip/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
+    ],
+    badge: "New",
+    featured: false,
+  },
 ];
 
 export const categories = [...new Set(products.map((p) => p.category))];
