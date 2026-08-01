@@ -30,6 +30,7 @@ export const WELLNESS: Row[] = [
   ["Epithalon", "5–10 mg/day", "10–20 days, 2×/yr", "SubQ / IV"],
   ["MOTS-c", "5–10 mg/week", "Weekly", "SubQ"],
   ["NAD+", "100–500 mg/dose", "2–3×/week", "SubQ / IV"],
+  ["DSIP", "100–300 mcg/dose", "Nightly (before bed)", "SubQ"],
 ];
 
 export const STACKS: [string, string][] = [
@@ -47,6 +48,7 @@ export const TIMING: [string, string][] = [
   ["GH peptides", "Fasted, pre-sleep aligns with natural GH"],
   ["PT-141", "1–4 h before; lower nausea at 0.5–1 mg"],
   ["Epithalon", "Before bed; 10–20 day cycle 1–2×/yr"],
+  ["DSIP", "30–60 min before bed; cycle 5–14 nights/month"],
 ];
 
 export const MECHANISMS: [string, string][] = [
@@ -61,6 +63,7 @@ export const MECHANISMS: [string, string][] = [
   ["Copper peptide", "GHK-Cu — copper delivery, collagen/elastin synthesis, tissue remodeling"],
   ["IGF-1 analogue", "IGF-1 LR3 — IGF-1R activation, muscle protein synthesis, extended half-life"],
   ["Coenzyme", "NAD+ — mitochondrial energy, sirtuin/PARP DNA repair (cofactor, not a peptide)"],
+  ["Neuropeptide", "DSIP — sleep/stress-axis modulation; no confirmed receptor after 50 years of research"],
 ];
 
 export const RED_FLAGS = [

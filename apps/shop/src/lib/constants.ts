@@ -25,9 +25,8 @@ export const LEAD_MAGNET = {
   title: "Get your peptide starting protocol — free",
   blurb:
     "Pick your #1 goal and we'll send a research-backed starting point — doses, timing, and COA-verified sources — to your inbox.",
-  beehiivPublicationId: "pub_923fd119-6bff-4ca5-9bcf-0250796fde4d",
-  beehiivFormId: "c2f90365-7069-4921-8029-64ff73ba87f8",
-  beehiivLoaderSrc: "https://subscribe-forms.beehiiv.com/v3/loader.js",
+  brevoFormSrc:
+    "https://f976b397.sibforms.com/v2/serve/MUIFANitvUA1Ojh1rjtSvvZnoi0yChlj7eIJar7Z4aNgfkaZHAGY9hLVDOSVq6339bqCOp7dT29oMjwocBHKHXKkqP5UNAORp7OfBv21phHWRdxN-elzvH42591KhnzmZgwOU45qT5-Rw4OKWqr5Om_uYxLEqzZHauEUH11JJ6JZ5az7XbXSwUsEsFsdgBOOaYnxozPLxSe2RUfmzg==",
 };
 
 export const PLAYBOOK = {

@@ -203,19 +203,15 @@ export default function HomePage() {
 
         {/* Subscribe + Compound Index */}
         <section className="p-reveal py-16">
-          <div className="grid gap-14 lg:grid-cols-[1.3fr_1fr] items-start">
+          <div className="grid gap-14 lg:grid-cols-[1.3fr_1fr]">
             <div>
-              <h2 className="p-serif-italic text-[26px] max-w-[30ch] mb-1.5">Get your peptide starting protocol — free</h2>
-              <p className="text-[13.5px] text-[color:var(--ink-soft)] mb-6 max-w-[52ch]">
-                Pick your #1 goal and we&apos;ll send a research-backed starting point — doses, timing, and
-                COA-verified sources — to your inbox.
-              </p>
+              <h2 className="p-serif-italic text-[26px] max-w-[30ch] mb-4">Get your peptide starting protocol — free</h2>
               <div className="w-full sm:w-auto">
                 <EmailCapture />
               </div>
             </div>
 
-            {/* Compound Index ticker */}
+            {/* Compound Index ticker — height matches the subscribe column (heading + Brevo iframe box) */}
             <div className="overflow-hidden">
               <div className="flex justify-between items-baseline px-[22px] py-[18px]">
                 <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Compound Index</p>
@@ -225,7 +221,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="ticker-viewport h-[268px]">
+              <div className="ticker-viewport h-[590px] mt-2">
                 <div className="ticker-track">
                   {[...tickerItems, ...tickerItems].map((item, i) => (
                     <div key={i} className="ticker-row flex justify-between items-baseline gap-3 px-[22px] py-[11px]">
