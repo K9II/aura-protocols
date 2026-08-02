@@ -127,7 +127,6 @@ export const products: Product[] = [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/bpc-157-5mg-tb-500-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/bpctb/?ref=Aurapro", commission: "10%" },
     ],
-    badge: "New",
     featured: false,
   },
   {
@@ -145,7 +144,6 @@ export const products: Product[] = [
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glow-70mg/?afref=a1b9", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/glow/?ref=Aurapro", commission: "10%" },
     ],
-    badge: "New",
     featured: false,
   },
   {
@@ -164,7 +162,6 @@ export const products: Product[] = [
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/klow-75mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/klow/?ref=Aurapro", commission: "10%" },
     ],
-    badge: "New",
     featured: false,
   },
   {
@@ -235,7 +232,6 @@ export const products: Product[] = [
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/ss-31-peptide/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mtp-31/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
     ],
-    badge: "New",
     featured: true,
   },
   {
@@ -252,7 +248,6 @@ export const products: Product[] = [
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-slu-pp-332-tablets/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/slu-pp-332-250mcg-60-capsules?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
     ],
-    badge: "New",
     featured: false,
   },
   {
@@ -411,7 +406,6 @@ export const products: Product[] = [
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/dsip/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-dsip/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
     ],
-    badge: "New",
     featured: false,
   },
 ];
