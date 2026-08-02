@@ -20,7 +20,7 @@ export default function Navbar() {
         <div className="p-container flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5" aria-label="Aura Protocols home">
-            <AuraMark size={30} mode="loop" />
+            <AuraMark size={36} mode="loop" />
             <span className="p-serif-italic text-[21px] tracking-tight">Aura Protocols</span>
           </Link>
 
