@@ -70,7 +70,6 @@ export const products: Product[] = [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/semaglutide-5mg/?ref=k9@auraprotocols.com", commission: "15%" },      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-sema/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-1-sm/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
     ],
-    badge: "Top Rated",
     featured: true,
   },
   {
@@ -89,6 +88,7 @@ export const products: Product[] = [
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-2-trz/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-tirzepatide/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
     ],
+    badge: "Top Rated",
     featured: true,
   },
   {
