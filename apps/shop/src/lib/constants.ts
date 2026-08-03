@@ -25,9 +25,14 @@ export const LEAD_MAGNET = {
   title: "Get your peptide starting protocol — free",
   blurb:
     "Pick your #1 goal and we'll send a research-backed starting point — doses, timing, and COA-verified sources — to your inbox.",
-  brevoFormSrc:
-    "https://f976b397.sibforms.com/v2/serve/MUIFANitvUA1Ojh1rjtSvvZnoi0yChlj7eIJar7Z4aNgfkaZHAGY9hLVDOSVq6339bqCOp7dT29oMjwocBHKHXKkqP5UNAORp7OfBv21phHWRdxN-elzvH42591KhnzmZgwOU45qT5-Rw4OKWqr5Om_uYxLEqzZHauEUH11JJ6JZ5az7XbXSwUsEsFsdgBOOaYnxozPLxSe2RUfmzg==",
 };
+
+export const LEAD_MAGNET_GOALS = [
+  "Maintaining Muscle During GLP-1",
+  "Weight Loss",
+  "Muscle & Performance",
+  "Sleep & Recovery",
+] as const;
 
 export const PLAYBOOK = {
   priceUsd: 97,
