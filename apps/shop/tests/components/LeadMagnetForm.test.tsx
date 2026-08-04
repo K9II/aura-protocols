@@ -17,6 +17,11 @@ describe("LeadMagnetForm", () => {
     expect(screen.getByRole("button", { name: /subscribe/i })).toBeInTheDocument();
   });
 
+  it("shows opt-in microcopy about unsubscribing", () => {
+    render(<LeadMagnetForm />);
+    expect(screen.getByText(/unsubscribe anytime/i)).toBeInTheDocument();
+  });
+
   it("posts to /api/subscribe and shows a success message", async () => {
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,

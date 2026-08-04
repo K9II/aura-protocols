@@ -86,6 +86,10 @@ export default function LeadMagnetForm() {
         {status === "submitting" ? "Sending…" : "Subscribe"}
       </button>
 
+      <p className="mt-3 text-xs leading-relaxed text-[color:var(--ink-soft)]">
+        We&apos;ll email your starting protocol. Unsubscribe anytime — every email has a one-click link.
+      </p>
+
       {status === "error" && (
         <p className="mt-3 text-sm text-[color:var(--specimen)]">
           Something went wrong — please try again.

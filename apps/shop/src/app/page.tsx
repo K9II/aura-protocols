@@ -211,7 +211,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Compound Index ticker — height matches the subscribe column (heading + Brevo iframe box) */}
+            {/* Compound Index ticker — height matches the subscribe column (heading + email capture form) */}
             <div className="overflow-hidden">
               <div className="flex justify-between items-baseline px-[22px] py-[18px]">
                 <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Compound Index</p>
