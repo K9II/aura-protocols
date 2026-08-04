@@ -81,4 +81,26 @@ describe("POST /api/subscribe", () => {
     expect(res.status).toBe(500);
     expect(sendMock).not.toHaveBeenCalled();
   });
+
+  it("still returns 200 when the contact is saved but the email send fails", async () => {
+    // The contact is already persisted, so the subscription succeeded even if
+    // SES rejects the send (e.g. sandbox mode, throttling). We must not 500 a
+    // visitor who is now subscribed — log and move on.
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    fromMock.mockReturnValue(upsertChain({ error: null }));
+    sendMock.mockRejectedValueOnce(new Error("SES sandbox: address not verified"));
+
+    const { POST } = await import("@/app/api/subscribe/route");
+    const req = new Request("http://localhost/api/subscribe", {
+      method: "POST",
+      body: JSON.stringify({ email: "reader@example.com", goal: "Weight Loss" }),
+    });
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(fromMock).toHaveBeenCalledWith("lead_magnet_contacts");
+    expect(sendMock).toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
 });

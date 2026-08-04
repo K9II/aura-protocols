@@ -42,7 +42,15 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const template = getLeadMagnetTemplate(goal as LeadMagnetGoal);
-  await sendLeadMagnetEmail({ to: email, subject: template.subject, html: template.html });
+  try {
+    await sendLeadMagnetEmail({ to: email, subject: template.subject, html: template.html });
+  } catch (sendError) {
+    // The contact is already saved, so the subscription itself succeeded.
+    // Email delivery is best-effort — a send failure (SES sandbox, throttling,
+    // transient outage) must not 500 a visitor who is now subscribed. Log it
+    // for retry/investigation and still report success.
+    console.error(`Lead-magnet email send failed for ${email}:`, sendError);
+  }
 
   return Response.json({ ok: true }, { status: 200 });
 }
