@@ -41,7 +41,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Could not save contact" }, { status: 500 });
   }
 
-  const template = getLeadMagnetTemplate(goal as LeadMagnetGoal);
+  const template = getLeadMagnetTemplate(goal as LeadMagnetGoal, email);
   try {
     await sendLeadMagnetEmail({ to: email, subject: template.subject, html: template.html });
   } catch (sendError) {

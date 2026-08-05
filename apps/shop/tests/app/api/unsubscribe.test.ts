@@ -26,7 +26,7 @@ describe("GET /api/unsubscribe", () => {
     expect(res.status).toBe(400);
   });
 
-  it("marks the contact unsubscribed and returns 200", async () => {
+  it("marks the contact unsubscribed and returns a friendly HTML page", async () => {
     fromMock.mockReturnValue(updateChain({ error: null }));
     const { GET } = await import("@/app/api/unsubscribe/route");
     const res = await GET(
@@ -34,5 +34,9 @@ describe("GET /api/unsubscribe", () => {
     );
     expect(res.status).toBe(200);
     expect(fromMock).toHaveBeenCalledWith("lead_magnet_contacts");
+    // A real person clicks this link in their inbox — they must see a page, not JSON.
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const body = await res.text();
+    expect(body.toLowerCase()).toContain("unsubscribed");
   });
 });

@@ -74,6 +74,26 @@ export const LEAD_MAGNET_TEMPLATES: Record<LeadMagnetGoal, Template> = {
   },
 };
 
-export function getLeadMagnetTemplate(goal: LeadMagnetGoal): Template {
-  return LEAD_MAGNET_TEMPLATES[goal];
+const UNSUBSCRIBE_BASE = "https://shop.auraprotocols.com/api/unsubscribe";
+
+function unsubscribeFooter(recipientEmail: string): string {
+  const url = `${UNSUBSCRIBE_BASE}?email=${encodeURIComponent(recipientEmail)}`;
+  return `<hr style="margin-top:32px;border:none;border-top:1px solid #dddddd;">
+<p style="font-size:12px;color:#888888;">You're receiving this because you requested a starting protocol at <a href="https://shop.auraprotocols.com">shop.auraprotocols.com</a>. <a href="${url}">Unsubscribe with one click</a>.</p>`;
+}
+
+// Every send must carry a working unsubscribe link (CAN-SPAM + SES deliverability),
+// so the recipient email is required — you cannot render a sendable email without it.
+export function getLeadMagnetTemplate(
+  goal: LeadMagnetGoal,
+  recipientEmail: string
+): Template {
+  const base = LEAD_MAGNET_TEMPLATES[goal];
+  return {
+    subject: base.subject,
+    html: base.html.replace(
+      "</body></html>",
+      `${unsubscribeFooter(recipientEmail)}</body></html>`
+    ),
+  };
 }
