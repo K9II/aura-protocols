@@ -315,7 +315,7 @@ export default function BiosignatureSphere() {
 
         ctx.beginPath();
         ctx.arc(m.ringX, m.ringY, 1.6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${INK},0.55)`;
+        ctx.fillStyle = `rgba(${INK},0.88)`;
         ctx.fill();
       });
 
