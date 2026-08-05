@@ -35,7 +35,7 @@ const socials = [
 
 export default function Footer() {
   return (
-    <footer className="pharmacopoeia p-foot border-t border-[color:var(--line)]">
+    <footer className="pharmacopoeia p-foot border-t border-[color:var(--line)] pt-16">
       <div className="p-container py-12">
         <div className="grid gap-[30px] mb-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           {/* Brand */}
