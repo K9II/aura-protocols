@@ -17,9 +17,15 @@ describe("LeadMagnetForm", () => {
     expect(screen.getByRole("button", { name: /subscribe/i })).toBeInTheDocument();
   });
 
-  it("shows opt-in microcopy about unsubscribing", () => {
+  it("shows the Brevo headline, blurb, and email helper verbiage verbatim", () => {
     render(<LeadMagnetForm />);
-    expect(screen.getByText(/unsubscribe anytime/i)).toBeInTheDocument();
+    expect(screen.getByText("Get Your Researched Starting Protocol")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Pick your #1 goal and we'll send a research-backed starting point - doses, timing, and COA-Verified Sources - to your inbox\./)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Provide your email address to subscribe. For e.g abc@xyz.com")
+    ).toBeInTheDocument();
   });
 
   it("posts to /api/subscribe and shows a success message", async () => {
@@ -38,7 +44,7 @@ describe("LeadMagnetForm", () => {
     fireEvent.click(screen.getByRole("button", { name: /subscribe/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/check your inbox/i)).toBeInTheDocument();
+      expect(screen.getByText(/subscription has been successful/i)).toBeInTheDocument();
     });
 
     expect(fetch).toHaveBeenCalledWith(
@@ -66,7 +72,7 @@ describe("LeadMagnetForm", () => {
     fireEvent.click(screen.getByRole("button", { name: /subscribe/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+      expect(screen.getByText(/could not be saved/i)).toBeInTheDocument();
     });
   });
 });

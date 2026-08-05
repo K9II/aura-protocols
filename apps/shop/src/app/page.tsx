@@ -205,13 +205,13 @@ export default function HomePage() {
         <section className="p-reveal py-16">
           <div className="grid gap-14 lg:grid-cols-[1.3fr_1fr]">
             <div>
-              <h2 className="p-serif-italic text-[26px] max-w-[30ch] mb-4">Get your peptide starting protocol — free</h2>
-              <div className="w-full sm:w-auto">
+              <h2 className="p-serif-italic text-[26px] max-w-[30ch] mx-auto text-center mb-4">Get your peptide starting protocol — free</h2>
+              <div className="w-full">
                 <EmailCapture />
               </div>
             </div>
 
-            {/* Compound Index ticker — height matches the subscribe column (heading + email capture form) */}
+            {/* Compound Index ticker — height tuned so this column's bottom lines up with the email box (heading + form) */}
             <div className="overflow-hidden">
               <div className="flex justify-between items-baseline px-[22px] py-[18px]">
                 <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Compound Index</p>
@@ -221,7 +221,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="ticker-viewport h-[590px] mt-2">
+              <div className="ticker-viewport h-[414px] mt-2">
                 <div className="ticker-track">
                   {[...tickerItems, ...tickerItems].map((item, i) => (
                     <div key={i} className="ticker-row flex justify-between items-baseline gap-3 px-[22px] py-[11px]">
