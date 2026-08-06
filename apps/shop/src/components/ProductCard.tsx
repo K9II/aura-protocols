@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { Product } from "@/data/products";
 import { learnMoreHref } from "@/lib/guides";
+import { isSpecimenBadge } from "@/lib/badges";
 
 export default function ProductCard({ product }: { product: Product }) {
   return (
     <div className="pharmacopoeia p-card p-6 flex flex-col gap-4 relative">
       {product.badge && (
-        <span className="p-badge absolute top-4 right-4">{product.badge}</span>
+        <span className={`p-badge absolute top-4 right-4 ${isSpecimenBadge(product.badge) ? "p-badge--specimen" : ""}`}>{product.badge}</span>
       )}
 
       {/* Category */}

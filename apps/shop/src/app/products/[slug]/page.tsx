@@ -4,6 +4,7 @@ import { products } from "@/data/products";
 import EngineCTACard from "@/components/EngineCTACard";
 import VendorCompareList from "@/components/VendorCompareList";
 import { PRODUCT_GUIDES } from "@/lib/guides";
+import { isSpecimenBadge } from "@/lib/badges";
 
 export function generateStaticParams() {
   return products.map((p) => ({ slug: p.slug }));
@@ -88,7 +89,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <div>
             <div className="flex items-center gap-3 mb-3">
               <span className="p-chip">{product.category}</span>
-              {product.badge && <span className="p-badge">{product.badge}</span>}
+              {product.badge && <span className={`p-badge${isSpecimenBadge(product.badge) ? " p-badge--specimen" : ""}`}>{product.badge}</span>}
             </div>
             <h1 className="p-serif text-4xl mb-4 text-[color:var(--ink)]">{product.name}</h1>
             <p className="text-[color:var(--ink-soft)] leading-relaxed text-lg">{product.description}</p>
