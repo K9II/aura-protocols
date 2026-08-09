@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { getPartnerId, TELEHEALTH_CATEGORIES } from "@/lib/telehealth/config";
+import { getPartnerId, TELEHEALTH_CATEGORIES, categoryLabel } from "@/lib/telehealth/config";
 
 afterEach(() => { delete process.env.TELEHEALTH_PARTNER_ID; });
 
@@ -18,5 +18,11 @@ describe("telehealth config", () => {
     expect(TELEHEALTH_CATEGORIES).toEqual([
       "weight-loss", "mens-health", "womens-health", "hair-loss", "wellness",
     ]);
+  });
+
+  it("maps category slugs to human labels, with a title-case fallback", () => {
+    expect(categoryLabel("mens-health")).toBe("Men's Health");
+    expect(categoryLabel("weight-loss")).toBe("Weight Loss");
+    expect(categoryLabel("some-new-thing")).toBe("Some New Thing");
   });
 });

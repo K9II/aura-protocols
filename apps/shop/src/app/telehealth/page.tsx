@@ -1,6 +1,7 @@
 import { getPartnerId, TELEHEALTH_CATEGORIES } from "@/lib/telehealth/config";
 import { fetchCatalog } from "@/lib/telehealth/catalog";
 import type { CatalogProduct } from "@/lib/telehealth/types";
+import TelehealthStartVisit from "./TelehealthStartVisit";
 
 export const dynamic = "force-dynamic"; // catalog is no-store / live
 
@@ -47,7 +48,7 @@ export default async function TelehealthPage() {
                     <p className="text-xs text-[color:var(--ink-soft)]">{p.availability}</p>
                     <div className="mt-auto flex items-center justify-between pt-3 border-t border-[color:var(--line)]">
                       <span className="text-sm font-mono text-[color:var(--ink)]">{priceLabel(p)}</span>
-                      <a className="p-btn-primary text-xs py-2 px-4" href={`/telehealth/go/${category}/${p.id}`}>Start visit</a>
+                      <TelehealthStartVisit category={category} productId={p.id} />
                     </div>
                   </div>
                 ))}
