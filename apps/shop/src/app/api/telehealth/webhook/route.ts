@@ -1,5 +1,5 @@
 import { verifyWebhookSignature } from "@/lib/telehealth/signature";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { getTelehealthSupabaseClient } from "@/lib/telehealth/supabase";
 
 export async function POST(request: Request): Promise<Response> {
   const secret = process.env.LEGUPRX_WEBHOOK_SECRET;
@@ -12,7 +12,7 @@ export async function POST(request: Request): Promise<Response> {
   let payload: unknown;
   try { payload = JSON.parse(rawBody); } catch { return Response.json({ error: "bad json" }, { status: 400 }); }
 
-  const supabase = getSupabaseAdminClient();
+  const supabase = getTelehealthSupabaseClient();
   const { error } = await supabase.from("telehealth_events").upsert(
     {
       delivery_id: request.headers.get("X-LegUpRx-Delivery"),

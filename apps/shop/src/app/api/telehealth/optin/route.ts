@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { getTelehealthSupabaseClient } from "@/lib/telehealth/supabase";
 
 const optinSchema = z.object({
   email: z.string().email(),
@@ -14,7 +14,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 400 });
   const { email, category } = parsed.data;
 
-  const supabase = getSupabaseAdminClient();
+  const supabase = getTelehealthSupabaseClient();
   const { error } = await supabase
     .from("telehealth_optins")
     .upsert({ email, category, created_at: new Date().toISOString() }, { onConflict: "email" })

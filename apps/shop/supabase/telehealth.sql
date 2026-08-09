@@ -1,5 +1,7 @@
 -- apps/shop/supabase/telehealth.sql
--- Run in the Supabase SQL editor for the shop project.
+-- Run in the Supabase SQL editor for the DEDICATED Aura Telehealth project
+-- (separate from the shop/engine project, so the telehealth business can spin
+-- out cleanly as its own company). Client: getTelehealthSupabaseClient().
 
 create table if not exists telehealth_optins (
   email text primary key,

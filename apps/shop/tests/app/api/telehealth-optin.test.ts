@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const fromMock = vi.fn();
-vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: fromMock }) }));
+vi.mock("@/lib/telehealth/supabase", () => ({ getTelehealthSupabaseClient: () => ({ from: fromMock }) }));
 
 function upsertChain(result: { error: null | { message: string } }) {
   return { upsert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: vi.fn().mockResolvedValue(result) }) }) };

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import crypto from "node:crypto";
 
 const fromMock = vi.fn();
-vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: fromMock }) }));
+vi.mock("@/lib/telehealth/supabase", () => ({ getTelehealthSupabaseClient: () => ({ from: fromMock }) }));
 
 const SECRET = "whsec_test";
 function signedRequest(payload: object) {
