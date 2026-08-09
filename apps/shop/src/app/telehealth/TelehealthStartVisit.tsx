@@ -97,7 +97,9 @@ export default function TelehealthStartVisit({ category, productId, navigate }: 
             </button>
 
             <p className="mt-4 text-[11px] leading-snug text-[color:var(--ink-faint)]">
-              By continuing you agree to receive protocol updates from Aura. Your contact stays with Aura; unsubscribe anytime.
+              By continuing you agree to receive protocol updates from Aura and to our{" "}
+              <a href="/privacy" className="underline">Privacy Policy</a>. Aura is a referral partner, not a
+              medical provider &mdash; a licensed clinician reviews every request. Unsubscribe anytime.
             </p>
           </div>
         </div>

@@ -56,6 +56,14 @@ export default async function TelehealthPage() {
             </section>
           )
         ))}
+
+        <div className="mt-16 border-t border-[color:var(--line)] pt-6">
+          <p className="text-xs leading-relaxed text-[color:var(--ink-faint)]">
+            <strong className="text-[color:var(--ink-soft)]">Aura Protocols is not a medical provider and does not prescribe, dispense, or provide medical advice.</strong>{" "}
+            Telehealth programs are offered through our licensed partner, Leg Up Recovery, and its affiliated medical group; independent licensed clinicians make all treatment decisions, and prescriptions are issued only when clinically appropriate. Programs, pricing, and availability are set by the partner and vary by state. This page is not a substitute for professional medical care &mdash; for emergencies, call 911. Aura may receive compensation when you use these services.{" "}
+            <a href="/telehealth/disclosures" className="p-link">Full telehealth disclosures &rarr;</a>
+          </p>
+        </div>
       </div>
     </div>
   );
