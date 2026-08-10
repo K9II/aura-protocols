@@ -6,17 +6,19 @@ import { categoryLabel } from "@/lib/telehealth/config";
 type Props = {
   category: string;
   productId: string;
+  /** Channel sub-account id (from utm_source) carried into the hand-off for attribution. */
+  sub?: number;
   /** Injectable for tests; defaults to a full-page navigation so the browser
    *  follows the /go route's 302 out to the hosted intake. */
   navigate?: (url: string) => void;
 };
 
-export default function TelehealthStartVisit({ category, productId, navigate }: Props) {
+export default function TelehealthStartVisit({ category, productId, sub, navigate }: Props) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const goUrl = `/telehealth/go/${category}/${productId}`;
+  const goUrl = `/telehealth/go/${category}/${productId}${sub ? `?sub=${sub}` : ""}`;
   const go = navigate ?? ((url: string) => { window.location.href = url; });
   const label = categoryLabel(category);
 

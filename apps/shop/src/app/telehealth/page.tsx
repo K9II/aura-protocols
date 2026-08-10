@@ -1,5 +1,6 @@
 import { getPartnerId, TELEHEALTH_CATEGORIES } from "@/lib/telehealth/config";
 import { fetchCatalog } from "@/lib/telehealth/catalog";
+import { subForUtm } from "@/lib/telehealth/channels";
 import type { CatalogProduct } from "@/lib/telehealth/types";
 import TelehealthStartVisit from "./TelehealthStartVisit";
 
@@ -15,7 +16,13 @@ function priceLabel(p: CatalogProduct): string {
   return `from $${p.fromPrice.amount}/mo`;
 }
 
-export default async function TelehealthPage() {
+export default async function TelehealthPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ utm_source?: string }>;
+}) {
+  const { utm_source } = await searchParams;
+  const sub = subForUtm(utm_source);
   const partnerId = getPartnerId();
   const sections = await Promise.all(
     TELEHEALTH_CATEGORIES.map(async (category) => {
@@ -48,7 +55,7 @@ export default async function TelehealthPage() {
                     <p className="text-xs text-[color:var(--ink-soft)]">{p.availability}</p>
                     <div className="mt-auto flex items-center justify-between pt-3 border-t border-[color:var(--line)]">
                       <span className="text-sm font-mono text-[color:var(--ink)]">{priceLabel(p)}</span>
-                      <TelehealthStartVisit category={category} productId={p.id} />
+                      <TelehealthStartVisit category={category} productId={p.id} sub={sub} />
                     </div>
                   </div>
                 ))}

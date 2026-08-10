@@ -54,4 +54,12 @@ describe("TelehealthStartVisit", () => {
     expect(navigate).toHaveBeenCalledWith("/telehealth/go/weight-loss/p1");
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  it("carries the channel sub into the hand-off URL when provided", () => {
+    const navigate = vi.fn();
+    render(<TelehealthStartVisit category="weight-loss" productId="p1" sub={4} navigate={navigate} />);
+    fireEvent.click(screen.getByRole("button", { name: /start visit/i }));
+    fireEvent.click(screen.getByRole("button", { name: /skip and continue/i }));
+    expect(navigate).toHaveBeenCalledWith("/telehealth/go/weight-loss/p1?sub=4");
+  });
 });
