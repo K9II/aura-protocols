@@ -81,7 +81,14 @@ export default async function Page({
 
   return (
     <div className="page">
-      <div className="wordmark"><span className="glyph" aria-hidden="true" /><b>Modality</b></div>
+      <div className="wordmark">
+        <svg className="glyph" viewBox="2 2 36 52" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 10 8 Q 12 18 10 32" fill="none" stroke="#000" strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M 20 5 L 20 50" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" />
+          <path d="M 30 8 Q 28 18 30 32" fill="none" stroke="#000" strokeWidth="2.4" strokeLinecap="round" />
+        </svg>
+        <b><span className="cap">M</span><span className="tail">odality</span></b>
+      </div>
 
       <div className="hero">
         <div>
