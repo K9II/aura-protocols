@@ -33,6 +33,10 @@ freestyle. Implementation plan: `docs/superpowers/plans/2026-08-10-modality-tele
 
 ## Notes / gates
 
+- **Stand-in partner (`RFMLPVN1`):** a shared **demo** account. Its hosted intake
+  renders as **"Serenity Spa"** with demo pricing — expected, not a bug. Our own
+  `TELEHEALTH_PARTNER_ID` flips both the intake branding (to Modality) and the
+  prices (to our margin) with no code change.
 - **Pricing:** the page displays the catalog's `fromPrice`. LegUpRx sets a floor;
   our margin (the recurring reseller spread) is configured in the partner account,
   not charged by this page. Real retail lands once the live token is issued.
