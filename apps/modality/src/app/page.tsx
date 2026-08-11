@@ -16,6 +16,12 @@ const CODE: Record<string, string> = {
   "weight-loss": "WL", "mens-health": "MH", "womens-health": "WH", "hair-loss": "HL", "wellness": "WN",
 };
 
+// Per-lane preferred hero product. Weight Loss should lead with GLP-1 (semaglutide/
+// tirzepatide), not whichever product happens to be cheapest (e.g. a Lipo shot).
+const PREFER: Record<string, RegExp> = {
+  "weight-loss": /semaglutide|tirzepatide/i,
+};
+
 type Lane = {
   category: string;
   code: string;
@@ -25,20 +31,31 @@ type Lane = {
   productId: string;
 };
 
-/** Collapse a category's products into a single browsable lane: a representative
- *  (cheapest purchasable) product carries the hand-off, and the "from" price is
- *  that product's cheapest term. Returns null for an empty category. */
+/** Collapse a category's products into a single browsable lane. A representative
+ *  product carries the hand-off and sets the "from" price: the cheapest product
+ *  matching the lane's PREFER pattern (e.g. GLP-1 for Weight Loss), else the
+ *  cheapest purchasable product overall. The description leads with that
+ *  representative. Returns null for an empty category. */
 function buildLane(category: string, products: CatalogProduct[]): Lane | null {
   if (products.length === 0) return null;
-  const priced = products.filter((p) => p.fromPrice);
-  const rep = priced.length
-    ? priced.reduce((lo, p) => (p.fromPrice!.amount < lo.fromPrice!.amount ? p : lo))
-    : products[0];
+  const priceOf = (p: CatalogProduct) => p.fromPrice?.amount ?? Infinity;
+  const purchasable = products.filter((p) => p.fromPrice);
+  const pool = purchasable.length ? purchasable : products;
+
+  const prefRe = PREFER[category];
+  const preferred = prefRe ? pool.filter((p) => prefRe.test(p.name)) : [];
+  const candidates = preferred.length ? preferred : pool;
+  const rep = candidates.reduce((lo, p) => (priceOf(p) < priceOf(lo) ? p : lo));
+
+  const desc = [rep.name, ...products.filter((p) => p.id !== rep.id).map((p) => p.name)]
+    .slice(0, 3)
+    .join(" · ");
+
   return {
     category,
     code: CODE[category] ?? category.slice(0, 2).toUpperCase(),
     label: categoryLabel(category),
-    desc: products.slice(0, 3).map((p) => p.name).join(" · "),
+    desc,
     fromAmount: rep.fromPrice?.amount ?? null,
     productId: rep.id,
   };
@@ -69,7 +86,7 @@ export default async function Page({
       <div className="hero">
         <div>
           <p className="kicker">Signal to script</p>
-          <h1 className="hero-title">Your <em>biology</em>, translated into a protocol.</h1>
+          <h1 className="hero-title">Your <em>biology</em>, translated into a biometric-driven protocol.</h1>
           <p className="hero-sub">
             Browse clinician-led protocols and start a visit in a tap — or connect a wearable and let your
             recovery, glucose and sleep point the way. A licensed clinician reviews and prescribes when it&apos;s right.
