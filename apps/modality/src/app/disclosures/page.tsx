@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Telehealth Disclosures — Modality",
@@ -86,7 +87,7 @@ export default function DisclosuresPage() {
           </p>
         </section>
 
-        <a className="back" href="/">&larr; Back to Modality</a>
+        <Link className="back" href="/">&larr; Back to Modality</Link>
       </div>
     </div>
   );
