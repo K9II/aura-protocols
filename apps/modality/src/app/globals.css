@@ -66,6 +66,12 @@ body {
 /* ---------- biosphere instrument ---------- */
 .instrument { border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); padding: 8px 8px 14px; }
 .bios { position: relative; }
+
+/* wordmark + trident-M emblem seated in the sphere core */
+.bios-emblem { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bios-emblem .word { font-family: var(--serif); font-weight: 600; font-style: italic; font-size: 1.15rem; line-height: 1; letter-spacing: 0.01em; color: var(--accent); }
+.bios-emblem .word .cap { color: #000; }
+.bios-emblem svg { display: block; }
 .bios canvas { display: block; width: 100%; height: auto; cursor: grab; touch-action: none; }
 .bios .labels { position: absolute; inset: 0; pointer-events: none; }
 .bios-label { position: absolute; font-family: var(--mono); font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1.35; white-space: nowrap; transition: color .3s, opacity .3s; }

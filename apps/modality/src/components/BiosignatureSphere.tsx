@@ -278,7 +278,16 @@ export default function BiosignatureSphere({ width = 380, height = 340 }: Props)
   return (
     <div className="instrument">
       <div className="bios-cap"><span className="live" />Your biosignature · live</div>
-      <div className="bios" ref={hostRef} />
+      <div className="bios" ref={hostRef}>
+        <div className="bios-emblem" aria-hidden="true">
+          <span className="word"><span className="cap">M</span>odality</span>
+          <svg width="60" height="84" viewBox="0 0 40 60" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 10 8 Q 12 18 10 32" fill="none" stroke="#000" strokeWidth="2.4" strokeLinecap="round" />
+            <path d="M 20 5 L 20 50" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" />
+            <path d="M 30 8 Q 28 18 30 32" fill="none" stroke="#000" strokeWidth="2.4" strokeLinecap="round" />
+          </svg>
+        </div>
+      </div>
       <div className="bios-readout">
         <span className="sev" ref={sevRef} />
         <span className="txt" ref={txtRef} style={{ color: "var(--ink-soft)" }}>Scanning correlations…</span>
