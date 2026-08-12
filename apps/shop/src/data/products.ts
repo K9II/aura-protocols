@@ -67,7 +67,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/semaglutide?aff=84", commission: "30%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7", commission: "20%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/semaglutide-5mg/?ref=k9@auraprotocols.com", commission: "15%" },      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-sema/?afref=a1b9", commission: "15%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip1-s5mg/?ref=k9@auraprotocols.com", commission: "15%" },      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-sema/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-1-sm/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
     ],
     featured: true,
@@ -82,7 +82,7 @@ export const products: Product[] = [
     benefits: ["Dual GIP/GLP-1 receptor agonism", "SURMOUNT trials: 20–22% body-weight reduction over 72 weeks", "~20% greater weight loss than semaglutide in SURMOUNT-5", "Stronger HbA1c reduction in T2D research populations"],
     vendors: [
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-2t-15m/?rfsn=9131640.7592e7", commission: "20%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/glp-tz-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip2-trz10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/glpii/?ref=Aurapro", commission: "10%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-tirz/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-2-trz/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
@@ -192,7 +192,7 @@ export const products: Product[] = [
     vendors: [
       { vendor: "GLP-1 Research Lab", url: "https://www.glp1researchlab.com/product/retatrutide?aff=84", commission: "30%" },
       { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-3r-10mg/?rfsn=9131640.7592e7", commission: "20%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/retatrutide-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip3rt-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Main Peptides", url: "https://mainpeptides.com/product/glpiii/?ref=Aurapro", commission: "10%" },      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-3-reta/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-3-rt/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-retatrutide/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
