@@ -70,9 +70,14 @@ type Props = {
   /** internal coordinate space; the canvas is scaled to its container width */
   width?: number;
   height?: number;
+  /** Wearable-connect affordance. "under-development" renders a disabled button
+   *  with an "Under development" badge (Phase 2 not shipped); "available" renders
+   *  a live connect link to `connectHref`; null hides it. */
+  connect?: "under-development" | "available" | null;
+  connectHref?: string;
 };
 
-export default function BiosignatureSphere({ width = 380, height = 340 }: Props) {
+export default function BiosignatureSphere({ width = 380, height = 340, connect = null, connectHref }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const sevRef = useRef<HTMLSpanElement | null>(null);
   const txtRef = useRef<HTMLSpanElement | null>(null);
@@ -292,6 +297,37 @@ export default function BiosignatureSphere({ width = 380, height = 340 }: Props)
         <span className="sev" ref={sevRef} />
         <span className="txt" ref={txtRef} style={{ color: "var(--ink-soft)" }}>Scanning correlations…</span>
       </div>
+
+      {connect === "under-development" && (
+        <button
+          type="button"
+          className="bios-connect"
+          disabled
+          aria-disabled="true"
+          title="Wearable connect is under development"
+        >
+          <LinkGlyph />
+          Connect wearable
+          <span className="devpill">Under development</span>
+        </button>
+      )}
+      {connect === "available" && (
+        <a className="bios-connect available" href={connectHref}>
+          <LinkGlyph />
+          Connect wearable
+          <span className="arw" aria-hidden="true">→</span>
+        </a>
+      )}
     </div>
+  );
+}
+
+function LinkGlyph() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <path d="M9 12h6" />
+      <path d="M8.5 8H8a4 4 0 000 8h.5" />
+      <path d="M15.5 8h.5a4 4 0 010 8h-.5" />
+    </svg>
   );
 }
