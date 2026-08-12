@@ -7,7 +7,9 @@ import type { BudgetTierId } from "@/lib/constants";
 import { emptyIntakeState } from "@/lib/profile/intake-state";
 import type { IntakeState } from "@/lib/profile/intake-state";
 
+const SHOP_URL = "https://shop.auraprotocols.com";
 const LBS_PER_KG = 2.2046226218;
+
 function toKg(weight: string, unit: "lbs" | "kg"): number | null {
   const n = parseFloat(weight);
   if (!Number.isFinite(n)) return null;
@@ -25,31 +27,61 @@ const GOAL_LABELS = {
 };
 const GLP1_LABELS = { never: "Never used", current: "Currently taking", recently_stopped: "Recently stopped" };
 const MENOPAUSE_LABELS = { pre: "Pre-menopausal", peri: "Perimenopausal", post: "Post-menopausal", not_applicable: "Not applicable" };
-
 const SAVE_ERROR = "Couldn't save your answers. Check your connection and try again.";
 
 async function postProfile(data: Record<string, unknown>): Promise<boolean> {
   try {
-    const res = await fetch("/api/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
     return res.ok;
   } catch {
     return false;
   }
 }
 
-export default function IntakeForm({ initial }: { initial?: IntakeState }) {
+export default function IntakeForm({ initial, hasData }: { initial?: IntakeState; hasData?: boolean }) {
   const router = useRouter();
   const seed = initial ?? emptyIntakeState();
-  const [step, setStep] = useState(1);
+  // Step 1 = data-source gate (skipped when biometric data already exists).
+  // Steps 2-4 = content: goal+demographics, clinical, preferences.
+  const [step, setStep] = useState(hasData ? 2 : 1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
   const [step1, setStep1] = useState(seed.step1);
   const [step2, setStep2] = useState(seed.step2);
   const [step3, setStep3] = useState(seed.step3);
 
-  async function nextStep1() {
+  async function connectWearable() {
+    setConnecting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/terra/connect", { method: "POST" });
+      if (res.status === 503) {
+        setError("Wearable connection isn't available yet — upload your data manually.");
+        setConnecting(false);
+        return;
+      }
+      if (!res.ok) {
+        setError("Connection failed. Try again or upload manually.");
+        setConnecting(false);
+        return;
+      }
+      const { url } = (await res.json()) as { url: string };
+      window.location.href = url;
+    } catch {
+      setError("Connection failed. Check your internet and try again.");
+      setConnecting(false);
+    }
+  }
+
+  async function saveGoalAndDemo() {
     setSaving(true); setError(null);
     const ok = await postProfile({
+      primary_goal: step2.primary_goal || null,
       age: step1.age ? parseInt(step1.age, 10) : null,
       biological_sex: step1.biological_sex || null,
       weight_kg: toKg(step1.weight, step1.weight_unit),
@@ -57,13 +89,12 @@ export default function IntakeForm({ initial }: { initial?: IntakeState }) {
     });
     setSaving(false);
     if (!ok) { setError(SAVE_ERROR); return; }
-    setStep(2);
+    setStep(3);
   }
 
-  async function nextStep2() {
+  async function saveClinical() {
     setSaving(true); setError(null);
     const ok = await postProfile({
-      primary_goal: step2.primary_goal || null,
       current_medications: step2.current_medications || null,
       using_peptides: step2.using_peptides,
       peptides_detail: step2.peptides_detail || null,
@@ -73,7 +104,7 @@ export default function IntakeForm({ initial }: { initial?: IntakeState }) {
     });
     setSaving(false);
     if (!ok) { setError(SAVE_ERROR); return; }
-    setStep(3);
+    setStep(4);
   }
 
   async function finish() {
@@ -90,23 +121,69 @@ export default function IntakeForm({ initial }: { initial?: IntakeState }) {
 
   const inputClass = "w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30";
   const labelClass = "block mb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider";
-  const btnPrimary = "w-full rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed";
+  const btnBack = "flex-1 rounded-xl bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/20";
+  const btnNext = "flex-1 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed";
+
+  // Progress bar spans content steps 2-4 (3 segments).
+  const progressStep = step - 1;
 
   return (
     <div>
-      <div className="mb-6 flex gap-2">
-        {[1, 2, 3].map((n) => (
-          <div key={n} className={`h-1 flex-1 rounded-full transition-colors ${n <= step ? "bg-cyan-500" : "bg-white/10"}`} />
-        ))}
-      </div>
+      {step > 1 && (
+        <div className="mb-6 flex gap-2">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className={`h-1 flex-1 rounded-full transition-colors ${n <= progressStep ? "bg-cyan-500" : "bg-white/10"}`} />
+          ))}
+        </div>
+      )}
 
       {error && <p className="mb-4 text-sm text-red-300">{error}</p>}
 
+      {/* ── STEP 1 — Data source gate ── */}
       {step === 1 && (
+        <div className="space-y-6">
+          <p className="text-sm text-slate-300">
+            Your protocol is personalized from real biometric data. Connect a supported wearable to continue.
+          </p>
+
+          <div className="space-y-3">
+            <button
+              className="w-full rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-6 py-4 text-left transition hover:border-cyan-500/70 hover:bg-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={connectWearable}
+              disabled={connecting}
+            >
+              <p className="font-semibold text-white">{connecting ? "Opening connection…" : "Connect Wearable"}</p>
+              <p className="mt-0.5 text-xs text-slate-400">WHOOP · Oura · Garmin · Fitbit · Dexcom</p>
+            </button>
+          </div>
+
+          <div className="border-t border-white/5 pt-4 text-center">
+            <a href={SHOP_URL} className="text-xs text-slate-500 underline underline-offset-2 transition hover:text-slate-400">
+              Not ready yet? Browse research peptides on the shop →
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 2 — Goal + Demographics ── */}
+      {step === 2 && (
         <div className="space-y-4">
           <div>
+            <label className={labelClass}>Primary Goal</label>
+            <select className={inputClass} value={step2.primary_goal} onChange={(e) => setStep2({ ...step2, primary_goal: e.target.value })}>
+              <option value="">Select…</option>
+              {Object.entries(GOAL_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
+          <div>
             <label className={labelClass}>Age</label>
-            <input type="number" className={inputClass} placeholder="e.g. 34" value={step1.age} onChange={(e) => setStep1({ ...step1, age: e.target.value })} />
+            <input
+              type="number"
+              className={inputClass}
+              placeholder="e.g. 34"
+              value={step1.age}
+              onChange={(e) => setStep1({ ...step1, age: e.target.value })}
+            />
           </div>
           <div>
             <label className={labelClass}>Biological Sex</label>
@@ -121,8 +198,19 @@ export default function IntakeForm({ initial }: { initial?: IntakeState }) {
           <div>
             <label className={labelClass}>Weight</label>
             <div className="flex gap-2">
-              <input type="number" inputMode="decimal" className={inputClass + " flex-1 min-w-0"} placeholder={step1.weight_unit === "lbs" ? "e.g. 180" : "e.g. 80"} value={step1.weight} onChange={(e) => setStep1({ ...step1, weight: e.target.value })} />
-              <select className="w-24 flex-none rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30" value={step1.weight_unit} onChange={(e) => setStep1({ ...step1, weight_unit: e.target.value as "lbs" | "kg" })}>
+              <input
+                type="number"
+                inputMode="decimal"
+                className={inputClass + " flex-1 min-w-0"}
+                placeholder={step1.weight_unit === "lbs" ? "e.g. 180" : "e.g. 80"}
+                value={step1.weight}
+                onChange={(e) => setStep1({ ...step1, weight: e.target.value })}
+              />
+              <select
+                className="w-24 flex-none rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+                value={step1.weight_unit}
+                onChange={(e) => setStep1({ ...step1, weight_unit: e.target.value as "lbs" | "kg" })}
+              >
                 <option value="lbs">lbs</option>
                 <option value="kg">kg</option>
               </select>
@@ -135,33 +223,49 @@ export default function IntakeForm({ initial }: { initial?: IntakeState }) {
               {Object.entries(ACTIVITY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
-          <button className={btnPrimary} onClick={nextStep1} disabled={saving}>
-            {saving ? "Saving…" : "Continue →"}
-          </button>
+          <div className="flex gap-3">
+            {!hasData && (
+              <button className={btnBack} onClick={() => setStep(1)}>← Back</button>
+            )}
+            <button className={btnNext} onClick={saveGoalAndDemo} disabled={saving}>
+              {saving ? "Saving…" : "Continue →"}
+            </button>
+          </div>
         </div>
       )}
 
-      {step === 2 && (
+      {/* ── STEP 3 — Clinical Context ── */}
+      {step === 3 && (
         <div className="space-y-4">
           <div>
-            <label className={labelClass}>Primary Goal</label>
-            <select className={inputClass} value={step2.primary_goal} onChange={(e) => setStep2({ ...step2, primary_goal: e.target.value })}>
-              <option value="">Select…</option>
-              {Object.entries(GOAL_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          </div>
-          <div>
             <label className={labelClass}>Current Medications (optional)</label>
-            <textarea className={inputClass + " h-20 resize-none"} placeholder="List any prescription medications, supplements, or peptides you're currently taking" value={step2.current_medications} onChange={(e) => setStep2({ ...step2, current_medications: e.target.value })} />
+            <textarea
+              className={inputClass + " h-20 resize-none"}
+              placeholder="List any prescription medications, supplements, or peptides you're currently taking"
+              value={step2.current_medications}
+              onChange={(e) => setStep2({ ...step2, current_medications: e.target.value })}
+            />
           </div>
           <div className="flex items-center gap-3">
-            <input type="checkbox" id="using_peptides" className="h-4 w-4 rounded border-white/20 bg-white/5 accent-cyan-500" checked={step2.using_peptides} onChange={(e) => setStep2({ ...step2, using_peptides: e.target.checked })} />
+            <input
+              type="checkbox"
+              id="using_peptides"
+              className="h-4 w-4 rounded border-white/20 bg-white/5 accent-cyan-500"
+              checked={step2.using_peptides}
+              onChange={(e) => setStep2({ ...step2, using_peptides: e.target.checked })}
+            />
             <label htmlFor="using_peptides" className="text-sm text-slate-300">Currently using peptides</label>
           </div>
           {step2.using_peptides && (
             <div>
               <label className={labelClass}>Which peptides?</label>
-              <input type="text" className={inputClass} placeholder="e.g. BPC-157, TB-500" value={step2.peptides_detail} onChange={(e) => setStep2({ ...step2, peptides_detail: e.target.value })} />
+              <input
+                type="text"
+                className={inputClass}
+                placeholder="e.g. BPC-157, TB-500"
+                value={step2.peptides_detail}
+                onChange={(e) => setStep2({ ...step2, peptides_detail: e.target.value })}
+              />
             </div>
           )}
           <div>
@@ -174,7 +278,12 @@ export default function IntakeForm({ initial }: { initial?: IntakeState }) {
           {step2.glp1_status === "recently_stopped" && (
             <div>
               <label className={labelClass}>When did you stop? (month)</label>
-              <input type="month" className={inputClass} value={step2.glp1_stopped_month} onChange={(e) => setStep2({ ...step2, glp1_stopped_month: e.target.value })} />
+              <input
+                type="month"
+                className={inputClass}
+                value={step2.glp1_stopped_month}
+                onChange={(e) => setStep2({ ...step2, glp1_stopped_month: e.target.value })}
+              />
             </div>
           )}
           {step1.biological_sex === "female" && (
@@ -187,21 +296,22 @@ export default function IntakeForm({ initial }: { initial?: IntakeState }) {
             </div>
           )}
           <div className="flex gap-3">
-            <button className="flex-1 rounded-xl bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/20" onClick={() => setStep(1)}>← Back</button>
-            <button className="flex-1 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400 disabled:opacity-50" onClick={nextStep2} disabled={saving}>
+            <button className={btnBack} onClick={() => setStep(2)}>← Back</button>
+            <button className={btnNext} onClick={saveClinical} disabled={saving}>
               {saving ? "Saving…" : "Continue →"}
             </button>
           </div>
         </div>
       )}
 
-      {step === 3 && (
+      {/* ── STEP 4 — Preferences ── */}
+      {step === 4 && (
         <div className="space-y-4">
           <div>
             <label className={labelClass}>Interested in a prescription protocol?</label>
-            <p className="mb-3 text-xs text-slate-500">If yes, we'll show you Aura Clinical options alongside research-grade vendors.</p>
+            <p className="mb-3 text-xs text-slate-500">If yes, we&apos;ll show you Aura Clinical options alongside research-grade vendors.</p>
             <div className="flex gap-3">
-              {[{ v: true, l: "Yes, show me Rx options" }, { v: false, l: "No, research-grade only" }].map(({ v, l }) => (
+              {([{ v: true, l: "Yes, show me Rx options" }, { v: false, l: "No, research-grade only" }] as const).map(({ v, l }) => (
                 <button
                   key={String(v)}
                   onClick={() => setStep3({ ...step3, interested_in_rx: v })}
@@ -216,12 +326,14 @@ export default function IntakeForm({ initial }: { initial?: IntakeState }) {
             <label className={labelClass}>Monthly Budget</label>
             <select className={inputClass} value={step3.budget_tier} onChange={(e) => setStep3({ ...step3, budget_tier: e.target.value })}>
               <option value="">Select…</option>
-              {(Object.entries(BUDGET_TIER_LABELS) as [BudgetTierId, string][]).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              {(Object.entries(BUDGET_TIER_LABELS) as [BudgetTierId, string][]).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
             </select>
           </div>
           <div className="flex gap-3">
-            <button className="flex-1 rounded-xl bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/20" onClick={() => setStep(2)}>← Back</button>
-            <button className="flex-1 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400 disabled:opacity-50" onClick={finish} disabled={saving}>
+            <button className={btnBack} onClick={() => setStep(3)}>← Back</button>
+            <button className={btnNext} onClick={finish} disabled={saving}>
               {saving ? "Finalizing…" : "Unlock Protocol →"}
             </button>
           </div>

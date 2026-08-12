@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   if (status === "success" && userId && terraUserId && provider) {
     const admin = getSupabaseAdminClient();
     await admin.from("wearable_connections").insert({ user_id: userId, provider, terra_user_id: terraUserId });
-    return NextResponse.redirect(new URL("/recommendation", url.origin));
+    return NextResponse.redirect(new URL("/dashboard", url.origin));
   }
   return NextResponse.redirect(new URL("/connect?error=1", url.origin));
 }

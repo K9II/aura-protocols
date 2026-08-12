@@ -39,12 +39,9 @@ export default async function ConnectPage() {
       <h1 className="mt-4 text-3xl font-bold text-white">Connect your wearable</h1>
       <div className="mt-6 rounded-2xl border border-violet-500/30 bg-violet-500/10 px-6 py-8 text-center">
         <div className="text-3xl">🔧</div>
-        <p className="mt-3 text-lg font-semibold text-white">Under Construction</p>
-        <p className="mt-2 text-sm text-slate-300">Wearable integrations are being finalized. Manual data upload is available in the meantime.</p>
+        <p className="mt-3 text-lg font-semibold text-white">Coming Soon</p>
+        <p className="mt-2 text-sm text-slate-300">Wearable integrations are being finalized. Check back shortly.</p>
       </div>
-      <p className="mt-6 text-sm text-slate-400">
-        <a href="/upload" className="text-cyan-300 underline">Upload data manually</a> to generate your protocol now.
-      </p>
     </main>
   );
 }

@@ -68,13 +68,20 @@ interface CollectedProfile {
   activity_level?: ProfileContext["activity_level"];
   menopause_status?: ProfileContext["menopause_status"];
   glp1_status?: ProfileContext["glp1_status"];
+  glp1_stopped_month?: string;
   current_medications?: string;
+  using_peptides?: boolean;
+  peptides_detail?: string;
 }
 
 function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile) => void }) {
   const [step, setStep] = useState(1);
 
-  // Step 1 fields
+  // Step 1 — wearable gate
+  const [connecting, setConnecting] = useState<string | null>(null);
+  const [connected, setConnected] = useState<string | null>(null);
+
+  // Step 2 — goal + demographics
   const [primaryGoal, setPrimaryGoal] = useState("");
   const [ageStr, setAgeStr] = useState("");
   const [sex, setSex] = useState("");
@@ -82,20 +89,22 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
   const [weightUnit, setWeightUnit] = useState<"lbs" | "kg">("lbs");
   const [activityLevel, setActivityLevel] = useState("");
 
-  // Step 2 fields
-  const [menopauseStatus, setMenopauseStatus] = useState("");
-  const [glp1Status, setGlp1Status] = useState("");
+  // Step 3 — clinical
   const [medications, setMedications] = useState("");
+  const [usingPeptides, setUsingPeptides] = useState(false);
+  const [peptidesDetail, setPeptidesDetail] = useState("");
+  const [glp1Status, setGlp1Status] = useState("");
+  const [glp1StoppedMonth, setGlp1StoppedMonth] = useState("");
+  const [menopauseStatus, setMenopauseStatus] = useState("");
+
+  // Step 4 — preferences
   const [rxInterest, setRxInterest] = useState<"yes" | "no" | null>(null);
   const [budgetTier, setBudgetTier] = useState("");
-
-  // Step 3
-  const [connecting, setConnecting] = useState<string | null>(null);
-  const [connected, setConnected] = useState<string | null>(null);
 
   const inputClass = "w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30";
   const labelClass = "block mb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider";
   const btnBack = "flex-1 rounded-xl bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/20";
+  const btnNext = "flex-1 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400";
 
   function handleConnect(id: string) {
     setConnecting(id);
@@ -107,8 +116,7 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
     const weight_kg = weightStr
       ? (weightUnit === "lbs" ? Math.round(rawWeight * 0.453592 * 10) / 10 : rawWeight)
       : undefined;
-
-    const profile: CollectedProfile = {
+    onComplete({
       age: ageStr ? parseInt(ageStr, 10) : undefined,
       weight_kg: weight_kg && weight_kg >= 30 && weight_kg <= 300 ? weight_kg : undefined,
       biological_sex: sex ? (sex as ProfileContext["biological_sex"]) : undefined,
@@ -116,20 +124,87 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
       activity_level: activityLevel ? (activityLevel as ProfileContext["activity_level"]) : undefined,
       menopause_status: menopauseStatus ? (menopauseStatus as ProfileContext["menopause_status"]) : undefined,
       glp1_status: glp1Status ? (glp1Status as ProfileContext["glp1_status"]) : undefined,
+      glp1_stopped_month: glp1Status === "recently_stopped" ? glp1StoppedMonth || undefined : undefined,
       current_medications: medications.trim() || undefined,
-    };
-    onComplete(profile);
+      using_peptides: usingPeptides,
+      peptides_detail: usingPeptides && peptidesDetail ? peptidesDetail : undefined,
+    });
   }
+
+  // Progress bar covers content steps 2-4 only (3 segments).
+  const progressStep = step - 1;
 
   return (
     <div>
-      <div className="mb-6 flex gap-2">
-        {[1, 2, 3].map((n) => (
-          <div key={n} className={`h-1 flex-1 rounded-full transition-colors ${n <= step ? "bg-cyan-500" : "bg-white/10"}`} />
-        ))}
-      </div>
+      {step > 1 && (
+        <div className="mb-6 flex gap-2">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className={`h-1 flex-1 rounded-full transition-colors ${n <= progressStep ? "bg-cyan-500" : "bg-white/10"}`} />
+          ))}
+        </div>
+      )}
 
+      {/* STEP 1 — Wearable gate */}
       {step === 1 && (
+        <div className="space-y-5">
+          <p className="text-sm text-slate-300">
+            Your protocol is personalized from real biometric data. Connect a supported wearable to continue.
+          </p>
+
+          <div className="space-y-2">
+            {WEARABLES.map((w) => {
+              const isConnecting = connecting === w.id;
+              const isConnected = connected === w.id;
+              return (
+                <div
+                  key={w.id}
+                  className="flex items-center justify-between rounded-xl border px-4 py-3 transition-colors"
+                  style={{
+                    borderColor: isConnected ? w.color : "rgba(255,255,255,0.08)",
+                    background: isConnected ? `${w.color}10` : "rgba(255,255,255,0.02)",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg" style={{ color: w.color }}>{w.icon}</span>
+                    <span className="text-sm font-medium text-white">{w.label}</span>
+                    {w.id === "DEXCOM" && (
+                      <span className="text-xs text-slate-500 bg-white/5 border border-white/10 px-2 py-0.5 rounded">CGM</span>
+                    )}
+                  </div>
+                  {isConnected ? (
+                    <span className="text-xs font-semibold tracking-wider" style={{ color: w.color }}>● Connected</span>
+                  ) : (
+                    <button
+                      onClick={() => handleConnect(w.id)}
+                      disabled={isConnecting || connected !== null}
+                      className="rounded-lg px-4 py-1.5 text-xs font-semibold transition disabled:opacity-40"
+                      style={{ background: `${w.color}18`, border: `1px solid ${w.color}40`, color: w.color }}
+                    >
+                      {isConnecting ? "Connecting…" : "Connect"}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-white/5 pt-4">
+            <a href="https://shop.auraprotocols.com" className="text-xs text-slate-500 underline underline-offset-2 transition hover:text-slate-400">
+              Not ready yet? Browse the shop →
+            </a>
+            <button
+              className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={!connected}
+              onClick={() => setStep(2)}
+            >
+              {connected ? "Continue →" : "Connect to continue"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2 — Goal + Demographics */}
+      {step === 2 && (
         <div className="space-y-4">
           <div>
             <label className={labelClass}>Primary Goal</label>
@@ -140,10 +215,7 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
           </div>
           <div>
             <label className={labelClass}>Age</label>
-            <input
-              type="number" className={inputClass} placeholder="e.g. 34"
-              value={ageStr} onChange={(e) => setAgeStr(e.target.value)}
-            />
+            <input type="number" className={inputClass} placeholder="e.g. 34" value={ageStr} onChange={(e) => setAgeStr(e.target.value)} />
           </div>
           <div>
             <label className={labelClass}>Biological Sex</label>
@@ -178,21 +250,38 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
               {Object.entries(ACTIVITY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
-          <button className="w-full rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400" onClick={() => setStep(2)}>
-            Continue →
-          </button>
+          <div className="flex gap-3">
+            <button className={btnBack} onClick={() => setStep(1)}>← Back</button>
+            <button className={btnNext} onClick={() => setStep(3)}>Continue →</button>
+          </div>
         </div>
       )}
 
-      {step === 2 && (
+      {/* STEP 3 — Clinical Context */}
+      {step === 3 && (
         <div className="space-y-4">
-          {sex === "female" && (
+          <div>
+            <label className={labelClass}>Current Medications <span className="normal-case font-normal text-slate-500">(optional — safety screening)</span></label>
+            <textarea
+              className={inputClass + " resize-none"}
+              rows={3}
+              placeholder="e.g. metformin 500mg, levothyroxine 75mcg, warfarin…"
+              value={medications}
+              onChange={(e) => setMedications(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox" id="demo_using_peptides"
+              className="h-4 w-4 rounded border-white/20 bg-white/5 accent-cyan-500"
+              checked={usingPeptides} onChange={(e) => setUsingPeptides(e.target.checked)}
+            />
+            <label htmlFor="demo_using_peptides" className="text-sm text-slate-300">Currently using peptides</label>
+          </div>
+          {usingPeptides && (
             <div>
-              <label className={labelClass}>Menopause status</label>
-              <select className={inputClass} value={menopauseStatus} onChange={(e) => setMenopauseStatus(e.target.value)}>
-                <option value="">Select…</option>
-                {Object.entries(MENOPAUSE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
+              <label className={labelClass}>Which peptides?</label>
+              <input type="text" className={inputClass} placeholder="e.g. BPC-157, TB-500" value={peptidesDetail} onChange={(e) => setPeptidesDetail(e.target.value)} />
             </div>
           )}
           <div>
@@ -202,22 +291,34 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
               {Object.entries(GLP1_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
-          <div>
-            <label className={labelClass}>
-              Current medications
-              <span className="ml-1 normal-case text-slate-500 font-normal">(optional — used for safety screening)</span>
-            </label>
-            <textarea
-              className={inputClass + " resize-none"}
-              rows={3}
-              placeholder="e.g. metformin 500mg, levothyroxine 75mcg, warfarin…"
-              value={medications}
-              onChange={(e) => setMedications(e.target.value)}
-            />
+          {glp1Status === "recently_stopped" && (
+            <div>
+              <label className={labelClass}>When did you stop? (month)</label>
+              <input type="month" className={inputClass} value={glp1StoppedMonth} onChange={(e) => setGlp1StoppedMonth(e.target.value)} />
+            </div>
+          )}
+          {sex === "female" && (
+            <div>
+              <label className={labelClass}>Menopause status</label>
+              <select className={inputClass} value={menopauseStatus} onChange={(e) => setMenopauseStatus(e.target.value)}>
+                <option value="">Select…</option>
+                {Object.entries(MENOPAUSE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <button className={btnBack} onClick={() => setStep(2)}>← Back</button>
+            <button className={btnNext} onClick={() => setStep(4)}>Continue →</button>
           </div>
+        </div>
+      )}
+
+      {/* STEP 4 — Preferences */}
+      {step === 4 && (
+        <div className="space-y-4">
           <div>
             <label className={labelClass}>Interested in a prescription protocol?</label>
-            <p className="mb-3 text-xs text-slate-500">If yes, we'll show you Aura Clinical options alongside research-grade vendors.</p>
+            <p className="mb-3 text-xs text-slate-500">If yes, we&apos;ll show you Aura Clinical options alongside research-grade vendors.</p>
             <div className="flex gap-3">
               {([{ v: "yes", l: "Yes, show me Rx options" }, { v: "no", l: "No, research-grade only" }] as const).map(({ v, l }) => (
                 <button
@@ -240,79 +341,8 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
             </select>
           </div>
           <div className="flex gap-3">
-            <button className={btnBack} onClick={() => setStep(1)}>← Back</button>
-            <button className="flex-1 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400" onClick={() => setStep(3)}>
-              Continue →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="space-y-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-1">Connect Your Wearable</p>
-            <p className="text-sm text-slate-400">
-              Your device data — HRV, sleep, recovery, strain — is what makes your protocol personal.
-              Connect once and the Engine updates automatically.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            {WEARABLES.map((w) => {
-              const isConnecting = connecting === w.id;
-              const isConnected = connected === w.id;
-              return (
-                <div
-                  key={w.id}
-                  className="flex items-center justify-between rounded-xl border px-4 py-3 transition-colors"
-                  style={{
-                    borderColor: isConnected ? w.color : "rgba(255,255,255,0.08)",
-                    background: isConnected ? `${w.color}10` : "rgba(255,255,255,0.02)",
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg" style={{ color: w.color }}>{w.icon}</span>
-                    <span className="text-sm font-medium text-white">{w.label}</span>
-                    {w.id === "DEXCOM" && (
-                      <span className="text-xs text-slate-500 bg-white/5 border border-white/10 px-2 py-0.5 rounded">CGM</span>
-                    )}
-                  </div>
-                  {isConnected ? (
-                    <span className="text-xs font-semibold tracking-wider" style={{ color: w.color }}>
-                      ● Connected
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => handleConnect(w.id)}
-                      disabled={isConnecting || connected !== null}
-                      className="rounded-lg px-4 py-1.5 text-xs font-semibold transition disabled:opacity-40"
-                      style={{
-                        background: `${w.color}18`,
-                        border: `1px solid ${w.color}40`,
-                        color: w.color,
-                      }}
-                    >
-                      {isConnecting ? "Connecting…" : "Connect"}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="text-xs text-slate-600">
-            No wearable? You can enter data manually after setup.
-          </p>
-
-          <div className="flex gap-3">
-            <button className={btnBack} onClick={() => setStep(2)}>← Back</button>
-            <button
-              className="flex-1 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400"
-              onClick={handleComplete}
-            >
-              {connected ? "Generate My Protocol →" : "Skip for now →"}
-            </button>
+            <button className={btnBack} onClick={() => setStep(3)}>← Back</button>
+            <button className={btnNext} onClick={handleComplete}>Generate My Protocol →</button>
           </div>
         </div>
       )}
@@ -907,7 +937,7 @@ export default function DemoPage() {
 
   // Build a ProfileContext from the live profile editor
   const profileCtx = useMemo((): ProfileContext => ({
-    using_peptides: false,
+    using_peptides: demoProfile.using_peptides ?? false,
     interested_in_rx: false,
     onboarding_complete: true,
     age: demoProfile.age,
@@ -917,7 +947,9 @@ export default function DemoPage() {
     activity_level: demoProfile.activity_level,
     menopause_status: demoProfile.menopause_status,
     glp1_status: demoProfile.glp1_status,
+    glp1_stopped_month: demoProfile.glp1_stopped_month,
     current_medications: demoProfile.current_medications,
+    peptides_detail: demoProfile.peptides_detail,
   }), [demoProfile]);
 
   // Compute live rules from current scenario biometrics + live profile
