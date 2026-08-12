@@ -13,7 +13,7 @@ const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://modalityhealth.com"),
+  metadataBase: new URL("https://modalitybio.com"),
   title: "Modality — Prescription care, matched to you",
   description:
     "Browse clinician-led protocols and start a telehealth visit. Connect a wearable to personalize your match — optional, never required.",

@@ -102,7 +102,7 @@ export default async function Page({
             <a className="door primary" href="#protocols">
               <div>
                 <div className="dn">Browse protocols <span className="tagpill now">No device needed</span></div>
-                <div className="dd">Pick a protocol and start your visit now.</div>
+                <div className="dd">Pick a protocol and start your licensed clinician visit now.</div>
               </div>
               <span className="arw" aria-hidden="true">→</span>
             </a>

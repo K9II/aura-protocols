@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-// Social share card (Open Graph + Twitter) shown when a modalityhealth.com
+// Social share card (Open Graph + Twitter) shown when a modalitybio.com
 // link is pasted into iMessage, Slack, X, Facebook, LinkedIn, or run in ads.
 // Rendered via next/og — no external raster tooling. Brand serif (Newsreader)
 // is vendored under assets/ and loaded into Satori so the type is on-brand.
@@ -113,7 +113,7 @@ export default async function Image() {
           >
             Signal to script
           </div>
-          <div style={{ fontSize: 24, color: "#615B54" }}>modalityhealth.com</div>
+          <div style={{ fontSize: 24, color: "#615B54" }}>modalitybio.com</div>
         </div>
       </div>
     ),

@@ -1,6 +1,6 @@
 # @aura/modality
 
-Standalone telehealth front door for **modalityhealth.com** — the Modality brand's
+Standalone telehealth front door for **modalitybio.com** — the Modality brand's
 stage-1 hand-off surface. Introduces the brand, captures a first-party opt-in, and
 hands visitors off to our licensed partner (Leg Up Recovery) for the medical intake.
 No health data (PHI) is collected on this surface.
