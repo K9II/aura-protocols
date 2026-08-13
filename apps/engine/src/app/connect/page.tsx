@@ -11,15 +11,17 @@ export default async function ConnectPage() {
 
   if (!user) {
     return (
-      <main className="mx-auto max-w-md px-6 py-20">
-        <h1 className="text-3xl font-bold text-white">Sign in to continue</h1>
-        <p className="mt-3 text-slate-300">We email you a one-time link. No password. We store your fitness data, not PHI.</p>
-        <div className="mt-6">
-          <Suspense fallback={null}>
-            <SignInForm />
-          </Suspense>
+      <div className="pharmacopoeia">
+        <div className="p-container max-w-md py-16">
+          <h1 className="p-serif text-3xl">Sign in to continue</h1>
+          <p className="mt-3 text-[color:var(--ink-soft)]">We email you a one-time link. No password. We store your fitness data, not PHI.</p>
+          <div className="mt-6">
+            <Suspense fallback={null}>
+              <SignInForm />
+            </Suspense>
+          </div>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -34,17 +36,16 @@ export default async function ConnectPage() {
   if (!profile?.onboarding_complete) redirect("/onboarding");
 
   return (
-    <main className="mx-auto max-w-md px-6 py-20">
-      <a href="/dashboard" className="text-sm text-cyan-300 hover:underline">← Back to dashboard</a>
-      <h1 className="mt-4 text-3xl font-bold text-white">Connect your wearable</h1>
-      <div className="mt-6 rounded-2xl border border-violet-500/30 bg-violet-500/10 px-6 py-8 text-center">
-        <div className="text-3xl">🔧</div>
-        <p className="mt-3 text-lg font-semibold text-white">Under Construction</p>
-        <p className="mt-2 text-sm text-slate-300">Wearable integrations are being finalized. Manual data upload is available in the meantime.</p>
+    <div className="pharmacopoeia">
+      <div className="p-container max-w-md py-16">
+        <a href="/dashboard" className="p-link text-sm">← Back to dashboard</a>
+        <h1 className="mt-4 p-serif text-3xl">Connect your wearable</h1>
+        <div className="mt-6 p-callout border border-[color:var(--line)] px-6 py-8 text-center">
+          <div className="text-3xl">🔧</div>
+          <p className="mt-3 p-serif text-lg">Coming Soon</p>
+          <p className="mt-2 text-sm text-[color:var(--ink-soft)]">Wearable integrations are being finalized. Check back shortly.</p>
+        </div>
       </div>
-      <p className="mt-6 text-sm text-slate-400">
-        <a href="/upload" className="text-cyan-300 underline">Upload data manually</a> to generate your protocol now.
-      </p>
-    </main>
+    </div>
   );
 }

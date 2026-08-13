@@ -52,31 +52,31 @@ export default function SignInForm() {
         type="button"
         onClick={handleGoogle}
         disabled={googleStatus === "redirecting"}
-        className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/10 bg-white px-5 py-3 font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-3 border border-[color:var(--line)] bg-[color:var(--paper)] px-5 py-3 font-semibold text-[color:var(--ink)] hover:bg-[color:var(--paper-deep)] disabled:opacity-50"
       >
         <GoogleIcon />
         {googleStatus === "redirecting" ? "Redirecting…" : "Continue with Google"}
       </button>
 
-      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-slate-500">
-        <span className="h-px flex-1 bg-white/10" />
+      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-[color:var(--ink-faint)]">
+        <span className="h-px flex-1 bg-[color:var(--line)]" />
         or
-        <span className="h-px flex-1 bg-white/10" />
+        <span className="h-px flex-1 bg-[color:var(--line)]" />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="w-full rounded-lg border border-white/10 bg-slate-900/60 px-4 py-3 text-slate-100" />
+          className="w-full border border-[color:var(--line)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] placeholder:text-[color:var(--ink-faint)] focus:border-[color:var(--specimen)] focus:outline-none" />
         <button type="submit" disabled={status === "sending"}
-          className="inline-flex w-full items-center justify-center rounded-lg bg-cyan-400 px-5 py-3 font-semibold text-slate-900 hover:bg-cyan-300 disabled:opacity-50">
+          className="p-btn-primary inline-flex w-full items-center justify-center px-5 py-3 font-semibold disabled:opacity-50">
           {status === "sending" ? "Sending…" : "Email me a sign-in link"}
         </button>
-        {status === "sent" && <p className="text-sm text-emerald-300">Check your inbox.</p>}
+        {status === "sent" && <p className="text-sm text-[color:var(--sig-ok)]">Check your inbox.</p>}
       </form>
 
       {errorMsg && (status === "error" || googleStatus === "error") && (
-        <p className="text-sm text-red-300">{errorMsg}</p>
+        <p className="text-sm text-[color:var(--specimen)]">{errorMsg}</p>
       )}
     </div>
   );
