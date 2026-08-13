@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Newsreader, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { BASE_URL } from "@/lib/constants";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const serif = Newsreader({
   subsets: ["latin"],
@@ -25,7 +27,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${serif.variable} ${inter.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      <body className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="pharmacopoeia flex-1">{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }
