@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Newsreader, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { BASE_URL } from "@/lib/constants";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const syne = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-syne", display: "swap" });
+const serif = Newsreader({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["400", "500", "600"],
+  variable: "--font-newsreader",
+  display: "swap",
+});
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -17,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${syne.variable}`}>
+    <html lang="en" className={`${serif.variable} ${inter.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );

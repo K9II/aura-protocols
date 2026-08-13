@@ -8,9 +8,12 @@
   --font-display: var(--font-syne), var(--font-inter), ui-sans-serif, system-ui;
 }
 
+/* Base surface is the Pharmacopoeia paper — the whole engine is reskinned, so
+   the body no longer forces the legacy dark background (which would show as a
+   dark band below short paper pages / on overscroll). */
 html, body {
-  background: var(--color-bg);
-  color: #e2e8f0;
+  background: #EDE9E0;
+  color: #1C1A15;
   font-family: var(--font-sans);
 }
 
