@@ -19,8 +19,8 @@ export default function UploadClient() {
   return (
     <>
       <ManualUploadForm onSubmit={handleSubmit} />
-      {status === "sending" && <p className="mt-3 text-sm text-slate-400">Saving…</p>}
-      {status === "error" && errorMsg && <p className="mt-3 text-sm text-red-300">{errorMsg}</p>}
+      {status === "sending" && <p className="mt-3 text-sm text-[color:var(--ink-soft)]">Saving…</p>}
+      {status === "error" && errorMsg && <p className="mt-3 text-sm text-[color:var(--specimen)]">{errorMsg}</p>}
     </>
   );
 }
