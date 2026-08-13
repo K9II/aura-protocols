@@ -16,6 +16,7 @@ export const PRESCRIBE_LABEL = "Get this prescribed at Modality →";
 // Fit are mobile-SDK-only and will arrive with the native app — see
 // FUTURE_WEARABLES below. Do not add them here until the mobile SDK ships.
 export const SUPPORTED_WEARABLES = [
+  { id: "HUME", label: "Hume" },
   { id: "WHOOP", label: "Whoop" },
   { id: "OURA", label: "Oura" },
   { id: "GARMIN", label: "Garmin" },

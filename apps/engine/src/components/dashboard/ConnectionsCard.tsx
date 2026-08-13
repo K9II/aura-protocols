@@ -7,6 +7,7 @@ export interface ConnectionItem {
 // Mirrors the provider check constraint in migration 0001 plus the "coming
 // soon" mobile sources, so any stored provider id renders a friendly label.
 const PROVIDER_LABELS: Record<string, string> = {
+  HUME: "Hume",
   WHOOP: "Whoop",
   OURA: "Oura",
   GARMIN: "Garmin",

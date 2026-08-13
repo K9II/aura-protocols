@@ -30,6 +30,7 @@ const GLP1_LABELS = { never: "Never used", recently_stopped: "Stopped recently",
 // Per-wearable swatch identity, remapped to the muted instrument palette so no
 // legacy neon literals remain (see src/lib/theme/instrument.ts).
 const WEARABLES = [
+  { id: "HUME",   label: "Hume",       icon: "◆", color: SIG.ink },
   { id: "WHOOP",  label: "Whoop",      icon: "⬡", color: SIG.alert },
   { id: "OURA",   label: "Oura Ring",  icon: "◎", color: SIG.llm },
   { id: "GARMIN", label: "Garmin",     icon: "⬡", color: SIG.bio },

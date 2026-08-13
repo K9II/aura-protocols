@@ -153,7 +153,7 @@ export default function IntakeForm({ initial, hasData }: { initial?: IntakeState
               disabled={connecting}
             >
               <p className="font-semibold text-[color:var(--ink)]">{connecting ? "Opening connection…" : "Connect Wearable"}</p>
-              <p className="mt-0.5 text-xs text-[color:var(--ink-soft)]">WHOOP · Oura · Garmin · Fitbit · Dexcom</p>
+              <p className="mt-0.5 text-xs text-[color:var(--ink-soft)]">Hume · WHOOP · Oura · Garmin · Fitbit · Dexcom</p>
             </button>
           </div>
 
