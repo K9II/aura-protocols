@@ -1,6 +1,6 @@
 "use client";
 
-import { CLINICAL_URL } from "@/lib/constants";
+import { PRESCRIBE_URL, PRESCRIBE_LABEL, EXTERNAL_REL } from "@/lib/constants";
 import type { RoutingDecision } from "@/lib/recommend/routing";
 
 // Re-exported so existing type-only importers keep their import path. The
@@ -14,18 +14,18 @@ interface ClinicalRouterProps {
 export default function ClinicalRouter({ decision }: ClinicalRouterProps) {
   if (decision === "clinical_only") {
     return (
-      <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-rose-400">Clinical Review Required</p>
-        <p className="mb-4 text-sm text-slate-300">
+      <div className="border border-[color:var(--sig-alert)] bg-[color:var(--sig-alert-tint)] p-6 text-center">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-[color:var(--sig-alert)]">Clinical Review Required</p>
+        <p className="mb-4 text-sm text-[color:var(--ink-soft)]">
           A contraindication was detected in your profile. A licensed clinician should review your protocol before you proceed.
         </p>
         <a
-          href={CLINICAL_URL}
+          href={PRESCRIBE_URL}
           target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block rounded-xl bg-rose-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-rose-400"
+          rel={EXTERNAL_REL}
+          className="inline-block bg-[color:var(--sig-alert)] px-6 py-3 text-sm font-bold text-[color:var(--paper)] transition hover:opacity-90"
         >
-          Get this prescribed at Aura Clinical →
+          {PRESCRIBE_LABEL}
         </a>
       </div>
     );
@@ -35,16 +35,16 @@ export default function ClinicalRouter({ decision }: ClinicalRouterProps) {
     return (
       <div className="space-y-3">
         <a
-          href={CLINICAL_URL}
+          href={PRESCRIBE_URL}
           target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full rounded-xl bg-violet-600 px-6 py-4 text-center text-sm font-bold text-white transition hover:bg-violet-500"
+          rel={EXTERNAL_REL}
+          className="block w-full bg-[color:var(--sig-llm)] px-6 py-4 text-center text-sm font-bold text-[color:var(--paper)] transition hover:opacity-90"
         >
-          Get this prescribed at Aura Clinical →
+          {PRESCRIBE_LABEL}
         </a>
-        <p className="text-center text-xs text-slate-500">
+        <p className="text-center text-xs text-[color:var(--ink-faint)]">
           Or{" "}
-          <a href="/products" className="text-slate-400 underline hover:text-white">
+          <a href="/products" className="p-link">
             browse research-grade vendors
           </a>{" "}
           (educational use only)
@@ -57,14 +57,14 @@ export default function ClinicalRouter({ decision }: ClinicalRouterProps) {
     <div className="space-y-3">
       <a
         href="/products"
-        className="block w-full rounded-xl bg-cyan-500 px-6 py-4 text-center text-sm font-bold text-[#04060f] transition hover:bg-cyan-400"
+        className="block w-full bg-[color:var(--sig-bio)] px-6 py-4 text-center text-sm font-bold text-[color:var(--paper)] transition hover:opacity-90"
       >
         Shop research-grade vendors →
       </a>
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-[color:var(--ink-faint)]">
         Want a prescription?{" "}
-        <a href={CLINICAL_URL} target="_blank" rel="noopener noreferrer" className="text-slate-400 underline hover:text-white">
-          Aura Clinical →
+        <a href={PRESCRIBE_URL} target="_blank" rel={EXTERNAL_REL} className="p-link">
+          Modality →
         </a>
       </p>
     </div>

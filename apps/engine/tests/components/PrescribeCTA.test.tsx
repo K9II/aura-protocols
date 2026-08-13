@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import PrescribeCTA from "@/components/PrescribeCTA";
-import { CLINICAL_URL, PRESCRIBE_CTA_COPY } from "@/lib/constants";
+import { PRESCRIBE_URL, PRESCRIBE_LABEL } from "@/lib/constants";
 
 describe("PrescribeCTA", () => {
-  it("renders a link to the Clinical brand with safe rel and new tab", () => {
+  it("renders a link to the Modality clinical lane with safe rel and new tab", () => {
     render(<PrescribeCTA template="RECOVERY" />);
-    const link = screen.getByRole("link", { name: PRESCRIBE_CTA_COPY });
-    expect(link.getAttribute("href")).toContain(CLINICAL_URL);
+    const link = screen.getByRole("link", { name: PRESCRIBE_LABEL });
+    expect(link.getAttribute("href")).toContain(PRESCRIBE_URL);
     expect(link).toHaveAttribute("target", "_blank");
     expect(link.getAttribute("rel")).toMatch(/noopener/);
     expect(link.getAttribute("rel")).toMatch(/noreferrer/);
