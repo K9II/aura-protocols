@@ -3,15 +3,16 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import type { ProtocolOutput, RulesSummary, NutritionItem, FoodItem, TitrationPhase, Tension, TensionSeverity } from "@/lib/recommend/schema";
 import type { RoutingDecision } from "@/components/ClinicalRouter";
-import { CLINICAL_URL, DISCLAIMER } from "@/lib/constants";
+import { PRESCRIBE_URL, PRESCRIBE_LABEL, EXTERNAL_REL, DISCLAIMER } from "@/lib/constants";
+import { SIG, SEVERITY_INK } from "@/lib/theme/instrument";
 import FeedbackWidget from "@/components/FeedbackWidget";
 
 type Tab = "peptides" | "protein" | "vitamins" | "foods";
 
 const SEVERITY: Record<TensionSeverity, string> = {
-  watch: "#fbbf24",
-  elevated: "#fb923c",
-  high: "#fb7185",
+  watch: SEVERITY_INK.watch,
+  elevated: SEVERITY_INK.elevated,
+  high: SEVERITY_INK.high,
 };
 
 function humanizeTensionId(id: string): string {
@@ -45,14 +46,14 @@ export interface RecommendationCardProps {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function trendColor(t: "up" | "down" | "neutral") {
-  return t === "up" ? "#34d399" : t === "down" ? "#fb7185" : "#ffffff";
+  return t === "up" ? SIG.ok : t === "down" ? SIG.alert : SIG.ink;
 }
 
 function StatRow({ label, value, trend = "neutral" }: { label: string; value: string; trend?: "up" | "down" | "neutral" | "dim" }) {
-  const color = trend === "dim" ? "#475569" : trend === "neutral" ? "#ffffff" : trendColor(trend as "up" | "down" | "neutral");
+  const color = trend === "dim" ? SIG.inkFaint : trend === "neutral" ? SIG.ink : trendColor(trend as "up" | "down" | "neutral");
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "4px 0", fontSize: 10, borderBottom: "1px dotted rgba(255,255,255,.04)" }}>
-      <span style={{ color: "#64748b", letterSpacing: ".06em" }}>{label}</span>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "4px 0", fontSize: 10, borderBottom: `1px dotted ${SIG.line}` }}>
+      <span style={{ color: SIG.inkFaint, letterSpacing: ".06em" }}>{label}</span>
       <span style={{ color, fontWeight: 500 }}>{value}</span>
     </div>
   );
@@ -61,8 +62,8 @@ function StatRow({ label, value, trend = "neutral" }: { label: string; value: st
 function Sparkline({ label, path, color }: { label: string; path: string; color: string }) {
   return (
     <div style={{ paddingTop: 8 }}>
-      <div style={{ fontSize: 9, color: "#64748b", letterSpacing: ".1em", marginBottom: 3 }}>{label}</div>
-      <div style={{ background: "rgba(255,255,255,.02)", borderRadius: 4, padding: 4, height: 26 }}>
+      <div style={{ fontSize: 9, color: SIG.inkFaint, letterSpacing: ".1em", marginBottom: 3 }}>{label}</div>
+      <div style={{ background: SIG.paperDeep, borderRadius: 4, padding: 4, height: 26 }}>
         <svg width="100%" height="100%" viewBox="0 0 100 20" preserveAspectRatio="none">
           <path d={path} fill="none" stroke={color} strokeWidth="1.2" />
         </svg>
@@ -77,10 +78,10 @@ function TelemetryPanel({ t }: { t: TelemetryDisplay | null | undefined }) {
   const d = t ?? null;
   const dash = "—";
   return (
-    <div style={{ padding: 16, borderRight: "1px solid rgba(255,255,255,0.06)", background: "linear-gradient(180deg,rgba(255,255,255,.012),transparent)", minHeight: 580 }}>
-      <div style={{ fontSize: 9, letterSpacing: ".22em", color: "#00d4ff", textTransform: "uppercase", marginBottom: 14, paddingBottom: 8, borderBottom: "1px dashed rgba(0,212,255,.2)", display: "flex", justifyContent: "space-between" }}>
+    <div style={{ padding: 16, borderRight: `1px solid ${SIG.line}`, background: "linear-gradient(180deg,rgba(28,26,21,.02),transparent)", minHeight: 580 }}>
+      <div style={{ fontSize: 9, letterSpacing: ".22em", color: SIG.bio, textTransform: "uppercase", marginBottom: 14, paddingBottom: 8, borderBottom: "1px dashed rgba(47,110,107,.3)", display: "flex", justifyContent: "space-between" }}>
         <span>▸ Telemetry · 7d</span>
-        <span style={{ color: "#34d399" }}>● live</span>
+        <span style={{ color: SIG.ok }}>● live</span>
       </div>
       <StatRow label="HRV avg" value={d?.hrvAvg ?? dash} trend={d?.hrvTrend ?? "neutral"} />
       <StatRow label="RHR" value={d?.rhr ?? dash} />
@@ -95,8 +96,8 @@ function TelemetryPanel({ t }: { t: TelemetryDisplay | null | undefined }) {
       <StatRow label="CGM mean" value={d?.cgmMean ?? dash} trend={d?.cgmMean && d.cgmMean !== dash ? "neutral" : "dim"} />
       <StatRow label="Goal" value={d?.goal ?? dash} trend="dim" />
       {d && <>
-        <Sparkline label="HRV · 14d" path={d.hrvSparkPath} color="#fb7185" />
-        <Sparkline label="Recovery · 14d" path={d.recoverySparkPath} color="#00d4ff" />
+        <Sparkline label="HRV · 14d" path={d.hrvSparkPath} color={SIG.alert} />
+        <Sparkline label="Recovery · 14d" path={d.recoverySparkPath} color={SIG.bio} />
       </>}
     </div>
   );
@@ -196,19 +197,19 @@ function BiosignaturePanel({
   }, [targetPts]);
 
   return (
-    <div style={{ background: "radial-gradient(ellipse 65% 80% at 50% 45%,rgba(0,212,255,.06) 0%,rgba(139,92,246,.04) 35%,rgba(4,6,15,0) 75%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "18px 14px 10px" }}>
-      <div style={{ fontSize: 9, letterSpacing: ".22em", color: "#64748b", textTransform: "uppercase", marginBottom: 4 }}>Your Biosignature</div>
-      <div style={{ fontSize: 11, color: "#00d4ff", letterSpacing: ".15em", marginBottom: 0 }}>{sessionId} · day 14</div>
+    <div style={{ background: `radial-gradient(ellipse 65% 80% at 50% 45%,${SIG.alertTint} 0%,rgba(163,43,31,.03) 35%,rgba(237,233,224,0) 75%)`, display: "flex", flexDirection: "column", alignItems: "center", padding: "18px 14px 10px" }}>
+      <div style={{ fontSize: 9, letterSpacing: ".22em", color: SIG.inkFaint, textTransform: "uppercase", marginBottom: 4 }}>Your Biosignature</div>
+      <div style={{ fontSize: 11, color: SIG.bio, letterSpacing: ".15em", marginBottom: 0 }}>{sessionId} · day 14</div>
       <svg style={{ width: "100%", maxWidth: 340, aspectRatio: "1", margin: "4px 0" }} viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="rc-bg" cx="50%" cy="50%" r="50%">
-            <stop offset="0%"   stopColor="#00d4ff" stopOpacity="0.18"/>
-            <stop offset="50%"  stopColor="#8b5cf6" stopOpacity="0.05"/>
-            <stop offset="100%" stopColor="#04060f" stopOpacity="0"/>
+            <stop offset="0%"   stopColor={SIG.alert} stopOpacity="0.12"/>
+            <stop offset="50%"  stopColor={SIG.alert} stopOpacity="0.04"/>
+            <stop offset="100%" stopColor={SIG.paper} stopOpacity="0"/>
           </radialGradient>
           <linearGradient id="rc-ln" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%"   stopColor="#00d4ff"/>
-            <stop offset="100%" stopColor="#8b5cf6"/>
+            <stop offset="0%"   stopColor={SIG.alert}/>
+            <stop offset="100%" stopColor={SIG.ink}/>
           </linearGradient>
           <filter id="rc-gw">
             <feGaussianBlur stdDeviation="3" result="b"/>
@@ -220,27 +221,27 @@ function BiosignaturePanel({
         <circle cx={BS_CX} cy={BS_CY} r="200" fill="url(#rc-bg)"/>
 
         {/* Rotating outer ring */}
-        <circle cx={BS_CX} cy={BS_CY} r="186" fill="none" stroke="rgba(0,212,255,0.07)" strokeWidth="1" strokeDasharray="4 18">
+        <circle cx={BS_CX} cy={BS_CY} r="186" fill="none" stroke="rgba(47,110,107,.18)" strokeWidth="1" strokeDasharray="4 18">
           <animateTransform attributeName="transform" type="rotate"
             from={`0 ${BS_CX} ${BS_CY}`} to={`360 ${BS_CX} ${BS_CY}`}
             dur="60s" repeatCount="indefinite"/>
         </circle>
 
         {/* Static grid rings */}
-        <circle cx={BS_CX} cy={BS_CY} r="190" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
-        <circle cx={BS_CX} cy={BS_CY} r="155" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="2 5"/>
-        <circle cx={BS_CX} cy={BS_CY} r="115" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="2 5"/>
-        <circle cx={BS_CX} cy={BS_CY} r="75"  fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="2 5"/>
-        <circle cx={BS_CX} cy={BS_CY} r="38"  fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.8"/>
+        <circle cx={BS_CX} cy={BS_CY} r="190" fill="none" stroke={SIG.line} strokeWidth="1"/>
+        <circle cx={BS_CX} cy={BS_CY} r="155" fill="none" stroke={SIG.line} strokeWidth="0.8" strokeDasharray="2 5"/>
+        <circle cx={BS_CX} cy={BS_CY} r="115" fill="none" stroke={SIG.line} strokeWidth="0.8" strokeDasharray="2 5"/>
+        <circle cx={BS_CX} cy={BS_CY} r="75"  fill="none" stroke={SIG.line} strokeWidth="0.8" strokeDasharray="2 5"/>
+        <circle cx={BS_CX} cy={BS_CY} r="38"  fill="none" stroke={SIG.line} strokeWidth="0.8"/>
 
         {/* Axis labels */}
-        <text x="210" y="22"  textAnchor="middle" fill="#475569" fontSize="9" fontFamily="monospace" letterSpacing="2">HRV</text>
-        <text x="400" y="213" textAnchor="middle" fill="#475569" fontSize="9" fontFamily="monospace" letterSpacing="2">SLEEP</text>
-        <text x="210" y="408" textAnchor="middle" fill="#475569" fontSize="9" fontFamily="monospace" letterSpacing="2">RECOVERY</text>
-        <text x="20"  y="213" textAnchor="middle" fill="#475569" fontSize="9" fontFamily="monospace" letterSpacing="2">STRAIN</text>
+        <text x="210" y="22"  textAnchor="middle" fill={SIG.inkFaint} fontSize="9" fontFamily="monospace" letterSpacing="2">HRV</text>
+        <text x="400" y="213" textAnchor="middle" fill={SIG.inkFaint} fontSize="9" fontFamily="monospace" letterSpacing="2">SLEEP</text>
+        <text x="210" y="408" textAnchor="middle" fill={SIG.inkFaint} fontSize="9" fontFamily="monospace" letterSpacing="2">RECOVERY</text>
+        <text x="20"  y="213" textAnchor="middle" fill={SIG.inkFaint} fontSize="9" fontFamily="monospace" letterSpacing="2">STRAIN</text>
 
         {/* Axis spokes */}
-        <g stroke="rgba(0,212,255,0.3)" strokeWidth="0.7">
+        <g stroke="rgba(47,110,107,.28)" strokeWidth="0.7">
           {Array.from({ length: 8 }, (_, i) => {
             const a = (i * 45 - 90) * (Math.PI / 180);
             return <line key={i} x1={BS_CX} y1={BS_CY} x2={BS_CX + 190 * Math.cos(a)} y2={BS_CY + 190 * Math.sin(a)}/>;
@@ -252,7 +253,7 @@ function BiosignaturePanel({
           key={animKey}
           ref={(el) => { pathRef.current = el; }}
           d={bsPtsToD(fromRef.current)}
-          fill="rgba(0,212,255,0.07)"
+          fill={SIG.alertTint}
           stroke="url(#rc-ln)"
           strokeWidth="1.8"
           strokeDasharray="1200 1200"
@@ -263,35 +264,35 @@ function BiosignaturePanel({
         {Array.from({ length: 8 }, (_, i) => {
           const a = (i * 45 - 90) * (Math.PI / 180);
           const x = BS_CX + 190 * Math.cos(a), y = BS_CY + 190 * Math.sin(a);
-          const colors = ["#00d4ff","#8b5cf6","#fbbf24","#8b5cf6","#34d399","#8b5cf6","#00d4ff","#8b5cf6"];
+          const colors = [SIG.bio, SIG.llm, SIG.warn, SIG.llm, SIG.ok, SIG.llm, SIG.bio, SIG.llm];
           return <circle key={i} cx={x} cy={y} r={i % 2 === 0 ? 3.5 : 2.5} fill={colors[i]} opacity="0.35"/>;
         })}
 
         {/* T1 / T2 compound markers */}
-        <circle cx="320" cy="100" r="14" fill="none" stroke="#fb7185" strokeWidth="1.5" strokeDasharray="2 3" opacity="0.85">
+        <circle cx="320" cy="100" r="14" fill="none" stroke={SIG.alert} strokeWidth="1.5" strokeDasharray="2 3" opacity="0.85">
           <animate attributeName="r"       values="14;17;14" dur="3s"   repeatCount="indefinite"/>
           <animate attributeName="opacity" values="0.85;0.4;0.85" dur="3s" repeatCount="indefinite"/>
         </circle>
-        <text x="340" y="93" fill="#fda4af" fontSize="9" fontFamily="monospace" letterSpacing="1">▸ T1</text>
+        <text x="340" y="93" fill={SIG.alert} fontSize="9" fontFamily="monospace" letterSpacing="1">▸ T1</text>
 
-        <circle cx="100" cy="320" r="14" fill="none" stroke="#fb7185" strokeWidth="1.5" strokeDasharray="2 3" opacity="0.85">
+        <circle cx="100" cy="320" r="14" fill="none" stroke={SIG.alert} strokeWidth="1.5" strokeDasharray="2 3" opacity="0.85">
           <animate attributeName="r"       values="14;17;14" dur="3.5s" repeatCount="indefinite"/>
           <animate attributeName="opacity" values="0.85;0.4;0.85" dur="3.5s" repeatCount="indefinite"/>
         </circle>
-        <text x="56" y="345" fill="#fda4af" fontSize="9" fontFamily="monospace" letterSpacing="1">T2 ◂</text>
+        <text x="56" y="345" fill={SIG.alert} fontSize="9" fontFamily="monospace" letterSpacing="1">T2 ◂</text>
 
         {/* N1 / N2 nutrient markers */}
-        <circle cx="370" cy="210" r="10" fill="none" stroke="#fbbf24" strokeWidth="1" strokeDasharray="2 4" opacity="0.7"/>
-        <text x="384" y="207" fill="#fde68a" fontSize="8" fontFamily="monospace">N1</text>
-        <circle cx="210" cy="370" r="10" fill="none" stroke="#34d399" strokeWidth="1" strokeDasharray="2 4" opacity="0.7"/>
-        <text x="218" y="390" fill="#6ee7b7" fontSize="8" fontFamily="monospace">N2</text>
+        <circle cx="370" cy="210" r="10" fill="none" stroke={SIG.warn} strokeWidth="1" strokeDasharray="2 4" opacity="0.7"/>
+        <text x="384" y="207" fill={SIG.warn} fontSize="8" fontFamily="monospace">N1</text>
+        <circle cx="210" cy="370" r="10" fill="none" stroke={SIG.ok} strokeWidth="1" strokeDasharray="2 4" opacity="0.7"/>
+        <text x="218" y="390" fill={SIG.ok} fontSize="8" fontFamily="monospace">N2</text>
 
         {/* Center glow — pulsing */}
-        <circle cx={BS_CX} cy={BS_CY} r="16" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8">
+        <circle cx={BS_CX} cy={BS_CY} r="16" fill="none" stroke="rgba(28,26,21,.18)" strokeWidth="0.8">
           <animate attributeName="r"       values="16;22;16"   dur="2.5s" repeatCount="indefinite"/>
           <animate attributeName="opacity" values="0.2;0;0.2"  dur="2.5s" repeatCount="indefinite"/>
         </circle>
-        <circle cx={BS_CX} cy={BS_CY} r="8" fill="#fff" filter="url(#rc-gw)">
+        <circle cx={BS_CX} cy={BS_CY} r="8" fill={SIG.ink} filter="url(#rc-gw)">
           <animate attributeName="opacity" values="1;0.55;1"  dur="2.5s" repeatCount="indefinite"/>
           <animate attributeName="r"       values="8;11;8"    dur="2.5s" repeatCount="indefinite"/>
         </circle>
@@ -310,14 +311,14 @@ function BiosignaturePanel({
 
 function ResPill({ color, children }: { color: "cyan" | "violet" | "amber" | "emerald"; children: React.ReactNode }) {
   const map = {
-    cyan:    { bg: "rgba(0,212,255,.08)",   text: "#67e8f9", border: "rgba(0,212,255,.18)",  dot: "#00d4ff", glow: "rgba(0,212,255,.7)" },
-    violet:  { bg: "rgba(139,92,246,.08)",  text: "#c4b5fd", border: "rgba(139,92,246,.22)", dot: "#8b5cf6", glow: "rgba(139,92,246,.7)" },
-    amber:   { bg: "rgba(251,191,36,.08)",  text: "#fde68a", border: "rgba(251,191,36,.22)", dot: "#fbbf24", glow: "rgba(251,191,36,.7)" },
-    emerald: { bg: "rgba(52,211,153,.08)",  text: "#6ee7b7", border: "rgba(52,211,153,.22)", dot: "#34d399", glow: "rgba(52,211,153,.7)" },
+    cyan:    { bg: SIG.bioTint,  text: SIG.bio,  border: SIG.bio,  dot: SIG.bio },
+    violet:  { bg: SIG.llmTint,  text: SIG.llm,  border: SIG.llm,  dot: SIG.llm },
+    amber:   { bg: SIG.warnTint, text: SIG.warn, border: SIG.warn, dot: SIG.warn },
+    emerald: { bg: SIG.okTint,   text: SIG.ok,   border: SIG.ok,   dot: SIG.ok },
   }[color];
   return (
     <span style={{ fontSize: 9, padding: "3px 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 5, border: `1px solid ${map.border}`, background: map.bg, color: map.text, cursor: "pointer" }}>
-      <span style={{ width: 5, height: 5, borderRadius: "50%", background: map.dot, boxShadow: `0 0 6px ${map.glow}`, flexShrink: 0 }} />
+      <span style={{ width: 5, height: 5, borderRadius: "50%", background: map.dot, flexShrink: 0 }} />
       {children}
     </span>
   );
@@ -331,35 +332,35 @@ function OutCard({ variant, label, badge, name, dose, meta, shopBtn, titration }
   titration?: TitrationPhase[] | null;
 }) {
   const styles = {
-    "peptide-primary": { bg: "linear-gradient(135deg,rgba(0,212,255,.06),rgba(139,92,246,.04))", border: "rgba(0,212,255,.2)", labelColor: "#00d4ff" },
-    "peptide-adj":     { bg: "linear-gradient(135deg,rgba(139,92,246,.06),rgba(0,212,255,.03))", border: "rgba(139,92,246,.25)", labelColor: "#c084fc" },
-    "protein":         { bg: "linear-gradient(135deg,rgba(139,92,246,.06),rgba(0,212,255,.03))", border: "rgba(139,92,246,.25)", labelColor: "#8b5cf6" },
-    "vitamin":         { bg: "linear-gradient(135deg,rgba(251,191,36,.06),rgba(0,212,255,.02))", border: "rgba(251,191,36,.25)", labelColor: "#fbbf24" },
-    "food":            { bg: "linear-gradient(135deg,rgba(0,212,255,.05),rgba(139,92,246,.02))", border: "rgba(0,212,255,.18)",  labelColor: "#00d4ff" },
+    "peptide-primary": { bg: SIG.bioTint,  border: SIG.bio,  labelColor: SIG.bio },
+    "peptide-adj":     { bg: SIG.llmTint,  border: SIG.llm,  labelColor: SIG.llm },
+    "protein":         { bg: SIG.llmTint,  border: SIG.llm,  labelColor: SIG.llm },
+    "vitamin":         { bg: SIG.warnTint, border: SIG.warn, labelColor: SIG.warn },
+    "food":            { bg: SIG.bioTint,  border: SIG.bio,  labelColor: SIG.bio },
   }[variant];
 
   return (
     <div style={{ borderRadius: 10, padding: 11, marginBottom: 8, border: `1px solid ${styles.border}`, background: styles.bg }}>
       <div style={{ fontSize: 8.5, letterSpacing: ".2em", marginBottom: 4, display: "flex", justifyContent: "space-between", color: styles.labelColor }}>
         <span>{label}</span>
-        <span style={{ color: "#94a3b8" }}>{badge}</span>
+        <span style={{ color: SIG.inkSoft }}>{badge}</span>
         {shopBtn && (
-          <button style={{ fontSize: 9, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", color: "#94a3b8", padding: "2px 8px", borderRadius: 4, cursor: "pointer" }}>
+          <button style={{ fontSize: 9, background: SIG.paperDeep, border: `1px solid ${SIG.line}`, color: SIG.inkSoft, padding: "2px 8px", borderRadius: 4, cursor: "pointer" }}>
             Shop →
           </button>
         )}
       </div>
-      <div style={{ fontFamily: "'Plus Jakarta Sans',ui-sans-serif,sans-serif", fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 2, letterSpacing: "-.01em" }}>{name}</div>
-      <div style={{ fontSize: 10, color: "#cbd5e1" }}>{dose}</div>
-      <div style={{ fontSize: 9, color: "#64748b", marginTop: 3 }}>{meta}</div>
+      <div style={{ fontFamily: "var(--font-sans),ui-sans-serif,system-ui,sans-serif", fontSize: 16, fontWeight: 700, color: SIG.ink, marginBottom: 2, letterSpacing: "-.01em" }}>{name}</div>
+      <div style={{ fontSize: 10, color: SIG.inkSoft }}>{dose}</div>
+      <div style={{ fontSize: 9, color: SIG.inkFaint, marginTop: 3 }}>{meta}</div>
       {titration && titration.length > 0 && (
-        <div style={{ marginTop: 8, paddingTop: 7, borderTop: "1px dashed rgba(255,255,255,.08)" }}>
-          <div style={{ fontSize: 8, letterSpacing: ".18em", color: "#94a3b8", marginBottom: 4 }}>▸ TITRATION</div>
+        <div style={{ marginTop: 8, paddingTop: 7, borderTop: `1px dashed ${SIG.line}` }}>
+          <div style={{ fontSize: 8, letterSpacing: ".18em", color: SIG.inkSoft, marginBottom: 4 }}>▸ TITRATION</div>
           {titration.map((t, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 9, padding: "2px 0", color: "#cbd5e1" }}>
-              <span style={{ color: "#64748b" }}>{t.phase}</span>
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 9, padding: "2px 0", color: SIG.inkSoft }}>
+              <span style={{ color: SIG.inkFaint }}>{t.phase}</span>
               <span>{t.dose}</span>
-              <span style={{ color: "#94a3b8" }}>{t.duration}</span>
+              <span style={{ color: SIG.inkSoft }}>{t.duration}</span>
             </div>
           ))}
         </div>
@@ -371,50 +372,50 @@ function OutCard({ variant, label, badge, name, dose, meta, shopBtn, titration }
 function HandoffSection({ routing }: { routing: RoutingDecision }) {
   if (routing === "clinical_only") {
     return (
-      <div style={{ border: "1px solid rgba(251,113,133,.4)", borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: "linear-gradient(135deg,rgba(251,113,133,.1),rgba(139,92,246,.05))" }}>
-        <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: "#fb7185", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-          <span>▸ HANDOFF · CLINICAL ONLY</span><span style={{ fontSize: 8, color: "#fb7185" }}>clinical_only</span>
+      <div style={{ border: `1px solid ${SIG.alert}`, borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: SIG.alertTint }}>
+        <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: SIG.alert, marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
+          <span>▸ HANDOFF · CLINICAL ONLY</span><span style={{ fontSize: 8, color: SIG.alert }}>clinical_only</span>
         </div>
-        <div style={{ fontSize: 8.5, color: "#475569", marginBottom: 8 }}>contraindication detected · affiliate routing disabled</div>
-        <a href={CLINICAL_URL} target="_blank" rel="noopener noreferrer" style={{ display: "block", background: "linear-gradient(135deg,#fb7185,#8b5cf6)", color: "#04060f", fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", marginBottom: 5, textDecoration: "none" }}>
-          Get this prescribed at Aura Clinical →
+        <div style={{ fontSize: 8.5, color: SIG.inkFaint, marginBottom: 8 }}>contraindication detected · affiliate routing disabled</div>
+        <a href={PRESCRIBE_URL} target="_blank" rel={EXTERNAL_REL} style={{ display: "block", background: SIG.alert, color: SIG.paper, fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", marginBottom: 5, textDecoration: "none" }}>
+          {PRESCRIBE_LABEL}
         </a>
-        <div style={{ fontSize: 8, color: "#334155", lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>{DISCLAIMER}</div>
+        <div style={{ fontSize: 8, color: SIG.inkFaint, lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>{DISCLAIMER}</div>
       </div>
     );
   }
   if (routing === "clinical_primary") {
     return (
-      <div style={{ border: "1px solid rgba(139,92,246,.3)", borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: "linear-gradient(135deg,rgba(139,92,246,.1),rgba(0,212,255,.04))" }}>
-        <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: "#c084fc", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-          <span>▸ HANDOFF · FULFILLMENT</span><span style={{ fontSize: 8, color: "#c084fc" }}>clinical_primary</span>
+      <div style={{ border: `1px solid ${SIG.llm}`, borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: SIG.llmTint }}>
+        <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: SIG.llm, marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
+          <span>▸ HANDOFF · FULFILLMENT</span><span style={{ fontSize: 8, color: SIG.llm }}>clinical_primary</span>
         </div>
-        <div style={{ fontSize: 8.5, color: "#475569", marginBottom: 8 }}>rx_interest=true · clinical route preferred</div>
-        <a href={CLINICAL_URL} target="_blank" rel="noopener noreferrer" style={{ display: "block", background: "linear-gradient(135deg,#8b5cf6,#00d4ff)", color: "#04060f", fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", marginBottom: 5, textDecoration: "none" }}>
-          Get this prescribed at Aura Clinical →
+        <div style={{ fontSize: 8.5, color: SIG.inkFaint, marginBottom: 8 }}>rx_interest=true · clinical route preferred</div>
+        <a href={PRESCRIBE_URL} target="_blank" rel={EXTERNAL_REL} style={{ display: "block", background: SIG.llm, color: SIG.paper, fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", marginBottom: 5, textDecoration: "none" }}>
+          {PRESCRIBE_LABEL}
         </a>
-        <a href="/products" style={{ display: "block", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", color: "#64748b", fontSize: 9, padding: 6, borderRadius: 6, textAlign: "center", letterSpacing: ".04em", textDecoration: "none" }}>
+        <a href="/products" style={{ display: "block", background: SIG.paperDeep, border: `1px solid ${SIG.line}`, color: SIG.inkFaint, fontSize: 9, padding: 6, borderRadius: 6, textAlign: "center", letterSpacing: ".04em", textDecoration: "none" }}>
           Or browse research-grade vendors →
         </a>
-        <div style={{ fontSize: 8, color: "#334155", lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>{DISCLAIMER}</div>
+        <div style={{ fontSize: 8, color: SIG.inkFaint, lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>{DISCLAIMER}</div>
       </div>
     );
   }
   return (
-    <div style={{ border: "1px solid rgba(0,212,255,.25)", borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: "linear-gradient(135deg,rgba(0,212,255,.08),rgba(139,92,246,.06))" }}>
-      <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: "#00d4ff", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-        <span>▸ HANDOFF · FULFILLMENT</span><span style={{ fontSize: 8, color: "#34d399" }}>affiliate_primary</span>
+    <div style={{ border: `1px solid ${SIG.bio}`, borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: SIG.bioTint }}>
+      <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: SIG.bio, marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
+        <span>▸ HANDOFF · FULFILLMENT</span><span style={{ fontSize: 8, color: SIG.ok }}>affiliate_primary</span>
       </div>
-      <div style={{ fontSize: 8.5, color: "#475569", marginBottom: 8 }}>rx_interest=false · no contraindications</div>
-      {/* Primary slot — Aura Clinical when operational */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(139,92,246,.06)", border: "1px solid rgba(139,92,246,.15)", borderRadius: 8, padding: "8px 10px", marginBottom: 6 }}>
-        <span style={{ fontSize: 9, color: "#64748b", letterSpacing: ".08em" }}>Aura Clinical · get it prescribed</span>
-        <span style={{ fontSize: 8, background: "rgba(139,92,246,.15)", color: "#a78bfa", border: "1px solid rgba(139,92,246,.25)", borderRadius: 4, padding: "2px 7px", letterSpacing: ".1em" }}>launching soon</span>
+      <div style={{ fontSize: 8.5, color: SIG.inkFaint, marginBottom: 8 }}>rx_interest=false · no contraindications</div>
+      {/* Primary slot — Modality (the clinical lane) */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: SIG.llmTint, border: `1px solid ${SIG.llm}`, borderRadius: 8, padding: "8px 10px", marginBottom: 6 }}>
+        <span style={{ fontSize: 9, color: SIG.inkSoft, letterSpacing: ".08em" }}>Modality · get it prescribed</span>
+        <span style={{ fontSize: 8, background: SIG.llmTint, color: SIG.llm, border: `1px solid ${SIG.llm}`, borderRadius: 4, padding: "2px 7px", letterSpacing: ".1em" }}>clinical lane</span>
       </div>
-      <a href="/products" style={{ display: "block", background: "linear-gradient(135deg,#00d4ff,#8b5cf6)", color: "#04060f", fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", marginBottom: 5, textDecoration: "none" }}>
+      <a href="/products" style={{ display: "block", background: SIG.bio, color: SIG.paper, fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", marginBottom: 5, textDecoration: "none" }}>
         Shop COA-verified vendors →
       </a>
-      <div style={{ fontSize: 8, color: "#334155", lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>{DISCLAIMER}</div>
+      <div style={{ fontSize: 8, color: SIG.inkFaint, lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>{DISCLAIMER}</div>
     </div>
   );
 }
@@ -423,21 +424,20 @@ function HandoffSection({ routing }: { routing: RoutingDecision }) {
 
 function RightPanel({ output, routing }: { output: ProtocolOutput; routing: RoutingDecision }) {
   const [tab, setTab] = useState<Tab>("peptides");
-  const tabColor = { peptides: "#34d399", protein: "#8b5cf6", vitamins: "#fbbf24", foods: "#00d4ff" }[tab];
 
   const protein  = (output.protein  ?? []) as NutritionItem[];
   const vitamins = (output.vitamins ?? []) as NutritionItem[];
   const foods    = (output.foods    ?? []) as FoodItem[];
 
   return (
-    <div style={{ borderLeft: "1px solid rgba(255,255,255,0.06)", background: "linear-gradient(180deg,rgba(255,255,255,.012),transparent)", display: "flex", flexDirection: "column", padding: 16 }}>
+    <div style={{ borderLeft: `1px solid ${SIG.line}`, background: "linear-gradient(180deg,rgba(28,26,21,.02),transparent)", display: "flex", flexDirection: "column", padding: 16 }}>
       {/* Tabs */}
-      <div style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 14, flexShrink: 0 }}>
+      <div style={{ display: "flex", borderBottom: `1px solid ${SIG.line}`, marginBottom: 14, flexShrink: 0 }}>
         {(["peptides","protein","vitamins","foods"] as Tab[]).map((t) => {
           const active = t === tab;
-          const c = { peptides: "#34d399", protein: "#8b5cf6", vitamins: "#fbbf24", foods: "#00d4ff" }[t];
+          const c = { peptides: SIG.ok, protein: SIG.llm, vitamins: SIG.warn, foods: SIG.bio }[t];
           return (
-            <button key={t} onClick={() => setTab(t)} style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", padding: "7px 11px", cursor: "pointer", background: "none", border: "none", borderBottom: active ? `2px solid ${c}` : "2px solid transparent", marginBottom: -1, color: active ? c : "#334155", transition: "color .15s", userSelect: "none" }}>
+            <button key={t} onClick={() => setTab(t)} style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", padding: "7px 11px", cursor: "pointer", background: "none", border: "none", borderBottom: active ? `2px solid ${c}` : "2px solid transparent", marginBottom: -1, color: active ? c : SIG.inkFaint, transition: "color .15s", userSelect: "none" }}>
               {t}
             </button>
           );
@@ -470,26 +470,26 @@ function RightPanel({ output, routing }: { output: ProtocolOutput; routing: Rout
               label={`▸ N2${String.fromCharCode(97 + i).toUpperCase()} · ${i === 0 ? "PRIMARY" : "ADJUNCT"}`}
               name={p.name} dose={p.dose} meta={p.rationale.slice(0, 80)} shopBtn />
           )) : (
-            <div style={{ fontSize: 10, color: "#475569", padding: "20px 0" }}>Generate a protocol to populate protein.</div>
+            <div style={{ fontSize: 10, color: SIG.inkFaint, padding: "20px 0" }}>Generate a protocol to populate protein.</div>
           )}
-          <div style={{ border: "1px solid rgba(139,92,246,.25)", borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: "linear-gradient(135deg,rgba(139,92,246,.08),rgba(0,212,255,.04))" }}>
-            <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: "#8b5cf6", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-              <span>▸ FULFILLMENT · SUPPLEMENTS</span><span style={{ fontSize: 8, color: "#8b5cf6" }}>affiliate slot</span>
+          <div style={{ border: `1px solid ${SIG.llm}`, borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: SIG.llmTint }}>
+            <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: SIG.llm, marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
+              <span>▸ FULFILLMENT · SUPPLEMENTS</span><span style={{ fontSize: 8, color: SIG.llm }}>affiliate slot</span>
             </div>
-            <div style={{ fontSize: 8.5, color: "#475569", marginBottom: 8 }}>whey · casein · plant isolates · partners TBD</div>
-            <button style={{ display: "block", width: "100%", background: "#8b5cf6", color: "#fff", fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", border: "none", cursor: "pointer", marginBottom: 8 }}>
+            <div style={{ fontSize: 8.5, color: SIG.inkFaint, marginBottom: 8 }}>whey · casein · plant isolates · partners TBD</div>
+            <button style={{ display: "block", width: "100%", background: SIG.llm, color: SIG.paper, fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", border: "none", cursor: "pointer", marginBottom: 8 }}>
               Shop protein supplements →
             </button>
-            <div style={{ borderTop: "1px solid rgba(139,92,246,.15)", paddingTop: 8 }}>
-              <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: "#34d399", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-                <span>▸ FULFILLMENT · NATURAL</span><span style={{ fontSize: 8, color: "#475569" }}>pending vet</span>
+            <div style={{ borderTop: `1px solid ${SIG.line}`, paddingTop: 8 }}>
+              <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: SIG.ok, marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
+                <span>▸ FULFILLMENT · NATURAL</span><span style={{ fontSize: 8, color: SIG.inkFaint }}>pending vet</span>
               </div>
-              <div style={{ fontSize: 8.5, color: "#475569", marginBottom: 6 }}>organic · grass-fed · wild-caught · sourcing partners under review</div>
-              <button disabled style={{ display: "block", width: "100%", background: "rgba(52,211,153,.06)", border: "1px solid rgba(52,211,153,.2)", color: "#475569", fontWeight: 600, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", cursor: "not-allowed" }}>
+              <div style={{ fontSize: 8.5, color: SIG.inkFaint, marginBottom: 6 }}>organic · grass-fed · wild-caught · sourcing partners under review</div>
+              <button disabled style={{ display: "block", width: "100%", background: SIG.okTint, border: `1px solid ${SIG.ok}`, color: SIG.inkFaint, fontWeight: 600, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", cursor: "not-allowed" }}>
                 Shop grass-fed sources →
               </button>
             </div>
-            <div style={{ fontSize: 8, color: "#334155", lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>Affiliate buttons activate when partners are onboarded.</div>
+            <div style={{ fontSize: 8, color: SIG.inkFaint, lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>Affiliate buttons activate when partners are onboarded.</div>
           </div>
         </div>
       )}
@@ -502,17 +502,17 @@ function RightPanel({ output, routing }: { output: ProtocolOutput; routing: Rout
               label={`▸ N1${String.fromCharCode(97 + i).toUpperCase()}${i === 0 ? " · BASE STACK" : ""}`}
               name={v.name} dose={v.dose} meta={v.rationale.slice(0, 80)} shopBtn />
           )) : (
-            <div style={{ fontSize: 10, color: "#475569", padding: "20px 0" }}>Generate a protocol to populate vitamins.</div>
+            <div style={{ fontSize: 10, color: SIG.inkFaint, padding: "20px 0" }}>Generate a protocol to populate vitamins.</div>
           )}
-          <div style={{ border: "1px solid rgba(251,191,36,.25)", borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: "linear-gradient(135deg,rgba(251,191,36,.08),rgba(0,212,255,.02))" }}>
-            <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: "#fbbf24", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-              <span>▸ FULFILLMENT</span><span style={{ fontSize: 8, color: "#fbbf24" }}>affiliate slot</span>
+          <div style={{ border: `1px solid ${SIG.warn}`, borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: SIG.warnTint }}>
+            <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: SIG.warn, marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
+              <span>▸ FULFILLMENT</span><span style={{ fontSize: 8, color: SIG.warn }}>affiliate slot</span>
             </div>
-            <div style={{ fontSize: 8.5, color: "#475569", marginBottom: 8 }}>partners TBD · slot ready</div>
-            <button style={{ display: "block", width: "100%", background: "#fbbf24", color: "#000", fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", border: "none", cursor: "pointer" }}>
+            <div style={{ fontSize: 8.5, color: SIG.inkFaint, marginBottom: 8 }}>partners TBD · slot ready</div>
+            <button style={{ display: "block", width: "100%", background: SIG.warn, color: SIG.paper, fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", border: "none", cursor: "pointer" }}>
               Shop vitamins →
             </button>
-            <div style={{ fontSize: 8, color: "#334155", lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>Affiliate buttons activate when partners are onboarded.</div>
+            <div style={{ fontSize: 8, color: SIG.inkFaint, lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>Affiliate buttons activate when partners are onboarded.</div>
           </div>
         </div>
       )}
@@ -525,17 +525,17 @@ function RightPanel({ output, routing }: { output: ProtocolOutput; routing: Rout
               label={`▸ ${i === 0 ? "ORGANIC · WHOLE FOOD" : "DAILY"}`}
               name={f.name} dose={f.frequency} meta={f.rationale.slice(0, 80)} />
           )) : (
-            <div style={{ fontSize: 10, color: "#475569", padding: "20px 0" }}>Generate a protocol to populate foods.</div>
+            <div style={{ fontSize: 10, color: SIG.inkFaint, padding: "20px 0" }}>Generate a protocol to populate foods.</div>
           )}
-          <div style={{ border: "1px solid rgba(0,212,255,.25)", borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: "linear-gradient(135deg,rgba(0,212,255,.06),rgba(139,92,246,.03))" }}>
-            <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: "#00d4ff", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-              <span>▸ FULFILLMENT</span><span style={{ fontSize: 8, color: "#00d4ff" }}>affiliate slot</span>
+          <div style={{ border: `1px solid ${SIG.bio}`, borderRadius: 10, padding: 11, marginTop: "auto", paddingTop: 12, background: SIG.bioTint }}>
+            <div style={{ fontSize: 8.5, letterSpacing: ".2em", color: SIG.bio, marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
+              <span>▸ FULFILLMENT</span><span style={{ fontSize: 8, color: SIG.bio }}>affiliate slot</span>
             </div>
-            <div style={{ fontSize: 8.5, color: "#475569", marginBottom: 8 }}>organic · grass-fed · wild-caught · partners pending vet</div>
-            <button style={{ display: "block", width: "100%", background: "#00d4ff", color: "#000", fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", border: "none", cursor: "pointer" }}>
+            <div style={{ fontSize: 8.5, color: SIG.inkFaint, marginBottom: 8 }}>organic · grass-fed · wild-caught · partners pending vet</div>
+            <button style={{ display: "block", width: "100%", background: SIG.bio, color: SIG.paper, fontWeight: 700, fontSize: 10.5, padding: 10, borderRadius: 8, textAlign: "center", letterSpacing: ".04em", border: "none", cursor: "pointer" }}>
               Shop food sources →
             </button>
-            <div style={{ fontSize: 8, color: "#334155", lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>Affiliate buttons activate when partners are onboarded.</div>
+            <div style={{ fontSize: 8, color: SIG.inkFaint, lineHeight: 1.5, marginTop: 8, fontFamily: "ui-sans-serif,sans-serif", fontStyle: "italic" }}>Affiliate buttons activate when partners are onboarded.</div>
           </div>
         </div>
       )}
@@ -566,10 +566,10 @@ function buildLog(rules: RulesSummary, routing: RoutingDecision) {
 }
 
 const TAG_STYLES = {
-  rule: { background: "rgba(52,211,153,.12)", color: "#34d399" },
-  llm:  { background: "rgba(192,132,252,.12)", color: "#c084fc" },
-  nut:  { background: "rgba(251,191,36,.12)", color: "#fbbf24" },
-  out:  { background: "rgba(0,212,255,.12)", color: "#00d4ff" },
+  rule: { background: SIG.okTint, color: SIG.ok },
+  llm:  { background: SIG.llmTint, color: SIG.llm },
+  nut:  { background: SIG.warnTint, color: SIG.warn },
+  out:  { background: SIG.bioTint, color: SIG.bio },
 };
 
 function BottomSection({ rules, routing, onRegenerate, loading }: {
@@ -578,30 +578,30 @@ function BottomSection({ rules, routing, onRegenerate, loading }: {
   const entries = buildLog(rules, routing);
   const cmd = `retune --template=${rules.template.toLowerCase()} --routing=${routing}`;
   return (
-    <div style={{ borderTop: "1px solid rgba(255,255,255,.06)", background: "linear-gradient(180deg,#0a0f1a,#06080f)" }}>
+    <div style={{ borderTop: `1px solid ${SIG.line}`, background: SIG.paperDeep }}>
       <div style={{ padding: "10px 18px 6px" }}>
-        <div style={{ fontSize: 9, letterSpacing: ".22em", color: "#c084fc", textTransform: "uppercase", marginBottom: 8, display: "flex", justifyContent: "space-between" }}>
+        <div style={{ fontSize: 9, letterSpacing: ".22em", color: SIG.llm, textTransform: "uppercase", marginBottom: 8, display: "flex", justifyContent: "space-between" }}>
           <span>▸ Engine reasoning · {entries.length} steps</span>
-          <span style={{ color: "#475569" }}>rules · llm-weighted · nutrition-extended · safety floor enforced</span>
+          <span style={{ color: SIG.inkFaint }}>rules · llm-weighted · nutrition-extended · safety floor enforced</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 10, fontSize: 9, lineHeight: 1.55 }}>
           {entries.map((e, i) => (
-            <div key={i} style={{ background: "rgba(255,255,255,.02)", border: "1px solid rgba(255,255,255,.04)", borderRadius: 6, padding: "6px 8px" }}>
-              <span style={{ color: "#475569", fontSize: 8, display: "block", marginBottom: 2 }}>{e.ts}</span>
+            <div key={i} style={{ background: SIG.paper, border: `1px solid ${SIG.line}`, borderRadius: 6, padding: "6px 8px" }}>
+              <span style={{ color: SIG.inkFaint, fontSize: 8, display: "block", marginBottom: 2 }}>{e.ts}</span>
               <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, display: "inline-block", marginRight: 3, ...TAG_STYLES[e.tag] }}>{e.tag}</span>
-              {e.bold && <b style={{ color: "#fff", fontWeight: 500 }}>{e.bold}</b>}
+              {e.bold && <b style={{ color: SIG.ink, fontWeight: 500 }}>{e.bold}</b>}
               {e.rest}
             </div>
           ))}
         </div>
       </div>
-      <div style={{ padding: "10px 18px", borderTop: "1px solid rgba(255,255,255,.04)", display: "flex", alignItems: "center", gap: 10, fontSize: 10.5, background: "#04060f" }}>
-        <span style={{ color: "#00d4ff", fontWeight: 600 }}>aura ›</span>
-        <span style={{ color: "#94a3b8" }}>{cmd}</span>
-        <span style={{ display: "inline-block", width: 6, height: 12, background: "#00d4ff", verticalAlign: "middle", marginLeft: 1, animation: "aura-blink 1s infinite" }} />
-        <span style={{ marginLeft: "auto", color: "#475569", fontSize: 9, letterSpacing: ".1em" }}>⌘K command bar · ? for help</span>
+      <div style={{ padding: "10px 18px", borderTop: `1px solid ${SIG.line}`, display: "flex", alignItems: "center", gap: 10, fontSize: 10.5, background: SIG.paper }}>
+        <span style={{ color: SIG.bio, fontWeight: 600 }}>aura ›</span>
+        <span style={{ color: SIG.inkSoft }}>{cmd}</span>
+        <span style={{ display: "inline-block", width: 6, height: 12, background: SIG.alert, verticalAlign: "middle", marginLeft: 1, animation: "aura-blink 1s infinite" }} />
+        <span style={{ marginLeft: "auto", color: SIG.inkFaint, fontSize: 9, letterSpacing: ".1em" }}>⌘K command bar · ? for help</span>
         {onRegenerate && (
-          <button onClick={onRegenerate} disabled={loading} style={{ marginLeft: 12, background: "rgba(0,212,255,.1)", border: "1px solid rgba(0,212,255,.25)", color: "#00d4ff", fontSize: 9, padding: "4px 12px", borderRadius: 6, cursor: "pointer", letterSpacing: ".1em", opacity: loading ? 0.5 : 1 }}>
+          <button onClick={onRegenerate} disabled={loading} style={{ marginLeft: 12, background: SIG.bioTint, border: `1px solid ${SIG.bio}`, color: SIG.bio, fontSize: 9, padding: "4px 12px", borderRadius: 6, cursor: "pointer", letterSpacing: ".1em", opacity: loading ? 0.5 : 1 }}>
             {loading ? "generating…" : "retune ↺"}
           </button>
         )}
@@ -615,29 +615,29 @@ function BottomSection({ rules, routing, onRegenerate, loading }: {
 function TensionsBand({ tensions }: { tensions: Tension[] }) {
   if (tensions.length === 0) return null;
   return (
-    <div style={{ borderTop: "1px solid rgba(255,255,255,.06)", background: "linear-gradient(180deg,#0a0f1a,#06080f)", padding: "12px 18px" }}>
-      <div style={{ fontSize: 9, letterSpacing: ".22em", color: "#fb7185", textTransform: "uppercase", marginBottom: 10 }}>
+    <div style={{ borderTop: `1px solid ${SIG.line}`, background: SIG.paperDeep, padding: "12px 18px" }}>
+      <div style={{ fontSize: 9, letterSpacing: ".22em", color: SIG.alert, textTransform: "uppercase", marginBottom: 10 }}>
         ▸ Tensions Detected · {tensions.length} active
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {tensions.map((t) => {
-          const color = SEVERITY[t.severity] ?? "#fbbf24";
+          const color = SEVERITY[t.severity] ?? SEVERITY_INK.watch;
           const shown = t.drivers.slice(0, 3);
           const extra = t.drivers.length - shown.length;
           return (
             <div key={t.id} style={{ borderLeft: `2px solid ${color}`, paddingLeft: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: color, boxShadow: `0 0 6px ${color}`, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#fff", letterSpacing: ".02em" }}>{humanizeTensionId(t.id)}</span>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: SIG.ink, letterSpacing: ".02em" }}>{humanizeTensionId(t.id)}</span>
                 <span style={{ fontSize: 8, letterSpacing: ".14em", textTransform: "uppercase", color, border: `1px solid ${color}`, borderRadius: 4, padding: "1px 6px" }}>{t.severity}</span>
               </div>
-              <div style={{ fontSize: 10, color: "#94a3b8", lineHeight: 1.5, marginBottom: 5 }}>{t.implication}</div>
+              <div style={{ fontSize: 10, color: SIG.inkSoft, lineHeight: 1.5, marginBottom: 5 }}>{t.implication}</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                 {shown.map((d) => (
-                  <span key={d} style={{ fontSize: 8.5, color: "#cbd5e1", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 4, padding: "2px 6px", fontFamily: "'JetBrains Mono',ui-monospace,monospace" }}>{d}</span>
+                  <span key={d} style={{ fontSize: 8.5, color: SIG.inkSoft, background: SIG.paperDeep, border: `1px solid ${SIG.line}`, borderRadius: 4, padding: "2px 6px", fontFamily: "'JetBrains Mono',ui-monospace,monospace" }}>{d}</span>
                 ))}
                 {extra > 0 && (
-                  <span style={{ fontSize: 8.5, color: "#64748b", padding: "2px 4px" }}>+{extra}</span>
+                  <span style={{ fontSize: 8.5, color: SIG.inkFaint, padding: "2px 4px" }}>+{extra}</span>
                 )}
               </div>
             </div>
@@ -663,20 +663,20 @@ export default function RecommendationCard({
         @keyframes aura-blink  { 50% { opacity: 0; } }
         @keyframes biosig-draw { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
       `}</style>
-      <div style={{ background: "#04060f", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 18, overflow: "hidden", maxWidth: 1240, margin: "0 auto", fontFamily: "'JetBrains Mono',ui-monospace,monospace", color: "#cbd5e1" }}>
+      <div style={{ background: SIG.paper, border: `1px solid ${SIG.line}`, borderRadius: 18, overflow: "hidden", maxWidth: 1240, margin: "0 auto", fontFamily: "'JetBrains Mono',ui-monospace,monospace", color: SIG.ink }}>
 
         {/* Chrome bar */}
-        <div style={{ background: "linear-gradient(180deg,#0d1117,#0a0f1a)", padding: "10px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: 10.5, letterSpacing: ".05em" }}>
+        <div style={{ background: SIG.paperDeep, padding: "10px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${SIG.line}`, fontSize: 10.5, letterSpacing: ".05em" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px rgba(52,211,153,.8)", flexShrink: 0, display: "inline-block" }} />
-            <span style={{ color: "#fff" }}>AURA.engine · session <b style={{ color: "#00d4ff", fontWeight: 500 }}>{sid}</b> · synced {new Date().toISOString().slice(11, 19)}Z</span>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: SIG.ok, flexShrink: 0, display: "inline-block" }} />
+            <span style={{ color: SIG.ink }}>AURA.engine · session <b style={{ color: SIG.bio, fontWeight: 500 }}>{sid}</b> · synced {new Date().toISOString().slice(11, 19)}Z</span>
           </div>
-          <div style={{ color: "#64748b", display: "flex", gap: 18 }}>
-            <span>SOURCE <b style={{ color: "#cbd5e1", fontWeight: 500 }}>{source}</b></span>
-            <span>TEMPLATE <b style={{ color: "#cbd5e1", fontWeight: 500 }}>{rules.template}</b></span>
+          <div style={{ color: SIG.inkFaint, display: "flex", gap: 18 }}>
+            <span>SOURCE <b style={{ color: SIG.ink, fontWeight: 500 }}>{source}</b></span>
+            <span>TEMPLATE <b style={{ color: SIG.ink, fontWeight: 500 }}>{rules.template}</b></span>
             {freshnessStale
-              ? <span style={{ color: "#fbbf24" }}>STALE <b style={{ color: "#fbbf24", fontWeight: 500 }}>{protocolAgeDays}d</b></span>
-              : <span>CACHE <b style={{ color: "#cbd5e1", fontWeight: 500 }}>hit</b></span>
+              ? <span style={{ color: SIG.warn }}>STALE <b style={{ color: SIG.warn, fontWeight: 500 }}>{protocolAgeDays}d</b></span>
+              : <span>CACHE <b style={{ color: SIG.ink, fontWeight: 500 }}>hit</b></span>
             }
           </div>
         </div>
@@ -695,7 +695,7 @@ export default function RecommendationCard({
         <BottomSection rules={rules} routing={routing} onRegenerate={onRegenerate} loading={loading} />
 
         {/* Feedback (below terminal chrome) */}
-        <div style={{ padding: "8px 18px", borderTop: "1px solid rgba(255,255,255,.04)", background: "#04060f" }}>
+        <div style={{ padding: "8px 18px", borderTop: `1px solid ${SIG.line}`, background: SIG.paper }}>
           <FeedbackWidget recommendationId={id} />
         </div>
       </div>
