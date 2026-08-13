@@ -16,7 +16,6 @@ export const PRESCRIBE_LABEL = "Get this prescribed at Modality →";
 // Fit are mobile-SDK-only and will arrive with the native app — see
 // FUTURE_WEARABLES below. Do not add them here until the mobile SDK ships.
 export const SUPPORTED_WEARABLES = [
-  { id: "HUME", label: "Hume" },
   { id: "WHOOP", label: "Whoop" },
   { id: "OURA", label: "Oura" },
   { id: "GARMIN", label: "Garmin" },
@@ -25,7 +24,11 @@ export const SUPPORTED_WEARABLES = [
 ] as const;
 
 // Mobile-SDK-only sources — surfaced as "coming soon", not yet connectable.
+// Hume has no direct Terra integration; its Body Pod / Band data reaches us
+// indirectly via Apple Health / Google Health Connect, read through Terra's
+// mobile SDK — i.e. it arrives on the same native-app path as Apple/Samsung/Google.
 export const FUTURE_WEARABLES = [
+  { id: "HUME", label: "Hume" },
   { id: "APPLE", label: "Apple Health" },
   { id: "SAMSUNG", label: "Samsung Health" },
   { id: "GOOGLE", label: "Google Fit" },

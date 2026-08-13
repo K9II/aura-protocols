@@ -159,6 +159,9 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
             {WEARABLES.map((w) => {
               const isConnecting = connecting === w.id;
               const isConnected = connected === w.id;
+              // Hume has no direct Terra integration yet — arrives later via the
+              // native app (Apple Health / Health Connect through Terra's SDK).
+              const comingSoon = w.id === "HUME";
               return (
                 <div
                   key={w.id}
@@ -175,7 +178,9 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
                       <span className="text-xs text-[color:var(--ink-faint)] bg-[color:var(--paper-deep)] border border-[color:var(--line)] px-2 py-0.5 rounded">CGM</span>
                     )}
                   </div>
-                  {isConnected ? (
+                  {comingSoon ? (
+                    <span className="px-3 py-1 text-xs font-semibold tracking-wider" style={{ background: SIG.paperDeep, border: `1px solid ${SIG.line}`, color: SIG.inkFaint }}>Coming soon</span>
+                  ) : isConnected ? (
                     <span className="text-xs font-semibold tracking-wider" style={{ color: SIG.ok }}>● Connected</span>
                   ) : (
                     <button
