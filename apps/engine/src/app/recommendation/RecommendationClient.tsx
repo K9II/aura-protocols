@@ -91,7 +91,7 @@ export default function RecommendationClient({
 
   // Option A: engine is affiliate-only. Preserve the contraindication safety
   // floor (clinical_only), but never offer the clinical_primary handoff —
-  // users who want Rx will choose Aura Clinical at the homepage door.
+  // users who want Rx will choose Modality at the homepage door.
   const [liveSafetyOnly, setLiveSafetyOnly] = useState(routingDecision === "clinical_only");
   const liveCardRouting: RoutingDecision = liveSafetyOnly ? "clinical_only" : "affiliate_primary";
 
@@ -121,22 +121,22 @@ export default function RecommendationClient({
   return (
     <div>
       {completenessScore < 100 && nextPrompt && (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4 mb-6">
-          <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
+        <div className="p-card border border-[color:var(--line)] p-4 mb-6">
+          <div className="mb-2 flex items-center justify-between text-xs text-[color:var(--ink-soft)]">
             <span>Profile completeness</span>
             <span>{completenessScore}%</span>
           </div>
-          <div className="mb-3 h-1.5 w-full rounded-full bg-white/10">
-            <div className="h-1.5 rounded-full bg-cyan-500 transition-all" style={{ width: `${completenessScore}%` }} />
+          <div className="mb-3 h-1.5 w-full rounded-full bg-[color:var(--line)]">
+            <div className="h-1.5 rounded-full bg-[color:var(--specimen)] transition-all" style={{ width: `${completenessScore}%` }} />
           </div>
-          <p className="text-xs text-slate-400">
-            <span className="text-cyan-400">→</span>{" "}
-            <a href="/onboarding" className="underline hover:text-white">{nextPrompt}</a>
+          <p className="text-xs text-[color:var(--ink-soft)]">
+            <span className="text-[color:var(--specimen)]">→</span>{" "}
+            <a href="/onboarding" className="p-link">{nextPrompt}</a>
           </p>
         </div>
       )}
 
-      {error && <p className="text-sm text-red-300 mb-4">{error}</p>}
+      {error && <p className="text-sm text-[color:var(--specimen)] mb-4">{error}</p>}
 
       {rec && (
         <>
@@ -168,12 +168,12 @@ export default function RecommendationClient({
       )}
 
       {!rec && !loading && (
-        <div className="rounded-xl border border-dashed border-white/20 p-12 text-center text-slate-500 text-sm">
+        <div className="border border-dashed border-[color:var(--line)] p-12 text-center text-[color:var(--ink-soft)] text-sm">
           <p className="mb-4">Connect your wearable or upload data, then generate your protocol.</p>
           <button
             type="button"
             onClick={generate}
-            className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400"
+            className="p-btn-primary px-5 py-2.5 text-sm font-bold"
           >
             Generate my protocol
           </button>
@@ -181,7 +181,7 @@ export default function RecommendationClient({
       )}
 
       {!rec && loading && (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-12 text-center text-slate-500 text-sm">
+        <div className="p-card border border-[color:var(--line)] p-12 text-center text-[color:var(--ink-soft)] text-sm">
           Generating your protocol…
         </div>
       )}

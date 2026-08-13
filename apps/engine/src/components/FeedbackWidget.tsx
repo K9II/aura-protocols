@@ -15,25 +15,25 @@ export default function FeedbackWidget({ recommendationId }: { recommendationId:
   }
 
   return (
-    <div className="rounded-lg border border-white/10 bg-slate-900/40 p-4">
-      <p className="text-sm font-medium text-slate-200">Was this useful?</p>
+    <div className="p-card border border-[color:var(--line)] p-4">
+      <p className="text-sm font-medium text-[color:var(--ink)]">Was this useful?</p>
       <div className="mt-2 flex gap-2">
         <button type="button" aria-label="Thumbs up" onClick={() => send("UP")} disabled={sent !== null}
-          className="rounded-md border border-white/10 px-3 py-1 text-slate-100 hover:bg-white/10">
+          className="p-btn-outline px-3 py-1 text-sm">
           Thumbs up
         </button>
         <button type="button" aria-label="Thumbs down" onClick={() => send("DOWN")} disabled={sent !== null}
-          className="rounded-md border border-white/10 px-3 py-1 text-slate-100 hover:bg-white/10">
+          className="p-btn-outline px-3 py-1 text-sm">
           Thumbs down
         </button>
       </div>
-      <label className="mt-3 block text-xs text-slate-400" htmlFor="feedback-comments">
+      <label className="mt-3 block text-xs text-[color:var(--ink-soft)]" htmlFor="feedback-comments">
         Comments (optional)
       </label>
       <textarea id="feedback-comments" value={freeText} onChange={(e) => setFreeText(e.target.value)}
         disabled={sent !== null} placeholder="Anything we got wrong?"
-        className="mt-1 h-20 w-full rounded-md border border-white/10 bg-slate-900/60 p-2 text-sm text-slate-100" />
-      {sent && <p className="mt-2 text-xs text-slate-400">Thanks — recorded.</p>}
+        className="mt-1 h-20 w-full border border-[color:var(--line)] bg-[color:var(--paper)] p-2 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--ink-faint)] focus:border-[color:var(--specimen)] focus:outline-none" />
+      {sent && <p className="mt-2 text-xs text-[color:var(--ink-soft)]">Thanks — recorded.</p>}
     </div>
   );
 }

@@ -14,28 +14,28 @@ export default function VendorRail({ groups, templateLabel }: Props) {
   const totalItems = groups.reduce((acc, g) => acc + g.items.length, 0);
 
   return (
-    <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+    <section className="mt-8 p-card border border-[color:var(--line)] p-6">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-400">
+          <div className="p-cat-label mb-1">
             ▸ Order your stack
           </div>
-          <h2 className="font-display text-2xl font-bold text-white">
+          <h2 className="p-serif text-2xl text-[color:var(--ink)]">
             {templateLabel ?? "Stack"} · {totalItems}{" "}
             {totalItems === 1 ? "item" : "items"}
           </h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-[color:var(--ink-soft)]">
             One card per vendor — minimizes accounts you need to create.
           </p>
         </div>
         <div className="text-right">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--ink-faint)]">
             Routing
           </div>
-          <div className="font-display text-base font-bold text-white">
+          <div className="p-serif text-base text-[color:var(--ink)]">
             {liveCount} {liveCount === 1 ? "vendor" : "vendors"}
           </div>
-          <div className="text-[11px] text-slate-500">
+          <div className="text-[11px] text-[color:var(--ink-faint)]">
             {tbdCount > 0 ? `+ ${tbdCount} TBD` : "all slots live"}
           </div>
         </div>
@@ -51,11 +51,11 @@ export default function VendorRail({ groups, templateLabel }: Props) {
         ))}
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/5 pt-4 text-[10px] uppercase tracking-[0.18em]">
-        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-slate-400">
+      <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-[color:var(--line)] pt-4 text-[10px] uppercase tracking-[0.18em]">
+        <span className="rounded-full border border-[color:var(--line)] bg-[color:var(--paper-deep)] px-2.5 py-1 text-[color:var(--ink-soft)]">
           {liveCount} live · {tbdCount} TBD
         </span>
-        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-slate-400">
+        <span className="rounded-full border border-[color:var(--line)] bg-[color:var(--paper-deep)] px-2.5 py-1 text-[color:var(--ink-soft)]">
           Affiliate · sponsored
         </span>
       </div>

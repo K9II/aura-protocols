@@ -18,10 +18,10 @@ export default function ConnectButton() {
   return (
     <div className="space-y-2">
       <button type="button" onClick={handleClick} disabled={loading}
-        className="inline-flex items-center justify-center rounded-lg bg-cyan-400 px-5 py-3 font-semibold text-slate-900 hover:bg-cyan-300 disabled:opacity-50">
+        className="p-btn-primary inline-flex items-center justify-center px-5 py-3 font-semibold disabled:opacity-50">
         {loading ? "Opening…" : "Connect a wearable"}
       </button>
-      {error && <p className="text-sm text-red-300">{error}</p>}
+      {error && <p className="text-sm text-[color:var(--specimen)]">{error}</p>}
     </div>
   );
 }

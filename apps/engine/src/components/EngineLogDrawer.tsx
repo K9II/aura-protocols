@@ -20,20 +20,20 @@ export default function EngineLogDrawer({
   const safetyLabel = contraCount > 0 ? "safety review" : "safety floor ok";
 
   return (
-    <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03]">
+    <div className="mt-6 p-card border border-[color:var(--line)]">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left transition hover:bg-white/[0.02]"
+        className="flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left transition hover:bg-[color:var(--paper-deep)]"
       >
         <span
           aria-hidden
-          className={`text-violet-400 transition-transform ${open ? "rotate-90" : ""}`}
+          className={`text-[color:var(--sig-llm)] transition-transform ${open ? "rotate-90" : ""}`}
         >
           ▸
         </span>
-        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--sig-llm)]">
           Engine reasoning
         </span>
         <Pill tone="violet">template={rules.template}</Pill>
@@ -42,22 +42,22 @@ export default function EngineLogDrawer({
           {vendorCount} {vendorCount === 1 ? "vendor" : "vendors"}
           {tbdCount > 0 ? ` · ${tbdCount} TBD` : ""}
         </Pill>
-        <span className="ml-auto text-[10px] uppercase tracking-[0.18em] text-slate-500">
+        <span className="ml-auto text-[10px] uppercase tracking-[0.18em] text-[color:var(--ink-faint)]">
           {open ? "click to collapse" : "click to expand"}
         </span>
       </button>
 
       {open && (
-        <div className="border-t border-white/5 px-4 py-4">
-          <div className="grid gap-4 text-xs text-slate-400 md:grid-cols-2">
+        <div className="border-t border-[color:var(--line)] px-4 py-4">
+          <div className="grid gap-4 text-xs text-[color:var(--ink-soft)] md:grid-cols-2">
             <Block title={`Triggers (${triggerCount})`}>
               {triggerCount === 0 ? (
-                <span className="text-slate-600">none</span>
+                <span className="text-[color:var(--ink-faint)]">none</span>
               ) : (
                 <ul className="space-y-1">
                   {rules.triggers.map((t) => (
                     <li key={t} className="flex gap-2">
-                      <span className="text-cyan-500">▸</span>
+                      <span className="text-[color:var(--sig-bio)]">▸</span>
                       <span>{t}</span>
                     </li>
                   ))}
@@ -66,12 +66,12 @@ export default function EngineLogDrawer({
             </Block>
             <Block title={`Contraindications (${contraCount})`}>
               {contraCount === 0 ? (
-                <span className="text-slate-600">none</span>
+                <span className="text-[color:var(--ink-faint)]">none</span>
               ) : (
                 <ul className="space-y-1">
                   {rules.contraindications.map((c) => (
                     <li key={c} className="flex gap-2">
-                      <span className="text-rose-400">▸</span>
+                      <span className="text-[color:var(--sig-alert)]">▸</span>
                       <span>{c}</span>
                     </li>
                   ))}
@@ -79,7 +79,7 @@ export default function EngineLogDrawer({
               )}
             </Block>
           </div>
-          <p className="mt-4 text-[11px] text-slate-500">
+          <p className="mt-4 text-[11px] text-[color:var(--ink-faint)]">
             Full step-by-step log is rendered in the terminal panel above.
           </p>
         </div>
@@ -96,10 +96,10 @@ function Pill({
   children: React.ReactNode;
 }) {
   const toneClass = {
-    violet: "border-violet-500/30 bg-violet-500/10 text-violet-300",
-    emerald: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-    rose: "border-rose-500/30 bg-rose-500/10 text-rose-300",
-    slate: "border-white/10 bg-white/5 text-slate-400",
+    violet: "border-[color:var(--sig-llm)] bg-[color:var(--sig-llm-tint)] text-[color:var(--sig-llm)]",
+    emerald: "border-[color:var(--sig-ok)] bg-[color:var(--sig-ok-tint)] text-[color:var(--sig-ok)]",
+    rose: "border-[color:var(--sig-alert)] bg-[color:var(--sig-alert-tint)] text-[color:var(--sig-alert)]",
+    slate: "border-[color:var(--line)] bg-[color:var(--paper-deep)] text-[color:var(--ink-soft)]",
   }[tone];
 
   return (
@@ -120,10 +120,10 @@ function Block({
 }) {
   return (
     <div>
-      <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--ink-soft)]">
         {title}
       </div>
-      <div className="rounded-lg border border-white/5 bg-black/20 p-3">
+      <div className="rounded-lg border border-[color:var(--line)] bg-[color:var(--paper-deep)] p-3">
         {children}
       </div>
     </div>

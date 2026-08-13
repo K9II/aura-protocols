@@ -3,25 +3,26 @@ import type { VendorGroup } from "@/lib/recommend/vendor-router";
 
 type Accent = "cyan" | "violet" | "amber" | "emerald";
 
+// Muted instrument palette — cyan→bio, violet→llm, amber→warn, emerald→ok.
 const ACCENT_RING: Record<Accent, string> = {
-  cyan: "border-cyan-500/25 hover:border-cyan-400/50",
-  violet: "border-violet-500/25 hover:border-violet-400/50",
-  amber: "border-amber-500/20",
-  emerald: "border-emerald-500/20",
+  cyan: "border-[color:var(--sig-bio)]",
+  violet: "border-[color:var(--sig-llm)]",
+  amber: "border-[color:var(--sig-warn)]",
+  emerald: "border-[color:var(--sig-ok)]",
 };
 
 const ACCENT_TAG: Record<Accent, string> = {
-  cyan: "text-cyan-400",
-  violet: "text-violet-400",
-  amber: "text-amber-400",
-  emerald: "text-emerald-400",
+  cyan: "text-[color:var(--sig-bio)]",
+  violet: "text-[color:var(--sig-llm)]",
+  amber: "text-[color:var(--sig-warn)]",
+  emerald: "text-[color:var(--sig-ok)]",
 };
 
 const ACCENT_BUTTON: Record<Accent, string> = {
-  cyan: "bg-cyan-500 hover:bg-cyan-400 text-[#04060f]",
-  violet: "bg-violet-500 hover:bg-violet-400 text-white",
-  amber: "bg-white/5 text-amber-300 border border-amber-500/30",
-  emerald: "bg-white/5 text-emerald-300 border border-emerald-500/30",
+  cyan: "bg-[color:var(--sig-bio)] text-[color:var(--paper)]",
+  violet: "bg-[color:var(--sig-llm)] text-[color:var(--paper)]",
+  amber: "bg-[color:var(--paper-deep)] text-[color:var(--sig-warn)] border border-[color:var(--sig-warn)]",
+  emerald: "bg-[color:var(--paper-deep)] text-[color:var(--sig-ok)] border border-[color:var(--sig-ok)]",
 };
 
 interface Props {
@@ -40,23 +41,23 @@ export default function VendorCard({ group, accent, index }: Props) {
 
   return (
     <div
-      className={`flex flex-col rounded-xl border ${ACCENT_RING[tone]} bg-white/[0.03] p-5 transition`}
+      className={`p-card flex flex-col border ${ACCENT_RING[tone]} p-5 transition`}
     >
       <div
         className={`mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] ${ACCENT_TAG[tone]}`}
       >
         <span>▸ Vendor · {itemCount} {itemCount === 1 ? "item" : "items"}</span>
-        <span className="inline-flex items-center gap-1.5 text-emerald-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+        <span className="inline-flex items-center gap-1.5 text-[color:var(--sig-ok)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--sig-ok)]" />
           live
         </span>
       </div>
 
-      <div className="mb-3 font-display text-lg font-bold leading-tight text-white">
+      <div className="mb-3 p-serif text-lg leading-tight text-[color:var(--ink)]">
         {group.vendor}
       </div>
 
-      <ul className="mb-4 space-y-2 border-y border-white/5 py-3">
+      <ul className="mb-4 space-y-2 border-y border-[color:var(--line)] py-3">
         {group.items.map((item) => (
           <li key={item.slug} className="flex flex-col gap-0.5 text-xs">
             {item.url ? (
@@ -64,21 +65,21 @@ export default function VendorCard({ group, accent, index }: Props) {
                 href={item.url}
                 target="_blank"
                 rel={AFFILIATE_REL}
-                className="font-medium text-slate-200 underline-offset-2 hover:text-cyan-300 hover:underline transition-colors"
+                className="font-medium text-[color:var(--ink-soft)] underline-offset-2 hover:text-[color:var(--specimen)] hover:underline transition-colors"
               >
                 {item.name} ↗
               </a>
             ) : (
-              <span className="font-medium text-slate-200">{item.name}</span>
+              <span className="font-medium text-[color:var(--ink-soft)]">{item.name}</span>
             )}
             {item.dose && (
-              <span className="text-[11px] text-slate-500">{item.dose}</span>
+              <span className="text-[11px] text-[color:var(--ink-faint)]">{item.dose}</span>
             )}
           </li>
         ))}
       </ul>
 
-      <p className="mb-4 text-[11px] leading-relaxed text-slate-500">
+      <p className="mb-4 text-[11px] leading-relaxed text-[color:var(--ink-faint)]">
         First time? You&apos;ll create a quick account at {group.vendor}.
       </p>
 
@@ -86,7 +87,7 @@ export default function VendorCard({ group, accent, index }: Props) {
         href={group.url}
         target="_blank"
         rel={AFFILIATE_REL}
-        className={`mt-auto block w-full rounded-lg px-4 py-3 text-center text-sm font-bold transition min-h-[44px] ${ACCENT_BUTTON[tone]}`}
+        className={`mt-auto block w-full px-4 py-3 text-center text-sm font-bold transition min-h-[44px] ${ACCENT_BUTTON[tone]}`}
       >
         Continue to {group.vendor} →
       </a>
@@ -98,37 +99,37 @@ function TbdCard({ group, index }: { group: Extract<VendorGroup, { kind: "tbd" }
   const tone: Accent = index % 2 === 0 ? "amber" : "emerald";
   return (
     <div
-      className={`flex flex-col rounded-xl border ${ACCENT_RING[tone]} bg-white/[0.02] p-5 opacity-70`}
+      className={`p-card flex flex-col border ${ACCENT_RING[tone]} p-5 opacity-70`}
     >
       <div
         className={`mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] ${ACCENT_TAG[tone]}`}
       >
         <span>▸ {group.category}</span>
-        <span className="inline-flex items-center gap-1.5 text-slate-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-slate-500" />
+        <span className="inline-flex items-center gap-1.5 text-[color:var(--ink-faint)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--ink-faint)]" />
           tbd
         </span>
       </div>
 
-      <div className="mb-3 font-display text-lg font-bold leading-tight text-slate-300">
+      <div className="mb-3 p-serif text-lg leading-tight text-[color:var(--ink-soft)]">
         Partner TBD
       </div>
 
-      <ul className="mb-4 space-y-2 border-y border-white/5 py-3">
+      <ul className="mb-4 space-y-2 border-y border-[color:var(--line)] py-3">
         {group.items.map((item) => (
           <li
             key={item.slug}
             className="flex flex-col gap-0.5 text-xs"
           >
-            <span className="font-medium text-slate-300">{item.name}</span>
+            <span className="font-medium text-[color:var(--ink-soft)]">{item.name}</span>
             {item.dose && (
-              <span className="text-[11px] text-slate-500">{item.dose}</span>
+              <span className="text-[11px] text-[color:var(--ink-faint)]">{item.dose}</span>
             )}
           </li>
         ))}
       </ul>
 
-      <p className="mb-4 text-[11px] leading-relaxed text-slate-500">
+      <p className="mb-4 text-[11px] leading-relaxed text-[color:var(--ink-faint)]">
         We&apos;re sourcing a vetted partner for this slot.
       </p>
 
@@ -136,7 +137,7 @@ function TbdCard({ group, index }: { group: Extract<VendorGroup, { kind: "tbd" }
         type="button"
         disabled
         aria-disabled="true"
-        className={`mt-auto block w-full rounded-lg px-4 py-3 text-center text-sm font-bold transition cursor-not-allowed min-h-[44px] ${ACCENT_BUTTON[tone]}`}
+        className={`mt-auto block w-full px-4 py-3 text-center text-sm font-bold transition cursor-not-allowed min-h-[44px] ${ACCENT_BUTTON[tone]}`}
       >
         Coming Soon
       </button>
