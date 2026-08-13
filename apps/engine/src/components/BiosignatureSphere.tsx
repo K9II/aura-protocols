@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { SIG } from "@/lib/theme/instrument";
 
 const DIALS = [
-  { label: "HRV", color: "#00d4ff" },
-  { label: "RECOVERY", color: "#8b5cf6" },
-  { label: "STRAIN", color: "#fb7185" },
+  { label: "HRV", color: SIG.bio },
+  { label: "RECOVERY", color: SIG.llm },
+  { label: "STRAIN", color: SIG.alert },
 ];
 
 const LOG_LINES = [
@@ -16,7 +17,7 @@ const LOG_LINES = [
   "resp_rate :: baseline established",
   "spo2 :: within envelope",
   "tension_scan :: 0 flags raised",
-  "protocol_router :: peptide stack → aura clinical handoff",
+  "protocol_router :: peptide stack → modality handoff",
   "protocol_cache :: cold — awaiting rebuild",
 ];
 
@@ -64,11 +65,11 @@ export default function BiosignatureSphere() {
 
           ctx.beginPath();
           ctx.arc(cx, cy, r, Math.PI * 0.75, Math.PI * 2.25);
-          ctx.strokeStyle = "rgba(255,255,255,0.06)";
+          ctx.strokeStyle = "rgba(28,26,21,0.08)";
           ctx.lineWidth = 9;
           ctx.stroke();
 
-          ctx.strokeStyle = "rgba(255,255,255,0.28)";
+          ctx.strokeStyle = "rgba(28,26,21,0.28)";
           ctx.lineWidth = 1;
           for (let k = 0; k <= 10; k++) {
             const a = Math.PI * 0.75 + (Math.PI * 1.5) * (k / 10);
@@ -89,11 +90,11 @@ export default function BiosignatureSphere() {
 
           ctx.beginPath();
           ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-          ctx.fillStyle = "#e6eaf2";
+          ctx.fillStyle = SIG.ink;
           ctx.fill();
 
           ctx.font = "9px ui-monospace, 'SF Mono', Consolas, monospace";
-          ctx.fillStyle = "#64748b";
+          ctx.fillStyle = SIG.inkSoft;
           ctx.textAlign = "center";
           ctx.fillText(d.label, cx, cy + r + 18);
           ctx.textAlign = "left";
@@ -137,18 +138,18 @@ export default function BiosignatureSphere() {
 
         const lineH = 17;
         printed.forEach((l, i) => {
-          ctx.fillStyle = "#64748b";
+          ctx.fillStyle = SIG.inkSoft;
           ctx.fillText("▸ " + l, 4, i * lineH);
         });
 
         if (lineIdx < LOG_LINES.length) {
           const partial = LOG_LINES[lineIdx].slice(0, charIdx);
-          ctx.fillStyle = "#00d4ff";
+          ctx.fillStyle = SIG.bio;
           const y = printed.length * lineH;
           ctx.fillText("▸ " + partial, 4, y);
           const tw = ctx.measureText("▸ " + partial).width;
           if (cursorOn) {
-            ctx.fillStyle = "#00d4ff";
+            ctx.fillStyle = SIG.bio;
             ctx.fillRect(4 + tw + 2, y + 1, 6, 12);
           }
         }
@@ -165,7 +166,7 @@ export default function BiosignatureSphere() {
   return (
     <div style={{ maxWidth: 340, margin: "0 auto" }}>
       <canvas ref={dialRef} style={{ width: "100%", height: 140, display: "block" }} />
-      <div style={{ marginTop: 10, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 8 }}>
+      <div style={{ marginTop: 10, borderTop: `1px solid ${SIG.line}`, paddingTop: 8 }}>
         <canvas ref={logRef} style={{ width: "100%", height: 88, display: "block" }} />
       </div>
     </div>
