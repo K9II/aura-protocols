@@ -24,18 +24,18 @@ function label(provider: string): string {
 
 export default function ConnectionsCard({ connections }: { connections: ConnectionItem[] }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <h2 className="font-display text-xl font-bold text-white">Connections</h2>
+    <section className="p-card border border-[color:var(--line)] p-6">
+      <h2 className="p-serif text-xl">Connections</h2>
 
       {connections.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-300">No sources connected yet. Connect a wearable or upload data to feed the Engine.</p>
+        <p className="mt-2 text-sm text-[color:var(--ink-soft)]">No sources connected yet. Connect a wearable or upload data to feed the Engine.</p>
       ) : (
         <ul className="mt-3 space-y-2">
           {connections.map((c, i) => (
-            <li key={`${c.provider}-${i}`} className="flex items-center justify-between rounded-lg bg-white/5 px-4 py-2.5">
-              <span className="text-sm font-medium text-white">{label(c.provider)}</span>
-              <span className="text-xs text-slate-400">
-                {c.revoked ? "Revoked" : `Connected ${new Date(c.connectedAt).toLocaleDateString()}`}
+            <li key={`${c.provider}-${i}`} className="flex items-center justify-between bg-[color:var(--paper-deep)] px-4 py-2.5">
+              <span className="text-sm font-medium text-[color:var(--ink)]">{label(c.provider)}</span>
+              <span className="text-xs text-[color:var(--ink-soft)]">
+                {c.revoked ? "Revoked" : <span className="text-[color:var(--sig-ok)]">{`Connected ${new Date(c.connectedAt).toLocaleDateString()}`}</span>}
               </span>
             </li>
           ))}
@@ -43,10 +43,10 @@ export default function ConnectionsCard({ connections }: { connections: Connecti
       )}
 
       <div className="mt-4 flex flex-wrap gap-3">
-        <span className="inline-flex cursor-not-allowed rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-slate-500" title="Coming soon">
+        <span className="inline-flex cursor-not-allowed border border-[color:var(--line)] px-4 py-2 text-sm font-semibold text-[color:var(--ink-faint)]" title="Coming soon">
           Connect wearable (coming soon)
         </span>
-        <a href="/upload" className="inline-flex rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">
+        <a href="/upload" className="p-btn-outline inline-flex px-4 py-2 text-sm font-semibold">
           Upload data
         </a>
       </div>

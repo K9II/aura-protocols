@@ -17,46 +17,46 @@ export default function ProtocolSummaryCard({ protocol, hasData, dataDays }: Pro
 
   if (protocol) {
     return (
-      <section className="rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Latest protocol</p>
-        <h2 className="mt-1 font-display text-2xl font-bold text-white">{protocol.templateLabel}</h2>
+      <section className="p-card border border-[color:var(--line)] p-6">
+        <p className="p-cat-label">Latest protocol</p>
+        <h2 className="mt-1 p-serif text-2xl">{protocol.templateLabel}</h2>
         {protocol.topCompounds.length > 0 && (
-          <p className="mt-2 text-sm text-slate-300">{protocol.topCompounds.join(" · ")}</p>
+          <p className="mt-2 text-sm text-[color:var(--ink-soft)]">{protocol.topCompounds.join(" · ")}</p>
         )}
-        <p className="mt-2 text-xs text-slate-400">{dataNote}</p>
-        <a href="/recommendation" className="mt-4 inline-flex rounded-lg bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-cyan-300">
+        <p className="mt-2 text-xs text-[color:var(--ink-faint)]">{dataNote}</p>
+        <a href="/recommendation" className="p-btn-primary mt-4 inline-flex px-5 py-2.5 text-sm font-semibold">
           View full protocol →
         </a>
-        <p className="mt-3 text-xs italic text-slate-400">{DISCLAIMER}</p>
+        <p className="mt-3 text-xs italic text-[color:var(--ink-faint)]">{DISCLAIMER}</p>
       </section>
     );
   }
 
   if (hasData) {
     return (
-      <section className="rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Latest protocol</p>
-        <h2 className="mt-1 font-display text-2xl font-bold text-white">No protocol yet</h2>
-        <p className="mt-2 text-sm text-slate-300">Your data is in. Generate a protocol tuned to it.</p>
-        <p className="mt-2 text-xs text-slate-400">{dataNote}</p>
-        <a href="/recommendation" className="mt-4 inline-flex rounded-lg bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-cyan-300">
+      <section className="p-card border border-[color:var(--line)] p-6">
+        <p className="p-cat-label">Latest protocol</p>
+        <h2 className="mt-1 p-serif text-2xl">No protocol yet</h2>
+        <p className="mt-2 text-sm text-[color:var(--ink-soft)]">Your data is in. Generate a protocol tuned to it.</p>
+        <p className="mt-2 text-xs text-[color:var(--ink-faint)]">{dataNote}</p>
+        <a href="/recommendation" className="p-btn-primary mt-4 inline-flex px-5 py-2.5 text-sm font-semibold">
           Generate your protocol →
         </a>
-        <p className="mt-3 text-xs italic text-slate-400">{DISCLAIMER}</p>
+        <p className="mt-3 text-xs italic text-[color:var(--ink-faint)]">{DISCLAIMER}</p>
       </section>
     );
   }
 
   // No data at all — this card yields to a "get started" hero.
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <h2 className="font-display text-2xl font-bold text-white">Get started</h2>
-      <p className="mt-2 text-sm text-slate-300">Connect a wearable or upload a day of data to unlock your first protocol.</p>
+    <section className="p-card border border-[color:var(--line)] p-6">
+      <h2 className="p-serif text-2xl">Get started</h2>
+      <p className="mt-2 text-sm text-[color:var(--ink-soft)]">Connect a wearable or upload a day of data to unlock your first protocol.</p>
       <div className="mt-4 flex flex-wrap gap-3">
-        <a href="/connect" className="inline-flex rounded-lg bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-cyan-300">
+        <a href="/connect" className="p-btn-primary inline-flex px-5 py-2.5 text-sm font-semibold">
           Connect a wearable →
         </a>
-        <a href="/upload" className="inline-flex rounded-lg border border-white/15 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
+        <a href="/upload" className="p-btn-outline inline-flex px-5 py-2.5 text-sm font-semibold">
           Upload data
         </a>
       </div>

@@ -88,16 +88,18 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Your Engine</p>
-      <h1 className="mt-1 font-display text-3xl font-bold text-white">Dashboard</h1>
-      <p className="mt-2 text-sm text-slate-400">{freshness}</p>
+    <div className="pharmacopoeia">
+      <div className="p-container max-w-2xl py-16">
+        <p className="p-cat-label">Your Engine</p>
+        <h1 className="mt-1 p-serif text-3xl">Dashboard</h1>
+        <p className="mt-2 text-sm text-[color:var(--ink-soft)]">{freshness}</p>
 
-      <div className="mt-8 space-y-5">
-        <ProtocolSummaryCard protocol={protocol} hasData={hasData} dataDays={snapshotCount} />
-        <ConnectionsCard connections={connections} />
-        <GoalProfileCard primaryGoal={profile?.primary_goal ?? null} completenessScore={completenessScore} />
+        <div className="mt-8 space-y-5">
+          <ProtocolSummaryCard protocol={protocol} hasData={hasData} dataDays={snapshotCount} />
+          <ConnectionsCard connections={connections} />
+          <GoalProfileCard primaryGoal={profile?.primary_goal ?? null} completenessScore={completenessScore} />
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
