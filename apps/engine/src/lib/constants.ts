@@ -1,13 +1,16 @@
 export const BASE_URL = "https://auraprotocols.com";
 export const SHOP_URL = "https://shop.auraprotocols.com";
-export const CLINICAL_URL = "https://auraclinical.com";
 export const EXTERNAL_REL = "noopener noreferrer";
 export const AFFILIATE_REL = "noopener noreferrer sponsored";
 
 export const DISCLAIMER =
   "Educational only. Not medical advice. The Engine produces protocol suggestions; medical judgment requires a licensed clinician.";
 
-export const PRESCRIBE_CTA_COPY = "Get this prescribed at Aura Clinical →";
+// Prescribe-grade + contraindicated demand routes to Modality (the clinical lane).
+// Aura (shop + engine) is research + biometrics only — no clinician, no Rx.
+// Isolated here: flip destination/label/path in one place.
+export const PRESCRIBE_URL = "https://modalitybio.com";
+export const PRESCRIBE_LABEL = "Get this prescribed at Modality →";
 
 // Backend (web-API) providers only. Apple Health, Samsung Health, and Google
 // Fit are mobile-SDK-only and will arrive with the native app — see
