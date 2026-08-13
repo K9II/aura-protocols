@@ -10,6 +10,7 @@ import { routeByVendor, type RailItem } from "@/lib/recommend/vendor-router";
 import { products } from "@/data/products";
 import { PROTOCOL_LABELS } from "@/lib/constants";
 import { applySafetyFloor, pickTemplate } from "@/lib/recommend/rules";
+import { SIG } from "@/lib/theme/instrument";
 import type { BiometricSnapshot } from "@/lib/terra/schema";
 import type { ProfileContext } from "@/lib/profile/schema";
 
@@ -26,12 +27,14 @@ const GOAL_LABELS = {
 const MENOPAUSE_LABELS = { pre: "Pre-menopausal", peri: "Perimenopausal", post: "Post-menopausal", not_applicable: "Not applicable" };
 const GLP1_LABELS = { never: "Never used", recently_stopped: "Stopped recently", current: "Currently using" };
 
+// Per-wearable swatch identity, remapped to the muted instrument palette so no
+// legacy neon literals remain (see src/lib/theme/instrument.ts).
 const WEARABLES = [
-  { id: "WHOOP",  label: "Whoop",      icon: "⬡", color: "#fb7185" },
-  { id: "OURA",   label: "Oura Ring",  icon: "◎", color: "#8b5cf6" },
-  { id: "GARMIN", label: "Garmin",     icon: "⬡", color: "#00d4ff" },
-  { id: "FITBIT", label: "Fitbit",     icon: "◈", color: "#34d399" },
-  { id: "DEXCOM", label: "Dexcom CGM", icon: "◉", color: "#fbbf24" },
+  { id: "WHOOP",  label: "Whoop",      icon: "⬡", color: SIG.alert },
+  { id: "OURA",   label: "Oura Ring",  icon: "◎", color: SIG.llm },
+  { id: "GARMIN", label: "Garmin",     icon: "⬡", color: SIG.bio },
+  { id: "FITBIT", label: "Fitbit",     icon: "◈", color: SIG.ok },
+  { id: "DEXCOM", label: "Dexcom CGM", icon: "◉", color: SIG.warn },
 ] as const;
 
 // ─── Biometric series matching each scenario's telemetry (for rules engine) ──
@@ -68,13 +71,20 @@ interface CollectedProfile {
   activity_level?: ProfileContext["activity_level"];
   menopause_status?: ProfileContext["menopause_status"];
   glp1_status?: ProfileContext["glp1_status"];
+  glp1_stopped_month?: string;
   current_medications?: string;
+  using_peptides?: boolean;
+  peptides_detail?: string;
 }
 
 function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile) => void }) {
   const [step, setStep] = useState(1);
 
-  // Step 1 fields
+  // Step 1 — wearable gate
+  const [connecting, setConnecting] = useState<string | null>(null);
+  const [connected, setConnected] = useState<string | null>(null);
+
+  // Step 2 — goal + demographics
   const [primaryGoal, setPrimaryGoal] = useState("");
   const [ageStr, setAgeStr] = useState("");
   const [sex, setSex] = useState("");
@@ -82,20 +92,22 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
   const [weightUnit, setWeightUnit] = useState<"lbs" | "kg">("lbs");
   const [activityLevel, setActivityLevel] = useState("");
 
-  // Step 2 fields
-  const [menopauseStatus, setMenopauseStatus] = useState("");
-  const [glp1Status, setGlp1Status] = useState("");
+  // Step 3 — clinical
   const [medications, setMedications] = useState("");
+  const [usingPeptides, setUsingPeptides] = useState(false);
+  const [peptidesDetail, setPeptidesDetail] = useState("");
+  const [glp1Status, setGlp1Status] = useState("");
+  const [glp1StoppedMonth, setGlp1StoppedMonth] = useState("");
+  const [menopauseStatus, setMenopauseStatus] = useState("");
+
+  // Step 4 — preferences
   const [rxInterest, setRxInterest] = useState<"yes" | "no" | null>(null);
   const [budgetTier, setBudgetTier] = useState("");
 
-  // Step 3
-  const [connecting, setConnecting] = useState<string | null>(null);
-  const [connected, setConnected] = useState<string | null>(null);
-
-  const inputClass = "w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30";
-  const labelClass = "block mb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider";
-  const btnBack = "flex-1 rounded-xl bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/20";
+  const inputClass = "w-full bg-[color:var(--paper)] border border-[color:var(--line)] px-4 py-2.5 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--ink-faint)] focus:border-[color:var(--specimen)] focus:outline-none";
+  const labelClass = "block mb-1 text-xs font-semibold text-[color:var(--ink-soft)] uppercase tracking-wider";
+  const btnBack = "flex-1 p-btn-outline px-4 py-3 text-sm font-medium";
+  const btnNext = "flex-1 p-btn-primary px-4 py-3 text-sm font-bold";
 
   function handleConnect(id: string) {
     setConnecting(id);
@@ -107,8 +119,7 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
     const weight_kg = weightStr
       ? (weightUnit === "lbs" ? Math.round(rawWeight * 0.453592 * 10) / 10 : rawWeight)
       : undefined;
-
-    const profile: CollectedProfile = {
+    onComplete({
       age: ageStr ? parseInt(ageStr, 10) : undefined,
       weight_kg: weight_kg && weight_kg >= 30 && weight_kg <= 300 ? weight_kg : undefined,
       biological_sex: sex ? (sex as ProfileContext["biological_sex"]) : undefined,
@@ -116,20 +127,87 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
       activity_level: activityLevel ? (activityLevel as ProfileContext["activity_level"]) : undefined,
       menopause_status: menopauseStatus ? (menopauseStatus as ProfileContext["menopause_status"]) : undefined,
       glp1_status: glp1Status ? (glp1Status as ProfileContext["glp1_status"]) : undefined,
+      glp1_stopped_month: glp1Status === "recently_stopped" ? glp1StoppedMonth || undefined : undefined,
       current_medications: medications.trim() || undefined,
-    };
-    onComplete(profile);
+      using_peptides: usingPeptides,
+      peptides_detail: usingPeptides && peptidesDetail ? peptidesDetail : undefined,
+    });
   }
+
+  // Progress bar covers content steps 2-4 only (3 segments).
+  const progressStep = step - 1;
 
   return (
     <div>
-      <div className="mb-6 flex gap-2">
-        {[1, 2, 3].map((n) => (
-          <div key={n} className={`h-1 flex-1 rounded-full transition-colors ${n <= step ? "bg-cyan-500" : "bg-white/10"}`} />
-        ))}
-      </div>
+      {step > 1 && (
+        <div className="mb-6 flex gap-2">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className={`h-1 flex-1 rounded-full transition-colors ${n <= progressStep ? "bg-[color:var(--specimen)]" : "bg-[color:var(--line)]"}`} />
+          ))}
+        </div>
+      )}
 
+      {/* STEP 1 — Wearable gate */}
       {step === 1 && (
+        <div className="space-y-5">
+          <p className="text-sm text-[color:var(--ink-soft)]">
+            Your protocol is personalized from real biometric data. Connect a supported wearable to continue.
+          </p>
+
+          <div className="space-y-2">
+            {WEARABLES.map((w) => {
+              const isConnecting = connecting === w.id;
+              const isConnected = connected === w.id;
+              return (
+                <div
+                  key={w.id}
+                  className="flex items-center justify-between border px-4 py-3 transition-colors"
+                  style={{
+                    borderColor: isConnected ? SIG.ok : SIG.line,
+                    background: isConnected ? SIG.okTint : SIG.paper,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg" style={{ color: w.color }}>{w.icon}</span>
+                    <span className="text-sm font-medium text-[color:var(--ink)]">{w.label}</span>
+                    {w.id === "DEXCOM" && (
+                      <span className="text-xs text-[color:var(--ink-faint)] bg-[color:var(--paper-deep)] border border-[color:var(--line)] px-2 py-0.5 rounded">CGM</span>
+                    )}
+                  </div>
+                  {isConnected ? (
+                    <span className="text-xs font-semibold tracking-wider" style={{ color: SIG.ok }}>● Connected</span>
+                  ) : (
+                    <button
+                      onClick={() => handleConnect(w.id)}
+                      disabled={isConnecting || connected !== null}
+                      className="px-4 py-1.5 text-xs font-semibold transition disabled:opacity-40"
+                      style={{ background: SIG.alertTint, border: `1px solid ${SIG.alert}`, color: SIG.alert }}
+                    >
+                      {isConnecting ? "Connecting…" : "Connect"}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-[color:var(--line)] pt-4">
+            <a href="https://shop.auraprotocols.com" className="text-xs text-[color:var(--ink-faint)] underline underline-offset-2 transition hover:text-[color:var(--specimen)]">
+              Not ready yet? Browse the shop →
+            </a>
+            <button
+              className="p-btn-primary px-5 py-2.5 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={!connected}
+              onClick={() => setStep(2)}
+            >
+              {connected ? "Continue →" : "Connect to continue"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2 — Goal + Demographics */}
+      {step === 2 && (
         <div className="space-y-4">
           <div>
             <label className={labelClass}>Primary Goal</label>
@@ -140,10 +218,7 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
           </div>
           <div>
             <label className={labelClass}>Age</label>
-            <input
-              type="number" className={inputClass} placeholder="e.g. 34"
-              value={ageStr} onChange={(e) => setAgeStr(e.target.value)}
-            />
+            <input type="number" className={inputClass} placeholder="e.g. 34" value={ageStr} onChange={(e) => setAgeStr(e.target.value)} />
           </div>
           <div>
             <label className={labelClass}>Biological Sex</label>
@@ -163,7 +238,7 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
                 value={weightStr} onChange={(e) => setWeightStr(e.target.value)}
               />
               <select
-                className="w-24 flex-none rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-white focus:border-cyan-500/50 focus:outline-none"
+                className="w-24 flex-none bg-[color:var(--paper)] border border-[color:var(--line)] px-3 py-2.5 text-sm text-[color:var(--ink)] focus:border-[color:var(--specimen)] focus:outline-none"
                 value={weightUnit} onChange={(e) => setWeightUnit(e.target.value as "lbs" | "kg")}
               >
                 <option value="lbs">lbs</option>
@@ -178,21 +253,38 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
               {Object.entries(ACTIVITY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
-          <button className="w-full rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400" onClick={() => setStep(2)}>
-            Continue →
-          </button>
+          <div className="flex gap-3">
+            <button className={btnBack} onClick={() => setStep(1)}>← Back</button>
+            <button className={btnNext} onClick={() => setStep(3)}>Continue →</button>
+          </div>
         </div>
       )}
 
-      {step === 2 && (
+      {/* STEP 3 — Clinical Context */}
+      {step === 3 && (
         <div className="space-y-4">
-          {sex === "female" && (
+          <div>
+            <label className={labelClass}>Current Medications <span className="normal-case font-normal text-[color:var(--ink-faint)]">(optional — safety screening)</span></label>
+            <textarea
+              className={inputClass + " resize-none"}
+              rows={3}
+              placeholder="e.g. metformin 500mg, levothyroxine 75mcg, warfarin…"
+              value={medications}
+              onChange={(e) => setMedications(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox" id="demo_using_peptides"
+              className="h-4 w-4 border border-[color:var(--line)] bg-[color:var(--paper)] accent-[color:var(--specimen)]"
+              checked={usingPeptides} onChange={(e) => setUsingPeptides(e.target.checked)}
+            />
+            <label htmlFor="demo_using_peptides" className="text-sm text-[color:var(--ink-soft)]">Currently using peptides</label>
+          </div>
+          {usingPeptides && (
             <div>
-              <label className={labelClass}>Menopause status</label>
-              <select className={inputClass} value={menopauseStatus} onChange={(e) => setMenopauseStatus(e.target.value)}>
-                <option value="">Select…</option>
-                {Object.entries(MENOPAUSE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
+              <label className={labelClass}>Which peptides?</label>
+              <input type="text" className={inputClass} placeholder="e.g. BPC-157, TB-500" value={peptidesDetail} onChange={(e) => setPeptidesDetail(e.target.value)} />
             </div>
           )}
           <div>
@@ -202,28 +294,40 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
               {Object.entries(GLP1_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
-          <div>
-            <label className={labelClass}>
-              Current medications
-              <span className="ml-1 normal-case text-slate-500 font-normal">(optional — used for safety screening)</span>
-            </label>
-            <textarea
-              className={inputClass + " resize-none"}
-              rows={3}
-              placeholder="e.g. metformin 500mg, levothyroxine 75mcg, warfarin…"
-              value={medications}
-              onChange={(e) => setMedications(e.target.value)}
-            />
+          {glp1Status === "recently_stopped" && (
+            <div>
+              <label className={labelClass}>When did you stop? (month)</label>
+              <input type="month" className={inputClass} value={glp1StoppedMonth} onChange={(e) => setGlp1StoppedMonth(e.target.value)} />
+            </div>
+          )}
+          {sex === "female" && (
+            <div>
+              <label className={labelClass}>Menopause status</label>
+              <select className={inputClass} value={menopauseStatus} onChange={(e) => setMenopauseStatus(e.target.value)}>
+                <option value="">Select…</option>
+                {Object.entries(MENOPAUSE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <button className={btnBack} onClick={() => setStep(2)}>← Back</button>
+            <button className={btnNext} onClick={() => setStep(4)}>Continue →</button>
           </div>
+        </div>
+      )}
+
+      {/* STEP 4 — Preferences */}
+      {step === 4 && (
+        <div className="space-y-4">
           <div>
             <label className={labelClass}>Interested in a prescription protocol?</label>
-            <p className="mb-3 text-xs text-slate-500">If yes, we'll show you Aura Clinical options alongside research-grade vendors.</p>
+            <p className="mb-3 text-xs text-[color:var(--ink-faint)]">If yes, we&apos;ll show you Modality options alongside research-grade vendors.</p>
             <div className="flex gap-3">
               {([{ v: "yes", l: "Yes, show me Rx options" }, { v: "no", l: "No, research-grade only" }] as const).map(({ v, l }) => (
                 <button
                   key={v}
                   onClick={() => setRxInterest(v)}
-                  className={`flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition ${rxInterest === v ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"}`}
+                  className={`flex-1 border px-4 py-3 text-sm font-medium transition ${rxInterest === v ? "border-[color:var(--specimen)] bg-[color:var(--sig-alert-tint)] text-[color:var(--specimen)]" : "border-[color:var(--line)] bg-[color:var(--paper)] text-[color:var(--ink-soft)] hover:bg-[color:var(--paper-deep)]"}`}
                 >
                   {l}
                 </button>
@@ -240,79 +344,8 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
             </select>
           </div>
           <div className="flex gap-3">
-            <button className={btnBack} onClick={() => setStep(1)}>← Back</button>
-            <button className="flex-1 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400" onClick={() => setStep(3)}>
-              Continue →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="space-y-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-1">Connect Your Wearable</p>
-            <p className="text-sm text-slate-400">
-              Your device data — HRV, sleep, recovery, strain — is what makes your protocol personal.
-              Connect once and the Engine updates automatically.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            {WEARABLES.map((w) => {
-              const isConnecting = connecting === w.id;
-              const isConnected = connected === w.id;
-              return (
-                <div
-                  key={w.id}
-                  className="flex items-center justify-between rounded-xl border px-4 py-3 transition-colors"
-                  style={{
-                    borderColor: isConnected ? w.color : "rgba(255,255,255,0.08)",
-                    background: isConnected ? `${w.color}10` : "rgba(255,255,255,0.02)",
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg" style={{ color: w.color }}>{w.icon}</span>
-                    <span className="text-sm font-medium text-white">{w.label}</span>
-                    {w.id === "DEXCOM" && (
-                      <span className="text-xs text-slate-500 bg-white/5 border border-white/10 px-2 py-0.5 rounded">CGM</span>
-                    )}
-                  </div>
-                  {isConnected ? (
-                    <span className="text-xs font-semibold tracking-wider" style={{ color: w.color }}>
-                      ● Connected
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => handleConnect(w.id)}
-                      disabled={isConnecting || connected !== null}
-                      className="rounded-lg px-4 py-1.5 text-xs font-semibold transition disabled:opacity-40"
-                      style={{
-                        background: `${w.color}18`,
-                        border: `1px solid ${w.color}40`,
-                        color: w.color,
-                      }}
-                    >
-                      {isConnecting ? "Connecting…" : "Connect"}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="text-xs text-slate-600">
-            No wearable? You can enter data manually after setup.
-          </p>
-
-          <div className="flex gap-3">
-            <button className={btnBack} onClick={() => setStep(2)}>← Back</button>
-            <button
-              className="flex-1 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-[#04060f] transition hover:bg-cyan-400"
-              onClick={handleComplete}
-            >
-              {connected ? "Generate My Protocol →" : "Skip for now →"}
-            </button>
+            <button className={btnBack} onClick={() => setStep(3)}>← Back</button>
+            <button className={btnNext} onClick={handleComplete}>Generate My Protocol →</button>
           </div>
         </div>
       )}
@@ -342,29 +375,29 @@ function SafetyFloorPanel({
   });
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[#0a0f1a] p-5 mb-6">
+    <div className="p-card border border-[color:var(--line)] p-5 mb-6">
       {/* Header */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-xs font-mono font-semibold uppercase tracking-widest text-slate-400">Safety Floor</span>
-        <span className="text-xs font-mono text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded">
+        <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[color:var(--ink-soft)]">Safety Floor</span>
+        <span className="text-xs font-mono text-[color:var(--sig-bio)] bg-[color:var(--sig-bio-tint)] border border-[color:var(--sig-bio)] px-2 py-0.5 rounded">
           {rules.template}
         </span>
         {templateChanged && (
-          <span className="text-xs text-violet-300 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded font-mono">
+          <span className="text-xs text-[color:var(--sig-llm)] bg-[color:var(--sig-llm-tint)] border border-[color:var(--sig-llm)] px-2 py-0.5 rounded font-mono">
             your profile → {suggestedTemplate}
           </span>
         )}
         {hasContra ? (
           <>
-            <span className="text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">
+            <span className="text-xs font-semibold text-[color:var(--sig-alert)] bg-[color:var(--sig-alert-tint)] border border-[color:var(--sig-alert)] px-2 py-0.5 rounded">
               ⚠ {rules.contraindications.length} contraindication{rules.contraindications.length > 1 ? "s" : ""}
             </span>
-            <span className="text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">
-              → routed to Aura Clinical
+            <span className="text-xs font-semibold text-[color:var(--sig-alert)] bg-[color:var(--sig-alert-tint)] border border-[color:var(--sig-alert)] px-2 py-0.5 rounded">
+              → routed to Modality
             </span>
           </>
         ) : (
-          <span className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+          <span className="text-xs text-[color:var(--sig-ok)] bg-[color:var(--sig-ok-tint)] border border-[color:var(--sig-ok)] px-2 py-0.5 rounded">
             ✓ no contraindications
           </span>
         )}
@@ -373,10 +406,10 @@ function SafetyFloorPanel({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Dose ceilings */}
         <div>
-          <p className="text-xs uppercase tracking-widest text-slate-500 mb-2">Dose Ceilings</p>
+          <p className="text-xs uppercase tracking-widest text-[color:var(--ink-soft)] mb-2">Dose Ceilings</p>
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-slate-600 border-b border-white/5">
+              <tr className="text-[color:var(--ink-faint)] border-b border-[color:var(--line)]">
                 <th className="text-left pb-1.5 font-normal">Compound</th>
                 <th className="text-right pb-1.5 font-normal">Base</th>
                 <th className="text-right pb-1.5 font-normal">Adjusted</th>
@@ -385,19 +418,19 @@ function SafetyFloorPanel({
             </thead>
             <tbody>
               {ceilingRows.map(({ key, adjusted, base, pct }) => (
-                <tr key={key} className="border-b border-white/5 last:border-0">
-                  <td className="py-1.5 text-slate-300 font-mono pr-3 truncate max-w-[120px]">{key}</td>
-                  <td className="py-1.5 text-right text-slate-500 tabular-nums">{base}</td>
-                  <td className={`py-1.5 text-right font-semibold tabular-nums ${pct < 0 ? "text-amber-400" : pct > 0 ? "text-emerald-400" : "text-slate-300"}`}>
+                <tr key={key} className="border-b border-[color:var(--line)] last:border-0">
+                  <td className="py-1.5 text-[color:var(--ink-soft)] font-mono pr-3 truncate max-w-[120px]">{key}</td>
+                  <td className="py-1.5 text-right text-[color:var(--ink-faint)] tabular-nums">{base}</td>
+                  <td className={`py-1.5 text-right font-semibold tabular-nums ${pct < 0 ? "text-[color:var(--sig-warn)]" : pct > 0 ? "text-[color:var(--sig-ok)]" : "text-[color:var(--ink)]"}`}>
                     {adjusted}
                   </td>
                   <td className="py-1.5 text-right tabular-nums pl-3">
                     {pct !== 0 ? (
-                      <span className={pct < 0 ? "text-amber-400" : "text-emerald-400"}>
+                      <span className={pct < 0 ? "text-[color:var(--sig-warn)]" : "text-[color:var(--sig-ok)]"}>
                         {pct > 0 ? "+" : ""}{pct}%
                       </span>
                     ) : (
-                      <span className="text-slate-600">—</span>
+                      <span className="text-[color:var(--ink-faint)]">—</span>
                     )}
                   </td>
                 </tr>
@@ -409,31 +442,31 @@ function SafetyFloorPanel({
         {/* Contraindications + triggers */}
         <div className="space-y-4">
           <div>
-            <p className="text-xs uppercase tracking-widest text-slate-500 mb-2">Contraindications</p>
+            <p className="text-xs uppercase tracking-widest text-[color:var(--ink-soft)] mb-2">Contraindications</p>
             {hasContra ? (
               <div className="flex flex-wrap gap-1.5">
                 {rules.contraindications.map((c) => (
-                  <span key={c} className="text-xs font-mono bg-rose-500/15 border border-rose-500/30 text-rose-300 px-2 py-0.5 rounded">
+                  <span key={c} className="text-xs font-mono bg-[color:var(--sig-alert-tint)] border border-[color:var(--sig-alert)] text-[color:var(--sig-alert)] px-2 py-0.5 rounded">
                     ● {c}
                   </span>
                 ))}
               </div>
             ) : (
-              <span className="text-xs text-slate-600">None detected</span>
+              <span className="text-xs text-[color:var(--ink-faint)]">None detected</span>
             )}
           </div>
           <div>
-            <p className="text-xs uppercase tracking-widest text-slate-500 mb-2">Triggers</p>
+            <p className="text-xs uppercase tracking-widest text-[color:var(--ink-soft)] mb-2">Triggers</p>
             {hasTriggers ? (
               <div className="flex flex-wrap gap-1.5">
                 {rules.triggers.map((t) => (
-                  <span key={t} className="text-xs font-mono bg-amber-500/10 border border-amber-500/20 text-amber-300 px-2 py-0.5 rounded">
+                  <span key={t} className="text-xs font-mono bg-[color:var(--sig-warn-tint)] border border-[color:var(--sig-warn)] text-[color:var(--sig-warn)] px-2 py-0.5 rounded">
                     ◎ {t}
                   </span>
                 ))}
               </div>
             ) : (
-              <span className="text-xs text-slate-600">None</span>
+              <span className="text-xs text-[color:var(--ink-faint)]">None</span>
             )}
           </div>
         </div>
@@ -451,30 +484,30 @@ function LiveProfileBar({
   value: CollectedProfile;
   onChange: (p: CollectedProfile) => void;
 }) {
-  const inputClass = "rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-white placeholder-white/30 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30";
+  const inputClass = "bg-[color:var(--paper)] border border-[color:var(--line)] px-3 py-1.5 text-xs text-[color:var(--ink)] placeholder:text-[color:var(--ink-faint)] focus:border-[color:var(--specimen)] focus:outline-none";
 
   return (
-    <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 px-4 py-3 mb-5">
-      <p className="text-xs font-mono uppercase tracking-widest text-violet-400 mb-3">
+    <div className="border border-[color:var(--sig-llm)] bg-[color:var(--sig-llm-tint)] px-4 py-3 mb-5">
+      <p className="text-xs font-mono uppercase tracking-widest text-[color:var(--sig-llm)] mb-3">
         ◈ Live Profile — edit to see safety floor react
       </p>
       <div className="flex flex-wrap gap-3 items-end">
         <div>
-          <label className="block mb-1 text-xs text-slate-500">Age</label>
+          <label className="block mb-1 text-xs text-[color:var(--ink-soft)]">Age</label>
           <input
             type="number" placeholder="—" className={inputClass + " w-20"}
             value={value.age ?? ""} onChange={(e) => onChange({ ...value, age: e.target.value ? parseInt(e.target.value, 10) : undefined })}
           />
         </div>
         <div>
-          <label className="block mb-1 text-xs text-slate-500">Weight (kg)</label>
+          <label className="block mb-1 text-xs text-[color:var(--ink-soft)]">Weight (kg)</label>
           <input
             type="number" placeholder="—" className={inputClass + " w-24"}
             value={value.weight_kg ?? ""} onChange={(e) => onChange({ ...value, weight_kg: e.target.value ? parseFloat(e.target.value) : undefined })}
           />
         </div>
         <div>
-          <label className="block mb-1 text-xs text-slate-500">Sex</label>
+          <label className="block mb-1 text-xs text-[color:var(--ink-soft)]">Sex</label>
           <select className={inputClass + " w-36"} value={value.biological_sex ?? ""} onChange={(e) => onChange({ ...value, biological_sex: (e.target.value as ProfileContext["biological_sex"]) || undefined })}>
             <option value="">—</option>
             <option value="male">Male</option>
@@ -484,7 +517,7 @@ function LiveProfileBar({
         </div>
         {value.biological_sex === "female" && (
           <div>
-            <label className="block mb-1 text-xs text-slate-500">Menopause</label>
+            <label className="block mb-1 text-xs text-[color:var(--ink-soft)]">Menopause</label>
             <select className={inputClass + " w-36"} value={value.menopause_status ?? ""} onChange={(e) => onChange({ ...value, menopause_status: (e.target.value as ProfileContext["menopause_status"]) || undefined })}>
               <option value="">—</option>
               {Object.entries(MENOPAUSE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -492,7 +525,7 @@ function LiveProfileBar({
           </div>
         )}
         <div className="flex-1 min-w-[200px]">
-          <label className="block mb-1 text-xs text-slate-500">Medications (type to fire contraindications)</label>
+          <label className="block mb-1 text-xs text-[color:var(--ink-soft)]">Medications (type to fire contraindications)</label>
           <input
             type="text" placeholder="e.g. tamoxifen, warfarin, metformin…" className={inputClass + " w-full"}
             value={value.current_medications ?? ""} onChange={(e) => onChange({ ...value, current_medications: e.target.value || undefined })}
@@ -907,7 +940,7 @@ export default function DemoPage() {
 
   // Build a ProfileContext from the live profile editor
   const profileCtx = useMemo((): ProfileContext => ({
-    using_peptides: false,
+    using_peptides: demoProfile.using_peptides ?? false,
     interested_in_rx: false,
     onboarding_complete: true,
     age: demoProfile.age,
@@ -917,7 +950,9 @@ export default function DemoPage() {
     activity_level: demoProfile.activity_level,
     menopause_status: demoProfile.menopause_status,
     glp1_status: demoProfile.glp1_status,
+    glp1_stopped_month: demoProfile.glp1_stopped_month,
     current_medications: demoProfile.current_medications,
+    peptides_detail: demoProfile.peptides_detail,
   }), [demoProfile]);
 
   // Compute live rules from current scenario biometrics + live profile
@@ -974,11 +1009,11 @@ export default function DemoPage() {
   }, [scenario]);
 
   return (
-    <div className="min-h-screen bg-[#04060f]">
+    <div className="pharmacopoeia min-h-screen">
       {/* Demo Control Bar */}
-      <div className="sticky top-0 z-50 border-b border-white/10 bg-[#0d1117]/90 backdrop-blur px-6 py-3">
+      <div className="sticky top-0 z-50 border-b border-[color:var(--line)] bg-[color:var(--paper-deep)]/90 backdrop-blur px-6 py-3">
         <div className="mx-auto max-w-7xl flex flex-wrap items-center gap-x-6 gap-y-2">
-          <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest shrink-0">
+          <span className="p-cat-label font-mono shrink-0">
             ▸ Demo Mode
           </span>
 
@@ -987,7 +1022,7 @@ export default function DemoPage() {
               <button
                 key={s}
                 onClick={() => setScene(s)}
-                className={`rounded px-3 py-1 text-xs font-medium transition ${scene === s ? "bg-white/15 text-white" : "text-slate-500 hover:text-white"}`}
+                className={`rounded px-3 py-1 text-xs font-medium transition ${scene === s ? "bg-[color:var(--ink)] text-[color:var(--paper)]" : "text-[color:var(--ink-faint)] hover:text-[color:var(--ink)]"}`}
               >
                 {s === "terminal" ? "Protocol Terminal" : "Onboarding Wizard"}
               </button>
@@ -997,12 +1032,12 @@ export default function DemoPage() {
           {scene === "terminal" && (
             <>
               <div className="flex items-center gap-1 flex-wrap">
-                <span className="text-xs text-slate-500 shrink-0">Scenario:</span>
+                <span className="text-xs text-[color:var(--ink-faint)] shrink-0">Scenario:</span>
                 {(Object.keys(SCENARIOS) as ScenarioKey[]).map((key) => (
                   <button
                     key={key}
                     onClick={() => setActiveScenario(key)}
-                    className={`rounded px-3 py-1 text-xs font-medium transition ${activeScenario === key ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" : "text-slate-500 hover:text-white"}`}
+                    className={`rounded px-3 py-1 text-xs font-medium transition ${activeScenario === key ? "bg-[color:var(--sig-alert-tint)] text-[color:var(--specimen)] border border-[color:var(--specimen)]" : "text-[color:var(--ink-faint)] hover:text-[color:var(--ink)]"}`}
                   >
                     {SCENARIOS[key].persona}
                   </button>
@@ -1010,19 +1045,19 @@ export default function DemoPage() {
               </div>
 
               <div className="flex items-center gap-2 ml-auto">
-                <span className="text-xs text-slate-600">Source:</span>
-                <span className="text-xs font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 rounded">
+                <span className="text-xs text-[color:var(--ink-faint)]">Source:</span>
+                <span className="text-xs font-mono text-[color:var(--sig-ok)] bg-[color:var(--sig-ok-tint)] border border-[color:var(--sig-ok)] px-2 py-0.5 rounded">
                   {scenario.wearable} · via Terra
                 </span>
               </div>
 
               <div className="flex items-center gap-1">
-                <span className="text-xs text-slate-500 shrink-0">Routing:</span>
+                <span className="text-xs text-[color:var(--ink-faint)] shrink-0">Routing:</span>
                 {(["affiliate_primary", "clinical_primary", "clinical_only"] as RoutingDecision[]).map((r) => (
                   <button
                     key={r}
                     onClick={() => setRouting(r)}
-                    className={`rounded px-2 py-1 text-xs font-mono transition ${routing === r ? "bg-white/15 text-white" : "text-slate-500 hover:text-white"}`}
+                    className={`rounded px-2 py-1 text-xs font-mono transition ${routing === r ? "bg-[color:var(--ink)] text-[color:var(--paper)]" : "text-[color:var(--ink-faint)] hover:text-[color:var(--ink)]"}`}
                   >
                     {r}
                   </button>
@@ -1033,12 +1068,12 @@ export default function DemoPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <div className="mx-auto max-w-7xl px-6 py-8">
         {scene === "onboarding" && (
           <div className="mx-auto max-w-lg">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-cyan-400">Biosignature Setup</p>
-            <h1 className="mb-2 font-display text-3xl font-bold text-white">Tell us about yourself</h1>
-            <p className="mb-8 text-slate-400 text-sm">Takes 2 minutes. Used only to personalise your protocol — never shared.</p>
+            <p className="p-cat-label mb-2">Biosignature Setup</p>
+            <h1 className="mb-2 p-serif text-3xl">Tell us about yourself</h1>
+            <p className="mb-8 text-[color:var(--ink-soft)] text-sm">Takes 2 minutes. Used only to personalise your protocol — never shared.</p>
             <DemoIntakeForm
               onComplete={(profile) => {
                 setDemoProfile(profile);
@@ -1074,7 +1109,7 @@ export default function DemoPage() {
             )}
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
