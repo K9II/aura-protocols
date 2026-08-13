@@ -97,6 +97,7 @@ select {
   --paper-deep: #E2DCCC;
   --ink: #1C1A15;
   --ink-soft: #4A4438;
+  --ink-faint: #8E877D;
   --specimen: #A32B1F;
   --line: #C9C2AE;
   /* muted instrument palette — see src/lib/theme/instrument.ts (keep in sync) */
