@@ -10,8 +10,7 @@ export default function HomePage() {
         </h1>
         <div className="p-callout border border-[color:var(--line)] px-6 py-10 text-center">
           <BiosignatureSphere />
-          <p className="p-serif text-lg mt-3">Under Construction</p>
-          <p className="text-sm text-[color:var(--ink-soft)] mt-2">The Engine is being rebuilt. Check back soon.</p>
+          <p className="text-sm text-[color:var(--ink-soft)] mt-4">The Engine is being rebuilt. Check back soon.</p>
         </div>
         <p className="mt-8 text-xs text-[color:var(--ink-faint)] leading-relaxed">
           Aura Protocols produces educational protocol suggestions, not medical advice. The Engine handles biometric fitness data — never PHI. For prescribed peptides, see Modality.

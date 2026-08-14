@@ -1,16 +1,12 @@
 "use client";
 
-// The Biosignature Constellation — locked v5 design, ported verbatim from
-// docs/superpowers/specs/2026-08-14-biosignature-constellation-v5.reference.html.
-// Do not freestyle this geometry/behavior; port changes back to the reference
-// file if the design changes. Canvas + DOM labels are driven imperatively via
-// refs (not React state) to stay at 60fps — this mirrors the project's other
-// canvas components (see the previous dial-cluster version in git history).
-//
-// The A-core at center is the finalized live Aura mark (gapped apex, thinned
-// legs, live EKG pulse — never a "p" letterform). Its pulse animation reuses
-// the aura-glow/aura-pulse/aura-comet/aura-spark classes + keyframes already
-// defined in globals.css (ported from the brand-chrome commit).
+// The Biosignature Constellation (v5 design), driven by REAL telemetry and
+// tension data — used in RecommendationCard's Protocol Terminal. Unlike the
+// homepage's BiosignatureSphere (which simulates random drift for a decorative
+// teaser), nodes here hold real snapshot values and ease smoothly toward new
+// values only when props change. Canvas + DOM labels are driven imperatively
+// via refs (not React state) to stay smooth — same convention as
+// BiosignatureSphere.tsx. Center emblem is the finalized live Aura A + pulse.
 
 import { useEffect, useRef } from "react";
 import { SIG } from "@/lib/theme/instrument";
@@ -22,53 +18,48 @@ const rgba = (hex: string, a: number) => {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 };
 
-type Metric = {
-  k: string;
+export type ConstellationMetric = {
+  key: string;
+  label: string;
   lo: number;
   hi: number;
   inv: boolean;
   dec: number;
   unit: string;
   acc: string;
+  value: number;
+  trend?: "up" | "down" | "neutral";
 };
 
-const MET: Metric[] = [
-  { k: "HRV", lo: 15, hi: 70, inv: false, dec: 0, unit: "ms", acc: SIG.bio },
-  { k: "RECOVERY", lo: 20, hi: 95, inv: false, dec: 0, unit: "", acc: SIG.alert },
-  { k: "STRAIN", lo: 2, hi: 18, inv: true, dec: 1, unit: "", acc: SIG.warn },
-  { k: "SLEEP", lo: 5, hi: 9, inv: false, dec: 1, unit: "h", acc: SIG.llm },
-  { k: "VO2", lo: 30, hi: 55, inv: false, dec: 0, unit: "", acc: SIG.bio },
-  { k: "GLUCOSE", lo: 72, hi: 118, inv: true, dec: 0, unit: "", acc: SIG.ok },
-  { k: "BODYFAT", lo: 10, hi: 28, inv: true, dec: 1, unit: "%", acc: SIG.warn },
-  { k: "SPO2", lo: 95, hi: 100, inv: false, dec: 0, unit: "%", acc: SIG.bio },
-];
-const IDX = Object.fromEntries(MET.map((m, i) => [m.k, i])) as Record<string, number>;
-
-type Tension = {
-  a: string;
-  b: string;
-  sev: "watch" | "elevated" | "high";
+export type ConstellationTension = {
+  id: string;
+  a: string; // metric key
+  b: string; // metric key
+  target: string; // metric key the compound docks under
   label: string;
+  severity: "watch" | "elevated" | "high";
   rx: string;
   dose: string;
   tier: string;
-  target: string;
 };
 
-const TENS: Tension[] = [
-  { a: "HRV", b: "RECOVERY", sev: "high", label: "overreaching", rx: "BPC-157", dose: "250mcg · AM/PM", tier: "T1", target: "RECOVERY" },
-  { a: "RECOVERY", b: "STRAIN", sev: "elevated", label: "training load", rx: "TB-500", dose: "2.5mg / week", tier: "T2", target: "STRAIN" },
-  { a: "HRV", b: "STRAIN", sev: "watch", label: "strain outpacing HRV", rx: "BPC-157", dose: "250mcg · AM/PM", tier: "T1", target: "HRV" },
-];
-const SEV = { watch: 0.4, elevated: 0.68, high: 1 };
+type Props = {
+  metrics: ConstellationMetric[];
+  tensions: ConstellationTension[];
+  sessionLabel: string;
+  templateLabel: string;
+  stackLabel: string;
+  idleCaption?: string;
+};
 
-type Node = Metric & {
+const SEV_A = { watch: 0.4, elevated: 0.68, high: 1 };
+const PULSE = "M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86";
+
+type Node = ConstellationMetric & {
   x: number; y: number; z: number;
-  val: number; tv: number; pv: number;
-  clk: number; nx: number; ra: number;
-  rx: number; ry: number;
+  cur: number; from: number; to: number; animT: number;
+  ra: number; rx: number; ry: number;
 };
-
 type Cloud = { x: number; y: number; z: number; ph: number; sp: number; hot: boolean };
 
 const rotY = (p: { x: number; y: number; z: number }, a: number) => {
@@ -91,10 +82,9 @@ function fib(n: number, r: number): Cloud[] {
   return o;
 }
 
-// finalized live A — gapped apex, thinned legs, EKG pulse (never a letterform)
-const PULSE = "M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86";
-
-export default function BiosignatureSphere() {
+export default function BiosignatureConstellation({
+  metrics, tensions, sessionLabel, templateLabel, stackLabel, idleCaption = "No active tensions detected.",
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const chipRef = useRef<HTMLDivElement | null>(null);
@@ -105,8 +95,14 @@ export default function BiosignatureSphere() {
   const capTextRef = useRef<HTMLSpanElement | null>(null);
   const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
   const labelValRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const coreRef = useRef<HTMLDivElement | null>(null);
-  const coreLabelRef = useRef<HTMLDivElement | null>(null);
+
+  // live refs so the animation loop always sees the latest props without restarting the effect
+  const metricsRef = useRef(metrics);
+  const tensionsRef = useRef(tensions);
+  const idleCaptionRef = useRef(idleCaption);
+  useEffect(() => { metricsRef.current = metrics; }, [metrics]);
+  useEffect(() => { tensionsRef.current = tensions; }, [tensions]);
+  useEffect(() => { idleCaptionRef.current = idleCaption; }, [idleCaption]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -123,6 +119,23 @@ export default function BiosignatureSphere() {
     let cloud: Cloud[] = [];
     let nodes: Node[] = [];
 
+    function seedNodes() {
+      const src = metricsRef.current;
+      nodes = src.map((m, i) => {
+        const lat = i % 2 ? -0.22 : 0.34;
+        const lon = (i / src.length) * TAU;
+        const ra = (i / src.length) * TAU - Math.PI / 2;
+        return {
+          ...m,
+          x: R * Math.cos(lat) * Math.cos(lon),
+          y: R * Math.sin(lat),
+          z: R * Math.cos(lat) * Math.sin(lon),
+          cur: m.value, from: m.value, to: m.value, animT: 1,
+          ra, rx: cx + Math.cos(ra) * R * 1.5, ry: cy + Math.sin(ra) * R * 1.16,
+        };
+      });
+    }
+
     function build() {
       const rect = canvas!.getBoundingClientRect();
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -136,21 +149,7 @@ export default function BiosignatureSphere() {
       cy = H * 0.46;
       persp = R * 3.6;
       cloud = fib(155, R);
-      nodes = MET.map((m, i) => {
-        const lat = i % 2 ? -0.22 : 0.34;
-        const lon = (i / MET.length) * TAU;
-        const start = m.lo + Math.random() * (m.hi - m.lo);
-        const ra = (i / MET.length) * TAU - Math.PI / 2;
-        return {
-          ...m,
-          x: R * Math.cos(lat) * Math.cos(lon),
-          y: R * Math.sin(lat),
-          z: R * Math.cos(lat) * Math.sin(lon),
-          val: start, tv: start, pv: start, clk: 0, nx: 2 + Math.random() * 3, ra,
-          rx: cx + Math.cos(ra) * R * 1.5,
-          ry: cy + Math.sin(ra) * R * 1.16,
-        };
-      });
+      seedNodes();
       nodes.forEach((n, i) => {
         const el = labelRefs.current[i];
         if (!el) return;
@@ -168,16 +167,21 @@ export default function BiosignatureSphere() {
           el.style.textAlign = "center";
         }
       });
-      // position the "Under Construction" label right under the emblem —
-      // measured against the core's actual rendered box, not guessed
-      if (coreRef.current && coreLabelRef.current && overlay) {
-        const or = overlay.getBoundingClientRect();
-        const cr = coreRef.current.getBoundingClientRect();
-        coreLabelRef.current.style.left = `${cr.left - or.left + cr.width / 2}px`;
-        coreLabelRef.current.style.top = `${cr.bottom - or.top + 6}px`;
-      }
     }
     build();
+
+    // ease nodes toward new metric values whenever props change, instead of random drift
+    let lastMetricsRef = metricsRef.current;
+    function syncTargets() {
+      const src = metricsRef.current;
+      if (src === lastMetricsRef) return;
+      lastMetricsRef = src;
+      nodes.forEach((n, i) => {
+        const m = src[i];
+        if (!m || m.value === n.to) return;
+        n.from = n.cur; n.to = m.value; n.animT = 0;
+      });
+    }
 
     let yaw = 0, pitch = 0, drag = false, px = 0, py = 0;
     const onDown = (e: PointerEvent) => {
@@ -206,11 +210,11 @@ export default function BiosignatureSphere() {
       return { x: cx + p.x * f, y: cy + p.y * f, z: p.z };
     };
     const normVal = (n: Node) => {
-      const v = Math.max(0, Math.min(1, (n.val - n.lo) / (n.hi - n.lo)));
+      const v = Math.max(0, Math.min(1, (n.cur - n.lo) / (n.hi - n.lo)));
       return n.inv ? 1 - v : v;
     };
-    const fmt = (n: Node) => n.val.toFixed(n.dec) + n.unit;
-    const trend = (n: Node) => (n.val < n.pv - 0.5 ? "▼" : n.val > n.pv + 0.5 ? "▲" : "·");
+    const fmt = (n: Node) => n.cur.toFixed(n.dec) + n.unit;
+    const KEY = (k: string) => nodes.findIndex((n) => n.key === k);
 
     let tIdx = 0, tClk = 0;
     const HOLD = 4.6;
@@ -220,7 +224,8 @@ export default function BiosignatureSphere() {
     let raf = 0;
 
     function dockChip(targetKey: string) {
-      const el = labelRefs.current[IDX[targetKey]];
+      const i = KEY(targetKey);
+      const el = i >= 0 ? labelRefs.current[i] : null;
       if (!el || !overlay || !chip) return;
       const or = overlay.getBoundingClientRect();
       const lr = el.getBoundingClientRect();
@@ -236,20 +241,24 @@ export default function BiosignatureSphere() {
       const wob = Math.sin(t * 0.26) * 0.11 + pitch;
       const sweep = (t * 0.5) % TAU;
 
+      syncTargets();
       nodes.forEach((n) => {
-        n.clk += dt;
-        if (n.clk >= n.nx) {
-          n.clk = 0;
-          n.nx = 3 + Math.random() * 3;
-          n.pv = n.tv;
-          n.tv = n.lo + Math.random() * (n.hi - n.lo);
+        if (n.animT < 1) {
+          n.animT = Math.min(1, n.animT + dt / 0.7);
+          const e = 1 - Math.pow(1 - n.animT, 3);
+          n.cur = lerp(n.from, n.to, e);
         }
-        n.val = lerp(n.val, n.tv, 1 - Math.pow(0.002, dt));
       });
-      tClk += dt;
-      if (tClk >= HOLD) { tClk = 0; tIdx = (tIdx + 1) % TENS.length; }
-      const act = TENS[tIdx];
-      const aPh = Math.sin(Math.min(tClk / HOLD, 1) * Math.PI);
+
+      const tens = tensionsRef.current;
+      let act: ConstellationTension | null = null;
+      let aPh = 0;
+      if (tens.length > 0) {
+        tClk += dt;
+        if (tClk >= HOLD) { tClk = 0; tIdx = (tIdx + 1) % tens.length; }
+        act = tens[tIdx % tens.length];
+        aPh = Math.sin(Math.min(tClk / HOLD, 1) * Math.PI);
+      }
 
       ctx.clearRect(0, 0, W, H);
       const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 1.9);
@@ -273,9 +282,11 @@ export default function BiosignatureSphere() {
         ctx.fill();
       }
 
-      TENS.forEach((pr, i) => {
-        if (i === tIdx) return;
-        const a = nodes[IDX[pr.a]], b = nodes[IDX[pr.b]];
+      tens.forEach((pr, i) => {
+        if (act && i === tIdx % tens.length) return;
+        const ia = KEY(pr.a), ib = KEY(pr.b);
+        if (ia < 0 || ib < 0) return;
+        const a = nodes[ia], b = nodes[ib];
         const pa = proj(rotX(rotY(a, ang), wob)), pb = proj(rotX(rotY(b, ang), wob));
         ctx.beginPath();
         ctx.moveTo(pa.x, pa.y);
@@ -285,33 +296,40 @@ export default function BiosignatureSphere() {
         ctx.stroke();
       });
 
-      const na = nodes[IDX[act.a]], nb = nodes[IDX[act.b]], nt = nodes[IDX[act.target]];
-      const pa = proj(rotX(rotY(na, ang), wob)), pb = proj(rotX(rotY(nb, ang), wob));
-      ctx.beginPath();
-      ctx.moveTo(pa.x, pa.y);
-      ctx.lineTo(pb.x, pb.y);
-      ctx.strokeStyle = rgba(SIG.alert, 0.35 + aPh * 0.55);
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      const tr = Math.abs(((t * 0.6) % 2) - 1);
-      const dx = lerp(pa.x, pb.x, tr), dy = lerp(pa.y, pb.y, tr);
-      ctx.beginPath(); ctx.arc(dx, dy, 4, 0, TAU); ctx.fillStyle = rgba(SIG.alert, 0.2); ctx.fill();
-      ctx.beginPath(); ctx.arc(dx, dy, 2, 0, TAU); ctx.fillStyle = rgba(SIG.alert, 0.9); ctx.fill();
-
-      ctx.setLineDash([2, 3]);
-      ctx.beginPath();
-      ctx.moveTo(nt.rx, nt.ry);
-      ctx.lineTo(nt.rx, nt.ry + 14);
-      ctx.strokeStyle = rgba(SIG.alert, 0.3 + aPh * 0.3);
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.setLineDash([]);
+      if (act) {
+        const ia = KEY(act.a), ib = KEY(act.b), it = KEY(act.target);
+        if (ia >= 0 && ib >= 0) {
+          const na = nodes[ia], nb = nodes[ib];
+          const pa = proj(rotX(rotY(na, ang), wob)), pb = proj(rotX(rotY(nb, ang), wob));
+          ctx.beginPath();
+          ctx.moveTo(pa.x, pa.y);
+          ctx.lineTo(pb.x, pb.y);
+          ctx.strokeStyle = rgba(SIG.alert, 0.35 + aPh * 0.55);
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          const tr = Math.abs(((t * 0.6) % 2) - 1);
+          const dx = lerp(pa.x, pb.x, tr), dy = lerp(pa.y, pb.y, tr);
+          ctx.beginPath(); ctx.arc(dx, dy, 4, 0, TAU); ctx.fillStyle = rgba(SIG.alert, 0.2); ctx.fill();
+          ctx.beginPath(); ctx.arc(dx, dy, 2, 0, TAU); ctx.fillStyle = rgba(SIG.alert, 0.9); ctx.fill();
+        }
+        if (it >= 0) {
+          const nt = nodes[it];
+          ctx.setLineDash([2, 3]);
+          ctx.beginPath();
+          ctx.moveTo(nt.rx, nt.ry);
+          ctx.lineTo(nt.rx, nt.ry + 14);
+          ctx.strokeStyle = rgba(SIG.alert, 0.3 + aPh * 0.3);
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
 
       nodes.forEach((n) => {
         const q = rotX(rotY(n, ang), wob);
         const p = proj(q);
         const nv = normVal(n);
-        const on = n.k === act.a || n.k === act.b;
+        const on = !!act && (n.key === act.a || n.key === act.b);
         ctx.beginPath();
         ctx.arc(p.x, p.y, 2.2 + 2.2 * nv, 0, TAU);
         ctx.fillStyle = rgba(on ? SIG.alert : n.acc, 0.9);
@@ -328,25 +346,34 @@ export default function BiosignatureSphere() {
           const valEl = labelValRefs.current[i];
           if (valEl) valEl.textContent = fmt(n);
           const el = labelRefs.current[i];
-          if (el) el.classList.toggle("bs-hot", n.k === act.a || n.k === act.b);
+          if (el) el.classList.toggle("bs-hot", !!act && (n.key === act.a || n.key === act.b));
         });
-        if (chipTRef.current) chipTRef.current.textContent = act.tier;
-        if (chipCRef.current) chipCRef.current.textContent = act.rx;
-        if (chipDRef.current) chipDRef.current.textContent = act.dose;
-        if (chip) chip.style.opacity = String(0.55 + aPh * 0.45);
-        dockChip(act.target);
-        if (capDotRef.current) capDotRef.current.style.background = rgba(SIG.alert, SEV[act.sev]);
-        if (capTextRef.current) {
-          capTextRef.current.innerHTML =
-            `${act.a} ${trend(na)} ${fmt(na)} · ${act.b} ${trend(nb)} ${fmt(nb)} ` +
-            `<span class="bs-arrow">→</span> ${act.label} <span class="bs-arrow">→</span> ` +
-            `<span class="bs-rxc">${act.tier} ${act.rx} · ${act.dose}</span>`;
+        if (act) {
+          if (chipTRef.current) chipTRef.current.textContent = act.tier;
+          if (chipCRef.current) chipCRef.current.textContent = act.rx;
+          if (chipDRef.current) chipDRef.current.textContent = act.dose;
+          if (chip) chip.style.opacity = String(0.55 + aPh * 0.45);
+          dockChip(act.target);
+          if (capDotRef.current) capDotRef.current.style.background = rgba(SIG.alert, SEV_A[act.severity]);
+          if (capTextRef.current) {
+            const na = KEY(act.a) >= 0 ? nodes[KEY(act.a)] : null;
+            const nb = KEY(act.b) >= 0 ? nodes[KEY(act.b)] : null;
+            capTextRef.current.innerHTML =
+              (na ? `${na.label} ${fmt(na)} · ` : "") +
+              (nb ? `${nb.label} ${fmt(nb)} ` : "") +
+              `<span class="bs-arrow">→</span> ${act.label} <span class="bs-arrow">→</span> ` +
+              `<span class="bs-rxc">${act.tier} ${act.rx} · ${act.dose}</span>`;
+          }
+        } else {
+          if (chip) chip.style.opacity = "0";
+          if (capDotRef.current) capDotRef.current.style.background = rgba(SIG.ok, 0.6);
+          if (capTextRef.current) capTextRef.current.textContent = idleCaptionRef.current;
         }
       }
       if (!reduced) raf = requestAnimationFrame(draw);
     }
 
-    if (reduced) { draw(t0 + 16); dockChip(TENS[0].target); }
+    if (reduced) { draw(t0 + 16); if (tensionsRef.current[0]) dockChip(tensionsRef.current[0].target); }
     else raf = requestAnimationFrame(draw);
 
     let rt: ReturnType<typeof setTimeout>;
@@ -367,27 +394,25 @@ export default function BiosignatureSphere() {
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("resize", onResize);
     };
+    // metrics/tensions are read via refs inside the loop so it never restarts on prop change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="bs-panel">
       <div className="bs-bar">
-        <span className="bs-live"><i />Live · simulated</span>
+        <span className="bs-live"><i />Live</span>
         <span>
-          SESSION <b>AUR-3K88-R24W</b> · TEMPLATE <b>RECOVERY</b> · STACK <b>BPC-157 + TB-500</b>
+          SESSION <b>{sessionLabel}</b> · TEMPLATE <b>{templateLabel}</b> · STACK <b>{stackLabel}</b>
         </span>
       </div>
 
       <div className="bs-stage">
         <canvas ref={canvasRef} />
         <div className="bs-overlay" ref={overlayRef}>
-          {MET.map((m, i) => (
-            <div
-              key={m.k}
-              className="bs-mlabel"
-              ref={(el) => { labelRefs.current[i] = el; }}
-            >
-              {m.k}
+          {metrics.map((m, i) => (
+            <div key={m.key} className="bs-mlabel" ref={(el) => { labelRefs.current[i] = el; }}>
+              {m.label}
               <br />
               <span className="bs-v" ref={(el) => { labelValRefs.current[i] = el; }}>—</span>
             </div>
@@ -396,19 +421,13 @@ export default function BiosignatureSphere() {
           <div className="bs-chip" ref={chipRef} style={{ opacity: 0 }}>
             <div className="bs-chip-r">
               <span className="bs-chip-t" ref={chipTRef}>T1</span>
-              <span ref={chipCRef}>BPC-157</span>
+              <span ref={chipCRef}>—</span>
             </div>
-            <div className="bs-chip-d" ref={chipDRef}>250mcg · AM/PM</div>
+            <div className="bs-chip-d" ref={chipDRef} />
           </div>
 
-          <div className="bs-core" ref={coreRef} aria-hidden="true">
+          <div className="bs-core" aria-hidden="true">
             <svg viewBox="0 0 160 150" fill="none" strokeLinecap="round" strokeLinejoin="miter" strokeMiterlimit={9}>
-              <defs>
-                <linearGradient id="bsCoreGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#1C1A15" />
-                  <stop offset="100%" stopColor="#A32B1F" />
-                </linearGradient>
-              </defs>
               <g transform="translate(6,4) skewX(-7)" className="aura-svg aura-loop">
                 <g stroke="#1C1A15" strokeWidth={6}>
                   <path d="M30,128 L63,23" />
@@ -421,7 +440,6 @@ export default function BiosignatureSphere() {
               </g>
             </svg>
           </div>
-          <div className="bs-core-label" ref={coreLabelRef}>Under Construction</div>
         </div>
       </div>
 
