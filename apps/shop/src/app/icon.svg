@@ -1,12 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#0d1117"/>
-  <g transform="translate(11,9) scale(0.42)">
-    <g transform="translate(6,4) skewX(-7)" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="9">
-      <g stroke-width="15">
-        <path d="M30,128 L70,20"/>
-        <path d="M70,20 L110,128"/>
+  <rect width="64" height="64" rx="14" fill="#EDE9E0"/>
+  <g transform="translate(9,8) scale(0.335)">
+    <g transform="translate(6,4) skewX(-7)" fill="none" stroke="#1C1A15" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="9">
+      <g stroke-width="6">
+        <path d="M30,128 L63,23"/>
+        <path d="M77,23 L124,128"/>
       </g>
-      <path stroke-width="7" d="M36,108 L48,86 L60,86 L66,68 L72,108 L78,86 L98,86 L112,72"/>
+      <path stroke="#A32B1F" stroke-width="2.5" stroke-dasharray="100" pathLength="100"
+        d="M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86">
+        <animate attributeName="stroke-dashoffset" values="100;0;0;-100" keyTimes="0;0.55;0.82;1" dur="3.4s" repeatCount="indefinite"/>
+      </path>
     </g>
   </g>
 </svg>

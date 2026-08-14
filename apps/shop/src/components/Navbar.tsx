@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import AuraMark from "@/components/AuraMark";
+import AuraLockup from "@/components/AuraLockup";
 
 const links = [
   { label: "Products", href: "/products" },
@@ -19,9 +19,8 @@ export default function Navbar() {
       <nav className="p-top">
         <div className="p-container flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5" aria-label="Aura Protocols home">
-            <AuraMark size={36} mode="loop" />
-            <span className="p-serif-italic text-[21px] tracking-tight">Aura Protocols</span>
+          <Link href="/" className="flex items-center" aria-label="Aura Protocols home">
+            <AuraLockup size={70} mode="loop" />
           </Link>
 
           {/* Desktop links */}

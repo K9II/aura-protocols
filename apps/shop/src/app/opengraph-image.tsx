@@ -15,7 +15,7 @@ export default async function Image() {
     (
       <div
         style={{
-          background: "#04060f",
+          background: "#EDE9E0",
           width: "100%",
           height: "100%",
           display: "flex",
@@ -31,33 +31,7 @@ export default async function Image() {
             top: 0,
             width: 8,
             height: "100%",
-            background: "linear-gradient(180deg, #00d4ff, #8b5cf6)",
-          }}
-        />
-
-        {/* Top-right glow */}
-        <div
-          style={{
-            position: "absolute",
-            top: -120,
-            right: -80,
-            width: 600,
-            height: 600,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(0,212,255,0.18) 0%, transparent 65%)",
-          }}
-        />
-
-        {/* Bottom-left glow */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: -100,
-            left: 60,
-            width: 400,
-            height: 400,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 65%)",
+            background: "#A32B1F",
           }}
         />
 
@@ -84,7 +58,7 @@ export default async function Image() {
                 width: 10,
                 height: 10,
                 borderRadius: "50%",
-                background: "#00d4ff",
+                background: "#A32B1F",
               }}
             />
             <div
@@ -92,7 +66,7 @@ export default async function Image() {
                 fontFamily: "Syne",
                 fontSize: 18,
                 fontWeight: 700,
-                color: "#00d4ff",
+                color: "#4A4438",
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
               }}
@@ -115,7 +89,7 @@ export default async function Image() {
                 fontFamily: "Syne",
                 fontSize: 88,
                 fontWeight: 800,
-                color: "#f1f5f9",
+                color: "#1C1A15",
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
               }}
@@ -127,7 +101,7 @@ export default async function Image() {
                 fontFamily: "Syne",
                 fontSize: 88,
                 fontWeight: 800,
-                color: "#00d4ff",
+                color: "#A32B1F",
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
               }}
@@ -148,7 +122,7 @@ export default async function Image() {
               style={{
                 fontFamily: "Syne",
                 fontSize: 24,
-                color: "#64748b",
+                color: "#4A4438",
                 lineHeight: 1.4,
                 maxWidth: 560,
               }}
@@ -168,7 +142,7 @@ export default async function Image() {
                 style={{
                   width: 48,
                   height: 48,
-                  background: "linear-gradient(135deg, #00d4ff, #8b5cf6)",
+                  background: "#1C1A15",
                   borderRadius: 11,
                   display: "flex",
                   alignItems: "center",
@@ -186,11 +160,11 @@ export default async function Image() {
                   strokeMiterlimit={9}
                 >
                   <g transform="translate(6,4) skewX(-7)">
-                    <g strokeWidth={15}>
-                      <path d="M30,128 L70,20" />
-                      <path d="M70,20 L110,128" />
+                    <g strokeWidth={7}>
+                      <path d="M30,128 L63,23" />
+                      <path d="M77,23 L124,128" />
                     </g>
-                    <path strokeWidth={8} d="M36,108 L48,86 L60,86 L66,68 L72,108 L78,86 L98,86 L112,72" />
+                    <path stroke="#A32B1F" strokeWidth={4} d="M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86" />
                   </g>
                 </svg>
               </div>
@@ -198,7 +172,7 @@ export default async function Image() {
                 style={{
                   fontFamily: "Syne",
                   fontSize: 18,
-                  color: "#94a3b8",
+                  color: "#4A4438",
                   letterSpacing: "0.02em",
                 }}
               >

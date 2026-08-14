@@ -1,10 +1,9 @@
-// Aura brand symbol: the kinetic "A" whose crossbar is a flow-through ECG pulse
-// that draws the "p" (bowl + stem). Animation is pure CSS (see globals.css),
-// gated behind prefers-reduced-motion. Geometry is ported verbatim from the
-// approved design mockups — do not freestyle these paths.
+// Aura brand symbol: the kinetic "A", disconnected at the apex, with a live
+// EKG pulse threading through it — the pulse is pure animation, not a
+// letterform. Solid ink, no gradient, no ring. Geometry is finalized —
+// do not freestyle these paths.
 
-const PULSE =
-  "M34,110 L46,86 L58,86 L64,68 L70,108 L76,86 L92,86 L106,86 L118,87 L124,90 A19,19 0 1 0 124,52 L124,116";
+const PULSE = "M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86";
 
 type AuraMarkProps = {
   /** Rendered width in px; height scales to the 160×150 viewBox. */
@@ -29,7 +28,7 @@ export default function AuraMark({
       height={(size * 150) / 160}
       viewBox="0 0 160 150"
       fill="none"
-      stroke="url(#auraGrad)"
+      stroke="#1C1A15"
       strokeLinecap="round"
       strokeLinejoin="miter"
       strokeMiterlimit={9}
@@ -37,33 +36,25 @@ export default function AuraMark({
       role="img"
       aria-label="Aura Protocols"
     >
-      <defs>
-        <linearGradient id="auraGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#1C1A15" />
-          <stop offset="100%" stopColor="#A32B1F" />
-        </linearGradient>
-      </defs>
       <g transform="translate(6,4) skewX(-7)">
-        {/* kinetic A */}
-        <g strokeWidth={14}>
-          <path d="M30,128 L70,20" />
-          <path d="M70,20 L110,128" />
+        {/* kinetic A — disconnected at the apex */}
+        <g strokeWidth={6}>
+          <path d="M30,128 L63,23" />
+          <path d="M77,23 L124,128" />
         </g>
-        {/* faint aura echo ring */}
-        <path d="M124,46 A26,26 0 1 1 124,98" strokeWidth={3.5} opacity={0.26} />
-        {/* pulse that draws the p — blurred glow under, crisp stroke over */}
-        <path className="aura-glow" pathLength={100} strokeWidth={9} d={PULSE} />
-        <path className="aura-pulse" pathLength={100} strokeWidth={6} d={PULSE} />
+        {/* live EKG pulse — animation only, never a letterform */}
+        <path className="aura-glow" pathLength={100} stroke="#A32B1F" strokeWidth={4} d={PULSE} />
+        <path className="aura-pulse" pathLength={100} stroke="#A32B1F" strokeWidth={2.5} d={PULSE} />
         {animated && (
           <>
             <circle
               className="aura-comet"
-              r={4}
+              r={2.5}
               fill="#EDE9E0"
               stroke="none"
               style={{ offsetPath: `path('${PULSE}')` }}
             />
-            <circle className="aura-spark" cx={124} cy={116} r={5} fill="#EDE9E0" stroke="none" />
+            <circle className="aura-spark" cx={100} cy={86} r={3} fill="#EDE9E0" stroke="none" />
           </>
         )}
       </g>

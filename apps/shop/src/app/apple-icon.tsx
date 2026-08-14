@@ -28,11 +28,11 @@ export default function AppleIcon() {
           strokeMiterlimit={9}
         >
           <g transform="translate(6,4) skewX(-7)">
-            <g strokeWidth={15}>
-              <path d="M30,128 L70,20" />
-              <path d="M70,20 L110,128" />
+            <g strokeWidth={7}>
+              <path d="M30,128 L63,23" />
+              <path d="M77,23 L124,128" />
             </g>
-            <path strokeWidth={8} d="M36,108 L48,86 L60,86 L66,68 L72,108 L78,86 L98,86 L112,72" />
+            <path stroke="#A32B1F" strokeWidth={4} d="M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86" />
           </g>
         </svg>
       </div>

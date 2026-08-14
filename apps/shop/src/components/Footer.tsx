@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { categories } from "@/data/products";
+import AuraLockup from "@/components/AuraLockup";
 
 const socials = [
   {
@@ -40,7 +41,7 @@ export default function Footer() {
         <div className="grid gap-[30px] mb-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           {/* Brand */}
           <div>
-            <p className="p-serif-italic text-lg mb-3">Aura Protocols</p>
+            <AuraLockup size={110} mode="once" className="mb-4" />
             <p className="text-[13px] text-[color:var(--ink-soft)] max-w-[32ch] mb-5">
               An independent, editorially-reviewed index of research peptides — matched to your data, verified to
               the batch.
