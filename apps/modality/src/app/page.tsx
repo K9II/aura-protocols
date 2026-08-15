@@ -112,12 +112,11 @@ export default async function Page({
           <div>
             <p className="kicker">Medically-supervised GLP-1</p>
             <h1 className="hero-title long">
-              Care that&apos;s <em>actually</em> matched to you — starting with 15–20% weight loss.
+              Your biology isn&apos;t <em>generic</em>. Your protocol shouldn&apos;t be either.
             </h1>
             <p className="hero-sub">
-              Real clinicians, your biology: compounded GLP-1, prescribed by a licensed clinician when
-              it&apos;s right and built around your body. Connect a wearable and your protocol personalizes
-              further to your recovery, glucose, and sleep.
+              Compounded GLP-1, matched by a licensed clinician — patients average 15–20% weight loss.
+              Connect a wearable and your protocol personalizes further to your recovery, glucose, and sleep.
             </p>
             <div className="cta-row">
               <a className="btn btn-primary" href="#protocols">See if you qualify →</a>
