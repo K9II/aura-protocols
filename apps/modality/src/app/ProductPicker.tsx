@@ -58,7 +58,13 @@ export default function ProductPicker({ lane, sub, signalMatch }: Props) {
 
   return (
     <>
-      <button type="button" className="irow" aria-expanded={isOpen} onClick={onRowClick}>
+      <button
+        type="button"
+        className="irow"
+        aria-expanded={isOpen}
+        aria-label={mode === "shortcut" ? `Start a visit for ${lane.label}` : `View ${lane.label} options`}
+        onClick={onRowClick}
+      >
         <span className="code">{lane.code}</span>
         <span className="nm">
           {lane.label}
