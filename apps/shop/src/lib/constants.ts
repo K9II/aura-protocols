@@ -1,4 +1,4 @@
-export const ENGINE_URL = "https://auraprotocols.com";
+export const ENGINE_URL = "https://engine.auraprotocols.com";
 export const AFFILIATE_REL = "noopener noreferrer sponsored";
 export const EXTERNAL_REL = "noopener noreferrer";
 
@@ -51,6 +51,6 @@ export const ENGINE_CTA_COPY = {
   inlineBody: "Connect Whoop, Oura, or Apple Health and the Engine will tune it to your recovery, sleep, and stress data.",
   inlineAction: "Connect a wearable →",
   cardHeading: "Make this protocol yours",
-  cardBody: "The Engine reads your biometrics and personalizes dosing, timing, and stacking — free at auraprotocols.com.",
+  cardBody: "The Engine reads your biometrics and personalizes dosing, timing, and stacking — free at engine.auraprotocols.com.",
   cardAction: "Try the Engine →",
 };

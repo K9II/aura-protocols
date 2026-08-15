@@ -122,7 +122,7 @@ export const posts: Post[] = [
       {
         type: "ul",
         items: [
-          "Step 1 — Connect a wearable for free at auraprotocols.com (Whoop, Oura, or Apple Health)",
+          "Step 1 — Connect a wearable for free at engine.auraprotocols.com (Whoop, Oura, or Apple Health)",
           "Step 2 — The Engine reads your recovery, sleep, and HRV and identifies what your data is pointing to",
           "Step 3 — You get a research peptide protocol tuned to that picture — compounds, dosing, timing, and where to source COA-verified material",
           "Step 4 — When you're ready to move from research to a supervised plan, a US-licensed MD-prescribed path is available",
@@ -158,7 +158,7 @@ export const posts: Post[] = [
           },
           {
             q: "Is connecting a wearable free?",
-            a: "Yes. You can connect a wearable and get a data-matched starting protocol for free at auraprotocols.com. The optional MD-prescribed path is a separate, supervised step you choose only when you're ready.",
+            a: "Yes. You can connect a wearable and get a data-matched starting protocol for free at engine.auraprotocols.com. The optional MD-prescribed path is a separate, supervised step you choose only when you're ready.",
           },
           {
             q: "How is this different from the protocol templates I can find for free?",
