@@ -96,7 +96,7 @@ body {
 .protocols-head h2 { font-family: var(--serif); font-weight: 600; font-size: 1.3rem; margin: 0; }
 .protocols-head .note { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
 .idx { margin-top: 6px; }
-.irow { display: grid; grid-template-columns: 2.4rem 1fr auto auto; gap: 16px; align-items: center; padding: 16px 4px; border-bottom: 1px solid var(--line-soft); text-decoration: none; color: inherit; transition: background .16s; width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-top: 0; cursor: pointer; font: inherit; }
+.irow { display: grid; grid-template-columns: 2.4rem 1fr auto auto 1.2rem; gap: 16px; align-items: center; padding: 16px 4px; border-bottom: 1px solid var(--line-soft); text-decoration: none; color: inherit; transition: background .16s; width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-top: 0; cursor: pointer; font: inherit; }
 .irow:hover { background: var(--tint); }
 .irow .code { font-family: var(--mono); font-size: 0.8rem; color: var(--accent); font-weight: 600; }
 .irow .nm { font-family: var(--serif); font-size: 1.16rem; }
@@ -107,6 +107,7 @@ body {
 @media (max-width: 560px) {
   .irow { grid-template-columns: 2rem 1fr; }
   .irow .flag, .irow .px { grid-column: 2; text-align: left; }
+  .irow .chev { display: none; }
 }
 
 /* ---------- trust ribbon ---------- */
@@ -221,6 +222,24 @@ body {
 .m-modal .skip:hover { color: var(--ink-soft); }
 .m-modal .fine { margin-top: 14px; font-size: 0.72rem; line-height: 1.5; color: var(--ink-faint); }
 .m-modal .fine a { color: var(--accent); text-decoration: underline; }
+
+/* ---------- product picker (inline expand / modal) ---------- */
+.irow .chev { font-size: 1.1rem; color: var(--ink-faint); transition: transform .18s; }
+.irow[aria-expanded="true"] .chev { transform: rotate(90deg); color: var(--accent); }
+
+.expand-panel { padding: 4px 4px 18px 3.4rem; }
+.grp { margin: 14px 0 4px; }
+.grp:first-child { margin-top: 6px; }
+.grp-h { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 8px; }
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.pcard { border: 1px solid var(--line); border-radius: 8px; padding: 11px 13px; background: #fff; cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit; transition: border-color .15s, background .15s; }
+.pcard:hover { border-color: var(--accent); background: var(--tint); }
+.pcard .pn { font-weight: 600; font-size: 0.88rem; margin-bottom: 3px; }
+.pcard .pp { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 0.76rem; color: var(--accent); }
+.pcard .pp small { color: var(--ink-faint); font-family: var(--sans); }
+
+/* wider variant of .m-modal for the product picker (source order makes this win) */
+.picker-modal { max-width: 560px; max-height: 70vh; overflow-y: auto; }
 
 a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
