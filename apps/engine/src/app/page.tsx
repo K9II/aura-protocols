@@ -9,7 +9,9 @@ export default function HomePage() {
           Connect your wearable. Get a peptide protocol tuned to <em className="p-serif-italic text-[color:var(--specimen)]">your data.</em>
         </h1>
         <div className="p-callout border border-[color:var(--line)] px-6 py-10 text-center">
-          <BiosignatureSphere />
+          <div className="max-w-xl mx-auto">
+            <BiosignatureSphere />
+          </div>
           <p className="text-sm text-[color:var(--ink-soft)] mt-4">The Engine is being rebuilt. Check back soon.</p>
         </div>
         <p className="mt-8 text-xs text-[color:var(--ink-faint)] leading-relaxed">
