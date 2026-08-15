@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BUDGET_TIER_LABELS } from "@/lib/constants";
+import { BUDGET_TIER_LABELS, SHOP_URL } from "@/lib/constants";
 import type { BudgetTierId } from "@/lib/constants";
 import { emptyIntakeState } from "@/lib/profile/intake-state";
 import type { IntakeState } from "@/lib/profile/intake-state";
 
-const SHOP_URL = "https://shop.auraprotocols.com";
 const LBS_PER_KG = 2.2046226218;
 
 function toKg(weight: string, unit: "lbs" | "kg"): number | null {

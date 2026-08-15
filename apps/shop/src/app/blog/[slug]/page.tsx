@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: `${post.title} — Aura Protocols`,
       description: post.excerpt,
-      url: `https://shop.auraprotocols.com/blog/${post.slug}`,
+      url: `https://auraprotocols.com/blog/${post.slug}`,
       images: [{ url: `/blog/${post.slug}/opengraph-image`, width: 1200, height: 630, alt: post.title }],
     },
     twitter: {
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-const BASE_URL = "https://shop.auraprotocols.com";
+const BASE_URL = "https://auraprotocols.com";
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

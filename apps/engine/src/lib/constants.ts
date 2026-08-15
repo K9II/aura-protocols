@@ -1,5 +1,5 @@
-export const BASE_URL = "https://auraprotocols.com";
-export const SHOP_URL = "https://shop.auraprotocols.com";
+export const BASE_URL = "https://engine.auraprotocols.com";
+export const SHOP_URL = "https://auraprotocols.com";
 export const EXTERNAL_REL = "noopener noreferrer";
 export const AFFILIATE_REL = "noopener noreferrer sponsored";
 

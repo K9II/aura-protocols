@@ -18,7 +18,7 @@ export default function TermsPage() {
         <section>
           <h2 className="p-serif text-xl mt-10 mb-3 text-[color:var(--ink)]">Introduction</h2>
           <p>
-            By accessing or using <span className="text-[color:var(--ink)]">shop.auraprotocols.com</span> (the &ldquo;Site&rdquo;), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Site. These terms apply to all visitors and users of the Site.
+            By accessing or using <span className="text-[color:var(--ink)]">auraprotocols.com</span> (the &ldquo;Site&rdquo;), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Site. These terms apply to all visitors and users of the Site.
           </p>
         </section>
 

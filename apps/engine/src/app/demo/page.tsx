@@ -198,7 +198,7 @@ function DemoIntakeForm({ onComplete }: { onComplete: (profile: CollectedProfile
           </div>
 
           <div className="flex items-center justify-between border-t border-[color:var(--line)] pt-4">
-            <a href="https://shop.auraprotocols.com" className="text-xs text-[color:var(--ink-faint)] underline underline-offset-2 transition hover:text-[color:var(--specimen)]">
+            <a href="https://auraprotocols.com" className="text-xs text-[color:var(--ink-faint)] underline underline-offset-2 transition hover:text-[color:var(--specimen)]">
               Not ready yet? Browse the shop →
             </a>
             <button

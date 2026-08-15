@@ -157,7 +157,7 @@ export default async function Image({
               </div>
             </div>
             <div style={{ fontFamily: "Syne", fontSize: 16, color: accent, opacity: 0.8 }}>
-              shop.auraprotocols.com
+              auraprotocols.com
             </div>
           </div>
         </div>

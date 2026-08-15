@@ -86,7 +86,7 @@ export default function CheatSheetPrintPage() {
           </div>
           <div className="text-right">
             <h1 className="font-display text-lg font-bold leading-tight">The Peptide Protocol Cheat Sheet</h1>
-            <p className="text-[9px] text-slate-500">Research reference only — not medical advice · All compounds for laboratory use · shop.auraprotocols.com</p>
+            <p className="text-[9px] text-slate-500">Research reference only — not medical advice · All compounds for laboratory use · auraprotocols.com</p>
           </div>
         </header>
 
@@ -158,7 +158,7 @@ export default function CheatSheetPrintPage() {
             Affiliate Disclosure: Aura Protocols earns commissions from qualifying purchases via affiliate links — this does not affect editorial
             independence. For research purposes only; not intended to diagnose, treat, cure, or prevent any disease.
           </p>
-          <p className="mt-0.5 font-semibold text-slate-600">© 2026 Aura Protocols LLC · shop.auraprotocols.com</p>
+          <p className="mt-0.5 font-semibold text-slate-600">© 2026 Aura Protocols LLC · auraprotocols.com</p>
         </footer>
       </div>
     </>

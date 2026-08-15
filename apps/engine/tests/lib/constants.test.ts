@@ -7,7 +7,7 @@ describe("prescribe routing constants", () => {
     expect(PRESCRIBE_LABEL).toMatch(/Modality/);
   });
   it("keeps the shop as the research/affiliate lane", () => {
-    expect(SHOP_URL).toBe("https://shop.auraprotocols.com");
+    expect(SHOP_URL).toBe("https://auraprotocols.com");
   });
   it("no longer exports the shelved Aura Clinical url", async () => {
     const mod = await import("@/lib/constants");

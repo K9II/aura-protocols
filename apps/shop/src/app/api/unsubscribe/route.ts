@@ -18,7 +18,7 @@ export async function GET(request: Request): Promise<Response> {
 
   return htmlPage(
     "You've been unsubscribed",
-    "You won't receive any more protocol emails from Aura Protocols. Changed your mind? You can re-subscribe anytime at shop.auraprotocols.com.",
+    "You won't receive any more protocol emails from Aura Protocols. Changed your mind? You can re-subscribe anytime at auraprotocols.com.",
     200
   );
 }
@@ -43,7 +43,7 @@ function htmlPage(heading: string, body: string, status: number): Response {
   <div class="card">
     <h1>${heading}</h1>
     <p>${body}</p>
-    <a class="btn" href="https://shop.auraprotocols.com">Back to Aura Protocols</a>
+    <a class="btn" href="https://auraprotocols.com">Back to Aura Protocols</a>
   </div>
 </body>
 </html>`;

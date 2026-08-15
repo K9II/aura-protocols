@@ -18,7 +18,7 @@ export const LEAD_MAGNET_TEMPLATES: Record<LeadMagnetGoal, Template> = {
 <li><b>IGF-1 LR3</b> — 20–50 mcg/day, SubQ/IM, post-training. Long-acting IGF-1 analog studied for muscle protein synthesis — the downstream signal GH pulses are trying to trigger.</li>
 </ul>
 
-<p><a href="https://shop.auraprotocols.com/products/cjc-1295-ipamorelin">See CJC-1295/Ipamorelin sourcing</a> &middot; <a href="https://shop.auraprotocols.com/products/igf-1-lr3">See IGF-1 LR3 sourcing</a></p>
+<p><a href="https://auraprotocols.com/products/cjc-1295-ipamorelin">See CJC-1295/Ipamorelin sourcing</a> &middot; <a href="https://auraprotocols.com/products/igf-1-lr3">See IGF-1 LR3 sourcing</a></p>
 
 <p><b>Make it personal:</b> connect your Whoop, Oura, or Apple Health and the Aura Engine tunes timing and dosing to your actual recovery and sleep data — not a generic protocol.</p>
 
@@ -34,7 +34,7 @@ export const LEAD_MAGNET_TEMPLATES: Record<LeadMagnetGoal, Template> = {
 <li><b>AOD-9604</b> — 250–300 mcg/day, SubQ, fasted AM. hGH fragment studied specifically for fat metabolism, without the blood-sugar or IGF-1 effects of full-length GH peptides.</li>
 </ul>
 
-<p><a href="https://shop.auraprotocols.com/products/semaglutide">See Semaglutide sourcing</a> &middot; <a href="https://shop.auraprotocols.com/products/retatrutide">See Retatrutide sourcing</a> &middot; <a href="https://shop.auraprotocols.com/products/aod-9604">See AOD-9604 sourcing</a></p>
+<p><a href="https://auraprotocols.com/products/semaglutide">See Semaglutide sourcing</a> &middot; <a href="https://auraprotocols.com/products/retatrutide">See Retatrutide sourcing</a> &middot; <a href="https://auraprotocols.com/products/aod-9604">See AOD-9604 sourcing</a></p>
 
 <p><b>Make it personal:</b> connect a wearable and the Aura Engine tunes this to your actual recovery and metabolic data.</p>
 
@@ -50,7 +50,7 @@ export const LEAD_MAGNET_TEMPLATES: Record<LeadMagnetGoal, Template> = {
 <li><b>IGF-1 LR3</b> — 20–50 mcg/day, SubQ/IM, post-training. Extended-half-life IGF-1 analog studied for muscle protein synthesis.</li>
 </ul>
 
-<p><a href="https://shop.auraprotocols.com/products/cjc-1295-ipamorelin">See CJC-1295/Ipamorelin sourcing</a> &middot; <a href="https://shop.auraprotocols.com/products/tesamorelin">See Tesamorelin sourcing</a> &middot; <a href="https://shop.auraprotocols.com/products/igf-1-lr3">See IGF-1 LR3 sourcing</a></p>
+<p><a href="https://auraprotocols.com/products/cjc-1295-ipamorelin">See CJC-1295/Ipamorelin sourcing</a> &middot; <a href="https://auraprotocols.com/products/tesamorelin">See Tesamorelin sourcing</a> &middot; <a href="https://auraprotocols.com/products/igf-1-lr3">See IGF-1 LR3 sourcing</a></p>
 
 <p><b>Make it personal:</b> connect your Whoop, Oura, or Apple Health and the Aura Engine tunes dosing and timing to your training load and recovery data.</p>
 
@@ -66,7 +66,7 @@ export const LEAD_MAGNET_TEMPLATES: Record<LeadMagnetGoal, Template> = {
 <li><b>Epithalon</b> — 5–10 mg/day, SubQ/IV, in 10–20 day cycles (1–2x/year). Studied for pineal gland regulation and melatonin output.</li>
 </ul>
 
-<p><a href="https://shop.auraprotocols.com/products/dsip">See DSIP sourcing</a> &middot; <a href="https://shop.auraprotocols.com/products/bpc-157">See BPC-157 sourcing</a> &middot; <a href="https://shop.auraprotocols.com/products/epithalon">See Epithalon sourcing</a></p>
+<p><a href="https://auraprotocols.com/products/dsip">See DSIP sourcing</a> &middot; <a href="https://auraprotocols.com/products/bpc-157">See BPC-157 sourcing</a> &middot; <a href="https://auraprotocols.com/products/epithalon">See Epithalon sourcing</a></p>
 
 <p><b>Make it personal:</b> connect your Whoop, Oura, or Apple Health and the Aura Engine tunes this to your actual sleep and recovery data.</p>
 
@@ -74,12 +74,12 @@ export const LEAD_MAGNET_TEMPLATES: Record<LeadMagnetGoal, Template> = {
   },
 };
 
-const UNSUBSCRIBE_BASE = "https://shop.auraprotocols.com/api/unsubscribe";
+const UNSUBSCRIBE_BASE = "https://auraprotocols.com/api/unsubscribe";
 
 function unsubscribeFooter(recipientEmail: string): string {
   const url = `${UNSUBSCRIBE_BASE}?email=${encodeURIComponent(recipientEmail)}`;
   return `<hr style="margin-top:32px;border:none;border-top:1px solid #dddddd;">
-<p style="font-size:12px;color:#888888;">You're receiving this because you requested a starting protocol at <a href="https://shop.auraprotocols.com">shop.auraprotocols.com</a>. <a href="${url}">Unsubscribe with one click</a>.</p>`;
+<p style="font-size:12px;color:#888888;">You're receiving this because you requested a starting protocol at <a href="https://auraprotocols.com">auraprotocols.com</a>. <a href="${url}">Unsubscribe with one click</a>.</p>`;
 }
 
 // Every send must carry a working unsubscribe link (CAN-SPAM + SES deliverability),
