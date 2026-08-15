@@ -3,9 +3,10 @@ import { getPartnerId, TELEHEALTH_CATEGORIES, categoryLabel } from "@/lib/telehe
 import { fetchCatalog } from "@/lib/telehealth/catalog";
 import { subForUtm } from "@/lib/telehealth/channels";
 import type { CatalogProduct } from "@/lib/telehealth/types";
+import { groupProducts } from "@/lib/telehealth/groups";
 import { RATING, PROOF_STATS, TESTIMONIALS, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
-import StartVisit from "./StartVisit";
+import ProductPicker, { type Lane } from "./ProductPicker";
 import LeadCapture from "./LeadCapture";
 
 export const dynamic = "force-dynamic"; // catalog is no-store / live
@@ -30,20 +31,10 @@ const PREFER: Record<string, RegExp> = {
   "weight-loss": /semaglutide|tirzepatide/i,
 };
 
-type Lane = {
-  category: string;
-  code: string;
-  label: string;
-  desc: string;
-  fromAmount: number | null;
-  productId: string;
-};
-
 /** Collapse a category's products into a single browsable lane. A representative
  *  product carries the hand-off and sets the "from" price: the cheapest product
  *  matching the lane's PREFER pattern (e.g. GLP-1 for Weight Loss), else the
- *  cheapest purchasable product overall. The description leads with that
- *  representative. Returns null for an empty category. */
+ *  cheapest purchasable product overall. Returns null for an empty category. */
 function buildLane(category: string, products: CatalogProduct[]): Lane | null {
   if (products.length === 0) return null;
   const priceOf = (p: CatalogProduct) => p.fromPrice?.amount ?? Infinity;
@@ -55,17 +46,13 @@ function buildLane(category: string, products: CatalogProduct[]): Lane | null {
   const candidates = preferred.length ? preferred : pool;
   const rep = candidates.reduce((lo, p) => (priceOf(p) < priceOf(lo) ? p : lo));
 
-  const desc = [rep.name, ...products.filter((p) => p.id !== rep.id).map((p) => p.name)]
-    .slice(0, 3)
-    .join(" · ");
-
   return {
     category,
     code: CODE[category] ?? category.slice(0, 2).toUpperCase(),
     label: categoryLabel(category),
-    desc,
     fromAmount: rep.fromPrice?.amount ?? null,
     productId: rep.id,
+    groups: groupProducts(products),
   };
 }
 
@@ -233,18 +220,12 @@ export default async function Page({
           ) : (
             <div className="idx" style={{ marginTop: 14 }}>
               {lanes.map((l) => (
-                <StartVisit key={l.category} category={l.category} productId={l.productId} label={l.label} sub={sub} className="irow">
-                  <span className="code">{l.code}</span>
-                  <span className="nm">{l.label}{l.desc && <small>{l.desc}</small>}</span>
-                  {SIGNAL_CONNECTED && SIGNAL_LANES.has(l.category)
-                    ? <span className="flag">★ Matches your signal</span>
-                    : <span aria-hidden="true" />}
-                  <span className="px">
-                    {l.fromAmount != null
-                      ? <><small>from</small> ${l.fromAmount}<small>/mo</small></>
-                      : <small>See options</small>}
-                  </span>
-                </StartVisit>
+                <ProductPicker
+                  key={l.category}
+                  lane={l}
+                  sub={sub}
+                  signalMatch={SIGNAL_CONNECTED && SIGNAL_LANES.has(l.category)}
+                />
               ))}
             </div>
           )}
