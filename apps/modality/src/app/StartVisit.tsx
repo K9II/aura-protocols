@@ -53,6 +53,7 @@ export default function StartVisit({ category, productId, label, sub, open, onCl
         <p className="mtag">Before your visit</p>
         <h2>Save your {label} match</h2>
         <p>We&apos;ll keep your protocol and check in on your progress — then connect you with a licensed clinician.</p>
+        <p className="hint">Interested in more than one? Your clinician can add other protocols during your visit.</p>
 
         <form onSubmit={handleContinue}>
           <input
@@ -67,10 +68,6 @@ export default function StartVisit({ category, productId, label, sub, open, onCl
             {submitting ? "One moment…" : "Continue to my visit →"}
           </button>
         </form>
-
-        <button type="button" className="skip" onClick={() => go(goUrl)}>
-          Skip and continue
-        </button>
 
         <p className="fine">
           By continuing you agree to receive protocol updates from Modality. Modality is a referral
