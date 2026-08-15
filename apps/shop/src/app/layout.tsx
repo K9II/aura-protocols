@@ -20,7 +20,7 @@ const newsreader = Newsreader({
   variable: "--font-newsreader",
 });
 
-const BASE_URL = "https://shop.auraprotocols.com";
+const BASE_URL = "https://auraprotocols.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

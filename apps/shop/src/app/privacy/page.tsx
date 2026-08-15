@@ -19,7 +19,7 @@ export default function PrivacyPage() {
           <h2 className="p-serif text-xl mt-10 mb-3 text-[color:var(--ink)]">Introduction</h2>
           <p>
             Aura Protocols (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is committed to transparency in all aspects of how we operate, including how we handle your data. This Privacy Policy explains what information is collected when you visit{" "}
-            <span className="text-[color:var(--ink)]">shop.auraprotocols.com</span>, how it is used, and your rights with respect to that information.
+            <span className="text-[color:var(--ink)]">auraprotocols.com</span>, how it is used, and your rights with respect to that information.
           </p>
         </section>
 

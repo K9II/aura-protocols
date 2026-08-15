@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { products } from "@/data/products";
 import { posts } from "@/data/posts";
 
-const BASE_URL = "https://shop.auraprotocols.com";
+const BASE_URL = "https://auraprotocols.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [

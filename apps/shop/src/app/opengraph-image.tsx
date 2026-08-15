@@ -176,7 +176,7 @@ export default async function Image() {
                   letterSpacing: "0.02em",
                 }}
               >
-                shop.auraprotocols.com
+                auraprotocols.com
               </div>
             </div>
           </div>

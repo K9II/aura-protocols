@@ -26,7 +26,7 @@ describe("leadMagnetEmails", () => {
       expect(template.html).toContain("consult a physician");
       // CAN-SPAM / SES best practice: every email must carry a working unsubscribe link.
       expect(template.html).toContain(
-        "https://shop.auraprotocols.com/api/unsubscribe?email=reader%40example.com"
+        "https://auraprotocols.com/api/unsubscribe?email=reader%40example.com"
       );
       expect(template.html.toLowerCase()).toContain("unsubscribe");
     }
@@ -35,15 +35,15 @@ describe("leadMagnetEmails", () => {
   it("url-encodes the recipient email in the unsubscribe link", () => {
     const template = getLeadMagnetTemplate("Weight Loss", "a+b@example.com");
     expect(template.html).toContain(
-      "https://shop.auraprotocols.com/api/unsubscribe?email=a%2Bb%40example.com"
+      "https://auraprotocols.com/api/unsubscribe?email=a%2Bb%40example.com"
     );
   });
 
   it("getLeadMagnetTemplate returns the Weight Loss template with real product links", () => {
     const template = getLeadMagnetTemplate("Weight Loss", RECIPIENT);
     expect(template.subject).toBe("Your weight-loss starting protocol — 3 compounds, real doses");
-    expect(template.html).toContain("https://shop.auraprotocols.com/products/semaglutide");
-    expect(template.html).toContain("https://shop.auraprotocols.com/products/retatrutide");
-    expect(template.html).toContain("https://shop.auraprotocols.com/products/aod-9604");
+    expect(template.html).toContain("https://auraprotocols.com/products/semaglutide");
+    expect(template.html).toContain("https://auraprotocols.com/products/retatrutide");
+    expect(template.html).toContain("https://auraprotocols.com/products/aod-9604");
   });
 });
