@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Modality">
+  <title>Modality</title>
+  <rect width="64" height="64" rx="14" fill="#ECEDE7"/>
+  <g fill="none" stroke="#211E1B" stroke-linecap="round" transform="translate(12,5)">
+    <path d="M 10 8 Q 12 18 10 32" stroke-width="3"/>
+    <path d="M 20 5 L 20 50" stroke-width="3.6"/>
+    <path d="M 30 8 Q 28 18 30 32" stroke-width="3"/>
+  </g>
+</svg>

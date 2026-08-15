@@ -1,0 +1,251 @@
+<title>Modality — Direction D in Direction E's palette</title>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --w-bg:#EDEEEC; --w-card:#F7F8F6; --w-ink:#1B1E1C; --w-soft:#5E655F; --w-faint:#8B918B;
+    --w-line:rgba(27,30,28,0.12);
+    --w-sans:"Helvetica Neue",Helvetica,Arial,"Segoe UI",system-ui,sans-serif;
+    --w-mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){ :root{ --w-bg:#17191A; --w-card:#1F2221; --w-ink:#ECEEEB; --w-soft:#AEB4AE; --w-faint:#7C827D; --w-line:rgba(236,238,235,0.12);} }
+  :root[data-theme="light"]{ --w-bg:#EDEEEC; --w-card:#F7F8F6; --w-ink:#1B1E1C; --w-soft:#5E655F; --w-faint:#8B918B; --w-line:rgba(27,30,28,0.12);}
+  :root[data-theme="dark"]{ --w-bg:#17191A; --w-card:#1F2221; --w-ink:#ECEEEB; --w-soft:#AEB4AE; --w-faint:#7C827D; --w-line:rgba(236,238,235,0.12);}
+  body { margin:0; background:var(--w-bg); color:var(--w-ink); font-family:var(--w-sans); line-height:1.55; -webkit-font-smoothing:antialiased; }
+  .study { max-width:1080px; margin:0 auto; padding:44px 24px 72px; }
+  .study-eyebrow { font-family:var(--w-mono); font-size:0.68rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--w-faint); margin:0 0 12px; }
+  .study-title { font-weight:700; font-size:clamp(1.5rem,3.6vw,2.1rem); letter-spacing:-0.01em; margin:0 0 12px; text-wrap:balance; }
+  .study-lede { color:var(--w-soft); max-width:72ch; margin:0 0 24px; font-size:1rem; }
+  .study-lede b { color:var(--w-ink); font-weight:600; }
+
+  .frame { border:1px solid var(--w-line); border-radius:12px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.03), 0 40px 80px -50px rgba(0,0,0,0.5); background:#fff; }
+  .chrome { display:flex; align-items:center; gap:7px; padding:11px 14px; background:#E9EAE7; border-bottom:1px solid rgba(0,0,0,0.08); }
+  .chrome .dot { width:11px; height:11px; border-radius:50%; background:#CBCCC8; }
+  .chrome .addr { margin-left:12px; font-family:var(--w-mono); font-size:0.66rem; color:#7C817B; background:#F3F4F1; border:1px solid rgba(0,0,0,0.06); padding:4px 12px; border-radius:20px; }
+  .chrome .addr b { color:#3B3F3A; font-weight:600; }
+  @media (prefers-reduced-motion:reduce){ *{ animation:none !important; transition:none !important; } }
+
+  /* biosphere shared */
+  .bios { position:relative; }
+  .bios canvas { display:block; width:100%; height:auto; cursor:grab; touch-action:none; }
+  .bios .labels { position:absolute; inset:0; pointer-events:none; }
+  .bios-label { position:absolute; font-family:var(--w-mono); font-size:9px; letter-spacing:0.05em; text-transform:uppercase; line-height:1.35; white-space:nowrap; transition:color .3s, opacity .3s; }
+  .bios-label .v { font-weight:600; }
+  .bios-label .lane { display:block; font-size:8.5px; }
+  .bios-readout { display:flex; align-items:center; justify-content:center; gap:8px; min-height:34px; font-family:var(--w-mono); font-size:10.5px; letter-spacing:0.02em; }
+  .bios-readout .sev { width:6px; height:6px; border-radius:50%; flex:none; }
+  .bios-cap { display:flex; align-items:center; justify-content:center; gap:8px; padding:14px 0 4px; font-family:var(--w-mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; }
+  .bios-cap .live { width:6px; height:6px; border-radius:50%; display:inline-block; animation:blip 1.8s ease-in-out infinite; }
+  @keyframes blip { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+  /* =====================================================================
+     DIRECTION D layout  ·  wearing DIRECTION E's bordeaux-on-bone palette
+     (only the color tokens changed; the Two-Doors layout is D's)
+     ===================================================================== */
+  .dir-d {
+    --paper:#ECEDE7; --paper2:#E3E4DC; --ink:#211E1B; --soft:#615B54; --faint:#8E877D;
+    --line:rgba(33,30,27,0.16); --line-soft:rgba(33,30,27,0.09); --accent:#7A2E2E; --accent-ink:#5F2323; --tint:#7A2E2E12;
+    --serif:"Newsreader","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:"Helvetica Neue",Helvetica,Arial,"Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    background:var(--paper); color:var(--ink); font-family:var(--sans);
+  }
+  .dir-d .pad { padding:clamp(26px,4.6vw,52px); }
+  .dir-d .wm { display:flex; align-items:center; gap:11px; margin-bottom:8px; }
+  .dir-d .wm .g { width:20px; height:20px; border-radius:50%; border:2px solid var(--accent); position:relative; }
+  .dir-d .wm .g::after { content:""; position:absolute; left:50%; top:50%; width:7px; height:7px; border-radius:50%; background:var(--accent); transform:translate(-50%,-50%); }
+  .dir-d .wm b { font-weight:700; letter-spacing:0.24em; text-transform:uppercase; font-size:0.98rem; }
+  .dir-d .hero { display:grid; grid-template-columns:1fr 0.92fr; gap:36px; align-items:center; margin-top:26px; }
+  @media (max-width:820px){ .dir-d .hero{ grid-template-columns:1fr; } }
+  .dir-d .kicker { font-family:var(--mono); font-size:0.64rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent); }
+  .dir-d h2 { font-family:var(--serif); font-weight:600; font-size:clamp(2rem,4.8vw,3rem); line-height:1.05; margin:12px 0 16px; max-width:15ch; text-wrap:balance; }
+  .dir-d h2 em { font-style:italic; color:var(--accent); }
+  .dir-d .sub { color:var(--soft); font-size:1.05rem; max-width:48ch; margin:0 0 26px; }
+  .dir-d .doors { display:flex; flex-direction:column; gap:12px; max-width:460px; }
+  .dir-d .door { display:flex; gap:14px; align-items:flex-start; border:1px solid var(--line); border-radius:10px; padding:16px 18px; background:#fff; text-decoration:none; color:inherit; transition:border-color .18s, transform .18s; }
+  .dir-d .door:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .dir-d .door.primary { border-color:var(--accent); box-shadow:0 10px 30px -22px var(--accent); }
+  .dir-d .door .dn { display:flex; align-items:center; gap:8px; font-weight:600; font-size:1rem; }
+  .dir-d .door .tagpill { font-family:var(--mono); font-size:0.56rem; letter-spacing:0.1em; text-transform:uppercase; padding:2px 7px; border-radius:20px; }
+  .dir-d .door .tagpill.opt { color:var(--accent); background:var(--tint); border:1px solid color-mix(in srgb,var(--accent) 30%,transparent); }
+  .dir-d .door .tagpill.now { color:var(--soft); border:1px solid var(--line); }
+  .dir-d .door .dd { font-size:0.85rem; color:var(--soft); margin-top:3px; }
+  .dir-d .door .arw { margin-left:auto; color:var(--accent); font-size:1.1rem; align-self:center; }
+  .dir-d .instrument { border:1px solid var(--line); border-radius:14px; background:var(--paper2); padding:8px 8px 14px; }
+
+  .dir-d .formhead { display:flex; align-items:baseline; justify-content:space-between; margin:44px 0 4px; border-top:1px solid var(--line); padding-top:24px; }
+  .dir-d .formhead h3 { font-family:var(--serif); font-weight:600; font-size:1.3rem; margin:0; }
+  .dir-d .formhead .note { font-family:var(--mono); font-size:0.64rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--faint); }
+  .dir-d .idx { margin-top:6px; }
+  .dir-d .irow { display:grid; grid-template-columns:2.4rem 1fr auto auto; gap:16px; align-items:center; padding:16px 4px; border-bottom:1px solid var(--line-soft); text-decoration:none; color:inherit; transition:background .16s; }
+  .dir-d .irow:hover { background:var(--tint); }
+  .dir-d .irow .code { font-family:var(--mono); font-size:0.8rem; color:var(--accent); font-weight:600; }
+  .dir-d .irow .nm { font-family:var(--serif); font-size:1.16rem; }
+  .dir-d .irow .nm small { display:block; font-family:var(--sans); font-size:0.78rem; color:var(--soft); margin-top:2px; }
+  .dir-d .irow .flag { font-family:var(--mono); font-size:0.62rem; letter-spacing:0.04em; color:var(--accent); background:var(--tint); border:1px solid color-mix(in srgb,var(--accent) 26%,transparent); border-radius:20px; padding:3px 9px; white-space:nowrap; }
+  .dir-d .irow .px { font-family:var(--mono); font-size:0.8rem; font-variant-numeric:tabular-nums; text-align:right; }
+  .dir-d .irow .px small { color:var(--faint); }
+</style>
+
+<div class="study">
+  <p class="study-eyebrow">Modality · front door · Newsreader · hero v2</p>
+  <h1 class="study-title">Signal to script — the real type &amp; copy</h1>
+  <p class="study-lede">
+    The locked direction with the decisions applied: <b>Newsreader</b> (embedded, rendering for real — not a
+    system stand-in), the new hero <b>“Your biology, translated into a protocol,”</b> and <b>Protocols</b>
+    replacing “Formulary” throughout. Drag the sphere; watch the correlation resolve into a lane.
+  </p>
+
+  <div class="frame dir-d">
+    <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="addr">🔒 <b>modalityhealth.com</b></span></div>
+    <div class="pad">
+      <div class="wm"><span class="g"></span><b>Modality</b></div>
+      <div class="hero">
+        <div>
+          <p class="kicker">Signal to script</p>
+          <h2>Your <em>biology</em>, translated into a biometric-driven protocol.</h2>
+          <p class="sub">
+            Browse clinician-led protocols and start a visit in a tap — or connect a wearable and let your
+            recovery, glucose and sleep point the way. A licensed clinician reviews and prescribes when it&apos;s right.
+          </p>
+          <div class="doors">
+            <a class="door primary" href="#">
+              <div>
+                <div class="dn">Browse protocols <span class="tagpill now">No device needed</span></div>
+                <div class="dd">Pick a protocol and start your visit now.</div>
+              </div>
+              <span class="arw">→</span>
+            </a>
+            <a class="door" href="#">
+              <div>
+                <div class="dn">Personalize with my data <span class="tagpill opt">Optional</span></div>
+                <div class="dd">Connect a wearable — your protocols re-rank to your biosignal.</div>
+              </div>
+              <span class="arw">→</span>
+            </a>
+          </div>
+        </div>
+        <div class="instrument">
+          <div class="bios-cap" style="color:var(--faint)"><span class="live" style="background:#7A2E2E"></span>Your biosignature · live</div>
+          <div class="bios" data-accent="122,46,46" data-ink="33,30,27" data-w="380" data-h="340"></div>
+          <div class="bios-readout"><span class="sev"></span><span class="txt" style="color:var(--soft)">Scanning correlations…</span></div>
+        </div>
+      </div>
+
+      <div class="formhead">
+        <h3>Protocols</h3>
+        <span class="note">★ = matches your signal · shown when a wearable is connected</span>
+      </div>
+      <div class="idx">
+        <a class="irow" href="#"><span class="code">WL</span><span class="nm">GLP-1 Weight Loss<small>Semaglutide · Tirzepatide · maintenance tapers</small></span><span class="flag">★ Matches your signal</span><span class="px"><small>from</small> $199<small>/mo</small></span></a>
+        <a class="irow" href="#"><span class="code">MH</span><span class="nm">Men's Health<small>ED therapy · testosterone support</small></span><span></span><span class="px"><small>from</small> $59<small>/mo</small></span></a>
+        <a class="irow" href="#"><span class="code">HL</span><span class="nm">Hair Retention<small>Finasteride · topical minoxidil</small></span><span></span><span class="px"><small>from</small> $19<small>/mo</small></span></a>
+        <a class="irow" href="#"><span class="code">LN</span><span class="nm">Longevity &amp; Metabolic<small>NAD+ · metabolic optimization</small></span><span class="flag">★ Matches your signal</span><span class="px"><small>from</small> $99<small>/mo</small></span></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var METRICS = [
+      { key:"glucose",  label:"GLUCOSE",  unit:"",   lo:72, hi:118, invert:true,  dec:0, lane:"GLP-1 track" },
+      { key:"hrv",      label:"HRV",      unit:"ms", lo:15, hi:70,  invert:false, dec:0 },
+      { key:"recovery", label:"RECOVERY", unit:"",   lo:20, hi:95,  invert:false, dec:0, lane:"Recovery" },
+      { key:"strain",   label:"STRAIN",   unit:"",   lo:2,  hi:14,  invert:true,  dec:1 },
+      { key:"sleep",    label:"SLEEP",    unit:"h",  lo:5,  hi:9,   invert:false, dec:1, lane:"Longevity" },
+      { key:"vo2",      label:"VO2 MAX",  unit:"",   lo:30, hi:55,  invert:false, dec:0 }
+    ];
+    var TENSIONS = [
+      { a:"hrv", b:"recovery", sev:0.62, text:"HRV + RECOVERY — overreaching · Recovery" },
+      { a:"glucose", b:"strain", sev:1.0, text:"GLUCOSE + STRAIN — metabolic load · GLP-1 track" },
+      { a:"sleep", b:"hrv", sev:0.35, text:"SLEEP + HRV — recovery deficit · Longevity" }
+    ];
+    function rotY(p,a){var c=Math.cos(a),s=Math.sin(a);return {x:p.x*c+p.z*s,y:p.y,z:-p.x*s+p.z*c};}
+    function rotX(p,a){var c=Math.cos(a),s=Math.sin(a);return {x:p.x,y:p.y*c-p.z*s,z:p.y*s+p.z*c};}
+    function lerp(a,b,t){return a+(b-a)*t;}
+
+    function build(host){
+      var accent=host.getAttribute("data-accent")||"122,46,46";
+      var ink=host.getAttribute("data-ink")||"33,30,27";
+      var W=+host.getAttribute("data-w")||380, H=+host.getAttribute("data-h")||340;
+      var canvas=document.createElement("canvas"); var labels=document.createElement("div"); labels.className="labels";
+      host.appendChild(canvas); host.appendChild(labels);
+      var dpr=Math.min(window.devicePixelRatio||1,2); canvas.width=W*dpr; canvas.height=H*dpr;
+      canvas.style.width="100%"; canvas.style.height="auto";
+      var ctx=canvas.getContext("2d"); if(!ctx) return; ctx.scale(dpr,dpr);
+      var cx=W/2, cy=H/2, persp=460, R=Math.min(W,H)*0.30, ringR=Math.min(W,H)*0.44;
+      var N=84, cloud=[], ga=Math.PI*(3-Math.sqrt(5));
+      for(var i=0;i<N;i++){ var yF=1-(i/(N-1))*2, rr=Math.sqrt(Math.max(0,1-yF*yF)), th=ga*i;
+        cloud.push({x:Math.cos(th)*rr*R, y:yF*R, z:Math.sin(th)*rr*R, phase:Math.random()*6.283, speed:0.9+Math.random()*0.6}); }
+      var metrics=METRICS.map(function(base,idx){ var start=base.lo+Math.random()*(base.hi-base.lo);
+        var lat=idx%2===0?0.34:-0.2, lon=(idx/METRICS.length)*Math.PI*2, ringAngle=(idx/METRICS.length)*Math.PI*2-Math.PI/2;
+        return { base:base, value:start, target:start, nextRe:2+Math.random()*3, clock:0,
+          pos:{x:R*Math.cos(lat)*Math.cos(lon), y:R*Math.sin(lat), z:R*Math.cos(lat)*Math.sin(lon)},
+          ringX:cx+Math.cos(ringAngle)*ringR, ringY:cy+Math.sin(ringAngle)*ringR*0.72, ringAngle:ringAngle }; });
+      function byKey(k){ for(var i=0;i<metrics.length;i++) if(metrics[i].base.key===k) return metrics[i]; }
+      function normOf(m){ var n=Math.max(0,Math.min(1,(m.value-m.base.lo)/(m.base.hi-m.base.lo))); return m.base.invert?1-n:n; }
+      function fmt(m){ return m.value.toFixed(m.base.dec)+(m.base.unit||""); }
+      var valEls={};
+      var labelEls=metrics.map(function(m){ var el=document.createElement("div"); el.className="bios-label";
+        el.style.color="rgba("+ink+",0.62)"; el.style.left=(m.ringX/W*100)+"%"; el.style.top=(m.ringY/H*100)+"%";
+        var c=Math.cos(m.ringAngle);
+        if(c>0.15){ el.style.transform="translate(6px,-50%)"; el.style.textAlign="left"; }
+        else if(c<-0.15){ el.style.transform="translate(calc(-100% - 6px),-50%)"; el.style.textAlign="right"; }
+        else { el.style.transform="translate(-50%,"+(Math.sin(m.ringAngle)>0?"6px":"calc(-100% - 6px)")+")"; el.style.textAlign="center"; }
+        el.appendChild(document.createTextNode(m.base.label));
+        var v=document.createElement("span"); v.className="v"; v.textContent="—"; v.style.color="rgb("+ink+")";
+        el.appendChild(document.createElement("br")); el.appendChild(v);
+        if(m.base.lane){ var ln=document.createElement("span"); ln.className="lane"; ln.textContent=m.base.lane; ln.style.color="rgb("+accent+")"; el.appendChild(ln); }
+        labels.appendChild(el); valEls[m.base.key]=v; return el; });
+      var readoutWrap=host.parentElement.querySelector(".bios-readout");
+      var sevDot=readoutWrap?readoutWrap.querySelector(".sev"):null;
+      var txtEl=readoutWrap?readoutWrap.querySelector(".txt"):null;
+      function project(x,y,z){ var f=persp/(persp+z); return {x:cx+x*f, y:cy+y*f, z:z}; }
+      var tIdx=0, tClock=0, HOLD=4.2, lastFrame=performance.now(), t0=lastFrame, lastDom=0, raf=0, running=false;
+      var userYaw=0, userPitch=0, dragging=false, lastPX=0, lastPY=0;
+      canvas.addEventListener("pointerdown", function(e){ dragging=true; lastPX=e.clientX; lastPY=e.clientY; canvas.setPointerCapture(e.pointerId); canvas.style.cursor="grabbing"; });
+      window.addEventListener("pointermove", function(e){ if(!dragging) return; userYaw+=(e.clientX-lastPX)*0.008; userPitch=Math.max(-0.9,Math.min(0.9,userPitch+(e.clientY-lastPY)*0.008)); lastPX=e.clientX; lastPY=e.clientY; });
+      window.addEventListener("pointerup", function(e){ if(!dragging) return; dragging=false; canvas.style.cursor="grab"; try{canvas.releasePointerCapture(e.pointerId);}catch(_){} });
+      function draw(now){
+        var dt=Math.min((now-lastFrame)/1000,0.05); lastFrame=now; var t=(now-t0)/1000;
+        metrics.forEach(function(m){ m.clock+=dt; if(m.clock>=m.nextRe){ m.clock=0; m.nextRe=3+Math.random()*4; m.target=m.base.lo+Math.random()*(m.base.hi-m.base.lo);} m.value=lerp(m.value,m.target,1-Math.pow(0.001,dt)); });
+        tClock+=dt; if(tClock>=HOLD){ tClock=0; tIdx=(tIdx+1)%TENSIONS.length; }
+        var active=TENSIONS[tIdx], tAlpha=Math.sin(Math.min(tClock/HOLD,1)*Math.PI);
+        ctx.clearRect(0,0,W,H);
+        var angle=t*0.16+userYaw, wob=Math.sin(t*0.29)*0.1+userPitch;
+        var proj=cloud.map(function(p){ var q=rotX(rotY(p,angle),wob); return project(q.x,q.y,q.z); });
+        var order=proj.map(function(_,i){return i;}).sort(function(a,b){return proj[a].z-proj[b].z;});
+        order.forEach(function(idx){ var p=proj[idx], src=cloud[idx];
+          var pulse=0.6+0.4*Math.sin(t*src.speed*1.6+src.phase), da=0.2+0.55*((p.z+R)/(2*R)), rad=0.8+0.9*pulse*(((p.z+R)/(2*R))*0.6+0.4);
+          ctx.beginPath(); ctx.arc(p.x,p.y,rad,0,6.283); ctx.fillStyle="rgba("+ink+","+da.toFixed(3)+")"; ctx.fill(); });
+        metrics.forEach(function(m){ var q=rotX(rotY(m.pos,angle),wob), p=project(q.x,q.y,q.z), n=normOf(m);
+          ctx.globalAlpha=0.4+0.5*n; ctx.beginPath(); ctx.arc(p.x,p.y,2.2+1.8*n,0,6.283); ctx.fillStyle="rgba("+ink+",0.85)"; ctx.fill(); ctx.globalAlpha=1;
+          ctx.beginPath(); ctx.arc(m.ringX,m.ringY,1.6,0,6.283); ctx.fillStyle="rgba("+ink+",0.88)"; ctx.fill(); });
+        TENSIONS.forEach(function(pair,i){ if(i===tIdx) return; var a=byKey(pair.a),b=byKey(pair.b);
+          var qa=rotX(rotY(a.pos,angle),wob), qb=rotX(rotY(b.pos,angle),wob); var pa=project(qa.x,qa.y,qa.z), pb=project(qb.x,qb.y,qb.z);
+          ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.strokeStyle="rgba("+ink+",0.10)"; ctx.lineWidth=1; ctx.stroke(); });
+        var ma=byKey(active.a), mb=byKey(active.b);
+        var qa=rotX(rotY(ma.pos,angle),wob), qb=rotX(rotY(mb.pos,angle),wob); var pa=project(qa.x,qa.y,qa.z), pb=project(qb.x,qb.y,qb.z);
+        ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.strokeStyle="rgba("+accent+","+(0.35+tAlpha*0.6).toFixed(3)+")"; ctx.lineWidth=1.4; ctx.stroke();
+        var travel=Math.abs(((t*0.5)%2)-1), px=lerp(pa.x,pb.x,travel), py=lerp(pa.y,pb.y,travel), ga2=0.4+tAlpha*0.5;
+        ctx.beginPath(); ctx.arc(px,py,4,0,6.283); ctx.fillStyle="rgba("+accent+","+(ga2*0.25).toFixed(3)+")"; ctx.fill();
+        ctx.beginPath(); ctx.arc(px,py,2,0,6.283); ctx.fillStyle="rgba("+accent+","+ga2.toFixed(3)+")"; ctx.fill();
+        if(now-lastDom>90){ lastDom=now;
+          if(txtEl){ txtEl.textContent=active.text; txtEl.style.opacity=String(0.55+0.45*tAlpha); }
+          if(sevDot){ sevDot.style.background="rgba("+accent+","+active.sev+")"; }
+          metrics.forEach(function(m){ valEls[m.base.key].textContent=fmt(m); });
+          labelEls.forEach(function(el,i){ var m=metrics[i], on=(m===ma||m===mb);
+            el.style.color=on?"rgb("+accent+")":"rgba("+ink+",0.62)"; el.style.opacity=on?String(0.75+0.25*tAlpha):"1"; }); }
+        if(running && !reduced) raf=requestAnimationFrame(draw);
+      }
+      function start(){ if(running) return; running=true; lastFrame=performance.now(); raf=requestAnimationFrame(draw); }
+      function stop(){ running=false; if(raf) cancelAnimationFrame(raf); }
+      if(reduced){ draw(t0+1000); return; }
+      if("IntersectionObserver" in window){ new IntersectionObserver(function(es){es.forEach(function(e){e.isIntersecting?start():stop();});},{threshold:0.05}).observe(host); } else start();
+    }
+    document.querySelectorAll(".bios").forEach(build);
+  })();
+</script>
