@@ -51,6 +51,7 @@ body {
 .hero-title { font-family: var(--serif); font-weight: 600; font-size: clamp(2rem, 4.8vw, 3rem); line-height: 1.05; margin: 12px 0 16px; max-width: 15ch; text-wrap: balance; }
 .hero-title em { font-style: italic; color: var(--accent); }
 .hero-sub { color: var(--ink-soft); font-size: 1.05rem; max-width: 48ch; margin: 0 0 26px; }
+.hero-sub em { font-style: italic; color: var(--accent); }
 
 /* ---------- two doors ---------- */
 .doors { display: flex; flex-direction: column; gap: 12px; max-width: 460px; }
