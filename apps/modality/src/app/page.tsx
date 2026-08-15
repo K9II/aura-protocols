@@ -116,7 +116,7 @@ export default async function Page({
             </h1>
             <p className="hero-sub">
               Compounded GLP-1, matched by a licensed clinician — patients average 15–20% weight loss.
-              <em>Optionally</em> connect a wearable and your protocol personalizes further to your recovery,
+              <em>Optionally,</em> connect a wearable and your protocol personalizes further to your recovery,
               glucose, and sleep.
             </p>
             <div className="cta-row">
