@@ -116,7 +116,8 @@ export default async function Page({
             </h1>
             <p className="hero-sub">
               Compounded GLP-1, matched by a licensed clinician — patients average 15–20% weight loss.
-              Connect a wearable and your protocol personalizes further to your recovery, glucose, and sleep.
+              Optionally connect a wearable and your protocol personalizes further to your recovery, glucose,
+              and sleep.
             </p>
             <div className="cta-row">
               <a className="btn btn-primary" href="#protocols">See if you qualify →</a>
@@ -183,7 +184,7 @@ export default async function Page({
 
         <div className="section" id="how">
           <p className="sec-k">How it works</p>
-          <h3 className="sec-h">From quiz to doorstep in three steps</h3>
+          <h3 className="sec-h">From quiz to delivery in three steps</h3>
           <div className="steps">
             <div className="step">
               <div className="num">01</div>
@@ -198,7 +199,7 @@ export default async function Page({
             <div className="step">
               <div className="num">03</div>
               <h4>Delivered &amp; tuned over time</h4>
-              <p>Ships to your door; your clinician adjusts it through regular check-ins — and it personalizes further as you connect your data.</p>
+              <p>Delivered to you; your clinician adjusts it through regular check-ins — and it personalizes further as you connect your data.</p>
             </div>
           </div>
         </div>
