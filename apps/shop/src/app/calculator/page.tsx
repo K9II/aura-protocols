@@ -3,7 +3,7 @@ import Link from "next/link";
 import ReconstitutionCalculator from "@/components/ReconstitutionCalculator";
 
 export const metadata: Metadata = {
-  title: "Reconstitution Calculator — Aura Protocols",
+  title: "Research Calculator — Aura Protocols",
   description:
     "Work out concentration and exact syringe units from a vial strength, bacteriostatic water volume, and target dose.",
   alternates: { canonical: "/calculator" },
@@ -90,7 +90,7 @@ export default function CalculatorPage() {
     <div className="pharmacopoeia">
       <div className="max-w-4xl mx-auto px-6 py-16">
         <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">Tools</p>
-        <h1 className="p-serif text-4xl mb-4 text-[color:var(--ink)]">Reconstitution Calculator</h1>
+        <h1 className="p-serif text-4xl mb-4 text-[color:var(--ink)]">Research Calculator</h1>
         <p className="text-[color:var(--ink-soft)] max-w-xl leading-relaxed mb-12">
           Work out concentration and exact syringe units from a vial strength, bacteriostatic water volume, and
           target dose — the same math researchers use to prepare a working solution.
