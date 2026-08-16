@@ -17,6 +17,7 @@ export const PRODUCT_GUIDES: Record<string, string> = {
   "igf-1-lr3": "/blog/igf-1-lr3-research-guide",
   "nad-plus": "/blog/nad-plus-research-guide",
   "semaglutide": "/blog/semaglutide-research-guide",
+  "cagrilintide": "/blog/cagrilintide-research-guide",
   "tesamorelin": "/blog/tesamorelin-research-guide",
   "aod-9604": "/blog/aod-9604-research-guide",
   "kpv": "/blog/kpv-research-guide",
