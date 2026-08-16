@@ -3,7 +3,7 @@
 # Aura Protocols — Project Context
 
 ## What This Is
-A Next.js 16 affiliate site for research peptides. Monetized via affiliate links to vendors (Limitless Life Nootropics, Apollo Peptide Sciences, GLP-1 Research Lab, Ignite Peptides, Main Peptides, Peak Lab Peptides, Mile High Compounds, PSPeptides). All affiliate links must include `rel="noopener noreferrer sponsored"`.
+A Next.js 16 affiliate site for research peptides. Monetized via affiliate links to vendors (Limitless Life Nootropics, Apollo Peptide Sciences, Ignite Peptides, Main Peptides, Peak Lab Peptides, Mile High Compounds, PSPeptides). All affiliate links must include `rel="noopener noreferrer sponsored"`.
 
 Live at: **https://shop.auraprotocols.com** (deployed on Vercel)
 

@@ -37,20 +37,6 @@ export const vendorProfiles: VendorProfile[] = [
     ],
   },
   {
-    vendor: "GLP-1 Research Lab",
-    summary:
-      "GLP-1 Research Lab's catalog extends well beyond GLP-1s into wellness and recovery peptides, covering many of the same core compounds carried elsewhere on this site.",
-    pros: [
-      "Broad catalog spanning GLP-1s, wellness peptides (PT-141, NAD+, MOTS-c, GHK-Cu, Tesamorelin), and recovery compounds (TB-500, Ipamorelin, IGF-1 LR3)",
-      "Carries the Cagrilintide and Cagri-Sema blend, not available at most other vendors on this site",
-      "Accepts major credit cards and ACH bank transfer",
-    ],
-    cons: [
-      "Does not carry BPC-157, CJC-1295/Ipamorelin, or AOD-9604",
-      "Shipping speed not independently confirmed — rated provisionally at average",
-    ],
-  },
-  {
     vendor: "Ignite Peptides",
     summary:
       "Ignite Peptides carries the broadest catalog of any approved vendor (30+ compounds), a Minnesota-based, US-domestic operation.",

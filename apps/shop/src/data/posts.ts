@@ -764,8 +764,8 @@ export const posts: Post[] = [
         type: "cta",
         text: "View Semaglutide Vendors",
         productSlug: "semaglutide",
-        vendor: "GLP-1 Research Lab",
-        affiliateUrl: "https://www.glp1researchlab.com/product/semaglutide?aff=84",
+        vendor: "Apollo Peptide Sciences",
+        affiliateUrl: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7",
       },
       {
         type: "disclaimer",
