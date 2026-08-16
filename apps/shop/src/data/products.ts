@@ -195,6 +195,20 @@ export const products: Product[] = [
     featured: true,
   },
   {
+    id: "cagrilintide",
+    name: "Cagrilintide",
+    slug: "cagrilintide",
+    category: "Body Composition",
+    description:
+      "Long-acting amylin analog studied for appetite suppression and satiety signaling. Most researched in combination with semaglutide (as CagriSema), where Phase 3 data showed greater weight reduction than either compound alone.",
+    benefits: ["Amylin/calcitonin receptor agonism", "Satiety-signaling research distinct from GLP-1 pathway", "Studied alongside semaglutide in Phase 3 combination trials", "Appetite-regulation research"],
+    vendors: [
+      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/cagri-10/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
+      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-cag/?afref=a1b9", commission: "15%" },
+    ],
+    featured: false,
+  },
+  {
     id: "tesamorelin",
     name: "Tesamorelin",
     slug: "tesamorelin",

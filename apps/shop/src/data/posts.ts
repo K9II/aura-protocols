@@ -1774,6 +1774,143 @@ export const posts: Post[] = [
     ],
   },
   {
+    slug: "cagrilintide-research-guide",
+    title: "Cagrilintide: The Complete Research Guide",
+    excerpt:
+      "An amylin analog studied on its own and — more compellingly — alongside semaglutide, where combination data shows an effect neither compound produces by itself. Unlike semaglutide, no form of this compound has ever been FDA-approved.",
+    category: "Body Composition",
+    date: "August 2026",
+    readTime: "8 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Cagrilintide is easy to mistake for another entry in the GLP-1 family because it's almost always discussed alongside semaglutide. It isn't one. It works through an entirely separate hormone system — amylin, not incretin — and that distinction is the reason researchers pair the two rather than picking one.",
+      },
+      { type: "h2", text: "What Is Cagrilintide?" },
+      {
+        type: "p",
+        text: "Cagrilintide is a synthetic long-acting analog of amylin, a hormone co-secreted with insulin from pancreatic beta cells after meals. Like semaglutide, it uses a fatty-acid side-chain modification to bind albumin in the bloodstream, extending its half-life enough to support once-weekly dosing — but the receptor it acts on is different. Structurally, cagrilintide is classified as a dual amylin and calcitonin receptor agonist (DACRA), engineered for higher potency at both receptors than natural amylin.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "Amylin signaling and GLP-1 signaling both suppress appetite, but through largely non-overlapping pathways:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Area postrema (hindbrain) — amylin receptors are concentrated in this brainstem region, which lacks a full blood-brain barrier and receives signals directly from circulating hormones. Activation here drives satiety and slows gastric emptying independent of the vagal/hypothalamic circuit GLP-1 relies on.",
+          "Glucagon suppression — amylin analogs blunt post-meal glucagon release, complementing (rather than duplicating) GLP-1's glucose-dependent insulin effect.",
+          "Calcitonin receptor co-activation — cagrilintide's dual-receptor binding is what distinguishes it from earlier amylin analogs like pramlintide, and is credited with its improved potency in structural studies.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Because the two pathways are largely separate, combining an amylin analog with a GLP-1 agonist has produced greater appetite suppression in trials than either compound alone at comparable doses — the basis for Novo Nordisk's combination candidate, CagriSema.",
+      },
+      { type: "h2", text: "Human Evidence" },
+      {
+        type: "p",
+        text: "Cagrilintide has been studied both as a standalone compound and in combination with semaglutide:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Phase 2 monotherapy (Lau et al., 2021): 706 participants randomized across cagrilintide doses (0.3–4.5 mg), liraglutide 3.0 mg, and placebo. Cagrilintide produced significant, dose-dependent weight reduction and was well tolerated.",
+          "Phase 1b combination (Enebo et al., 2021): 96 adults received ascending cagrilintide doses plus semaglutide 2.4 mg for 20 weeks. Cagrilintide 2.4 mg + semaglutide produced −17.1% weight loss vs. −9.8% for placebo + semaglutide alone — the first human data showing the combination outperforms semaglutide by itself.",
+          "Phase 3 REDEFINE 1 (CagriSema, topline Dec 2024, published in NEJM): 3,417 adults with obesity/overweight. CagriSema produced 22.7% mean weight reduction on-treatment (20.4% under the intent-to-treat estimand, vs. 3.0% placebo) at 68 weeks — outperforming both the cagrilintide-alone arm (6.0% achieving ≥25% loss) and the semaglutide-alone arm (16.2% achieving ≥25% loss) on that threshold.",
+        ],
+      },
+      {
+        type: "p",
+        text: "REDEFINE 1's result was also notable for falling short of the roughly 25%+ weight loss some analysts had expected based on earlier-phase data — only 57% of participants reached the highest CagriSema dose during the trial, which affected the topline number. That gap between anticipated and delivered results became significant enough to draw shareholder litigation against Novo Nordisk in 2026, which is a useful reminder that even well-funded Phase 3 programs can undershoot expectations built on smaller earlier trials.",
+      },
+      { type: "h2", text: "Cagrilintide Alone vs. CagriSema" },
+      {
+        type: "p",
+        text: "It's worth being precise about what the strongest evidence actually supports. The most dramatic weight-loss numbers in the research literature — REDEFINE 1's 20–23% range — describe cagrilintide combined with semaglutide, not cagrilintide by itself. Monotherapy data (the Lau 2021 trial) shows real, dose-dependent effect, but the combination is where the larger, more clinically meaningful results live. Anyone researching cagrilintide as a single compound should calibrate expectations against the monotherapy trials, not the CagriSema headlines.",
+      },
+      {
+        type: "callout",
+        text: "Regulatory status is the most important distinction between cagrilintide and semaglutide. Semaglutide is FDA-approved in specific manufactured forms (Ozempic, Wegovy). Cagrilintide — alone or as CagriSema — has never been FDA-approved in any form; Novo Nordisk filed a New Drug Application for CagriSema, but it remains investigational. Everything currently sold as \"research cagrilintide\" is synthesized/compounded material with no approved reference product to even compare it to, not a compounded copy of an approved drug the way research-grade semaglutide is.",
+      },
+      { type: "h2", text: "Where to Source Cagrilintide for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the Cagrilintide product page",
+        productSlug: "cagrilintide",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is cagrilintide the same thing as semaglutide or part of the GLP-1 family?",
+            a: "No. Cagrilintide is an amylin analog acting on amylin and calcitonin receptors — a separate hormone system from GLP-1. It's frequently studied alongside semaglutide because the two pathways are complementary, not because they're the same mechanism.",
+          },
+          {
+            q: "Is cagrilintide FDA-approved?",
+            a: "No, in any form. Unlike semaglutide (approved as Ozempic/Wegovy), cagrilintide and the CagriSema combination remain investigational — an NDA has been filed for CagriSema, but nothing has been approved.",
+          },
+          {
+            q: "Does cagrilintide alone produce the same weight loss as CagriSema?",
+            a: "No. The largest weight-loss figures reported (20–23% at 68 weeks) come from CagriSema, the semaglutide combination. Cagrilintide monotherapy trials show real but more modest dose-dependent effects.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Lau DCW, et al. \"Once-weekly cagrilintide for weight management in people with overweight and obesity: a multicentre, randomised, double-blind, placebo-controlled and active-controlled, dose-finding phase 2 trial.\" The Lancet, 2021. ",
+          { href: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)01751-7/abstract", text: "thelancet.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Enebo LB, et al. \"Safety, tolerability, pharmacokinetics, and pharmacodynamics of concomitant administration of multiple doses of cagrilintide with semaglutide 2·4 mg for weight management: a randomised, controlled, phase 1b trial.\" PubMed, 2021. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/33894838/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. \"CagriSema 2.4 mg/2.4 mg demonstrated 22.7% mean weight reduction in adults with overweight or obesity in REDEFINE 1, published in NEJM.\" PR Newswire, Dec 2024. ",
+          { href: "https://www.prnewswire.com/news-releases/cagrisema-2-4-mg--2-4-mg-demonstrated-22-7-mean-weight-reduction-in-adults-with-overweight-or-obesity-in-redefine-1--published-in-nejm-302487770.html", text: "prnewswire.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Structural and mechanistic insights into dual activation of cagrilintide in amylin and calcitonin receptors. Acta Pharmacologica Sinica / Nature, 2025. ",
+          { href: "https://www.nature.com/articles/s41401-025-01635-2", text: "nature.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. Novo Nordisk Submits NDA to FDA for CagriSema. PharmExec. ",
+          { href: "https://www.pharmexec.com/view/novo-nordisk-submits-nda-fda-cagrisema", text: "pharmexec.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. \"Why shareholders are suing Novo Nordisk over next-generation weight-loss drug.\" CNBC, Jul 2026. ",
+          { href: "https://www.cnbc.com/2026/07/29/novo-nordisk-lawsuit-cagrisema-weight-loss-drug.html", text: "cnbc.com", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "epithalon-research-guide",
     title: "Epithalon: The Complete Research Guide",
     excerpt:
