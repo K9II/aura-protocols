@@ -101,4 +101,16 @@ export const vendorProfiles: VendorProfile[] = [
       "Newer addition — shipping speed and full catalog depth not yet independently confirmed; treat this profile as provisional",
     ],
   },
+  {
+    vendor: "American Peptides",
+    summary:
+      "American Peptides runs a large RUO-only catalog spanning individual peptides, GLP-1 compounds, bioregulators, and pre-blended stacks, with published third-party Certificates of Analysis per batch.",
+    pros: [
+      "Large catalog with published, batch-specific COAs",
+      "Customer discount of 10% off with code AURAPRO10",
+    ],
+    cons: [
+      "Newer addition — shipping speed and full catalog depth not yet independently confirmed; treat this profile as provisional",
+    ],
+  },
 ];

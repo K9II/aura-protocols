@@ -9,6 +9,7 @@ const VENDOR_IDS: Record<string, string> = {
   "Peak Lab Peptides": "peak-lab",
   "Mile High Compounds": "mile-high",
   "PSPeptides": "pspeptides",
+  "American Peptides": "american-peptides",
 };
 
 export function vendorId(vendorName: string): string {
