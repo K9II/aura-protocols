@@ -1522,6 +1522,225 @@ export const posts: Post[] = [
     ],
   },
   {
+    slug: "retatrutide-cagrilintide-research-guide",
+    title: "Retatrutide + Cagrilintide: The Complete Research Guide",
+    excerpt:
+      "A co-formulated blend of two investigational, unapproved metabolic peptides — pairing the strongest weight-loss agonist in development with a long-acting amylin analog. Neither is FDA-approved, the combination has never been tested in a human trial, and retatrutide is the single highest-legal-risk compound we index.",
+    category: "Stacks",
+    date: "August 2026",
+    readTime: "8 min read",
+    content: [
+      {
+        type: "disclaimer",
+        text: "Research use only. This guide describes two investigational compounds and a combination of them that is not approved by the FDA or any regulator for any use, has never been evaluated in a human clinical trial as a combination, and is sold strictly as a chemical reagent for in-vitro and laboratory research. Nothing here is medical advice, dosing guidance, or an endorsement of human or veterinary use. Do not use these compounds on humans or animals.",
+      },
+      {
+        type: "intro",
+        text: "This product pairs retatrutide, a triple GIP/GLP-1/glucagon receptor agonist, with cagrilintide, a long-acting amylin analog, in a single vial (typically 12.5 mg retatrutide / 2.5 mg cagrilintide). The individual compounds each have real, published metabolic science behind them. The combination does not: there is no human trial of retatrutide plus cagrilintide, no approved reference product, and — in retatrutide's case — an active, aggressive enforcement environment. This guide covers the science and is unusually direct about the legal status, because that status is the most important thing to understand before sourcing either compound for research.",
+      },
+      {
+        type: "callout",
+        text: "Legal status, up front: Retatrutide is investigational and has NOT been approved by the FDA for any indication. Because it has no approved reference drug and no completed marketing application, federal policy treats it as impossible to legally compound or distribute for human use — only for investigational research. Cagrilintide is likewise investigational and has never been approved as a standalone product. The combination of the two has no approval, no reference product, and no published human data of any kind.",
+      },
+      { type: "h2", text: "What Each Compound Does" },
+      {
+        type: "p",
+        text: "Retatrutide is an investigational once-weekly triple hormone receptor agonist developed by Eli Lilly. It activates the GIP, GLP-1, and glucagon receptors in a single molecule. The GLP-1 and GIP arms reduce calorie intake through appetite suppression and satiety; the glucagon arm is the differentiator, increasing energy expenditure, lipolysis, and thermogenesis. In Phase 2 (published in NEJM) and Phase 3 topline data (TRIUMPH-1, announced 2026 but not yet peer-reviewed), it produced the largest weight reductions of any compound in its class.",
+      },
+      {
+        type: "p",
+        text: "Cagrilintide is a long-acting analog of amylin, a pancreatic hormone co-secreted with insulin that signals satiety and slows gastric emptying through a mechanism entirely separate from the GLP-1 axis. It has been studied primarily in combination with semaglutide (as CagriSema), where the amylin pathway is thought to complement GLP-1 signaling. On its own it remains investigational, with no approved indication.",
+      },
+      { type: "h2", text: "Why Combine Them?" },
+      {
+        type: "p",
+        text: "The theoretical rationale for a retatrutide + cagrilintide blend is that it stacks two non-overlapping satiety systems — incretin/glucagon signaling (retatrutide) and amylin signaling (cagrilintide) — on the hypothesis that engaging distinct pathways could produce additive effects. This is a hypothesis, not a finding. We want to be explicit: no peer-reviewed human trial has tested this specific combination. Any claim that the pairing is more effective or better tolerated than either compound alone is, at this time, unsupported by clinical evidence.",
+      },
+      { type: "h2", text: "Regulatory and Enforcement Status" },
+      {
+        type: "p",
+        text: "Retatrutide is the single highest-legal-risk compound indexed on this site, and researchers sourcing it should understand why. In 2026, Eli Lilly launched a coordinated enforcement campaign specifically targeting retatrutide — which, unlike approved semaglutide or tirzepatide, cannot be legally compounded because it has no approved reference drug. That campaign has included multiple lawsuits against peptide sellers and compounding operations, a large volume of referrals to regulators and licensing boards, and thousands of listings reported to online platforms and payment processors across numerous countries.",
+      },
+      {
+        type: "callout",
+        text: "What this means practically: expect retatrutide product names, URLs, and availability to change without notice as vendors respond to enforcement pressure. Certificates of Analysis and third-party purity testing are more important here than for almost any other compound, precisely because the market is volatile. None of this changes the bottom line — retatrutide and cagrilintide are unapproved investigational substances, and this blend is sold for laboratory research use only, not for human or veterinary administration.",
+      },
+      {
+        type: "p",
+        text: "Cagrilintide's status is simpler but no more permissive: it is investigational, has never been approved as a finished product for any use, and is sold only as a research chemical.",
+      },
+      { type: "h2", text: "Sourcing for Research" },
+      {
+        type: "p",
+        text: "For legitimate laboratory research, purity and accurate dual-compound dosing are critical — a co-formulated blend adds analytical complexity, since both peptides must be independently verified. We only surface vendors that provide third-party HPLC testing and batch-specific Certificates of Analysis. As of this writing, this specific co-formulation is carried by a single vendor in our index.",
+      },
+      {
+        type: "button",
+        text: "View the Retatrutide / Cagrilintide product page",
+        productSlug: "retatrutide-cagrilintide",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is the retatrutide + cagrilintide combination FDA-approved?",
+            a: "No. Neither compound is approved, and the combination specifically has no approval, no reference product, and no published human trial. It is an investigational research chemical only.",
+          },
+          {
+            q: "Is there human data on this specific blend?",
+            a: "No. The individual compounds have published trial data, but retatrutide combined with cagrilintide has not been evaluated in any peer-reviewed human study. Claims of additive benefit are hypothetical.",
+          },
+          {
+            q: "Why is retatrutide considered higher legal-risk than other GLP-1 compounds?",
+            a: "Because it has no approved reference drug, it cannot be legally compounded at all, and its developer has an active enforcement campaign specifically targeting sellers. That makes it more legally exposed than approved compounds like semaglutide or tirzepatide.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Jastreboff AM, et al. \"Triple–Hormone-Receptor Agonist Retatrutide for Obesity — A Phase 2 Trial.\" NEJM, 2023. ",
+          { href: "https://www.nejm.org/doi/full/10.1056/NEJMoa2301972", text: "nejm.org", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Coskun T, et al. \"LY3437943 (retatrutide), a novel triple glucagon, GIP, and GLP-1 receptor agonist... from discovery to clinical proof of concept.\" Cell Metabolism, 2022. ",
+          { href: "https://www.sciencedirect.com/science/article/pii/S1550413122003126", text: "sciencedirect.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Enebo LB, et al. \"Safety, tolerability, pharmacokinetics, and pharmacodynamics of concomitant cagrilintide and semaglutide (amylin analog + GLP-1) in adults with overweight or obesity.\" The Lancet, 2021. ",
+          { href: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)01751-7/fulltext", text: "thelancet.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Eli Lilly. TRIUMPH-1 Phase 3 topline results, 2026 (press release, not yet peer-reviewed). ",
+          { href: "https://investor.lilly.com/news-releases/news-release-details/lillys-triple-agonist-retatrutide-delivered-powerful-weight-loss", text: "investor.lilly.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. FDA. Information on compounding and bulk drug substances (Category 2 / 503A–503B framework; retatrutide has no approved reference product). ",
+          { href: "https://www.fda.gov/drugs/human-drug-compounding/bulk-drug-substances-used-compounding-under-section-503a-fdc-act", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds referenced are unapproved, investigational substances sold for laboratory research use only — not for human or veterinary use.",
+      },
+    ],
+  },
+  {
+    slug: "cagrisema-research-guide",
+    title: "CagriSema (Cagrilintide + Semaglutide): The Complete Research Guide",
+    excerpt:
+      "The dual amylin-plus-GLP-1 combination behind Novo Nordisk's Phase 3 REDEFINE program — and the important distinction between an approved finished drug, its bulk research-grade peptide, and an unapproved co-formulation.",
+    category: "Stacks",
+    date: "August 2026",
+    readTime: "8 min read",
+    content: [
+      {
+        type: "disclaimer",
+        text: "Research use only. CagriSema as a combination product is investigational and not FDA-approved. While semaglutide is approved as a specific finished drug, the bulk research-grade peptide and any cagrilintide-plus-semaglutide co-formulation sold as a research chemical are NOT the approved medicine and have not been evaluated for safety, purity, or bioavailability as sold. Nothing here is medical advice or dosing guidance. Do not use these compounds on humans or animals.",
+      },
+      {
+        type: "intro",
+        text: "CagriSema is a fixed-dose combination of cagrilintide (a long-acting amylin analog) and semaglutide (a GLP-1 receptor agonist), developed by Novo Nordisk and studied in the Phase 3 REDEFINE program. The pairing engages two distinct satiety systems at once. This guide covers what the combination is, the trial evidence behind it, and — critically — the difference between the approved drug semaglutide, the bulk peptide sold for research, and this unapproved co-formulation.",
+      },
+      {
+        type: "callout",
+        text: "Legal status, up front: CagriSema as a combination is investigational and NOT approved for any use. Cagrilintide has never been approved as a standalone product. Semaglutide IS approved — but only as specific finished drugs (e.g., Ozempic, Wegovy) manufactured to defined standards. Bulk semaglutide peptide sold for research, and any research-chemical cagrilintide+semaglutide blend, are not those approved products and are sold strictly for laboratory research use only.",
+      },
+      { type: "h2", text: "What Is CagriSema?" },
+      {
+        type: "p",
+        text: "Semaglutide reduces appetite and food intake through the GLP-1 receptor — the mechanism behind the well-known weight-management and glycemic-control drugs. Cagrilintide works through the amylin/calcitonin receptor system, a satiety pathway that is separate from and complementary to GLP-1. The rationale for combining them is that engaging two independent satiety systems may produce a greater effect than either alone.",
+      },
+      { type: "h2", text: "Human Evidence" },
+      {
+        type: "p",
+        text: "The combination has genuine clinical data behind it, which distinguishes it from many research blends. A Phase 2 study of concomitant cagrilintide and semaglutide was published in The Lancet in 2021. The combination then advanced to Novo Nordisk's Phase 3 REDEFINE program in obesity, with topline results reported in which CagriSema produced greater average weight reduction than either cagrilintide or semaglutide monotherapy and placebo.",
+      },
+      {
+        type: "callout",
+        text: "Important caveat on the research-grade version: published trial data describes a specific manufactured, dose-controlled formulation studied under clinical conditions. It does not validate the safety, purity, dosing, or bioavailability of a research-chemical blend sold in a vial. Trial results should not be read as evidence about any particular vendor's product.",
+      },
+      { type: "h2", text: "Regulatory and Enforcement Context" },
+      {
+        type: "p",
+        text: "Because CagriSema as a combination is still investigational, it has no approval as a finished product. And while semaglutide itself is approved, its manufacturer has actively pursued sellers of compounded and bulk semaglutide — including litigation against multiple distributors — as approved-drug supply normalized. Researchers should treat semaglutide-containing research products as a category under active brand and regulatory scrutiny, and prioritize vendors with third-party testing and batch-specific Certificates of Analysis.",
+      },
+      { type: "h2", text: "Sourcing for Research" },
+      {
+        type: "p",
+        text: "As a two-peptide co-formulation, CagriSema requires independent verification of both components' identity and purity. We only surface vendors that provide third-party HPLC testing and batch-specific Certificates of Analysis. This combination is currently carried by two vendors in our index.",
+      },
+      {
+        type: "button",
+        text: "View the CagriSema product page",
+        productSlug: "cagrisema",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is CagriSema FDA-approved?",
+            a: "No. As a combination it is investigational and not approved for any use. Semaglutide alone is approved as specific finished drugs, but neither cagrilintide nor the combination is approved, and research-grade material is not the approved medicine.",
+          },
+          {
+            q: "How is CagriSema different from semaglutide alone?",
+            a: "It adds cagrilintide, an amylin analog, to semaglutide's GLP-1 action — engaging a second, independent satiety pathway. In the REDEFINE program the combination produced greater weight reduction than either component alone.",
+          },
+          {
+            q: "Does clinical trial data apply to research-chemical CagriSema?",
+            a: "No. Trial data describes a specific manufactured formulation under clinical conditions. It says nothing about the purity, dosing, or safety of a research-chemical blend, which is sold for laboratory use only.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Enebo LB, et al. \"Safety, tolerability, pharmacokinetics, and pharmacodynamics of concomitant administration of multiple doses of cagrilintide with semaglutide 2.4 mg for weight management: a randomised, controlled, phase 1b trial.\" The Lancet, 2021. ",
+          { href: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)01751-7/fulltext", text: "thelancet.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Novo Nordisk. REDEFINE Phase 3 program in obesity (cagrilintide 2.4 mg + semaglutide 2.4 mg), topline results. ",
+          { href: "https://www.novonordisk.com/news-and-media/news-and-ir-materials.html", text: "novonordisk.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Lau DCW, et al. \"Once-weekly cagrilintide for weight management in people with overweight and obesity: a multicentre, randomised, double-blind, placebo-controlled and active-controlled, dose-finding phase 2 trial.\" The Lancet, 2021. ",
+          { href: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)01751-7/fulltext", text: "thelancet.com", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. FDA. Medications containing semaglutide — approved drug products and compounding risk alerts. ",
+          { href: "https://www.fda.gov/drugs/postmarket-drug-safety-information-patients-and-providers/medications-containing-semaglutide-marketed-type-2-diabetes-or-weight-loss", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. The combination described is an unapproved, investigational research chemical sold for laboratory research use only — not for human or veterinary use.",
+      },
+    ],
+  },
+  {
     slug: "tirzepatide-research-guide",
     title: "Tirzepatide: The Complete Research Guide",
     excerpt:

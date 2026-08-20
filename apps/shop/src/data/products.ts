@@ -169,6 +169,33 @@ export const products: Product[] = [
     featured: false,
   },
   {
+    id: "retatrutide-cagrilintide",
+    name: "Retatrutide / Cagrilintide Stack",
+    slug: "retatrutide-cagrilintide",
+    category: "Stacks",
+    description:
+      "A co-formulated metabolic research blend pairing retatrutide — an investigational triple GIP/GLP-1/glucagon receptor agonist — with cagrilintide, a long-acting amylin analog, in a single vial (12.5 mg / 2.5 mg). Studied for overlapping incretin and amylin signaling pathways. Both compounds are investigational and unapproved; provided strictly as a chemical reagent for laboratory research use only.",
+    benefits: ["Combines incretin (GLP-1/GIP/glucagon) and amylin research pathways in one vial", "Amylin-analog satiety signaling distinct from the GLP-1 axis", "Retatrutide 12.5 mg / Cagrilintide 2.5 mg co-formulation", "Investigational compounds — research use only, no approved combination exists"],
+    vendors: [
+      { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/retatrutide-cagrilintide", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
+    ],
+    featured: false,
+  },
+  {
+    id: "cagrisema",
+    name: "CagriSema (Cagrilintide / Semaglutide) Stack",
+    slug: "cagrisema",
+    category: "Stacks",
+    description:
+      "A co-formulated metabolic research blend pairing cagrilintide — a long-acting amylin analog — with semaglutide, a GLP-1 receptor agonist, in a single vial. The dual amylin-plus-GLP-1 approach was studied in Novo Nordisk's Phase 3 REDEFINE program, where the combination produced greater weight reduction than either component alone. Semaglutide is FDA-approved only as a specific finished drug; the bulk peptide and this combination are unapproved and provided strictly as a chemical reagent for laboratory research use only.",
+    benefits: ["Pairs amylin (cagrilintide) and GLP-1 (semaglutide) research pathways in one vial", "Dual satiety mechanisms studied in the Phase 3 REDEFINE program", "Combination showed greater weight reduction than either compound alone in trials", "Investigational combination — research use only, no approved co-formulation exists"],
+    vendors: [
+      { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-cagrisema/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
+      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-cag-glp-1-sema/?afref=a1b9", commission: "15%" },
+    ],
+    featured: false,
+  },
+  {
     id: "pt-141",
     name: "PT-141 (Bremelanotide)",
     slug: "pt-141",

@@ -29,6 +29,8 @@ export const PRODUCT_GUIDES: Record<string, string> = {
   "bpc-157-tb-500-blend": "/blog/wolverine-stack-research-guide",
   "glow-stack": "/blog/glow-blend-research-guide",
   "klow-stack": "/blog/klow-blend-research-guide",
+  "retatrutide-cagrilintide": "/blog/retatrutide-cagrilintide-research-guide",
+  "cagrisema": "/blog/cagrisema-research-guide",
 };
 
 export function learnMoreHref(productSlug: string): string {
