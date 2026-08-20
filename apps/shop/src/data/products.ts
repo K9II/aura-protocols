@@ -460,6 +460,23 @@ export const products: Product[] = [
     ],
     featured: false,
   },
+  {
+    id: "glutathione",
+    name: "Glutathione (GSH)",
+    slug: "glutathione",
+    category: "Longevity & Wellness",
+    description:
+      "The body's master antioxidant — a tripeptide of glutamate, cysteine, and glycine that neutralizes reactive oxygen species, recycles vitamins C and E, and drives phase-II liver detoxification. Studied for oxidative-stress modulation, hepatic function, and as a research reference for cellular redox balance.",
+    benefits: ["Primary intracellular antioxidant / redox buffer", "Studied for phase-II hepatic detoxification pathways", "Regenerates oxidized vitamin C and E in research models", "Oxidative-stress and glutathione-depletion research"],
+    vendors: [
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/glutathione-750mg/?ref=k9@auraprotocols.com", commission: "15%" },
+      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glutathione/?afref=a1b9", commission: "15%" },
+      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/glutathione/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
+      { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-glutathione/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
+      { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/l-glutathione", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
+    ],
+    featured: false,
+  },
 ];
 
 export const categories = [...new Set(products.map((p) => p.category))];

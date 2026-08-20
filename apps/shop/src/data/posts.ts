@@ -3561,4 +3561,127 @@ export const posts: Post[] = [
       },
     ],
   },
+  {
+    slug: "glutathione-research-guide",
+    title: "Glutathione (GSH): The Complete Research Guide",
+    excerpt:
+      "The body's master antioxidant — a tripeptide at the center of cellular redox balance and phase-II detoxification. Strong biochemistry, a genuinely contested delivery question, and a clear line between supplement, off-label injection, and research reagent.",
+    category: "Longevity & Wellness",
+    date: "August 2026",
+    readTime: "7 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Glutathione is one of the few compounds on this site whose core biochemistry is not in dispute — it's a foundational molecule in every human cell. What is contested is delivery: how much of an administered dose actually reaches the tissues that matter, and by what route. This guide separates the well-established biochemistry from the parts that are genuinely unsettled, and is explicit about the difference between an oral supplement, an off-label injection, and a research-grade vial.",
+      },
+      { type: "h2", text: "What Is Glutathione?" },
+      {
+        type: "p",
+        text: "Glutathione (GSH) is a tripeptide of glutamate, cysteine, and glycine, distinguished by an unusual gamma-peptide bond between glutamate and cysteine that makes it resistant to ordinary peptidase breakdown. It is the most abundant intracellular antioxidant in the body, present in millimolar concentrations in most cells, and functions as the cell's primary redox buffer — the reserve that keeps the intracellular environment in a reduced, protected state.",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "Glutathione works through a reduced (GSH) / oxidized (GSSG) cycle. The ratio of the two is one of the most-used biochemical markers of oxidative stress in research:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Direct antioxidant defense. Glutathione peroxidase uses GSH to neutralize hydrogen peroxide and lipid peroxides, converting them to water while GSH is oxidized to GSSG; glutathione reductase then regenerates GSH using NADPH.",
+          "Regeneration of other antioxidants. GSH recycles oxidized vitamin C and vitamin E back to their active forms, making it a hub of the broader antioxidant network rather than a standalone scavenger.",
+          "Phase-II detoxification. Glutathione-S-transferases conjugate GSH onto electrophilic xenobiotics, drugs, and reactive metabolites, tagging them for excretion via the mercapturic acid pathway — a central mechanism of hepatic detoxification.",
+          "Redox signaling and protein protection. Reversible glutathionylation of protein thiols regulates enzyme activity and shields cysteine residues from irreversible oxidative damage.",
+        ],
+      },
+      { type: "h2", text: "Research Evidence — and the Delivery Debate" },
+      {
+        type: "callout",
+        text: "The central research question with glutathione is not whether it matters — it plainly does — but whether supplementing it actually raises tissue levels. Orally administered glutathione is substantially broken down in the gut, and early studies questioned whether it meaningfully raised body stores at all.",
+      },
+      {
+        type: "p",
+        text: "A frequently-cited randomized controlled trial (Richie et al., 2015) found that sustained daily oral glutathione did raise body stores of glutathione in blood and tissues over 6 months, partially countering the older assumption that oral dosing is futile — though effect sizes and the best route remain actively debated. Liposomal, sublingual, intravenous, and precursor-based strategies (e.g., N-acetylcysteine to supply cysteine, the rate-limiting substrate) all exist precisely because the delivery question is unresolved.",
+      },
+      {
+        type: "p",
+        text: "Beyond redox biology, glutathione has been studied in hepatic conditions, Parkinson's disease (small IV trials), and dermatology, where it inhibits tyrosinase and has been marketed for skin lightening — an application with weak, contested evidence and real safety concerns around unregulated injectables.",
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Oral glutathione is sold as a dietary supplement. Injectable and IV glutathione are not FDA-approved drug products for antioxidant, detoxification, or skin-lightening use, and are frequently compounded. The FDA and international regulators have specifically warned about injectable skin-lightening products containing glutathione, citing unknown purity, sterility, and safety — adverse events have been reported with unregulated injectables.",
+      },
+      {
+        type: "callout",
+        text: "Research-grade glutathione sold in vials is a chemical reagent for laboratory use, not an approved medicine or a supplement. It has not been evaluated for the purity, sterility, or dosing of a finished pharmaceutical product, and nothing in this guide is medical advice or a recommendation for human or veterinary use.",
+      },
+      { type: "h2", text: "Where to Source Glutathione for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical — glutathione is also oxidation-sensitive, so batch handling and testing matter. We only list vendors who provide third-party testing and batch-specific Certificates of Analysis.",
+      },
+      {
+        type: "button",
+        text: "View the Glutathione product page",
+        productSlug: "glutathione",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Why is glutathione called the \"master antioxidant\"?",
+            a: "Because it's the most abundant intracellular antioxidant and sits at the center of the antioxidant network — it directly neutralizes reactive oxygen species and also regenerates other antioxidants like vitamins C and E back to their active forms.",
+          },
+          {
+            q: "Does oral glutathione actually work?",
+            a: "It's debated. Glutathione is largely broken down in the gut, which led to early skepticism, but a 2015 randomized controlled trial found sustained daily oral dosing raised body glutathione stores over 6 months. The optimal route (oral, liposomal, IV, or precursor-based) remains an open research question.",
+          },
+          {
+            q: "Is injectable glutathione FDA-approved?",
+            a: "No. Injectable and IV glutathione are not FDA-approved drug products, and regulators have specifically warned about unregulated injectable skin-lightening products containing glutathione due to purity and safety concerns. Research-grade glutathione is a laboratory reagent, not a medicine.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Wu G, Fang YZ, Yang S, et al. \"Glutathione metabolism and its implications for health.\" J Nutr. 2004;134(3):489-92. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/14988435/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Pizzorno J. \"Glutathione!\" Integr Med (Encinitas). 2014;13(1):8-12. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4684116/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Richie JP Jr, Nichenametla S, Neidig W, et al. \"Randomized controlled trial of oral glutathione supplementation on body stores of glutathione.\" Eur J Nutr. 2015;54(2):251-63. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/24791752/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Sonthalia S, Daulatabad D, Sarkar R. \"Glutathione as a skin whitening agent: Facts, myths, evidence and controversies.\" Indian J Dermatol Venereol Leprol. 2016;82(3):262-72. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/26924401/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. U.S. FDA. \"Certain compounded and injectable skin-lightening products (including glutathione) — safety concerns.\" FDA compounding risk information. ",
+          { href: "https://www.fda.gov/drugs/human-drug-compounding/compounding-and-drug-shortages", text: "fda.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only — not for human or veterinary use.",
+      },
+    ],
+  },
 ];

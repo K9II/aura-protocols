@@ -31,6 +31,7 @@ export const PRODUCT_GUIDES: Record<string, string> = {
   "klow-stack": "/blog/klow-blend-research-guide",
   "retatrutide-cagrilintide": "/blog/retatrutide-cagrilintide-research-guide",
   "cagrisema": "/blog/cagrisema-research-guide",
+  "glutathione": "/blog/glutathione-research-guide",
 };
 
 export function learnMoreHref(productSlug: string): string {
