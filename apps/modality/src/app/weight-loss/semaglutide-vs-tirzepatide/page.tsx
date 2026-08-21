@@ -128,7 +128,7 @@ export default async function Page({
               </div>
               <p className="cc-note">
                 A dual GIP/GLP-1 receptor agonist — the newer, dual-action compound. In published trials it
-                tends to produce greater <em>average</em> weight loss than semaglutide, though individual
+                tends to produce greater <em>average</em>{" "}weight loss than semaglutide, though individual
                 results vary and it costs more per month.
               </p>
               <ProductCTA className="btn btn-primary btn-sm" sub={sub} productId={TIRZ_ID} label={TIRZ_LABEL}>
@@ -201,7 +201,7 @@ export default async function Page({
             <div>
               <div className="q">Which is more effective?</div>
               <div className="a">
-                Published trials generally show tirzepatide producing greater <em>average</em> weight loss
+                Published trials generally show tirzepatide producing greater <em>average</em>{" "}weight loss
                 than semaglutide, but averages aren&apos;t a guarantee for any one person — your clinician
                 weighs your history and goals rather than picking by trial averages alone.
               </div>
