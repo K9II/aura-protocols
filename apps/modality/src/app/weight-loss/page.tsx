@@ -119,6 +119,14 @@ export default async function Page({
               </p>
               <span className="gc-arw">Read →</span>
             </a>
+            <a className="guide-card" href="/weight-loss/glp-1-without-insurance">
+              <h4 className="gc-h">GLP-1 without insurance</h4>
+              <p className="gc-d">
+                How to start compounded GLP-1 with no insurance and no prior authorization — the cash-pay
+                path, and why coverage often falls through anyway.
+              </p>
+              <span className="gc-arw">Read →</span>
+            </a>
           </div>
           <span className="source-flag">
             Reflects current LegUpRx partner pricing, verified August 20, 2026.
