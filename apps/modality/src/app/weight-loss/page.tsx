@@ -135,6 +135,14 @@ export default async function Page({
               </p>
               <span className="gc-arw">Read →</span>
             </a>
+            <a className="guide-card" href="/weight-loss/is-compounded-glp-1-legit">
+              <h4 className="gc-h">Is compounded GLP-1 legit?</h4>
+              <p className="gc-d">
+                How to tell a legitimate, clinician-prescribed compounded GLP-1 program from an unregulated
+                gray-market scam — and what honest pricing looks like.
+              </p>
+              <span className="gc-arw">Read →</span>
+            </a>
           </div>
           <span className="source-flag">
             Reflects current LegUpRx partner pricing, verified August 20, 2026.
