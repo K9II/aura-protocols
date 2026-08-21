@@ -10,12 +10,12 @@ const CANONICAL_PATH = "/weight-loss/compounded-tirzepatide-cost";
 export const metadata: Metadata = {
   title: "Compounded Tirzepatide Cost: $474/Month, No Insurance | Modality",
   description:
-    "See the real monthly cost of compounded tirzepatide — $474/mo, no insurance required. Licensed U.S. clinicians review every request before a prescription is issued.",
+    "See the real monthly cost of compounded Tirzepatide — $474/mo, no insurance required. Licensed U.S. clinicians review every request before a prescription is issued.",
   alternates: { canonical: CANONICAL_PATH },
   openGraph: {
     title: "Compounded Tirzepatide Cost: $474/Month, No Insurance",
     description:
-      "The real monthly price for compounded tirzepatide through Modality — no insurance required, no hidden fees.",
+      "The real monthly price for compounded Tirzepatide through Modality — no insurance required, no hidden fees.",
     url: CANONICAL_PATH,
     type: "website",
   },
@@ -69,7 +69,7 @@ export default async function Page({
           <div>
             <p className="kicker">Weight Loss — GLP-1 Protocol</p>
             <h1 className="hero-title long">
-              What compounded tirzepatide actually <em>costs</em>
+              What compounded Tirzepatide actually <em>costs</em>
             </h1>
             <p className="hero-sub">
               No insurance required, no membership fee — you pay $474/month, billed monthly. A licensed
@@ -95,7 +95,7 @@ export default async function Page({
         </div>
 
         <div className="section" id="protocols">
-          <p className="sec-k">Compounded tirzepatide, priced monthly</p>
+          <p className="sec-k">Compounded Tirzepatide, priced monthly</p>
           <h3 className="sec-h">One number, no fine print</h3>
           <div className="priceblock">
             <div className="pb-amt">
@@ -104,7 +104,7 @@ export default async function Page({
             <div className="pb-meta">
               <p className="pb-term">Billed monthly · no long-term contract</p>
               <p className="pb-note">
-                This is the real price for compounded injectable tirzepatide with additives — not a
+                This is the real price for compounded injectable Tirzepatide with additives — not a
                 &ldquo;starting at&rdquo; figure. There&apos;s no 3- or 6-month prepay discount on this
                 formulation right now, so what you see is what you pay each month.
               </p>
@@ -126,12 +126,12 @@ export default async function Page({
           <ul className="factors">
             <li>
               <strong>Compounded vs. brand-name</strong>
-              Compounded tirzepatide is prepared by a licensed pharmacy rather than sold under the
+              Compounded Tirzepatide is prepared by a licensed pharmacy rather than sold under the
               Zepbound label — that&apos;s the main reason it costs less than the brand-name version.
             </li>
             <li>
               <strong>Which GLP-1</strong>
-              Compounded semaglutide runs lower ($349/mo) than tirzepatide ($474/mo) — tirzepatide
+              Compounded Semaglutide runs lower ($349/mo) than Tirzepatide ($474/mo) — Tirzepatide
               costs more because it&apos;s the newer, dual-action compound.
             </li>
             <li>
@@ -176,7 +176,7 @@ export default async function Page({
             <div>
               <div className="q">Does insurance cover this?</div>
               <div className="a">
-                No — compounded tirzepatide here is cash-pay. That&apos;s part of why it&apos;s priced
+                No — compounded Tirzepatide here is cash-pay. That&apos;s part of why it&apos;s priced
                 lower than the brand-name drug, and why there&apos;s no prior-authorization wait.
               </div>
             </div>

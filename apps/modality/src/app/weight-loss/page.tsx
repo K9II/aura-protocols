@@ -16,7 +16,7 @@ const SEMA_LABEL = "Injectable Semaglutide with additives";
 export const metadata: Metadata = {
   title: "Weight Loss: Compounded GLP-1 Protocols | Modality",
   description:
-    "Medically-supervised compounded GLP-1 weight loss — semaglutide and tirzepatide, no insurance required. Licensed U.S. clinicians review every request before a prescription is issued.",
+    "Medically-supervised compounded GLP-1 weight loss — Semaglutide and Tirzepatide, no insurance required. Licensed U.S. clinicians review every request before a prescription is issued.",
   alternates: { canonical: CANONICAL_PATH },
   openGraph: {
     title: "Weight Loss: Compounded GLP-1 Protocols",
@@ -78,7 +78,7 @@ export default async function Page({
               Medically-supervised, compounded GLP-1 <em>weight loss</em>
             </h1>
             <p className="hero-sub">
-              Compounded semaglutide and tirzepatide, matched by a licensed clinician — patients average
+              Compounded Semaglutide and Tirzepatide, matched by a licensed clinician — patients average
               15–20% weight loss. No insurance required, and GLP-1 protocols start from $199/month.
             </p>
             <div className="cta-row">
@@ -104,15 +104,15 @@ export default async function Page({
           <h3 className="sec-h">Guides to the weight-loss lane</h3>
           <div className="guides">
             <a className="guide-card" href="/weight-loss/compounded-tirzepatide-cost">
-              <h4 className="gc-h">What compounded tirzepatide costs</h4>
+              <h4 className="gc-h">What compounded Tirzepatide costs</h4>
               <p className="gc-d">
-                The real monthly price for compounded tirzepatide — no insurance required, no
+                The real monthly price for compounded Tirzepatide — no insurance required, no
                 &ldquo;starting at&rdquo; teaser.
               </p>
               <span className="gc-arw">Read →</span>
             </a>
             <a className="guide-card" href="/weight-loss/semaglutide-vs-tirzepatide">
-              <h4 className="gc-h">Semaglutide vs. tirzepatide</h4>
+              <h4 className="gc-h">Semaglutide vs. Tirzepatide</h4>
               <p className="gc-d">
                 How the two compounded GLP-1 options compare on mechanism and cost, and how a clinician
                 chooses between them.
@@ -154,7 +154,7 @@ export default async function Page({
             <div>
               <div className="q">What weight-loss options do you offer?</div>
               <div className="a">
-                Compounded semaglutide and tirzepatide, plus microdose GLP-1 and Lipo injection options —
+                Compounded Semaglutide and Tirzepatide, plus microdose GLP-1 and Lipo injection options —
                 a licensed clinician reviews your intake and determines which, if any, is appropriate for
                 you.
               </div>

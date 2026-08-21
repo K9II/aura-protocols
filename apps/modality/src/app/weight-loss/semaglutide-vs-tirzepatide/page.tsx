@@ -19,12 +19,12 @@ const TIRZ_LABEL = "Injectable Tirzepatide with additives";
 export const metadata: Metadata = {
   title: "Semaglutide vs. Tirzepatide: Cost & How They Compare | Modality",
   description:
-    "Compounded semaglutide is $349/mo, compounded tirzepatide is $474/mo — no insurance required. See how they compare on mechanism and cost, then a licensed clinician helps you decide.",
+    "Compounded Semaglutide is $349/mo, compounded Tirzepatide is $474/mo — no insurance required. See how they compare on mechanism and cost, then a licensed clinician helps you decide.",
   alternates: { canonical: CANONICAL_PATH },
   openGraph: {
     title: "Semaglutide vs. Tirzepatide: Cost & How They Compare",
     description:
-      "Compounded semaglutide ($349/mo) vs. compounded tirzepatide ($474/mo) through Modality — mechanism, cost, and how a licensed clinician chooses.",
+      "Compounded Semaglutide ($349/mo) vs. compounded Tirzepatide ($474/mo) through Modality — mechanism, cost, and how a licensed clinician chooses.",
     url: CANONICAL_PATH,
     type: "website",
   },
@@ -69,7 +69,7 @@ export default async function Page({
             </svg>
             <b><span className="cap">M</span><span className="tail">odality</span></b>
           </div>
-          {/* Generic entry point defaults to semaglutide (the lower-cost, lower-commitment
+          {/* Generic entry point defaults to Semaglutide (the lower-cost, lower-commitment
               option — same "cheapest GLP-1 match" convention the homepage lane uses); the
               compare section below gives an explicit per-drug CTA. */}
           <ProductCTA className="btn btn-primary btn-sm" sub={sub} productId={SEMA_ID} label={SEMA_LABEL}>
@@ -81,11 +81,11 @@ export default async function Page({
           <div>
             <p className="kicker">Weight Loss — GLP-1 Protocol Comparison</p>
             <h1 className="hero-title long">
-              Semaglutide vs. tirzepatide: what&apos;s actually <em>different</em>
+              Semaglutide vs. Tirzepatide: what&apos;s actually <em>different</em>
             </h1>
             <p className="hero-sub">
-              Both are compounded GLP-1 options with no insurance required — $349/month for semaglutide,
-              $474/month for tirzepatide, billed monthly. The right one depends on your health history and
+              Both are compounded GLP-1 options with no insurance required — $349/month for Semaglutide,
+              $474/month for Tirzepatide, billed monthly. The right one depends on your health history and
               goals, which is why a licensed clinician reviews your intake before either is prescribed.
             </p>
             <div className="cta-row">
@@ -106,10 +106,10 @@ export default async function Page({
 
         <div className="section" id="compare">
           <p className="sec-k">Two compounded GLP-1 options, priced monthly</p>
-          <h3 className="sec-h">Semaglutide vs. tirzepatide, side by side</h3>
+          <h3 className="sec-h">Semaglutide vs. Tirzepatide, side by side</h3>
           <div className="compare">
             <div className="compare-card">
-              <p className="cc-name">Compounded semaglutide</p>
+              <p className="cc-name">Compounded Semaglutide</p>
               <div className="cc-amt">
                 $349<small>/month</small>
               </div>
@@ -118,21 +118,21 @@ export default async function Page({
                 entry point into the category.
               </p>
               <ProductCTA className="btn btn-primary btn-sm" sub={sub} productId={SEMA_ID} label={SEMA_LABEL}>
-                See if semaglutide fits →
+                See if Semaglutide fits →
               </ProductCTA>
             </div>
             <div className="compare-card">
-              <p className="cc-name">Compounded tirzepatide</p>
+              <p className="cc-name">Compounded Tirzepatide</p>
               <div className="cc-amt">
                 $474<small>/month</small>
               </div>
               <p className="cc-note">
                 A dual GIP/GLP-1 receptor agonist — the newer, dual-action compound. In published trials it
-                tends to produce greater <em>average</em>{" "}weight loss than semaglutide, though individual
+                tends to produce greater <em>average</em>{" "}weight loss than Semaglutide, though individual
                 results vary and it costs more per month.
               </p>
               <ProductCTA className="btn btn-primary btn-sm" sub={sub} productId={TIRZ_ID} label={TIRZ_LABEL}>
-                See if tirzepatide fits →
+                See if Tirzepatide fits →
               </ProductCTA>
             </div>
           </div>
@@ -201,13 +201,13 @@ export default async function Page({
             <div>
               <div className="q">Which is more effective?</div>
               <div className="a">
-                Published trials generally show tirzepatide producing greater <em>average</em>{" "}weight loss
-                than semaglutide, but averages aren&apos;t a guarantee for any one person — your clinician
+                Published trials generally show Tirzepatide producing greater <em>average</em>{" "}weight loss
+                than Semaglutide, but averages aren&apos;t a guarantee for any one person — your clinician
                 weighs your history and goals rather than picking by trial averages alone.
               </div>
             </div>
             <div>
-              <div className="q">Why does tirzepatide cost more?</div>
+              <div className="q">Why does Tirzepatide cost more?</div>
               <div className="a">
                 It&apos;s the newer, dual-action (GIP + GLP-1) compound. The price difference reflects the
                 compound itself, not a difference in how the pharmacy prepares it.
