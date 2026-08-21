@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
-import ProductCTA from "./ProductCTA";
+import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/weight-loss/semaglutide-vs-tirzepatide";
 

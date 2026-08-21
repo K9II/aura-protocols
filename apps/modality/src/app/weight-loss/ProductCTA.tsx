@@ -9,7 +9,8 @@ type Props = {
   children: ReactNode;
   className?: string;
   sub?: number;
-  /** Which product this CTA hands off to — this page compares two SKUs, so
+  /** Which product this CTA hands off to — shared across the weight-loss
+   *  lane (hub + compare page, both of which route to more than one SKU), so
    *  (unlike TirzepatideCTA's single hard-wired id) the id/label are passed
    *  in per-CTA instance. */
   productId: string;
