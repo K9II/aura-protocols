@@ -127,6 +127,14 @@ export default async function Page({
               </p>
               <span className="gc-arw">Read →</span>
             </a>
+            <a className="guide-card" href="/weight-loss/microdose-semaglutide-cost">
+              <h4 className="gc-h">Microdose Semaglutide cost</h4>
+              <p className="gc-d">
+                The lowest-cost way into a compounded GLP-1 protocol — $199/month, or about $100/month on the
+                3-month plan, with added B12.
+              </p>
+              <span className="gc-arw">Read →</span>
+            </a>
           </div>
           <span className="source-flag">
             Reflects current LegUpRx partner pricing, verified August 20, 2026.
