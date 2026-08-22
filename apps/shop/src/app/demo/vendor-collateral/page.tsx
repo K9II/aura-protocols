@@ -19,9 +19,6 @@ function vendorUrl(productSlug: string, vendorName: string): string {
 const apolloLogo = vendorCreative.find((a) => a.vendorId === "apollo" && a.type === "logo")!;
 const apolloRetatrutide = creativeFor("retatrutide").find((a) => a.vendorId === "apollo")!;
 const apolloRetatrutideUrl = vendorUrl("retatrutide", "Apollo Peptide Sciences");
-const mainNad = creativeFor("nad-plus").find((a) => a.vendorId === "main-peptides")!;
-const mainNadUrl = vendorUrl("nad-plus", "Main Peptides");
-
 const mitoProducts = [
   { slug: "slu-pp-332", name: "SLU-PP-332", blurb: "ERR pan-agonist research · exercise-mimetic pathway" },
   { slug: "ss-31", name: "SS-31", blurb: "Mitochondria-targeted · cardiolipin stabilization" },
@@ -317,44 +314,6 @@ export default function VendorCollateralDemoPage() {
         </section>
 
         {/* ============================================================= */}
-        {/* 5. VENDOR-DESIGNED, READY-TO-USE BANNER — MAIN PEPTIDES        */}
-        {/* ============================================================= */}
-        <section className="pb-16" style={{ borderTop: "1px solid var(--line)", paddingTop: "56px" }}>
-          <p className="p-cat-label mb-2">05 — A banner that needs no composing</p>
-          <h2 className="p-serif text-2xl mb-4 text-[color:var(--ink)]">
-            /products/nad-plus — a fully vendor-designed asset
-          </h2>
-          <p className="text-sm text-[color:var(--ink-soft)] mb-6 max-w-[62ch]">
-            Different from Apollo and Mile High above — those were raw product photography that I built a
-            template around. This one is a finished, ready-to-drop-in ad straight from Main Peptides&apos;
-            Creatives library: their own headline, logo, offer, and CTA already composed. No wrapper needed.
-          </p>
-
-          <div className="max-w-[380px]">
-            <a href={mainNadUrl} target="_blank" rel={AFFILIATE_REL} className="relative block no-underline">
-              <span className="absolute top-2 right-2 z-10 text-[8px] uppercase tracking-widest font-bold text-[color:var(--paper)] bg-[color:var(--specimen)] px-1.5 py-0.5">
-                Featured
-              </span>
-              <img
-                src={mainNad.path}
-                alt="Main Peptides — Peptides You Can Trust, NAD+ 500mg, 15% off"
-                width={mainNad.width}
-                height={mainNad.height}
-                className="w-full h-auto border"
-                style={{ borderColor: "var(--ink)" }}
-              />
-            </a>
-          </div>
-
-          <p className="text-[11px] text-[color:var(--ink-soft)] mt-3 max-w-[62ch]">
-            {mainNad.caveat} Also, Main Peptides is the <em>lowest</em>-commission vendor on the NAD+ page (10%,
-            versus 30% for GLP-1 Research Lab) — it&apos;s the featured slot here only because it&apos;s the one
-            vendor with a real, finished asset, which is a real trade-off worth being deliberate about, not an
-            accident.
-          </p>
-        </section>
-
-        {/* ============================================================= */}
         {/* 6. THEMED MULTI-PRODUCT BANNER — REAL MILE HIGH ASSETS         */}
         {/* ============================================================= */}
         <section className="pb-16" style={{ borderTop: "1px solid var(--line)", paddingTop: "56px" }}>
@@ -422,7 +381,6 @@ export default function VendorCollateralDemoPage() {
                   ["Limitless Life Nootropics", "Creatives tab exists, only a generic platform doc — ask for real assets"],
                   ["PSPeptides", "No creative tab exists in their system"],
                   ["Peak Lab Peptides", "No creative/marketing feature exists in their affiliate plugin"],
-                  ["Main Peptides", "Real ready-made banner confirmed (NAD+) — used above; verify the \"15% off\" claim against the still-pending discount code"],
                   ["Mile High Compounds", "Real photography confirmed for 3 products (manual login past the CAPTCHA) — used above, plus a working auraproto code"],
                   ["GLP-1 Research Lab", "Not checked — tracking broken, relationship on hold"],
                 ].map(([vendor, status]) => (

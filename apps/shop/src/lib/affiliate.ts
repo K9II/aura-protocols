@@ -5,7 +5,6 @@ const VENDOR_IDS: Record<string, string> = {
   "Limitless Life Nootropics": "limitless",
   "Apollo Peptide Sciences": "apollo",
   "Ignite Peptides": "ignite",
-  "Main Peptides": "main-peptides",
   "Peak Lab Peptides": "peak-lab",
   "Mile High Compounds": "mile-high",
   "PSPeptides": "pspeptides",

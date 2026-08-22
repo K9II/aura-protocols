@@ -51,18 +51,6 @@ export const vendorProfiles: VendorProfile[] = [
     ],
   },
   {
-    vendor: "Main Peptides",
-    summary:
-      "Main Peptides is a smaller-catalog vendor added primarily for SS-31, with third-party purity testing on file.",
-    pros: [
-      "Carries SS-31 with third-party purity testing documented",
-    ],
-    cons: [
-      "Catalog breadth beyond the compounds already listed on this site is not fully documented yet — treat this profile as provisional pending a full catalog review",
-      "Shipping speed not independently confirmed — rated provisionally at average",
-    ],
-  },
-  {
     vendor: "Peak Lab Peptides",
     summary:
       "Peak Lab Peptides runs a formal Research Partner / Affiliate program with an explicit RUO-only compliance framework. Added as the sole confirmed vendor for SLU-PP-332.",

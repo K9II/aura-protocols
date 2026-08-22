@@ -11,7 +11,7 @@ const fiveVendors = [
   ...twoVendors,
   { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/x", commission: "20%" },
   { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/x", commission: "15%" },
-  { vendor: "Main Peptides", url: "https://mainpeptides.com/x", commission: "10%" },
+  { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/x", commission: "15%" },
 ];
 
 describe("VendorCompareList", () => {
