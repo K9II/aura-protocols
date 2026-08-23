@@ -31,6 +31,23 @@ const PREFER: Record<string, RegExp> = {
   "weight-loss": /semaglutide|tirzepatide/i,
 };
 
+// SEO hub pages that currently exist (front-door links → hub → leaf pages). Add a
+// lane here when its hub ships so it joins the homepage guides section + gets the
+// internal link that feeds the leaves. Rendered statically (independent of the live
+// catalog) so the crawlable links are always present.
+const HUBS: { slug: string; title: string; blurb: string }[] = [
+  {
+    slug: "weight-loss",
+    title: "Weight Loss & GLP-1",
+    blurb: "Compounded semaglutide vs tirzepatide, cost without insurance, and how the dose is matched to you.",
+  },
+  {
+    slug: "mens-health",
+    title: "Men's Health & ED",
+    blurb: "Generic tadalafil and sildenafil vs brand-name, prescriptions without an in-person visit, and testosterone support.",
+  },
+];
+
 /** Collapse a category's products into a single browsable lane. A representative
  *  product carries the hand-off and sets the "from" price: the cheapest product
  *  matching the lane's PREFER pattern (e.g. GLP-1 for Weight Loss), else the
@@ -234,6 +251,24 @@ export default async function Page({
             Each protocol offers 1 / 3 / 6-month supply pricing (a longer supply lowers the per-month price).
             Pricing and renewal terms are set at checkout on our licensed partner&apos;s platform.
           </p>
+        </div>
+
+        <div className="section" id="guides">
+          <p className="sec-k">Protocol guides</p>
+          <h3 className="sec-h">Learn before you start</h3>
+          <p className="lead">
+            Plain-language explainers on how each protocol works, what it costs without insurance, and how a
+            clinician matches it to you — written to answer the questions people actually search.
+          </p>
+          <div className="guides" style={{ marginTop: 14 }}>
+            {HUBS.map((h) => (
+              <a key={h.slug} className="guide-card" href={`/${h.slug}`}>
+                <h4 className="gc-h">{h.title}</h4>
+                <p className="gc-d">{h.blurb}</p>
+                <span className="gc-arw">Read the guide →</span>
+              </a>
+            ))}
+          </div>
         </div>
 
         {TESTIMONIALS.length > 0 && (
