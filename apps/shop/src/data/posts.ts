@@ -310,6 +310,13 @@ export const posts: Post[] = [
         affiliateUrl: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7",
       },
       {
+        type: "cta",
+        text: "View Retatrutide Vendors",
+        productSlug: "retatrutide",
+        vendor: "Limitless Life Nootropics",
+        affiliateUrl: "https://limitlesslifenootropics.com/product/retatrutide-ha?_ef_transaction_id=&oid=1&affid=10866",
+      },
+      {
         type: "faq",
         faq: [
           {
