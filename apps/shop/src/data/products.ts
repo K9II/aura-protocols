@@ -1,3 +1,5 @@
+import { evolveVendorFor } from "./pendingVendors";
+
 export type ProductVendor = {
   vendor: string;
   url: string;
@@ -470,5 +472,16 @@ export const products: Product[] = [
     featured: false,
   },
 ];
+
+// Append staged-but-dormant vendors (e.g. Evolve Peptides, awaiting approval).
+// evolveVendorFor() returns null while the vendor is disabled, so this loop is a
+// no-op in production today and the array above is unchanged. When the vendor is
+// flipped live in pendingVendors.ts, it appears on every product it carries and
+// flows through the product page, /go/ redirects, JSON-LD, compare pages, and
+// sitemap automatically — no edits needed here. See pendingVendors.ts.
+for (const p of products) {
+  const staged = evolveVendorFor(p.id);
+  if (staged) p.vendors.push(staged);
+}
 
 export const categories = [...new Set(products.map((p) => p.category))];

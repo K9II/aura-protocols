@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { products } from "@/data/products";
+import { vendorPins } from "@/data/vendorOrder";
 import EngineCTACard from "@/components/EngineCTACard";
 import VendorCompareList from "@/components/VendorCompareList";
 import { PRODUCT_GUIDES } from "@/lib/guides";
@@ -43,7 +44,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     (p) => p.category === product.category && p.id !== product.id
   ).slice(0, 2);
 
+  // Vendor display order: GLP-1 products pin Evolve/Limitless (once Evolve is
+  // live), all other products pin Mile High/American; the rest fall back to
+  // commission-desc. See data/vendorOrder.ts.
+  const pins = vendorPins(product.id);
   const sortedVendors = [...product.vendors].sort((a, b) => {
+    const pa = pins.indexOf(a.vendor);
+    const pb = pins.indexOf(b.vendor);
+    if (pa !== -1 || pb !== -1) {
+      if (pa === -1) return 1;
+      if (pb === -1) return -1;
+      return pa - pb;
+    }
     const parse = (c: string) => parseFloat(c) || -1;
     return parse(b.commission) - parse(a.commission);
   });
