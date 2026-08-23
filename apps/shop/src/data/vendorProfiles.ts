@@ -1,4 +1,6 @@
 // apps/shop/src/data/vendorProfiles.ts
+import { EVOLVE_ENABLED, evolveProfile } from "./pendingVendors";
+
 export type VendorProfile = {
   vendor: string; // must exactly match ProductVendor.vendor strings used in products.ts
   summary: string;
@@ -6,7 +8,7 @@ export type VendorProfile = {
   cons: string[];
 };
 
-export const vendorProfiles: VendorProfile[] = [
+const baseVendorProfiles: VendorProfile[] = [
   {
     vendor: "Limitless Life Nootropics",
     summary:
@@ -101,4 +103,12 @@ export const vendorProfiles: VendorProfile[] = [
       "Newer addition — shipping speed and full catalog depth not yet independently confirmed; treat this profile as provisional",
     ],
   },
+];
+
+// Staged vendors (e.g. Evolve Peptides) are appended only when they go live, so
+// this list stays in 1:1 sync with the vendors referenced in products.ts in both
+// the disabled and enabled states. See pendingVendors.ts.
+export const vendorProfiles: VendorProfile[] = [
+  ...baseVendorProfiles,
+  ...(EVOLVE_ENABLED ? [evolveProfile] : []),
 ];
