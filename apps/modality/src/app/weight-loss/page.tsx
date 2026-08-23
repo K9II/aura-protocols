@@ -143,6 +143,14 @@ export default async function Page({
               </p>
               <span className="gc-arw">Read →</span>
             </a>
+            <a className="guide-card" href="/weight-loss/why-glp1-dose-varies">
+              <h4 className="gc-h">Why the same dose affects everyone differently</h4>
+              <p className="gc-d">
+                Exposure, genetics, and starting biology all change GLP-1 response — and why a licensed
+                clinician titrates the dose to you instead of a one-size-fits-all number.
+              </p>
+              <span className="gc-arw">Read →</span>
+            </a>
           </div>
           <span className="source-flag">
             Reflects current LegUpRx partner pricing, verified August 20, 2026.
