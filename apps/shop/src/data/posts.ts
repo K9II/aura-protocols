@@ -185,6 +185,212 @@ export const posts: Post[] = [
     ],
   },
   {
+    slug: "why-glp1-dose-response-varies",
+    title: "Why the Same GLP-1 Dose Hits Everyone Differently",
+    excerpt:
+      "One person responds powerfully to 0.5mg while another needs five to ten times more for the same effect. The reason isn't body weight or \"better receptors\" — it's what the research actually shows about exposure, genetics, and starting biology.",
+    category: "Weight Management",
+    date: "August 2026",
+    readTime: "8 min read",
+    content: [
+      {
+        type: "intro",
+        text: "It's one of the most common questions in the GLP-1 research community: why does 0.5mg of semaglutide produce a dramatic response in one person while someone else needs five to ten times more to feel the same thing? The intuitive answers — body weight, or simply \"better receptors\" — turn out to be mostly wrong. The literature points to something more interesting, and it changes how you should think about dosing entirely.",
+      },
+      {
+        type: "h2",
+        text: "The Number in the Syringe Is Only the Beginning",
+      },
+      {
+        type: "p",
+        text: "The cleanest way to understand dose response is a short chain: dose leads to exposure, exposure leads to response — and both of those sit on top of your individual starting biology. The milligrams you draw up are only the first link. Two people injecting the exact same amount can end up with different amounts of drug actually circulating, respond differently to the same circulating level, and start from different metabolic baselines before a single dose is given. Miss any of those links and the dose number tells you almost nothing on its own.",
+      },
+      {
+        type: "h2",
+        text: "Same Dose ≠ Same Exposure",
+      },
+      {
+        type: "p",
+        text: "Exposure — how much drug your body is actually working with over time — is not fixed by the label dose. Body weight is one variable that shifts it for both semaglutide and tirzepatide: heavier individuals tend to sit at somewhat lower exposure at a given dose. But the effect is modest. It is not large enough that these drugs are dosed by body weight the way, say, some chemotherapies are. That's the part that surprises people: being 300 lb does not automatically mean you need more than someone who is 150 lb. Weight nudges the exposure curve; it doesn't dictate it.",
+      },
+      {
+        type: "h2",
+        text: "Same Exposure ≠ Same Response: The Genetics",
+      },
+      {
+        type: "p",
+        text: "This is where it gets genuinely interesting. Even if two people had identical drug exposure, they still might not respond the same way — because the receptor and the signaling machinery behind it are not identical from person to person. Two genes keep showing up in the research: GLP1R, which codes for the GLP-1 receptor itself, and ARRB1 (β-arrestin-1), which is involved in how that receptor passes its signal along once activated.",
+      },
+      {
+        type: "ul",
+        items: [
+          "A 2023 genome-wide analysis in The Lancet Diabetes & Endocrinology (4,571 adults) found that combining GLP1R and ARRB1 variants identified about 4% of people who had roughly a 30% greater HbA1c reduction than the worst-responding ~9% — from the same class of drug.",
+          "A 2025 study in Obesity (112 patients with severe obesity on semaglutide 2.4mg) found that people carrying two copies of the GLP1R rs6923761 A variant lost weight at about 1.6% of body weight per month, versus about 1.0% per month in carriers of the G variant — and sex mattered too.",
+          "A 2026 genome-wide study in Nature of 27,885 people on GLP-1 drugs tied a GLP1R missense variant to greater weight loss (about 0.76 kg more per copy of the effect allele) and linked GLP1R and GIPR variants to nausea and vomiting — with the GIPR association showing up only in tirzepatide users, exactly as its dual GIP/GLP-1 mechanism would predict.",
+        ],
+      },
+      {
+        type: "callout",
+        text: "Genetics is one piece, not a dosing formula. The research is nowhere near being able to say \"0.5mg works for you because your receptors are sensitive\" or \"you need 6mg because your receptors are weak.\" These are population-level associations, not a genotype-to-dose calculator. There is still a great deal we don't understand.",
+      },
+      {
+        type: "h2",
+        text: "Your Starting Biology Moves the Whole Curve",
+      },
+      {
+        type: "p",
+        text: "Beyond exposure and receptor genetics, where you start matters. The clearest illustration comes from semaglutide's own phase 3 program. In STEP 1, adults without diabetes lost about 14.9% of body weight on 2.4mg. In STEP 2, adults with type 2 diabetes lost about 9.6% on the same 2.4mg target dose. Same drug, same dose, a meaningfully different average result — driven by the metabolic starting point, not the milligrams. We know the effect is real; we still don't fully understand every mechanism behind it.",
+      },
+      {
+        type: "h2",
+        text: "Dose Still Matters — On Average",
+      },
+      {
+        type: "p",
+        text: "None of this means dose is irrelevant. It clearly is — on average. Retatrutide's phase 2 trial showed a clean dose-response gradient at 48 weeks:",
+      },
+      {
+        type: "ul",
+        items: [
+          "1mg → about 8.7% mean weight reduction",
+          "4mg → about 17.1%",
+          "8mg → about 22.8%",
+          "12mg → about 24.2%",
+        ],
+      },
+      {
+        type: "p",
+        text: "More drug produced more weight loss on average. But \"on average\" is doing a lot of work in that sentence. Those are group means, and people within the same dose group still responded very differently from one another. The average curve is real; your personal position on it is your own.",
+      },
+      {
+        type: "h2",
+        text: "So What Actually Makes a \"Low-Dose Responder\"?",
+      },
+      {
+        type: "p",
+        text: "Putting it together, a genuine low-dose responder is probably some combination of three things working in their favor at once:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Exposure — the same dose simply produces higher effective drug levels in some people than others.",
+          "Response — at similar exposure, receptor genetics and signaling differences change how strongly the body reacts.",
+          "Starting biology — no two people are metabolically identical before the first dose, and that shifts the entire dose-response curve.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Which reframes the whole \"what's the right dose\" argument. Someone thriving on 0.5mg is not proof that everyone should stay low. Someone who needs 6mg does not have \"bad receptors.\" They are different people sitting on different dose-response curves — and there are almost certainly variables the research hasn't pinned down yet.",
+      },
+      {
+        type: "h2",
+        text: "Why This Is the Entire Case for Personalization",
+      },
+      {
+        type: "p",
+        parts: [
+          "This is exactly why a research protocol matched to your own data beats a template written for an average person. If exposure, receptor response, and starting biology all vary from person to person, then a single \"correct\" dose copied off a forum is a coin flip. Finding the dose-response that works for you — starting conservatively and adjusting against real signal — is not caution for its own sake; it's what the science actually implies. It's also the reason the ",
+          { href: "/products/semaglutide", text: "semaglutide" },
+          ", ",
+          { href: "/products/tirzepatide", text: "tirzepatide" },
+          ", and ",
+          { href: "/products/retatrutide", text: "retatrutide" },
+          " research guides on this site emphasize titration and individual response over any one \"magic\" number.",
+        ],
+      },
+      {
+        type: "p",
+        text: "It's the same principle the Aura Engine is built on. Instead of handing you a generic protocol, it starts from your own wearable data — recovery, sleep, and HRV — and builds a research starting point tuned to where you actually are, then adapts as that data changes. You can connect a wearable for free at engine.auraprotocols.com.",
+      },
+      {
+        type: "cta",
+        text: "View Semaglutide Vendors",
+        productSlug: "semaglutide",
+        vendor: "Apollo Peptide Sciences",
+        affiliateUrl: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Does body weight decide my GLP-1 dose?",
+            a: "Not really. Heavier people tend to sit at somewhat lower drug exposure at a given dose of semaglutide or tirzepatide, but the effect is modest — not enough that these drugs are dosed by body weight. Being larger does not automatically mean you need a higher dose than someone smaller.",
+          },
+          {
+            q: "Can a genetic test tell me my ideal dose?",
+            a: "No. Variants in GLP1R, ARRB1, and GIPR are associated with differences in response and side effects across large groups, but the research is not close to a genotype-to-dose formula for an individual. Genetics is one input among several, not a prescription.",
+          },
+          {
+            q: "Why did I lose less than the trial averages I read about?",
+            a: "Averages hide enormous individual spread, and starting biology shifts the whole curve. In semaglutide's own trials, people without diabetes lost about 14.9% while people with type 2 diabetes lost about 9.6% on the same 2.4mg dose. Your metabolic starting point, exposure, and receptor response all move your personal result away from the headline number.",
+          },
+          {
+            q: "Is a low-dose responder just lucky?",
+            a: "In a sense — they likely have a favorable combination of higher effective exposure, a more responsive receptor/signaling profile, and a starting biology that suits the drug. It doesn't mean everyone should stay low, and needing a higher dose doesn't mean your receptors are defective. Different people, different dose-response curves.",
+          },
+          {
+            q: "Are these compounds safe to just experiment with?",
+            a: "The compounds referenced here are for research use only and are not approved for general human use outside specific FDA-approved formulations under medical supervision. Nothing in this article is medical advice. A supervised, MD-prescribed path is a separate option when you want clinical oversight.",
+          },
+        ],
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "p",
+        parts: [
+          "1. Dawed AY, et al. \"Pharmacogenomics of GLP-1 receptor agonists: a genome-wide analysis of observational data and large randomised controlled trials.\" Lancet Diabetes Endocrinol, 2023. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/36528349/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Phan A, et al. \"A GLP1R gene variant and sex influence the response to semaglutide treatment in patients with severe obesity.\" Obesity (Silver Spring), 2025. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/40384505/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Su QJ, et al. \"Genetic predictors of GLP1 receptor agonist weight loss and side effects.\" Nature, 2026 (genome-wide study of 27,885 people). ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/41951734/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Wilding JPH, et al. \"Once-Weekly Semaglutide in Adults with Overweight or Obesity\" (STEP 1). N Engl J Med, 2021. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/33567185/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. Davies M, et al. \"Semaglutide 2·4 mg once a week in adults with overweight or obesity, and type 2 diabetes (STEP 2).\" Lancet, 2021. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/33667417/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. Jastreboff AM, et al. \"Triple-Hormone-Receptor Agonist Retatrutide for Obesity — A Phase 2 Trial.\" N Engl J Med, 2023. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/37366315/", text: "PubMed", external: true },
+        ],
+      },
+      {
+        type: "callout",
+        text: "The peptide compounds referenced here are for research purposes only. They are not approved for human use outside of specific FDA-approved formulations under medical supervision. Nothing in this article constitutes medical advice.",
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+      },
+    ],
+  },
+  {
     slug: "pt-141-melanocortin-bremelanotide-guide",
     title:
       "PT-141 (Bremelanotide): Hypothalamic Activation, the Brain-to-Spine Arousal Cascade, and Post-RARP Research",
