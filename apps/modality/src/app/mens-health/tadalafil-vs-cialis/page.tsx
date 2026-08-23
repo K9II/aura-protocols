@@ -3,9 +3,31 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/mens-health/tadalafil-vs-cialis";
+
+// Single source for the visible FAQ list and the FAQPage JSON-LD.
+const FAQ: QA[] = [
+  {
+    q: "Is generic Tadalafil as good as Cialis?",
+    a: "It's the same active ingredient at the same strengths, so it works the same way. The main difference is the brand name and the price.",
+  },
+  {
+    q: "Why is Cialis so much more expensive?",
+    a: "You're paying for the brand. Generic tadalafil delivers the same active ingredient without the brand-name markup, which is why it's far less per month.",
+  },
+  {
+    q: "Daily or as-needed?",
+    a: "Tadalafil can be taken daily at a lower dose or as-needed at a higher dose — your clinician recommends the approach that fits your goals and health history.",
+  },
+  {
+    q: "Does insurance cover either?",
+    a: "No — both are cash-pay here. That's part of why there's no prior-authorization wait.",
+  },
+];
 
 // Verified against the live LegUpRx catalog 2026-08-21: Tadalafil $124/mo,
 // Cialis $549/mo, both monthly-only (no 3/6-month tier). Generic entry defaults
@@ -43,6 +65,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Men's Health", path: "/mens-health" },
+            { name: "Tadalafil vs Cialis", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "Tadalafil vs. Cialis",
+            description:
+              "Generic Tadalafil ($124/mo) vs. brand Cialis ($549/mo) — same active ingredient, how they compare, and how a clinician chooses.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -192,33 +230,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">Is generic Tadalafil as good as Cialis?</div>
-              <div className="a">
-                It&apos;s the same active ingredient at the same strengths, so it works the same way. The main
-                difference is the brand name and the price.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">Why is Cialis so much more expensive?</div>
-              <div className="a">
-                You&apos;re paying for the brand. Generic tadalafil delivers the same active ingredient without
-                the brand-name markup, which is why it&apos;s far less per month.
-              </div>
-            </div>
-            <div>
-              <div className="q">Daily or as-needed?</div>
-              <div className="a">
-                Tadalafil can be taken daily at a lower dose or as-needed at a higher dose — your clinician
-                recommends the approach that fits your goals and health history.
-              </div>
-            </div>
-            <div>
-              <div className="q">Does insurance cover either?</div>
-              <div className="a">
-                No — both are cash-pay here. That&apos;s part of why there&apos;s no prior-authorization wait.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

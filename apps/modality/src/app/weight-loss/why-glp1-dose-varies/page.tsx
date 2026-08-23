@@ -3,9 +3,36 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/weight-loss/why-glp1-dose-varies";
+
+// FAQ is the single source for both the visible list and the FAQPage JSON-LD, so
+// the structured data can never drift from what a searcher sees on the page.
+const FAQ: QA[] = [
+  {
+    q: "Does my body weight decide my dose?",
+    a: "Not really. Heavier people tend to sit at somewhat lower drug exposure at a given dose, but the effect is modest — GLP-1 medications aren't dosed by body weight. Being larger doesn't automatically mean you need a higher dose.",
+  },
+  {
+    q: "Can a genetic test pick my ideal dose?",
+    a: "No. Variants in genes like GLP1R are associated with differences in response across large groups, but the research is nowhere near a genotype-to-dose formula for an individual. Your clinician titrates based on your actual response, not a gene test.",
+  },
+  {
+    q: "Why did I lose less than the averages I read about?",
+    a: "Averages hide a lot of individual spread, and your starting biology shifts the whole curve. In Semaglutide's own trials, people without diabetes lost about 14.9% while people with type 2 diabetes lost about 9.6% on the same dose. Your result reflects your exposure, response, and baseline — not just the headline number.",
+  },
+  {
+    q: "Do you offer Retatrutide?",
+    a: "Not currently. Retatrutide is referenced on this page only as published trial evidence for the dose-response pattern. Modality's weight-loss lane offers compounded Semaglutide and Tirzepatide, matched by a licensed clinician.",
+  },
+  {
+    q: "Is this page medical advice?",
+    a: "No. It's general education. A licensed clinician reviews your intake and makes all treatment and dosing decisions, and prescribes only when it's clinically appropriate.",
+  },
+];
 
 // Verified snapshot this page was built against (2026-08-20) — same pricing
 // state as the semaglutide-vs-tirzepatide compare page; re-check before
@@ -45,6 +72,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Weight Loss", path: "/weight-loss" },
+            { name: "Why GLP-1 dose varies", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "Why the Same GLP-1 Dose Affects Everyone Differently",
+            description:
+              "How exposure, genetics, and starting biology change GLP-1 response, and why a licensed clinician titrates the dose to you.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -249,46 +292,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">Does my body weight decide my dose?</div>
-              <div className="a">
-                Not really. Heavier people tend to sit at somewhat lower drug exposure at a given dose, but the
-                effect is modest — GLP-1 medications aren&apos;t dosed by body weight. Being larger
-                doesn&apos;t automatically mean you need a higher dose.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">Can a genetic test pick my ideal dose?</div>
-              <div className="a">
-                No. Variants in genes like GLP1R are associated with differences in response across large
-                groups, but the research is nowhere near a genotype-to-dose formula for an individual. Your
-                clinician titrates based on your actual response, not a gene test.
-              </div>
-            </div>
-            <div>
-              <div className="q">Why did I lose less than the averages I read about?</div>
-              <div className="a">
-                Averages hide a lot of individual spread, and your starting biology shifts the whole curve. In
-                Semaglutide&apos;s own trials, people without diabetes lost about 14.9% while people with type 2
-                diabetes lost about 9.6% on the same dose. Your result reflects your exposure, response, and
-                baseline — not just the headline number.
-              </div>
-            </div>
-            <div>
-              <div className="q">Do you offer Retatrutide?</div>
-              <div className="a">
-                Not currently. Retatrutide is referenced on this page only as published trial evidence for the
-                dose-response pattern. Modality&apos;s weight-loss lane offers compounded Semaglutide and
-                Tirzepatide, matched by a licensed clinician.
-              </div>
-            </div>
-            <div>
-              <div className="q">Is this page medical advice?</div>
-              <div className="a">
-                No. It&apos;s general education. A licensed clinician reviews your intake and makes all
-                treatment and dosing decisions, and prescribes only when it&apos;s clinically appropriate.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

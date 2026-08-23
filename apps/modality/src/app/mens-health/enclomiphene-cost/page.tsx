@@ -3,9 +3,31 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/mens-health/enclomiphene-cost";
+
+// Single source for the visible FAQ list and the FAQPage JSON-LD.
+const FAQ: QA[] = [
+  {
+    q: "Is Enclomiphene the same as TRT?",
+    a: "No. TRT replaces testosterone from an outside source; Enclomiphene is taken to support your body's own production. They're different approaches, and a clinician decides which, if either, fits you.",
+  },
+  {
+    q: "Do I need bloodwork?",
+    a: "Often, yes — a clinician typically reviews lab work to evaluate testosterone-related concerns before and during treatment. Your clinician determines what's needed for you.",
+  },
+  {
+    q: "Who is it for?",
+    a: "It's considered for men with low testosterone, and sometimes when fertility is a priority. Whether it's appropriate is determined by a licensed clinician from your intake and labs.",
+  },
+  {
+    q: "Does insurance cover it?",
+    a: "No — Enclomiphene here is cash-pay at $224/month. Any lab work your clinician orders may be billed separately by the lab.",
+  },
+];
 
 // Verified against the live LegUpRx catalog 2026-08-21: Enclomiphene $224/mo,
 // monthly-only (no 3/6-month tier). Single-SKU page. Note: this is NOT TRT —
@@ -42,6 +64,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Men's Health", path: "/mens-health" },
+            { name: "Enclomiphene cost", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "Enclomiphene Cost",
+            description:
+              "What Enclomiphene costs through Modality — $224/mo, cash-pay, no insurance — and how it differs from TRT.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -180,35 +218,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">Is Enclomiphene the same as TRT?</div>
-              <div className="a">
-                No. TRT replaces testosterone from an outside source; Enclomiphene is taken to support your
-                body&apos;s own production. They&apos;re different approaches, and a clinician decides which, if
-                either, fits you.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">Do I need bloodwork?</div>
-              <div className="a">
-                Often, yes — a clinician typically reviews lab work to evaluate testosterone-related concerns
-                before and during treatment. Your clinician determines what&apos;s needed for you.
-              </div>
-            </div>
-            <div>
-              <div className="q">Who is it for?</div>
-              <div className="a">
-                It&apos;s considered for men with low testosterone, and sometimes when fertility is a priority.
-                Whether it&apos;s appropriate is determined by a licensed clinician from your intake and labs.
-              </div>
-            </div>
-            <div>
-              <div className="q">Does insurance cover it?</div>
-              <div className="a">
-                No — Enclomiphene here is cash-pay at $224/month. Any lab work your clinician orders may be
-                billed separately by the lab.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

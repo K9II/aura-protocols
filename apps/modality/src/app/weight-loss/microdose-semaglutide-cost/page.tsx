@@ -3,9 +3,31 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/weight-loss/microdose-semaglutide-cost";
+
+// Single source for the visible FAQ list and the FAQPage JSON-LD.
+const FAQ: QA[] = [
+  {
+    q: "Is microdose Semaglutide as effective as a full dose?",
+    a: "It's a lower dose, so it's typically used as a gentler entry point or for maintenance rather than the maximum-dose approach — your clinician decides what's appropriate for you and can adjust the dose over time.",
+  },
+  {
+    q: "Why is it cheaper than standard Semaglutide?",
+    a: "Mainly the lower dose — $199/month here versus $349/month for standard compounded Semaglutide. It's the same active GLP-1, just less of it per dose.",
+  },
+  {
+    q: "What's the B12 for?",
+    a: "This formulation includes vitamin B12 alongside the GLP-1. Your clinician can explain its role in your specific protocol during intake.",
+  },
+  {
+    q: "Can I move up to a standard dose later?",
+    a: "Yes — dose, and sometimes the formulation itself, can be adjusted at a check-in as your clinician sees how you're responding.",
+  },
+];
 
 // Verified against the live LegUpRx catalog on 2026-08-21 (weight-loss →
 // "Microdose Semaglutide + B12"): 1-month $199, 3-month prepay $299 (~$100/mo),
@@ -43,6 +65,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Weight Loss", path: "/weight-loss" },
+            { name: "Microdose Semaglutide cost", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "Microdose Semaglutide Cost",
+            description:
+              "Microdose Semaglutide + B12 pricing — $199/mo or about $100/mo on the 3-month plan, cash-pay with no insurance.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -197,35 +235,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">Is microdose Semaglutide as effective as a full dose?</div>
-              <div className="a">
-                It&apos;s a lower dose, so it&apos;s typically used as a gentler entry point or for
-                maintenance rather than the maximum-dose approach — your clinician decides what&apos;s
-                appropriate for you and can adjust the dose over time.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">Why is it cheaper than standard Semaglutide?</div>
-              <div className="a">
-                Mainly the lower dose — $199/month here versus $349/month for standard compounded
-                Semaglutide. It&apos;s the same active GLP-1, just less of it per dose.
-              </div>
-            </div>
-            <div>
-              <div className="q">What&apos;s the B12 for?</div>
-              <div className="a">
-                This formulation includes vitamin B12 alongside the GLP-1. Your clinician can explain its role
-                in your specific protocol during intake.
-              </div>
-            </div>
-            <div>
-              <div className="q">Can I move up to a standard dose later?</div>
-              <div className="a">
-                Yes — dose, and sometimes the formulation itself, can be adjusted at a check-in as your
-                clinician sees how you&apos;re responding.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

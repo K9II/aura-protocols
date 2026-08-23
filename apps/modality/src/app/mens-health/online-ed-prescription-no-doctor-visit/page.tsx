@@ -3,9 +3,31 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/mens-health/online-ed-prescription-no-doctor-visit";
+
+// Single source for the visible FAQ list and the FAQPage JSON-LD.
+const FAQ: QA[] = [
+  {
+    q: "Do I really not need an in-person visit?",
+    a: "Correct — the evaluation is done through an online intake reviewed by a licensed clinician. They may follow up with questions, but there's no in-person exam required.",
+  },
+  {
+    q: "Is getting ED medication online safe?",
+    a: "A prescription is only issued after a licensed clinician reviews your intake, including a screen for nitrate use and heart conditions that matter with this class of drug. It's not sold without that review.",
+  },
+  {
+    q: "Do I need insurance?",
+    a: "No — this is cash-pay, from $124/month, so there's no prior-authorization wait or claim denial to plan around.",
+  },
+  {
+    q: "How fast is it?",
+    a: "Timing depends on the clinician's review and your state, but there's no appointment to schedule — you start the intake whenever you want.",
+  },
+];
 
 // Verified against the live LegUpRx catalog 2026-08-21: generic Tadalafil and
 // Sildenafil both $124/mo, monthly-only. Generic entry defaults to Tadalafil.
@@ -42,6 +64,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Men's Health", path: "/mens-health" },
+            { name: "Online ED prescription", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "ED Prescription Online, No Doctor Visit",
+            description:
+              "How to get ED medication online without an in-person visit — generic Tadalafil or Sildenafil from $124/mo, cash-pay, clinician-reviewed.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -194,35 +232,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">Do I really not need an in-person visit?</div>
-              <div className="a">
-                Correct — the evaluation is done through an online intake reviewed by a licensed clinician.
-                They may follow up with questions, but there&apos;s no in-person exam required.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">Is getting ED medication online safe?</div>
-              <div className="a">
-                A prescription is only issued after a licensed clinician reviews your intake, including a
-                screen for nitrate use and heart conditions that matter with this class of drug. It&apos;s not
-                sold without that review.
-              </div>
-            </div>
-            <div>
-              <div className="q">Do I need insurance?</div>
-              <div className="a">
-                No — this is cash-pay, from $124/month, so there&apos;s no prior-authorization wait or claim
-                denial to plan around.
-              </div>
-            </div>
-            <div>
-              <div className="q">How fast is it?</div>
-              <div className="a">
-                Timing depends on the clinician&apos;s review and your state, but there&apos;s no appointment
-                to schedule — you start the intake whenever you want.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

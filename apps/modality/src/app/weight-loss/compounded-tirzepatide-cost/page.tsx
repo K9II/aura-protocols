@@ -3,9 +3,31 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import TirzepatideCTA from "./TirzepatideCTA";
 
 const CANONICAL_PATH = "/weight-loss/compounded-tirzepatide-cost";
+
+// Single source for the visible FAQ list and the FAQPage JSON-LD.
+const FAQ: QA[] = [
+  {
+    q: "Does insurance cover this?",
+    a: "No — compounded Tirzepatide here is cash-pay. That's part of why it's priced lower than the brand-name drug, and why there's no prior-authorization wait.",
+  },
+  {
+    q: "Why is compounded cheaper than Zepbound?",
+    a: "You're paying for the compounding pharmacy's preparation, not the brand-name manufacturer's price — same active ingredient, different source.",
+  },
+  {
+    q: "Are there hidden fees?",
+    a: "No membership or platform fee. The price shown is the protocol price; renewal terms are set at checkout on our licensed partner's platform.",
+  },
+  {
+    q: "Can I cancel anytime?",
+    a: "Yes — cancellation terms are set at checkout on our licensed partner's platform, and there's no long-term contract.",
+  },
+];
 
 export const metadata: Metadata = {
   title: "Compounded Tirzepatide Cost: $474/Month, No Insurance | Modality",
@@ -35,6 +57,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Weight Loss", path: "/weight-loss" },
+            { name: "Compounded Tirzepatide cost", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "Compounded Tirzepatide Cost",
+            description:
+              "The real monthly cost of compounded Tirzepatide — $474/mo, no insurance required — and what affects the price.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -173,34 +211,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">Does insurance cover this?</div>
-              <div className="a">
-                No — compounded Tirzepatide here is cash-pay. That&apos;s part of why it&apos;s priced
-                lower than the brand-name drug, and why there&apos;s no prior-authorization wait.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">Why is compounded cheaper than Zepbound?</div>
-              <div className="a">
-                You&apos;re paying for the compounding pharmacy&apos;s preparation, not the brand-name
-                manufacturer&apos;s price — same active ingredient, different source.
-              </div>
-            </div>
-            <div>
-              <div className="q">Are there hidden fees?</div>
-              <div className="a">
-                No membership or platform fee. The price shown is the protocol price; renewal terms are
-                set at checkout on our licensed partner&apos;s platform.
-              </div>
-            </div>
-            <div>
-              <div className="q">Can I cancel anytime?</div>
-              <div className="a">
-                Yes — cancellation terms are set at checkout on our licensed partner&apos;s platform, and
-                there&apos;s no long-term contract.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

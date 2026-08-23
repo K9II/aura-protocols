@@ -3,9 +3,31 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/mens-health/sildenafil-vs-viagra";
+
+// Single source for the visible FAQ list and the FAQPage JSON-LD.
+const FAQ: QA[] = [
+  {
+    q: "Is generic Sildenafil as good as Viagra?",
+    a: "It's the same active ingredient at the same strengths, so it works the same way. The main difference is the brand name and the price.",
+  },
+  {
+    q: "Why is Viagra so much more expensive?",
+    a: "You're paying for the brand. Generic sildenafil delivers the same active ingredient without the brand-name markup, which is why it's far less per month.",
+  },
+  {
+    q: "Sildenafil or tadalafil?",
+    a: "Sildenafil works over a shorter window; tadalafil lasts longer and can be dosed daily. Your clinician can help you choose based on how you want it to work.",
+  },
+  {
+    q: "Does insurance cover either?",
+    a: "No — both are cash-pay here. That's part of why there's no prior-authorization wait.",
+  },
+];
 
 // Verified against the live LegUpRx catalog 2026-08-21: Sildenafil $124/mo,
 // Viagra $724/mo, both monthly-only (no 3/6-month tier). Generic entry defaults
@@ -43,6 +65,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Men's Health", path: "/mens-health" },
+            { name: "Sildenafil vs Viagra", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "Sildenafil vs. Viagra",
+            description:
+              "Generic Sildenafil ($124/mo) vs. brand Viagra ($724/mo) — same active ingredient, how they compare, and how a clinician chooses.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -192,33 +230,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">Is generic Sildenafil as good as Viagra?</div>
-              <div className="a">
-                It&apos;s the same active ingredient at the same strengths, so it works the same way. The main
-                difference is the brand name and the price.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">Why is Viagra so much more expensive?</div>
-              <div className="a">
-                You&apos;re paying for the brand. Generic sildenafil delivers the same active ingredient without
-                the brand-name markup, which is why it&apos;s far less per month.
-              </div>
-            </div>
-            <div>
-              <div className="q">Sildenafil or tadalafil?</div>
-              <div className="a">
-                Sildenafil works over a shorter window; tadalafil lasts longer and can be dosed daily. Your
-                clinician can help you choose based on how you want it to work.
-              </div>
-            </div>
-            <div>
-              <div className="q">Does insurance cover either?</div>
-              <div className="a">
-                No — both are cash-pay here. That&apos;s part of why there&apos;s no prior-authorization wait.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

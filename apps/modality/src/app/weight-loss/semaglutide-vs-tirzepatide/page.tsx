@@ -3,9 +3,31 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/weight-loss/semaglutide-vs-tirzepatide";
+
+// Single source for the visible FAQ list and the FAQPage JSON-LD.
+const FAQ: QA[] = [
+  {
+    q: "Which is more effective?",
+    a: "Published trials generally show Tirzepatide producing greater average weight loss than Semaglutide, but averages aren't a guarantee for any one person — your clinician weighs your history and goals rather than picking by trial averages alone.",
+  },
+  {
+    q: "Why does Tirzepatide cost more?",
+    a: "It's the newer, dual-action (GIP + GLP-1) compound. The price difference reflects the compound itself, not a difference in how the pharmacy prepares it.",
+  },
+  {
+    q: "Can I switch?",
+    a: "Yes — your clinician can adjust your protocol, including switching compounds, at a check-in if a different option becomes more appropriate.",
+  },
+  {
+    q: "Does insurance cover either?",
+    a: "No — both are cash-pay compounded formulations. That's part of why neither requires a prior-authorization wait.",
+  },
+];
 
 // Verified snapshot this page was built against (2026-08-20) — re-check
 // before publishing if either price or the "no 3/6-month discount" state
@@ -44,6 +66,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Weight Loss", path: "/weight-loss" },
+            { name: "Semaglutide vs Tirzepatide", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "Semaglutide vs. Tirzepatide",
+            description:
+              "Compounded Semaglutide ($349/mo) vs. Tirzepatide ($474/mo) — how they compare on mechanism and cost, and how a clinician chooses.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -198,35 +236,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">Which is more effective?</div>
-              <div className="a">
-                Published trials generally show Tirzepatide producing greater <em>average</em>{" "}weight loss
-                than Semaglutide, but averages aren&apos;t a guarantee for any one person — your clinician
-                weighs your history and goals rather than picking by trial averages alone.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">Why does Tirzepatide cost more?</div>
-              <div className="a">
-                It&apos;s the newer, dual-action (GIP + GLP-1) compound. The price difference reflects the
-                compound itself, not a difference in how the pharmacy prepares it.
-              </div>
-            </div>
-            <div>
-              <div className="q">Can I switch?</div>
-              <div className="a">
-                Yes — your clinician can adjust your protocol, including switching compounds, at a check-in
-                if a different option becomes more appropriate.
-              </div>
-            </div>
-            <div>
-              <div className="q">Does insurance cover either?</div>
-              <div className="a">
-                No — both are cash-pay compounded formulations. That&apos;s part of why neither requires a
-                prior-authorization wait.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

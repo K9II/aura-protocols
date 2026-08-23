@@ -3,9 +3,32 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/weight-loss/is-compounded-glp-1-legit";
+
+// Single source for the visible FAQ list and the FAQPage JSON-LD. Compliance-
+// vetted wording — keep verbatim if edited.
+const FAQ: QA[] = [
+  {
+    q: "Is compounded semaglutide FDA-approved?",
+    a: "Compounded medications aren't FDA-approved as finished products the way brand-name drugs are — they're prepared by a state-licensed pharmacy for an individual patient under a prescription. That's a normal, regulated practice, but it's different from brand-name approval, and a legitimate program is upfront about it.",
+  },
+  {
+    q: "Is it the same as Ozempic, Wegovy, or Zepbound?",
+    a: "It uses the same active ingredient — semaglutide, or tirzepatide for Zepbound and Mounjaro — but it isn't the branded product. It's a compounded formulation from a licensed pharmacy, which is part of why it costs less.",
+  },
+  {
+    q: "How do I avoid a scam?",
+    a: "Insist on a licensed clinician and a licensed pharmacy, avoid anything labeled “research only” or sold as raw powder, and be skeptical of prices far below legitimate cash-pay ranges.",
+  },
+  {
+    q: "Is compounding legal?",
+    a: "Pharmacy compounding is a long-established, regulated practice performed by licensed pharmacies. Rules and availability vary by state, which is why a legitimate program's clinician confirms what's appropriate where you live.",
+  },
+];
 
 // Two flagship compounded SKUs; generic entry defaults to the lower-cost
 // Semaglutide.
@@ -42,6 +65,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Weight Loss", path: "/weight-loss" },
+            { name: "Is compounded GLP-1 legit?", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "Is Compounded GLP-1 Legit?",
+            description:
+              "How to tell a legitimate, clinician-prescribed compounded GLP-1 program from a gray-market scam, and what honest cash-pay pricing looks like.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -224,39 +263,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">Is compounded semaglutide FDA-approved?</div>
-              <div className="a">
-                Compounded medications aren&apos;t FDA-approved as finished products the way brand-name
-                drugs are — they&apos;re prepared by a state-licensed pharmacy for an individual patient
-                under a prescription. That&apos;s a normal, regulated practice, but it&apos;s different
-                from brand-name approval, and a legitimate program is upfront about it.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">Is it the same as Ozempic, Wegovy, or Zepbound?</div>
-              <div className="a">
-                It uses the same active ingredient — semaglutide, or tirzepatide for Zepbound and
-                Mounjaro — but it isn&apos;t the branded product. It&apos;s a compounded formulation from
-                a licensed pharmacy, which is part of why it costs less.
-              </div>
-            </div>
-            <div>
-              <div className="q">How do I avoid a scam?</div>
-              <div className="a">
-                Insist on a licensed clinician and a licensed pharmacy, avoid anything labeled
-                &ldquo;research only&rdquo; or sold as raw powder, and be skeptical of prices far below
-                legitimate cash-pay ranges.
-              </div>
-            </div>
-            <div>
-              <div className="q">Is compounding legal?</div>
-              <div className="a">
-                Pharmacy compounding is a long-established, regulated practice performed by licensed
-                pharmacies. Rules and availability vary by state, which is why a legitimate program&apos;s
-                clinician confirms what&apos;s appropriate where you live.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

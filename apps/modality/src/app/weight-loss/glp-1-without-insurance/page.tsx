@@ -3,9 +3,31 @@ import type { Metadata } from "next";
 import { subForUtm } from "@/lib/telehealth/channels";
 import { RATING, RIBBON_CLAIMS } from "@/lib/telehealth/trust";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbSchema, faqSchema, medicalWebPageSchema, type QA } from "@/lib/schema";
 import ProductCTA from "../ProductCTA";
 
 const CANONICAL_PATH = "/weight-loss/glp-1-without-insurance";
+
+// Single source for the visible FAQ list and the FAQPage JSON-LD.
+const FAQ: QA[] = [
+  {
+    q: "I don't have insurance — can I still get GLP-1?",
+    a: "Yes. Compounded Semaglutide and Tirzepatide here are cash-pay, so no insurance card is needed — a licensed clinician reviews your intake and prescribes only when appropriate.",
+  },
+  {
+    q: "My plan denied GLP-1 for weight loss. What now?",
+    a: "The cash-pay path sidesteps prior authorization and coverage denials entirely — you pay the monthly price shown, with no claim to appeal and no step-therapy hoops.",
+  },
+  {
+    q: "Is compounded cheaper than paying out of pocket for the brand?",
+    a: "Generally, yes — compounded formulations are prepared by a licensed pharmacy rather than sold under the brand-name label, which is why the monthly price is lower than brand-name list price.",
+  },
+  {
+    q: "Are there membership or hidden fees?",
+    a: "No membership or platform fee. The price shown is the protocol price; renewal and cancellation terms are set at checkout on our licensed partner's platform.",
+  },
+];
 
 // Verified snapshot this page was built against (2026-08-20) — re-check
 // before publishing if either price or the "no 3/6-month discount" state
@@ -44,6 +66,22 @@ export default async function Page({
 
   return (
     <>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Weight Loss", path: "/weight-loss" },
+            { name: "GLP-1 without insurance", path: CANONICAL_PATH },
+          ]),
+          faqSchema(FAQ),
+          medicalWebPageSchema({
+            name: "GLP-1 Without Insurance",
+            description:
+              "How to start compounded GLP-1 weight-loss medication cash-pay, without insurance or prior authorization — Semaglutide $349/mo, Tirzepatide $474/mo.",
+            path: CANONICAL_PATH,
+          }),
+        ]}
+      />
       <div className="ribbon">
         {RIBBON_CLAIMS.map((claim, i) => (
           <Fragment key={claim}>
@@ -199,34 +237,12 @@ export default async function Page({
           <p className="sec-k">Questions</p>
           <h3 className="sec-h">Good to know</h3>
           <div className="faq">
-            <div>
-              <div className="q">I don&apos;t have insurance — can I still get GLP-1?</div>
-              <div className="a">
-                Yes. Compounded Semaglutide and Tirzepatide here are cash-pay, so no insurance card is
-                needed — a licensed clinician reviews your intake and prescribes only when appropriate.
+            {FAQ.map(({ q, a }) => (
+              <div key={q}>
+                <div className="q">{q}</div>
+                <div className="a">{a}</div>
               </div>
-            </div>
-            <div>
-              <div className="q">My plan denied GLP-1 for weight loss. What now?</div>
-              <div className="a">
-                The cash-pay path sidesteps prior authorization and coverage denials entirely — you pay the
-                monthly price shown, with no claim to appeal and no step-therapy hoops.
-              </div>
-            </div>
-            <div>
-              <div className="q">Is compounded cheaper than paying out of pocket for the brand?</div>
-              <div className="a">
-                Generally, yes — compounded formulations are prepared by a licensed pharmacy rather than sold
-                under the brand-name label, which is why the monthly price is lower than brand-name list price.
-              </div>
-            </div>
-            <div>
-              <div className="q">Are there membership or hidden fees?</div>
-              <div className="a">
-                No membership or platform fee. The price shown is the protocol price; renewal and cancellation
-                terms are set at checkout on our licensed partner&apos;s platform.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
