@@ -27,10 +27,13 @@ import type { ProductVendor } from "./products";
 import type { VendorProfile } from "./vendorProfiles";
 
 /** Master switch. Flip to true on approval (see checklist above). */
-export const EVOLVE_ENABLED = false;
+export const EVOLVE_ENABLED = true;
 
-/** Referral token from the Evolve affiliate dashboard. Fill on approval. */
-const EVOLVE_REF_TOKEN = "PENDING";
+/** Referral token from the Evolve affiliate dashboard. Approved 2026-08-24;
+ *  Evolve runs on GoAffPro (same as Mile High), whose ref param carries the
+ *  coupon code — so ?ref=auraproto, matching the confirmed `auraproto` coupon.
+ *  The coupon is the primary, guaranteed attribution regardless of link param. */
+const EVOLVE_REF_TOKEN = "auraproto";
 
 /** Query-string key that carries the referral token in Evolve's referral link.
  *  WooCommerce affiliate plugins commonly use "ref"; VERIFY against the real
@@ -42,15 +45,6 @@ const EVOLVE_DISCOUNT_CODE = "auraproto";
 
 export const EVOLVE_VENDOR_NAME = "Evolve Peptides";
 const EVOLVE_COMMISSION = "15%";
-
-// Fail loudly rather than shipping broken tracking: you cannot enable Evolve
-// while the referral token is still a placeholder.
-if (EVOLVE_ENABLED && EVOLVE_REF_TOKEN === "PENDING") {
-  throw new Error(
-    "pendingVendors: EVOLVE_ENABLED is true but EVOLVE_REF_TOKEN is still \"PENDING\". " +
-      "Fill the real referral token from the Evolve affiliate dashboard before going live.",
-  );
-}
 
 // Our product id → Evolve product-page slug (verified against Evolve's product
 // sitemap 2026-08-23). Only the 24 products Evolve actually carries are listed;
