@@ -1,3 +1,5 @@
+import { ENGINE_URL } from "@/lib/constants";
+
 export type LinkPart = {
   href: string;
   text: string;
@@ -14,6 +16,9 @@ export type Section = {
   productSlug?: string;
   vendor?: string;
   affiliateUrl?: string;
+  // External destination for a "button" section (e.g. the Aura Engine). When set,
+  // the button links out via target="_blank"; falls back to productSlug otherwise.
+  href?: string;
   parts?: Part[];
   faq?: Array<{ q: string; a: string }>;
 };
@@ -300,21 +305,26 @@ export const posts: Post[] = [
       },
       {
         type: "p",
-        text: "It's the same principle the Aura Engine is built on. Instead of handing you a generic protocol, it starts from your own wearable data — recovery, sleep, and HRV — and builds a research starting point tuned to where you actually are, then adapts as that data changes. You can connect a wearable for free at engine.auraprotocols.com.",
+        text: "It's the same principle the Aura Engine is built on. Instead of handing you a generic protocol, it starts from your own wearable data — recovery, sleep, and HRV — and builds a research starting point tuned to where you actually are, then adapts as that data changes. Connect a wearable and get your data-matched starting protocol for free.",
+      },
+      {
+        type: "button",
+        text: "Connect your wearable",
+        href: ENGINE_URL,
       },
       {
         type: "cta",
-        text: "View Semaglutide Vendors",
+        text: "View Semaglutide Vendor",
         productSlug: "semaglutide",
         vendor: "Apollo Peptide Sciences",
         affiliateUrl: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7",
       },
       {
         type: "cta",
-        text: "View Retatrutide Vendors",
+        text: "View Retatrutide Vendor",
         productSlug: "retatrutide",
-        vendor: "Limitless Life Nootropics",
-        affiliateUrl: "https://limitlesslifenootropics.com/product/retatrutide-ha?_ef_transaction_id=&oid=1&affid=10866",
+        vendor: "Evolve Peptides",
+        affiliateUrl: "https://www.evolvepeptides.com/product/reta-10mg/?ref=auraproto",
       },
       {
         type: "faq",

@@ -98,6 +98,21 @@ export function renderSection(section: Section, i: number) {
       // whitespace between them — mr-3 keeps them from touching when two or
       // more appear back to back (e.g. a comparison post linking every
       // product discussed), on top of the my-4 that spaces wrapped rows.
+      // An external `href` (e.g. the Aura Engine) opens in a new tab; otherwise
+      // fall back to an internal product-page link via productSlug.
+      if (section.href) {
+        return (
+          <a
+            key={i}
+            href={section.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-btn-primary inline-block text-sm py-2.5 px-6 my-4 mr-3"
+          >
+            {section.text} →
+          </a>
+        );
+      }
       return section.productSlug ? (
         <Link
           key={i}
