@@ -97,14 +97,19 @@ export default function HomePage() {
                   </span>
                 ))}
               </div>
-              <div className="load-in load-6 flex flex-wrap gap-5 items-center">
+              <div className="load-in load-6 flex flex-wrap gap-x-5 gap-y-3 items-center">
                 <a
                   href={ENGINE_URL}
                   target="_blank"
                   rel={EXTERNAL_REL}
-                  className="cta-primary whitespace-nowrap text-[13px] tracking-[0.08em] uppercase text-[color:var(--paper)] bg-[color:var(--ink)] px-[22px] py-3 inline-block"
+                  className="cta-primary group bg-[color:var(--ink)] px-[22px] py-2.5 inline-flex flex-col items-start gap-0.5"
                 >
-                  Connect your wearable →
+                  <span className="whitespace-nowrap text-[13px] tracking-[0.08em] uppercase text-[color:var(--paper)]">
+                    Connect your wearable →
+                  </span>
+                  <span className="text-[9.5px] tracking-[0.14em] uppercase text-[color:var(--specimen)] group-hover:text-[color:var(--paper)]">
+                    Under Development
+                  </span>
                 </a>
                 <Link href="/products" className="cta-secondary whitespace-nowrap text-[13px] tracking-[0.08em] uppercase pb-0.5">
                   Shop →
@@ -224,12 +229,12 @@ export default function HomePage() {
               <div className="ticker-viewport h-[414px] mt-2">
                 <div className="ticker-track">
                   {[...tickerItems, ...tickerItems].map((item, i) => (
-                    <div key={i} className="ticker-row flex justify-between items-baseline gap-3 px-[22px] py-[11px]">
-                      <span className="name text-sm">
+                    <div key={i} className="ticker-row flex justify-between items-start gap-3 px-[22px] py-[11px]">
+                      <span className="name text-sm flex-1 min-w-0">
                         <span className="text-[color:var(--specimen)] text-xs mr-1.5">✓</span>
                         {item.name}
                       </span>
-                      <span className="text-[11.5px] italic text-[color:var(--ink-soft)] flex-shrink-0">{item.vendor}</span>
+                      <span className="text-[11.5px] italic text-[color:var(--ink-soft)] flex-shrink-0 pt-0.5">{item.vendor}</span>
                     </div>
                   ))}
                 </div>

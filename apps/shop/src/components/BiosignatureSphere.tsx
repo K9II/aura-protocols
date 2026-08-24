@@ -152,38 +152,20 @@ export default function BiosignatureSphere() {
         y: R * Math.sin(lat),
         z: R * Math.cos(lat) * Math.sin(lon),
       };
-      const ringAngle = (idx / metrics.length) * Math.PI * 2 - Math.PI / 2;
-      m.ringX = cx + Math.cos(ringAngle) * ringR;
-      m.ringY = cy + Math.sin(ringAngle) * ringR * 0.72;
-      m.ringAngle = ringAngle;
+      m.ringAngle = (idx / metrics.length) * Math.PI * 2 - Math.PI / 2;
     });
 
     function metric(key: MetricKey) {
       return metrics.find((m) => m.key === key)!;
     }
 
-    // Build the fixed HTML label overlay — positions never move, only their text does.
+    // Build the fixed HTML label overlay — text updates each frame; positions are
+    // (re)computed by layoutRing() on mount and whenever the canvas is resized.
     labelHost.innerHTML = "";
     const valueEls: Record<string, HTMLSpanElement> = {};
     const labelEls = metrics.map((m) => {
       const el = document.createElement("div");
       el.className = "p-biosig-label";
-      const leftPct = (m.ringX / W) * 100;
-      const topPct = (m.ringY / H) * 100;
-      const isRight = Math.cos(m.ringAngle) > 0.15;
-      const isLeft = Math.cos(m.ringAngle) < -0.15;
-      el.style.left = leftPct + "%";
-      el.style.top = topPct + "%";
-      if (isRight) {
-        el.style.transform = "translate(6px, -50%)";
-        el.style.textAlign = "left";
-      } else if (isLeft) {
-        el.style.transform = "translate(calc(-100% - 6px), -50%)";
-        el.style.textAlign = "right";
-      } else {
-        el.style.transform = `translate(-50%, ${Math.sin(m.ringAngle) > 0 ? "6px" : "calc(-100% - 6px)"})`;
-        el.style.textAlign = "center";
-      }
       const valEl = document.createElement("span");
       valEl.className = "v";
       valEl.textContent = "—";
@@ -203,6 +185,45 @@ export default function BiosignatureSphere() {
       valueEls[m.key] = valEl;
       return el;
     });
+
+    // Narrow viewports render the canvas much smaller than its 720px intrinsic
+    // width, but the label text stays a fixed pixel size — so on phones the
+    // left/right labels used to overrun the (overflow-hidden) container and clip.
+    // Pull the ring inward horizontally as the rendered canvas shrinks so every
+    // label keeps room to sit fully on-screen.
+    function horizontalSqueeze() {
+      const dispW = canvas.getBoundingClientRect().width || W;
+      if (dispW >= 460) return 1;
+      if (dispW <= 320) return 0.62;
+      return 0.62 + ((dispW - 320) / (460 - 320)) * (1 - 0.62);
+    }
+
+    function layoutRing() {
+      const sx = horizontalSqueeze();
+      metrics.forEach((m, i) => {
+        m.ringX = cx + Math.cos(m.ringAngle) * ringR * sx;
+        m.ringY = cy + Math.sin(m.ringAngle) * ringR * 0.72;
+        const el = labelEls[i];
+        el.style.left = (m.ringX / W) * 100 + "%";
+        el.style.top = (m.ringY / H) * 100 + "%";
+        const isRight = Math.cos(m.ringAngle) > 0.15;
+        const isLeft = Math.cos(m.ringAngle) < -0.15;
+        if (isRight) {
+          el.style.transform = "translate(6px, -50%)";
+          el.style.textAlign = "left";
+        } else if (isLeft) {
+          el.style.transform = "translate(calc(-100% - 6px), -50%)";
+          el.style.textAlign = "right";
+        } else {
+          el.style.transform = `translate(-50%, ${Math.sin(m.ringAngle) > 0 ? "6px" : "calc(-100% - 6px)"})`;
+          el.style.textAlign = "center";
+        }
+      });
+    }
+
+    layoutRing();
+    const resizeObs = new ResizeObserver(() => layoutRing());
+    resizeObs.observe(canvas);
 
     function project(x: number, y: number, z: number) {
       const f = persp / (persp + z);
@@ -391,6 +412,7 @@ export default function BiosignatureSphere() {
 
     return () => {
       if (raf) cancelAnimationFrame(raf);
+      resizeObs.disconnect();
       canvas.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
