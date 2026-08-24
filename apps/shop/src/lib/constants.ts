@@ -51,6 +51,6 @@ export const ENGINE_CTA_COPY = {
   inlineBody: "Connect Whoop, Oura, or Apple Health and the Engine will tune it to your recovery, sleep, and stress data.",
   inlineAction: "Connect a wearable →",
   cardHeading: "Make this protocol yours",
-  cardBody: "The Engine reads your biometrics and personalizes dosing, timing, and stacking — free at engine.auraprotocols.com.",
+  cardBody: "The Engine reads your biometrics and personalizes dosing, timing, and stacking — free.",
   cardAction: "Try the Engine →",
 };
