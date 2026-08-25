@@ -8,8 +8,11 @@ export default function Footer() {
         <div className="grid gap-[30px] mb-10 md:grid-cols-[1.6fr_1fr_1fr]">
           <div>
             <p className="p-serif-italic text-lg mb-3">Aura Protocols</p>
-            <p className="text-[13px] text-[color:var(--ink-soft)] max-w-[36ch] mb-5">
-              A wearable-personalized protocol engine — biometric readings in, research-grade protocol out. Educational only; not medical advice.
+            <p className="text-[13px] text-[color:var(--ink-soft)] max-w-[36ch] mb-2">
+              A wearable-personalized protocol engine — biometric readings in, research-grade protocol out.
+            </p>
+            <p className="text-[11.5px] text-[color:var(--ink-faint)] max-w-[36ch] mb-5">
+              Educational only. Not medical advice.
             </p>
           </div>
           <div>
