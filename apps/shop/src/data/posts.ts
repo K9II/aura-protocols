@@ -1,4 +1,7 @@
-import { ENGINE_URL } from "@/lib/constants";
+// Relative import (not the "@/" alias) — posts.ts is pulled into next.config.ts
+// via affiliate.ts/buildAffiliateRedirects(), and the config's CommonJS transpile
+// step does not resolve the "@/" path alias. affiliate.ts imports the same way.
+import { ENGINE_URL } from "../lib/constants";
 
 export type LinkPart = {
   href: string;
