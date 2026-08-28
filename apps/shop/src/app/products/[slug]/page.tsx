@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { products } from "@/data/products";
-import { vendorPins } from "@/data/vendorOrder";
+import { vendorPins, vendorDemotions } from "@/data/vendorOrder";
 import EngineCTACard from "@/components/EngineCTACard";
 import VendorCompareList from "@/components/VendorCompareList";
 import { PRODUCT_GUIDES } from "@/lib/guides";
@@ -44,11 +44,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     (p) => p.category === product.category && p.id !== product.id
   ).slice(0, 2);
 
-  // Vendor display order: GLP-1 products pin Evolve/Limitless (once Evolve is
-  // live), all other products pin Mile High/American; the rest fall back to
-  // commission-desc. See data/vendorOrder.ts.
+  // Vendor display order: demoted vendors (under review) always sink to the
+  // bottom; then GLP-1 products pin Evolve, other products pin American; the
+  // rest fall back to commission-desc. See data/vendorOrder.ts.
   const pins = vendorPins(product.id);
+  const demotions = vendorDemotions();
   const sortedVendors = [...product.vendors].sort((a, b) => {
+    const da = demotions.indexOf(a.vendor);
+    const db = demotions.indexOf(b.vendor);
+    const aDemoted = da !== -1;
+    const bDemoted = db !== -1;
+    // Demoted vendors always sort after non-demoted ones, regardless of pins.
+    if (aDemoted !== bDemoted) return aDemoted ? 1 : -1;
+    if (aDemoted && bDemoted) return da - db;
+
     const pa = pins.indexOf(a.vendor);
     const pb = pins.indexOf(b.vendor);
     if (pa !== -1 || pb !== -1) {

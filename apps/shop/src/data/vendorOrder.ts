@@ -24,12 +24,32 @@ const GLP1_PRODUCT_IDS = new Set<string>([
   "cagrisema",
   "retatrutide-cagrilintide",
 ]);
-const GLP1_PINNED_ORDER = ["Evolve Peptides", "Limitless Life Nootropics"];
+// NOTE: Limitless was REMOVED from this pin list (Kearney, 2026-08-28) — it is now
+// demoted to the BOTTOM on every product (see DEMOTED_TO_BOTTOM below), so pinning
+// it 2nd here would contradict that. Evolve still leads GLP-1 pages.
+const GLP1_PINNED_ORDER = ["Evolve Peptides"];
 
-// Every NON-GLP-1 product: Mile High first, American Peptides second, wherever
-// each is a vendor on that product (Kearney, 2026-08-23). Both are already-live
-// vendors, so this is NOT gated — it takes effect on the next deploy.
-const NON_GLP1_PINNED_ORDER = ["Mile High Compounds", "American Peptides"];
+// Every NON-GLP-1 product: American Peptides leads. Mile High Compounds was
+// REMOVED from the pin list (Kearney, 2026-08-26) — Mile High no longer receives
+// ANY priority in any category and now falls to the default commission-desc
+// ordering with everyone else. (Possible full discontinuation pending.)
+const NON_GLP1_PINNED_ORDER = ["American Peptides"];
+
+// Vendors under review for possible removal — pinned to the BOTTOM of every
+// product's vendor list regardless of commission or category pins, until Kearney
+// decides whether to keep them. Demotion takes precedence over vendorPins(), so a
+// demoted vendor sinks even on a page where it would otherwise be pinned.
+//
+// Limitless (2026-08-28): the only vendor with NO public COA — its GLP-1
+// certificates are email-on-request only (identity+purity, no safety panel),
+// so it can't be inspected pre-purchase.
+//
+// NOTE: Ignite was briefly added here on a stale "summary-only COA" belief, then
+// REMOVED (Kearney, 2026-08-28) once its actual reta COA was read — an ISO/IEC
+// 17025 accredited ILS Labs full panel (identity, purity, mass, sterility,
+// endotoxin, heavy metals, fentanyl screen), in fact the most complete COA in
+// the roster. Ignite keeps its normal commission-based ordering.
+const DEMOTED_TO_BOTTOM = ["Limitless Life Nootropics"];
 
 /**
  * Ordered list of vendor names to pin to the top of a product's vendor list.
@@ -42,4 +62,14 @@ export function vendorPins(productId: string): string[] {
     return EVOLVE_ENABLED ? GLP1_PINNED_ORDER : [];
   }
   return NON_GLP1_PINNED_ORDER;
+}
+
+/**
+ * Vendor names to force to the BOTTOM of every product's vendor list, in the
+ * order given, ahead of the normal pin/commission sort. Used to park vendors
+ * that are under review for removal without unwiring them. Takes precedence
+ * over vendorPins().
+ */
+export function vendorDemotions(): string[] {
+  return DEMOTED_TO_BOTTOM;
 }
