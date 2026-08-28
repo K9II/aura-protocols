@@ -4,7 +4,7 @@ import { products, categories } from "@/data/products";
 
 export const metadata = {
   title: "Research Peptides — Aura Protocols",
-  description: "Browse our curated catalog of high-purity research peptides from verified affiliate vendors.",
+  description: "Browse our curated catalog of high-purity research peptides from verified vendors.",
 };
 
 export default async function ProductsPage({
@@ -22,7 +22,7 @@ export default async function ProductsPage({
         <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">Catalog</p>
         <h1 className="p-serif text-4xl mb-4 text-[color:var(--ink)]">Research Compounds</h1>
         <p className="text-[color:var(--ink-soft)] max-w-xl leading-relaxed">
-          Every product below links to a vetted affiliate vendor. Purity certificates are available from each supplier. For research use only.
+          Every product below links to a vetted vendor. Purity certificates are available from each supplier. For research use only.
         </p>
       </div>
 
