@@ -94,6 +94,9 @@ export default function Footer() {
                 <Link href="/about" className="hover:text-[color:var(--ink)] transition-colors">About</Link>
               </li>
               <li className="text-[color:var(--ink-soft)]">
+                <Link href="/quality-standards" className="hover:text-[color:var(--ink)] transition-colors">Quality Standards</Link>
+              </li>
+              <li className="text-[color:var(--ink-soft)]">
                 <a href="mailto:support@auraprotocols.com" className="hover:text-[color:var(--ink)] transition-colors">Contact</a>
               </li>
               <li className="text-[color:var(--ink-soft)]">

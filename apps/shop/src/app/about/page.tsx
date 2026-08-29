@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export const metadata = {
   title: "About — Aura Protocols",
   description: "Aura Protocols bridges advanced peptide research and real-time biometrics, giving high-performers the data infrastructure to move beyond guesswork.",
@@ -110,7 +112,7 @@ export default function AboutPage() {
           {[
             [
               "Third-party COA required",
-              "Batch-specific Certificates of Analysis from an accredited lab (ISO 17025 preferred) — in-house testing alone is not sufficient. See our guide on how to read a peptide COA.",
+              "Batch-specific Certificates of Analysis from an accredited lab (ISO 17025 preferred) — in-house testing alone is not sufficient.",
             ],
             [
               "HPLC + mass spec verification",
@@ -134,6 +136,11 @@ export default function AboutPage() {
             </div>
           ))}
         </div>
+        <p className="text-sm text-[color:var(--ink-soft)]">
+          See our guide on{" "}
+          <Link href="/blog/how-to-read-a-peptide-coa" className="p-link">how to read a peptide COA</Link>, or{" "}
+          <Link href="/quality-standards" className="p-link">how our vendors compare</Link> on the same compound.
+        </p>
         <p className="text-sm text-[color:var(--ink-soft)]">
           As of this writing, Aura Protocols indexes 30+ pages of vendor-reviewed compound data, comparison research,
           and buyer's guides — every claim traceable back to a primary source.
