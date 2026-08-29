@@ -40,21 +40,6 @@ const VENDORS: VendorRow[] = [
     verifiable: "Signed · QR",
   },
   {
-    vendor: "Apollo",
-    lab: "Janoshik",
-    labNote: "blind",
-    identity: "–",
-    identityState: "no",
-    purity: "99.90%",
-    content: "Yes",
-    contentState: "yes",
-    endotoxin: "no",
-    metals: "no",
-    sterility: "–",
-    sterilityState: "no",
-    verifiable: "Verify key",
-  },
-  {
     vendor: "Evolve",
     lab: "MZ Biolabs",
     labNote: "+ Janoshik",
@@ -88,20 +73,18 @@ const VENDORS: VendorRow[] = [
     verifiable: "Yes",
   },
   {
-    vendor: "Limitless",
-    lab: "In-house + 3rd-party",
-    labNote: "on request",
+    vendor: "Improved Peptides",
+    lab: "Freedom Diagnostics",
     identity: "Mass spec",
-    identityNote: "stated",
     identityState: "yes",
-    purity: ">99% (stated)",
-    content: "–",
-    contentState: "no",
+    purity: "99.96%",
+    content: "Yes · 10.67mg",
+    contentState: "yes",
     endotoxin: "no",
     metals: "no",
     sterility: "–",
     sterilityState: "no",
-    verifiable: "On request",
+    verifiable: "Accession #",
   },
   {
     vendor: "Mile High",
@@ -357,10 +340,6 @@ export default function QualityStandardsPage() {
 
           <div className="flex flex-col gap-1.5 mt-5">
             <p className="font-sans text-[13px] leading-relaxed text-[color:var(--ink-soft)] max-w-3xl">
-              — &nbsp;Limitless provides its certificate on request rather than posting it publicly;
-              its standard certificate covers identity and purity.
-            </p>
-            <p className="font-sans text-[13px] leading-relaxed text-[color:var(--ink-soft)] max-w-3xl">
               — &nbsp;PSPeptides documents its data across three separate public reports per batch:
               certificate (identity, purity, content), endotoxin, and heavy metals.
             </p>
@@ -385,7 +364,7 @@ export default function QualityStandardsPage() {
         {/* Disclaimer */}
         <div className="border-t border-[color:var(--line)] pt-8">
           <p className="text-xs font-sans leading-relaxed text-[color:var(--ink-soft)] max-w-3xl border-l-2 border-[color:var(--specimen)] pl-4">
-            <b className="text-[color:var(--ink)]">As reviewed 28 August 2026.</b> The certificate
+            <b className="text-[color:var(--ink)]">As reviewed 29 August 2026.</b> The certificate
             details summarized here reflect each vendor&apos;s published Certificate of Analysis as
             reviewed by Aura Protocols on the date shown. A Certificate of Analysis is issued per
             production lot; testing laboratories, methods, and results may differ for other lots and

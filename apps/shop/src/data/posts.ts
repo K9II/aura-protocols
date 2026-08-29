@@ -319,8 +319,8 @@ export const posts: Post[] = [
         type: "cta",
         text: "View Semaglutide Vendor",
         productSlug: "semaglutide",
-        vendor: "Apollo Peptide Sciences",
-        affiliateUrl: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7",
+        vendor: "American Peptides",
+        affiliateUrl: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/semaglutide",
       },
       {
         type: "cta",
@@ -990,8 +990,8 @@ export const posts: Post[] = [
         type: "cta",
         text: "View Semaglutide Vendors",
         productSlug: "semaglutide",
-        vendor: "Apollo Peptide Sciences",
-        affiliateUrl: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7",
+        vendor: "American Peptides",
+        affiliateUrl: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/semaglutide",
       },
       {
         type: "disclaimer",
@@ -1165,10 +1165,10 @@ export const posts: Post[] = [
       },
       {
         type: "cta",
-        text: "View CJC-1295 / Ipamorelin at Limitless Life Nootropics",
+        text: "View CJC-1295 / Ipamorelin at American Peptides",
         productSlug: "cjc-1295-ipamorelin",
-        vendor: "Limitless Life Nootropics",
-        affiliateUrl: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866",
+        vendor: "American Peptides",
+        affiliateUrl: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/cjc-1295-no-dac-ipamorelin",
       },
       {
         type: "h2",

@@ -40,16 +40,15 @@ const NON_GLP1_PINNED_ORDER = ["American Peptides"];
 // decides whether to keep them. Demotion takes precedence over vendorPins(), so a
 // demoted vendor sinks even on a page where it would otherwise be pinned.
 //
-// Limitless (2026-08-28): the only vendor with NO public COA — its GLP-1
-// certificates are email-on-request only (identity+purity, no safety panel),
-// so it can't be inspected pre-purchase.
-//
 // NOTE: Ignite was briefly added here on a stale "summary-only COA" belief, then
 // REMOVED (Kearney, 2026-08-28) once its actual reta COA was read — an ISO/IEC
 // 17025 accredited ILS Labs full panel (identity, purity, mass, sterility,
 // endotoxin, heavy metals, fentanyl screen), in fact the most complete COA in
 // the roster. Ignite keeps its normal commission-based ordering.
-const DEMOTED_TO_BOTTOM = ["Limitless Life Nootropics"];
+//
+// Limitless Life Nootropics was removed from the site entirely 2026-08-29
+// (no public COA, billing gate) rather than left demoted — see vendor registry.
+const DEMOTED_TO_BOTTOM: string[] = [];
 
 /**
  * Ordered list of vendor names to pin to the top of a product's vendor list.

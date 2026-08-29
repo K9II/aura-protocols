@@ -2,8 +2,6 @@ import { products } from "../data/products";
 import { posts } from "../data/posts";
 
 const VENDOR_IDS: Record<string, string> = {
-  "Limitless Life Nootropics": "limitless",
-  "Apollo Peptide Sciences": "apollo",
   "Ignite Peptides": "ignite",
   "Peak Lab Peptides": "peak-lab",
   "Mile High Compounds": "mile-high",

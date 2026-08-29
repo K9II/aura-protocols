@@ -10,35 +10,6 @@ export type VendorProfile = {
 
 const baseVendorProfiles: VendorProfile[] = [
   {
-    vendor: "Limitless Life Nootropics",
-    summary:
-      "Limitless Life Nootropics (Limitless Biotech) has carved out a strong niche in growth hormone secretagogues and performance peptide stacks. Their pre-blended CJC-1295/Ipamorelin combinations and USA manufacturing make them a top choice for GH-focused research programs.",
-    pros: [
-      "Best-in-class GH secretagogue stacks (CJC-1295/Ipamorelin blends)",
-      "USA-manufactured, same-day domestic shipping",
-      "Pre-blended stacks simplify research protocols",
-      "99% purity standard with batch COAs",
-    ],
-    cons: [
-      "Narrower catalog vs broader-catalog vendors on this site",
-      "Less established for non-GH peptides",
-    ],
-  },
-  {
-    vendor: "Apollo Peptide Sciences",
-    summary:
-      "Apollo Peptide Sciences runs a broad catalog spanning GLP-1 compounds (semaglutide, tirzepatide, retatrutide) alongside standard recovery and longevity peptides.",
-    pros: [
-      "Carries tirzepatide and retatrutide variants alongside semaglutide — broader GLP-1 lineup than most vendors on this site",
-      "Also stocks longevity-focused compounds (Epithalon, NAD+, FOXO4-DRI) not every vendor carries",
-    ],
-    cons: [
-      "Does not carry PT-141, Tesamorelin, AOD-9604, Sermorelin, or MOTS-c",
-      "Shipping speed not independently confirmed — rated provisionally at average",
-      "Payment limited to Visa, Discover, and American Express only — no crypto or bank-transfer option",
-    ],
-  },
-  {
     vendor: "Ignite Peptides",
     summary:
       "Ignite Peptides carries the broadest catalog of any approved vendor (30+ compounds), a Minnesota-based, US-domestic operation.",

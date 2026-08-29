@@ -29,8 +29,6 @@ export const products: Product[] = [
       "Body Protection Compound-157. One of the most studied peptides for tissue repair, gut health, and joint recovery.",
     benefits: ["Studied for tendon & ligament repair", "Researched for gut mucosal healing", "Anti-inflammatory pathways in studies", "Tissue-healing research (preclinical)"],
     vendors: [
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/bpc157-10mg/?rfsn=9131640.7592e7", commission: "20%" },
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/bpc-157?uid=17&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/bpc-157-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/bpc-157/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/bpc-157/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
@@ -50,8 +48,6 @@ export const products: Product[] = [
     benefits: ["Studied for systemic tissue healing", "Anti-inflammatory effects in research", "Muscle-repair research models", "Cell-migration studies"],
     vendors: [
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/tb-500/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/tb500-10mg/?rfsn=9131640.7592e7", commission: "20%" },
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/tb-500?uid=106&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/tb-500/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/tb-500-peptide/?afref=a1b9", commission: "15%" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-tb-500/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
@@ -68,8 +64,8 @@ export const products: Product[] = [
       "GLP-1 receptor agonist widely studied for appetite regulation, blood sugar control, and body composition.",
     benefits: ["Appetite regulation in clinical trials", "Glycemic-control research", "Body-weight reduction in STEP trials", "Cardiovascular-outcome research (SELECT)"],
     vendors: [
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-1s-5mg/?rfsn=9131640.7592e7", commission: "20%" },
-      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip1-s5mg/?ref=k9@auraprotocols.com", commission: "15%" },      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-sema/?afref=a1b9", commission: "15%" },
+      { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip1-s5mg/?ref=k9@auraprotocols.com", commission: "15%" },
+      { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-sema/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-1-sm/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/semaglutide", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -84,7 +80,6 @@ export const products: Product[] = [
       "Dual GIP/GLP-1 receptor agonist studied for synergistic effects on insulin secretion, fat metabolism, and appetite suppression — showing a greater magnitude of weight loss than semaglutide in head-to-head trials.",
     benefits: ["Dual GIP/GLP-1 receptor agonism", "SURMOUNT trials: 20–22% body-weight reduction over 72 weeks", "~20% greater weight loss than semaglutide in SURMOUNT-5", "Stronger HbA1c reduction in T2D research populations"],
     vendors: [
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-2t-15m/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip2-trz10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-tirz/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-2-trz/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
@@ -103,8 +98,6 @@ export const products: Product[] = [
       "A synergistic blend of growth hormone releasing hormone analog and growth hormone secretagogue for optimized GH pulses.",
     benefits: ["Studied for GH pulse stimulation", "Lean-mass research models", "Sleep-architecture studies", "Lipolysis research"],
     vendors: [
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/cjc1295-ipamorelin/?rfsn=9131640.7592e7", commission: "20%" },
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ipamorelin-cjc-1295-no-dac?uid=27&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/cjc-ipamorelin/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/cjc-1295-no-dac-ipamorelin/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/cjc-1295-w-o-dac-ipamorelin/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
@@ -160,7 +153,6 @@ export const products: Product[] = [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/bpc-157-tb-500-ghk-cu-kpv-klow80-blend/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-klow-blend/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/klow-80mg/?afref=a1b9", commission: "15%" },
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/klow-75mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/klow-blend", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
     featured: false,
@@ -218,9 +210,7 @@ export const products: Product[] = [
       "Triple receptor agonist targeting GLP-1, GIP, and glucagon receptors. Phase 3 trials recorded up to 24.2% body weight reduction — the highest of any compound in its class.",
     benefits: ["Triple-receptor agonism (GLP-1/GIP/glucagon)", "Appetite research in Phase 2 trials", "Body-weight reduction in TRIUMPH-1 data", "Metabolic-regulation research"],
     vendors: [
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/glp-3r-10mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip3rt-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/retatrutide-ha?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-3-reta/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-3-rt/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-retatrutide/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
@@ -271,7 +261,6 @@ export const products: Product[] = [
     benefits: ["Mitochondrial membrane-stabilization research", "Oxidative-stress reduction in studies", "ATP-production research models", "Age-related mitochondrial-decline studies"],
     vendors: [
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-ss-31-10mg/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/ss31-10mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/ss-31-peptide/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mtp-31/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/ss-31", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
@@ -290,7 +279,6 @@ export const products: Product[] = [
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/slu-pp-332-peptide/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/slu-pp-332/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-slu-pp-332-tablets/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/slu-pp-332-250mcg-60-capsules?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
     ],
     featured: false,
   },
@@ -303,7 +291,6 @@ export const products: Product[] = [
       "Synthetic fragment of human growth hormone (hGH 176-191) studied for its role in fat metabolism and lipolysis without affecting blood sugar or IGF-1 levels.",
     benefits: ["Lipolysis research (hGH 176-191)", "Fat-metabolism study models", "No IGF-1 effect in studies", "No glycemic impact in trials"],
     vendors: [
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/aod-9604?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/aod-9604/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/aod-9604/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/aod-9604-1-vial/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
@@ -320,7 +307,6 @@ export const products: Product[] = [
       "Synthetic tetrapeptide (Ala-Glu-Asp-Gly) studied for its role in telomerase activation, cellular longevity, and regulation of the pineal gland's melatonin output.",
     benefits: ["Telomerase-activation research", "Longevity study models", "Pineal/melatonin research", "Studied in longevity literature"],
     vendors: [
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/epithalon-50mg/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/epithalon-10mg/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/epithalon/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-epitalon/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
@@ -337,7 +323,6 @@ export const products: Product[] = [
       "Growth hormone releasing hormone analogue that stimulates the pituitary to naturally increase GH production.",
     benefits: ["Studied for natural GH stimulation", "Age-related GH-decline research", "Body-composition study models", "GHRH-analogue literature"],
     vendors: [
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/sermorelin?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/sermorelin-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/sermorelin/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/sermorelin/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
@@ -355,7 +340,6 @@ export const products: Product[] = [
       "Mitochondrial-derived peptide that regulates metabolic homeostasis, improves insulin sensitivity, and supports cellular energy production. Active in clinical trials for metabolic disease.",
     benefits: ["Mitochondrial-function research", "Insulin-sensitivity studies", "AMPK / metabolic research", "Studied in metabolic models"],
     vendors: [
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/mots-c?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/mots-c-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/mots-c-10mg/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mots-c/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
@@ -373,12 +357,10 @@ export const products: Product[] = [
       "Naturally occurring copper-binding tripeptide (Gly-His-Lys) studied for skin regeneration, wound healing, hair follicle stimulation, and collagen synthesis. Declines naturally with age.",
     benefits: ["Skin-regeneration research", "Collagen-synthesis studies", "Hair-follicle research models", "Antioxidant-activity studies"],
     vendors: [
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/ghk-cu?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ghk-cu-100mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/ghk-cu/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/ghk-cu/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-ghk-cu-peptide/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/ghk-cu/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/copper-binding-peptide-ghk-cu", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
     featured: false,
@@ -392,7 +374,6 @@ export const products: Product[] = [
       "Long-acting analog of insulin-like growth factor 1 with extended half-life. Studied for muscle protein synthesis, lean tissue growth, and recovery — a common pairing with CJC-1295 / Ipamorelin stacks.",
     benefits: ["Muscle-protein-synthesis research", "Lean-tissue study models", "Recovery research", "Extended half-life vs. native IGF-1"],
     vendors: [
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/igf-1lr3/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/igf-1-lr3/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/igf-1-lr3/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-igf-1-lr3/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
@@ -409,7 +390,6 @@ export const products: Product[] = [
       "Coenzyme central to mitochondrial energy production, DNA repair, and cellular longevity. Levels decline with age; supplementation is studied for metabolic health, cognitive function, and healthspan.",
     benefits: ["Mitochondrial-energy research", "DNA-repair study models", "Cellular-longevity research", "Cognitive-function studies"],
     vendors: [
-      { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/product/nad/?rfsn=9131640.7592e7", commission: "20%" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/nad-500mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/nad-peptide/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/nad500mg/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
@@ -428,7 +408,6 @@ export const products: Product[] = [
     benefits: ["Anti-inflammatory pathway research", "Gut-lining / cytokine-signaling studies", "Preclinical wound-healing models", "Studied for oral stability vs. other tripeptides"],
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/kpv-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/kpv?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/kpv/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/kpv/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-kpv-peptide-1-vial/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
@@ -446,7 +425,6 @@ export const products: Product[] = [
     benefits: ["Slow-wave (delta) sleep research since the 1970s", "Small human studies in opiate/alcohol withdrawal", "Studied stress-axis and HPA modulation", "No confirmed receptor identified after 50 years"],
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/dsip-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
-      { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/product/dsip-delta-sleep-inducing-peptide?_ef_transaction_id=&oid=1&affid=10866", commission: "15%", note: "Use code AuraProto for 15% off" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/dsip/?afref=a1b9", commission: "15%" },
       { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/dsip/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-dsip/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },

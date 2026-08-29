@@ -3,14 +3,14 @@ import { describe, it, expect } from "vitest";
 import VendorCompareList from "@/components/VendorCompareList";
 
 const twoVendors = [
-  { vendor: "Limitless Life Nootropics", url: "https://limitlesslifenootropics.com/x", commission: "15%" },
+  { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/x", commission: "15%" },
   { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/x", commission: "20%" },
 ];
 
 const fiveVendors = [
   ...twoVendors,
-  { vendor: "Apollo Peptide Sciences", url: "https://apollopeptidesciences.com/x", commission: "20%" },
-  { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/x", commission: "15%" },
+  { vendor: "American Peptides", url: "https://www.americanpeptides.us/x", commission: "20%" },
+  { vendor: "PSPeptides", url: "https://pspeptides.com/x", commission: "18%" },
   { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/x", commission: "15%" },
 ];
 
@@ -23,7 +23,7 @@ describe("VendorCompareList", () => {
 
   it("renders a Buy Direct link for every vendor", () => {
     render(<VendorCompareList vendors={twoVendors} productSlug="bpc-157" />);
-    expect(screen.getByText(/Buy Direct from Limitless Life Nootropics/)).toBeInTheDocument();
+    expect(screen.getByText(/Buy Direct from Ignite Peptides/)).toBeInTheDocument();
     expect(screen.getByText(/Buy Direct from Mile High Compounds/)).toBeInTheDocument();
   });
 

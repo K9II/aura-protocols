@@ -145,11 +145,12 @@ export const evolveIsLive = EVOLVE_ENABLED;
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Master switch. Flip to true on approval (see checklist above). */
-export const IMPROVED_ENABLED = false;
+export const IMPROVED_ENABLED = true;
 
-/** Referral token from the Improved Peptides affiliate dashboard. PENDING until
- *  approval — the build-time guard below throws if enabled with this value. */
-const IMPROVED_REF_TOKEN = "PENDING";
+/** Referral token from the Improved Peptides affiliate dashboard. Approved
+ *  2026-08-29; confirmed live referral link is https://improvedpeptides.com/?ref=auraproto
+ *  — matches the coupon code, same GoAffPro convention as Evolve/Mile High. */
+const IMPROVED_REF_TOKEN: string = "auraproto";
 
 /** Query-string key that carries the referral token in Improved Peptides'
  *  referral link. Defaulted to "ref" per the shared GoAffPro convention seen on
@@ -217,7 +218,7 @@ export function improvedVendorFor(productId: string): ProductVendor | null {
 export const improvedProfile: VendorProfile = {
   vendor: IMPROVED_VENDOR_NAME,
   summary:
-    "Improved Peptides is a premium-positioned research peptide brand with third-party Certificates of Analysis (Freedom Diagnostics, LC-MS identity + HPLC purity) posted directly on every product page — no request or login required. Added for its combination of a flat, uncapped 20% commission and consistently verifiable COA documentation across its catalog.",
+    "Improved Peptides is a premium-positioned research peptide brand with third-party Certificates of Analysis (Freedom Diagnostics, LC-MS identity + HPLC purity) posted directly on every product page — no request or login required. Added for its consistently verifiable COA documentation across its catalog.",
   pros: [
     "Downloadable, lot-specific COA linked directly on every product page — LC-MS identity with an actual mass spectrum, not a reference-match claim",
     "Same-day shipping with domestic US fulfillment",
