@@ -1381,7 +1381,7 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "Every vendor we feature on Aura Protocols must provide batch-specific COAs from accredited third-party laboratories. We manually review these documents before listing any product. If a vendor's documentation doesn't meet our standards, they don't appear on this site — regardless of commission rates. See our full ",
+          "Every vendor we feature on Aura Protocols must provide batch-specific COAs from accredited third-party laboratories. We manually review these documents before listing any product. If a vendor's documentation doesn't meet our standards, they don't appear on this site. See our full ",
           { href: "/about", text: "vendor vetting methodology" },
           " for the complete criteria, or browse the ",
           { href: "/products", text: "full compound catalog" },

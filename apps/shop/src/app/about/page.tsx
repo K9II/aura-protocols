@@ -105,8 +105,8 @@ export default function AboutPage() {
 
         <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Our Vendor Vetting Methodology</h2>
         <p>
-          We do not list a vendor because they offer the highest commission. Every vendor featured on Aura Protocols
-          is manually reviewed against a fixed checklist before any product page goes live:
+          Every vendor featured on Aura Protocols is manually reviewed against a fixed checklist before any product
+          page goes live:
         </p>
         <div className="p-card p-8 space-y-5">
           {[
