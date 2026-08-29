@@ -84,7 +84,7 @@ const VENDORS: VendorRow[] = [
     metals: "no",
     sterility: "–",
     sterilityState: "no",
-    verifiable: "Accession #",
+    verifiable: "Verify key",
   },
   {
     vendor: "Mile High",
