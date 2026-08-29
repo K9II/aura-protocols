@@ -1,5 +1,5 @@
 // apps/shop/src/data/vendorProfiles.ts
-import { EVOLVE_ENABLED, evolveProfile } from "./pendingVendors";
+import { EVOLVE_ENABLED, evolveProfile, IMPROVED_ENABLED, improvedProfile } from "./pendingVendors";
 
 export type VendorProfile = {
   vendor: string; // must exactly match ProductVendor.vendor strings used in products.ts
@@ -111,4 +111,5 @@ const baseVendorProfiles: VendorProfile[] = [
 export const vendorProfiles: VendorProfile[] = [
   ...baseVendorProfiles,
   ...(EVOLVE_ENABLED ? [evolveProfile] : []),
+  ...(IMPROVED_ENABLED ? [improvedProfile] : []),
 ];

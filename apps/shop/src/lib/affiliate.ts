@@ -10,6 +10,7 @@ const VENDOR_IDS: Record<string, string> = {
   "PSPeptides": "pspeptides",
   "American Peptides": "american-peptides",
   "Evolve Peptides": "evolve", // staged, awaiting approval — see data/pendingVendors.ts. Emits no /go/ redirects until enabled.
+  "Improved Peptides": "improved", // staged, awaiting approval — see data/pendingVendors.ts. Emits no /go/ redirects until enabled.
 };
 
 export function vendorId(vendorName: string): string {
