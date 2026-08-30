@@ -325,35 +325,54 @@ export default function QualityStandardsPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-8 mt-5 text-sm text-[color:var(--ink-soft)]">
-            <span>
-              <b className="font-sans text-[color:var(--ink)] mr-1.5">Yes</b> shown on the report
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-3 mt-6 text-[13px] font-sans text-[color:var(--ink-soft)]">
+            <span className="inline-flex items-center gap-2">
+              <b className="text-[color:var(--ink)] font-semibold">Yes</b> shown on the report
             </span>
-            <span>
-              <b className="font-sans text-[color:var(--ink)] mr-1.5">–</b> not on this report
+            <span className="inline-flex items-center gap-2">
+              <b className="text-[color:var(--ink)] font-semibold">–</b> not on this report
             </span>
-            <span className="text-[color:var(--specimen)]">
-              <b className="font-sans text-[color:var(--specimen)] mr-1.5">Red</b> accreditation stated
-              on the certificate
+            <span className="inline-flex items-center gap-2">
+              <span className="inline-block h-3 w-3 shrink-0 bg-[color:var(--specimen)]/[0.12] shadow-[inset_2px_0_0_var(--specimen)]" />
+              Accreditation stated on the certificate
             </span>
           </div>
 
-          <div className="flex flex-col gap-1.5 mt-5">
-            <p className="font-sans text-[13px] leading-relaxed text-[color:var(--ink-soft)] max-w-3xl">
-              — &nbsp;<b className="text-[color:var(--ink)]">Verified</b> means we personally queried the
-              issuing lab&apos;s own public record (not just the vendor&apos;s page copy) and confirmed that
-              exact certificate is real and on file — American Peptides &amp; Peak Lab against Bioviridian&apos;s
-              COA search, Mile High against Kovera Labs&apos; verification record, and Improved Peptides
-              against Freedom Diagnostics&apos; public database. Every other &ldquo;Verify key&rdquo; / &ldquo;Yes&rdquo;
-              /&nbsp;&ldquo;Batch-verified&rdquo; label means the certificate offers a lookup mechanism we have not
-              (yet, or could not) independently exercised ourselves — Ignite&apos;s ILS Labs portal requires an
-              account login, Evolve&apos;s Janoshik verification page blocks automated checks, and PSPeptides
-              publishes its reports directly rather than through a separate lab registry.
+          <div className="mt-6 border border-[color:var(--line)] bg-[color:var(--paper-deep)]/45 p-5 md:p-6">
+            <p className="text-[11px] uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-4">
+              Notes on the marks
             </p>
-            <p className="font-sans text-[13px] leading-relaxed text-[color:var(--ink-soft)] max-w-3xl">
-              — &nbsp;PSPeptides documents its data across three separate public reports per batch:
-              certificate (identity, purity, content), endotoxin, and heavy metals.
-            </p>
+            <dl className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row sm:gap-5">
+                <dt className="shrink-0 font-sans text-[13px] font-semibold text-[color:var(--ink)] sm:w-28">
+                  Verified
+                </dt>
+                <dd className="font-sans text-[13px] leading-relaxed text-[color:var(--ink-soft)] max-w-2xl">
+                  We personally queried the issuing lab&apos;s own public record — not just the vendor&apos;s
+                  page copy — and confirmed that exact certificate is real and on file: American Peptides
+                  &amp; Peak Lab against Bioviridian&apos;s COA search, Mile High against Kovera Labs&apos;
+                  verification record, and Improved Peptides against Freedom Diagnostics&apos; public
+                  database.
+                  <br className="hidden sm:block" />
+                  <span className="block mt-2">
+                    Every other &ldquo;Verify key&rdquo;, &ldquo;Yes&rdquo;, or &ldquo;Batch-verified&rdquo; label
+                    means the certificate offers a lookup mechanism we have not — yet, or could not —
+                    independently exercised ourselves: Ignite&apos;s ILS Labs portal requires an account
+                    login, Evolve&apos;s Janoshik verification page blocks automated checks, and PSPeptides
+                    publishes its reports directly rather than through a separate lab registry.
+                  </span>
+                </dd>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:gap-5 pt-4 border-t border-[color:var(--line)]">
+                <dt className="shrink-0 font-sans text-[13px] font-semibold text-[color:var(--ink)] sm:w-28">
+                  PSPeptides
+                </dt>
+                <dd className="font-sans text-[13px] leading-relaxed text-[color:var(--ink-soft)] max-w-2xl">
+                  Documents its data across three separate public reports per batch: certificate
+                  (identity, purity, content), endotoxin, and heavy metals.
+                </dd>
+              </div>
+            </dl>
           </div>
         </section>
 
