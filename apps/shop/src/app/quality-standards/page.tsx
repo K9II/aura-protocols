@@ -37,7 +37,7 @@ const VENDORS: VendorRow[] = [
     metals: "yes",
     sterility: "–",
     sterilityState: "no",
-    verifiable: "Signed · QR",
+    verifiable: "Verified",
   },
   {
     vendor: "Evolve",
@@ -84,7 +84,7 @@ const VENDORS: VendorRow[] = [
     metals: "no",
     sterility: "–",
     sterilityState: "no",
-    verifiable: "Verify key",
+    verifiable: "Verified",
   },
   {
     vendor: "Mile High",
@@ -100,7 +100,7 @@ const VENDORS: VendorRow[] = [
     sterility: "Yes",
     sterilityState: "yes",
     sterilityNote: "Kovera batches",
-    verifiable: "Yes",
+    verifiable: "Verified",
   },
   {
     vendor: "Peak Lab",
@@ -115,7 +115,7 @@ const VENDORS: VendorRow[] = [
     metals: "no",
     sterility: "–",
     sterilityState: "no",
-    verifiable: "Batch-verified",
+    verifiable: "Verified",
   },
   {
     vendor: "PSPeptides",
@@ -340,6 +340,17 @@ export default function QualityStandardsPage() {
 
           <div className="flex flex-col gap-1.5 mt-5">
             <p className="font-sans text-[13px] leading-relaxed text-[color:var(--ink-soft)] max-w-3xl">
+              — &nbsp;<b className="text-[color:var(--ink)]">Verified</b> means we personally queried the
+              issuing lab&apos;s own public record (not just the vendor&apos;s page copy) and confirmed that
+              exact certificate is real and on file — American Peptides &amp; Peak Lab against Bioviridian&apos;s
+              COA search, Mile High against Kovera Labs&apos; verification record, and Improved Peptides
+              against Freedom Diagnostics&apos; public database. Every other &ldquo;Verify key&rdquo; / &ldquo;Yes&rdquo;
+              /&nbsp;&ldquo;Batch-verified&rdquo; label means the certificate offers a lookup mechanism we have not
+              (yet, or could not) independently exercised ourselves — Ignite&apos;s ILS Labs portal requires an
+              account login, Evolve&apos;s Janoshik verification page blocks automated checks, and PSPeptides
+              publishes its reports directly rather than through a separate lab registry.
+            </p>
+            <p className="font-sans text-[13px] leading-relaxed text-[color:var(--ink-soft)] max-w-3xl">
               — &nbsp;PSPeptides documents its data across three separate public reports per batch:
               certificate (identity, purity, content), endotoxin, and heavy metals.
             </p>
@@ -364,7 +375,7 @@ export default function QualityStandardsPage() {
         {/* Disclaimer */}
         <div className="border-t border-[color:var(--line)] pt-8">
           <p className="text-xs font-sans leading-relaxed text-[color:var(--ink-soft)] max-w-3xl border-l-2 border-[color:var(--specimen)] pl-4">
-            <b className="text-[color:var(--ink)]">As reviewed 29 August 2026.</b> The certificate
+            <b className="text-[color:var(--ink)]">As reviewed 30 August 2026.</b> The certificate
             details summarized here reflect each vendor&apos;s published Certificate of Analysis as
             reviewed by Aura Protocols on the date shown. A Certificate of Analysis is issued per
             production lot; testing laboratories, methods, and results may differ for other lots and
