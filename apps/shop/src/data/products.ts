@@ -449,6 +449,19 @@ export const products: Product[] = [
     ],
     featured: false,
   },
+  {
+    id: "pinealon",
+    name: "Pinealon",
+    slug: "pinealon",
+    category: "Longevity & Wellness",
+    description:
+      "Synthetic tripeptide (Glu-Asp-Arg) from the same Khavinson bioregulator research lineage as Epithalon, studied in cell-culture and rodent models for neuroprotection, oxidative-stress suppression, and gene-expression regulation in neural tissue.",
+    benefits: ["Neuroprotective / ROS-suppression research in neuron & neutrophil models", "Studied for ERK1/2 signaling and neuronal viability", "Dendritic-spine preservation in an Alzheimer's mouse model", "Small human geriatric observational data (with Vesugen)"],
+    vendors: [
+      { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/pinealon", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
+    ],
+    featured: false,
+  },
 ];
 
 // Append staged-but-dormant vendors (e.g. Evolve Peptides, Improved Peptides —

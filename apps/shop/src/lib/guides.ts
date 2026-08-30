@@ -32,6 +32,7 @@ export const PRODUCT_GUIDES: Record<string, string> = {
   "retatrutide-cagrilintide": "/blog/retatrutide-cagrilintide-research-guide",
   "cagrisema": "/blog/cagrisema-research-guide",
   "glutathione": "/blog/glutathione-research-guide",
+  "pinealon": "/blog/pinealon-research-guide",
 };
 
 export function learnMoreHref(productSlug: string): string {

@@ -3910,4 +3910,105 @@ export const posts: Post[] = [
       },
     ],
   },
+  {
+    slug: "pinealon-research-guide",
+    title: "Pinealon: The Complete Research Guide",
+    excerpt:
+      "A synthetic tripeptide from the same Khavinson bioregulator research program as Epithalon — with real cell-culture and rodent neuroprotection data, and a single small human observational study, not a clinical trial.",
+    category: "Longevity & Wellness",
+    date: "August 2026",
+    readTime: "6 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Pinealon is a synthetic tripeptide developed by Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology — the same research program behind Epithalon and DSIP's regulatory cousin compounds. It's studied for neuroprotection and gene-expression regulation, with a research base that's real but early: mostly cell-culture and rodent work, plus one small human observational report.",
+      },
+      { type: "h2", text: "What Is Pinealon?" },
+      {
+        type: "p",
+        text: "Pinealon is a synthetic tripeptide (Glu-Asp-Arg, sequence code EDR) — one of a family of short peptide \"bioregulators\" Khavinson's group has produced since the 1970s, each intended to target a specific tissue system. Pinealon is the one associated with pineal and neural tissue, alongside related compounds like Vesugen (vascular), Cortagen (cerebral cortex), and Epithalon (also pineal-linked, but a different four-amino-acid sequence and a separate compound — see our Epithalon guide for that distinction).",
+      },
+      { type: "h2", text: "Mechanism of Action" },
+      {
+        type: "p",
+        text: "The best-characterized finding is a 2011 in vitro study (Khavinson et al., Rejuvenation Research) showing Pinealon dose-dependently suppressed reactive oxygen species (ROS) accumulation and reduced necrotic cell death across three different cell models — cerebellar granule neurons, neutrophils, and PC12 pheochromocytoma cells — under induced oxidative stress. The same paper reported Pinealon increasing ERK1/2 kinase activation in neurons, a signaling pathway tied to neuronal survival and synaptic plasticity, and proposed that beyond antioxidant activity, the peptide interacts directly with the cell genome to influence gene expression.",
+      },
+      {
+        type: "callout",
+        text: "This is cell-culture data — isolated neurons and cell lines in a dish under induced oxidative stress, not a living human brain. It establishes a plausible mechanism, not a demonstrated effect in people.",
+      },
+      { type: "h2", text: "What the Broader Research Shows" },
+      {
+        type: "ul",
+        items: [
+          "ROS suppression and reduced necrotic cell death across three cell-culture models under oxidative stress (Khavinson et al., 2011)",
+          "ERK1/2 signaling activation in neurons, linked to survival and synaptic plasticity in the same study",
+          "Prevented dendritic-spine loss in the 5xFAD transgenic Alzheimer's mouse model when given alongside the related tripeptide KED, daily for 8 weeks (Khavinson et al., Pharmaceuticals, 2021)",
+          "One small human observational report (32 patients, ages 41–83, chronic polymorbidity with organic brain syndrome in remission) describing anabolic and CNS-activity effects from Pinealon and Vesugen — not a randomized or placebo-controlled trial",
+        ],
+      },
+      {
+        type: "callout",
+        text: "The evidence base is almost entirely from one research group. Independent replication by labs outside the Khavinson program is essentially absent from the peer-reviewed literature, and there is no registered human clinical trial of Pinealon on ClinicalTrials.gov. Treat the mouse and cell-culture findings as mechanistic groundwork, not proof of a human effect.",
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Pinealon is not FDA-approved for any use and was not among the peptides reviewed at FDA's July 2026 Pharmacy Compounding Advisory Committee meeting (which covered BPC-157, TB-500, KPV, MOTS-c, Epitalon, Semax, and DSIP/Emideltide — see our BPC-157 and DSIP guides). It is sold exclusively as a research chemical for laboratory use, not as a dietary supplement or drug.",
+      },
+      { type: "h2", text: "Where to Source Pinealon for Research" },
+      {
+        type: "p",
+        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party testing and batch-specific Certificates of Analysis. As of this writing, Pinealon is carried by a single vendor in our index.",
+      },
+      {
+        type: "button",
+        text: "View the Pinealon product page",
+        productSlug: "pinealon",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is Pinealon the same as Epithalon?",
+            a: "No. Both come from the same Khavinson research program and are both associated with pineal-tissue research, but they're different sequences — Pinealon is the tripeptide Glu-Asp-Arg, Epithalon is the tetrapeptide Ala-Glu-Asp-Gly — studied for different mechanisms (neuroprotection/ROS suppression vs. telomerase activation).",
+          },
+          {
+            q: "Has Pinealon been tested in humans?",
+            a: "Only in one small observational report of 32 geriatric patients, describing general anabolic and CNS-activity effects alongside the related peptide Vesugen. It was not randomized, blinded, or placebo-controlled, and there's no registered clinical trial of Pinealon.",
+          },
+          {
+            q: "What's the strongest evidence behind Pinealon?",
+            a: "A 2011 cell-culture study showing dose-dependent suppression of oxidative stress and reduced cell death across neuron, neutrophil, and PC12 cell models, plus a 2021 mouse study showing it preserved dendritic spines in an Alzheimer's model. Both are preclinical — not human data.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Khavinson VK, Ribakova Y, Kulebiakin K, Vladychenskaya E, Kozina L, Arutjunyan A, Boldyrev A. \"Pinealon Increases Cell Viability by Suppression of Free Radical Levels and Activating Proliferative Processes.\" Rejuvenation Research. 2011;14(5):551-557. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/21978084/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Khavinson VK, et al. \"Neuroprotective Effects of Tripeptides—Epigenetic Regulators in Mouse Model of Alzheimer's Disease.\" Pharmaceuticals (Basel). 2021;14(6):515. ",
+          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8227791/", text: "ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Khavinson VK, et al. \"[Effect of synthetic peptides on aging of patients with chronic polymorbidity and organic brain syndrome of the central nervous system in remission].\" Advances in Gerontology. 2015. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/26390612/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only — not for human or veterinary use.",
+      },
+    ],
+  },
 ];
