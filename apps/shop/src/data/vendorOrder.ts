@@ -15,7 +15,7 @@ import { EVOLVE_ENABLED } from "./pendingVendors";
 // "Limitless 2nd" would reorder the live retatrutide page prematurely.
 // NOTE: cagrilintide is intentionally NOT here — it's a pure amylin analog, not a
 // GLP-1, so per Kearney (2026-08-23) it falls under the non-GLP-1 rule below
-// (Mile High / American). The two combos stay in this set because each contains a
+// (American). The two combos stay in this set because each contains a
 // GLP-1 component (cagrisema = +semaglutide, retatrutide-cagrilintide = +retatrutide).
 const GLP1_PRODUCT_IDS = new Set<string>([
   "semaglutide",
@@ -30,9 +30,8 @@ const GLP1_PRODUCT_IDS = new Set<string>([
 const GLP1_PINNED_ORDER = ["Evolve Peptides"];
 
 // Every NON-GLP-1 product: American Peptides leads. Mile High Compounds was
-// REMOVED from the pin list (Kearney, 2026-08-26) — Mile High no longer receives
-// ANY priority in any category and now falls to the default commission-desc
-// ordering with everyone else. (Possible full discontinuation pending.)
+// removed from the shop entirely (Kearney, 2026-09-08) — AIOS still tracks it,
+// but it no longer appears on the site at all.
 const NON_GLP1_PINNED_ORDER = ["American Peptides"];
 
 // Vendors under review for possible removal — pinned to the BOTTOM of every
@@ -53,8 +52,8 @@ const DEMOTED_TO_BOTTOM: string[] = [];
 /**
  * Ordered list of vendor names to pin to the top of a product's vendor list.
  * Empty array = no override (fall back to commission-desc). Absent pinned
- * vendors are simply skipped, so e.g. a product Mile High doesn't carry will
- * show American Peptides first.
+ * vendors are simply skipped, so e.g. a product American Peptides doesn't
+ * carry falls through to the next vendor in commission-desc order.
  */
 export function vendorPins(productId: string): string[] {
   if (GLP1_PRODUCT_IDS.has(productId)) {

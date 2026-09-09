@@ -31,9 +31,9 @@ import type { VendorProfile } from "./vendorProfiles";
 export const EVOLVE_ENABLED = true;
 
 /** Referral token from the Evolve affiliate dashboard. Approved 2026-08-24;
- *  Evolve runs on GoAffPro (same as Mile High), whose ref param carries the
- *  coupon code — so ?ref=auraproto, matching the confirmed `auraproto` coupon.
- *  The coupon is the primary, guaranteed attribution regardless of link param. */
+ *  Evolve runs on GoAffPro, whose ref param carries the coupon code — so
+ *  ?ref=auraproto, matching the confirmed `auraproto` coupon. The coupon is
+ *  the primary, guaranteed attribution regardless of link param. */
 const EVOLVE_REF_TOKEN = "auraproto";
 
 /** Query-string key that carries the referral token in Evolve's referral link.
@@ -124,7 +124,7 @@ export const evolveIsLive = EVOLVE_ENABLED;
 //  IMPROVED PEPTIDES — applied 2026-08-29, awaiting approval
 //  Program: 20% commission FLAT on every order incl. reorders (not tiered), 15%
 //           customer discount, 30-day cookie. GoAffPro storefront (same platform
-//           as Evolve/Mile High). COA quality verified 2026-08-29 — real LC-MS
+//           as Evolve). COA quality verified 2026-08-29 — real LC-MS
 //           identity w/ mass spectrum from Freedom Diagnostics, comparable rigor
 //           to American Peptides/Evolve. See vendor_coa_benchmark_reta memory.
 //  Portal:  https://improvedpeptides.goaffpro.com/  (login on file in AIOS)
@@ -134,7 +134,7 @@ export const evolveIsLive = EVOLVE_ENABLED;
 //  │    affiliate dashboard (the id/slug in your unique referral link).        │
 //  │ 2. Confirm IMPROVED_REF_PARAM is the correct query key for that link      │
 //  │    (open your referral link and read the ?<key>=<token> it carries) —     │
-//  │    defaulted to "ref" per Evolve/Mile High's shared GoAffPro convention.  │
+//  │    defaulted to "ref" per Evolve's GoAffPro convention.                   │
 //  │ 3. Set IMPROVED_ENABLED = true.                                          │
 //  │ 4. Rebuild + deploy the shop. Improved Peptides then appears on all 17    │
 //  │    covered products, /go/aura-improved-* redirects generate              │
@@ -149,12 +149,12 @@ export const IMPROVED_ENABLED = true;
 
 /** Referral token from the Improved Peptides affiliate dashboard. Approved
  *  2026-08-29; confirmed live referral link is https://improvedpeptides.com/?ref=auraproto
- *  — matches the coupon code, same GoAffPro convention as Evolve/Mile High. */
+ *  — matches the coupon code, same GoAffPro convention as Evolve. */
 const IMPROVED_REF_TOKEN: string = "auraproto";
 
 /** Query-string key that carries the referral token in Improved Peptides'
  *  referral link. Defaulted to "ref" per the shared GoAffPro convention seen on
- *  Evolve/Mile High; VERIFY against the real link before go-live. */
+ *  Evolve; VERIFY against the real link before go-live. */
 const IMPROVED_REF_PARAM = "ref";
 
 /** Customer discount code (15% off) — provided by Kearney 2026-08-29. */

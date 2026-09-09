@@ -4,7 +4,6 @@ import { posts } from "../data/posts";
 const VENDOR_IDS: Record<string, string> = {
   "Ignite Peptides": "ignite",
   "Peak Lab Peptides": "peak-lab",
-  "Mile High Compounds": "mile-high",
   "PSPeptides": "pspeptides",
   "American Peptides": "american-peptides",
   "Evolve Peptides": "evolve", // staged, awaiting approval — see data/pendingVendors.ts. Emits no /go/ redirects until enabled.

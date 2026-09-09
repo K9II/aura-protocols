@@ -37,19 +37,6 @@ const baseVendorProfiles: VendorProfile[] = [
     ],
   },
   {
-    vendor: "Mile High Compounds",
-    summary:
-      "Mile High Compounds is a broad-catalog research vendor added as a second source for SLU-PP-332 alongside a wide overlap with the core compounds already on this site.",
-    pros: [
-      "Second confirmed source for SLU-PP-332, plus broad overlap across recovery, GLP-1, and longevity compounds",
-      "Customer discount of 10% off with code auraproto",
-    ],
-    cons: [
-      "Newer addition — shipping speed and catalog depth not yet independently confirmed; treat this profile as provisional",
-      "International (.is) fulfillment may mean longer US domestic shipping than domestic-only vendors",
-    ],
-  },
-  {
     vendor: "PSPeptides",
     summary:
       "PSPeptides is a US-manufactured vendor and the third confirmed source for all three Stacks products (Wolverine, GLOW, and KLOW), alongside a broader catalog of standalone compounds.",

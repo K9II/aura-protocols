@@ -4,7 +4,7 @@ import VendorCompareList from "@/components/VendorCompareList";
 
 const twoVendors = [
   { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/x", commission: "15%" },
-  { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/x", commission: "20%" },
+  { vendor: "Evolve Peptides", url: "https://www.evolvepeptides.com/x", commission: "20%" },
 ];
 
 const fiveVendors = [
@@ -24,7 +24,7 @@ describe("VendorCompareList", () => {
   it("renders a Buy Direct link for every vendor", () => {
     render(<VendorCompareList vendors={twoVendors} productSlug="bpc-157" />);
     expect(screen.getByText(/Buy Direct from Ignite Peptides/)).toBeInTheDocument();
-    expect(screen.getByText(/Buy Direct from Mile High Compounds/)).toBeInTheDocument();
+    expect(screen.getByText(/Buy Direct from Evolve Peptides/)).toBeInTheDocument();
   });
 
   it("never renders a dollar sign, the word commission, or affiliate/tracking language", () => {

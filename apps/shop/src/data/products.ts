@@ -31,7 +31,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/bpc-157-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/bpc-157/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/bpc-157/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-bpc-157/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/bpc-157", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -47,7 +46,6 @@ export const products: Product[] = [
       "Thymosin Beta-4 fragment known for promoting systemic healing, reducing inflammation, and supporting muscle repair.",
     benefits: ["Studied for systemic tissue healing", "Anti-inflammatory effects in research", "Muscle-repair research models", "Cell-migration studies"],
     vendors: [
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/tb-500/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/tb-500/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/tb-500-peptide/?afref=a1b9", commission: "15%" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-tb-500/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
@@ -66,7 +64,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip1-s5mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-sema/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-1-sm/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/semaglutide", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
     featured: true,
@@ -82,7 +79,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip2-trz10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-tirz/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-2-trz/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-tirzepatide/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/tirzepatide", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -100,7 +96,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/cjc-ipamorelin/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/cjc-1295-no-dac-ipamorelin/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/cjc-1295-w-o-dac-ipamorelin/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-cjc-1295-ipamorelin-blend/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/cjc-1295-no-dac-ipamorelin", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -116,7 +111,6 @@ export const products: Product[] = [
     benefits: ["Studied for tendon & ligament repair", "Researched for gut mucosal healing", "Studied for systemic tissue healing", "Anti-inflammatory pathways in studies"],
     vendors: [
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/wolverine-stack-bpc-157-tb-500/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/bpc-157-tb-500-blend/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/bpc-157-tb-500-blend/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/bpc-157-5mg-tb-500-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/bpc-157-tb-500", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
@@ -132,7 +126,6 @@ export const products: Product[] = [
       "The Wolverine Stack plus GHK-Cu in one vial — extending tissue-repair research into collagen synthesis, gene-expression, and dermal/follicular pathways alongside the same BPC-157 and TB-500 foundation.",
     benefits: ["Wolverine Stack's repair pathways, plus", "Collagen & elastin synthesis research", "Broad gene-modulation studies (GHK-Cu)", "Skin & follicular research applications"],
     vendors: [
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/glow-70-research-blend/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/glow70-peptide/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-glow-blend/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glow-70mg/?afref=a1b9", commission: "15%" },
@@ -149,7 +142,6 @@ export const products: Product[] = [
       "The GLOW Stack plus KPV — a four-peptide blend extending the same tissue-repair and collagen research into anti-inflammatory and gut-lining pathways in a single reconstitution.",
     benefits: ["GLOW Stack's repair & collagen pathways, plus", "Anti-inflammatory (NF-κB) research (KPV)", "Gut-lining / cytokine-signaling studies", "Broadest single-vial research coverage"],
     vendors: [
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/klow-80-blend/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/bpc-157-tb-500-ghk-cu-kpv-klow80-blend/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-klow-blend/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/klow-80mg/?afref=a1b9", commission: "15%" },
@@ -195,7 +187,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/pt-141-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/pt-141-10mg/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/pt-141/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-pt-141/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/pt-141", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -212,7 +203,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ip3rt-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-3-reta/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mhc-3-rt/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-retatrutide/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/retatrutide", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -228,7 +218,6 @@ export const products: Product[] = [
       "Long-acting amylin analog studied for appetite suppression and satiety signaling. Most researched in combination with semaglutide (as CagriSema), where Phase 3 data showed greater weight reduction than either compound alone.",
     benefits: ["Amylin/calcitonin receptor agonism", "Satiety-signaling research distinct from GLP-1 pathway", "Studied alongside semaglutide in Phase 3 combination trials", "Appetite-regulation research"],
     vendors: [
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/cagri-10/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glp-1-cag/?afref=a1b9", commission: "15%" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/cagrilintide", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -246,7 +235,6 @@ export const products: Product[] = [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/tesa-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/tesamorelin/?afref=a1b9", commission: "15%" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-tesamorelin/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/tesamorlin/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/tesamorelin", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
     featured: true,
@@ -262,7 +250,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-ss-31-10mg/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/ss-31-peptide/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mtp-31/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/ss-31", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
     featured: true,
@@ -277,7 +264,6 @@ export const products: Product[] = [
     benefits: ["ERRα/β/γ pan-agonist research", "Mitochondrial biogenesis study models", "Exercise-mimetic transcriptional research", "Fatty-acid oxidation & energy metabolism models"],
     vendors: [
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/slu-pp-332-peptide/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/slu-pp-332/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-slu-pp-332-tablets/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
     ],
     featured: false,
@@ -292,7 +278,6 @@ export const products: Product[] = [
     benefits: ["Lipolysis research (hGH 176-191)", "Fat-metabolism study models", "No IGF-1 effect in studies", "No glycemic impact in trials"],
     vendors: [
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/aod-9604/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/aod-9604/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/aod-9604-1-vial/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/aod-9604", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -308,7 +293,6 @@ export const products: Product[] = [
     benefits: ["Telomerase-activation research", "Longevity study models", "Pineal/melatonin research", "Studied in longevity literature"],
     vendors: [
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/epithalon-10mg/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/epithalon/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-epitalon/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/epi", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -325,7 +309,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/sermorelin-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/sermorelin/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/sermorelin/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/sermorelin-1-vial/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/sermorelin", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -342,7 +325,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/mots-c-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/mots-c-10mg/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/mots-c/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-mots-c/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/mots-c", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -359,7 +341,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/ghk-cu-100mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/ghk-cu/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/ghk-cu/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-ghk-cu-peptide/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/copper-binding-peptide-ghk-cu", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -375,7 +356,6 @@ export const products: Product[] = [
     benefits: ["Muscle-protein-synthesis research", "Lean-tissue study models", "Recovery research", "Extended half-life vs. native IGF-1"],
     vendors: [
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/igf-1-lr3/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/igf-1-lr3/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-igf-1-lr3/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/igf-1-lr3", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -392,7 +372,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/nad-500mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/nad-peptide/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/nad500mg/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-nad/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/nad", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -409,7 +388,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/kpv-10mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/kpv/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/kpv/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-kpv-peptide-1-vial/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/kpv-10-mg-1", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -426,7 +404,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/dsip-5mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/dsip/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/dsip/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-dsip/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/dsip", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],
@@ -443,7 +420,6 @@ export const products: Product[] = [
     vendors: [
       { vendor: "Ignite Peptides", url: "https://ignitepeptides.com/product/glutathione-750mg/?ref=k9@auraprotocols.com", commission: "15%" },
       { vendor: "Peak Lab Peptides", url: "https://peaklabpeptides.com/products/glutathione/?afref=a1b9", commission: "15%" },
-      { vendor: "Mile High Compounds", url: "https://milehighcompounds.is/product/glutathione/?ref=auraproto", commission: "15%", note: "Use code auraproto for 10% off" },
       { vendor: "PSPeptides", url: "https://pspeptides.com/product/buy-glutathione/?ref=aurapro", commission: "18%", note: "Use code AURAPRO10 for 10% off" },
       { vendor: "American Peptides", url: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/l-glutathione", commission: "15%", note: "Code AURAPRO10 auto-applied for 10% off" },
     ],

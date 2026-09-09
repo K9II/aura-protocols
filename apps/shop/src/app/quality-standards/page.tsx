@@ -87,22 +87,6 @@ const VENDORS: VendorRow[] = [
     verifiable: "Verified",
   },
   {
-    vendor: "Mile High",
-    lab: "Chromate / Kovera / ILS",
-    identity: "Conforms",
-    identityNote: "RP-HPLC UV",
-    identityState: "part",
-    purity: "99.09%",
-    content: "Yes · 10.31mg",
-    contentState: "yes",
-    endotoxin: "yes",
-    metals: "no",
-    sterility: "Yes",
-    sterilityState: "yes",
-    sterilityNote: "Kovera batches",
-    verifiable: "Verified",
-  },
-  {
     vendor: "Peak Lab",
     lab: "Bioviridian",
     labNote: "College Station, TX",
@@ -350,9 +334,8 @@ export default function QualityStandardsPage() {
                 <dd className="font-sans text-[13px] leading-relaxed text-[color:var(--ink-soft)] max-w-2xl">
                   We personally queried the issuing lab&apos;s own public record — not just the vendor&apos;s
                   page copy — and confirmed that exact certificate is real and on file: American Peptides
-                  &amp; Peak Lab against Bioviridian&apos;s COA search, Mile High against Kovera Labs&apos;
-                  verification record, and Improved Peptides against Freedom Diagnostics&apos; public
-                  database.
+                  &amp; Peak Lab against Bioviridian&apos;s COA search, and Improved Peptides against Freedom
+                  Diagnostics&apos; public database.
                   <br className="hidden sm:block" />
                   <span className="block mt-2">
                     Every other &ldquo;Verify key&rdquo;, &ldquo;Yes&rdquo;, or &ldquo;Batch-verified&rdquo; label
