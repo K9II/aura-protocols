@@ -1,7 +1,6 @@
 // Relative import (not the "@/" alias) — posts.ts is pulled into next.config.ts
 // via affiliate.ts/buildAffiliateRedirects(), and the config's CommonJS transpile
 // step does not resolve the "@/" path alias. affiliate.ts imports the same way.
-import { ENGINE_URL } from "../lib/constants";
 
 export type LinkPart = {
   href: string;
@@ -309,11 +308,6 @@ export const posts: Post[] = [
       {
         type: "p",
         text: "It's the same principle the Aura Engine is built on. Instead of handing you a generic protocol, it starts from your own wearable data — recovery, sleep, and HRV — and builds a research starting point tuned to where you actually are, then adapts as that data changes. Connect a wearable and get your data-matched starting protocol for free.",
-      },
-      {
-        type: "button",
-        text: "Connect your wearable",
-        href: ENGINE_URL,
       },
       {
         type: "cta",
