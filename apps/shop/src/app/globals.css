@@ -463,14 +463,22 @@ main:has(> .pharmacopoeia) {
 /* announcement bar + nav */
 .s-topbar { background: #1C1A15; color: #EDE9E0; font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 10.5px; line-height: 1; letter-spacing: .14em; text-transform: uppercase; text-align: center; padding: 9px 16px; }
 .s-topbar em { font-style: normal; color: #E8A79E; }
-.pharmacopoeia .s-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; padding: 8px 14px; border: 1px solid var(--line); background: var(--paper); }
-.pharmacopoeia .s-nav-shop { justify-self: start; font-size: 13px; padding: 7px 16px; border: 1px solid var(--ink); transition: color .25s, border-color .25s; }
-.pharmacopoeia .s-nav-shop:hover { color: var(--specimen); border-color: var(--specimen); }
-.pharmacopoeia .s-nav-mid { display: flex; flex-direction: column; align-items: center; }
-.pharmacopoeia .s-nav-links { display: flex; gap: 16px; font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+/* Header: logo left · links centered · Shop + Cart right. Equal side columns
+   keep the links on the true center of the bar. */
+.pharmacopoeia .s-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "logo links actions"; align-items: center; column-gap: 18px; padding: 10px 14px; border: 1px solid var(--line); background: var(--paper); }
+.pharmacopoeia .s-nav-logo { grid-area: logo; justify-self: start; display: inline-flex; }
+.pharmacopoeia .s-nav-links { grid-area: links; display: flex; gap: 18px; font-size: 12.5px; color: var(--ink-soft); }
 .pharmacopoeia .s-nav-links a:hover { color: var(--specimen); }
-.pharmacopoeia .s-nav-cart { justify-self: end; font-size: 13px; background: none; border: 0; cursor: pointer; color: inherit; font-family: inherit; }
-@media (max-width: 640px) { .pharmacopoeia .s-nav-links { gap: 10px; font-size: 11px; } .pharmacopoeia .s-nav-shop { padding: 6px 10px; } }
+.pharmacopoeia .s-nav-actions { grid-area: actions; justify-self: end; display: flex; align-items: center; gap: 16px; }
+.pharmacopoeia .s-nav-shop { font-size: 13px; padding: 7px 16px; border: 1px solid var(--ink); transition: color .25s, border-color .25s; }
+.pharmacopoeia .s-nav-shop:hover { color: var(--specimen); border-color: var(--specimen); }
+.pharmacopoeia .s-nav-cart { font-size: 13px; background: none; border: 0; cursor: pointer; color: inherit; font-family: inherit; }
+@media (max-width: 640px) {
+  .pharmacopoeia .s-nav { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "logo actions" "links links"; row-gap: 10px; }
+  .pharmacopoeia .s-nav-links { justify-self: center; gap: 12px; font-size: 11.5px; }
+  .pharmacopoeia .s-nav-actions { gap: 12px; }
+  .pharmacopoeia .s-nav-shop { padding: 6px 10px; }
+}
 
 /* hero */
 .pharmacopoeia .s-hero { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 24px; padding: 30px 0 44px; }
