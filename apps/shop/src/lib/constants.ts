@@ -1,5 +1,8 @@
 export const ENGINE_URL = "https://engine.auraprotocols.com";
 
+// Customer support mailbox — Kearney must confirm it receives mail before unpause.
+export const SUPPORT_EMAIL = "support@auraprotocols.com";
+
 // Research guides (/blog) are unpublished while they're rewritten as
 // research-literature summaries for the retail conversion. Content stays in
 // data/posts.ts as the rewrite source. Flip to true to restore every surface

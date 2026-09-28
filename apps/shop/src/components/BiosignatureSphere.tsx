@@ -94,7 +94,7 @@ function makeCloudPoints(n: number, R: number): CloudPoint[] {
   return points;
 }
 
-export default function BiosignatureSphere() {
+export default function BiosignatureSphere({ showTitle = true }: { showTitle?: boolean } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const labelHostRef = useRef<HTMLDivElement>(null);
   const tensionTextRef = useRef<HTMLSpanElement>(null);
@@ -422,13 +422,15 @@ export default function BiosignatureSphere() {
 
   return (
     <div className="overflow-hidden">
-      <div className="flex justify-center items-baseline gap-3 px-[22px] py-[18px]">
-        <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Your Biosignature</p>
-        <span className="text-[color:var(--specimen)] text-[9.5px] tracking-[0.08em] uppercase">
-          <span className="p-live-dot" />
-          Live
-        </span>
-      </div>
+      {showTitle && (
+        <div className="flex justify-center items-baseline gap-3 px-[22px] py-[18px]">
+          <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Your Biosignature</p>
+          <span className="text-[color:var(--specimen)] text-[9.5px] tracking-[0.08em] uppercase">
+            <span className="p-live-dot" />
+            Live
+          </span>
+        </div>
+      )}
       <div className="relative">
         <canvas ref={canvasRef} className="block w-full h-auto" />
         <div ref={labelHostRef} className="absolute inset-0 pointer-events-none" />
