@@ -88,6 +88,9 @@ export default function EntryGate() {
       <form
         ref={formRef}
         onSubmit={submit}
+        // Stops the browser restoring ticked boxes on reload/back, which would
+        // show checks the component's state doesn't have (Enter stays disabled).
+        autoComplete="off"
         className="pharmacopoeia s-gate"
         role="dialog"
         aria-modal="true"

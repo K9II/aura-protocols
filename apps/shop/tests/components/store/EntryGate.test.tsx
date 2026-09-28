@@ -36,6 +36,13 @@ describe("EntryGate", () => {
     expect(await screen.findByRole("dialog", { name: /research use only/i })).toBeInTheDocument();
   });
 
+  it("opts the gate form out of browser form-state restore", async () => {
+    render(<EntryGate />);
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog.getAttribute("autocomplete")).toBe("off");
+    for (const box of screen.getAllByRole("checkbox")) expect(box).not.toBeChecked();
+  });
+
   it("stays hidden when the current terms-version hint cookie is present", () => {
     setCookie(`aura_gate_v=${TERMS_VERSION}`);
     render(<EntryGate />);
