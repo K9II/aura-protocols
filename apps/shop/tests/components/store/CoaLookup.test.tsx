@@ -29,4 +29,25 @@ describe("CoaLookup", () => {
     fireEvent.click(screen.getByRole("button", { name: /look up/i }));
     expect(screen.getByText(/no lot “XX-1”/i)).toBeInTheDocument();
   });
+
+  it("marks the lot input required", () => {
+    render(<CoaLookup rows={rows} />);
+    expect(screen.getByLabelText(/lot number/i)).toBeRequired();
+  });
+
+  it("does not show a result when submitted blank", () => {
+    render(<CoaLookup rows={rows} />);
+    fireEvent.click(screen.getByRole("button", { name: /look up/i }));
+    expect(screen.queryByText(/no lot/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+  });
+
+  it("announces the result region via role=status", () => {
+    render(<CoaLookup rows={rows} />);
+    fireEvent.change(screen.getByLabelText(/lot number/i), { target: { value: "AP-0001" } });
+    fireEvent.click(screen.getByRole("button", { name: /look up/i }));
+    const region = screen.getByRole("status");
+    expect(region).toHaveAttribute("aria-live", "polite");
+    expect(region).toContainElement(screen.getByText("BPC-157"));
+  });
 });
