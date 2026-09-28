@@ -2,12 +2,13 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { posts } from "@/data/posts";
+import { BLOG_PUBLISHED } from "@/lib/constants";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export function generateStaticParams() {
-  return posts.map((p) => ({ slug: p.slug }));
+  return BLOG_PUBLISHED ? posts.map((p) => ({ slug: p.slug })) : [];
 }
 
 const categoryAccent: Record<string, string> = {

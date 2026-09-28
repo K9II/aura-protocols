@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Section, LinkPart } from "@/data/posts";
-import { goUrl } from "@/lib/affiliate";
 
 // Renders an array of post Sections in the pharmacopoeia theme. Used by the
 // blog article renderer (/blog/[slug]). Caller must provide a `.pharmacopoeia`
@@ -84,7 +83,7 @@ export function renderSection(section: Section, i: number) {
             )}
           </div>
           <a
-            href={section.vendor ? goUrl(section.vendor, section.productSlug) : section.affiliateUrl}
+            href={section.affiliateUrl}
             target="_blank"
             rel="noopener noreferrer sponsored"
             className="p-btn-primary text-sm py-2.5 px-6 whitespace-nowrap"

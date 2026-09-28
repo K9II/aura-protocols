@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { posts } from "@/data/posts";
 import BlogList from "@/components/BlogList";
+import { BLOG_PUBLISHED } from "@/lib/constants";
 
 export const metadata = {
   title: "Research Blog — Aura Protocols",
@@ -29,6 +31,7 @@ export default async function BlogPage({
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
+  if (!BLOG_PUBLISHED) notFound();
   const { category } = await searchParams;
 
   const sortedPosts = [...posts]

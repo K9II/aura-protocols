@@ -7,10 +7,12 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const supabase = getSupabaseAdminClient();
-  const { error } = await supabase
-    .from("lead_magnet_contacts")
-    .update({ unsubscribed_at: new Date().toISOString() })
-    .eq("email", email);
+  const now = new Date().toISOString();
+  const [subs, legacy] = await Promise.all([
+    supabase.from("subscribers").update({ unsubscribed_at: now }).eq("email", email),
+    supabase.from("lead_magnet_contacts").update({ unsubscribed_at: now }).eq("email", email),
+  ]);
+  const error = subs.error ?? legacy.error;
 
   if (error) {
     return Response.json({ error: "Could not unsubscribe" }, { status: 500 });
@@ -18,7 +20,7 @@ export async function GET(request: Request): Promise<Response> {
 
   return htmlPage(
     "You've been unsubscribed",
-    "You won't receive any more protocol emails from Aura Protocols. Changed your mind? You can re-subscribe anytime at auraprotocols.com.",
+    "You won't receive any more emails from Aura Protocols. Changed your mind? Email us anytime.",
     200
   );
 }
