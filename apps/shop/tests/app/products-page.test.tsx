@@ -8,9 +8,9 @@ async function renderPage(params: Record<string, string>) {
 }
 
 describe("/products", () => {
-  it("lists all 27 compounds with no filter", async () => {
+  it("lists all 21 listed compounds with no filter", async () => {
     await renderPage({});
-    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(27);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(21);
   });
 
   it("filters by chemical class", async () => {
@@ -19,12 +19,17 @@ describe("/products", () => {
   });
 
   it("searches by name, CAS number or lot", async () => {
-    await renderPage({ q: "tirzep" });
-    expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["Tirzepatide"]);
+    await renderPage({ q: "tesamo" });
+    expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["Tesamorelin"]);
+  });
+
+  it("never shows unlisted compounds, even when searched for", async () => {
+    await renderPage({ q: "semaglutide" });
+    expect(screen.queryAllByRole("heading", { level: 3 })).toHaveLength(0);
   });
 
   it("ignores an unknown class", async () => {
     await renderPage({ cat: "Nope" });
-    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(27);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(21);
   });
 });

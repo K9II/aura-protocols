@@ -1,16 +1,16 @@
 // RELATIVE IMPORTS ONLY (reachable from next.config.ts).
-import { CHEMICAL_CLASSES, compounds as allCompounds } from "../data/catalog";
+import { CHEMICAL_CLASSES, compounds as listedCompounds } from "../data/catalog";
 import type { ChemicalClass, Compound, Lot, PendingLot } from "../data/catalog";
 
-export function findCompound(slug: string, list: Compound[] = allCompounds): Compound | undefined {
+export function findCompound(slug: string, list: Compound[] = listedCompounds): Compound | undefined {
   return list.find((c) => c.slug === slug);
 }
 
-export function compoundsInClass(cls: ChemicalClass, list: Compound[] = allCompounds): Compound[] {
+export function compoundsInClass(cls: ChemicalClass, list: Compound[] = listedCompounds): Compound[] {
   return list.filter((c) => c.chemicalClass === cls);
 }
 
-export function relatedCompounds(c: Compound, count = 4, list: Compound[] = allCompounds): Compound[] {
+export function relatedCompounds(c: Compound, count = 4, list: Compound[] = listedCompounds): Compound[] {
   const others = list.filter((o) => o.slug !== c.slug);
   const same = others.filter((o) => o.chemicalClass === c.chemicalClass);
   const rest = others.filter((o) => o.chemicalClass !== c.chemicalClass);
@@ -27,7 +27,7 @@ export function isPendingLot(lot: Lot | PendingLot): lot is PendingLot {
 
 export function findLot(
   lotNo: string,
-  list: Compound[] = allCompounds,
+  list: Compound[] = listedCompounds,
 ): { compound: Compound; lot: Lot } | undefined {
   const needle = lotNo.trim().toUpperCase();
   for (const compound of list) {
@@ -43,7 +43,7 @@ export function vialLabel(c: Compound): string {
   return `${c.name.split(" / ")[0]} +`;
 }
 
-export function classCounts(list: Compound[] = allCompounds): Array<{ cls: ChemicalClass; count: number }> {
+export function classCounts(list: Compound[] = listedCompounds): Array<{ cls: ChemicalClass; count: number }> {
   return CHEMICAL_CLASSES.map((cls) => ({ cls, count: list.filter((c) => c.chemicalClass === cls).length }))
     .filter((x) => x.count > 0);
 }

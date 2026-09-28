@@ -58,6 +58,9 @@ export type Compound = {
   // true while prices/strengths/lot are pre-sourcing placeholders.
   // The release check (tests/release) fails if any compound still has it.
   placeholderData?: boolean;
+  // true = kept in the data but excluded from every storefront surface
+  // (listings, product pages, search, sitemap, COA lookup) via `compounds`.
+  unlisted?: boolean;
 };
 
 const STD_PACKS: PackDiscount[] = [
@@ -94,14 +97,16 @@ function placeholder(
   };
 }
 
-export const compounds: Compound[] = [
-  // Incretin & Amylin Analogs
-  placeholder("semaglutide", "Semaglutide", "Incretin & Amylin Analogs", ["5 mg", "10 mg"], 89),
-  placeholder("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs", ["10 mg", "20 mg"], 119, { featured: true }),
-  placeholder("retatrutide", "Retatrutide", "Incretin & Amylin Analogs", ["10 mg", "20 mg"], 139),
-  placeholder("cagrilintide", "Cagrilintide", "Incretin & Amylin Analogs", ["5 mg", "10 mg"], 99),
-  placeholder("cagrisema", "Cagrilintide / Semaglutide", "Incretin & Amylin Analogs", ["10 mg"], 159, { components: ["cagrilintide", "semaglutide"] }),
-  placeholder("retatrutide-cagrilintide", "Retatrutide / Cagrilintide", "Incretin & Amylin Analogs", ["10 mg"], 179, { components: ["retatrutide", "cagrilintide"] }),
+export const allCompounds: Compound[] = [
+  // Incretin & Amylin Analogs — UNLISTED pending written payment-processor
+  // approval: FDA treats "research use" semaglutide/tirzepatide/retatrutide as
+  // falsely labeled, which Stripe's prohibited list covers (2026-09-28 decision).
+  placeholder("semaglutide", "Semaglutide", "Incretin & Amylin Analogs", ["5 mg", "10 mg"], 89, { unlisted: true }),
+  placeholder("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs", ["10 mg", "20 mg"], 119, { unlisted: true }),
+  placeholder("retatrutide", "Retatrutide", "Incretin & Amylin Analogs", ["10 mg", "20 mg"], 139, { unlisted: true }),
+  placeholder("cagrilintide", "Cagrilintide", "Incretin & Amylin Analogs", ["5 mg", "10 mg"], 99, { unlisted: true }),
+  placeholder("cagrisema", "Cagrilintide / Semaglutide", "Incretin & Amylin Analogs", ["10 mg"], 159, { components: ["cagrilintide", "semaglutide"], unlisted: true }),
+  placeholder("retatrutide-cagrilintide", "Retatrutide / Cagrilintide", "Incretin & Amylin Analogs", ["10 mg"], 179, { components: ["retatrutide", "cagrilintide"], unlisted: true }),
   // GH-Axis Peptides
   placeholder("cjc-1295-ipamorelin", "CJC-1295 / Ipamorelin", "GH-Axis Peptides", ["10 mg"], 89, { components: [] }),
   placeholder("sermorelin", "Sermorelin", "GH-Axis Peptides", ["5 mg"], 59),
@@ -123,10 +128,13 @@ export const compounds: Compound[] = [
   placeholder("pt-141", "PT-141 (Bremelanotide)", "Short Peptides & Neuropeptides", ["10 mg"], 55),
   // Cofactors & Conjugates
   placeholder("ghk-cu", "GHK-Cu", "Cofactors & Conjugates", ["50 mg"], 59, { featured: true }),
-  placeholder("nad-plus", "NAD+", "Cofactors & Conjugates", ["500 mg"], 89),
+  placeholder("nad-plus", "NAD+", "Cofactors & Conjugates", ["500 mg"], 89, { featured: true }),
   placeholder("glutathione", "Glutathione", "Cofactors & Conjugates", ["600 mg"], 69),
   // Blends (renamed by composition; old slugs 301 in lib/redirects.ts)
   placeholder("bpc-157-tb-500-blend", "BPC-157 / TB-500", "Blends", ["10 mg"], 99, { components: ["bpc-157", "tb-500"] }),
   placeholder("bpc-157-tb-500-ghk-cu", "BPC-157 / TB-500 / GHK-Cu", "Blends", ["70 mg"], 159, { components: ["bpc-157", "tb-500", "ghk-cu"] }),
   placeholder("bpc-157-tb-500-ghk-cu-kpv", "BPC-157 / TB-500 / GHK-Cu / KPV", "Blends", ["80 mg"], 189, { components: ["bpc-157", "tb-500", "ghk-cu", "kpv"] }),
 ];
+
+// Everything the storefront shows. Use `allCompounds` only for data integrity.
+export const compounds: Compound[] = allCompounds.filter((c) => !c.unlisted);

@@ -10,7 +10,7 @@ import { useEffect, useRef } from "react";
 const METRICS = [
   { key: "vo2max", label: "VO2 MAX", unit: "", lo: 30, hi: 55, invert: false, dec: 0, peptide: { name: "SLU-PP-332", slug: "slu-pp-332" } },
   { key: "hrv", label: "HRV", unit: "ms", lo: 15, hi: 70, invert: false, dec: 0 },
-  { key: "glucose", label: "GLUCOSE", unit: "", lo: 72, hi: 118, invert: true, dec: 0, peptide: { name: "Semaglutide", slug: "semaglutide" } },
+  { key: "glucose", label: "GLUCOSE", unit: "", lo: 72, hi: 118, invert: true, dec: 0, peptide: { name: "MOTS-c", slug: "mots-c" } },
   { key: "recovery", label: "RECOVERY", unit: "", lo: 20, hi: 95, invert: false, dec: 0, peptide: { name: "BPC-157", slug: "bpc-157" } },
   { key: "bodyFat", label: "BODY FAT", unit: "%", lo: 10, hi: 28, invert: true, dec: 1, peptide: { name: "Tesamorelin", slug: "tesamorelin" } },
   { key: "strain", label: "STRAIN", unit: "", lo: 2, hi: 14, invert: true, dec: 1, peptide: { name: "CJC-1295", slug: "cjc-1295-ipamorelin" } },
