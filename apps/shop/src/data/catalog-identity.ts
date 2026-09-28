@@ -56,7 +56,7 @@ export const IDENTITY: Record<string, Identity> = {
     "formula": "C400H625N111O115S9",
     "molecularWeight": "9117.6 g/mol",
     "sequence": "MFPAMPLSSLFVNGPRTLCGAELVDALQFVCGDRGFYFNKPTGYGSSSRRAPQTGIVDECCFRSCDLRRLEMYCAPLKPAKSA",
-    "source": "https://cdn.caymanchem.com/cdn/insert/45532.pdf"
+    "source": "https://pubchem.ncbi.nlm.nih.gov/substance/381123731"
   },
   "kpv": {
     "cas": "67727-97-3",

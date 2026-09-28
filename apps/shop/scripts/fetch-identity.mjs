@@ -54,17 +54,17 @@ const OVERRIDES = {
   // rest/pug/substance/sid/381123731/JSON): xref rn "143045-27-6", synonym
   // "IGF-1 LR3", UNII M9L22Y19H9. (Several vendor pages assert a different,
   // unverifiable CAS 946870-92-4 for the same peptide — rejected in favor of
-  // the NIH-sourced record.) Formula/MW are not published on that record, so
-  // they're computed from the peptide sequence given in Cayman Chemical's
-  // product monograph (manufacturer primary source, fetched directly) —
-  // standard residue-mass summation over the 83-aa sequence below yields
-  // ~9117.6 g/mol / C400H625N111O115S9, consistent with the sequence.
+  // the NIH-sourced record.) Formula and MW are computed by residue-mass
+  // summation over the sequence published in Cayman insert
+  // https://cdn.caymanchem.com/cdn/insert/45532.pdf (item 45532); no primary
+  // source states them directly (checked Cayman, Sigma, PubChem substance
+  // record on 2026-09-27).
   "igf-1-lr3": {
     cas: "143045-27-6",
     formula: "C400H625N111O115S9",
     molecularWeight: "9117.6 g/mol",
     sequence: "MFPAMPLSSLFVNGPRTLCGAELVDALQFVCGDRGFYFNKPTGYGSSSRRAPQTGIVDECCFRSCDLRRLEMYCAPLKPAKSA",
-    source: "https://cdn.caymanchem.com/cdn/insert/45532.pdf",
+    source: "https://pubchem.ncbi.nlm.nih.gov/substance/381123731",
   },
 };
 
