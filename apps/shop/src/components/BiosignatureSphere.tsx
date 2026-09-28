@@ -410,7 +410,7 @@ export default function BiosignatureSphere() {
         <canvas ref={canvasRef} className="block w-full h-auto" />
         <div ref={labelHostRef} className="absolute inset-0 pointer-events-none" />
       </div>
-      <div className="px-[22px] py-3 text-[10.5px] text-[color:var(--ink-soft)] flex items-center justify-center gap-2 min-h-[38px]">
+      <div className="px-[22px] py-3 text-[11px] text-[color:var(--ink-soft)] flex items-center justify-center gap-2 min-h-[38px]">
         <span ref={sevDotRef} className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] flex-shrink-0" />
         <span ref={tensionTextRef} className="transition-opacity duration-300">
           Research compounds by chemical class
