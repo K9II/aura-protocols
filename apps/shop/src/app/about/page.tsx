@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BLOG_PUBLISHED } from "@/lib/constants";
 
 export const metadata = {
   title: "About — Aura Protocols",
@@ -137,9 +138,17 @@ export default function AboutPage() {
           ))}
         </div>
         <p className="text-sm text-[color:var(--ink-soft)]">
-          See our guide on{" "}
-          <Link href="/blog/how-to-read-a-peptide-coa" className="p-link">how to read a peptide COA</Link>, or{" "}
-          <Link href="/quality-standards" className="p-link">how our vendors compare</Link> on the same compound.
+          {BLOG_PUBLISHED ? (
+            <>
+              See our guide on{" "}
+              <Link href="/blog/how-to-read-a-peptide-coa" className="p-link">how to read a peptide COA</Link>, or{" "}
+              <Link href="/quality-standards" className="p-link">how our vendors compare</Link> on the same compound.
+            </>
+          ) : (
+            <>
+              See <Link href="/quality-standards" className="p-link">how our vendors compare</Link> on the same compound.
+            </>
+          )}
         </p>
         <p className="text-sm text-[color:var(--ink-soft)]">
           As of this writing, Aura Protocols indexes 30+ pages of vendor-reviewed compound data, comparison research,

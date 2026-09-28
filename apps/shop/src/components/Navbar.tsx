@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import AuraLockup from "@/components/AuraLockup";
+import { BLOG_PUBLISHED } from "@/lib/constants";
 
 const links = [
   { label: "Products", href: "/products" },
-  { label: "Blog", href: "/blog" },
+  ...(BLOG_PUBLISHED ? [{ label: "Blog", href: "/blog" }] : []),
   { label: "Research Math", href: "/calculator" },
   { label: "About", href: "/about" },
 ];

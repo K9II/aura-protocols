@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { products } from "@/data/products";
 import { posts } from "@/data/posts";
+import { BLOG_PUBLISHED } from "@/lib/constants";
 
 const BASE_URL = "https://auraprotocols.com";
 
@@ -9,7 +10,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: BASE_URL, lastModified: new Date(), changeFrequency: "weekly", priority: 1.0 },
     { url: `${BASE_URL}/products`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/quality-standards`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
-    { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    ...(BLOG_PUBLISHED
+      ? [{ url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8 }]
+      : []),
     { url: `${BASE_URL}/calculator`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/about`,   lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/playbook`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
@@ -25,7 +28,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  const blogPages: MetadataRoute.Sitemap = posts.map((p) => ({
+  const blogPages: MetadataRoute.Sitemap = (BLOG_PUBLISHED ? posts : []).map((p) => ({
     url: `${BASE_URL}/blog/${p.slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly",

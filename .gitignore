@@ -63,3 +63,6 @@ scripts/*.png
 
 # Superpowers brainstorm mockups
 .superpowers/
+
+# Playwright MCP bridge scratch
+.playwright-mcp/

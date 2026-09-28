@@ -4,7 +4,7 @@ import { products } from "@/data/products";
 import { vendorPins, vendorDemotions } from "@/data/vendorOrder";
 import EngineCTACard from "@/components/EngineCTACard";
 import VendorCompareList from "@/components/VendorCompareList";
-import { PRODUCT_GUIDES } from "@/lib/guides";
+import { guideHref as guideHrefFor } from "@/lib/guides";
 import { isSpecimenBadge } from "@/lib/badges";
 
 export function generateStaticParams() {
@@ -69,7 +69,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     return parse(b.commission) - parse(a.commission);
   });
 
-  const guideHref = PRODUCT_GUIDES[product.slug];
+  const guideHref = guideHrefFor(product.slug);
 
   const jsonLd = {
     "@context": "https://schema.org",

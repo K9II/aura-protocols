@@ -1,4 +1,11 @@
 export const ENGINE_URL = "https://engine.auraprotocols.com";
+
+// Research guides (/blog) are unpublished while they're rewritten as
+// research-literature summaries for the retail conversion. Content stays in
+// data/posts.ts as the rewrite source. Flip to true to restore every surface
+// (routes, nav/footer links, homepage section, sitemap, product "guide" links).
+// Imported by next.config.ts — keep this file free of "@/" imports.
+export const BLOG_PUBLISHED = false;
 export const AFFILIATE_REL = "noopener noreferrer sponsored";
 export const EXTERNAL_REL = "noopener noreferrer";
 

@@ -5,7 +5,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import { products } from "@/data/products";
 import { posts } from "@/data/posts";
-import { ENGINE_URL, EXTERNAL_REL } from "@/lib/constants";
+import { BLOG_PUBLISHED, ENGINE_URL, EXTERNAL_REL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Aura Protocols — Research Peptide Protocols, Independently Reviewed",
@@ -183,6 +183,7 @@ export default function HomePage() {
         </section>
 
         {/* From the Blog */}
+        {BLOG_PUBLISHED && (
         <section className="p-reveal py-16">
           <div className="flex justify-between items-baseline flex-wrap gap-3 mb-[34px]">
             <h2 className="p-serif text-[28px]">From the Blog</h2>
@@ -205,6 +206,7 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+        )}
 
         {/* Subscribe + Compound Index */}
         <section className="p-reveal py-16">

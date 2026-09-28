@@ -1,3 +1,5 @@
+import { BLOG_PUBLISHED } from "./constants";
+
 // Maps a product slug to its comprehensive research guide, when one exists.
 // Only add a product here once its guide has been reviewed and approved —
 // "Learn more" falls back to the product page for everything else.
@@ -35,6 +37,11 @@ export const PRODUCT_GUIDES: Record<string, string> = {
   "pinealon": "/blog/pinealon-research-guide",
 };
 
+// Guide link for a product, or undefined while the guides are unpublished.
+export function guideHref(productSlug: string): string | undefined {
+  return BLOG_PUBLISHED ? PRODUCT_GUIDES[productSlug] : undefined;
+}
+
 export function learnMoreHref(productSlug: string): string {
-  return PRODUCT_GUIDES[productSlug] ?? `/products/${productSlug}`;
+  return guideHref(productSlug) ?? `/products/${productSlug}`;
 }

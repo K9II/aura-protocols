@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { categories } from "@/data/products";
 import AuraLockup from "@/components/AuraLockup";
+import { BLOG_PUBLISHED } from "@/lib/constants";
 
 const socials = [
   {
@@ -77,6 +78,7 @@ export default function Footer() {
           </div>
 
           {/* Blog */}
+          {BLOG_PUBLISHED && (
           <div>
             <h6 className="text-[11px] tracking-[0.1em] uppercase text-[color:var(--ink-soft)] mb-3.5">Blog</h6>
             <ul className="text-[13.5px] space-y-2.5">
@@ -85,6 +87,7 @@ export default function Footer() {
               </li>
             </ul>
           </div>
+          )}
 
           {/* Company */}
           <div>
