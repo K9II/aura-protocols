@@ -40,6 +40,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    // One-time localStorage hydration after mount — must not run during SSR
+    // or the first client render, so the initial render stays an empty cart
+    // and there is no hydration mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above
     setLines(readStored());
     setLoaded(true);
   }, []);

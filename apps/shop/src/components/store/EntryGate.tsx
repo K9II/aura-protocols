@@ -28,6 +28,10 @@ export default function EntryGate() {
     } catch {
       shouldShow = true;
     }
+    // One-time crawler/cookie check after mount — must not run during SSR or
+    // the first client render, so both stay gate-hidden and there is no
+    // hydration mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above
     setShow(shouldShow);
   }, []);
 
