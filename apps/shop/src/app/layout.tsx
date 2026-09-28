@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Newsreader } from "next/font/google";
+import { Inter, Space_Grotesk, Newsreader, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -19,6 +19,8 @@ const newsreader = Newsreader({
   weight: ["400", "500"],
   variable: "--font-newsreader",
 });
+// Storefront micro-labels (announcement bar, class labels, spec captions).
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jetbrains" });
 
 const BASE_URL = "https://auraprotocols.com";
 
@@ -64,7 +66,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable}`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable} ${jetbrains.variable}`}>
       <body className={`aurora-bg min-h-screen flex flex-col`}>
         <EngineCTABanner />
         <Navbar />
