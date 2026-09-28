@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AuraLockup from "@/components/AuraLockup";
-import { hasCurrentGateHint, isCrawler } from "@/lib/gate-shared";
+import { GATE_EXEMPT_PATHS, hasCurrentGateHint, isCrawler } from "@/lib/gate-shared";
 import { useFocusTrap } from "@/components/store/useFocusTrap";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,8 +19,17 @@ export default function EntryGate() {
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const firstCheckboxRef = useRef<HTMLInputElement>(null);
+  const pathname = usePathname();
+  const isExemptPath = (GATE_EXEMPT_PATHS as readonly string[]).includes(pathname);
 
   useEffect(() => {
+    if (isExemptPath) {
+      // The gate links to these policy pages from its own checkbox copy —
+      // it can never block the pages it asks a visitor to read.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above
+      setShow(false);
+      return;
+    }
     // A broken cookie/UA read must never silently admit a visitor — fail
     // toward showing the gate rather than crashing or skipping it.
     let shouldShow = true;
@@ -28,12 +38,13 @@ export default function EntryGate() {
     } catch {
       shouldShow = true;
     }
-    // One-time crawler/cookie check after mount — must not run during SSR or
-    // the first client render, so both stay gate-hidden and there is no
-    // hydration mismatch.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above
+    // Post-mount crawler/cookie check — must not run during SSR or the first
+    // client render, so both stay gate-hidden and there is no hydration
+    // mismatch. Re-runs on pathname changes (App Router keeps this component
+    // mounted across navigations) so leaving an exempt page re-evaluates
+    // whether the gate should now show.
     setShow(shouldShow);
-  }, []);
+  }, [pathname, isExemptPath]);
 
   useEffect(() => {
     if (!show) return;

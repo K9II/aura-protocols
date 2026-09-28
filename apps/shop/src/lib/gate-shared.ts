@@ -5,6 +5,11 @@ export const GATE_COOKIE = "aura_gate";       // HttpOnly, signed (audit token)
 export const GATE_HINT_COOKIE = "aura_gate_v"; // readable, terms version only
 export const GATE_MAX_AGE_S = 60 * 60 * 24 * 365;
 
+// Policy pages the gate itself links to (Terms, Refund & Dispute Policy) plus
+// the other legal/compliance pages — a visitor must be able to read these
+// without first clearing the gate that asks them to.
+export const GATE_EXEMPT_PATHS = ["/terms", "/refund-policy", "/privacy", "/shipping", "/ruo"] as const;
+
 const CRAWLER_RE = /googlebot|bingbot|duckduckbot|yandexbot|baiduspider|applebot|slurp/i;
 
 export function isCrawler(userAgent: string): boolean {

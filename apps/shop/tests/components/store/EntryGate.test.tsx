@@ -3,13 +3,33 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import EntryGate from "@/components/store/EntryGate";
 import { TERMS_VERSION } from "@/lib/gate-shared";
 
+const mockUsePathname = vi.fn<() => string>(() => "/");
+vi.mock("next/navigation", () => ({
+  usePathname: () => mockUsePathname(),
+}));
+
 function setCookie(v: string) {
   Object.defineProperty(document, "cookie", { value: v, writable: true, configurable: true });
 }
 
 describe("EntryGate", () => {
-  beforeEach(() => setCookie(""));
+  beforeEach(() => {
+    setCookie("");
+    mockUsePathname.mockReturnValue("/");
+  });
   afterEach(() => vi.restoreAllMocks());
+
+  it("stays hidden on the /terms policy page it links to", () => {
+    mockUsePathname.mockReturnValue("/terms");
+    render(<EntryGate />);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("still shows on / with no cookie", async () => {
+    mockUsePathname.mockReturnValue("/");
+    render(<EntryGate />);
+    expect(await screen.findByRole("dialog", { name: /research use only/i })).toBeInTheDocument();
+  });
 
   it("shows the gate to a first-time visitor", async () => {
     render(<EntryGate />);
