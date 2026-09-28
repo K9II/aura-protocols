@@ -51,4 +51,39 @@ describe("EntryGate", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(fetchMock).toHaveBeenLastCalledWith("/api/gate", expect.objectContaining({ method: "POST" }));
   });
+
+  it("fails toward showing the gate when reading document.cookie throws", async () => {
+    Object.defineProperty(document, "cookie", {
+      configurable: true,
+      get() {
+        throw new Error("cookie access blocked");
+      },
+    });
+    render(<EntryGate />);
+    expect(await screen.findByRole("dialog", { name: /research use only/i })).toBeInTheDocument();
+  });
+
+  it("moves focus to the first checkbox when shown", async () => {
+    render(<EntryGate />);
+    const checkboxes = await screen.findAllByRole("checkbox");
+    await waitFor(() => expect(checkboxes[0]).toHaveFocus());
+  });
+
+  it("traps Tab focus inside the dialog (non-dismissable via Escape)", async () => {
+    render(<EntryGate />);
+    const checkboxes = await screen.findAllByRole("checkbox");
+    await waitFor(() => expect(checkboxes[0]).toHaveFocus());
+
+    const dialog = screen.getByRole("dialog");
+    const focusable = dialog.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled])',
+    );
+    const last = focusable[focusable.length - 1];
+    last.focus();
+    fireEvent.keyDown(last, { key: "Tab" });
+    expect(checkboxes[0]).toHaveFocus();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
 });

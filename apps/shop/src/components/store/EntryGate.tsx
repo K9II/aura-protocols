@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AuraLockup from "@/components/AuraLockup";
 import { hasCurrentGateHint, isCrawler } from "@/lib/gate-shared";
+import { useFocusTrap } from "@/components/store/useFocusTrap";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -15,10 +16,19 @@ export default function EntryGate() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const firstCheckboxRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isCrawler(navigator.userAgent) || hasCurrentGateHint(document.cookie)) return;
-    setShow(true);
+    // A broken cookie/UA read must never silently admit a visitor — fail
+    // toward showing the gate rather than crashing or skipping it.
+    let shouldShow = true;
+    try {
+      shouldShow = !(isCrawler(navigator.userAgent) || hasCurrentGateHint(document.cookie));
+    } catch {
+      shouldShow = true;
+    }
+    setShow(shouldShow);
   }, []);
 
   useEffect(() => {
@@ -27,6 +37,13 @@ export default function EntryGate() {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, [show]);
+
+  useEffect(() => {
+    if (!show) return;
+    firstCheckboxRef.current?.focus();
+  }, [show]);
+
+  useFocusTrap(formRef, show);
 
   if (!show) return null;
   const ready = age21 && ruo && dispute && EMAIL_RE.test(email.trim()) && !busy;
@@ -54,6 +71,7 @@ export default function EntryGate() {
   return (
     <div className="s-gate-backdrop">
       <form
+        ref={formRef}
         onSubmit={submit}
         className="pharmacopoeia s-gate"
         role="dialog"
@@ -67,7 +85,7 @@ export default function EntryGate() {
           To enter, confirm all three and add your email. You&apos;ll get order updates, lot certificates, and new-lot notices — unsubscribe anytime.
         </p>
         <label className="s-chk">
-          <input type="checkbox" checked={age21} onChange={(e) => setAge21(e.target.checked)} />
+          <input ref={firstCheckboxRef} type="checkbox" checked={age21} onChange={(e) => setAge21(e.target.checked)} />
           <span>I confirm I am <b>21 years of age or older</b>.</span>
         </label>
         <label className="s-chk">

@@ -14,9 +14,13 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
   const [notice, setNotice] = useState<string | null>(null);
 
   async function checkout() {
-    const result = await getCommerceAdapter().createCheckout(lines);
-    if (result.kind === "redirect") window.location.href = result.url;
-    else setNotice(result.message);
+    try {
+      const result = await getCommerceAdapter().createCheckout(lines);
+      if (result.kind === "redirect") window.location.href = result.url;
+      else setNotice(result.message);
+    } catch {
+      setNotice("Something went wrong — please try again.");
+    }
   }
 
   if (lines.length === 0) {
