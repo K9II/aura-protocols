@@ -38,7 +38,7 @@ export default function HomePage() {
               <span>99% purity floor</span><span>Lot-matched COAs</span><span>Free over $200</span>
             </div>
           </div>
-          <div className="load-in load-5">
+          <div className="load-in load-5 s-hero-sphere">
             <BiosignatureSphere />
           </div>
         </section>

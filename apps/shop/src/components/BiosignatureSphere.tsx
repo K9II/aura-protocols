@@ -99,7 +99,11 @@ export default function BiosignatureSphere() {
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const W = 720, H = 600;
+    // Phones get a tighter canvas so the same sphere fills far more of the
+    // width (~2x on a 390px screen) instead of shrinking with a 720px canvas.
+    // Same breakpoint as the phone rules in globals.css (.s-hero-sphere bleed).
+    const compact = window.matchMedia("(max-width: 640px)").matches;
+    const W = compact ? 460 : 720, H = compact ? 440 : 600;
     canvas.width = W * dpr;
     canvas.height = H * dpr;
     const maybeCtx = canvas.getContext("2d");
@@ -108,7 +112,8 @@ export default function BiosignatureSphere() {
     ctx.scale(dpr, dpr);
 
     const cx = W / 2, cy = H / 2;
-    const persp = 460, R = 130, ringR = 220;
+    const persp = 460, R = 130, ringR = compact ? 160 : 220;
+    const ringYFactor = compact ? 0.95 : 0.72;
 
     const cloud = makeCloudPoints(130, R);
 
@@ -171,6 +176,9 @@ export default function BiosignatureSphere() {
     // Pull the ring inward horizontally as the rendered canvas shrinks so every
     // label keeps room to sit fully on-screen.
     function horizontalSqueeze() {
+      // Compact canvas: only the smallest phones (~320px) need the side
+      // labels pulled in, or "CJC-1295 / Ipamorelin" clips on the left.
+      if (compact) return (canvas.getBoundingClientRect().width || W) < 350 ? 0.88 : 1;
       const dispW = canvas.getBoundingClientRect().width || W;
       if (dispW >= 460) return 1;
       if (dispW <= 320) return 0.62;
@@ -181,7 +189,7 @@ export default function BiosignatureSphere() {
       const sx = horizontalSqueeze();
       metrics.forEach((m, i) => {
         m.ringX = cx + Math.cos(m.ringAngle) * ringR * sx;
-        m.ringY = cy + Math.sin(m.ringAngle) * ringR * 0.72;
+        m.ringY = cy + Math.sin(m.ringAngle) * ringR * ringYFactor;
         const el = labelEls[i];
         el.style.left = (m.ringX / W) * 100 + "%";
         el.style.top = (m.ringY / H) * 100 + "%";
