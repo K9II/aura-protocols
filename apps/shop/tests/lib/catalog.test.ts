@@ -4,6 +4,7 @@ import {
   findCompound, compoundsInClass, relatedCompounds, fromPriceUsd,
   isPendingLot, findLot, vialLabel, classCounts,
 } from "@/lib/catalog";
+import { compounds } from "@/data/catalog";
 
 const base = {
   identity: {}, form: "Lyophilized powder", storage: "−20 °C", vialMl: 3,
@@ -53,6 +54,14 @@ describe("catalog helpers", () => {
   it("shortens long blend names for the vial label", () => {
     expect(vialLabel({ ...fixture[2], name: "BPC-157 / TB-500 / GHK-Cu" })).toBe("BPC-157 +");
     expect(vialLabel(fixture[0])).toBe("Alpha");
+    expect(vialLabel({ ...fixture[0], name: "PT-141 (Bremelanotide)" })).toBe("PT-141");
+    expect(vialLabel({ ...fixture[0], name: "SS-31 (Elamipretide)" })).toBe("SS-31");
+  });
+
+  // Measured in-browser 2026-09-28: at the smallest name size (10.5) an
+  // 11-character label ends at x≈82 of the 94-unit label edge.
+  it("keeps every listed compound's vial label within 11 characters", () => {
+    for (const c of compounds) expect(vialLabel(c).length, c.slug).toBeLessThanOrEqual(11);
   });
 
   it("counts compounds per class in CHEMICAL_CLASSES order, omitting empty classes", () => {

@@ -28,14 +28,14 @@ const BASE_URL = "https://auraprotocols.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
-  title: { default: "Aura Protocols — Research Peptides, Lot-Tested", template: "%s | Aura Protocols" },
+  title: { default: "Aura Protocols — Research Peptides, Certificate per Lot", template: "%s | Aura Protocols" },
   description: "Research-grade peptides with a certificate of analysis tied to every lot. For laboratory research use only.",
   keywords: ["research peptides", "certificate of analysis", "HPLC tested peptides", "lyophilized peptides"],
   authors: [{ name: "Aura Protocols", url: BASE_URL }],
   creator: "Aura Protocols",
   openGraph: {
-    title: "Aura Protocols — Research Peptides, Lot-Tested",
-    description: "Every lot independently tested, every certificate on the page. For research use only.",
+    title: "Aura Protocols — Research Peptides, Certificate per Lot",
+    description: "No lot sold before independent testing; every lot's certificate published. For research use only.",
     type: "website",
     url: BASE_URL,
     siteName: "Aura Protocols",
@@ -43,8 +43,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aura Protocols — Research Peptides, Lot-Tested",
-    description: "Every lot independently tested, every certificate on the page. For research use only.",
+    title: "Aura Protocols — Research Peptides, Certificate per Lot",
+    description: "No lot sold before independent testing; every lot's certificate published. For research use only.",
     images: ["/opengraph-image"],
   },
   robots: {

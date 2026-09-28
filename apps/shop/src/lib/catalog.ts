@@ -37,10 +37,13 @@ export function findLot(
   return undefined;
 }
 
-// Vial labels have ~14 characters of room at the approved label size.
+// Vial labels fit ~11 characters at the smallest name size (see Vial.tsx).
+// Parenthetical synonyms drop ("PT-141 (Bremelanotide)" → "PT-141"); long
+// blends show their first component plus "+".
 export function vialLabel(c: Compound): string {
-  if (c.name.length <= 14 || !c.name.includes(" / ")) return c.name;
-  return `${c.name.split(" / ")[0]} +`;
+  const name = c.name.replace(/\s*\([^)]*\)\s*$/, "");
+  if (name.length <= 11 || !name.includes(" / ")) return name;
+  return `${name.split(" / ")[0]} +`;
 }
 
 export function classCounts(list: Compound[] = listedCompounds): Array<{ cls: ChemicalClass; count: number }> {

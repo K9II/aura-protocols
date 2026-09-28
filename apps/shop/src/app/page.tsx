@@ -6,8 +6,8 @@ import CompoundCard from "@/components/store/CompoundCard";
 import { compounds } from "@/data/catalog";
 
 export const metadata: Metadata = {
-  title: "Aura Protocols — Research Peptides, Lot-Tested",
-  description: "Lab-tested research compounds with a certificate tied to the exact lot in your vial. For laboratory research use only.",
+  title: "Aura Protocols — Research Peptides, Certificate per Lot",
+  description: "Research compounds released only after independent lot testing, with the certificate for each lot published. For laboratory research use only.",
   alternates: { canonical: "/" },
 };
 
@@ -27,15 +27,15 @@ export default function HomePage() {
       <div className="p-container">
         <section className="s-hero">
           <div>
-            <p className="s-micro s-eyebrow load-in load-1">Research peptides · COA on every lot</p>
+            <p className="s-micro s-eyebrow load-in load-1">Research peptides · COA before sale</p>
             <h1 className="s-h1 load-in load-2">Receipts,<br />not <em>promises.</em></h1>
-            <p className="s-sub load-in load-3">Lab-tested research compounds with a certificate tied to the exact lot in your vial. Every result on the page.</p>
+            <p className="s-sub load-in load-3">Research compounds released only after an independent lab tests the lot. The certificate for the exact lot in your vial is published on its page.</p>
             <div className="s-ctas load-in load-4">
               <Link href="/products" className="p-btn-primary">Shop the lineup →</Link>
               <Link href="/coa" className="p-btn-outline">See the COAs</Link>
             </div>
             <div className="s-proof s-micro load-in load-5">
-              <span>≥99% HPLC purity</span><span>Lot-matched COAs</span><span>Free over $200</span>
+              <span>99% purity floor</span><span>Lot-matched COAs</span><span>Free over $200</span>
             </div>
           </div>
           <div className="load-in load-5">
@@ -46,7 +46,7 @@ export default function HomePage() {
         <section className="p-reveal py-14">
           <div className="s-lh">
             <h2 className="s-h2">The <em>lineup</em></h2>
-            <p>Every lot tested, every certificate on the page.</p>
+            <p>No lot is sold until its certificate is on the page.</p>
           </div>
           <div className="s-grid">
             {featured.map((c, i) => <CompoundCard key={c.slug} compound={c} index={i} />)}

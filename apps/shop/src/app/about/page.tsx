@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ProsePage from "@/components/store/ProsePage";
 
-export const metadata: Metadata = { title: "About", description: "Aura Protocols supplies lot-tested research peptides with a certificate for every lot.", alternates: { canonical: "/about" } };
+export const metadata: Metadata = { title: "About", description: "Aura Protocols supplies research peptides released only after independent lot testing, with each lot's certificate published.", alternates: { canonical: "/about" } };
 
 export default function AboutPage() {
   return (

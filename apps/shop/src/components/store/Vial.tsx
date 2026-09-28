@@ -50,11 +50,13 @@ export default function Vial({ id, label, strength, tilt = -10, width = 160 }: V
       <text x="58" y="103" style={{ fontFamily: "var(--font-newsreader), Georgia, serif" }} fontSize="6.6" fontWeight="500" fill="#4A4438" letterSpacing=".3" textAnchor="middle">Protocols</text>
       <line x1="26" y1="108" x2="94" y2="108" stroke="#C9C2AE" strokeWidth=".8" />
       <text x="26" y="123" style={{ fontFamily: "var(--font-newsreader), Georgia, serif" }} fontSize={nameSize} fontWeight="600" fill="#1C1A15">{label}</text>
-      <text x="26" y="133" style={{ fontFamily: "var(--font-sans), Inter, sans-serif" }} fontSize="8.5" fill="#A32B1F">{strength} · lyophilized</text>
+      <text x="26" y="133" style={{ fontFamily: "var(--font-sans), Inter, sans-serif" }} fontSize="8.5" fill="#A32B1F">{strength}</text>
       <line x1="26" y1="140" x2="94" y2="140" stroke="#C9C2AE" strokeWidth=".8" />
-      <text x="26" y="151" style={{ fontFamily: "var(--font-jetbrains), monospace" }} fontSize="5.4" fill="#4A4438" letterSpacing=".4">RESEARCH USE ONLY</text>
-      <text x="26" y="160" style={{ fontFamily: "var(--font-jetbrains), monospace" }} fontSize="5.4" fill="#4A4438" letterSpacing=".2">NOT FOR HUMAN USE</text>
-      <text x="26" y="170" style={{ fontFamily: "var(--font-jetbrains), monospace" }} fontSize="5.4" fill="#4A4438">LOT ——————</text>
+      {/* Every line must end before x=94 (the paper label's right margin). */}
+      <text x="26" y="149" style={{ fontFamily: "var(--font-jetbrains), monospace" }} fontSize="5.4" fill="#4A4438" letterSpacing=".4">LYOPHILIZED</text>
+      <text x="26" y="157" style={{ fontFamily: "var(--font-jetbrains), monospace" }} fontSize="5.4" fill="#4A4438" letterSpacing=".4">RESEARCH USE ONLY</text>
+      <text x="26" y="165" style={{ fontFamily: "var(--font-jetbrains), monospace" }} fontSize="5.4" fill="#4A4438" letterSpacing=".2">NOT FOR HUMAN USE</text>
+      <text x="26" y="173" style={{ fontFamily: "var(--font-jetbrains), monospace" }} fontSize="5.4" fill="#4A4438">LOT ——————</text>
     </svg>
   );
 }

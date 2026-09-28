@@ -10,7 +10,7 @@ export default function SiteFooter() {
         <div>
           <AuraLockup size={70} mode="static" />
           <p className="text-[13.5px] text-[color:var(--ink-soft)] mt-5 max-w-[30ch]">
-            Research-grade peptides. Every lot independently tested, every certificate on the page.
+            Research-grade peptides. No lot is sold until an independent lab has tested it and its certificate is on the page.
           </p>
         </div>
         <div>

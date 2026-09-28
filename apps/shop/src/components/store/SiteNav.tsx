@@ -10,7 +10,7 @@ export default function SiteNav() {
   return (
     <header className="pharmacopoeia sticky top-0 z-50">
       <div className="s-topbar">
-        Lab-tested · COA on every lot · <em>Ships from the US</em> · Free over ${FREE_SHIPPING_THRESHOLD_USD}
+        Tested before sale · COA per lot · <em>Ships from the US</em> · Free over ${FREE_SHIPPING_THRESHOLD_USD}
       </div>
       <div className="p-container pt-3.5 pb-2 bg-[color:var(--paper)]">
         <nav className="s-nav" aria-label="Main">

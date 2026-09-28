@@ -26,7 +26,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           <div style={{ fontSize: name.length > 18 ? 76 : 110, color: "#1C1A15", fontFamily: "Syne", lineHeight: 1 }}>{name}</div>
           <div style={{ fontSize: 30, color: "#4A4438", marginTop: 24 }}>{meta}</div>
         </div>
-        <div style={{ display: "flex", fontSize: 22, color: "#4A4438", letterSpacing: 3 }}>LOT-TESTED · COA ON EVERY LOT · RESEARCH USE ONLY</div>
+        <div style={{ display: "flex", fontSize: 22, color: "#4A4438", letterSpacing: 3 }}>TESTED BEFORE SALE · COA PER LOT · RESEARCH USE ONLY</div>
       </div>
     ),
     { ...size, fonts: [{ name: "Syne", data: font, weight: 700, style: "normal" }] },

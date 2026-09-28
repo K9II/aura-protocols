@@ -6,7 +6,7 @@ import { isPendingLot } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Research Compounds",
-  description: "Lab-tested research peptides by chemical class. Every lot independently tested, every certificate on the page.",
+  description: "Research peptides by chemical class. No lot is sold before independent testing, and each lot's certificate is published on its product page.",
   alternates: { canonical: "/products" },
 };
 
