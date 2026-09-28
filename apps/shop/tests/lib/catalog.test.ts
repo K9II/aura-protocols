@@ -1,0 +1,64 @@
+import { describe, it, expect } from "vitest";
+import type { Compound } from "@/data/catalog";
+import {
+  findCompound, compoundsInClass, relatedCompounds, fromPriceUsd,
+  isPendingLot, findLot, vialLabel, classCounts,
+} from "@/lib/catalog";
+
+const base = {
+  identity: {}, form: "Lyophilized powder", storage: "−20 °C", vialMl: 3,
+  packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }],
+} as const;
+
+const fixture: Compound[] = [
+  { ...base, slug: "a", name: "Alpha", chemicalClass: "Peptide Fragments",
+    variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in" }, { id: "10mg", strength: "10 mg", priceUsd: 79, stock: "in" }],
+    currentLot: { lot: "AP-0001", purityPct: 99.6, method: "HPLC", testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" } },
+  { ...base, slug: "b", name: "Beta", chemicalClass: "Peptide Fragments",
+    variants: [{ id: "5mg", strength: "5 mg", priceUsd: 59, stock: "low" }], currentLot: { pending: true } },
+  { ...base, slug: "c", name: "Gamma", chemicalClass: "Blends", components: ["a", "b"],
+    variants: [{ id: "blend", strength: "10 mg", priceUsd: 99, stock: "in" }],
+    currentLot: { lot: "AP-0003", purityPct: 99.1, method: "HPLC+MS", testedOn: "2026-09-02", coaFile: "" } },
+];
+
+describe("catalog helpers", () => {
+  it("finds a compound by slug", () => {
+    expect(findCompound("b", fixture)?.name).toBe("Beta");
+    expect(findCompound("nope", fixture)).toBeUndefined();
+  });
+
+  it("filters by chemical class", () => {
+    expect(compoundsInClass("Peptide Fragments", fixture).map((c) => c.slug)).toEqual(["a", "b"]);
+  });
+
+  it("puts same-class compounds first in related, excludes self, caps the count", () => {
+    expect(relatedCompounds(fixture[0], 2, fixture).map((c) => c.slug)).toEqual(["b", "c"]);
+    expect(relatedCompounds(fixture[0], 1, fixture).map((c) => c.slug)).toEqual(["b"]);
+  });
+
+  it("reports the lowest variant price", () => {
+    expect(fromPriceUsd(fixture[0])).toBe(49);
+  });
+
+  it("detects pending lots", () => {
+    expect(isPendingLot(fixture[1].currentLot)).toBe(true);
+    expect(isPendingLot(fixture[0].currentLot)).toBe(false);
+  });
+
+  it("finds a lot case-insensitively and ignores pending lots", () => {
+    expect(findLot("ap-0003", fixture)?.compound.slug).toBe("c");
+    expect(findLot("AP-9999", fixture)).toBeUndefined();
+  });
+
+  it("shortens long blend names for the vial label", () => {
+    expect(vialLabel({ ...fixture[2], name: "BPC-157 / TB-500 / GHK-Cu" })).toBe("BPC-157 +");
+    expect(vialLabel(fixture[0])).toBe("Alpha");
+  });
+
+  it("counts compounds per class in CHEMICAL_CLASSES order, omitting empty classes", () => {
+    expect(classCounts(fixture)).toEqual([
+      { cls: "Peptide Fragments", count: 2 },
+      { cls: "Blends", count: 1 },
+    ]);
+  });
+});
