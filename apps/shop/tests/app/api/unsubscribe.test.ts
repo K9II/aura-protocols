@@ -26,6 +26,16 @@ describe("GET /api/unsubscribe", () => {
     expect(await res.text()).toContain("You won't receive any more emails");
   });
 
+  it("normalizes the email (trim + lowercase) before matching", async () => {
+    const eqSpy = vi.fn().mockResolvedValue({ error: null });
+    fromMock.mockImplementation(() => ({ update: vi.fn().mockReturnValue({ eq: eqSpy }) }));
+    const { GET } = await import("@/app/api/unsubscribe/route");
+    const res = await GET(get("?email=%20%20Lab%40Example.COM%20%20"));
+    expect(res.status).toBe(200);
+    expect(eqSpy).toHaveBeenCalledWith("email", "lab@example.com");
+    expect(eqSpy).not.toHaveBeenCalledWith("email", "  Lab@Example.COM  ");
+  });
+
   it("500s if either update fails", async () => {
     fromMock.mockImplementation((t: string) => updateChain(t === "subscribers" ? { message: "down" } : null));
     const { GET } = await import("@/app/api/unsubscribe/route");

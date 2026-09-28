@@ -48,9 +48,12 @@ export async function POST(request: Request): Promise<Response> {
     console.error("INQUIRY_NOTIFY_EMAIL not set — inquiry saved but nobody was notified");
   } else {
     try {
+      // CR/LF in the subject could inject extra email headers — strip it
+      // even though the stored/displayed name keeps its original form.
+      const subjectName = i.name.replace(/[\r\n]+/g, " ");
       await sendEmail({
         to,
-        subject: `New ${i.kind} inquiry — ${i.name}`,
+        subject: `New ${i.kind} inquiry — ${subjectName}`,
         html: `<p><b>${escape(i.name)}</b> &lt;${escape(i.email)}&gt;${
           i.organization ? ` — ${escape(i.organization)}` : ""
         }</p><p>${escape(i.message).replace(/\n/g, "<br>")}</p>`,

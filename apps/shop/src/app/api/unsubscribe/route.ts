@@ -1,7 +1,8 @@
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 export async function GET(request: Request): Promise<Response> {
-  const email = new URL(request.url).searchParams.get("email");
+  const raw = new URL(request.url).searchParams.get("email");
+  const email = raw?.trim().toLowerCase();
   if (!email) {
     return Response.json({ error: "Missing email param" }, { status: 400 });
   }

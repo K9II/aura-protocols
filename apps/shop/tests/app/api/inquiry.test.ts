@@ -39,6 +39,18 @@ describe("POST /api/inquiry", () => {
     expect(sendMock).toHaveBeenCalledWith(expect.objectContaining({ to: "owner@example.com", subject: expect.stringContaining("wholesale") }));
   });
 
+  it("strips CR/LF from the name before it lands in the email subject", async () => {
+    const insert = vi.fn().mockResolvedValue({ error: null });
+    fromMock.mockReturnValue({ insert });
+    sendMock.mockResolvedValue({ messageId: "m1" });
+    const { POST } = await import("@/app/api/inquiry/route");
+    const injected = "Dr. Lab\r\nBcc: attacker@evil.example";
+    expect((await POST(post({ ...valid, name: injected }))).status).toBe(200);
+    const { subject } = sendMock.mock.calls[0][0] as { subject: string };
+    expect(subject).not.toMatch(/[\r\n]/);
+    expect(subject).toBe("New wholesale inquiry — Dr. Lab Bcc: attacker@evil.example");
+  });
+
   it("still returns 200 when the notification email fails (inquiry is saved)", async () => {
     fromMock.mockReturnValue({ insert: vi.fn().mockResolvedValue({ error: null }) });
     sendMock.mockRejectedValue(new Error("ses down"));
