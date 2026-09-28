@@ -72,7 +72,7 @@ const LYO = "Lyophilized powder";
 const COLD = "−20 °C, desiccated, protected from light";
 
 // Pre-sourcing placeholders: one variant per listed strength, flat price,
-// "PLACEHOLDER-" lot. Replaced by the sourcing/fulfillment spec.
+// pending lot. Replaced by the sourcing/fulfillment spec.
 function placeholder(
   slug: string, name: string, chemicalClass: ChemicalClass,
   strengths: string[], priceUsd: number, extra: Partial<Compound> = {},
@@ -88,10 +88,9 @@ function placeholder(
       stock: "in" as const,
     })),
     packDiscounts: STD_PACKS,
-    currentLot: {
-      lot: `PLACEHOLDER-${slug.toUpperCase()}`,
-      purityPct: 99.0, method: "HPLC", testedOn: "2026-01-01", coaFile: "",
-    },
+    // No lot is tested yet — never show an invented lot, purity or
+    // "COA on file" before a real certificate exists.
+    currentLot: { pending: true },
     placeholderData: true,
     ...extra,
   };

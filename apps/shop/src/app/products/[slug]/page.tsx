@@ -72,7 +72,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <section className="s-pdp" style={{ borderBottom: "none" }}>
           <div className="s-ghost" aria-hidden>{c.name}</div>
           <div className="s-media">
-            {!pending && <span className="s-coa-tag">◇ COA on file</span>}
+            {!pending && lot.coaFile && <span className="s-coa-tag">◇ COA on file</span>}
             <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} strength={c.variants[0].strength} tilt={-12} width={270} />
           </div>
           <div className="relative">

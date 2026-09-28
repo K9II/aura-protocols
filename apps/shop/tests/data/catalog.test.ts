@@ -62,6 +62,13 @@ describe("catalog integrity", () => {
     for (const c of compounds) for (const s of c.components ?? []) expect(slugs.has(s), `${c.slug}→${s}`).toBe(true);
   });
 
+  it("never shows a tested lot without its certificate file", () => {
+    for (const c of compounds) {
+      if ("pending" in c.currentLot) continue;
+      expect(c.currentLot.coaFile, c.slug).toMatch(/^\/coa\/.+/);
+    }
+  });
+
   it("features exactly four listed compounds", () => {
     expect(listed.filter((c) => c.featured)).toHaveLength(4);
   });

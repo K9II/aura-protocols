@@ -39,7 +39,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="load-in load-5">
-            <BiosignatureSphere showTitle={false} />
+            <BiosignatureSphere />
           </div>
         </section>
 

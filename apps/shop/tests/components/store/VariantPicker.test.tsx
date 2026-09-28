@@ -4,7 +4,12 @@ import { CartProvider, useCart } from "@/components/store/CartProvider";
 import VariantPicker from "@/components/store/VariantPicker";
 import { compounds } from "@/data/catalog";
 
-const bpc = compounds.find((c) => c.slug === "bpc-157")!;
+// Catalog lots are pending until sourcing; give the fixture a tested lot so
+// add-to-cart is enabled.
+const bpc = {
+  ...compounds.find((c) => c.slug === "bpc-157")!,
+  currentLot: { lot: "AP-TEST-1", purityPct: 99.4, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-TEST-1.pdf" },
+};
 
 function Lines() {
   const { lines } = useCart();
