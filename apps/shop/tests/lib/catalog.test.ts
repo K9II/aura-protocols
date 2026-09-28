@@ -8,7 +8,7 @@ import {
 const base = {
   identity: {}, form: "Lyophilized powder", storage: "−20 °C", vialMl: 3,
   packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }],
-} as const;
+} satisfies Pick<Compound, "identity" | "form" | "storage" | "vialMl" | "packDiscounts">;
 
 const fixture: Compound[] = [
   { ...base, slug: "a", name: "Alpha", chemicalClass: "Peptide Fragments",
