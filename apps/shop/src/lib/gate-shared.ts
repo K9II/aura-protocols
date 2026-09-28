@@ -1,0 +1,19 @@
+// Client-safe gate constants. Bump TERMS_VERSION whenever Terms, the Refund &
+// Dispute Policy, or the gate wording changes — every visitor is re-gated.
+export const TERMS_VERSION = "2026-10-01";
+export const GATE_COOKIE = "aura_gate";       // HttpOnly, signed (audit token)
+export const GATE_HINT_COOKIE = "aura_gate_v"; // readable, terms version only
+export const GATE_MAX_AGE_S = 60 * 60 * 24 * 365;
+
+const CRAWLER_RE = /googlebot|bingbot|duckduckbot|yandexbot|baiduspider|applebot|slurp/i;
+
+export function isCrawler(userAgent: string): boolean {
+  return CRAWLER_RE.test(userAgent);
+}
+
+export function hasCurrentGateHint(cookieHeader: string): boolean {
+  return cookieHeader
+    .split(";")
+    .map((p) => p.trim())
+    .includes(`${GATE_HINT_COOKIE}=${TERMS_VERSION}`);
+}
