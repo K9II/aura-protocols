@@ -1,251 +1,70 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import EmailCapture from "@/components/EmailCapture";
 import ScrollReveal from "@/components/ScrollReveal";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
-import { products } from "@/data/products";
-import { posts } from "@/data/posts";
-import { BLOG_PUBLISHED, ENGINE_URL, EXTERNAL_REL } from "@/lib/constants";
+import CompoundCard from "@/components/store/CompoundCard";
+import { compounds } from "@/data/catalog";
 
 export const metadata: Metadata = {
-  title: "Aura Protocols — Research Peptide Protocols, Independently Reviewed",
-  description:
-    "We read the signals your wearable already tracks — HRV, sleep, recovery, glucose — and match them to published peptide research. Every compound vetted against the literature; every vendor required to provide batch-specific, third-party COAs.",
+  title: "Aura Protocols — Research Peptides, Lot-Tested",
+  description: "Lab-tested research compounds with a certificate tied to the exact lot in your vial. For laboratory research use only.",
   alternates: { canonical: "/" },
 };
 
-function parseDate(date: string): number {
-  return new Date(`1 ${date}`).getTime();
-}
+const featured = compounds.filter((c) => c.featured);
 
-const latestPosts = [...posts]
-  .sort((a, b) => {
-    if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
-    return parseDate(b.date) - parseDate(a.date);
-  })
-  .slice(0, 3);
-
-const trustChips = [
-  "Biometric sequencing",
-  "Matched to the literature",
-  "Batch-COA required",
-  "Built on the evidence",
+const faq = [
+  { q: "Are these for human use?", a: "No. Every compound is sold strictly for in-vitro laboratory research. Not for human or animal consumption, and not for medical, veterinary, or diagnostic use." },
+  { q: "What's a COA, and where is it?", a: "A certificate of analysis is the independent lab report for a specific production lot — identity, purity, and method. Every product page links the certificate for the lot currently shipping, and you can look up any lot number on the COA Lookup page." },
+  { q: "How fast do you ship?", a: "Orders ship from the US with tracking. Shipping is free on orders over $200." },
+  { q: "What if a product says “COA pending”?", a: "The lot is still at the lab. The certificate is posted the day results come back." },
 ];
-
-const standard = [
-  { num: "i.", text: "Every vendor we feature must provide batch-specific COAs from accredited third-party laboratories." },
-  { num: "ii.", text: "We manually review that documentation before listing any product." },
-  { num: "iii.", text: "Research protocols correlated to your own physiological baseline — not a population average." },
-];
-
-const howItWorks = [
-  { num: "I.", title: "Connect", body: "Link Whoop, Oura, or Apple Health in about a minute — no new hardware to buy." },
-  { num: "II.", title: "Read", body: "The Engine analyzes your recovery, sleep, and HRV trends." },
-  { num: "III.", title: "Map", body: "It builds a research peptide protocol tuned to that data — dosing, timing, and COA-verified sourcing." },
-  { num: "IV.", title: "Adapt", body: "As your data shifts, the protocol logic shifts with it, instead of staying frozen." },
-];
-
-const indexSlugs = ["bpc-157", "semaglutide", "sermorelin", "retatrutide", "pt-141", "slu-pp-332"];
-const indexMechanisms: Record<string, string> = {
-  "bpc-157": "Tissue repair, gut mucosal healing, joint recovery",
-  semaglutide: "GLP-1 agonist · appetite regulation, glycemic control",
-  sermorelin: "GHRH analogue · natural pituitary GH stimulation",
-  retatrutide: "Triple agonist · GLP-1, GIP, and glucagon receptors",
-  "pt-141": "Melanocortin agonist · central arousal pathway",
-  "slu-pp-332": "ERR pan-agonist · exercise-mimetic metabolic research",
-};
-const indexCategoryLabels: Record<string, string> = {
-  "slu-pp-332": "Longevity & Wellness · New",
-};
-const indexCards = indexSlugs
-  .map((slug) => products.find((p) => p.slug === slug))
-  .filter((p): p is (typeof products)[number] => Boolean(p));
 
 export default function HomePage() {
-  const tickerItems = products.map((p) => ({ name: p.name, vendor: p.vendors[0].vendor }));
-
   return (
     <div className="pharmacopoeia">
       <ScrollReveal />
       <div className="p-container">
-        {/* Hero */}
-        <section className="hero pt-[52px] pb-16">
-          <div className="grid gap-14 lg:grid-cols-[1fr_1.15fr] items-start">
-            {/* Left column */}
-            <div>
-              <p className="eyebrow-live load-in load-1 text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)] mb-4">
-                Biometric Intelligence · Peptide Research · Editorially Independent
-              </p>
-              <h1 className="load-in load-2 p-serif text-[clamp(30px,3.6vw,47px)] leading-[1.14] mb-[22px] text-balance">
-                The protocol research that matches <em>your</em> biometric-signature
-              </h1>
-              <p className="load-in load-3 text-[16px] text-[color:var(--ink-soft)] max-w-[52ch] mb-[26px]">
-                Every night, your wearable sequences the signals that define you — HRV, sleep, recovery, glucose.
-                Aura matches that data to the peptide literature and surfaces only the compounds studied against
-                those markers. No stack-of-the-week. We exist to hold peptides to the standard the research
-                deserves — every compound vetted against the literature, every vendor required to provide
-                batch-specific, third-party COAs.
-              </p>
-              <div className="flex flex-wrap gap-2.5 mb-[30px]">
-                {trustChips.map((chip, i) => (
-                  <span
-                    key={chip}
-                    className={`p-chip load-in text-[11.5px] tracking-[0.05em] uppercase px-3 py-[7px]`}
-                    style={{ animationDelay: `${0.42 + i * 0.08}s` }}
-                  >
-                    {chip}
-                  </span>
-                ))}
-              </div>
-              <div className="load-in load-6 flex flex-wrap gap-x-5 gap-y-3 items-center">
-                <a
-                  href={ENGINE_URL}
-                  target="_blank"
-                  rel={EXTERNAL_REL}
-                  className="cta-primary group bg-[color:var(--ink)] px-[22px] py-2.5 inline-flex flex-col items-start gap-0.5"
-                >
-                  <span className="whitespace-nowrap text-[13px] tracking-[0.08em] uppercase text-[color:var(--paper)]">
-                    Connect your wearable →
-                  </span>
-                  <span className="text-[9.5px] tracking-[0.14em] uppercase text-[color:var(--specimen)] group-hover:text-[color:var(--paper)]">
-                    Under Development
-                  </span>
-                </a>
-                <Link href="/products" className="cta-secondary whitespace-nowrap text-[13px] tracking-[0.08em] uppercase pb-0.5">
-                  Shop →
-                </Link>
-              </div>
-            </div>
-
-            {/* Right column — live biosignature sphere */}
-            <div className="load-in load-5">
-              <BiosignatureSphere />
-            </div>
-          </div>
-        </section>
-
-        {/* Our Standard */}
-        <section className="p-reveal py-16">
-          <div className="text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)] mb-3.5">Our Standard</div>
-          <div className="grid gap-10 md:grid-cols-3">
-            {standard.map((c) => (
-              <div key={c.num} className="flex gap-4">
-                <span className="p-serif-italic text-[22px] text-[color:var(--specimen)] flex-shrink-0">{c.num}</span>
-                <p className="text-[14.5px] text-[color:var(--ink-soft)]">{c.text}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Compound Index grid */}
-        <section id="index" className="p-reveal py-16">
-          <div className="flex justify-between items-baseline flex-wrap gap-3 mb-[34px]">
-            <h2 className="p-serif text-[28px]">The Compound Index</h2>
-            <Link href="/products" className="p-see-all text-xs tracking-[0.06em] uppercase pb-0.5">
-              View all products →
-            </Link>
-          </div>
-          <div className="p-index-grid grid gap-px md:grid-cols-3">
-            {indexCards.map((p) => (
-              <Link key={p.slug} href={`/products/${p.slug}`} className="p-index-card block px-[22px] pt-[22px] pb-5">
-                <div className="text-[10.5px] tracking-[0.1em] uppercase text-[color:var(--specimen)] mb-2.5">
-                  {indexCategoryLabels[p.slug] ?? p.category}
-                </div>
-                <h4 className="p-serif text-[19px] mb-1.5">{p.name}</h4>
-                <p className="text-[13px] italic text-[color:var(--ink-soft)] mb-[18px] min-h-[34px]">
-                  {indexMechanisms[p.slug]}
-                </p>
-                <span className="p-view text-[11.5px] tracking-[0.06em] uppercase border-t border-[color:var(--line)] pt-3 flex items-center gap-1.5">
-                  View product <span className="p-arrow">→</span>
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* How It Works */}
-        <section className="p-reveal py-16">
-          <div className="flex items-center gap-3 mb-6">
-            <span className="text-[11px] tracking-[0.16em] uppercase text-[color:var(--specimen)]">How It Works</span>
-            <span className="p-badge">Under Development</span>
-          </div>
-          <div className="grid gap-[30px_48px] md:grid-cols-2">
-            {howItWorks.map((step) => (
-              <div key={step.num} className="p-roman flex gap-[18px] pl-[18px]">
-                <span className="p-serif-italic text-xl text-[color:var(--specimen)] w-8 flex-shrink-0">{step.num}</span>
-                <div>
-                  <h5 className="text-[15.5px] mb-1">{step.title}</h5>
-                  <p className="text-[13.5px] text-[color:var(--ink-soft)] m-0">{step.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* From the Blog */}
-        {BLOG_PUBLISHED && (
-        <section className="p-reveal py-16">
-          <div className="flex justify-between items-baseline flex-wrap gap-3 mb-[34px]">
-            <h2 className="p-serif text-[28px]">From the Blog</h2>
-            <Link href="/blog" className="p-see-all text-xs tracking-[0.06em] uppercase pb-0.5">
-              View all posts →
-            </Link>
-          </div>
+        <section className="s-hero">
           <div>
-            {latestPosts.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="p-library-entry grid gap-[30px] py-[26px] md:grid-cols-[1fr_3fr]">
-                <div className="text-[11px] tracking-[0.08em] uppercase text-[color:var(--ink-soft)]">
-                  {post.category}
-                  <span className="block mt-1 text-[color:var(--specimen)]">{post.readTime}</span>
-                </div>
-                <div>
-                  <h4 className="p-serif-italic text-[21px] mb-2">{post.title}</h4>
-                  <p className="text-sm text-[color:var(--ink-soft)] max-w-[62ch] m-0">{post.excerpt}</p>
-                </div>
-              </Link>
-            ))}
+            <p className="s-micro s-eyebrow load-in load-1">Research peptides · COA on every lot</p>
+            <h1 className="s-h1 load-in load-2">Receipts,<br />not <em>promises.</em></h1>
+            <p className="s-sub load-in load-3">Lab-tested research compounds with a certificate tied to the exact lot in your vial. Every result on the page.</p>
+            <div className="s-ctas load-in load-4">
+              <Link href="/products" className="p-btn-primary">Shop the lineup →</Link>
+              <Link href="/coa" className="p-btn-outline">See the COAs</Link>
+            </div>
+            <div className="s-proof s-micro load-in load-5">
+              <span>≥99% HPLC purity</span><span>Lot-matched COAs</span><span>Free over $200</span>
+            </div>
+          </div>
+          <div className="load-in load-5">
+            <BiosignatureSphere showTitle={false} />
           </div>
         </section>
-        )}
 
-        {/* Subscribe + Compound Index */}
-        <section className="p-reveal py-16">
-          <div className="grid gap-14 lg:grid-cols-[1.3fr_1fr]">
-            <div>
-              <h2 className="p-serif-italic text-[26px] max-w-[30ch] mx-auto text-center mb-4">Get your peptide starting protocol — free</h2>
-              <div className="w-full">
-                <EmailCapture />
-              </div>
-            </div>
+        <section className="p-reveal py-14">
+          <div className="s-lh">
+            <h2 className="s-h2">The <em>lineup</em></h2>
+            <p>Every lot tested, every certificate on the page.</p>
+          </div>
+          <div className="s-grid">
+            {featured.map((c, i) => <CompoundCard key={c.slug} compound={c} index={i} />)}
+          </div>
+          <div className="mt-8">
+            <Link href="/products" className="p-see-all s-micro">See all {compounds.length} compounds →</Link>
+          </div>
+        </section>
 
-            {/* Compound Index ticker — height tuned so this column's bottom lines up with the email box (heading + form) */}
-            <div className="overflow-hidden">
-              <div className="flex justify-between items-baseline px-[22px] py-[18px]">
-                <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Compound Index</p>
-                <div className="text-right">
-                  <p className="p-serif-italic text-2xl leading-none">{products.length}</p>
-                  <p className="text-[10px] tracking-[0.1em] uppercase text-[color:var(--ink-soft)]">Reviewed</p>
-                </div>
-              </div>
-
-              <div className="ticker-viewport h-[414px] mt-2">
-                <div className="ticker-track">
-                  {[...tickerItems, ...tickerItems].map((item, i) => (
-                    <div key={i} className="ticker-row flex justify-between items-start gap-3 px-[22px] py-[11px]">
-                      <span className="name text-sm flex-1 min-w-0">
-                        <span className="text-[color:var(--specimen)] text-xs mr-1.5">✓</span>
-                        {item.name}
-                      </span>
-                      <span className="text-[11.5px] italic text-[color:var(--ink-soft)] flex-shrink-0 pt-0.5">{item.vendor}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="px-[22px] py-3 text-[11px] text-[color:var(--ink-soft)]">
-                Updated manually · Every vendor reviewed
-              </div>
-            </div>
+        <section className="p-reveal py-14">
+          <h2 className="s-h2 mb-6">Straight <em>answers</em></h2>
+          <div>
+            {faq.map(({ q, a }) => (
+              <details key={q} className="border-t border-[color:var(--line)] py-4">
+                <summary className="cursor-pointer text-[15px] flex justify-between">{q}<span className="text-[color:var(--specimen)]">+</span></summary>
+                <p className="text-sm text-[color:var(--ink-soft)] mt-3 max-w-[70ch]">{a}</p>
+              </details>
+            ))}
           </div>
         </section>
       </div>
