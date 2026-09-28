@@ -9,7 +9,7 @@ function getClient(): SESv2Client {
   return client;
 }
 
-export async function sendLeadMagnetEmail(params: {
+export async function sendEmail(params: {
   to: string;
   subject: string;
   html: string;
@@ -33,3 +33,6 @@ export async function sendLeadMagnetEmail(params: {
   const result = await getClient().send(command);
   return { messageId: result.MessageId };
 }
+
+/** @deprecated removed with /api/subscribe in the retail redesign cleanup */
+export const sendLeadMagnetEmail = sendEmail;

@@ -15,7 +15,7 @@ vi.mock("@aws-sdk/client-sesv2", () => {
   return { SESv2Client, SendEmailCommand };
 });
 
-describe("sendLeadMagnetEmail", () => {
+describe("sendEmail", () => {
   beforeEach(() => {
     vi.resetModules();
     sendMock.mockReset();
@@ -25,9 +25,9 @@ describe("sendLeadMagnetEmail", () => {
 
   it("sends via SESv2Client with the right destination, subject, and html", async () => {
     sendMock.mockResolvedValueOnce({ MessageId: "abc-123" });
-    const { sendLeadMagnetEmail } = await import("@/lib/ses");
+    const { sendEmail } = await import("@/lib/ses");
 
-    const result = await sendLeadMagnetEmail({
+    const result = await sendEmail({
       to: "reader@example.com",
       subject: "Your weight-loss starting protocol — 3 compounds, real doses",
       html: "<p>Hello</p>",
@@ -50,9 +50,9 @@ describe("sendLeadMagnetEmail", () => {
 
   it("throws if SES_FROM_EMAIL is not configured", async () => {
     delete process.env.SES_FROM_EMAIL;
-    const { sendLeadMagnetEmail } = await import("@/lib/ses");
+    const { sendEmail } = await import("@/lib/ses");
     await expect(
-      sendLeadMagnetEmail({ to: "reader@example.com", subject: "s", html: "<p>h</p>" })
+      sendEmail({ to: "reader@example.com", subject: "s", html: "<p>h</p>" })
     ).rejects.toThrow("SES_FROM_EMAIL");
   });
 });
