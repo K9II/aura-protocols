@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { posts } from "@/data/posts";
 import { renderSection } from "@/components/PostBody";
-import EngineCTAInline from "@/components/EngineCTAInline";
+import { BLOG_PUBLISHED } from "@/lib/constants";
 
 export function generateStaticParams() {
-  return posts.map((p) => ({ slug: p.slug }));
+  return BLOG_PUBLISHED ? posts.map((p) => ({ slug: p.slug })) : [];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -33,6 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 const BASE_URL = "https://auraprotocols.com";
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  if (!BLOG_PUBLISHED) notFound();
   const { slug } = await params;
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
@@ -56,7 +57,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     <div className="max-w-3xl mx-auto px-6 py-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-[color:var(--ink-soft)] mb-10">
@@ -81,7 +82,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {/* Article body */}
       <article>
         {post.content.map((section, i) => renderSection(section, i))}
-        <EngineCTAInline />
       </article>
 
       {/* Related posts */}

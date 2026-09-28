@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Section, LinkPart } from "@/data/posts";
-import { goUrl } from "@/lib/affiliate";
+import { findCompound } from "@/lib/catalog";
 
 // Renders an array of post Sections in the pharmacopoeia theme. Used by the
 // blog article renderer (/blog/[slug]). Caller must provide a `.pharmacopoeia`
@@ -71,28 +71,24 @@ export function renderSection(section: Section, i: number) {
           <p className="text-sm text-[color:var(--ink-soft)] leading-relaxed">{section.text}</p>
         </div>
       );
-    case "cta":
+    case "cta": {
+      // Retail-only: never render an outbound vendor link. Only a same-site
+      // /products/<slug> link, and only when that compound still exists in
+      // the current catalog — otherwise render nothing.
+      const compound = section.productSlug ? findCompound(section.productSlug) : undefined;
+      if (!compound) return null;
       return (
         <div key={i} className="p-card p-6 my-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-[color:var(--ink-soft)] font-semibold mb-1">Recommended Vendor</p>
-            <p className="font-semibold text-[color:var(--ink)]">{section.vendor}</p>
-            {section.productSlug && (
-              <Link href={`/products/${section.productSlug}`} className="text-xs p-link mt-1 inline-block">
-                View compound details →
-              </Link>
-            )}
-          </div>
-          <a
-            href={section.vendor ? goUrl(section.vendor, section.productSlug) : section.affiliateUrl}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
+          <p className="font-semibold text-[color:var(--ink)]">{section.text}</p>
+          <Link
+            href={`/products/${compound.slug}`}
             className="p-btn-primary text-sm py-2.5 px-6 whitespace-nowrap"
           >
-            {section.text} →
-          </a>
+            View compound →
+          </Link>
         </div>
       );
+    }
     case "button":
       // Consecutive "button" sections render as adjacent array items with no
       // whitespace between them — mr-3 keeps them from touching when two or

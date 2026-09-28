@@ -1,65 +1,62 @@
-import Link from "next/link";
-import ProductCard from "@/components/ProductCard";
-import { products, categories } from "@/data/products";
+import type { Metadata } from "next";
+import CompoundCard from "@/components/store/CompoundCard";
+import CategoryPills from "@/components/store/CategoryPills";
+import { CHEMICAL_CLASSES, compounds, type ChemicalClass } from "@/data/catalog";
+import { isPendingLot } from "@/lib/catalog";
 
-export const metadata = {
-  title: "Research Peptides — Aura Protocols",
-  description: "Browse our curated catalog of high-purity research peptides from verified vendors.",
+export const metadata: Metadata = {
+  title: "Research Compounds",
+  description: "Research peptides by chemical class. No lot is sold before independent testing, and each lot's certificate is published on its product page.",
+  alternates: { canonical: "/products" },
 };
+
+function matches(q: string) {
+  const needle = q.trim().toLowerCase();
+  return (c: (typeof compounds)[number]) =>
+    c.name.toLowerCase().includes(needle) ||
+    (c.identity.cas ?? "").includes(needle) ||
+    (!isPendingLot(c.currentLot) && c.currentLot.lot.toLowerCase() === needle);
+}
 
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ cat?: string; q?: string }>;
 }) {
-  const { category } = await searchParams;
-  const visibleCategories = category ? categories.filter((cat) => cat === category) : categories;
+  const { cat, q } = await searchParams;
+  const active = CHEMICAL_CLASSES.includes(cat as ChemicalClass) ? (cat as ChemicalClass) : undefined;
+  let list = active ? compounds.filter((c) => c.chemicalClass === active) : compounds;
+  if (q) list = list.filter(matches(q));
 
   return (
     <div className="pharmacopoeia">
-    <div className="max-w-6xl mx-auto px-6 py-16">
-      <div className="mb-12">
-        <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">Catalog</p>
-        <h1 className="p-serif text-4xl mb-4 text-[color:var(--ink)]">Research Compounds</h1>
-        <p className="text-[color:var(--ink-soft)] max-w-xl leading-relaxed">
-          Every product below links to a vetted vendor. Purity certificates are available from each supplier. For research use only.
-        </p>
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-12">
-        <Link
-          href="/products"
-          className={`p-chip ${!category ? "border-[color:var(--specimen)] text-[color:var(--specimen)]" : ""}`}
-        >
-          All
-        </Link>
-        {categories.map((cat) => (
-          <Link
-            key={cat}
-            href={`/products?category=${encodeURIComponent(cat)}`}
-            className={`p-chip ${category === cat ? "border-[color:var(--specimen)] text-[color:var(--specimen)]" : ""}`}
-          >
-            {cat}
-          </Link>
-        ))}
-      </div>
-
-      {visibleCategories.map((cat) => (
-        <section key={cat} className="mb-16">
-          <h2 className="p-serif text-xl mb-6 flex items-center gap-3 text-[color:var(--ink)]">
-            <span className="w-1 h-6 bg-[color:var(--specimen)]" />
-            {cat}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {products
-              .filter((p) => p.category === cat)
-              .map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+      <div className="p-container">
+        <div className="s-shophero">
+          <h1 className="s-h1">Every lot,<br /><em>on the record.</em></h1>
+          <div className="s-stats s-micro">
+            <div><b>{compounds.length}</b>Compounds</div>
+            <div><b>≥99%</b>HPLC floor</div>
+            <div><b>1 : 1</b>Vial-to-COA</div>
           </div>
+        </div>
+        <div className="flex flex-col gap-3.5 pt-6 pb-2">
+          <form className="s-search" action="/products" role="search">
+            {active && <input type="hidden" name="cat" value={active} />}
+            <input name="q" defaultValue={q ?? ""} placeholder="Search compounds, CAS no., or lot…" aria-label="Search" />
+            <button type="submit">Search</button>
+          </form>
+          <CategoryPills active={active} />
+        </div>
+        <section className="py-6 pb-16" style={{ borderBottom: "none" }}>
+          {list.length === 0 ? (
+            <p className="text-[color:var(--ink-soft)]">No compounds match “{q}”.</p>
+          ) : (
+            <div className="s-grid">
+              {list.map((c, i) => <CompoundCard key={c.slug} compound={c} index={i} />)}
+            </div>
+          )}
         </section>
-      ))}
-    </div>
+      </div>
     </div>
   );
 }

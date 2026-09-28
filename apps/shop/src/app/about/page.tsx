@@ -1,166 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import ProsePage from "@/components/store/ProsePage";
 
-export const metadata = {
-  title: "About — Aura Protocols",
-  description: "Aura Protocols bridges advanced peptide research and real-time biometrics, giving high-performers the data infrastructure to move beyond guesswork.",
-};
+export const metadata: Metadata = { title: "About", description: "Aura Protocols supplies research peptides released only after independent lot testing, with each lot's certificate published.", alternates: { canonical: "/about" } };
 
 export default function AboutPage() {
   return (
-    <div className="pharmacopoeia">
-    <div className="max-w-3xl mx-auto px-6 py-16">
-      <p className="text-xs uppercase tracking-widest text-[color:var(--specimen)] font-semibold mb-2">About Aura Protocols</p>
-      <h1 className="p-serif text-4xl mb-3 text-[color:var(--ink)]">The Science of Synergy</h1>
-      <p className="text-sm uppercase tracking-wider text-[color:var(--ink-soft)] mb-10">Where Biometrics Meet Bio-Harmonization</p>
-
-      <div className="space-y-6 text-[color:var(--ink-soft)] leading-relaxed">
-
-        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Our Story</h2>
-        <p>Aura Protocols was not built in a boardroom. It was built from a problem.</p>
-        <p>
-          Our founders — biohackers, data engineers, and longevity researchers — watched a pattern repeat itself across
-          the peptide research community: sophisticated protocols, expensive compounds, zero feedback mechanism.
-          Researchers were timing everything on intuition. Recovery impacts went unmeasured. There was no objective
-          signal telling anyone whether anything was working.
-        </p>
-        <p>The question we asked was simple: what if your wearable already had the answer?</p>
-        <p>
-          We built Aura Protocols around that question — a platform that aggregates your biometric data and pairs it
-          with structured research protocols, replacing assumption with signal and guesswork with evidence.
-        </p>
-
-        <p className="text-lg text-[color:var(--ink)] font-medium pt-2">
-          Generalized wellness is a guess. Aura Protocols is not.
-        </p>
-        <p>
-          We exist at the intersection of advanced peptide research and real-time human biometrics — built for the
-          researcher, the high-performer, and the individual who refuses to operate on assumption. Your body is already
-          generating precise physiological data every hour of every day. We built the infrastructure to use it.
-        </p>
-
-        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Driven by Data. Optimized for Life.</h2>
-        <p>
-          Every human system communicates in signals: heart rate variability, sleep architecture, metabolic output,
-          systemic inflammation trends. These are not abstract metrics — they are the feedback loop that traditional
-          wellness models ignore entirely.
-        </p>
-        <p className="text-[color:var(--ink)] font-medium">Aura Protocols reads that loop.</p>
-        <p>
-          Our platform integrates with Oura, Whoop, Apple Watch, and Garmin, converting wearable telemetry into a
-          structured research dashboard. The result: research protocols correlated to your own physiological
-          baseline — not a population average.
-        </p>
-
-        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Core Pillars</h2>
-
-        <div className="p-card p-8 space-y-5">
-          {[
-            [
-              "Rigorous Research",
-              "We synthesize peer-reviewed peptide data into a structured, navigable research library built to academic standards.",
-            ],
-            [
-              "Device-Agnostic Integration",
-              "Oura, Whoop, Garmin, Apple Watch. We read your hardware; you read your results.",
-            ],
-            [
-              "Hyper-Individualization",
-              "One-size protocols don't exist here. Your biomarker data drives the research framework.",
-            ],
-            [
-              "Community of Excellence",
-              "A vetted network of researchers and high-performers committed to long-term performance optimization.",
-            ],
-          ].map(([title, desc]) => (
-            <div key={title} className="flex gap-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] mt-2 flex-shrink-0" />
-              <div>
-                <p className="font-semibold text-[color:var(--ink)]">{title}</p>
-                <p className="text-sm text-[color:var(--ink-soft)]">{desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">The Peak Performance Loop</h2>
-
-        <div className="p-card p-8 space-y-5">
-          {[
-            ["Quantify", "Establish baseline vitals through your biometric device of choice."],
-            ["Research", "Access our curated database of cellular peptide compounds."],
-            ["Align", "Correlate research timing with your circadian and metabolic data."],
-            ["Refine", "Track physiological shifts to analyze how your body responds across recovery, cognitive clarity, and output metrics over time."],
-          ].map(([title, desc], i) => (
-            <div key={title} className="flex gap-4">
-              <span className="p-serif-italic text-sm text-[color:var(--specimen)] mt-0.5 w-5 flex-shrink-0">
-                {i + 1}.
-              </span>
-              <div>
-                <p className="font-semibold text-[color:var(--ink)]">{title}</p>
-                <p className="text-sm text-[color:var(--ink-soft)]">{desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Our Vendor Vetting Methodology</h2>
-        <p>
-          Every vendor featured on Aura Protocols is manually reviewed against a fixed checklist before any product
-          page goes live:
-        </p>
-        <div className="p-card p-8 space-y-5">
-          {[
-            [
-              "Third-party COA required",
-              "Batch-specific Certificates of Analysis from an accredited lab (ISO 17025 preferred) — in-house testing alone is not sufficient.",
-            ],
-            [
-              "HPLC + mass spec verification",
-              "We look for both purity (HPLC) and identity confirmation (MS) on file, not purity claims alone.",
-            ],
-            [
-              "Recent testing",
-              "COAs older than 18 months are treated as stale — peptides degrade, and testing should reflect current stock.",
-            ],
-            [
-              "Cited claims only",
-              "Studied-benefit statements on product pages are sourced to peer-reviewed literature (PubMed, ClinicalTrials.gov), not marketing copy.",
-            ],
-          ].map(([title, desc]) => (
-            <div key={title} className="flex gap-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] mt-2 flex-shrink-0" />
-              <div>
-                <p className="font-semibold text-[color:var(--ink)]">{title}</p>
-                <p className="text-sm text-[color:var(--ink-soft)]">{desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p className="text-sm text-[color:var(--ink-soft)]">
-          See our guide on{" "}
-          <Link href="/blog/how-to-read-a-peptide-coa" className="p-link">how to read a peptide COA</Link>, or{" "}
-          <Link href="/quality-standards" className="p-link">how our vendors compare</Link> on the same compound.
-        </p>
-        <p className="text-sm text-[color:var(--ink-soft)]">
-          As of this writing, Aura Protocols indexes 30+ pages of vendor-reviewed compound data, comparison research,
-          and buyer's guides — every claim traceable back to a primary source.
-        </p>
-
-        <h2 className="p-serif text-xl pt-2 text-[color:var(--ink)]">Join the Evolution</h2>
-        <p>
-          Recovery. Cognitive clarity. Metabolic performance. Whether your research focus spans tissue repair,
-          neurological study, or metabolic tracking — the feedback mechanism now exists.
-        </p>
-        <p>Your data is the compass. Aura Protocols is the map.</p>
-        <p className="font-semibold text-[color:var(--ink)]">Welcome to Aura Protocols.</p>
-
-        <p className="text-sm text-[color:var(--ink-soft)] border-t border-[color:var(--line)] pt-6">
-          All products referenced on this site are intended for in vitro research purposes only and are not intended
-          to diagnose, treat, cure, or prevent any disease. Nothing on this site constitutes medical advice. Always
-          consult a qualified healthcare professional before use.
-        </p>
-      </div>
-    </div>
-    </div>
+    <ProsePage
+      eyebrow="About"
+      title={<>Receipts, not <em>promises.</em></>}
+      intro={<p>Aura Protocols supplies research-grade peptides to laboratories and independent researchers. We started from one observation: the research-peptide market asks buyers to trust a label. We&apos;d rather show the paperwork.</p>}
+      sections={[
+        { heading: "Every lot, on the record", body: <p>Each production lot is tested by an independent laboratory before it ships. The certificate for the lot in your vial is linked on its product page, and you can look up any lot number on our <Link href="/coa" className="p-link">COA Lookup</Link>.</p> },
+        { heading: "Scientific names only", body: <p>Compounds are listed by their scientific or composition names and grouped by chemical class. No coded names, no nicknames.</p> },
+        { heading: "Research use only", body: <p>Everything we sell is for in-vitro laboratory research. We don&apos;t provide instructions for use, and we don&apos;t sell to anyone under 21. See our <Link href="/ruo" className="p-link">Research Use Only policy</Link>.</p> },
+      ]}
+    />
   );
 }

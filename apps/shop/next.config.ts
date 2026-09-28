@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
-import { buildAffiliateRedirects } from "./src/lib/affiliate";
+import { buildRedirects } from "./src/lib/redirects";
+import { BLOG_PUBLISHED } from "./src/lib/constants";
 
 const nextConfig: NextConfig = {
   async redirects() {
@@ -10,7 +11,7 @@ const nextConfig: NextConfig = {
         destination: "https://auraprotocols.com/:path*",
         permanent: true,
       },
-      ...buildAffiliateRedirects(),
+      ...buildRedirects({ blogPublished: BLOG_PUBLISHED }),
     ];
   },
 };

@@ -2,48 +2,37 @@
 
 import { useEffect, useRef } from "react";
 
-// Drawn from the real Engine's tracked biometric fields (apps/engine/src/lib/terra/schema.ts,
-// BiometricSnapshot) — broadened beyond the real BiosignaturePanel's 8-axis radar (which is
-// sleep-heavy: 4 of its 8 axes are sleep stages) so more product categories can be represented.
-// Values here are simulated (no wearable connected on the marketing site).
+// Decorative compound ring for the storefront homepage. Nodes are catalog
+// compounds only — NO biometric readings or human-outcome pairings (removed
+// 2026-09-28 before Stripe review). Each label links to its product page.
 // Order matters — index 0 sits at the top of the ring, then clockwise from there.
-const METRICS = [
-  { key: "vo2max", label: "VO2 MAX", unit: "", lo: 30, hi: 55, invert: false, dec: 0, peptide: { name: "SLU-PP-332", slug: "slu-pp-332" } },
-  { key: "hrv", label: "HRV", unit: "ms", lo: 15, hi: 70, invert: false, dec: 0 },
-  { key: "glucose", label: "GLUCOSE", unit: "", lo: 72, hi: 118, invert: true, dec: 0, peptide: { name: "Semaglutide", slug: "semaglutide" } },
-  { key: "recovery", label: "RECOVERY", unit: "", lo: 20, hi: 95, invert: false, dec: 0, peptide: { name: "BPC-157", slug: "bpc-157" } },
-  { key: "bodyFat", label: "BODY FAT", unit: "%", lo: 10, hi: 28, invert: true, dec: 1, peptide: { name: "Tesamorelin", slug: "tesamorelin" } },
-  { key: "strain", label: "STRAIN", unit: "", lo: 2, hi: 14, invert: true, dec: 1, peptide: { name: "CJC-1295", slug: "cjc-1295-ipamorelin" } },
-  { key: "sleepHrs", label: "SLEEP", unit: "h", lo: 5, hi: 9, invert: false, dec: 1, peptide: { name: "Epithalon", slug: "epithalon" } },
-  { key: "spo2", label: "SPO2", unit: "%", lo: 95, hi: 100, invert: false, dec: 0 },
+export const NODES = [
+  { key: "slu-pp-332", name: "SLU-PP-332", cls: "Mitochondrial & Metabolic" },
+  { key: "mots-c", name: "MOTS-c", cls: "Mitochondrial & Metabolic" },
+  { key: "bpc-157", name: "BPC-157", cls: "Peptide Fragments" },
+  { key: "tesamorelin", name: "Tesamorelin", cls: "GH-Axis Peptides" },
+  { key: "cjc-1295-ipamorelin", name: "CJC-1295 / Ipamorelin", cls: "GH-Axis Peptides" },
+  { key: "epithalon", name: "Epithalon", cls: "Short Peptides & Neuropeptides" },
 ] as const;
 
-type MetricKey = (typeof METRICS)[number]["key"];
+type NodeKey = (typeof NODES)[number]["key"];
 
-// The overreaching triad (HRV/Recovery/Strain) mirrors the Engine's real tension detector
-// (apps/engine/src/lib/recommend/tension.ts). The other two are illustrative correlations
-// using the broader metric set above, not literal detector output.
-const TENSIONS: { a: MetricKey; b: MetricKey; sev: "watch" | "elevated" | "high"; text: string }[] = [
-  { a: "hrv", b: "recovery", sev: "elevated", text: "HRV + RECOVERY — overreaching signal" },
-  { a: "hrv", b: "strain", sev: "watch", text: "HRV + STRAIN — overreaching signal" },
-  { a: "recovery", b: "strain", sev: "high", text: "RECOVERY + STRAIN — overreaching signal" },
-  { a: "glucose", b: "bodyFat", sev: "watch", text: "GLUCOSE + BODY FAT — metabolic link" },
-  { a: "vo2max", b: "recovery", sev: "watch", text: "VO2 MAX + RECOVERY — aerobic-capacity link" },
+// Highlighted connectors only ever join two compounds of the same chemical
+// class, captioned with that class — never a combination or an outcome.
+export const PAIRS: { a: NodeKey; b: NodeKey; text: string }[] = [
+  { a: "slu-pp-332", b: "mots-c", text: "SLU-PP-332 · MOTS-c — Mitochondrial & Metabolic" },
+  { a: "tesamorelin", b: "cjc-1295-ipamorelin", text: "Tesamorelin · CJC-1295 / Ipamorelin — GH-Axis Peptides" },
 ];
-const SEV_OPACITY: Record<string, number> = { watch: 0.35, elevated: 0.62, high: 1.0 };
 
 const INK = "28, 24, 19";
 const SPECIMEN = "163, 43, 31";
 const SPECIMEN_DARK = "104, 25, 18";
 
+// `value` is an internal 0–1 signal that only drives node brightness; it is
+// never displayed.
 type Metric = {
-  key: MetricKey;
-  label: string;
-  unit: string;
-  lo: number;
-  hi: number;
-  invert: boolean;
-  dec: number;
+  key: NodeKey;
+  name: string;
   value: number;
   target: number;
   prevTarget: number;
@@ -53,7 +42,6 @@ type Metric = {
   ringX: number;
   ringY: number;
   ringAngle: number;
-  peptide?: { name: string; slug: string };
 };
 
 type CloudPoint = { x: number; y: number; z: number; phase: number; speed: number };
@@ -69,12 +57,8 @@ function rotateX<T extends { x: number; y: number; z: number }>(p: T, a: number)
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
-function fmt(m: Metric) {
-  return m.value.toFixed(m.dec) + (m.unit || "");
-}
 function normOf(m: Metric) {
-  const n = Math.max(0, Math.min(1, (m.value - m.lo) / (m.hi - m.lo)));
-  return m.invert ? 1 - n : n;
+  return Math.max(0, Math.min(1, m.value));
 }
 function makeCloudPoints(n: number, R: number): CloudPoint[] {
   const points: CloudPoint[] = [];
@@ -115,7 +99,11 @@ export default function BiosignatureSphere() {
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const W = 720, H = 600;
+    // Phones get a tighter canvas so the same sphere fills far more of the
+    // width (~2x on a 390px screen) instead of shrinking with a 720px canvas.
+    // Same breakpoint as the phone rules in globals.css (.s-hero-sphere bleed).
+    const compact = window.matchMedia("(max-width: 640px)").matches;
+    const W = compact ? 460 : 720, H = compact ? 440 : 600;
     canvas.width = W * dpr;
     canvas.height = H * dpr;
     const maybeCtx = canvas.getContext("2d");
@@ -124,14 +112,16 @@ export default function BiosignatureSphere() {
     ctx.scale(dpr, dpr);
 
     const cx = W / 2, cy = H / 2;
-    const persp = 460, R = 130, ringR = 220;
+    const persp = 460, R = 130, ringR = compact ? 160 : 220;
+    const ringYFactor = compact ? 0.95 : 0.72;
 
     const cloud = makeCloudPoints(130, R);
 
-    const metrics: Metric[] = METRICS.map((base) => {
-      const start = base.lo + Math.random() * (base.hi - base.lo);
+    const metrics: Metric[] = NODES.map((base) => {
+      const start = Math.random();
       return {
-        ...base,
+        key: base.key,
+        name: base.name,
         value: start,
         target: start,
         prevTarget: start,
@@ -155,34 +145,28 @@ export default function BiosignatureSphere() {
       m.ringAngle = (idx / metrics.length) * Math.PI * 2 - Math.PI / 2;
     });
 
-    function metric(key: MetricKey) {
+    function metric(key: NodeKey) {
       return metrics.find((m) => m.key === key)!;
     }
 
     // Build the fixed HTML label overlay — text updates each frame; positions are
     // (re)computed by layoutRing() on mount and whenever the canvas is resized.
     labelHost.innerHTML = "";
-    const valueEls: Record<string, HTMLSpanElement> = {};
     const labelEls = metrics.map((m) => {
       const el = document.createElement("div");
       el.className = "p-biosig-label";
-      const valEl = document.createElement("span");
-      valEl.className = "v";
-      valEl.textContent = "—";
-      el.appendChild(document.createTextNode(m.label));
-      el.appendChild(document.createElement("br"));
-      el.appendChild(valEl);
-      if (m.peptide) {
-        el.appendChild(document.createElement("br"));
-        const link = document.createElement("a");
-        link.className = "p-biosig-peptide";
-        link.href = `/products/${m.peptide.slug}`;
-        link.textContent = m.peptide.name;
-        link.style.pointerEvents = "auto";
-        el.appendChild(link);
-      }
+      const link = document.createElement("a");
+      link.className = "p-biosig-peptide";
+      link.href = `/products/${m.key}`;
+      // Blend names ("CJC-1295 / Ipamorelin") break onto two lines so the
+      // side labels don't overrun the ring and clip.
+      m.name.split(" / ").forEach((part, i, parts) => {
+        link.appendChild(document.createTextNode(i < parts.length - 1 ? `${part} /` : part));
+        if (i < parts.length - 1) link.appendChild(document.createElement("br"));
+      });
+      link.style.pointerEvents = "auto";
+      el.appendChild(link);
       labelHost.appendChild(el);
-      valueEls[m.key] = valEl;
       return el;
     });
 
@@ -192,6 +176,9 @@ export default function BiosignatureSphere() {
     // Pull the ring inward horizontally as the rendered canvas shrinks so every
     // label keeps room to sit fully on-screen.
     function horizontalSqueeze() {
+      // Compact canvas: only the smallest phones (~320px) need the side
+      // labels pulled in, or "CJC-1295 / Ipamorelin" clips on the left.
+      if (compact) return (canvas.getBoundingClientRect().width || W) < 350 ? 0.88 : 1;
       const dispW = canvas.getBoundingClientRect().width || W;
       if (dispW >= 460) return 1;
       if (dispW <= 320) return 0.62;
@@ -202,7 +189,7 @@ export default function BiosignatureSphere() {
       const sx = horizontalSqueeze();
       metrics.forEach((m, i) => {
         m.ringX = cx + Math.cos(m.ringAngle) * ringR * sx;
-        m.ringY = cy + Math.sin(m.ringAngle) * ringR * 0.72;
+        m.ringY = cy + Math.sin(m.ringAngle) * ringR * ringYFactor;
         const el = labelEls[i];
         el.style.left = (m.ringX / W) * 100 + "%";
         el.style.top = (m.ringY / H) * 100 + "%";
@@ -289,16 +276,16 @@ export default function BiosignatureSphere() {
           m.retargetClock = 0;
           m.nextRetarget = 3 + Math.random() * 4;
           m.prevTarget = m.target;
-          m.target = m.lo + Math.random() * (m.hi - m.lo);
+          m.target = Math.random();
         }
         m.value = lerp(m.value, m.target, 1 - Math.pow(0.001, dt));
       });
       tClock += dt;
       if (tClock >= HOLD) {
         tClock = 0;
-        tIdx = (tIdx + 1) % TENSIONS.length;
+        tIdx = (tIdx + 1) % PAIRS.length;
       }
-      const active = TENSIONS[tIdx];
+      const active = PAIRS[tIdx];
       const tPhase = tClock / HOLD;
       const tAlpha = Math.sin(Math.min(tPhase, 1) * Math.PI);
 
@@ -340,11 +327,11 @@ export default function BiosignatureSphere() {
         ctx.fill();
       });
 
-      // Faint background web — every tension pair except the currently-active
+      // Faint background web — every pair except the currently-active
       // one, so the active connector (drawn next, brighter) reads as one
       // highlighted edge in a larger relationship network rather than an
       // isolated line appearing out of nowhere.
-      TENSIONS.forEach((pair, i) => {
+      PAIRS.forEach((pair, i) => {
         if (i === tIdx) return;
         const pma = metric(pair.a);
         const pmb = metric(pair.b);
@@ -392,10 +379,7 @@ export default function BiosignatureSphere() {
         lastDom = now;
         tensionTextEl.textContent = active.text;
         tensionTextEl.style.opacity = String(0.55 + 0.45 * tAlpha);
-        sevDotEl.style.background = `rgba(${SPECIMEN},${SEV_OPACITY[active.sev]})`;
-        metrics.forEach((m) => {
-          valueEls[m.key].textContent = fmt(m);
-        });
+        sevDotEl.style.background = `rgba(${SPECIMEN},${(0.55 + 0.45 * tAlpha).toFixed(3)})`;
         labelEls.forEach((el, i) => {
           const m = metrics[i];
           const isActive = m === ma || m === mb;
@@ -422,13 +406,6 @@ export default function BiosignatureSphere() {
 
   return (
     <div className="overflow-hidden">
-      <div className="flex justify-center items-baseline gap-3 px-[22px] py-[18px]">
-        <p className="text-[11px] tracking-[0.14em] uppercase text-[color:var(--ink-soft)]">Your Biosignature</p>
-        <span className="text-[color:var(--specimen)] text-[9.5px] tracking-[0.08em] uppercase">
-          <span className="p-live-dot" />
-          Live
-        </span>
-      </div>
       <div className="relative">
         <canvas ref={canvasRef} className="block w-full h-auto" />
         <div ref={labelHostRef} className="absolute inset-0 pointer-events-none" />
@@ -436,7 +413,7 @@ export default function BiosignatureSphere() {
       <div className="px-[22px] py-3 text-[10.5px] text-[color:var(--ink-soft)] flex items-center justify-center gap-2 min-h-[38px]">
         <span ref={sevDotRef} className="w-1.5 h-1.5 rounded-full bg-[color:var(--specimen)] flex-shrink-0" />
         <span ref={tensionTextRef} className="transition-opacity duration-300">
-          Scanning for correlations&hellip;
+          Research compounds by chemical class
         </span>
       </div>
     </div>

@@ -9,7 +9,7 @@ function getClient(): SESv2Client {
   return client;
 }
 
-export async function sendLeadMagnetEmail(params: {
+export async function sendEmail(params: {
   to: string;
   subject: string;
   html: string;
