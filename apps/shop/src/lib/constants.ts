@@ -1,5 +1,3 @@
-// Only referenced by the unpublished guides in data/posts.ts.
-export const ENGINE_URL = "https://engine.auraprotocols.com";
 export const EXTERNAL_REL = "noopener noreferrer";
 
 // Research guides (/blog) are unpublished while they're rewritten as
