@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import TermsPage from "@/app/terms/page";
 import RefundPolicyPage from "@/app/refund-policy/page";
 import ShippingPage from "@/app/shipping/page";
+import PrivacyPage from "@/app/privacy/page";
 import { FLAT_SHIPPING_USD, FREE_SHIPPING_THRESHOLD_USD, SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
 
 function renderPolicy(ui: ReactElement) {
@@ -80,6 +81,24 @@ describe("/shipping", () => {
   it("links insurance to the refund policy", () => {
     const { container, text } = renderPolicy(<ShippingPage />);
     expect(container.querySelector('#insurance a[href="/refund-policy#transit-loss"]')).not.toBeNull();
+    expectNoLegacyReturns(text);
+  });
+});
+
+describe("/privacy", () => {
+  it("has the six sections in order", () => {
+    const { ids } = renderPolicy(<PrivacyPage />);
+    expect(ids).toEqual(["collect", "cookies", "use", "sharing", "retention", "choices"]);
+  });
+
+  it("covers accounts, Stripe and every service provider", () => {
+    const { container, text } = renderPolicy(<PrivacyPage />);
+    expect(container.querySelector("#collect")?.textContent).toMatch(/optional organization/i);
+    const sharing = container.querySelector("#sharing")?.textContent ?? "";
+    for (const provider of ["Vercel", "Supabase", "Amazon SES", "Stripe", "fulfillment partner", "carriers"]) {
+      expect(sharing).toContain(provider);
+    }
+    expect(container.querySelector("#cookies")?.textContent).toMatch(/sign-in session/i);
     expectNoLegacyReturns(text);
   });
 });
