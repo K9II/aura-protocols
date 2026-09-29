@@ -5,6 +5,7 @@ import TermsPage from "@/app/terms/page";
 import RefundPolicyPage from "@/app/refund-policy/page";
 import ShippingPage from "@/app/shipping/page";
 import PrivacyPage from "@/app/privacy/page";
+import RuoPage from "@/app/ruo/page";
 import { FLAT_SHIPPING_USD, FREE_SHIPPING_THRESHOLD_USD, SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
 
 function renderPolicy(ui: ReactElement) {
@@ -99,6 +100,19 @@ describe("/privacy", () => {
       expect(sharing).toContain(provider);
     }
     expect(container.querySelector("#cookies")?.textContent).toMatch(/sign-in session/i);
+    expectNoLegacyReturns(text);
+  });
+});
+
+describe("/ruo", () => {
+  it("has the four sections in order", () => {
+    const { ids } = renderPolicy(<RuoPage />);
+    expect(ids).toEqual(["meaning", "what-we-dont-do", "who-can-buy", "responsibility"]);
+  });
+
+  it("points buyers to the representations in the Terms", () => {
+    const { container, text } = renderPolicy(<RuoPage />);
+    expect(container.querySelector('#who-can-buy a[href="/terms#eligibility"]')).not.toBeNull();
     expectNoLegacyReturns(text);
   });
 });
