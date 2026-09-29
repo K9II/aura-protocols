@@ -22,7 +22,7 @@ export default function SiteNav() {
           <div className="s-nav-links">
             <Link href="/coa">COA Lookup</Link>
             <Link href="/wholesale">Wholesale</Link>
-            <Link href="/affiliates">Affiliates</Link>
+            <Link href="/affiliates">Affiliate Program</Link>
           </div>
           <div className="s-nav-actions">
             <Link href="/products" className="s-nav-shop">Shop</Link>

@@ -14,7 +14,7 @@ describe("SiteNav", () => {
     expect(screen.getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/products");
     expect(screen.getByRole("link", { name: "COA Lookup" })).toHaveAttribute("href", "/coa");
     expect(screen.getByRole("link", { name: "Wholesale" })).toHaveAttribute("href", "/wholesale");
-    expect(screen.getByRole("link", { name: "Affiliates" })).toHaveAttribute("href", "/affiliates");
+    expect(screen.getByRole("link", { name: "Affiliate Program" })).toHaveAttribute("href", "/affiliates");
     expect(screen.getByRole("button", { name: /cart \(0\)/i })).toBeInTheDocument();
     fireEvent.click(screen.getByText("add"));
     expect(screen.getByRole("button", { name: /cart \(2\)/i })).toBeInTheDocument();

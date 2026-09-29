@@ -29,7 +29,7 @@ export default function SiteFooter() {
             <li><Link href="/quality-standards">Quality Standards</Link></li>
             <li><Link href="/coa">COA Lookup</Link></li>
             <li><Link href="/wholesale">Wholesale</Link></li>
-            <li><Link href="/affiliates">Affiliates</Link></li>
+            <li><Link href="/affiliates">Affiliate Program</Link></li>
             <li><a href={`mailto:${SUPPORT_EMAIL}`}>Contact</a></li>
           </ul>
         </div>

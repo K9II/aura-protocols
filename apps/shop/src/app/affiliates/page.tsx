@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import InquiryForm from "@/components/store/InquiryForm";
 
 export const metadata: Metadata = {
-  title: "Affiliates",
+  title: "Affiliate Program",
   description: "Apply to the Aura Protocols partner program.",
   alternates: { canonical: "/affiliates" },
 };
