@@ -475,7 +475,8 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-nav-cart { font-size: 13px; background: none; border: 0; cursor: pointer; color: inherit; font-family: inherit; }
 @media (max-width: 640px) {
   .pharmacopoeia .s-nav { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "logo actions" "links links"; row-gap: 10px; }
-  .pharmacopoeia .s-nav-links { justify-self: center; gap: 12px; font-size: 11.5px; }
+  .pharmacopoeia .s-nav-links { justify-self: center; gap: 4px 12px; font-size: 11.5px; flex-wrap: wrap; justify-content: center; }
+  .pharmacopoeia .s-nav-links a { white-space: nowrap; }
   .pharmacopoeia .s-nav-actions { gap: 12px; }
   .pharmacopoeia .s-nav-shop { padding: 6px 10px; }
 }
