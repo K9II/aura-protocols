@@ -36,7 +36,7 @@ export default function HomePage() {
               <Link href="/coa" className="p-btn-outline">See the COAs</Link>
             </div>
             <div className="s-proof s-micro load-in load-5">
-              <span>99% purity floor</span><span>Lot-matched COAs</span><span>Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
+              <span>99% purity floor</span><span>Lot-matched COAs</span><span>Free at ${FREE_SHIPPING_THRESHOLD_USD}+</span>
             </div>
           </div>
           <div className="load-in load-5 s-hero-sphere">

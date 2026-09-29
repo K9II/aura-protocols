@@ -19,7 +19,7 @@ export default function RefundPolicyPage() {
       }}
       sections={[
         { id: "cancellations", heading: "Cancellations", body: (
-          <p>You may cancel any order for a full refund until it ships. Email {mail} with your order number; the refund goes back to your original payment method, usually within 5 business days (your bank may take longer to post it).</p>
+          <p>You may cancel any order for a full refund until it ships. Email {mail} with your order number; the refund goes back to your original payment method, usually within 5–10 business days depending on your bank.</p>
         ) },
         { id: "finality", heading: "Order finality", body: (
           <p>Once an order has shipped it cannot be cancelled, returned, or refunded. Research materials that have left our control can&apos;t be restocked or recertified, so we don&apos;t accept them back. You confirmed the items, quantities, and shipping address in your cart before paying.</p>
