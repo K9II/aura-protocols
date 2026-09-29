@@ -7,6 +7,7 @@ import Vial from "@/components/store/Vial";
 import SpecBoxes from "@/components/store/SpecBoxes";
 import VariantPicker from "@/components/store/VariantPicker";
 import CompoundCard from "@/components/store/CompoundCard";
+import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 const BASE_URL = "https://auraprotocols.com";
 
@@ -87,7 +88,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
             )}
             <VariantPicker compound={c} />
-            <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders over $200</div>
+            <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders of ${FREE_SHIPPING_THRESHOLD_USD} or more</div>
             <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
           </div>
         </section>

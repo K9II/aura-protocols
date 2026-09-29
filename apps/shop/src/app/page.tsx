@@ -4,6 +4,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import { compounds } from "@/data/catalog";
+import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 export const metadata: Metadata = {
   title: "Aura Protocols — Research Peptides, Certificate per Lot",
@@ -16,7 +17,7 @@ const featured = compounds.filter((c) => c.featured);
 const faq = [
   { q: "Are these for human use?", a: "No. Every compound is sold strictly for in-vitro laboratory research. Not for human or animal consumption, and not for medical, veterinary, or diagnostic use." },
   { q: "What's a COA, and where is it?", a: "A certificate of analysis is the independent lab report for a specific production lot — identity, purity, and method. Every product page links the certificate for the lot currently shipping, and you can look up any lot number on the COA Lookup page." },
-  { q: "How fast do you ship?", a: "Orders ship from the US with tracking. Shipping is free on orders over $200." },
+  { q: "How fast do you ship?", a: `Orders ship from the US with tracking. Shipping is free on orders of $${FREE_SHIPPING_THRESHOLD_USD} or more.` },
   { q: "What if a product says “COA pending”?", a: "The lot is still at the lab. The certificate is posted the day results come back." },
 ];
 
@@ -35,7 +36,7 @@ export default function HomePage() {
               <Link href="/coa" className="p-btn-outline">See the COAs</Link>
             </div>
             <div className="s-proof s-micro load-in load-5">
-              <span>99% purity floor</span><span>Lot-matched COAs</span><span>Free over $200</span>
+              <span>99% purity floor</span><span>Lot-matched COAs</span><span>Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
             </div>
           </div>
           <div className="load-in load-5 s-hero-sphere">
