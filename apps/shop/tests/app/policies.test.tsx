@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import TermsPage from "@/app/terms/page";
+import RefundPolicyPage from "@/app/refund-policy/page";
+import { SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
 
 function renderPolicy(ui: ReactElement) {
   const { container } = render(ui);
@@ -33,5 +35,22 @@ describe("/terms", () => {
   it("links finality to the transit-loss section of the refund policy", () => {
     const { container } = renderPolicy(<TermsPage />);
     expect(container.querySelector('#finality a[href="/refund-policy#transit-loss"]')).not.toBeNull();
+  });
+});
+
+describe("/refund-policy", () => {
+  it("has the five sections in order", () => {
+    const { ids } = renderPolicy(<RefundPolicyPage />);
+    expect(ids).toEqual(["cancellations", "finality", "transit-loss", "chargebacks", "questions"]);
+  });
+
+  it("is strict after shipment and replacement-only for transit claims", () => {
+    const { container, text } = renderPolicy(<RefundPolicyPage />);
+    const transit = container.querySelector("#transit-loss")?.textContent ?? "";
+    expect(transit).toContain(formatUsd(SHIPPING_INSURANCE_USD));
+    expect(transit).toMatch(/48 hours/);
+    expect(transit).toMatch(/no cash refunds/i);
+    expect(container.querySelector("#finality")?.textContent).toMatch(/cannot be cancelled, returned, or refunded/i);
+    expectNoLegacyReturns(text);
   });
 });
