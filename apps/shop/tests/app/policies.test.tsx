@@ -3,7 +3,8 @@ import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import TermsPage from "@/app/terms/page";
 import RefundPolicyPage from "@/app/refund-policy/page";
-import { SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
+import ShippingPage from "@/app/shipping/page";
+import { FLAT_SHIPPING_USD, FREE_SHIPPING_THRESHOLD_USD, SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
 
 function renderPolicy(ui: ReactElement) {
   const { container } = render(ui);
@@ -51,6 +52,34 @@ describe("/refund-policy", () => {
     expect(transit).toMatch(/48 hours/);
     expect(transit).toMatch(/no cash refunds/i);
     expect(container.querySelector("#finality")?.textContent).toMatch(/cannot be cancelled, returned, or refunded/i);
+    expectNoLegacyReturns(text);
+  });
+});
+
+describe("/shipping", () => {
+  it("has the six sections in order", () => {
+    const { ids } = renderPolicy(<ShippingPage />);
+    expect(ids).toEqual(["destinations", "cost", "dispatch", "tracking", "insurance", "handling"]);
+  });
+
+  it("shows costs from the constants", () => {
+    const { container } = renderPolicy(<ShippingPage />);
+    const cost = container.querySelector("#cost")?.textContent ?? "";
+    expect(cost).toContain(formatUsd(FLAT_SHIPPING_USD));
+    expect(cost).toContain(formatUsd(FREE_SHIPPING_THRESHOLD_USD));
+    expect(cost).toContain(formatUsd(SHIPPING_INSURANCE_USD));
+    expect(cost).toContain("$250");
+    expect(cost).toContain("$5.50");
+  });
+
+  it("makes no dispatch-time promise while the placeholder is null", () => {
+    const { container } = renderPolicy(<ShippingPage />);
+    expect(container.querySelector("#dispatch")?.textContent).not.toMatch(/business day/i);
+  });
+
+  it("links insurance to the refund policy", () => {
+    const { container, text } = renderPolicy(<ShippingPage />);
+    expect(container.querySelector('#insurance a[href="/refund-policy#transit-loss"]')).not.toBeNull();
     expectNoLegacyReturns(text);
   });
 });
