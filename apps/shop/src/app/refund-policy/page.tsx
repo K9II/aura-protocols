@@ -1,27 +1,43 @@
 import type { Metadata } from "next";
-import ProsePage from "@/components/store/ProsePage";
+import PolicyPage from "@/components/store/PolicyPage";
 import { SUPPORT_EMAIL } from "@/lib/constants";
+import { SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
 
 export const metadata: Metadata = { title: "Refund & Dispute Policy", alternates: { canonical: "/refund-policy" } };
 
+// Requires legal review before launch. The entry gate links here by name.
 export default function RefundPolicyPage() {
+  const mail = <a className="p-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>;
   return (
-    <ProsePage
-      eyebrow="Legal"
-      title="Refund & Dispute Policy"
-      updated="October 1, 2026"
-      intro={<p>You agreed to this policy when you entered the Site. It exists so problems get fixed quickly — by us, directly.</p>}
+    <PolicyPage
+      policy="refund-policy"
+      title={<>Refund &amp; <em>Dispute</em> Policy</>}
+      updated="October 2, 2026"
+      summary={{
+        headline: <>Cancel for a full refund until your order ships. After that, the sale is final.</>,
+        detail: <>Lost or damaged in transit? Shipping insurance covers a free replacement &mdash; report it within 48 hours of delivery.</>,
+      }}
       sections={[
-        { heading: "Contact us first", body: <p>Before filing a dispute or chargeback with your bank or card issuer, email <a className="p-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> with your order number. We reply within two business days and resolve most issues with a replacement or refund.</p> },
-        { heading: "What we replace or refund", body: (
+        { id: "cancellations", heading: "Cancellations", body: (
+          <p>You may cancel any order for a full refund until it ships. Email {mail} with your order number; the refund goes back to your original payment method, usually within 5–10 business days depending on your bank.</p>
+        ) },
+        { id: "finality", heading: "Order finality", body: (
+          <p>Once an order has shipped it cannot be cancelled, returned, or refunded. Research materials that have left our control can&apos;t be restocked or recertified, so we don&apos;t accept them back. You confirmed the items, quantities, and shipping address in your cart before paying.</p>
+        ) },
+        { id: "transit-loss", heading: "Transit loss and damage (shipping insurance)", body: (<>
+          <p>Every order includes {formatUsd(SHIPPING_INSURANCE_USD)} shipping insurance. It covers:</p>
           <ul className="list-disc pl-5 space-y-1.5">
-            <li>Damaged, missing, or incorrect items reported within 7 days of delivery.</li>
-            <li>Packages lost in transit, once the carrier confirms loss.</li>
-            <li>A product whose independent re-test does not match its lot certificate.</li>
-          </ul>) },
-        { heading: "What we can't accept back", body: <p>Opened or unsealed vials cannot be returned — we can&apos;t verify their handling. Unopened, sealed items may be returned within 14 days of delivery for a refund less original shipping.</p> },
-        { heading: "Refund timing", body: <p>Approved refunds go back to the original payment method within 5 business days; your bank may take longer to post them.</p> },
-        { heading: "Chargebacks", body: <p>If a dispute is filed without contacting us first, we will provide our records to the card issuer — including your order, delivery tracking, and your entry confirmation (age, research-use, and agreement to this policy).</p> },
+            <li><b>Lost packages</b> &mdash; once the carrier confirms the package is lost.</li>
+            <li><b>Damaged or incorrect items</b> &mdash; photograph the outer packaging, the inner packaging, and the vial labels, and email the photos with your order number to {mail} within 48 hours of the carrier&apos;s delivery time.</li>
+          </ul>
+          <p>Approved claims receive one replacement or reshipment of the affected items. Claims are settled by replacement only &mdash; no cash refunds.</p>
+        </>) },
+        { id: "chargebacks", heading: "Chargebacks", body: (
+          <p>You agreed at entry to contact us before filing a payment dispute &mdash; most problems are fixed within two business days. If a dispute is filed without contacting us first, we will send the card issuer our records: your order, the delivery tracking, this policy, and your timestamped entry and account agreements.</p>
+        ) },
+        { id: "questions", heading: "Questions before you order", body: (
+          <p>If anything about a product, quantity, shipping, or this policy is unclear, email {mail} before you place your order.</p>
+        ) },
       ]}
     />
   );

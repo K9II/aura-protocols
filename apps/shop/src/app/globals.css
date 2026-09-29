@@ -599,3 +599,26 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-chk a { color: var(--specimen); border-bottom: 1px solid rgba(163, 43, 31, .4); }
 .pharmacopoeia .s-gate input[type="email"] { width: 100%; box-sizing: border-box; border: 1px solid var(--ink); background: var(--paper); padding: 12px 14px; font: 14px Georgia, serif; margin: 6px 0 10px; color: var(--ink); }
 .pharmacopoeia .s-gate-error { color: var(--specimen); font-size: 13px; margin: 0 0 8px; }
+
+/* policy pages (layout B: sticky contents rail; stacks below 1024px) */
+.pharmacopoeia .s-policy-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 56px; align-items: start; }
+.pharmacopoeia .s-policy-rail { position: sticky; top: 140px; }
+.pharmacopoeia .s-policy-body { max-width: 720px; min-width: 0; }
+.pharmacopoeia .s-policy-summary { border: 1px solid var(--ink); background: var(--paper-deep); padding: 22px 24px; margin-bottom: 40px; }
+.pharmacopoeia .s-policy-section { padding: 28px 0; border-top: 1px solid var(--line); scroll-margin-top: 150px; }
+.pharmacopoeia .s-policy-closing { padding: 32px 0 0; border-top: 1px solid var(--ink); }
+.pharmacopoeia .s-pending { background: #F5D9D4; color: var(--ink); padding: 0 4px; }
+.pharmacopoeia .s-toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); font-size: 14px; }
+.pharmacopoeia .s-toc li { padding: 0 0 0 14px; margin-bottom: 8px; }
+.pharmacopoeia .s-toc li[data-active] { border-left: 2px solid var(--specimen); margin-left: -1px; padding-left: 13px; }
+.pharmacopoeia .s-toc a { color: var(--ink-soft); }
+.pharmacopoeia .s-toc a[aria-current] { color: var(--specimen); }
+.pharmacopoeia .s-toc-num { display: none; }
+@media (max-width: 1023px) {
+  .pharmacopoeia .s-policy-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .pharmacopoeia .s-policy-rail { position: static; margin-bottom: 40px; }
+  .pharmacopoeia .s-toc ol { border-left: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px 32px; font-size: 14.5px; }
+  .pharmacopoeia .s-toc li, .pharmacopoeia .s-toc li[data-active] { border-left: 0; margin: 0; padding: 0; }
+  .pharmacopoeia .s-toc a, .pharmacopoeia .s-toc a[aria-current] { color: var(--ink); }
+  .pharmacopoeia .s-toc-num { display: inline; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; color: var(--ink-soft); margin-right: 8px; }
+}

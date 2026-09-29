@@ -1,6 +1,6 @@
 // Client-safe gate constants. Bump TERMS_VERSION whenever Terms, the Refund &
 // Dispute Policy, or the gate wording changes — every visitor is re-gated.
-export const TERMS_VERSION = "2026-10-01";
+export const TERMS_VERSION = "2026-10-02";
 export const GATE_COOKIE = "aura_gate";       // HttpOnly, signed (audit token)
 export const GATE_HINT_COOKIE = "aura_gate_v"; // readable, terms version only
 export const GATE_MAX_AGE_S = 60 * 60 * 24 * 365;

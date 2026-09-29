@@ -1,6 +1,13 @@
 import { compounds as listedCompounds, type Compound } from "@/data/catalog";
 
-export const FREE_SHIPPING_THRESHOLD_USD = 200;
+// Shipping economics — the policy pages, cart and checkout all read these.
+export const FREE_SHIPPING_THRESHOLD_USD = 250;
+export const FLAT_SHIPPING_USD = 15;
+export const SHIPPING_INSURANCE_USD = 5.5; // charged on every order; covers transit loss/damage (replacement only)
+
+export function formatUsd(amount: number): string {
+  return Number.isInteger(amount) ? `$${amount}` : `$${amount.toFixed(2)}`;
+}
 
 export type CartLine = {
   slug: string;
