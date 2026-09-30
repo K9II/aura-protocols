@@ -38,6 +38,20 @@ describe("orders", () => {
     expect(deleteQ.calls.map(([m]) => m)).toContain("delete");
   });
 
+  it("createPendingOrder records the partner, discount, store credit and pre-computed tax", async () => {
+    const orderQ = query({ data: { id: "o1", order_number: "AP-1001" } });
+    from = fromQueue({ orders: [orderQ], order_items: [query({})] });
+    const { createPendingOrder } = await import("@/lib/orders");
+    await createPendingOrder({
+      customerId: "u1", email: "j@lab.org", ship, priced: { ...priced, partnerDiscountCents: 980, totalBeforeTaxCents: 10870 },
+      partner: { partnerId: "p1", attributedBy: "code" }, storeCreditCents: 5000, taxCents: 897, taxCalculationId: "taxcalc_1",
+    });
+    expect(callArgs(orderQ, "insert")?.[0]).toMatchObject({
+      partner_id: "p1", attributed_by: "code", partner_discount_cents: 980, store_credit_cents: 5000,
+      tax_cents: 897, total_cents: 10870 + 897, tax_calculation_id: "taxcalc_1",
+    });
+  });
+
   it("transitionOrder refuses illegal moves without touching the database", async () => {
     from = fromQueue({});
     const { transitionOrder } = await import("@/lib/orders");

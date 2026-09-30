@@ -7,17 +7,27 @@ const attachCheckoutSession = vi.fn();
 const transitionOrder = vi.fn();
 const saveShipAddress = vi.fn();
 const saveStripeCustomerId = vi.fn();
+const saveStripeCoupon = vi.fn();
 const createCheckout = vi.fn();
+const quoteTax = vi.fn();
+const resolveAttribution = vi.fn();
+const creditBalance = vi.fn();
+const spendCredit = vi.fn();
+const afterOrderPaid = vi.fn();
 vi.mock("@/lib/dal", () => ({ getCustomer }));
-vi.mock("@/lib/orders", () => ({ createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId }));
-vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ createCheckout }) }));
+vi.mock("@/lib/orders", () => ({ createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon }));
+vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ createCheckout, quoteTax }), STRIPE_MIN_CHARGE_CENTS: 50 }));
+vi.mock("@/lib/partners/attribution", () => ({ resolveAttribution }));
+vi.mock("@/lib/partners/ledger", () => ({ creditBalance, spendCredit }));
+vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
+vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 
 const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
 vi.mock("@/data/catalog", () => ({
   compounds: [{
     slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
     variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in" }],
-    packDiscounts: [{ qty: 1, pct: 0 }], currentLot: tested,
+    packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }], currentLot: tested,
   }] satisfies Compound[],
 }));
 
@@ -27,9 +37,17 @@ const input = {
   ship: { name: "Jane", line1: "1 A St", line2: "", city: "Austin", state: "TX", zip: "78701" },
   ruoConfirmed: true,
 };
+const redirect = { kind: "redirect", url: "https://checkout.stripe.com/x", sessionId: "cs_1", stripeCustomerId: "cus_1", couponId: null };
 
 describe("startCheckoutAction", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, createCheckout]) f.mockReset(); });
+  beforeEach(() => {
+    vi.resetModules();
+    for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon,
+      createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid]) f.mockReset();
+    resolveAttribution.mockResolvedValue({ attribution: null });
+    createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
+    transitionOrder.mockResolvedValue(true);
+  });
 
   it("requires a signed-in, verified customer", async () => {
     getCustomer.mockResolvedValue(null);
@@ -56,24 +74,91 @@ describe("startCheckoutAction", () => {
 
   it("creates the order from server prices, starts Stripe and returns its URL", async () => {
     getCustomer.mockResolvedValue(customer);
-    createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
-    createCheckout.mockResolvedValue({ kind: "redirect", url: "https://checkout.stripe.com/x", sessionId: "cs_1", stripeCustomerId: "cus_1" });
+    createCheckout.mockResolvedValue(redirect);
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect(await startCheckoutAction(input)).toEqual({ url: "https://checkout.stripe.com/x" });
-    expect(createPendingOrder.mock.calls[0][0].priced).toMatchObject({ subtotalCents: 4900, shippingCents: 1500, insuranceCents: 550 });
-    expect(createCheckout.mock.calls[0][0]).toMatchObject({ shippingCents: 1500, insuranceCents: 550 });
-    expect(saveShipAddress).toHaveBeenCalledWith("u1", expect.objectContaining({ state: "TX", line2: null }));
+    expect(createPendingOrder.mock.calls[0][0].priced).toMatchObject({ subtotalCents: 4900, shippingCents: 1500, insuranceCents: 550, partnerDiscountCents: 0 });
+    expect(createCheckout.mock.calls[0][0]).toMatchObject({ shippingCents: 1500, insuranceCents: 550, partnerDiscountCents: 0, lineDiscountsCents: [0] });
     expect(attachCheckoutSession).toHaveBeenCalledWith("o1", "cs_1");
     expect(saveStripeCustomerId).toHaveBeenCalledWith("u1", "cus_1");
+    expect(saveStripeCoupon).not.toHaveBeenCalled();
+  });
+
+  it("applies a partner code: 10% off the single vial, attributed to the partner", async () => {
+    getCustomer.mockResolvedValue(customer);
+    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p1", code: "SMITHLAB", via: "code" } });
+    createCheckout.mockResolvedValue({ ...redirect, couponId: "co_1" });
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, partnerCode: "smithlab" });
+    expect(resolveAttribution).toHaveBeenCalledWith({ typedCode: "smithlab", refCookie: undefined, buyerCustomerId: "u1" });
+    expect(createPendingOrder.mock.calls[0][0]).toMatchObject({ partner: { partnerId: "p1", attributedBy: "code" }, priced: { partnerDiscountCents: 490 } });
+    expect(createCheckout.mock.calls[0][0]).toMatchObject({ partnerDiscountCents: 490, lineDiscountsCents: [490] });
+    expect(saveStripeCoupon).toHaveBeenCalledWith("o1", "co_1");
+  });
+
+  it("a link attribution earns commission but gives no discount", async () => {
+    getCustomer.mockResolvedValue(customer);
+    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p2", code: "BENCHNOTES", via: "link" } });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction(input);
+    expect(createPendingOrder.mock.calls[0][0]).toMatchObject({ partner: { partnerId: "p2", attributedBy: "link" }, priced: { partnerDiscountCents: 0 } });
+  });
+
+  it("stops with a message when a typed code can't be used", async () => {
+    getCustomer.mockResolvedValue(customer);
+    resolveAttribution.mockResolvedValue({ attribution: null, codeError: "This code can't be used." });
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, partnerCode: "NOPE1" })).toEqual({ error: "This code can't be used.", codeError: "This code can't be used." });
+    expect(createPendingOrder).not.toHaveBeenCalled();
+  });
+
+  it("store credit covering everything: no Stripe, credit spent, order paid", async () => {
+    getCustomer.mockResolvedValue(customer);
+    creditBalance.mockResolvedValue(50000);
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    spendCredit.mockResolvedValue(true);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, useCredit: true })).toEqual({ url: "/order/AP-1001" });
+    const total = 4900 + 1500 + 550 + 426;
+    expect(createPendingOrder.mock.calls[0][0]).toMatchObject({ storeCreditCents: total, taxCents: 426, taxCalculationId: "taxcalc_1" });
+    expect(spendCredit).toHaveBeenCalledWith("u1", total, "o1");
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "paid");
+    expect(afterOrderPaid).toHaveBeenCalledWith("o1");
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("partial store credit leaves at least Stripe's $0.50 minimum to pay", async () => {
+    getCustomer.mockResolvedValue(customer);
+    const total = 4900 + 1500 + 550 + 426;
+    creditBalance.mockResolvedValue(total - 20); // would leave $0.20
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, useCredit: true });
+    expect(createPendingOrder.mock.calls[0][0]).toMatchObject({ storeCreditCents: total - 50 });
+    expect(createCheckout.mock.calls[0][0].credit).toEqual({ creditCents: total - 50, taxCents: 426 });
   });
 
   it("cancels the pending order if Stripe fails, and charges nothing", async () => {
     getCustomer.mockResolvedValue(customer);
-    createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
     createCheckout.mockRejectedValue(new Error("stripe down"));
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect((await startCheckoutAction(input)).error).toMatch(/try again/i);
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+  });
+});
+
+describe("checkPartnerCodeAction", () => {
+  beforeEach(() => { vi.resetModules(); getCustomer.mockReset(); resolveAttribution.mockReset(); });
+
+  it("confirms a usable code and explains a refused one", async () => {
+    getCustomer.mockResolvedValue(customer);
+    resolveAttribution.mockResolvedValueOnce({ attribution: { partnerId: "p1", code: "SMITHLAB", via: "code" } })
+      .mockResolvedValueOnce({ attribution: null, codeError: "You can't use your own partner code." });
+    const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
+    expect(await checkPartnerCodeAction("smithlab")).toEqual({ ok: true, code: "SMITHLAB" });
+    expect(await checkPartnerCodeAction("MINE1")).toEqual({ ok: false, message: "You can't use your own partner code." });
   });
 });

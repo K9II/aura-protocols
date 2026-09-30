@@ -12,6 +12,8 @@ export type OrderRow = {
   id: string; order_number: string; customer_id: string; email: string; status: OrderStatus;
   ship_name: string; ship_line1: string; ship_line2: string | null; ship_city: string; ship_state: string; ship_zip: string;
   subtotal_cents: number; shipping_cents: number; insurance_cents: number; tax_cents: number; total_cents: number;
+  partner_id: string | null; attributed_by: "code" | "link" | null; partner_discount_cents: number; store_credit_cents: number;
+  stripe_coupon_id: string | null; tax_calculation_id: string | null;
   ruo_confirmed_at: string; stripe_session_id: string | null; stripe_payment_intent: string | null;
   tracking_number: string | null; carrier: string | null;
   paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null;
@@ -27,14 +29,20 @@ const STAMP: Partial<Record<OrderStatus, keyof OrderRow>> = {
 
 export async function createPendingOrder(input: {
   customerId: string; email: string; ship: ShipAddress; priced: PricedOrder;
+  partner?: { partnerId: string; attributedBy: "code" | "link" } | null;
+  storeCreditCents?: number; taxCents?: number; taxCalculationId?: string | null;
 }): Promise<{ id: string; orderNumber: string }> {
   const { customerId, email, ship, priced } = input;
+  const taxCents = input.taxCents ?? 0;
   const now = new Date();
   const { data, error } = await db().from("orders").insert({
     customer_id: customerId, email, status: "awaiting_payment",
     ship_name: ship.name, ship_line1: ship.line1, ship_line2: ship.line2, ship_city: ship.city, ship_state: ship.state, ship_zip: ship.zip,
-    subtotal_cents: priced.subtotalCents, shipping_cents: priced.shippingCents, insurance_cents: priced.insuranceCents, tax_cents: 0,
-    total_cents: priced.totalBeforeTaxCents,
+    subtotal_cents: priced.subtotalCents, shipping_cents: priced.shippingCents, insurance_cents: priced.insuranceCents, tax_cents: taxCents,
+    total_cents: priced.totalBeforeTaxCents + taxCents,
+    partner_id: input.partner?.partnerId ?? null, attributed_by: input.partner?.attributedBy ?? null,
+    partner_discount_cents: priced.partnerDiscountCents, store_credit_cents: input.storeCreditCents ?? 0,
+    tax_calculation_id: input.taxCalculationId ?? null,
     ruo_confirmed_at: now.toISOString(),
     expires_at: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
   }).select("id, order_number").single();
@@ -50,6 +58,10 @@ export async function createPendingOrder(input: {
     throw new Error(`order_items insert failed: ${JSON.stringify(itemsError)}`);
   }
   return { id: order.id, orderNumber: order.order_number };
+}
+
+export async function saveStripeCoupon(orderId: string, couponId: string): Promise<void> {
+  await db().from("orders").update({ stripe_coupon_id: couponId }).eq("id", orderId);
 }
 
 export async function attachCheckoutSession(orderId: string, sessionId: string): Promise<void> {
