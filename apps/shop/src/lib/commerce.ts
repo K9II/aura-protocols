@@ -42,9 +42,12 @@ const stripeAdapter: CommerceAdapter = {
     // Stripe Tax uses the customer's shipping address, so it's set on the customer.
     let stripeCustomerId = req.customer.stripeCustomerId;
     if (stripeCustomerId) {
-      await stripe.customers.update(stripeCustomerId, { email: req.customer.email, shipping });
+      await stripe.customers.update(stripeCustomerId, { email: req.customer.email, name: req.customer.fullName, shipping });
     } else {
-      stripeCustomerId = (await stripe.customers.create({ email: req.customer.email, name: req.customer.fullName, shipping })).id;
+      stripeCustomerId = (await stripe.customers.create(
+        { email: req.customer.email, name: req.customer.fullName, shipping },
+        { idempotencyKey: `customer-create-${req.orderId}` },
+      )).id;
     }
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -84,7 +87,7 @@ const stripeAdapter: CommerceAdapter = {
       expires_at: Math.floor(Date.now() / 1000) + 23 * 3600,
       success_url: `${req.siteUrl}/order/${req.orderNumber}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.siteUrl}/checkout`,
-    });
+    }, { idempotencyKey: `checkout-session-${req.orderId}` });
     if (!session.url) throw new Error("Stripe returned no checkout URL");
     return { kind: "redirect", url: session.url, sessionId: session.id, stripeCustomerId };
   },

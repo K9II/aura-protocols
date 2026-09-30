@@ -33,10 +33,14 @@ describe("commerce adapter", () => {
     const { getCommerceAdapter } = await import("@/lib/commerce");
     const r = await getCommerceAdapter().createCheckout(req);
     expect(r).toEqual({ kind: "redirect", url: "https://checkout.stripe.com/c/cs_1", sessionId: "cs_1", stripeCustomerId: "cus_1" });
-    expect(customersCreate).toHaveBeenCalledWith(expect.objectContaining({
-      email: "j@lab.org", shipping: { name: "Jane", address: { line1: "1 A St", line2: undefined, city: "Austin", state: "TX", postal_code: "78701", country: "US" } },
-    }));
+    expect(customersCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "j@lab.org", shipping: { name: "Jane", address: { line1: "1 A St", line2: undefined, city: "Austin", state: "TX", postal_code: "78701", country: "US" } },
+      }),
+      { idempotencyKey: "customer-create-o1" },
+    );
     const params = sessionsCreate.mock.calls[0][0];
+    expect(sessionsCreate.mock.calls[0][1]).toEqual({ idempotencyKey: "checkout-session-o1" });
     expect(params).toMatchObject({
       mode: "payment", customer: "cus_1", client_reference_id: "AP-1001",
       metadata: { order_id: "o1" }, payment_intent_data: { metadata: { order_id: "o1" } },
@@ -58,6 +62,6 @@ describe("commerce adapter", () => {
     const { getCommerceAdapter } = await import("@/lib/commerce");
     await getCommerceAdapter().createCheckout({ ...req, customer: { ...req.customer, stripeCustomerId: "cus_9" } });
     expect(customersCreate).not.toHaveBeenCalled();
-    expect(customersUpdate).toHaveBeenCalledWith("cus_9", expect.objectContaining({ shipping: expect.any(Object) }));
+    expect(customersUpdate).toHaveBeenCalledWith("cus_9", expect.objectContaining({ name: "Jane", shipping: expect.any(Object) }));
   });
 });
