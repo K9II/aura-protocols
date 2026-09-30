@@ -75,6 +75,8 @@ describe("partners.sql", () => {
     }
     // Row locks guard the concurrent-update races these two functions exist to prevent.
     expect(reverseFn).toContain("for update");
+    // A refund then a chargeback (or vice versa) on the same paid order deducts only once.
+    expect(reverseFn).toContain("if exists (select 1 from commission_adjustments where order_id = p_order) then");
     expect(applyFn).toContain("for update");
   });
 

@@ -95,11 +95,15 @@ export type RunResult = { partnerId: string; cashCents: number; creditValueCents
 export type RunFailure = { partnerId: string; error: string };
 
 // One payout run per date (1st and 15th). A run that started but never
-// finished (finished_at null — e.g. the process died mid-run) is resumed
-// rather than skipped; a finished run is a true no-op. Each partner's share
-// is settled in its own DB transaction (apply_partner_payout in
-// partners.sql, called after computing the split here in TS); one
-// partner's failure is recorded and does not stop the others.
+// finished (finished_at null — e.g. the process died mid-run, or the prior
+// attempt had per-partner failures) is resumed rather than skipped; a
+// finished run is a true no-op. Each partner's share is settled in its own
+// DB transaction (apply_partner_payout in partners.sql, called after
+// computing the split here in TS); one partner's failure is recorded and
+// does not stop the others. If any partner failed, finished_at is left
+// null (only error is written) so a same-day rerun resumes and retries
+// just the failed partners — the successful ones are skipped because they
+// already have a payouts row for this run_date.
 export async function runPayouts(runDate: string): Promise<{ skipped: boolean; results: RunResult[]; failures: RunFailure[] }> {
   const { error: runError } = await db().from("payout_runs").insert({ run_date: runDate });
   if (runError) {
@@ -157,7 +161,11 @@ export async function runPayouts(runDate: string): Promise<{ skipped: boolean; r
   }
 
   const { error: finishError } = await db().from("payout_runs")
-    .update({ finished_at: new Date().toISOString(), error: failures.length ? JSON.stringify(failures).slice(0, 1000) : null })
+    .update(
+      failures.length > 0
+        ? { error: JSON.stringify(failures).slice(0, 1000) }
+        : { finished_at: new Date().toISOString(), error: null },
+    )
     .eq("run_date", runDate);
   if (finishError) throw dbError("payout run finish", finishError);
 

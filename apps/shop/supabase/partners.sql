@@ -174,6 +174,8 @@ revoke all on function record_partner_click(uuid) from public, anon, authenticat
 revoke all on function adjust_partner_lifetime(uuid, bigint) from public, anon, authenticated;
 revoke all on function spend_store_credit(uuid, integer, uuid) from public, anon, authenticated;
 
+-- Lock order below: apply_partner_payout takes partner->commissions; reverse/record_commission take commission->partner — a crossed run only ever deadlocks (Postgres aborts one side and both callers retry), never corrupts.
+
 -- Records a commission for an order exactly once, crediting the partner's
 -- lifetime sales in the same transaction. Returns whether a row was
 -- inserted (false when the order already has a commission).
@@ -198,7 +200,8 @@ end $$;
 -- Refund or chargeback for an order's commission. Unpaid commission is
 -- voided and leaves lifetime sales; already-paid commission becomes a
 -- one-time deduction on the next payout instead. Safe to call more than
--- once for the same order and reason.
+-- once for the same order — a refund followed by a chargeback (or vice
+-- versa) on the same paid order still deducts only once.
 create or replace function reverse_commission(p_order uuid, p_reason text) returns text language plpgsql security invoker
 set search_path = public, pg_temp as $$
 declare
@@ -213,6 +216,9 @@ begin
     return 'already';
   end if;
   if c.state = 'paid' then
+    if exists (select 1 from commission_adjustments where order_id = p_order) then
+      return 'already';
+    end if;
     insert into commission_adjustments (partner_id, order_id, amount_cents, reason)
       values (c.partner_id, p_order, -c.amount_cents, p_reason)
       on conflict (order_id, reason) do nothing;

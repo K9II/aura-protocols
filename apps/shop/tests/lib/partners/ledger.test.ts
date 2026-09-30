@@ -153,15 +153,14 @@ describe("partner ledger", () => {
     }));
   });
 
-  it("runPayouts isolates one partner's apply_partner_payout failure: others still process, the run still finishes", async () => {
+  it("runPayouts isolates one partner's apply_partner_payout failure: others still process, but finished_at stays null so the run can be retried", async () => {
     const runIns = query({});
     const runDone = query({});
-    const partnersSel = query({
-      data: [
-        { id: "p1", customer_id: "u1", payout_pref: "cash", split_cash_pct: 100, cash_carry_cents: 0, w9_checked_at: "2026-01-01T00:00:00.000Z", payout_method: "ach" },
-        { id: "p2", customer_id: "u2", payout_pref: "cash", split_cash_pct: 100, cash_carry_cents: 0, w9_checked_at: "2026-01-01T00:00:00.000Z", payout_method: "ach" },
-      ],
-    });
+    const PARTNERS_DATA = [
+      { id: "p1", customer_id: "u1", payout_pref: "cash", split_cash_pct: 100, cash_carry_cents: 0, w9_checked_at: "2026-01-01T00:00:00.000Z", payout_method: "ach" },
+      { id: "p2", customer_id: "u2", payout_pref: "cash", split_cash_pct: 100, cash_carry_cents: 0, w9_checked_at: "2026-01-01T00:00:00.000Z", payout_method: "ach" },
+    ];
+    const partnersSel = query({ data: PARTNERS_DATA });
     const donePayouts = query({ data: [] });
     const comm1 = query({ data: [{ id: "c1", amount_cents: 20000 }] });
     const adj1 = query({ data: [] });
@@ -178,6 +177,29 @@ describe("partner ledger", () => {
     expect(r.skipped).toBe(false);
     expect(r.failures).toEqual([{ partnerId: "p1", error: expect.stringContaining("apply_partner_payout") }]);
     expect(r.results).toEqual([{ partnerId: "p2", cashCents: 20000, creditValueCents: 0, carryCents: 0 }]);
-    expect(callArgs(runDone, "update")?.[0]).toMatchObject({ finished_at: expect.any(String), error: expect.stringContaining("p1") });
+    // finished_at is left unset (not just null-valued) so the row still reads as unfinished on a resume.
+    expect(callArgs(runDone, "update")?.[0]).toEqual({ error: expect.stringContaining("p1") });
+    expect(callArgs(runDone, "update")?.[0]).not.toHaveProperty("finished_at");
+
+    // A same-day rerun: the insert conflicts, finished_at reads back null, so it resumes.
+    // p2 already has a payouts row for this run_date and is skipped; only p1 is retried.
+    const rerunDup = query({ error: { code: "23505" } });
+    const rerunLookup = query({ data: { finished_at: null } });
+    const rerunFinish = query({});
+    const partnersSel2 = query({ data: PARTNERS_DATA });
+    const alreadyDone2 = query({ data: [{ partner_id: "p2" }] });
+    const comm1Retry = query({ data: [{ id: "c1", amount_cents: 20000 }] });
+    const adj1Retry = query({ data: [] });
+    from = fromQueue({
+      payout_runs: [rerunDup, rerunLookup, rerunFinish], partners: [partnersSel2], payouts: [alreadyDone2],
+      commissions: [comm1Retry], commission_adjustments: [adj1Retry],
+    });
+    rpc.mockReset();
+    rpc.mockResolvedValue({ data: null, error: null });
+    const r2 = await runPayouts("2026-10-15");
+    expect(r2.skipped).toBe(false);
+    expect(r2.failures).toEqual([]);
+    expect(r2.results).toEqual([{ partnerId: "p1", cashCents: 20000, creditValueCents: 0, carryCents: 0 }]);
+    expect(callArgs(rerunFinish, "update")?.[0]).toMatchObject({ finished_at: expect.any(String), error: null });
   });
 });
