@@ -16,6 +16,7 @@ vi.mock("next/navigation", () => ({ redirect: (u: string) => { throw new Error(`
 function fd(v: Record<string, string>) { const f = new FormData(); for (const [k, x] of Object.entries(v)) f.set(k, x); return f; }
 const valid = { partnerType: "academic_researcher", ch_youtube: "on", h_youtube: "youtube.com/@smithlab", audienceSize: "5k_25k", promotion: "Monthly newsletter", agree: "on" };
 const customer = { id: "u1", email: "sam@smithlab.org", emailConfirmed: true, fullName: "Sam Smith" };
+const unverified = { ...customer, emailConfirmed: false };
 
 describe("applyPartnerAction", () => {
   beforeEach(() => { vi.resetModules(); for (const f of [getCustomer, isCodeTaken, createApplication, issueCode, alertOwner, sendOrAlert]) f.mockReset(); isCodeTaken.mockResolvedValue(false); issueCode.mockResolvedValue("K7M2Q9XP"); });
@@ -24,6 +25,13 @@ describe("applyPartnerAction", () => {
     getCustomer.mockResolvedValue(null);
     const { applyPartnerAction } = await import("@/app/partners/actions");
     expect((await applyPartnerAction(undefined, fd(valid)))?.error).toMatch(/sign in/i);
+  });
+
+  it("requires a verified email", async () => {
+    getCustomer.mockResolvedValue(unverified);
+    const { applyPartnerAction } = await import("@/app/partners/actions");
+    expect((await applyPartnerAction(undefined, fd(valid)))?.error).toBe("Please verify your email first — check your inbox for the link.");
+    expect(createApplication).not.toHaveBeenCalled();
   });
 
   it("rejects a missing agreement and unknown types", async () => {
@@ -75,10 +83,29 @@ describe("applyPartnerAction", () => {
     await expect(applyPartnerAction(undefined, fd(valid))).rejects.toThrow("REDIRECT:/partners");
     expect(createApplication.mock.calls[1][0].code).toBe("H3NQ8TWD");
   });
+
+  it("sends an already-applied race straight to the dashboard, without retrying the code", async () => {
+    getCustomer.mockResolvedValue(customer);
+    createApplication.mockResolvedValue({ error: "already_applied" });
+    const { applyPartnerAction } = await import("@/app/partners/actions");
+    await expect(applyPartnerAction(undefined, fd(valid))).rejects.toThrow("REDIRECT:/partners");
+    expect(issueCode).toHaveBeenCalledTimes(1);
+    expect(createApplication).toHaveBeenCalledTimes(1);
+    expect(sendOrAlert).not.toHaveBeenCalled();
+  });
 });
 
 describe("checkCodeAvailableAction", () => {
-  beforeEach(() => { vi.resetModules(); isCodeTaken.mockReset(); });
+  beforeEach(() => { vi.resetModules(); getCustomer.mockReset(); isCodeTaken.mockReset(); getCustomer.mockResolvedValue(customer); });
+
+  it("requires a signed-in customer with a verified email", async () => {
+    getCustomer.mockResolvedValue(null);
+    const { checkCodeAvailableAction } = await import("@/app/partners/actions");
+    expect(await checkCodeAvailableAction("smithlab")).toEqual({ ok: false, message: "Please sign in." });
+    getCustomer.mockResolvedValue(unverified);
+    expect(await checkCodeAvailableAction("smithlab")).toEqual({ ok: false, message: "Please verify your email first — check your inbox for the link." });
+  });
+
   it("explains why a code can't be used", async () => {
     const { checkCodeAvailableAction } = await import("@/app/partners/actions");
     expect(await checkCodeAvailableAction("ab")).toEqual({ ok: false, message: "Use 3–20 letters or numbers." });

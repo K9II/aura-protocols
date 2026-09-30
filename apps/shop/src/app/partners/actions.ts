@@ -39,6 +39,9 @@ function readChannels(form: FormData): Pick<PartnerApplication, "channels" | "ot
 }
 
 export async function checkCodeAvailableAction(raw: string): Promise<{ ok: true; code: string } | { ok: false; message: string }> {
+  const customer = await getCustomer();
+  if (!customer) return { ok: false, message: "Please sign in." };
+  if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link." };
   const check = validateCode(String(raw));
   if (!check.ok) return { ok: false, message: CODE_REASON_TEXT[check.reason] };
   if (await isCodeTaken(check.code)) return { ok: false, message: CODE_REASON_TEXT.taken };
@@ -48,6 +51,7 @@ export async function checkCodeAvailableAction(raw: string): Promise<{ ok: true;
 export async function applyPartnerAction(_prev: ApplyState, form: FormData): Promise<ApplyState> {
   const customer = await getCustomer();
   if (!customer) return { error: "Please sign in to apply." };
+  if (!customer.emailConfirmed) return { error: "Please verify your email first — check your inbox for the link." };
   const parsed = applySchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: "Please choose what you're applying as, fill in every field and accept the Partner Agreement." };
   const { partnerType, audienceSize, promotion } = parsed.data;

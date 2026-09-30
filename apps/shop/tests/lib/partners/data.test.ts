@@ -27,8 +27,27 @@ describe("partner data", () => {
     from = fromQueue({ partners: [query({ data: { id: "p0" } })] });
     const { createApplication } = await import("@/lib/partners/data");
     expect(await createApplication({ customerId: "u1", partnerType: "podcaster", code: "X1X", application, agreement })).toEqual({ error: "already_applied" });
-    from = fromQueue({ partners: [query({ data: null }), query({ error: { code: "23505" } })] });
+    from = fromQueue({ partners: [query({ data: null }), query({ error: { code: "23505" } }), query({ data: null })] });
     expect(await createApplication({ customerId: "u2", partnerType: "podcaster", code: "TAKEN", application, agreement })).toEqual({ error: "code_taken" });
+  });
+
+  it("createApplication treats a 23505 raced against the same customer as already_applied, not code_taken", async () => {
+    from = fromQueue({ partners: [query({ data: null }), query({ error: { code: "23505" } }), query({ data: { id: "p9" } })] });
+    const { createApplication } = await import("@/lib/partners/data");
+    expect(await createApplication({ customerId: "u3", partnerType: "podcaster", code: "X1X", application, agreement })).toEqual({ error: "already_applied" });
+  });
+
+  it("createApplication deletes the partner row and throws if recording the agreement fails", async () => {
+    const existing = query({ data: null });
+    const insertP = query({ data: { id: "p1" } });
+    const insertA = query({ error: { message: "boom" } });
+    const del = query({});
+    from = fromQueue({ partners: [existing, insertP, del], partner_agreements: [insertA] });
+    const { createApplication } = await import("@/lib/partners/data");
+    await expect(createApplication({ customerId: "u1", partnerType: "academic_researcher", code: "SMITHLAB", application, agreement }))
+      .rejects.toThrow("partner agreement insert failed");
+    expect(callArgs(del, "delete")).toEqual([]);
+    expect(del.calls.some(([m, a]) => m === "eq" && a[0] === "id" && a[1] === "p1")).toBe(true);
   });
 
   it("getApprovedPartnerByCode only returns approved partners, by normalized code", async () => {

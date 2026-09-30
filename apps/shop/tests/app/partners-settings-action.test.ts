@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const requireApprovedPartner = vi.fn();
+const getCustomer = vi.fn();
 const setPayoutPref = vi.fn();
 const setPayoutMethod = vi.fn();
 const uploadW9 = vi.fn();
 const changeCode = vi.fn();
 const isCodeTaken = vi.fn();
 const sendOrAlert = vi.fn();
-vi.mock("@/lib/dal", () => ({ requireApprovedPartner, getCustomer: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requireApprovedPartner, getCustomer }));
 vi.mock("@/lib/partners/data", () => ({ setPayoutPref, setPayoutMethod, uploadW9, changeCode, isCodeTaken, createApplication: vi.fn(), issueCode: vi.fn() }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner: vi.fn(), alertAddress: () => "owner@example.com" }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -17,7 +18,15 @@ function fd(v: Record<string, string | File>) { const f = new FormData(); for (c
 const partner = { id: "p1", code: "SMITHLAB", status: "approved" };
 
 describe("partner settings actions", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [requireApprovedPartner, setPayoutPref, setPayoutMethod, uploadW9, changeCode, isCodeTaken, sendOrAlert]) f.mockReset(); requireApprovedPartner.mockResolvedValue({ customer: { id: "u1" }, partner }); isCodeTaken.mockResolvedValue(false); changeCode.mockResolvedValue({ ok: true }); });
+  beforeEach(() => {
+    vi.resetModules();
+    for (const f of [requireApprovedPartner, getCustomer, setPayoutPref, setPayoutMethod, uploadW9, changeCode, isCodeTaken, sendOrAlert]) f.mockReset();
+    requireApprovedPartner.mockResolvedValue({ customer: { id: "u1" }, partner });
+    // changeCodeAction reuses checkCodeAvailableAction, which itself now requires a signed-in, verified customer.
+    getCustomer.mockResolvedValue({ id: "u1", email: "sam@smithlab.org", emailConfirmed: true, fullName: "Sam Smith" });
+    isCodeTaken.mockResolvedValue(false);
+    changeCode.mockResolvedValue({ ok: true });
+  });
 
   it("changes the code, keeping the old one working", async () => {
     const { changeCodeAction } = await import("@/app/partners/actions");

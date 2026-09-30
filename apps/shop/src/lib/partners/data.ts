@@ -89,13 +89,23 @@ export async function createApplication(input: {
     code: normalizeCode(input.code), application: input.application,
   }).select("id").single();
   if (error) {
-    if ((error as { code?: string }).code === "23505") return { error: "code_taken" };
+    if ((error as { code?: string }).code === "23505") {
+      // Two constraints share 23505: a second concurrent application from this
+      // customer, or the code colliding with another partner's. Re-check which.
+      const { data: raced } = await db().from("partners").select("id").eq("customer_id", input.customerId).maybeSingle();
+      return raced ? { error: "already_applied" } : { error: "code_taken" };
+    }
     throw new Error(`partner insert failed: ${JSON.stringify(error)}`);
   }
   const id = (data as { id: string }).id;
-  await db().from("partner_agreements").insert({
+  const { error: agreementError } = await db().from("partner_agreements").insert({
     partner_id: id, version: input.agreement.version, ip_hash: input.agreement.ipHash, user_agent: input.agreement.userAgent,
   });
+  if (agreementError) {
+    // No application may exist without its recorded agreement.
+    await db().from("partners").delete().eq("id", id);
+    throw new Error(`partner agreement insert failed: ${JSON.stringify(agreementError)}`);
+  }
   return { id };
 }
 

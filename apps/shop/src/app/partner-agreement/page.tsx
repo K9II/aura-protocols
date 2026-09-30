@@ -12,8 +12,8 @@ export default function PartnerAgreementPage() {
     <ProsePage
       eyebrow="Legal"
       title={<>Partner <em>Agreement.</em></>}
-      updated={`Version ${PARTNER_AGREEMENT_VERSION}`}
-      intro={<p>This agreement governs the Aura Protocols partner program between you and Aura Protocols LLC. It sits alongside our <Link className="p-link" href="/terms">Terms of Service</Link>, which also apply to you.</p>}
+      updated="October 2, 2026"
+      intro={<p>This agreement (version {PARTNER_AGREEMENT_VERSION}) governs the Aura Protocols partner program between you and Aura Protocols LLC. It sits alongside our <Link className="p-link" href="/terms">Terms of Service</Link>, which also apply to you.</p>}
       sections={[
         { heading: "Joining", body: <p>You apply with an Aura account. We review every application and may approve or decline it for any reason. We issue your code, and it works only once you are approved. You can change it from your dashboard; codes you used before keep crediting you.</p> },
         { heading: "Your code and link", body: <p>Customers who use your code save 10% on items that don&apos;t already carry a larger pack discount; only one discount applies to each item. A click on your link credits you for orders placed within 60 days. A code typed at checkout always takes priority over a link. You never earn on your own orders.</p> },
