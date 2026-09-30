@@ -235,4 +235,10 @@ describe("partner ledger", () => {
     from = fromQueue({ commissions: [query({ error: { message: "down" } })] });
     await expect(sweepShippedCommissions()).rejects.toThrow(/sweep shipped commissions/);
   });
+
+  it("payableByPartner totals payable commission per partner", async () => {
+    from = fromQueue({ commissions: [query({ data: [{ partner_id: "p1", amount_cents: 4410 }, { partner_id: "p1", amount_cents: 1000 }, { partner_id: "p2", amount_cents: 212 }] })] });
+    const { payableByPartner } = await import("@/lib/partners/ledger");
+    expect(await payableByPartner()).toEqual({ p1: 5410, p2: 212 });
+  });
 });

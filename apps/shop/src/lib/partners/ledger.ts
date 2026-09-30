@@ -235,6 +235,13 @@ export async function latestRunSummary(): Promise<{ runDate: string; creditCents
   return { runDate, creditCents: rows.reduce((s, r) => s + r.credit_cents, 0), creditPartners: rows.length };
 }
 
+export async function payableByPartner(): Promise<Record<string, number>> {
+  const { data } = await db().from("commissions").select("partner_id, amount_cents").eq("state", "payable");
+  const out: Record<string, number> = {};
+  for (const r of (data as { partner_id: string; amount_cents: number }[] | null) ?? []) out[r.partner_id] = (out[r.partner_id] ?? 0) + r.amount_cents;
+  return out;
+}
+
 export async function partnerLedger(partnerId: string): Promise<{
   byState: Record<CommissionState, number>; recent: CommissionRow[]; payouts: PayoutRow[]; ordersLast30: number;
 }> {
