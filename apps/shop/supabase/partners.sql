@@ -60,10 +60,8 @@ alter table orders add column if not exists attributed_by text check (attributed
 alter table orders add column if not exists partner_discount_cents integer not null default 0 check (partner_discount_cents >= 0);
 alter table orders add column if not exists store_credit_cents integer not null default 0 check (store_credit_cents >= 0);
 alter table orders add column if not exists stripe_coupon_id text;
--- Holds the Stripe Tax calculation id up to payment, then is repointed to
--- the created Tax transaction id (order-paid.ts) so a later full refund can
--- reverse it (stripe-events.ts).
 alter table orders add column if not exists tax_calculation_id text;
+alter table orders add column if not exists tax_transaction_id text;
 create index if not exists orders_partner_idx on orders (partner_id, created_at desc);
 
 create table if not exists payout_runs (
@@ -215,14 +213,21 @@ create trigger release_credit_on_cancel after update of status on orders
 
 -- Records a commission for an order exactly once, crediting the partner's
 -- lifetime sales in the same transaction. Returns whether a row was
--- inserted (false when the order already has a commission).
+-- inserted (false when the order already has a commission, or the order's
+-- current status is not paid or shipped — a race with a refund/cancel/
+-- chargeback that lands before this call must never create a commission).
 create or replace function record_commission(
   p_order uuid, p_partner uuid, p_base_cents integer, p_pct integer, p_amount_cents integer, p_attributed_by text
 ) returns boolean language plpgsql security invoker
 set search_path = public, pg_temp as $$
 declare
   v_count integer;
+  v_status text;
 begin
+  select status into v_status from orders where id = p_order for update;
+  if v_status is null or v_status not in ('paid', 'shipped') then
+    return false;
+  end if;
   insert into commissions (partner_id, order_id, attributed_by, base_cents, rate_pct, amount_cents, state)
     values (p_partner, p_order, p_attributed_by, p_base_cents, p_pct, p_amount_cents, 'pending')
     on conflict (order_id) do nothing;

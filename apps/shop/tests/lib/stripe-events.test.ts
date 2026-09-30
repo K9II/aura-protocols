@@ -17,7 +17,7 @@ vi.mock("@/lib/partners/ledger", () => ({ reverseCommission, refundCredit }));
 
 const order = (status: string, over: Record<string, unknown> = {}) => ({ id: "o1", order_number: "AP-1001", customer_id: "u1", email: "j@lab.org", status, order_items: [], total_cents: 11850,
   ship_name: "J", ship_line1: "1", ship_line2: null, ship_city: "A", ship_state: "TX", ship_zip: "78701", subtotal_cents: 9800, shipping_cents: 1500, insurance_cents: 550, tax_cents: 0,
-  store_credit_cents: 0, tax_calculation_id: null, ...over });
+  store_credit_cents: 0, tax_calculation_id: null, tax_transaction_id: null, ...over });
 const session = (over: Record<string, unknown> = {}) => ({ object: "checkout.session", id: "cs_1", metadata: { order_id: "o1" }, payment_status: "paid",
   amount_total: 12658, total_details: { amount_tax: 808 }, payment_intent: "pi_1", ...over });
 const ev = (type: string, object: unknown) => ({ id: "evt_1", type, data: { object } }) as never;
@@ -89,18 +89,35 @@ describe("handleStripeEvent", () => {
   });
 
   it("full refund of a store-credit order reverses its recorded tax transaction", async () => {
-    getOrderByPaymentIntent.mockResolvedValue(order("shipped", { tax_calculation_id: "tax_txn_1" }));
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped", { tax_transaction_id: "tax_txn_1" }));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
     expect(reverseTax).toHaveBeenCalledWith("tax_txn_1");
   });
 
-  it("a failed tax reversal alerts the owner and does not throw", async () => {
-    getOrderByPaymentIntent.mockResolvedValue(order("shipped", { tax_calculation_id: "tax_txn_1" }));
+  it("does not reverse tax when only the (spent) calculation id is set, not a recorded transaction id", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped", { tax_calculation_id: "taxcalc_1", tax_transaction_id: null }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
+    expect(reverseTax).not.toHaveBeenCalled();
+  });
+
+  it("a failed tax reversal alerts the owner by name and does not throw", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped", { tax_transaction_id: "tax_txn_1" }));
     reverseTax.mockRejectedValue(new Error("stripe down"));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await expect(handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }))).resolves.toBeUndefined();
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Tax transaction not reversed"), expect.stringContaining("AP-1001"));
+    expect(alertOwner).toHaveBeenCalledWith("Tax transaction not reversed for AP-1001", expect.stringContaining("stripe down"));
+  });
+
+  it("a failed commission reversal alerts by name and still runs the credit and tax steps", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped", { store_credit_cents: 5000, tax_transaction_id: "tax_txn_1" }));
+    reverseCommission.mockRejectedValue(new Error("db down"));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await expect(handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }))).resolves.toBeUndefined();
+    expect(alertOwner).toHaveBeenCalledWith("Commission not reversed for AP-1001", expect.stringContaining("db down"));
+    expect(refundCredit).toHaveBeenCalledWith("u1", 5000, "o1");
+    expect(reverseTax).toHaveBeenCalledWith("tax_txn_1");
   });
 
   it("a partial refund leaves the order and its commission untouched", async () => {
@@ -110,6 +127,16 @@ describe("handleStripeEvent", () => {
     expect(transitionOrder).not.toHaveBeenCalled();
     expect(reverseCommission).not.toHaveBeenCalled();
     expect(reverseTax).not.toHaveBeenCalled();
+  });
+
+  it("a retried refund event on an already-refunded order still runs the idempotent follow-up steps", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("refunded", { store_credit_cents: 5000, tax_transaction_id: "tax_txn_1" }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(reverseCommission).toHaveBeenCalledWith("o1", "refund");
+    expect(refundCredit).toHaveBeenCalledWith("u1", 5000, "o1");
+    expect(reverseTax).toHaveBeenCalledWith("tax_txn_1");
   });
 
   it("chargeback opened → commission reversed and the owner alerted; order status unchanged", async () => {

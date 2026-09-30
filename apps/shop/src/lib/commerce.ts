@@ -162,7 +162,8 @@ const stripeAdapter: CommerceAdapter = {
     } catch (err) {
       // Stripe rejects a reference it has already recorded a transaction
       // under (e.g. a retried afterOrderPaid) — that's already a success.
-      if (err instanceof Error && /already/i.test(err.message)) return null;
+      const stripeErr = err as { type?: string; message?: string };
+      if (stripeErr.type === "StripeInvalidRequestError" && /already/i.test(stripeErr.message ?? "")) return null;
       throw err;
     }
   },

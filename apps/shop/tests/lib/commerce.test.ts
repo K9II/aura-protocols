@@ -140,16 +140,23 @@ describe("commerce adapter", () => {
 
   it("treats a Stripe rejection for an already-recorded reference as success", async () => {
     process.env.STRIPE_SECRET_KEY = "sk_test_x";
-    taxTxCreate.mockRejectedValue(new Error("A transaction with reference 'AP-1001' already exists."));
+    taxTxCreate.mockRejectedValue(Object.assign(new Error("A transaction with reference 'AP-1001' already exists."), { type: "StripeInvalidRequestError" }));
     const { getCommerceAdapter } = await import("@/lib/commerce");
     await expect(getCommerceAdapter().recordTax("taxcalc_1", "AP-1001")).resolves.toBeNull();
   });
 
   it("lets a genuine Stripe error from recordTax propagate", async () => {
     process.env.STRIPE_SECRET_KEY = "sk_test_x";
-    taxTxCreate.mockRejectedValue(new Error("calculation has expired"));
+    taxTxCreate.mockRejectedValue(Object.assign(new Error("calculation has expired"), { type: "StripeInvalidRequestError" }));
     const { getCommerceAdapter } = await import("@/lib/commerce");
     await expect(getCommerceAdapter().recordTax("taxcalc_1", "AP-1001")).rejects.toThrow("calculation has expired");
+  });
+
+  it("does not treat a non-Stripe error mentioning \"already\" as a duplicate reference", async () => {
+    process.env.STRIPE_SECRET_KEY = "sk_test_x";
+    taxTxCreate.mockRejectedValue(new Error("network already closed"));
+    const { getCommerceAdapter } = await import("@/lib/commerce");
+    await expect(getCommerceAdapter().recordTax("taxcalc_1", "AP-1001")).rejects.toThrow("network already closed");
   });
 
   it("reverses a recorded tax transaction in full", async () => {

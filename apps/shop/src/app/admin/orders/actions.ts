@@ -5,7 +5,7 @@ import { z } from "zod";
 import { requireOwner } from "@/lib/dal";
 import { getOrderById, transitionOrder } from "@/lib/orders";
 import { CARRIERS, shippedEmail } from "@/lib/emails";
-import { sendOrAlert } from "@/lib/notify";
+import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { markCommissionClearing } from "@/lib/partners/ledger";
 
 const schema = z.object({
@@ -22,7 +22,11 @@ export async function markShippedAction(form: FormData): Promise<void> {
   const order = await getOrderById(orderId);
   if (!order || order.status !== "paid") return;
   if (await transitionOrder(orderId, "paid", "shipped", { tracking_number: tracking, carrier })) {
-    await markCommissionClearing(orderId, new Date().toISOString());
+    try {
+      await markCommissionClearing(orderId, new Date().toISOString());
+    } catch (err) {
+      await alertOwner(`Commission not cleared for ${order.order_number}`, String(err));
+    }
     const shipped = (await getOrderById(orderId)) ?? { ...order, tracking_number: tracking, carrier };
     await sendOrAlert({ to: shipped.email, ...shippedEmail(shipped) }, `shipped ${shipped.order_number}`);
   }

@@ -13,7 +13,7 @@ export type OrderRow = {
   ship_name: string; ship_line1: string; ship_line2: string | null; ship_city: string; ship_state: string; ship_zip: string;
   subtotal_cents: number; shipping_cents: number; insurance_cents: number; tax_cents: number; total_cents: number;
   partner_id: string | null; attributed_by: "code" | "link" | null; partner_discount_cents: number; store_credit_cents: number;
-  stripe_coupon_id: string | null; tax_calculation_id: string | null;
+  stripe_coupon_id: string | null; tax_calculation_id: string | null; tax_transaction_id: string | null;
   ruo_confirmed_at: string; stripe_session_id: string | null; stripe_payment_intent: string | null;
   tracking_number: string | null; carrier: string | null;
   paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null;
@@ -64,11 +64,11 @@ export async function saveStripeCoupon(orderId: string, couponId: string): Promi
   await db().from("orders").update({ stripe_coupon_id: couponId }).eq("id", orderId);
 }
 
-// After the tax is recorded as a Stripe Tax transaction, tax_calculation_id
-// is repointed from the (now-spent) calculation id to the transaction id so
-// a later full refund can reverse the right object.
+// Records the Stripe Tax transaction id once it's created, so a later full
+// refund can reverse it. tax_calculation_id is left alone.
 export async function saveTaxTransactionId(orderId: string, transactionId: string): Promise<void> {
-  await db().from("orders").update({ tax_calculation_id: transactionId }).eq("id", orderId);
+  const { error } = await db().from("orders").update({ tax_transaction_id: transactionId }).eq("id", orderId);
+  if (error) throw new Error(`save tax transaction id failed: ${JSON.stringify(error)}`);
 }
 
 export async function attachCheckoutSession(orderId: string, sessionId: string): Promise<void> {
