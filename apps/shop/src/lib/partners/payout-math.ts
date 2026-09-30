@@ -10,10 +10,17 @@ export function splitPayout(i: {
 }): { cashCents: number; creditValueCents: number; newCarryCents: number } {
   let available = i.netCents;
   let carry = i.carryCents;
-  if (carry < 0 || available <= 0) {
-    // Settle negatives first; nothing is paid while the balance is negative.
+  if (available <= 0) {
+    // This run earned nothing new (or a deduction). Carry is cash-only: pay
+    // it now if it's already payable, otherwise just carry the combined balance.
+    const combined = carry + available;
+    if (combined >= CASH_MIN_CENTS && i.w9Checked) return { cashCents: combined, creditValueCents: 0, newCarryCents: 0 };
+    return { cashCents: 0, creditValueCents: 0, newCarryCents: combined };
+  }
+  if (carry < 0) {
+    // Settle negative carry first; nothing is paid while the balance is negative.
     const combined = available + carry;
-    if (combined <= 0 || available <= 0) return { cashCents: 0, creditValueCents: 0, newCarryCents: combined };
+    if (combined <= 0) return { cashCents: 0, creditValueCents: 0, newCarryCents: combined };
     available = combined;
     carry = 0;
   }

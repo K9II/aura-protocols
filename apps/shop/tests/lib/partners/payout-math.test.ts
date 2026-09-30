@@ -34,4 +34,11 @@ describe("splitPayout", () => {
   it("carries a negative net (deductions larger than earnings)", () => {
     expect(splitPayout({ ...base, netCents: -1200, carryCents: 3000 })).toEqual({ cashCents: 0, creditValueCents: 0, newCarryCents: 1800 });
   });
+
+  it("pays an already-payable carry even when this run's net is zero or negative", () => {
+    expect(splitPayout({ ...base, netCents: -500, carryCents: 50000 })).toEqual({ cashCents: 49500, creditValueCents: 0, newCarryCents: 0 });
+    expect(splitPayout({ ...base, netCents: -500, carryCents: 50000, w9Checked: false })).toEqual({ cashCents: 0, creditValueCents: 0, newCarryCents: 49500 });
+    expect(splitPayout({ ...base, netCents: 0, carryCents: 12000 })).toEqual({ cashCents: 12000, creditValueCents: 0, newCarryCents: 0 });
+    expect(splitPayout({ ...base, netCents: -5000, carryCents: 3000 })).toEqual({ cashCents: 0, creditValueCents: 0, newCarryCents: -2000 });
+  });
 });
