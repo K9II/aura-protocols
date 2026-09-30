@@ -25,6 +25,7 @@ describe("GET /api/cron/partners-daily", () => {
     clearDueCommissions.mockResolvedValue(3);
     listUnfinishedPayoutRuns.mockResolvedValue([]);
     sweepShippedCommissions.mockResolvedValue({ swept: 0, errors: [] });
+    listQueuedPayouts.mockResolvedValue([]);
   });
   afterEach(() => vi.useRealTimers());
 
@@ -73,8 +74,21 @@ describe("GET /api/cron/partners-daily", () => {
     const body = await (await GET(get("Bearer s3cret"))).json();
     expect(listUnfinishedPayoutRuns).toHaveBeenCalledWith("2026-10-07");
     expect(runPayouts).toHaveBeenCalledWith("2026-09-15");
-    expect(body.resumed).toEqual([{ runDate: "2026-09-15", partners: 1, failures: 0 }]);
+    expect(body.resumed).toEqual([{ runDate: "2026-09-15", partners: 1, failures: 0, cashQueued: 0 }]);
     expect(body.payoutRun).toBeNull();
+  });
+
+  it("a resumed run sends the partner credit email and the owner payout email, just like a same-day run", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-10-07T10:00:00Z"));
+    listUnfinishedPayoutRuns.mockResolvedValue(["2026-09-15"]);
+    runPayouts.mockResolvedValue({ skipped: false, results: [{ partnerId: "p1", cashCents: 0, creditValueCents: 7020, carryCents: 5400 }], failures: [] });
+    getPartnerById.mockResolvedValue({ id: "p1", customer_id: "u1", code: "SMITHLAB" });
+    partnerEmail.mockResolvedValue("sam@smithlab.org");
+    listQueuedPayouts.mockResolvedValue([{ run_date: "2026-09-15", cash_cents: 21240, partners: { code: "BENCHNOTES", payout_details_hint: "ACH · checking ••••7310 · Wells Fargo" } }]);
+    const { GET } = await import("@/app/api/cron/partners-daily/route");
+    const body = await (await GET(get("Bearer s3cret"))).json();
+    expect(body.resumed).toEqual([{ runDate: "2026-09-15", partners: 1, failures: 0, cashQueued: 1 }]);
+    expect(sendOrAlert.mock.calls.map((c) => c[0].to)).toEqual(["sam@smithlab.org", "owner@example.com"]);
   });
 
   it("alerts the owner when a resumed run still has failures, without stopping the rest of the job", async () => {
@@ -85,7 +99,7 @@ describe("GET /api/cron/partners-daily", () => {
     const res = await GET(get("Bearer s3cret"));
     const body = await res.json();
     expect(res.status).toBe(200);
-    expect(body.resumed).toEqual([{ runDate: "2026-09-15", partners: 0, failures: 1 }]);
+    expect(body.resumed).toEqual([{ runDate: "2026-09-15", partners: 0, failures: 1, cashQueued: 0 }]);
     expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("2026-09-15"), expect.stringContaining("boom"));
   });
 

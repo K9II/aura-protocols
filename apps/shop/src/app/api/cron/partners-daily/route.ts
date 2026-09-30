@@ -55,13 +55,14 @@ export async function GET(request: Request): Promise<Response> {
     await alertOwner("Clear due commissions failed", String(err));
   }
 
-  const resumed: Array<{ runDate: string; partners: number; failures: number } | { runDate: string; error: string }> = [];
+  const resumed: Array<{ runDate: string; partners: number; failures: number; cashQueued: number } | { runDate: string; error: string }> = [];
   try {
     for (const stuckDate of await listUnfinishedPayoutRuns(runDate)) {
       try {
         const run = await runPayouts(stuckDate);
         const failures = run.failures ?? [];
-        resumed.push({ runDate: stuckDate, partners: run.results.length, failures: failures.length });
+        const cashQueued = await emailPayoutResults(stuckDate, run);
+        resumed.push({ runDate: stuckDate, partners: run.results.length, failures: failures.length, cashQueued });
         if (failures.length) await alertOwner(`Payout run ${stuckDate} still has failures`, JSON.stringify(failures));
       } catch (err) {
         resumed.push({ runDate: stuckDate, error: err instanceof Error ? err.message : String(err) });
