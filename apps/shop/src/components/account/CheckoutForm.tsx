@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/store/CartProvider";
 import { priceOrder, type Rejection } from "@/lib/pricing";
 import { applyPartnerCode } from "@/lib/partners/discounts";
@@ -36,18 +36,33 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const base = useMemo(() => priceOrder(lines), [lines]);
   const priced = useMemo(() => (appliedCode ? applyPartnerCode(base) : { ...base, lineDiscounts: base.items.map((_, index) => ({ index, source: "none" as const, savingCents: 0 })) }), [base, appliedCode]);
 
-  async function applyCode() {
-    if (!codeInput.trim()) return;
-    const r = await checkPartnerCodeAction(codeInput);
+  async function applyCodeValue(code: string) {
+    const r = await checkPartnerCodeAction(code);
     if (r.ok) { setAppliedCode(r.code); setCodeInput(r.code); setCodeMsg({ ok: true, text: `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` }); }
     else { setAppliedCode(null); setCodeMsg({ ok: false, text: r.message }); }
+  }
+
+  // A referral link's code (initialCode, from the aura_ref cookie) is applied
+  // automatically on arrival so the discount is visible before the customer
+  // ever touches the field — they never have to know a code exists.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above; the state update is inside an awaited server call, not synchronous
+    if (initialCode.trim()) void applyCodeValue(initialCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function applyCode() {
+    if (!codeInput.trim()) return;
+    await applyCodeValue(codeInput);
   }
   function removeCode() { setAppliedCode(null); setCodeInput(""); setCodeMsg(null); }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setError(null);
-    const r = await startCheckoutAction({ lines, ship: addr, ruoConfirmed: ruo, partnerCode: appliedCode ?? undefined, useCredit });
+    // A code typed but never explicitly applied is still sent — the server
+    // either applies it or refuses it with a reason; it's never silently dropped.
+    const r = await startCheckoutAction({ lines, ship: addr, ruoConfirmed: ruo, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit });
     if (r.url) { window.location.assign(r.url); return; }
     setError(r.error ?? "Something went wrong — please try again.");
     if (r.codeError) { setAppliedCode(null); setCodeMsg({ ok: false, text: r.codeError }); }

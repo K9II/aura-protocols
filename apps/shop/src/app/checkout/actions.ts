@@ -15,6 +15,7 @@ import { applyPartnerCode } from "@/lib/partners/discounts";
 import { creditBalance, spendCredit } from "@/lib/partners/ledger";
 import { REF_COOKIE } from "@/lib/partners/ref-cookie";
 import { afterOrderPaid } from "@/lib/order-paid";
+import { alertOwner } from "@/lib/notify";
 
 export type StartCheckoutResult = { url?: string; error?: string; rejected?: Rejection[]; codeError?: string };
 
@@ -29,9 +30,14 @@ const schema = z.object({
   useCredit: z.boolean().optional(),
 });
 
+// No rate limiter is applied here: none exists anywhere in this codebase
+// today (the /api/gate and /api/inquiry routes have none either) to reuse
+// per customer, and this is a signed-in server action, not an anonymous
+// public endpoint.
 export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; code: string } | { ok: false; message: string }> {
   const customer = await getCustomer();
   if (!customer) return { ok: false, message: "Please sign in." };
+  if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link." };
   const { attribution, codeError } = await resolveAttribution({ typedCode: String(code).slice(0, 40), buyerCustomerId: customer.id });
   if (!attribution) return { ok: false, message: codeError ?? "This code can't be used." };
   return { ok: true, code: attribution.code };
@@ -102,8 +108,33 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
       return { error: "Your store credit balance changed — please review your order again." };
     }
     if (credit.creditCents === priced.totalBeforeTaxCents + credit.taxCents) {
-      await transitionOrder(order.id, "awaiting_payment", "paid");
-      await afterOrderPaid(order.id);
+      let moved = false;
+      try {
+        moved = await transitionOrder(order.id, "awaiting_payment", "paid");
+      } catch (err) {
+        console.error("mark order paid (store credit) failed:", err);
+      }
+      if (!moved) {
+        try {
+          await transitionOrder(order.id, "awaiting_payment", "cancelled");
+        } catch (err) {
+          console.error("cancel order after failed paid transition failed:", err);
+        }
+        await alertOwner(
+          "Store-credit order failed to mark paid",
+          `Order ${order.orderNumber} (${order.id}): credit was spent but the order couldn't be moved to paid. It has been cancelled so the held credit is returned automatically.`,
+        );
+        return { error: "Something went wrong finishing your order — please try again." };
+      }
+      try {
+        await afterOrderPaid(order.id);
+      } catch (err) {
+        console.error("afterOrderPaid failed:", err);
+        await alertOwner(
+          "afterOrderPaid failed for a paid store-credit order",
+          `Order ${order.orderNumber} (${order.id}) is paid but post-payment processing (commission/emails) failed: ${String(err)}`,
+        );
+      }
       return { url: `/order/${order.orderNumber}` };
     }
   }

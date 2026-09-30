@@ -14,12 +14,14 @@ const resolveAttribution = vi.fn();
 const creditBalance = vi.fn();
 const spendCredit = vi.fn();
 const afterOrderPaid = vi.fn();
+const alertOwner = vi.fn();
 vi.mock("@/lib/dal", () => ({ getCustomer }));
 vi.mock("@/lib/orders", () => ({ createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ createCheckout, quoteTax }), STRIPE_MIN_CHARGE_CENTS: 50 }));
 vi.mock("@/lib/partners/attribution", () => ({ resolveAttribution }));
 vi.mock("@/lib/partners/ledger", () => ({ creditBalance, spendCredit }));
 vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
+vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 
 const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
@@ -43,7 +45,7 @@ describe("startCheckoutAction", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon,
-      createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid]) f.mockReset();
+      createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid, alertOwner]) f.mockReset();
     resolveAttribution.mockResolvedValue({ attribution: null });
     createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
     transitionOrder.mockResolvedValue(true);
@@ -128,6 +130,36 @@ describe("startCheckoutAction", () => {
     expect(createCheckout).not.toHaveBeenCalled();
   });
 
+  it("a fully-credit order that can't be marked paid is cancelled and alerts the owner instead of redirecting", async () => {
+    getCustomer.mockResolvedValue(customer);
+    creditBalance.mockResolvedValue(50000);
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    spendCredit.mockResolvedValue(true);
+    transitionOrder.mockResolvedValueOnce(false); // the "paid" transition fails
+    transitionOrder.mockResolvedValueOnce(true); // the follow-up cancel succeeds
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    const r = await startCheckoutAction({ ...input, useCredit: true });
+    expect(r.url).toBeUndefined();
+    expect(r.error).toBeTruthy();
+    expect(transitionOrder).toHaveBeenNthCalledWith(1, "o1", "awaiting_payment", "paid");
+    expect(transitionOrder).toHaveBeenNthCalledWith(2, "o1", "awaiting_payment", "cancelled");
+    expect(alertOwner).toHaveBeenCalled();
+    expect(afterOrderPaid).not.toHaveBeenCalled();
+  });
+
+  it("a fully-credit order still redirects if afterOrderPaid fails, but alerts the owner", async () => {
+    getCustomer.mockResolvedValue(customer);
+    creditBalance.mockResolvedValue(50000);
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    spendCredit.mockResolvedValue(true);
+    afterOrderPaid.mockRejectedValue(new Error("email send failed"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, useCredit: true })).toEqual({ url: "/order/AP-1001" });
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "paid");
+    expect(alertOwner).toHaveBeenCalled();
+  });
+
   it("partial store credit leaves at least Stripe's $0.50 minimum to pay, and is held before Stripe starts", async () => {
     getCustomer.mockResolvedValue(customer);
     const total = 4900 + 1500 + 550 + 426;
@@ -168,6 +200,13 @@ describe("startCheckoutAction", () => {
 
 describe("checkPartnerCodeAction", () => {
   beforeEach(() => { vi.resetModules(); getCustomer.mockReset(); resolveAttribution.mockReset(); });
+
+  it("requires a verified email before checking a code", async () => {
+    getCustomer.mockResolvedValue({ ...customer, emailConfirmed: false });
+    const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
+    expect(await checkPartnerCodeAction("SMITHLAB")).toEqual({ ok: false, message: "Please verify your email first — check your inbox for the link." });
+    expect(resolveAttribution).not.toHaveBeenCalled();
+  });
 
   it("confirms a usable code and explains a refused one", async () => {
     getCustomer.mockResolvedValue(customer);
