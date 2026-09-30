@@ -4,6 +4,7 @@ import { getOrderById, getOrderByPaymentIntent, transitionOrder, type OrderRow }
 import { achFailedEmail } from "@/lib/emails";
 import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { afterOrderPaid } from "@/lib/order-paid";
+import { getCommerceAdapter } from "@/lib/commerce";
 import { refundCredit, reverseCommission } from "@/lib/partners/ledger";
 
 function paymentIntentId(pi: string | { id: string } | null | undefined): string | null {
@@ -71,6 +72,15 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         if (await transitionOrder(order.id, order.status, "refunded")) {
           await reverseCommission(order.id, "refund");
           if (order.store_credit_cents > 0) await refundCredit(order.customer_id, order.store_credit_cents, order.id);
+          // Automatic-tax Checkout sessions (card path) reverse their own tax
+          // transaction on refund; only the store-credit path needs this.
+          if (order.tax_calculation_id) {
+            try {
+              await getCommerceAdapter().reverseTax(order.tax_calculation_id);
+            } catch (err) {
+              await alertOwner("Tax transaction not reversed", `${order.order_number} (${order.tax_calculation_id}): ${String(err)}`);
+            }
+          }
         }
       }
       return;

@@ -31,7 +31,14 @@ export type CheckoutResult =
 export interface CommerceAdapter {
   createCheckout(req: CheckoutRequest): Promise<CheckoutResult>;
   quoteTax(req: TaxQuoteRequest): Promise<{ calculationId: string; taxCents: number }>;
-  recordTax(calculationId: string, reference: string): Promise<void>;
+  // Returns the created Stripe Tax transaction id (for a later reverseTax),
+  // or null when Stripe already has a transaction under this reference.
+  recordTax(calculationId: string, reference: string): Promise<string | null>;
+  // Reverses a previously recorded Tax transaction in full. `reference` is
+  // the transaction id recordTax returned (order.tax_calculation_id, once
+  // set). Only needed for the store-credit path — Checkout sessions with
+  // automatic_tax reverse their own tax transaction on refund.
+  reverseTax(reference: string): Promise<void>;
 }
 
 export const CHECKOUT_UNAVAILABLE_MESSAGE = "Checkout opens soon — we'll email you the moment it's live.";
@@ -46,6 +53,10 @@ const unavailableAdapter: CommerceAdapter = {
   },
   async recordTax() {
     /* nothing to record without a processor */
+    return null;
+  },
+  async reverseTax() {
+    /* nothing to reverse without a processor */
   },
 };
 
@@ -142,9 +153,24 @@ const stripeAdapter: CommerceAdapter = {
   },
 
   async recordTax(calculationId, reference) {
-    await getStripe().tax.transactions.createFromCalculation(
-      { calculation: calculationId, reference },
-      { idempotencyKey: `tax-tx-${reference}` },
+    try {
+      const tx = await getStripe().tax.transactions.createFromCalculation(
+        { calculation: calculationId, reference },
+        { idempotencyKey: `tax-tx-${reference}` },
+      );
+      return tx?.id ?? null;
+    } catch (err) {
+      // Stripe rejects a reference it has already recorded a transaction
+      // under (e.g. a retried afterOrderPaid) — that's already a success.
+      if (err instanceof Error && /already/i.test(err.message)) return null;
+      throw err;
+    }
+  },
+
+  async reverseTax(reference) {
+    await getStripe().tax.transactions.createReversal(
+      { mode: "full", original_transaction: reference, reference: `${reference}-refund` },
+      { idempotencyKey: `tax-reversal-${reference}` },
     );
   },
 };

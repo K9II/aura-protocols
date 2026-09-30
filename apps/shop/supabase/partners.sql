@@ -60,6 +60,9 @@ alter table orders add column if not exists attributed_by text check (attributed
 alter table orders add column if not exists partner_discount_cents integer not null default 0 check (partner_discount_cents >= 0);
 alter table orders add column if not exists store_credit_cents integer not null default 0 check (store_credit_cents >= 0);
 alter table orders add column if not exists stripe_coupon_id text;
+-- Holds the Stripe Tax calculation id up to payment, then is repointed to
+-- the created Tax transaction id (order-paid.ts) so a later full refund can
+-- reverse it (stripe-events.ts).
 alter table orders add column if not exists tax_calculation_id text;
 create index if not exists orders_partner_idx on orders (partner_id, created_at desc);
 

@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const getOrderById = vi.fn();
+const saveTaxTransactionId = vi.fn();
 const getPartnerById = vi.fn();
 const createCommission = vi.fn();
 const spendCredit = vi.fn();
 const recordTax = vi.fn();
 const sendOrAlert = vi.fn();
 const alertOwner = vi.fn();
-vi.mock("@/lib/orders", () => ({ getOrderById }));
+vi.mock("@/lib/orders", () => ({ getOrderById, saveTaxTransactionId }));
 vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/partners/ledger", () => ({ createCommission, spendCredit }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ recordTax }) }));
@@ -21,7 +22,7 @@ const order = (over: Record<string, unknown> = {}) => ({
 });
 
 describe("afterOrderPaid", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [getOrderById, getPartnerById, createCommission, spendCredit, recordTax, sendOrAlert, alertOwner]) f.mockReset(); spendCredit.mockResolvedValue(true); });
+  beforeEach(() => { vi.resetModules(); for (const f of [getOrderById, saveTaxTransactionId, getPartnerById, createCommission, spendCredit, recordTax, sendOrAlert, alertOwner]) f.mockReset(); spendCredit.mockResolvedValue(true); });
 
   it("emails the customer and the owner", async () => {
     getOrderById.mockResolvedValue(order());
@@ -56,5 +57,24 @@ describe("afterOrderPaid", () => {
     expect(spendCredit).toHaveBeenCalledWith("u1", 18600, "o1");
     expect(recordTax).toHaveBeenCalledWith("taxcalc_1", "AP-1001");
     expect(alertOwner.mock.calls.map((c) => c[0])).toEqual(["Store credit short on a paid order", "Tax transaction not recorded"]);
+  });
+
+  it("saves the Stripe tax transaction id so a later refund can reverse it", async () => {
+    getOrderById.mockResolvedValue(order({ tax_calculation_id: "taxcalc_1" }));
+    recordTax.mockResolvedValue("tax_txn_1");
+    const { afterOrderPaid } = await import("@/lib/order-paid");
+    await afterOrderPaid("o1");
+    expect(saveTaxTransactionId).toHaveBeenCalledWith("o1", "tax_txn_1");
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("never pays commission on a re-read that shows the order is no longer paid", async () => {
+    getOrderById
+      .mockResolvedValueOnce(order({ partner_id: "p1", attributed_by: "code" }))
+      .mockResolvedValueOnce(order({ partner_id: "p1", attributed_by: "code", status: "refunded" }));
+    getPartnerById.mockResolvedValue({ id: "p1", status: "approved", tier_pct: 15 });
+    const { afterOrderPaid } = await import("@/lib/order-paid");
+    await afterOrderPaid("o1");
+    expect(createCommission).not.toHaveBeenCalled();
   });
 });

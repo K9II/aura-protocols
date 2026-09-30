@@ -6,12 +6,13 @@ const sessionsCreate = vi.fn();
 const couponsCreate = vi.fn();
 const taxCalcCreate = vi.fn();
 const taxTxCreate = vi.fn();
+const taxTxCreateReversal = vi.fn();
 vi.mock("@/lib/stripe", () => ({
   getStripe: () => ({
     customers: { create: customersCreate, update: customersUpdate },
     checkout: { sessions: { create: sessionsCreate } },
     coupons: { create: couponsCreate },
-    tax: { calculations: { create: taxCalcCreate }, transactions: { createFromCalculation: taxTxCreate } },
+    tax: { calculations: { create: taxCalcCreate }, transactions: { createFromCalculation: taxTxCreate, createReversal: taxTxCreateReversal } },
   }),
 }));
 
@@ -31,7 +32,7 @@ describe("commerce adapter", () => {
   beforeEach(() => {
     vi.resetModules();
     customersCreate.mockReset(); customersUpdate.mockReset(); sessionsCreate.mockReset();
-    couponsCreate.mockReset(); taxCalcCreate.mockReset(); taxTxCreate.mockReset();
+    couponsCreate.mockReset(); taxCalcCreate.mockReset(); taxTxCreate.mockReset(); taxTxCreateReversal.mockReset();
   });
 
   it("is unavailable without a Stripe key", async () => {
@@ -128,10 +129,45 @@ describe("commerce adapter", () => {
       { amount: 550, reference: "insurance", tax_behavior: "exclusive" },
     ]);
     expect(params.shipping_cost).toEqual({ amount: 0, tax_behavior: "exclusive" });
-    await getCommerceAdapter().recordTax("taxcalc_1", "AP-1001");
+    taxTxCreate.mockResolvedValue({ id: "tax_txn_1" });
+    const transactionId = await getCommerceAdapter().recordTax("taxcalc_1", "AP-1001");
     expect(taxTxCreate).toHaveBeenCalledWith(
       { calculation: "taxcalc_1", reference: "AP-1001" },
       { idempotencyKey: "tax-tx-AP-1001" },
     );
+    expect(transactionId).toBe("tax_txn_1");
+  });
+
+  it("treats a Stripe rejection for an already-recorded reference as success", async () => {
+    process.env.STRIPE_SECRET_KEY = "sk_test_x";
+    taxTxCreate.mockRejectedValue(new Error("A transaction with reference 'AP-1001' already exists."));
+    const { getCommerceAdapter } = await import("@/lib/commerce");
+    await expect(getCommerceAdapter().recordTax("taxcalc_1", "AP-1001")).resolves.toBeNull();
+  });
+
+  it("lets a genuine Stripe error from recordTax propagate", async () => {
+    process.env.STRIPE_SECRET_KEY = "sk_test_x";
+    taxTxCreate.mockRejectedValue(new Error("calculation has expired"));
+    const { getCommerceAdapter } = await import("@/lib/commerce");
+    await expect(getCommerceAdapter().recordTax("taxcalc_1", "AP-1001")).rejects.toThrow("calculation has expired");
+  });
+
+  it("reverses a recorded tax transaction in full", async () => {
+    process.env.STRIPE_SECRET_KEY = "sk_test_x";
+    const { getCommerceAdapter } = await import("@/lib/commerce");
+    await getCommerceAdapter().reverseTax("tax_txn_1");
+    expect(taxTxCreateReversal).toHaveBeenCalledWith(
+      { mode: "full", original_transaction: "tax_txn_1", reference: "tax_txn_1-refund" },
+      { idempotencyKey: "tax-reversal-tax_txn_1" },
+    );
+  });
+
+  it("recordTax and reverseTax are no-ops without a Stripe key", async () => {
+    delete process.env.STRIPE_SECRET_KEY;
+    const { getCommerceAdapter } = await import("@/lib/commerce");
+    await expect(getCommerceAdapter().recordTax("taxcalc_1", "AP-1001")).resolves.toBeNull();
+    await expect(getCommerceAdapter().reverseTax("tax_txn_1")).resolves.toBeUndefined();
+    expect(taxTxCreate).not.toHaveBeenCalled();
+    expect(taxTxCreateReversal).not.toHaveBeenCalled();
   });
 });

@@ -64,6 +64,13 @@ export async function saveStripeCoupon(orderId: string, couponId: string): Promi
   await db().from("orders").update({ stripe_coupon_id: couponId }).eq("id", orderId);
 }
 
+// After the tax is recorded as a Stripe Tax transaction, tax_calculation_id
+// is repointed from the (now-spent) calculation id to the transaction id so
+// a later full refund can reverse the right object.
+export async function saveTaxTransactionId(orderId: string, transactionId: string): Promise<void> {
+  await db().from("orders").update({ tax_calculation_id: transactionId }).eq("id", orderId);
+}
+
 export async function attachCheckoutSession(orderId: string, sessionId: string): Promise<void> {
   const { error } = await db().from("orders").update({ stripe_session_id: sessionId }).eq("id", orderId);
   if (error) throw new Error(`attach session failed: ${JSON.stringify(error)}`);

@@ -1,5 +1,5 @@
 import "server-only";
-import { getOrderById } from "@/lib/orders";
+import { getOrderById, saveTaxTransactionId } from "@/lib/orders";
 import { getPartnerById } from "@/lib/partners/data";
 import { createCommission, spendCredit } from "@/lib/partners/ledger";
 import { getCommerceAdapter } from "@/lib/commerce";
@@ -16,10 +16,16 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
   if (order.partner_id && order.attributed_by) {
     const partner = await getPartnerById(order.partner_id);
     if (partner?.status === "approved") {
-      await createCommission({
-        partnerId: partner.id, orderId: order.id, attributedBy: order.attributed_by,
-        baseCents: order.subtotal_cents - order.partner_discount_cents, ratePct: partner.tier_pct,
-      });
+      // Re-read right before creating the commission: a refund or chargeback
+      // webhook racing this call must never leave a commission behind for an
+      // order that is no longer paid.
+      const current = await getOrderById(orderId);
+      if (current?.status === "paid") {
+        await createCommission({
+          partnerId: partner.id, orderId: order.id, attributedBy: order.attributed_by,
+          baseCents: order.subtotal_cents - order.partner_discount_cents, ratePct: partner.tier_pct,
+        });
+      }
     }
   }
 
@@ -29,7 +35,8 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
 
   if (order.tax_calculation_id) {
     try {
-      await getCommerceAdapter().recordTax(order.tax_calculation_id, order.order_number);
+      const transactionId = await getCommerceAdapter().recordTax(order.tax_calculation_id, order.order_number);
+      if (transactionId) await saveTaxTransactionId(order.id, transactionId);
     } catch (err) {
       await alertOwner("Tax transaction not recorded", `${order.order_number} (${order.tax_calculation_id}): ${String(err)}`);
     }
