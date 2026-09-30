@@ -89,14 +89,23 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     storeCreditCents: credit?.creditCents ?? 0, taxCents: credit?.taxCents ?? 0, taxCalculationId: credit?.calculationId ?? null,
   });
 
-  if (credit && credit.creditCents === priced.totalBeforeTaxCents + credit.taxCents) {
+  // Credit is held (spent) the moment we commit to it, even for a partial
+  // amount — before Stripe ever sees a checkout, so nothing is discounted
+  // against credit we haven't actually secured. Every path that follows
+  // (Stripe failure below, session expiry, an async payment that never
+  // completes, the reconcile cron) transitions the order to "cancelled", and
+  // the release_credit_on_cancel trigger (partners.sql) returns the held
+  // amount automatically — no extra app code needed.
+  if (credit) {
     if (!(await spendCredit(customer.id, credit.creditCents, order.id))) {
       await transitionOrder(order.id, "awaiting_payment", "cancelled");
       return { error: "Your store credit balance changed — please review your order again." };
     }
-    await transitionOrder(order.id, "awaiting_payment", "paid");
-    await afterOrderPaid(order.id);
-    return { url: `/order/${order.orderNumber}` };
+    if (credit.creditCents === priced.totalBeforeTaxCents + credit.taxCents) {
+      await transitionOrder(order.id, "awaiting_payment", "paid");
+      await afterOrderPaid(order.id);
+      return { url: `/order/${order.orderNumber}` };
+    }
   }
 
   try {

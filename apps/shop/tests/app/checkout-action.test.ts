@@ -128,16 +128,32 @@ describe("startCheckoutAction", () => {
     expect(createCheckout).not.toHaveBeenCalled();
   });
 
-  it("partial store credit leaves at least Stripe's $0.50 minimum to pay", async () => {
+  it("partial store credit leaves at least Stripe's $0.50 minimum to pay, and is held before Stripe starts", async () => {
     getCustomer.mockResolvedValue(customer);
     const total = 4900 + 1500 + 550 + 426;
     creditBalance.mockResolvedValue(total - 20); // would leave $0.20
     quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    spendCredit.mockResolvedValue(true);
     createCheckout.mockResolvedValue(redirect);
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     await startCheckoutAction({ ...input, useCredit: true });
     expect(createPendingOrder.mock.calls[0][0]).toMatchObject({ storeCreditCents: total - 50 });
+    expect(spendCredit).toHaveBeenCalledWith("u1", total - 50, "o1");
+    expect(spendCredit.mock.invocationCallOrder[0]).toBeLessThan(createCheckout.mock.invocationCallOrder[0]);
     expect(createCheckout.mock.calls[0][0].credit).toEqual({ creditCents: total - 50, taxCents: 426 });
+  });
+
+  it("a partial store credit spend that fails (balance changed) cancels immediately without starting Stripe", async () => {
+    getCustomer.mockResolvedValue(customer);
+    const total = 4900 + 1500 + 550 + 426;
+    creditBalance.mockResolvedValue(total - 20);
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    spendCredit.mockResolvedValue(false);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, useCredit: true })).toEqual({ error: "Your store credit balance changed — please review your order again." });
+    expect(spendCredit).toHaveBeenCalledWith("u1", total - 50, "o1");
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+    expect(createCheckout).not.toHaveBeenCalled();
   });
 
   it("cancels the pending order if Stripe fails, and charges nothing", async () => {

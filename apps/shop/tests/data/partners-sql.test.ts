@@ -80,6 +80,30 @@ describe("partners.sql", () => {
     expect(applyFn).toContain("for update");
   });
 
+  it("widens the store-credit uniqueness guard and reason check to include order_cancel, re-runnably", () => {
+    expect(sql).toContain("drop index if exists store_credit_ledger_order_once;");
+    expect(sql).toContain("create unique index store_credit_ledger_order_once on store_credit_ledger (reason, ref_id)");
+    expect(sql).toMatch(/where reason in \('order_spend','order_refund','payout','order_cancel'\)/);
+    expect(sql).toContain("alter table store_credit_ledger drop constraint if exists store_credit_ledger_reason_check;");
+    expect(sql).toContain("alter table store_credit_ledger add constraint store_credit_ledger_reason_check");
+    expect(sql).toMatch(/check \(reason in \('payout','order_spend','order_refund','owner_adjust','order_cancel'\)\)/);
+  });
+
+  it("returns held store credit automatically when an order is cancelled", () => {
+    expect(sql).toContain("create or replace function release_credit_on_cancel() returns trigger language plpgsql");
+    expect(sql).toContain("new.status = 'cancelled' and old.status <> 'cancelled'");
+    expect(sql).toContain("reason = 'order_spend' and ref_id = new.id");
+    expect(sql).toContain("'order_cancel', new.id");
+    expect(sql).toContain("on conflict do nothing");
+    expect(sql).toContain("drop trigger if exists release_credit_on_cancel on orders;");
+    expect(sql).toContain("create trigger release_credit_on_cancel after update of status on orders");
+    const fn = sql.slice(
+      sql.indexOf("create or replace function release_credit_on_cancel"),
+      sql.indexOf("drop trigger if exists release_credit_on_cancel"),
+    );
+    expect(fn).toContain("set search_path = public, pg_temp");
+  });
+
   it("guards codes and aliases from colliding across a different partner, re-runnably", () => {
     expect(sql).toContain("create or replace function partner_code_guard() returns trigger language plpgsql");
     expect(sql).toContain("drop trigger if exists partner_code_guard on partners;");

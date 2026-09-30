@@ -122,14 +122,22 @@ create table if not exists store_credit_ledger (
   id            uuid primary key default gen_random_uuid(),
   customer_id   uuid not null references customers(id),
   amount_cents  integer not null check (amount_cents <> 0),
-  reason        text not null check (reason in ('payout','order_spend','order_refund','owner_adjust')),
+  reason        text not null check (reason in ('payout','order_spend','order_refund','owner_adjust','order_cancel')),
   ref_id        uuid,
   created_at    timestamptz not null default now()
 );
 create index if not exists store_credit_ledger_customer_idx on store_credit_ledger (customer_id);
-create unique index if not exists store_credit_ledger_order_once on store_credit_ledger (reason, ref_id)
-  where reason in ('order_spend','order_refund','payout');
 alter table store_credit_ledger enable row level security;
+
+-- Re-runnable widen for a table already created before 'order_cancel'
+-- existed (the inline check above only applies on first create).
+alter table store_credit_ledger drop constraint if exists store_credit_ledger_reason_check;
+alter table store_credit_ledger add constraint store_credit_ledger_reason_check
+  check (reason in ('payout','order_spend','order_refund','owner_adjust','order_cancel'));
+
+drop index if exists store_credit_ledger_order_once;
+create unique index store_credit_ledger_order_once on store_credit_ledger (reason, ref_id)
+  where reason in ('order_spend','order_refund','payout','order_cancel');
 
 -- One click per call, bucketed by UTC day.
 create or replace function record_partner_click(p_partner uuid) returns void language sql
@@ -173,6 +181,32 @@ end $$;
 revoke all on function record_partner_click(uuid) from public, anon, authenticated;
 revoke all on function adjust_partner_lifetime(uuid, bigint) from public, anon, authenticated;
 revoke all on function spend_store_credit(uuid, integer, uuid) from public, anon, authenticated;
+
+-- Returns held store credit the instant an order is cancelled, on every
+-- cancel path (checkout failure, session expiry, an async payment that never
+-- completes, the reconcile cron, a refund path that cancels first) with no
+-- application code involved. Idempotent: the widened
+-- store_credit_ledger_order_once index lets at most one 'order_cancel' row
+-- exist per order, so a re-fired trigger (or a hand-run reconcile) is a no-op.
+create or replace function release_credit_on_cancel() returns trigger language plpgsql
+set search_path = public, pg_temp as $$
+declare
+  v_spent integer;
+begin
+  if new.status = 'cancelled' and old.status <> 'cancelled' and coalesce(new.store_credit_cents, 0) > 0 then
+    select amount_cents into v_spent from store_credit_ledger where reason = 'order_spend' and ref_id = new.id;
+    if found then
+      insert into store_credit_ledger (customer_id, amount_cents, reason, ref_id)
+        values (new.customer_id, abs(v_spent), 'order_cancel', new.id)
+        on conflict do nothing;
+    end if;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists release_credit_on_cancel on orders;
+create trigger release_credit_on_cancel after update of status on orders
+  for each row execute function release_credit_on_cancel();
 
 -- Lock order below: apply_partner_payout takes partner->commissions; reverse/record_commission take commission->partner — a crossed run only ever deadlocks (Postgres aborts one side and both callers retry), never corrupts.
 

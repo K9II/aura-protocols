@@ -116,7 +116,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
           <div className="flex justify-between text-[15px] mt-1.5 text-[color:var(--ink-soft)]"><span>Sales tax</span><span>Calculated at payment</span></div>
           {creditBalanceCents > 0 && (
             <label className="s-chk mt-3"><input type="checkbox" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} />
-              <span>Apply store credit <span className="text-[color:var(--ink-soft)]">(balance {usd(creditBalanceCents)})</span> — taken from your total including tax, only when the order is paid.</span></label>
+              <span>Apply store credit <span className="text-[color:var(--ink-soft)]">(balance {usd(creditBalanceCents)})</span> — held when you continue to payment, returned automatically if it isn&apos;t completed.</span></label>
           )}
         </div>
         {error && <p role="alert" className="mt-3 text-sm text-[color:var(--specimen)]">{error}</p>}
