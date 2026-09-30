@@ -1,7 +1,7 @@
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { validateCode } from "@/lib/partners/codes";
-import { REF_COOKIE, REF_MAX_AGE_S, signRef } from "@/lib/partners/ref-cookie";
+import { REF_COOKIE, REF_MAX_AGE_S, readRef, signRef } from "@/lib/partners/ref-cookie";
 import { recordClickByCode } from "@/lib/partners/data";
 
 // 1) Refreshes the Supabase session on signed-in routes only (authorization
@@ -36,14 +36,24 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const ref = searchParams.get("ref");
   const check = ref ? validateCode(ref) : null;
   if (check?.ok) {
-    if (process.env.PARTNER_REF_SECRET) {
-      response.cookies.set(REF_COOKIE, signRef(check.code), {
-        httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: REF_MAX_AGE_S, path: "/",
-      });
-      event.waitUntil(recordClickByCode(check.code).catch((err) => console.error("partner click not recorded:", err)));
-    } else if (!warnedMissingRefSecret) {
-      warnedMissingRefSecret = true;
-      console.error("PARTNER_REF_SECRET is not set; skipping the aura_ref referral cookie");
+    // A returning visitor re-clicking their own already-set link shouldn't
+    // re-write the cookie or count another click.
+    let alreadyMatches = false;
+    try {
+      alreadyMatches = readRef(request.cookies.get(REF_COOKIE)?.value) === check.code;
+    } catch {
+      alreadyMatches = false;
+    }
+    if (!alreadyMatches) {
+      if (process.env.PARTNER_REF_SECRET) {
+        response.cookies.set(REF_COOKIE, signRef(check.code), {
+          httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: REF_MAX_AGE_S, path: "/",
+        });
+        event.waitUntil(recordClickByCode(check.code).catch((err) => console.error("partner click not recorded:", err)));
+      } else if (!warnedMissingRefSecret) {
+        warnedMissingRefSecret = true;
+        console.error("PARTNER_REF_SECRET is not set; skipping the aura_ref referral cookie");
+      }
     }
   }
   return response;

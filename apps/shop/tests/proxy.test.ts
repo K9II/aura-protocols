@@ -28,4 +28,15 @@ describe("proxy referral links", () => {
     expect(res.headers.get("set-cookie") ?? "").not.toContain("aura_ref");
     expect(recordClickByCode).not.toHaveBeenCalled();
   });
+
+  it("skips the cookie re-set and click when the incoming aura_ref cookie already matches", async () => {
+    const { proxy } = await import("@/proxy");
+    const { signRef } = await import("@/lib/partners/ref-cookie");
+    const req = new NextRequest("http://localhost/products?ref=smithlab", {
+      headers: { cookie: `aura_ref=${signRef("SMITHLAB")}` },
+    });
+    const res = await proxy(req, event() as never);
+    expect(res.headers.get("set-cookie")).toBeNull();
+    expect(recordClickByCode).not.toHaveBeenCalled();
+  });
 });
