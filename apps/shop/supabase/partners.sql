@@ -120,7 +120,7 @@ alter table payouts enable row level security;
 
 create table if not exists store_credit_ledger (
   id            uuid primary key default gen_random_uuid(),
-  customer_id   uuid not null references customers(id) on delete cascade,
+  customer_id   uuid not null references customers(id),
   amount_cents  integer not null check (amount_cents <> 0),
   reason        text not null check (reason in ('payout','order_spend','order_refund','owner_adjust')),
   ref_id        uuid,
@@ -132,13 +132,15 @@ create unique index if not exists store_credit_ledger_order_once on store_credit
 alter table store_credit_ledger enable row level security;
 
 -- One click per call, bucketed by UTC day.
-create or replace function record_partner_click(p_partner uuid) returns void language sql as $$
+create or replace function record_partner_click(p_partner uuid) returns void language sql
+set search_path = public, pg_temp as $$
   insert into partner_clicks_daily (partner_id, day, clicks) values (p_partner, (now() at time zone 'utc')::date, 1)
   on conflict (partner_id, day) do update set clicks = partner_clicks_daily.clicks + 1;
 $$;
 
 -- Adds (or subtracts) referred sales; the tier can only go up.
-create or replace function adjust_partner_lifetime(p_partner uuid, p_delta bigint) returns integer language plpgsql as $$
+create or replace function adjust_partner_lifetime(p_partner uuid, p_delta bigint) returns integer language plpgsql
+set search_path = public, pg_temp as $$
 declare
   new_total bigint;
   new_tier integer;
@@ -155,7 +157,8 @@ begin
 end $$;
 
 -- Debits store credit for an order once; false if the balance is too low.
-create or replace function spend_store_credit(p_customer uuid, p_cents integer, p_order uuid) returns boolean language plpgsql as $$
+create or replace function spend_store_credit(p_customer uuid, p_cents integer, p_order uuid) returns boolean language plpgsql
+set search_path = public, pg_temp as $$
 declare
   bal bigint;
 begin
@@ -170,6 +173,33 @@ end $$;
 revoke all on function record_partner_click(uuid) from public, anon, authenticated;
 revoke all on function adjust_partner_lifetime(uuid, bigint) from public, anon, authenticated;
 revoke all on function spend_store_credit(uuid, integer, uuid) from public, anon, authenticated;
+
+-- Blocks a code from being claimed by a different partner than the one who
+-- already owns it in the other table (partners.code vs partner_code_aliases).
+-- Same-partner overlap is fine (switching back to an old code of your own).
+create or replace function partner_code_guard() returns trigger language plpgsql
+set search_path = public, pg_temp as $$
+begin
+  perform pg_advisory_xact_lock(hashtext('partner_code:' || new.code));
+  if tg_table_name = 'partners' then
+    if exists (select 1 from partner_code_aliases where code = new.code and partner_id <> new.id) then
+      raise exception 'partner code already in use' using errcode = '23505';
+    end if;
+  else
+    if exists (select 1 from partners where code = new.code and id <> new.partner_id) then
+      raise exception 'partner code already in use' using errcode = '23505';
+    end if;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists partner_code_guard on partners;
+create trigger partner_code_guard before insert or update of code on partners
+  for each row execute function partner_code_guard();
+
+drop trigger if exists partner_code_guard on partner_code_aliases;
+create trigger partner_code_guard before insert on partner_code_aliases
+  for each row execute function partner_code_guard();
 
 -- Private bucket for W-9 PDFs (owner reads through 60-second signed URLs).
 insert into storage.buckets (id, name, public) values ('w9', 'w9', false) on conflict (id) do nothing;

@@ -42,4 +42,25 @@ describe("partners.sql", () => {
     }
     expect(sql).toContain("values ('w9', 'w9', false)");
   });
+
+  it("does not cascade-delete store credit history when a customer is deleted", () => {
+    const table = sql.slice(sql.indexOf("create table if not exists store_credit_ledger"), sql.indexOf("store_credit_ledger_customer_idx"));
+    expect(table).toContain("references customers(id)");
+    expect(table).not.toContain("on delete cascade");
+  });
+
+  it("pins search_path on every function", () => {
+    const fns = [...sql.matchAll(/create or replace function [\s\S]*?\$\$;/g)].map((m) => m[0]);
+    expect(fns.length).toBeGreaterThanOrEqual(4);
+    for (const fn of fns) expect(fn).toContain("set search_path = public, pg_temp");
+  });
+
+  it("guards codes and aliases from colliding across a different partner, re-runnably", () => {
+    expect(sql).toContain("create or replace function partner_code_guard() returns trigger language plpgsql");
+    expect(sql).toContain("drop trigger if exists partner_code_guard on partners;");
+    expect(sql).toContain("create trigger partner_code_guard before insert or update of code on partners");
+    expect(sql).toContain("drop trigger if exists partner_code_guard on partner_code_aliases;");
+    expect(sql).toContain("create trigger partner_code_guard before insert on partner_code_aliases");
+    expect(sql).toContain("errcode = '23505'");
+  });
 });
