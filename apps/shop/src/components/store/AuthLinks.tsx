@@ -11,11 +11,17 @@ export default function AuthLinks() {
   const [state, setState] = useState<"unknown" | "out" | "in">("unknown");
 
   useEffect(() => {
-    let supabase: ReturnType<typeof createSupabaseBrowserClient>;
-    try { supabase = createSupabaseBrowserClient(); } catch { setState("out"); return; }
-    supabase.auth.getSession().then(({ data }) => setState(data.session ? "in" : "out"));
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => setState(session ? "in" : "out"));
-    return () => data.subscription.unsubscribe();
+    let unsubscribe: (() => void) | undefined;
+    // Deferred so a broken/missing Supabase env falls back to "out" via a
+    // microtask rather than a setState call synchronous with the effect body.
+    Promise.resolve().then(() => {
+      let supabase: ReturnType<typeof createSupabaseBrowserClient>;
+      try { supabase = createSupabaseBrowserClient(); } catch { setState("out"); return; }
+      supabase.auth.getSession().then(({ data }) => setState(data.session ? "in" : "out"));
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => setState(session ? "in" : "out"));
+      unsubscribe = () => data.subscription.unsubscribe();
+    });
+    return () => unsubscribe?.();
   }, []);
 
   if (state === "unknown") return <span className="s-nav-auth" aria-hidden />;
