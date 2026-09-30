@@ -17,7 +17,7 @@ export function trackingUrl(carrier: string, number: string): string {
 
 const RUO = "All products are sold for laboratory research use only. Not for human or animal consumption.";
 
-function shell(title: string, body: string): string {
+export function shell(title: string, body: string): string {
   return `<div style="font-family:Georgia,serif;color:#1C1A15;max-width:560px">
 <p style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#A32B1F">Aura Protocols</p>
 <h1 style="font-weight:400;font-size:26px;margin:0 0 16px">${e(title)}</h1>${body}
