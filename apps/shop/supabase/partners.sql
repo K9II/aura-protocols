@@ -174,6 +174,125 @@ revoke all on function record_partner_click(uuid) from public, anon, authenticat
 revoke all on function adjust_partner_lifetime(uuid, bigint) from public, anon, authenticated;
 revoke all on function spend_store_credit(uuid, integer, uuid) from public, anon, authenticated;
 
+-- Records a commission for an order exactly once, crediting the partner's
+-- lifetime sales in the same transaction. Returns whether a row was
+-- inserted (false when the order already has a commission).
+create or replace function record_commission(
+  p_order uuid, p_partner uuid, p_base_cents integer, p_pct integer, p_amount_cents integer, p_attributed_by text
+) returns boolean language plpgsql security invoker
+set search_path = public, pg_temp as $$
+declare
+  v_count integer;
+begin
+  insert into commissions (partner_id, order_id, attributed_by, base_cents, rate_pct, amount_cents, state)
+    values (p_partner, p_order, p_attributed_by, p_base_cents, p_pct, p_amount_cents, 'pending')
+    on conflict (order_id) do nothing;
+  get diagnostics v_count = row_count;
+  if v_count = 0 then
+    return false;
+  end if;
+  perform adjust_partner_lifetime(p_partner, p_base_cents);
+  return true;
+end $$;
+
+-- Refund or chargeback for an order's commission. Unpaid commission is
+-- voided and leaves lifetime sales; already-paid commission becomes a
+-- one-time deduction on the next payout instead. Safe to call more than
+-- once for the same order and reason.
+create or replace function reverse_commission(p_order uuid, p_reason text) returns text language plpgsql security invoker
+set search_path = public, pg_temp as $$
+declare
+  c record;
+  v_count integer;
+begin
+  select id, partner_id, state, amount_cents, base_cents into c from commissions where order_id = p_order for update;
+  if not found then
+    return 'none';
+  end if;
+  if c.state = 'void' then
+    return 'already';
+  end if;
+  if c.state = 'paid' then
+    insert into commission_adjustments (partner_id, order_id, amount_cents, reason)
+      values (c.partner_id, p_order, -c.amount_cents, p_reason)
+      on conflict (order_id, reason) do nothing;
+    get diagnostics v_count = row_count;
+    if v_count = 0 then
+      return 'already';
+    end if;
+    perform adjust_partner_lifetime(c.partner_id, -c.base_cents);
+    return 'deducted';
+  end if;
+  update commissions set state = 'void', voided_at = now() where id = c.id and state = c.state;
+  get diagnostics v_count = row_count;
+  if v_count = 0 then
+    return 'already';
+  end if;
+  perform adjust_partner_lifetime(c.partner_id, -c.base_cents);
+  return 'voided';
+end $$;
+
+-- Settles one partner's share of a payout run: marks the payable
+-- commissions and unsettled deductions paid/settled, updates the carry and
+-- writes the payout and any store-credit row, all atomically. The carry is
+-- re-checked against what the caller last read, so a concurrent change
+-- aborts the whole update instead of silently overwriting it; the set of
+-- commissions/adjustments being settled is re-checked the same way.
+create or replace function apply_partner_payout(
+  p_partner uuid, p_run_date date, p_commission_ids uuid[], p_adjustment_ids uuid[], p_expected_carry integer,
+  p_cash_cents integer, p_credit_value_cents integer, p_new_carry integer, p_method text, p_customer uuid
+) returns void language plpgsql security invoker
+set search_path = public, pg_temp as $$
+declare
+  v_carry integer;
+  v_count integer;
+  v_payout_id uuid;
+begin
+  select cash_carry_cents into v_carry from partners where id = p_partner for update;
+  if not found then
+    raise exception 'partner % not found', p_partner;
+  end if;
+  if v_carry <> p_expected_carry then
+    raise exception 'carry changed for partner % (expected %, found %)', p_partner, p_expected_carry, v_carry;
+  end if;
+
+  if array_length(p_commission_ids, 1) is not null then
+    update commissions set state = 'paid', paid_at = now(), payout_run = p_run_date
+      where id = any(p_commission_ids) and state = 'payable';
+    get diagnostics v_count = row_count;
+    if v_count <> array_length(p_commission_ids, 1) then
+      raise exception 'commission set changed for partner %', p_partner;
+    end if;
+  end if;
+
+  if array_length(p_adjustment_ids, 1) is not null then
+    update commission_adjustments set settled_run = p_run_date
+      where id = any(p_adjustment_ids) and settled_run is null;
+    get diagnostics v_count = row_count;
+    if v_count <> array_length(p_adjustment_ids, 1) then
+      raise exception 'adjustment set changed for partner %', p_partner;
+    end if;
+  end if;
+
+  update partners set cash_carry_cents = p_new_carry where id = p_partner;
+
+  if p_cash_cents > 0 or p_credit_value_cents > 0 then
+    insert into payouts (partner_id, run_date, cash_cents, credit_cents, status, method)
+      values (p_partner, p_run_date, p_cash_cents, p_credit_value_cents,
+              case when p_cash_cents > 0 then 'queued' else 'credited' end, p_method)
+      returning id into v_payout_id;
+
+    if p_credit_value_cents > 0 then
+      insert into store_credit_ledger (customer_id, amount_cents, reason, ref_id)
+        values (p_customer, p_credit_value_cents, 'payout', v_payout_id);
+    end if;
+  end if;
+end $$;
+
+revoke all on function record_commission(uuid, uuid, integer, integer, integer, text) from public, anon, authenticated;
+revoke all on function reverse_commission(uuid, text) from public, anon, authenticated;
+revoke all on function apply_partner_payout(uuid, date, uuid[], uuid[], integer, integer, integer, integer, text, uuid) from public, anon, authenticated;
+
 -- Blocks a code from being claimed by a different partner than the one who
 -- already owns it in the other table (partners.code vs partner_code_aliases).
 -- Same-partner overlap is fine (switching back to an old code of your own).

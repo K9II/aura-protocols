@@ -55,6 +55,29 @@ describe("partners.sql", () => {
     for (const fn of fns) expect(fn).toContain("set search_path = public, pg_temp");
   });
 
+  it("ships transactional RPCs for commission record/reverse and per-partner payout settlement", () => {
+    for (const f of ["record_commission", "reverse_commission", "apply_partner_payout"]) {
+      expect(sql).toContain(`create or replace function ${f}`);
+    }
+    for (const sig of [
+      "record_commission(uuid, uuid, integer, integer, integer, text)",
+      "reverse_commission(uuid, text)",
+      "apply_partner_payout(uuid, date, uuid[], uuid[], integer, integer, integer, integer, text, uuid)",
+    ]) {
+      expect(sql).toContain(`revoke all on function ${sig} from public, anon, authenticated;`);
+    }
+    const recordFn = sql.slice(sql.indexOf("create or replace function record_commission"), sql.indexOf("create or replace function reverse_commission"));
+    const reverseFn = sql.slice(sql.indexOf("create or replace function reverse_commission"), sql.indexOf("create or replace function apply_partner_payout"));
+    const applyFn = sql.slice(sql.indexOf("create or replace function apply_partner_payout"), sql.indexOf("revoke all on function record_commission"));
+    for (const fn of [recordFn, reverseFn, applyFn]) {
+      expect(fn).toContain("set search_path = public, pg_temp");
+      expect(fn).toContain("security invoker");
+    }
+    // Row locks guard the concurrent-update races these two functions exist to prevent.
+    expect(reverseFn).toContain("for update");
+    expect(applyFn).toContain("for update");
+  });
+
   it("guards codes and aliases from colliding across a different partner, re-runnably", () => {
     expect(sql).toContain("create or replace function partner_code_guard() returns trigger language plpgsql");
     expect(sql).toContain("drop trigger if exists partner_code_guard on partners;");
