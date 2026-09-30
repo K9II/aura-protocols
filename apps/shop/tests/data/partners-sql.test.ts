@@ -19,7 +19,7 @@ describe("partners.sql", () => {
   });
 
   it("adds partner, credit and tax columns to orders", () => {
-    for (const c of ["partner_id", "attributed_by", "partner_discount_cents", "store_credit_cents", "stripe_coupon_id", "tax_calculation_id"]) {
+    for (const c of ["partner_id", "attributed_by", "partner_discount_cents", "store_credit_cents", "stripe_coupon_id", "tax_calculation_id", "tax_transaction_id"]) {
       expect(sql).toContain(`add column if not exists ${c}`);
     }
   });
@@ -78,6 +78,10 @@ describe("partners.sql", () => {
     // A refund then a chargeback (or vice versa) on the same paid order deducts only once.
     expect(reverseFn).toContain("if exists (select 1 from commission_adjustments where order_id = p_order) then");
     expect(applyFn).toContain("for update");
+    // record_commission locks the order row and only commissions a paid or shipped order — a
+    // race with a refund/cancel/chargeback landing first must never create a commission.
+    expect(recordFn).toContain("from orders where id = p_order for update");
+    expect(recordFn).toContain("not in ('paid', 'shipped')");
   });
 
   it("widens the store-credit uniqueness guard and reason check to include order_cancel, re-runnably", () => {

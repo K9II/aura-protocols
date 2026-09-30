@@ -172,6 +172,44 @@ export async function runPayouts(runDate: string): Promise<{ skipped: boolean; r
   return { skipped: false, results, failures };
 }
 
+// Run dates before `beforeDate` whose payout_runs row never finished — a
+// process that died mid-run, or a run left with per-partner failures. The
+// daily cron resumes each of these (via runPayouts) on any day, not just
+// the 1st/15th, so a stuck run self-heals instead of waiting for the next
+// scheduled date.
+export async function listUnfinishedPayoutRuns(beforeDate: string): Promise<string[]> {
+  const { data, error } = await db().from("payout_runs").select("run_date").is("finished_at", null).lt("run_date", beforeDate);
+  if (error) throw dbError("unfinished payout runs select", error);
+  return ((data as { run_date: string }[] | null) ?? []).map((r) => r.run_date);
+}
+
+type PendingShipped = { order_id: string; orders: { status: string; shipped_at: string | null } };
+export type SweepResult = { swept: number; errors: string[] };
+
+// A commission can be left in 'pending' if the shipped-order step that
+// should have called markCommissionClearing never ran (an outage, a crash
+// between the order transition and this call). The cron sweeps any
+// commission whose order has since reached 'shipped', starting its 15-day
+// hold from the order's own shipped_at; one order's failure does not stop
+// the sweep of the rest.
+export async function sweepShippedCommissions(): Promise<SweepResult> {
+  const { data, error } = await db().from("commissions")
+    .select("order_id, orders!inner(status, shipped_at)").eq("state", "pending").eq("orders.status", "shipped");
+  if (error) throw dbError("sweep shipped commissions select", error);
+  const rows = (data as unknown as PendingShipped[] | null) ?? [];
+  const errors: string[] = [];
+  let swept = 0;
+  for (const r of rows) {
+    try {
+      await markCommissionClearing(r.order_id, r.orders.shipped_at ?? new Date().toISOString());
+      swept++;
+    } catch (err) {
+      errors.push(`${r.order_id}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  return { swept, errors };
+}
+
 export async function listQueuedPayouts(): Promise<PayoutRow[]> {
   const { data, error } = await db().from("payouts").select("*, partners(code, payout_method, payout_details_hint, customer_id)")
     .eq("status", "queued").order("run_date");

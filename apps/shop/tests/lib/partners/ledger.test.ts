@@ -202,4 +202,37 @@ describe("partner ledger", () => {
     expect(r2.results).toEqual([{ partnerId: "p1", cashCents: 20000, creditValueCents: 0, carryCents: 0 }]);
     expect(callArgs(rerunFinish, "update")?.[0]).toMatchObject({ finished_at: expect.any(String), error: null });
   });
+
+  it("listUnfinishedPayoutRuns finds run dates before today that never finished, and surfaces a DB error", async () => {
+    const q = query({ data: [{ run_date: "2026-09-15" }, { run_date: "2026-09-01" }] });
+    from = fromQueue({ payout_runs: [q] });
+    const { listUnfinishedPayoutRuns } = await import("@/lib/partners/ledger");
+    expect(await listUnfinishedPayoutRuns("2026-10-07")).toEqual(["2026-09-15", "2026-09-01"]);
+    expect(callArgs(q, "is")).toEqual(["finished_at", null]);
+    expect(callArgs(q, "lt")).toEqual(["run_date", "2026-10-07"]);
+
+    from = fromQueue({ payout_runs: [query({ error: { message: "down" } })] });
+    await expect(listUnfinishedPayoutRuns("2026-10-07")).rejects.toThrow(/unfinished payout runs/);
+  });
+
+  it("sweepShippedCommissions moves pending commissions for shipped orders onto the clearing timer, isolating one order's failure", async () => {
+    const sel = query({
+      data: [
+        { order_id: "o1", orders: { status: "shipped", shipped_at: "2026-10-01T00:00:00.000Z" } },
+        { order_id: "o2", orders: { status: "shipped", shipped_at: null } },
+      ],
+    });
+    const upd1 = query({});
+    const upd2 = query({ error: { message: "timeout" } });
+    from = fromQueue({ commissions: [sel, upd1, upd2] });
+    const { sweepShippedCommissions } = await import("@/lib/partners/ledger");
+    const r = await sweepShippedCommissions();
+    expect(callArgs(upd1, "update")?.[0]).toMatchObject({ state: "clearing", clears_at: "2026-10-16T00:00:00.000Z" });
+    expect(callArgs(upd2, "update")?.[0]).toMatchObject({ state: "clearing" });
+    expect(r.swept).toBe(1);
+    expect(r.errors).toEqual([expect.stringContaining("o2")]);
+
+    from = fromQueue({ commissions: [query({ error: { message: "down" } })] });
+    await expect(sweepShippedCommissions()).rejects.toThrow(/sweep shipped commissions/);
+  });
 });
