@@ -4,16 +4,18 @@ const requireOwner = vi.fn();
 const getOrderById = vi.fn();
 const transitionOrder = vi.fn();
 const sendOrAlert = vi.fn();
+const markCommissionClearing = vi.fn();
 vi.mock("@/lib/dal", () => ({ requireOwner }));
 vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert }));
+vi.mock("@/lib/partners/ledger", () => ({ markCommissionClearing }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 function fd(v: Record<string, string>) { const f = new FormData(); for (const [k, x] of Object.entries(v)) f.set(k, x); return f; }
 const id = "11111111-1111-4111-8111-111111111111";
 
 describe("markShippedAction", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [requireOwner, getOrderById, transitionOrder, sendOrAlert]) f.mockReset(); });
+  beforeEach(() => { vi.resetModules(); for (const f of [requireOwner, getOrderById, transitionOrder, sendOrAlert, markCommissionClearing]) f.mockReset(); });
 
   it("is owner-only", async () => {
     requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
@@ -32,6 +34,7 @@ describe("markShippedAction", () => {
     await markShippedAction(fd({ orderId: id, tracking: " 9400 1118 9922 3344 5566 77 ", carrier: "usps" }));
     expect(transitionOrder).toHaveBeenCalledWith(id, "paid", "shipped", { tracking_number: "9400111899223344556677", carrier: "usps" });
     expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "j@lab.org", subject: "Order AP-1001 has shipped" });
+    expect(markCommissionClearing).toHaveBeenCalledWith(id, expect.any(String));
   });
 
   it("ignores bad input and non-paid orders", async () => {
@@ -41,5 +44,6 @@ describe("markShippedAction", () => {
     getOrderById.mockResolvedValue({ id, status: "cancelled" });
     await markShippedAction(fd({ orderId: id, tracking: "9400111899223344556677", carrier: "usps" }));
     expect(transitionOrder).not.toHaveBeenCalled();
+    expect(markCommissionClearing).not.toHaveBeenCalled();
   });
 });

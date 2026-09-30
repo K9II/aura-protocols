@@ -5,34 +5,49 @@ const getOrderByPaymentIntent = vi.fn();
 const transitionOrder = vi.fn();
 const sendOrAlert = vi.fn();
 const alertOwner = vi.fn();
+const afterOrderPaid = vi.fn();
+const reverseCommission = vi.fn();
+const refundCredit = vi.fn();
 vi.mock("@/lib/orders", () => ({ getOrderById, getOrderByPaymentIntent, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
+vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
+vi.mock("@/lib/partners/ledger", () => ({ reverseCommission, refundCredit }));
 
-const order = (status: string) => ({ id: "o1", order_number: "AP-1001", email: "j@lab.org", status, order_items: [], total_cents: 11300,
-  ship_name: "J", ship_line1: "1", ship_line2: null, ship_city: "A", ship_state: "TX", ship_zip: "78701", subtotal_cents: 9800, shipping_cents: 1500, tax_cents: 0 });
+const order = (status: string, over: Record<string, unknown> = {}) => ({ id: "o1", order_number: "AP-1001", customer_id: "u1", email: "j@lab.org", status, order_items: [], total_cents: 11850,
+  ship_name: "J", ship_line1: "1", ship_line2: null, ship_city: "A", ship_state: "TX", ship_zip: "78701", subtotal_cents: 9800, shipping_cents: 1500, insurance_cents: 550, tax_cents: 0,
+  store_credit_cents: 0, tax_calculation_id: null, ...over });
 const session = (over: Record<string, unknown> = {}) => ({ object: "checkout.session", id: "cs_1", metadata: { order_id: "o1" }, payment_status: "paid",
-  amount_total: 12108, total_details: { amount_tax: 808 }, payment_intent: "pi_1", ...over });
+  amount_total: 12658, total_details: { amount_tax: 808 }, payment_intent: "pi_1", ...over });
 const ev = (type: string, object: unknown) => ({ id: "evt_1", type, data: { object } }) as never;
 
 describe("handleStripeEvent", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [getOrderById, getOrderByPaymentIntent, transitionOrder, sendOrAlert, alertOwner]) f.mockReset(); transitionOrder.mockResolvedValue(true); });
-
-  it("card payment completed → paid with Stripe's tax and total, then emails customer and owner", async () => {
-    getOrderById.mockResolvedValueOnce(order("awaiting_payment")).mockResolvedValueOnce({ ...order("paid"), tax_cents: 808, total_cents: 12108 });
-    const { handleStripeEvent } = await import("@/lib/stripe-events");
-    await handleStripeEvent(ev("checkout.session.completed", session()));
-    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "paid", { tax_cents: 808, total_cents: 12108, stripe_payment_intent: "pi_1" });
-    expect(sendOrAlert).toHaveBeenCalledTimes(2);
-    expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "j@lab.org", subject: "Order AP-1001 confirmed" });
-    expect(sendOrAlert.mock.calls[1][0]).toMatchObject({ to: "owner@example.com" });
+  beforeEach(() => {
+    vi.resetModules();
+    for (const f of [getOrderById, getOrderByPaymentIntent, transitionOrder, sendOrAlert, alertOwner, afterOrderPaid, reverseCommission, refundCredit]) f.mockReset();
+    transitionOrder.mockResolvedValue(true);
   });
 
-  it("bank payment submitted (unpaid) → processing, no emails", async () => {
+  it("card payment completed → paid with Stripe's tax and total, then the after-payment steps", async () => {
+    getOrderById.mockResolvedValue(order("awaiting_payment"));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("checkout.session.completed", session()));
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "paid", { tax_cents: 808, total_cents: 12658, stripe_payment_intent: "pi_1" });
+    expect(afterOrderPaid).toHaveBeenCalledWith("o1");
+  });
+
+  it("keeps the pre-computed tax and total on store-credit orders", async () => {
+    getOrderById.mockResolvedValue(order("awaiting_payment", { tax_calculation_id: "taxcalc_1", tax_cents: 426, total_cents: 7376, store_credit_cents: 7326 }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("checkout.session.completed", session({ amount_total: 50, total_details: { amount_tax: 0 } })));
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "paid", { stripe_payment_intent: "pi_1" });
+  });
+
+  it("bank payment submitted (unpaid) → processing, nothing else", async () => {
     getOrderById.mockResolvedValue(order("awaiting_payment"));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("checkout.session.completed", session({ payment_status: "unpaid" })));
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "processing", { stripe_payment_intent: "pi_1" });
-    expect(sendOrAlert).not.toHaveBeenCalled();
+    expect(afterOrderPaid).not.toHaveBeenCalled();
   });
 
   it("bank payment succeeds later → paid; fails → cancelled + customer email", async () => {
@@ -51,17 +66,32 @@ describe("handleStripeEvent", () => {
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("checkout.session.completed", session()));
     expect(transitionOrder).not.toHaveBeenCalled();
-    expect(sendOrAlert).not.toHaveBeenCalled();
+    expect(afterOrderPaid).not.toHaveBeenCalled();
   });
 
-  it("expired session → cancelled quietly; full refund → refunded", async () => {
+  it("expired session → cancelled quietly", async () => {
     getOrderById.mockResolvedValue(order("awaiting_payment"));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("checkout.session.expired", session({ payment_status: "unpaid" })));
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
-    getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
+  });
+
+  it("full refund → refunded, commission reversed, store credit returned", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped", { store_credit_cents: 5000 }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
     expect(transitionOrder).toHaveBeenLastCalledWith("o1", "shipped", "refunded");
+    expect(reverseCommission).toHaveBeenCalledWith("o1", "refund");
+    expect(refundCredit).toHaveBeenCalledWith("u1", 5000, "o1");
+  });
+
+  it("chargeback opened → commission reversed and the owner alerted; order status unchanged", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("charge.dispute.created", { object: "dispute", payment_intent: "pi_1", reason: "fraudulent" }));
+    expect(reverseCommission).toHaveBeenCalledWith("o1", "chargeback");
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Chargeback"), expect.stringContaining("AP-1001"));
   });
 
   it("throws for a paid session whose order can't be found (so it's retried and alerted)", async () => {
