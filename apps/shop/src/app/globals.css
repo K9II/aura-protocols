@@ -632,3 +632,5 @@ main:has(> .pharmacopoeia) {
 }
 
 @media (max-width: 900px) { .pharmacopoeia .s-checkout { grid-template-columns: minmax(0, 1fr) !important; gap: 28px !important; } }
+
+@media (max-width: 760px) { .pharmacopoeia .s-calc-grid, .pharmacopoeia .s-partner-grid { grid-template-columns: minmax(0, 1fr) !important; } }
