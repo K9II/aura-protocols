@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import type { ShipAddress } from "@/lib/ship-address";
+import { getPartnerForCustomer, type PartnerRow } from "@/lib/partners/data";
 
 // Data Access Layer (Next 16 auth guide): every account page, order action,
 // route handler and the owner page calls these next to the data. proxy.ts only
@@ -61,4 +62,20 @@ export async function requireOwner(): Promise<Customer> {
   const customer = await getCustomer();
   if (!customer || !customer.isOwner) notFound();
   return customer;
+}
+
+// Partner pages: signed-in customer with a partner record (any status);
+// no record → the application form.
+export async function requirePartner(): Promise<{ customer: Customer; partner: PartnerRow }> {
+  const customer = await requireCustomer("/partners");
+  const partner = await getPartnerForCustomer(customer.id);
+  if (!partner) redirect("/partners/apply");
+  return { customer, partner };
+}
+
+// Partner actions that change payout settings: approved partners only.
+export async function requireApprovedPartner(): Promise<{ customer: Customer; partner: PartnerRow }> {
+  const r = await requirePartner();
+  if (r.partner.status !== "approved") notFound();
+  return r;
 }

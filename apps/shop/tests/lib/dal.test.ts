@@ -2,9 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { query, fromQueue } from "../helpers/supabase-mock";
 
 const getUser = vi.fn();
+const getPartnerForCustomer = vi.fn();
 let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () => ({ auth: { getUser } }) }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
+vi.mock("@/lib/partners/data", () => ({ getPartnerForCustomer }));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => { throw new Error(`REDIRECT:${url}`); },
   notFound: () => { throw new Error("NOT_FOUND"); },
@@ -51,5 +53,21 @@ describe("DAL", () => {
     expect(safeNext("//evil.example")).toBe("/account");
     expect(safeNext("https://evil.example")).toBe("/account");
     expect(safeNext(null)).toBe("/account");
+  });
+
+  it("requirePartner sends customers without a partner record to the application", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1", email: "j@lab.org", email_confirmed_at: "x" } }, error: null });
+    from = fromQueue({ customers: [query({ data: row })] });
+    getPartnerForCustomer.mockResolvedValue(null);
+    const { requirePartner } = await import("@/lib/dal");
+    await expect(requirePartner()).rejects.toThrow("REDIRECT:/partners/apply");
+  });
+
+  it("requireApprovedPartner 404s for partners who aren't approved", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1", email: "j@lab.org", email_confirmed_at: "x" } }, error: null });
+    from = fromQueue({ customers: [query({ data: row })] });
+    getPartnerForCustomer.mockResolvedValue({ id: "p1", status: "applied" });
+    const { requireApprovedPartner } = await import("@/lib/dal");
+    await expect(requireApprovedPartner()).rejects.toThrow("NOT_FOUND");
   });
 });
