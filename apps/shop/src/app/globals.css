@@ -630,3 +630,5 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia .s-toc a, .pharmacopoeia .s-toc a[aria-current] { color: var(--ink); }
   .pharmacopoeia .s-toc-num { display: inline; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; color: var(--ink-soft); margin-right: 8px; }
 }
+
+@media (max-width: 900px) { .pharmacopoeia .s-checkout { grid-template-columns: minmax(0, 1fr) !important; gap: 28px !important; } }
