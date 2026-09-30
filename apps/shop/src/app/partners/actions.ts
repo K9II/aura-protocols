@@ -2,13 +2,14 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getCustomer } from "@/lib/dal";
-import { createApplication, isCodeTaken, issueCode } from "@/lib/partners/data";
+import { getCustomer, requireApprovedPartner } from "@/lib/dal";
+import { changeCode, createApplication, isCodeTaken, issueCode, setPayoutMethod, setPayoutPref, uploadW9 } from "@/lib/partners/data";
 import { AUDIENCE_SIZE_IDS, CODE_REASON_TEXT, PARTNER_AGREEMENT_VERSION, PARTNER_TYPE_IDS, PARTNER_TYPES, PUBLISH_CHANNELS, validateCode, type PartnerApplication } from "@/lib/partners/codes";
 import { hashIp } from "@/lib/gate";
 import { alertAddress, sendOrAlert } from "@/lib/notify";
-import { partnerApplicationOwnerEmail } from "@/lib/emails-partners";
+import { ownerW9UploadedEmail, partnerApplicationOwnerEmail } from "@/lib/emails-partners";
 
 export type ApplyState = { error?: string } | undefined;
 
@@ -72,4 +73,62 @@ export async function applyPartnerAction(_prev: ApplyState, form: FormData): Pro
   const typeLabel = PARTNER_TYPES.find((t) => t.id === partnerType)?.label ?? partnerType;
   if (owner) await sendOrAlert({ to: owner, ...partnerApplicationOwnerEmail({ code, name: customer.fullName, typeLabel }) }, `partner application ${code}`);
   redirect("/partners");
+}
+
+export type SettingsState = { ok?: boolean; error?: string } | undefined;
+
+const prefSchema = z.object({ pref: z.enum(["cash", "credit", "split"]), splitCashPct: z.coerce.number().int().min(0).max(100) });
+const methodSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("ach"), routing: z.string().regex(/^\d{9}$/), account: z.string().regex(/^\d{4,17}$/), bank: z.string().trim().min(2).max(60) }),
+  z.object({ kind: z.literal("zelle"), handle: z.union([z.string().email().max(254), z.string().regex(/^\+?1?\d{10}$/)]) }),
+]);
+const W9_MAX_BYTES = 5 * 1024 * 1024;
+
+// Old code becomes an alias (lib/partners/data.ts changeCode), so shared links keep working.
+export async function changeCodeAction(_prev: SettingsState, form: FormData): Promise<SettingsState> {
+  const { partner } = await requireApprovedPartner();
+  const check = await checkCodeAvailableAction(String(form.get("code") ?? ""));
+  if (!check.ok) return { error: check.message };
+  if (check.code === partner.code) return { ok: true };
+  const r = await changeCode(partner.id, partner.code, check.code);
+  if ("error" in r) return { error: CODE_REASON_TEXT.taken };
+  revalidatePath("/partners");
+  return { ok: true };
+}
+
+export async function setPayoutPrefAction(_prev: SettingsState, form: FormData): Promise<SettingsState> {
+  const { partner } = await requireApprovedPartner();
+  const parsed = prefSchema.safeParse({ pref: form.get("pref"), splitCashPct: form.get("splitCashPct") ?? 50 });
+  if (!parsed.success) return { error: "Choose cash, store credit or a split between 0 and 100%." };
+  await setPayoutPref(partner.id, parsed.data.pref, parsed.data.splitCashPct);
+  revalidatePath("/partners");
+  return { ok: true };
+}
+
+export async function setPayoutMethodAction(_prev: SettingsState, form: FormData): Promise<SettingsState> {
+  const { partner } = await requireApprovedPartner();
+  const kind = form.get("kind");
+  const raw = kind === "ach"
+    ? { kind, routing: String(form.get("routing") ?? "").trim(), account: String(form.get("account") ?? "").trim(), bank: String(form.get("bank") ?? "") }
+    : { kind, handle: String(form.get("handle") ?? "").trim() };
+  const parsed = methodSchema.safeParse(raw);
+  if (!parsed.success) return { error: kind === "ach" ? "Enter a 9-digit routing number, your account number and bank name." : "Enter the email or US phone number registered with Zelle." };
+  await setPayoutMethod(partner.id, parsed.data);
+  revalidatePath("/partners");
+  return { ok: true };
+}
+
+export async function uploadW9Action(_prev: SettingsState, form: FormData): Promise<SettingsState> {
+  const { partner } = await requireApprovedPartner();
+  const file = form.get("w9");
+  if (!(file instanceof File) || file.size === 0) return { error: "Choose your signed W-9 (PDF)." };
+  if (file.size > W9_MAX_BYTES) return { error: "The W-9 must be a PDF of 5 MB or less." };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const isPdf = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46; // "%PDF"
+  if (!isPdf) return { error: "The W-9 must be a PDF file." };
+  await uploadW9(partner.id, bytes);
+  const owner = alertAddress();
+  if (owner) await sendOrAlert({ to: owner, ...ownerW9UploadedEmail(partner.code) }, `w9 ${partner.code}`);
+  revalidatePath("/partners");
+  return { ok: true };
 }
