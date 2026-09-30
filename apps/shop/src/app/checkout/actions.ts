@@ -39,6 +39,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
       orderId: order.id, orderNumber: order.orderNumber, siteUrl: siteUrl(),
       customer: { email: customer.email, fullName: customer.fullName, stripeCustomerId: customer.stripeCustomerId },
       ship, items: priced.items, shippingCents: priced.shippingCents, insuranceCents: priced.insuranceCents,
+      partnerDiscountCents: priced.partnerDiscountCents, lineDiscountsCents: priced.items.map(() => 0),
     });
     if (result.kind === "unavailable") {
       await transitionOrder(order.id, "awaiting_payment", "cancelled");
