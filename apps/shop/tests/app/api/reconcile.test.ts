@@ -33,8 +33,39 @@ describe("GET /api/cron/reconcile", () => {
     transitionOrder.mockResolvedValue(true);
     const { GET } = await import("@/app/api/cron/reconcile/route");
     const res = await GET(get("Bearer s3cret"));
-    expect(await res.json()).toEqual({ checked: 3, fixedPaid: ["AP-1"], cancelled: ["AP-2"] });
+    expect(await res.json()).toEqual({ checked: 3, fixedPaid: ["AP-1"], cancelled: ["AP-2"], failed: [] });
     expect(transitionOrder).toHaveBeenCalledWith("o2", "awaiting_payment", "cancelled");
     expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Reconciler"), expect.stringContaining("AP-1"));
+  });
+
+  it("isolates a session that throws, keeps processing the rest, and reports the failure", async () => {
+    list.mockReturnValue(pages([
+      { id: "cs_1", metadata: { order_id: "o1" }, payment_status: "paid", status: "complete" },
+      { id: "cs_2", metadata: { order_id: "o2" }, payment_status: "unpaid", status: "expired" },
+    ]));
+    getOrderById.mockImplementation(async (id: string) => {
+      if (id === "o1") throw new Error("boom");
+      return ({ o2: { id: "o2", status: "awaiting_payment", order_number: "AP-2" } } as Record<string, unknown>)[id];
+    });
+    transitionOrder.mockResolvedValue(true);
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    const res = await GET(get("Bearer s3cret"));
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.checked).toBe(2);
+    expect(body.cancelled).toEqual(["AP-2"]);
+    expect(body.failed).toHaveLength(1);
+    expect(body.failed[0]).toEqual(expect.stringContaining("cs_1"));
+    expect(body.failed[0]).toEqual(expect.stringContaining("boom"));
+    expect(transitionOrder).toHaveBeenCalledWith("o2", "awaiting_payment", "cancelled");
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("1 session"), expect.stringContaining("cs_1"));
+  });
+
+  it("alerts the owner and returns 500 if listing Stripe sessions itself fails", async () => {
+    list.mockImplementation(() => { throw new Error("stripe outage"); });
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    const res = await GET(get("Bearer s3cret"));
+    expect(res.status).toBe(500);
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Reconcile"), expect.stringContaining("stripe outage"));
   });
 });
