@@ -224,15 +224,53 @@ export async function markPayoutPaid(id: string, reference: string): Promise<Pay
   return (data as PayoutRow | null) ?? null;
 }
 
-export async function latestRunSummary(): Promise<{ runDate: string; creditCents: number; creditPartners: number } | null> {
-  const { data: run, error: runErr } = await db().from("payout_runs").select("run_date").order("run_date", { ascending: false }).limit(1).maybeSingle();
+export type RunSummary = { runDate: string; creditCents: number; creditPartners: number; finished: boolean; error: string | null };
+
+export async function latestRunSummary(): Promise<RunSummary | null> {
+  const { data: run, error: runErr } = await db().from("payout_runs").select("run_date, error, finished_at").order("run_date", { ascending: false }).limit(1).maybeSingle();
   if (runErr) throw dbError("latest run select", runErr);
-  const runDate = (run as { run_date: string } | null)?.run_date;
-  if (!runDate) return null;
-  const { data, error } = await db().from("payouts").select("credit_cents").eq("run_date", runDate).gt("credit_cents", 0);
+  const row = run as { run_date: string; error: string | null; finished_at: string | null } | null;
+  if (!row) return null;
+  const { data, error } = await db().from("payouts").select("credit_cents").eq("run_date", row.run_date).gt("credit_cents", 0);
   if (error) throw dbError("latest run payouts select", error);
   const rows = (data as { credit_cents: number }[] | null) ?? [];
-  return { runDate, creditCents: rows.reduce((s, r) => s + r.credit_cents, 0), creditPartners: rows.length };
+  return {
+    runDate: row.run_date,
+    creditCents: rows.reduce((s, r) => s + r.credit_cents, 0),
+    creditPartners: rows.length,
+    finished: !!row.finished_at,
+    error: row.error ?? null,
+  };
+}
+
+// Shared by the warning below and the owner Payouts page eyebrow — a
+// payout_runs.run_date ("2026-10-15") is a date-only ISO string, which the
+// spec parses as UTC midnight; formatting with timeZone: "UTC" keeps that
+// date from shifting a day in a non-UTC server/browser locale.
+export function formatRunDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+}
+
+// Pure — no DB access, safe to unit-test directly. null means the owner
+// Payouts page shows nothing; a finished run with no error is the only
+// silent case. Otherwise explains why the run is stuck: payout_runs.error
+// is JSON of RunFailure[] written by runPayouts (see above); anything else
+// (or unparseable JSON) is shown as raw text instead of counted partners.
+export function payoutRunWarning(run: Pick<RunSummary, "runDate" | "finished" | "error"> | null): string | null {
+  if (!run || (run.finished && !run.error)) return null;
+  let failures: RunFailure[] | null = null;
+  if (run.error) {
+    try {
+      const parsed = JSON.parse(run.error);
+      if (Array.isArray(parsed)) failures = parsed as RunFailure[];
+    } catch {
+      failures = null;
+    }
+  }
+  const who = failures ? `${failures.length} partner${failures.length === 1 ? "" : "s"}` : "some partners";
+  const detail = failures ? failures.map((f) => f.error).join("; ") : (run.error ?? "no error recorded");
+  const short = detail.length > 160 ? `${detail.slice(0, 160)}…` : detail;
+  return `The payout run for ${formatRunDate(run.runDate)} didn't finish — ${who} failed. It will retry automatically in tonight's daily run; details: ${short}`;
 }
 
 export async function payableByPartner(): Promise<Record<string, number>> {

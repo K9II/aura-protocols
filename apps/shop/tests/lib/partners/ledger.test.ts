@@ -236,6 +236,45 @@ describe("partner ledger", () => {
     await expect(sweepShippedCommissions()).rejects.toThrow(/sweep shipped commissions/);
   });
 
+  it("latestRunSummary reports whether the run finished and carries its error", async () => {
+    const runQ = query({ data: { run_date: "2026-10-15", error: null, finished_at: "2026-10-15T09:00:00.000Z" } });
+    const payQ = query({ data: [{ credit_cents: 500 }, { credit_cents: 250 }] });
+    from = fromQueue({ payout_runs: [runQ], payouts: [payQ] });
+    const { latestRunSummary } = await import("@/lib/partners/ledger");
+    expect(await latestRunSummary()).toEqual({ runDate: "2026-10-15", creditCents: 750, creditPartners: 2, finished: true, error: null });
+
+    const failJson = JSON.stringify([{ partnerId: "p1", error: "timeout" }]);
+    from = fromQueue({ payout_runs: [query({ data: { run_date: "2026-10-01", error: failJson, finished_at: null } })], payouts: [query({ data: [] })] });
+    expect(await latestRunSummary()).toEqual({ runDate: "2026-10-01", creditCents: 0, creditPartners: 0, finished: false, error: failJson });
+
+    from = fromQueue({ payout_runs: [query({ error: { message: "down" } })] });
+    await expect(latestRunSummary()).rejects.toThrow(/latest run select/);
+  });
+
+  it("payoutRunWarning is null for a clean finished run, and describes an unfinished/errored one with a human-formatted date", async () => {
+    const { payoutRunWarning } = await import("@/lib/partners/ledger");
+    expect(payoutRunWarning(null)).toBeNull();
+    expect(payoutRunWarning({ runDate: "2026-10-15", finished: true, error: null })).toBeNull();
+
+    const failJson = JSON.stringify([{ partnerId: "p1", error: "timeout" }, { partnerId: "p2", error: "insert failed" }]);
+    expect(payoutRunWarning({ runDate: "2026-10-01", finished: false, error: failJson })).toBe(
+      "The payout run for Oct 1, 2026 didn't finish — 2 partners failed. It will retry automatically in tonight's daily run; details: timeout; insert failed",
+    );
+
+    expect(payoutRunWarning({ runDate: "2026-10-01", finished: false, error: "boom" })).toBe(
+      "The payout run for Oct 1, 2026 didn't finish — some partners failed. It will retry automatically in tonight's daily run; details: boom",
+    );
+
+    expect(payoutRunWarning({ runDate: "2026-10-01", finished: false, error: null })).toBe(
+      "The payout run for Oct 1, 2026 didn't finish — some partners failed. It will retry automatically in tonight's daily run; details: no error recorded",
+    );
+  });
+
+  it("formatRunDate formats a date-only ISO string as UTC so it never shifts a day", async () => {
+    const { formatRunDate } = await import("@/lib/partners/ledger");
+    expect(formatRunDate("2026-10-01")).toBe("Oct 1, 2026");
+  });
+
   it("payableByPartner totals payable commission per partner", async () => {
     from = fromQueue({ commissions: [query({ data: [{ partner_id: "p1", amount_cents: 4410 }, { partner_id: "p1", amount_cents: 1000 }, { partner_id: "p2", amount_cents: 212 }] })] });
     const { payableByPartner } = await import("@/lib/partners/ledger");

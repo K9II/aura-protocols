@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireOwner } from "@/lib/dal";
 import { getPayoutDetails, listPartners, listW9sAwaitingCheck } from "@/lib/partners/data";
-import { latestRunSummary, listQueuedPayouts } from "@/lib/partners/ledger";
+import { formatRunDate, latestRunSummary, listQueuedPayouts, payoutRunWarning } from "@/lib/partners/ledger";
 import { usd } from "@/lib/html";
 import { markPayoutPaidAction, markW9CheckedAction, openW9Action } from "@/app/admin/payouts/actions";
 
 export const metadata: Metadata = { title: "Payouts", robots: { index: false, follow: false } };
 
 const box: React.CSSProperties = { border: "1px solid var(--line)", padding: "16px 18px" };
+const warnBox: React.CSSProperties = { border: "1px solid var(--specimen)", padding: "14px 18px", marginBottom: 24 };
 const th: React.CSSProperties = { textAlign: "left", padding: "0 18px 8px 0" };
 const td: React.CSSProperties = { padding: "13px 18px 13px 0", verticalAlign: "top" };
 const primary: React.CSSProperties = { padding: "8px 14px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: 0 };
@@ -24,12 +25,19 @@ export default async function AdminPayoutsPage() {
   const details = await Promise.all(queued.map((p) => getPayoutDetails(p.partner_id)));
   const cashTotal = queued.reduce((s, p) => s + p.cash_cents, 0);
   const carried = approved.filter((p) => p.cash_carry_cents > 0);
+  const warning = payoutRunWarning(run);
 
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-14">
-        <p className="s-micro text-[color:var(--specimen)] mb-2.5">Owner · {run ? `latest payout run ${run.runDate}` : "no payout run yet"}</p>
+        <p className="s-micro text-[color:var(--specimen)] mb-2.5">Owner · {run ? `latest payout run ${formatRunDate(run.runDate)}` : "no payout run yet"}</p>
         <h1 className="s-h1 mb-6" style={{ fontSize: 48 }}>Payouts <em>to send.</em></h1>
+        {warning && (
+          <div role="alert" style={warnBox}>
+            <p className="s-micro mb-1.5" style={{ color: "var(--specimen)" }}>Payout run needs attention</p>
+            <p className="text-sm" style={{ color: "var(--specimen)" }}>{warning}</p>
+          </div>
+        )}
         <p className="mb-6 text-[12.5px]"><Link className="p-link" href="/admin/partners">← Partners</Link></p>
         <div className="s-calc-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
           <Stat label="Cash to send" value={usd(cashTotal)} note={`${queued.length} partner${queued.length === 1 ? "" : "s"} · send by ACH or Zelle`} />
