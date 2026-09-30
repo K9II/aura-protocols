@@ -8,88 +8,176 @@ vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (
 describe("partner ledger", () => {
   beforeEach(() => { vi.resetModules(); rpc.mockReset(); rpc.mockResolvedValue({ data: null, error: null }); });
 
-  it("createCommission records the order once and adds its base to lifetime sales", async () => {
-    const q = query({});
-    from = fromQueue({ commissions: [q] });
+  it("createCommission calls the transactional record_commission RPC", async () => {
+    from = fromQueue({});
+    rpc.mockResolvedValue({ data: true, error: null });
     const { createCommission } = await import("@/lib/partners/ledger");
     expect(await createCommission({ partnerId: "p1", orderId: "o1", attributedBy: "code", baseCents: 27540, ratePct: 10 })).toBe(true);
-    expect(callArgs(q, "insert")?.[0]).toEqual({ partner_id: "p1", order_id: "o1", attributed_by: "code", base_cents: 27540, rate_pct: 10, amount_cents: 2754, state: "pending" });
-    expect(rpc).toHaveBeenCalledWith("adjust_partner_lifetime", { p_partner: "p1", p_delta: 27540 });
-    from = fromQueue({ commissions: [query({ error: { code: "23505" } })] });
-    rpc.mockClear();
-    expect(await createCommission({ partnerId: "p1", orderId: "o1", attributedBy: "code", baseCents: 27540, ratePct: 10 })).toBe(false);
-    expect(rpc).not.toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalledWith("record_commission", {
+      p_order: "o1", p_partner: "p1", p_base_cents: 27540, p_pct: 10, p_amount_cents: 2754, p_attributed_by: "code",
+    });
   });
 
-  it("markCommissionClearing starts the 15-day hold from the ship time", async () => {
+  it("createCommission returns false when the RPC reports no insert, and throws on a DB error", async () => {
+    from = fromQueue({});
+    rpc.mockResolvedValue({ data: false, error: null });
+    const { createCommission } = await import("@/lib/partners/ledger");
+    expect(await createCommission({ partnerId: "p1", orderId: "o1", attributedBy: "code", baseCents: 27540, ratePct: 10 })).toBe(false);
+    rpc.mockResolvedValue({ data: null, error: { message: "connection reset" } });
+    await expect(createCommission({ partnerId: "p1", orderId: "o1", attributedBy: "code", baseCents: 27540, ratePct: 10 })).rejects.toThrow(/record_commission/);
+  });
+
+  it("markCommissionClearing starts the 15-day hold from the ship time and surfaces a DB error", async () => {
     const q = query({});
     from = fromQueue({ commissions: [q] });
     const { markCommissionClearing } = await import("@/lib/partners/ledger");
     await markCommissionClearing("o1", "2026-10-01T12:00:00.000Z");
     expect(callArgs(q, "update")?.[0]).toEqual({ state: "clearing", clears_at: "2026-10-16T12:00:00.000Z" });
     expect(q.calls.filter(([m]) => m === "eq").map(([, a]) => a)).toEqual([["order_id", "o1"], ["state", "pending"]]);
+
+    from = fromQueue({ commissions: [query({ error: { message: "timeout" } })] });
+    await expect(markCommissionClearing("o1", "2026-10-01T12:00:00.000Z")).rejects.toThrow(/mark commission clearing/);
   });
 
-  it("reverseCommission voids unpaid commission and removes it from lifetime sales", async () => {
-    const find = query({ data: { id: "c1", partner_id: "p1", state: "clearing", amount_cents: 2754, base_cents: 27540 } });
-    const adj = query({ data: [] });
-    const upd = query({ data: [{ id: "c1" }] });
-    from = fromQueue({ commissions: [find, upd], commission_adjustments: [adj] });
+  it("reverseCommission calls the transactional reverse_commission RPC and surfaces a DB error", async () => {
+    from = fromQueue({});
+    rpc.mockResolvedValue({ data: "voided", error: null });
     const { reverseCommission } = await import("@/lib/partners/ledger");
     await reverseCommission("o1", "refund");
-    expect(callArgs(upd, "update")?.[0]).toMatchObject({ state: "void", voided_at: expect.any(String) });
-    expect(rpc).toHaveBeenCalledWith("adjust_partner_lifetime", { p_partner: "p1", p_delta: -27540 });
+    expect(rpc).toHaveBeenCalledWith("reverse_commission", { p_order: "o1", p_reason: "refund" });
+
+    rpc.mockResolvedValue({ data: null, error: { message: "deadlock" } });
+    await expect(reverseCommission("o1", "chargeback")).rejects.toThrow(/reverse_commission/);
   });
 
-  it("reverseCommission deducts already-paid commission from the next payout, once", async () => {
-    const find = query({ data: { id: "c1", partner_id: "p1", state: "paid", amount_cents: 2754, base_cents: 27540 } });
-    const adjFind = query({ data: [] });
-    const adjIns = query({});
-    from = fromQueue({ commissions: [find], commission_adjustments: [adjFind, adjIns] });
-    const { reverseCommission } = await import("@/lib/partners/ledger");
-    await reverseCommission("o1", "chargeback");
-    expect(callArgs(adjIns, "insert")?.[0]).toEqual({ partner_id: "p1", order_id: "o1", amount_cents: -2754, reason: "chargeback" });
-    from = fromQueue({ commissions: [query({ data: { id: "c1", partner_id: "p1", state: "paid", amount_cents: 2754, base_cents: 27540 } })], commission_adjustments: [query({ data: [{ id: "a1" }] })] });
-    rpc.mockClear();
-    await reverseCommission("o1", "refund"); // already deducted for this order
-    expect(rpc).not.toHaveBeenCalled();
-  });
-
-  it("spendCredit and creditBalance use the ledger", async () => {
+  it("spendCredit and creditBalance use the ledger; zero/negative spends are a no-op", async () => {
     rpc.mockResolvedValue({ data: true, error: null });
     from = fromQueue({ store_credit_ledger: [query({ data: [{ amount_cents: 17730 }, { amount_cents: -5000 }] })] });
     const { spendCredit, creditBalance } = await import("@/lib/partners/ledger");
     expect(await spendCredit("u1", 1000, "o1")).toBe(true);
     expect(rpc).toHaveBeenCalledWith("spend_store_credit", { p_customer: "u1", p_cents: 1000, p_order: "o1" });
     expect(await creditBalance("u1")).toBe(12730);
+
+    rpc.mockClear();
+    expect(await spendCredit("u1", 0, "o2")).toBe(true);
+    expect(await spendCredit("u1", -5, "o3")).toBe(true);
+    expect(rpc).not.toHaveBeenCalled();
   });
 
-  it("runPayouts is a no-op when the run date already exists", async () => {
-    from = fromQueue({ payout_runs: [query({ error: { code: "23505" } })] });
+  it("refundCredit is a no-op for zero/negative amounts and otherwise inserts", async () => {
+    const ins = query({});
+    from = fromQueue({ store_credit_ledger: [ins] });
+    const { refundCredit } = await import("@/lib/partners/ledger");
+    await refundCredit("u1", 0, "o1");
+    await refundCredit("u1", -100, "o1");
+    expect(from).not.toHaveBeenCalled();
+
+    from = fromQueue({ store_credit_ledger: [ins] });
+    await refundCredit("u1", 500, "o1");
+    expect(callArgs(ins, "insert")?.[0]).toEqual({ customer_id: "u1", amount_cents: 500, reason: "order_refund", ref_id: "o1" });
+  });
+
+  it("creditBalance surfaces a DB error", async () => {
+    from = fromQueue({ store_credit_ledger: [query({ error: { message: "down" } })] });
+    const { creditBalance } = await import("@/lib/partners/ledger");
+    await expect(creditBalance("u1")).rejects.toThrow(/credit balance select/);
+  });
+
+  it("runPayouts is a true no-op only when a prior run already finished", async () => {
+    from = fromQueue({ payout_runs: [query({ error: { code: "23505" } }), query({ data: { finished_at: "2026-10-15T09:00:00.000Z" } })] });
     const { runPayouts } = await import("@/lib/partners/ledger");
-    expect(await runPayouts("2026-10-15")).toEqual({ skipped: true, results: [] });
+    expect(await runPayouts("2026-10-15")).toEqual({ skipped: true, results: [], failures: [] });
   });
 
-  it("runPayouts settles payable commission: split partner gets credit now and cash carried under $100", async () => {
-    const runIns = query({});
+  it("runPayouts resumes a started-but-unfinished run instead of skipping it", async () => {
+    const partnersSel = query({ data: [] });
+    const donePayouts = query({ data: [] });
     const runDone = query({});
-    const partnersSel = query({ data: [{ id: "p1", customer_id: "u1", payout_pref: "split", split_cash_pct: 50, cash_carry_cents: 0, w9_checked_at: null, payout_method: "ach" }] });
-    const partnerUpd = query({});
-    const commSel = query({ data: [{ id: "c1", amount_cents: 10800 }] });
-    const commUpd = query({});
-    const adjSel = query({ data: [] });
-    const payoutIns = query({ data: { id: "po1" } });
-    const creditIns = query({});
     from = fromQueue({
-      payout_runs: [runIns, runDone], partners: [partnersSel, partnerUpd], commissions: [commSel, commUpd],
-      commission_adjustments: [adjSel], payouts: [payoutIns], store_credit_ledger: [creditIns],
+      payout_runs: [query({ error: { code: "23505" } }), query({ data: { finished_at: null } }), runDone],
+      partners: [partnersSel], payouts: [donePayouts],
     });
     const { runPayouts } = await import("@/lib/partners/ledger");
     const r = await runPayouts("2026-10-15");
-    expect(r).toEqual({ skipped: false, results: [{ partnerId: "p1", cashCents: 0, creditValueCents: 7020, carryCents: 5400 }] });
-    expect(callArgs(commUpd, "update")?.[0]).toMatchObject({ state: "paid", payout_run: "2026-10-15" });
-    expect(callArgs(partnerUpd, "update")?.[0]).toEqual({ cash_carry_cents: 5400 });
-    expect(callArgs(payoutIns, "insert")?.[0]).toEqual({ partner_id: "p1", run_date: "2026-10-15", cash_cents: 0, credit_cents: 7020, status: "credited", method: "ach" });
-    expect(callArgs(creditIns, "insert")?.[0]).toEqual({ customer_id: "u1", amount_cents: 7020, reason: "payout", ref_id: "po1" });
+    expect(r).toEqual({ skipped: false, results: [], failures: [] });
+    expect(callArgs(runDone, "update")?.[0]).toMatchObject({ finished_at: expect.any(String), error: null });
+  });
+
+  it("runPayouts throws if the initial partners select errors", async () => {
+    const runIns = query({});
+    from = fromQueue({ payout_runs: [runIns], partners: [query({ error: { message: "down" } })] });
+    const { runPayouts } = await import("@/lib/partners/ledger");
+    await expect(runPayouts("2026-10-15")).rejects.toThrow(/partners select/);
+  });
+
+  it("runPayouts settles payable commission via apply_partner_payout: split partner gets credit now and cash carried under $100", async () => {
+    const runIns = query({});
+    const runDone = query({});
+    const partnersSel = query({ data: [{ id: "p1", customer_id: "u1", payout_pref: "split", split_cash_pct: 50, cash_carry_cents: 0, w9_checked_at: null, payout_method: "ach" }] });
+    const donePayouts = query({ data: [] });
+    const commSel = query({ data: [{ id: "c1", amount_cents: 10800 }] });
+    const adjSel = query({ data: [] });
+    from = fromQueue({
+      payout_runs: [runIns, runDone], partners: [partnersSel], payouts: [donePayouts],
+      commissions: [commSel], commission_adjustments: [adjSel],
+    });
+    rpc.mockResolvedValue({ data: null, error: null });
+    const { runPayouts } = await import("@/lib/partners/ledger");
+    const r = await runPayouts("2026-10-15");
+    expect(r).toEqual({ skipped: false, results: [{ partnerId: "p1", cashCents: 0, creditValueCents: 7020, carryCents: 5400 }], failures: [] });
+    expect(rpc).toHaveBeenCalledWith("apply_partner_payout", {
+      p_partner: "p1", p_run_date: "2026-10-15", p_commission_ids: ["c1"], p_adjustment_ids: [],
+      p_expected_carry: 0, p_cash_cents: 0, p_credit_value_cents: 7020, p_new_carry: 5400, p_method: "ach", p_customer: "u1",
+    });
+    expect(callArgs(runDone, "update")?.[0]).toMatchObject({ finished_at: expect.any(String), error: null });
+  });
+
+  it("runPayouts nets an unsettled deduction against payable commission before splitting", async () => {
+    const runIns = query({});
+    const runDone = query({});
+    const partnersSel = query({ data: [{ id: "p1", customer_id: "u1", payout_pref: "cash", split_cash_pct: 100, cash_carry_cents: 0, w9_checked_at: "2026-01-01T00:00:00.000Z", payout_method: "ach" }] });
+    const donePayouts = query({ data: [] });
+    const commSel = query({ data: [{ id: "c1", amount_cents: 20000 }] });
+    const adjSel = query({ data: [{ id: "a1", amount_cents: -5000 }] });
+    from = fromQueue({
+      payout_runs: [runIns, runDone], partners: [partnersSel], payouts: [donePayouts],
+      commissions: [commSel], commission_adjustments: [adjSel],
+    });
+    rpc.mockResolvedValue({ data: null, error: null });
+    const { runPayouts } = await import("@/lib/partners/ledger");
+    const r = await runPayouts("2026-10-15");
+    // net = 20000 - 5000 = 15000 >= CASH_MIN_CENTS(10000), w9 checked → paid as cash.
+    expect(r.results).toEqual([{ partnerId: "p1", cashCents: 15000, creditValueCents: 0, carryCents: 0 }]);
+    expect(rpc).toHaveBeenCalledWith("apply_partner_payout", expect.objectContaining({
+      p_commission_ids: ["c1"], p_adjustment_ids: ["a1"], p_cash_cents: 15000, p_credit_value_cents: 0, p_new_carry: 0,
+    }));
+  });
+
+  it("runPayouts isolates one partner's apply_partner_payout failure: others still process, the run still finishes", async () => {
+    const runIns = query({});
+    const runDone = query({});
+    const partnersSel = query({
+      data: [
+        { id: "p1", customer_id: "u1", payout_pref: "cash", split_cash_pct: 100, cash_carry_cents: 0, w9_checked_at: "2026-01-01T00:00:00.000Z", payout_method: "ach" },
+        { id: "p2", customer_id: "u2", payout_pref: "cash", split_cash_pct: 100, cash_carry_cents: 0, w9_checked_at: "2026-01-01T00:00:00.000Z", payout_method: "ach" },
+      ],
+    });
+    const donePayouts = query({ data: [] });
+    const comm1 = query({ data: [{ id: "c1", amount_cents: 20000 }] });
+    const adj1 = query({ data: [] });
+    const comm2 = query({ data: [{ id: "c2", amount_cents: 20000 }] });
+    const adj2 = query({ data: [] });
+    from = fromQueue({
+      payout_runs: [runIns, runDone], partners: [partnersSel], payouts: [donePayouts],
+      commissions: [comm1, comm2], commission_adjustments: [adj1, adj2],
+    });
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "carry changed for partner p1" } })
+       .mockResolvedValueOnce({ data: null, error: null });
+    const { runPayouts } = await import("@/lib/partners/ledger");
+    const r = await runPayouts("2026-10-15");
+    expect(r.skipped).toBe(false);
+    expect(r.failures).toEqual([{ partnerId: "p1", error: expect.stringContaining("apply_partner_payout") }]);
+    expect(r.results).toEqual([{ partnerId: "p2", cashCents: 20000, creditValueCents: 0, carryCents: 0 }]);
+    expect(callArgs(runDone, "update")?.[0]).toMatchObject({ finished_at: expect.any(String), error: expect.stringContaining("p1") });
   });
 });
