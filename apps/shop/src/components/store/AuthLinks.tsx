@@ -11,17 +11,19 @@ export default function AuthLinks() {
   const [state, setState] = useState<"unknown" | "out" | "in">("unknown");
 
   useEffect(() => {
+    let cancelled = false;
     let unsubscribe: (() => void) | undefined;
     // Deferred so a broken/missing Supabase env falls back to "out" via a
     // microtask rather than a setState call synchronous with the effect body.
     Promise.resolve().then(() => {
+      if (cancelled) return;
       let supabase: ReturnType<typeof createSupabaseBrowserClient>;
-      try { supabase = createSupabaseBrowserClient(); } catch { setState("out"); return; }
-      supabase.auth.getSession().then(({ data }) => setState(data.session ? "in" : "out"));
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => setState(session ? "in" : "out"));
+      try { supabase = createSupabaseBrowserClient(); } catch { if (!cancelled) setState("out"); return; }
+      supabase.auth.getSession().then(({ data }) => { if (!cancelled) setState(data.session ? "in" : "out"); });
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => { if (!cancelled) setState(session ? "in" : "out"); });
       unsubscribe = () => data.subscription.unsubscribe();
     });
-    return () => unsubscribe?.();
+    return () => { cancelled = true; unsubscribe?.(); };
   }, []);
 
   if (state === "unknown") return <span className="s-nav-auth" aria-hidden />;
