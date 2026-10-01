@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { CartProvider, useCart, CART_STORAGE_KEY } from "@/components/store/CartProvider";
+import ClearCart from "@/components/account/ClearCart";
 
 function Probe() {
   const { lines, add, totals, open } = useCart();
@@ -32,6 +33,15 @@ describe("CartProvider", () => {
     ]));
     render(<CartProvider><Probe /></CartProvider>);
     expect(screen.getByTestId("lines")).toHaveTextContent("1");
+  });
+
+  it("a child that clears on mount empties a stored cart (order confirmation page)", () => {
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([
+      { slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 },
+    ]));
+    render(<CartProvider><ClearCart /><Probe /></CartProvider>);
+    expect(screen.getByTestId("lines")).toHaveTextContent("0");
+    expect(JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY) ?? "[]")).toHaveLength(0);
   });
 
   it("survives corrupted storage", () => {

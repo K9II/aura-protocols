@@ -63,7 +63,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const remove = useCallback((i: number) => setLines((prev) => removeLine(prev, i)), []);
   const setQty = useCallback((i: number, q: number) => setLines((prev) => setQuantity(prev, i, q)), []);
-  const clear = useCallback(() => setLines([]), []);
+  const clear = useCallback(() => {
+    // Also empty storage now: a child calling clear() on mount (ClearCart)
+    // runs before this provider's hydration effect, which would otherwise
+    // read the old cart straight back.
+    try {
+      window.localStorage.setItem(CART_STORAGE_KEY, "[]");
+    } catch {
+      // storage unavailable — state clear below still applies
+    }
+    setLines([]);
+  }, []);
 
   const value = useMemo(
     () => ({ lines, add, remove, setQty, clear, totals: cartTotals(lines), open, setOpen }),
