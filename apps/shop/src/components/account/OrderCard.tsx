@@ -4,6 +4,7 @@ import { trackingUrl } from "@/lib/emails";
 import { usd } from "@/lib/html";
 import type { OrderRow } from "@/lib/orders";
 
+const CARRIER_LABEL: Record<string, string> = { usps: "USPS", ups: "UPS", fedex: "FedEx", dhl: "DHL" };
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 export default function OrderCard({ order }: { order: OrderRow }) {
@@ -22,8 +23,8 @@ export default function OrderCard({ order }: { order: OrderRow }) {
           ))}
         </ul>
         {order.status === "shipped" && order.tracking_number && (
-          <div className="text-[13px] mt-2">Tracking{" "}
-            <a className="underline text-[color:var(--specimen)]" href={trackingUrl(order.carrier ?? "usps", order.tracking_number)} target="_blank" rel="noopener noreferrer">{order.tracking_number}</a>
+          <div className="text-[13px] mt-2">{CARRIER_LABEL[order.carrier ?? "usps"] ?? "Carrier"} tracking{" "}
+            <a className="underline text-[color:var(--specimen)]" href={trackingUrl(order.carrier ?? "usps", order.tracking_number)} target="_blank" rel="noopener noreferrer">{order.tracking_number.replace(/(.{4})(?=.)/g, "$1 ")}</a>
           </div>
         )}
       </div>

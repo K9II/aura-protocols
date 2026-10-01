@@ -30,7 +30,7 @@ export default function AuthLinks() {
   if (state === "out") return <Link href="/sign-in" className="s-nav-auth">Sign in</Link>;
   return (
     <>
-      <Link href="/account" className="s-nav-auth">Account</Link>
+      <Link href="/account" className="s-nav-auth" style={{ textDecoration: "none" }}>Account</Link>
       <form action={signOutAction} className="s-nav-signout">
         <button type="submit" className="s-nav-cart">Sign out</button>
       </form>

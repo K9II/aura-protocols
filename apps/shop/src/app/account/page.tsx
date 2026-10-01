@@ -16,10 +16,10 @@ export default async function AccountPage() {
 
   return (
     <div className="pharmacopoeia">
-      <div className="p-container py-16" style={{ maxWidth: 820 }}>
+      <div className="p-container py-16"><div style={{ maxWidth: 760 }}>
         <div className="flex items-center gap-4 mb-2.5">
           <p className="s-micro text-[color:var(--specimen)]">Account · {customer.email}</p>
-          <form action={signOutAction}><button type="submit" className="s-micro underline bg-transparent border-0 cursor-pointer text-[color:var(--specimen)]">Sign out</button></form>
+          <form action={signOutAction} className="flex"><button type="submit" className="s-micro underline bg-transparent border-0 cursor-pointer text-[color:var(--specimen)]">Sign out</button></form>
         </div>
         <h1 className="s-h1 mb-8" style={{ fontSize: 48 }}>My <em>orders.</em></h1>
         {!customer.emailConfirmed && <p role="alert" className="text-sm text-[color:var(--specimen)] mb-6">Please verify your email address — we sent a link to {customer.email}.</p>}
@@ -31,7 +31,7 @@ export default async function AccountPage() {
               {agreement && <span className="text-[color:var(--ink-soft)]">Terms version {agreement.terms_version} · agreed {new Date(agreement.agreed_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>}
             </p></div>
         </div>
-      </div>
+      </div></div>
     </div>
   );
 }

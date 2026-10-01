@@ -19,4 +19,11 @@ describe("OrderCard", () => {
     render(<OrderCard order={{ ...base, status: "shipped", tracking_number: "9400", carrier: "usps" }} />);
     expect(screen.getByRole("link", { name: "9400" })).toHaveAttribute("href", "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400");
   });
+
+  it("names the carrier and shows the number in groups of four", () => {
+    render(<OrderCard order={{ ...base, status: "shipped", tracking_number: "9400111899223344556677", carrier: "usps" }} />);
+    expect(screen.getByText(/USPS tracking/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "9400 1118 9922 3344 5566 77" }))
+      .toHaveAttribute("href", "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400111899223344556677");
+  });
 });

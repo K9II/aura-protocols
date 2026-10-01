@@ -97,7 +97,7 @@ export default async function PartnerDashboard() {
                 <tbody>
                   {ledger.recent.map((c) => (
                     <tr key={c.id} style={{ borderTop: "1px solid var(--line)" }}>
-                      <td style={td}><span className="p-serif text-[17px]">{c.orders?.order_number ?? "—"}</span></td>
+                      <td style={{ ...td, whiteSpace: "nowrap" }}><span className="p-serif text-[17px]">{c.orders?.order_number ?? "—"}</span></td>
                       <td style={td} className="text-sm">{fmt(c.created_at)}</td>
                       <td style={td} className="text-sm">{c.attributed_by === "code" ? "Code" : "Link"}</td>
                       <td style={{ ...td, textAlign: "right" }} className="text-sm">{usd(c.base_cents)}</td>

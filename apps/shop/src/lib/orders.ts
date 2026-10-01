@@ -117,6 +117,14 @@ export async function listOrdersForOwner(status: OrderStatus | "all"): Promise<O
   return (data as OrderRow[] | null) ?? [];
 }
 
+// Tab counts for the owner orders page (same scope as listOrdersForOwner).
+export async function countOrdersForOwner(): Promise<{ paid: number; processing: number; shipped: number; all: number }> {
+  const { data } = await db().from("orders").select("status").neq("status", "awaiting_payment");
+  const rows = (data as { status: OrderStatus }[] | null) ?? [];
+  const n = (s: OrderStatus) => rows.filter((r) => r.status === s).length;
+  return { paid: n("paid"), processing: n("processing"), shipped: n("shipped"), all: rows.length };
+}
+
 export async function saveShipAddress(customerId: string, ship: ShipAddress): Promise<void> {
   await db().from("customers").update({
     ship_name: ship.name, ship_line1: ship.line1, ship_line2: ship.line2,

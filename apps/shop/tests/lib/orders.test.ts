@@ -28,6 +28,14 @@ describe("orders", () => {
     expect(callArgs(itemsQ, "insert")?.[0]).toEqual([expect.objectContaining({ order_id: "o1", lot_number: "AP-0001", quantity: 2, line_total_cents: 9800 })]);
   });
 
+  it("countOrdersForOwner tallies each status and all, skipping unpaid checkouts", async () => {
+    const q = query({ data: [{ status: "paid" }, { status: "paid" }, { status: "shipped" }, { status: "cancelled" }] });
+    from = fromQueue({ orders: [q] });
+    const { countOrdersForOwner } = await import("@/lib/orders");
+    expect(await countOrdersForOwner()).toEqual({ paid: 2, processing: 0, shipped: 1, all: 4 });
+    expect(callArgs(q, "neq")).toEqual(["status", "awaiting_payment"]);
+  });
+
   it("createPendingOrder removes the order if the items insert fails", async () => {
     const orderQ = query({ data: { id: "o1", order_number: "AP-1001" } });
     const itemsQ = query({ error: { message: "boom" } });
