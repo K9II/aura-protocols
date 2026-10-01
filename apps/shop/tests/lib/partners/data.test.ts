@@ -121,4 +121,14 @@ describe("partner data", () => {
     from = fromQueue({ partner_code_aliases: [query({})], partners: [query({ error: { code: "23505" } })] });
     expect(await changeCode("p1", "SMITHLAB", "TAKEN")).toEqual({ error: "code_taken" });
   });
+
+  it("payout preference, payout method and W-9 check throw on a database error instead of reporting success", async () => {
+    const boom = () => query({ error: { message: "boom" } });
+    from = fromQueue({ partners: [boom(), boom(), boom()] });
+    process.env.PAYOUT_DETAILS_KEY = randomBytes(32).toString("base64");
+    const { setPayoutPref, setPayoutMethod, markW9Checked } = await import("@/lib/partners/data");
+    await expect(setPayoutPref("p1", "cash", 50)).rejects.toThrow();
+    await expect(setPayoutMethod("p1", { kind: "zelle", handle: "a@b.co" })).rejects.toThrow();
+    await expect(markW9Checked("p1")).rejects.toThrow();
+  });
 });

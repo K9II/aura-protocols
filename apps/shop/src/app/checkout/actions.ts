@@ -43,6 +43,18 @@ export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; 
   return { ok: true, code: attribution.code };
 }
 
+// Saves that only keep records tidy (saved address, coupon id, Stripe
+// customer id) must never cancel a checkout the customer can pay; a failure
+// is reported to the owner instead.
+async function bookkeep(what: string, save: () => Promise<void>): Promise<void> {
+  try {
+    await save();
+  } catch (err) {
+    console.error(`${what} failed:`, err);
+    await alertOwner(`Checkout: ${what} failed`, String(err));
+  }
+}
+
 // A customer who goes back from Stripe (or closes the tab) leaves an order
 // awaiting payment for up to 23 h, holding any store credit it reserved.
 // Starting a new checkout closes those first: expire the Stripe page, cancel
@@ -89,7 +101,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     lineDiscountsCents = discounted.lineDiscounts.map((d) => d.savingCents);
   }
 
-  await saveShipAddress(customer.id, ship);
+  await bookkeep("saving the shipping address", () => saveShipAddress(customer.id, ship));
   const adapter = getCommerceAdapter();
   await releaseAbandonedCheckouts(customer.id, adapter);
 
@@ -178,8 +190,9 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     }
     sessionId = result.sessionId;
     await attachCheckoutSession(order.id, result.sessionId);
-    if (result.couponId) await saveStripeCoupon(order.id, result.couponId);
-    if (!customer.stripeCustomerId) await saveStripeCustomerId(customer.id, result.stripeCustomerId);
+    const couponId = result.couponId, stripeCustomerId = result.stripeCustomerId;
+    if (couponId) await bookkeep(`saving coupon ${couponId} on ${order.orderNumber}`, () => saveStripeCoupon(order.id, couponId));
+    if (!customer.stripeCustomerId) await bookkeep(`saving Stripe customer ${stripeCustomerId}`, () => saveStripeCustomerId(customer.id, stripeCustomerId));
     return { url: result.url };
   } catch (err) {
     console.error("checkout start failed:", err);

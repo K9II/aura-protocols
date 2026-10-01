@@ -14,7 +14,12 @@ export async function updateAddressAction(_prev: AddressFormState, form: FormDat
     city: form.get("city"), state: form.get("state"), zip: form.get("zip"),
   });
   if (!parsed.success) return { error: "Please enter a complete US address." };
-  await saveShipAddress(customer.id, parsed.data);
+  try {
+    await saveShipAddress(customer.id, parsed.data);
+  } catch (err) {
+    console.error("save address failed:", err);
+    return { error: "We couldn't save your address - please try again." };
+  }
   revalidatePath("/account");
   return { ok: true };
 }

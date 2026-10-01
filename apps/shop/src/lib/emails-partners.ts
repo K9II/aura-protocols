@@ -51,6 +51,22 @@ export function ownerPayoutRunEmail(runDate: string, rows: Array<{ code: string;
   };
 }
 
+// Sent to the partner's account email on every change, so a change they
+// didn't make (e.g. a taken-over account redirecting payouts) is noticed.
+export function payoutDetailsChangedEmail(hint: string) {
+  return {
+    subject: "Your payout details were changed",
+    html: shell(`Payout details changed`, `<p>Your cash payout method is now: <b>${e(hint)}</b>.</p><p>If this wasn't you, reply to this email right away so we can hold your next cash payout.</p>`),
+  };
+}
+
+export function ownerPayoutDetailsChangedEmail(code: string, hint: string) {
+  return {
+    subject: `Payout details changed for ${code}`,
+    html: shell(`Payout details changed`, `<p>${e(code)} changed their cash payout method to <b>${e(hint)}</b>. Confirm the change with the partner before the next cash payout.</p>`),
+  };
+}
+
 export function ownerW9UploadedEmail(code: string) {
   return {
     subject: `W-9 uploaded by ${code} — please check it`,

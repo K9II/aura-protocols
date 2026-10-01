@@ -149,17 +149,22 @@ export async function clicksSince(partnerId: string, sinceDay: string): Promise<
 }
 
 export async function setPayoutPref(id: string, pref: PayoutPref, splitCashPct: number): Promise<void> {
-  await db().from("partners").update({ payout_pref: pref, split_cash_pct: splitCashPct }).eq("id", id);
+  const { error } = await db().from("partners").update({ payout_pref: pref, split_cash_pct: splitCashPct }).eq("id", id);
+  if (error) throw new Error(`save payout preference failed: ${JSON.stringify(error)}`);
 }
 
 export function payoutHint(d: PayoutDetails): string {
   return d.kind === "ach" ? `ACH · checking ••••${d.account.slice(-4)} · ${d.bank}` : `Zelle · ${d.handle}`;
 }
 
-export async function setPayoutMethod(id: string, details: PayoutDetails): Promise<void> {
-  await db().from("partners").update({
-    payout_method: details.kind, payout_details_enc: encryptDetails(JSON.stringify(details)), payout_details_hint: payoutHint(details),
+// Returns the masked hint shown to the partner and in the change emails.
+export async function setPayoutMethod(id: string, details: PayoutDetails): Promise<string> {
+  const hint = payoutHint(details);
+  const { error } = await db().from("partners").update({
+    payout_method: details.kind, payout_details_enc: encryptDetails(JSON.stringify(details)), payout_details_hint: hint,
   }).eq("id", id);
+  if (error) throw new Error(`save payout method failed: ${JSON.stringify(error)}`);
+  return hint;
 }
 
 export async function getPayoutDetails(id: string): Promise<PayoutDetails | null> {
@@ -172,12 +177,14 @@ export async function uploadW9(partnerId: string, pdf: Uint8Array): Promise<stri
   const path = `${partnerId}/${Date.now()}.pdf`;
   const { error } = await db().storage.from("w9").upload(path, pdf, { contentType: "application/pdf", upsert: false });
   if (error) throw new Error(`w9 upload failed: ${error.message}`);
-  await db().from("partners").update({ w9_path: path, w9_uploaded_at: new Date().toISOString(), w9_checked_at: null }).eq("id", partnerId);
+  const { error: saveErr } = await db().from("partners").update({ w9_path: path, w9_uploaded_at: new Date().toISOString(), w9_checked_at: null }).eq("id", partnerId);
+  if (saveErr) throw new Error(`w9 uploaded to ${path} but saving it on the partner failed: ${JSON.stringify(saveErr)}`);
   return path;
 }
 
 export async function markW9Checked(partnerId: string): Promise<void> {
-  await db().from("partners").update({ w9_checked_at: new Date().toISOString() }).eq("id", partnerId).not("w9_path", "is", null);
+  const { error } = await db().from("partners").update({ w9_checked_at: new Date().toISOString() }).eq("id", partnerId).not("w9_path", "is", null);
+  if (error) throw new Error(`mark W-9 checked failed: ${JSON.stringify(error)}`);
 }
 
 export async function w9SignedUrl(path: string): Promise<string> {

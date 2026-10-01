@@ -9,7 +9,7 @@ import { changeCode, createApplication, isCodeTaken, issueCode, setPayoutMethod,
 import { AUDIENCE_SIZE_IDS, CODE_REASON_TEXT, PARTNER_AGREEMENT_VERSION, PARTNER_TYPE_IDS, PARTNER_TYPES, PUBLISH_CHANNELS, validateCode, type PartnerApplication } from "@/lib/partners/codes";
 import { hashIp } from "@/lib/gate";
 import { alertAddress, sendOrAlert } from "@/lib/notify";
-import { ownerW9UploadedEmail, partnerApplicationOwnerEmail } from "@/lib/emails-partners";
+import { ownerPayoutDetailsChangedEmail, ownerW9UploadedEmail, partnerApplicationOwnerEmail, payoutDetailsChangedEmail } from "@/lib/emails-partners";
 
 export type ApplyState = { error?: string } | undefined;
 
@@ -104,20 +104,34 @@ export async function setPayoutPrefAction(_prev: SettingsState, form: FormData):
   const { partner } = await requireApprovedPartner();
   const parsed = prefSchema.safeParse({ pref: form.get("pref"), splitCashPct: form.get("splitCashPct") ?? 50 });
   if (!parsed.success) return { error: "Choose cash, store credit or a split between 0 and 100%." };
-  await setPayoutPref(partner.id, parsed.data.pref, parsed.data.splitCashPct);
+  try {
+    await setPayoutPref(partner.id, parsed.data.pref, parsed.data.splitCashPct);
+  } catch (err) {
+    console.error("save payout preference failed:", err);
+    return { error: "We couldn't save that - please try again." };
+  }
   revalidatePath("/partners");
   return { ok: true };
 }
 
 export async function setPayoutMethodAction(_prev: SettingsState, form: FormData): Promise<SettingsState> {
-  const { partner } = await requireApprovedPartner();
+  const { customer, partner } = await requireApprovedPartner();
   const kind = form.get("kind");
   const raw = kind === "ach"
     ? { kind, routing: String(form.get("routing") ?? "").trim(), account: String(form.get("account") ?? "").trim(), bank: String(form.get("bank") ?? "") }
     : { kind, handle: String(form.get("handle") ?? "").trim() };
   const parsed = methodSchema.safeParse(raw);
   if (!parsed.success) return { error: kind === "ach" ? "Enter a 9-digit routing number, your account number and bank name." : "Enter the email or US phone number registered with Zelle." };
-  await setPayoutMethod(partner.id, parsed.data);
+  let hint: string;
+  try {
+    hint = await setPayoutMethod(partner.id, parsed.data);
+  } catch (err) {
+    console.error("save payout method failed:", err);
+    return { error: "We couldn't save that - please try again." };
+  }
+  await sendOrAlert({ to: customer.email, ...payoutDetailsChangedEmail(hint) }, `payout details ${partner.code}`);
+  const owner = alertAddress();
+  if (owner) await sendOrAlert({ to: owner, ...ownerPayoutDetailsChangedEmail(partner.code, hint) }, `payout details owner ${partner.code}`);
   revalidatePath("/partners");
   return { ok: true };
 }
@@ -130,7 +144,12 @@ export async function uploadW9Action(_prev: SettingsState, form: FormData): Prom
   const bytes = new Uint8Array(await file.arrayBuffer());
   const isPdf = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46; // "%PDF"
   if (!isPdf) return { error: "The W-9 must be a PDF file." };
-  await uploadW9(partner.id, bytes);
+  try {
+    await uploadW9(partner.id, bytes);
+  } catch (err) {
+    console.error("w9 upload failed:", err);
+    return { error: "We couldn't save your W-9 - please try again." };
+  }
   const owner = alertAddress();
   if (owner) await sendOrAlert({ to: owner, ...ownerW9UploadedEmail(partner.code) }, `w9 ${partner.code}`);
   revalidatePath("/partners");

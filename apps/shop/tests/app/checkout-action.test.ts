@@ -256,6 +256,17 @@ describe("startCheckoutAction - abandoned checkouts", () => {
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
   });
 
+  it("still sends the customer to Stripe when only the bookkeeping saves fail, and alerts the owner", async () => {
+    createCheckout.mockResolvedValue({ ...redirect, couponId: "co_1" });
+    saveStripeCoupon.mockRejectedValue(new Error("db down"));
+    saveShipAddress.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect((await startCheckoutAction(input)).url).toBe(redirect.url);
+    expect(transitionOrder).not.toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+    expect(alertOwner).toHaveBeenCalled();
+  });
+
   it("alerts the owner if that Stripe page cannot be closed", async () => {
     attachCheckoutSession.mockRejectedValue(new Error("db down"));
     expireCheckout.mockRejectedValue(new Error("stripe down"));

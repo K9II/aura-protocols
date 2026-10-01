@@ -61,7 +61,8 @@ export async function createPendingOrder(input: {
 }
 
 export async function saveStripeCoupon(orderId: string, couponId: string): Promise<void> {
-  await db().from("orders").update({ stripe_coupon_id: couponId }).eq("id", orderId);
+  const { error } = await db().from("orders").update({ stripe_coupon_id: couponId }).eq("id", orderId);
+  if (error) throw new Error(`save Stripe coupon failed: ${JSON.stringify(error)}`);
 }
 
 // Records the Stripe Tax transaction id once it's created, so a later full
@@ -144,14 +145,16 @@ export async function countOrdersForOwner(): Promise<{ paid: number; processing:
 }
 
 export async function saveShipAddress(customerId: string, ship: ShipAddress): Promise<void> {
-  await db().from("customers").update({
+  const { error } = await db().from("customers").update({
     ship_name: ship.name, ship_line1: ship.line1, ship_line2: ship.line2,
     ship_city: ship.city, ship_state: ship.state, ship_zip: ship.zip,
   }).eq("id", customerId);
+  if (error) throw new Error(`save ship address failed: ${JSON.stringify(error)}`);
 }
 
 export async function saveStripeCustomerId(customerId: string, stripeCustomerId: string): Promise<void> {
-  await db().from("customers").update({ stripe_customer_id: stripeCustomerId }).eq("id", customerId);
+  const { error } = await db().from("customers").update({ stripe_customer_id: stripeCustomerId }).eq("id", customerId);
+  if (error) throw new Error(`save Stripe customer failed: ${JSON.stringify(error)}`);
 }
 
 // Idempotency ledger: "process" for new events and for earlier attempts that

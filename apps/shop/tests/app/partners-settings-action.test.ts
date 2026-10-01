@@ -21,7 +21,8 @@ describe("partner settings actions", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of [requireApprovedPartner, getCustomer, setPayoutPref, setPayoutMethod, uploadW9, changeCode, isCodeTaken, sendOrAlert]) f.mockReset();
-    requireApprovedPartner.mockResolvedValue({ customer: { id: "u1" }, partner });
+    requireApprovedPartner.mockResolvedValue({ customer: { id: "u1", email: "sam@smithlab.org" }, partner });
+    setPayoutMethod.mockResolvedValue("ACH · checking ••••6789 · Test Bank");
     // changeCodeAction reuses checkCodeAvailableAction, which itself now requires a signed-in, verified customer.
     getCustomer.mockResolvedValue({ id: "u1", email: "sam@smithlab.org", emailConfirmed: true, fullName: "Sam Smith" });
     isCodeTaken.mockResolvedValue(false);
@@ -43,6 +44,26 @@ describe("partner settings actions", () => {
     expect(setPayoutPref).toHaveBeenCalledWith("p1", "split", 50);
     expect((await setPayoutPrefAction(undefined, fd({ pref: "split", splitCashPct: "150" })))?.error).toBeTruthy();
     expect((await setPayoutPrefAction(undefined, fd({ pref: "bitcoin", splitCashPct: "0" })))?.error).toBeTruthy();
+  });
+
+  it("emails the partner and the owner whenever payout details change", async () => {
+    const { setPayoutMethodAction } = await import("@/app/partners/actions");
+    expect(await setPayoutMethodAction(undefined, fd({ kind: "ach", routing: "110000000", account: "000123456789", bank: "Test Bank" }))).toEqual({ ok: true });
+    const to = sendOrAlert.mock.calls.map((c) => c[0].to);
+    expect(to).toEqual(expect.arrayContaining(["sam@smithlab.org", "owner@example.com"]));
+    const partnerMail = sendOrAlert.mock.calls.find((c) => c[0].to === "sam@smithlab.org")![0];
+    expect(partnerMail.html).toContain("••••6789");
+    expect(partnerMail.subject).toMatch(/payout details/i);
+  });
+
+  it("tells the partner when a save fails instead of saying Saved", async () => {
+    setPayoutPref.mockRejectedValue(new Error("db down"));
+    setPayoutMethod.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { setPayoutPrefAction, setPayoutMethodAction } = await import("@/app/partners/actions");
+    expect((await setPayoutPrefAction(undefined, fd({ pref: "cash" })))?.error).toMatch(/try again/i);
+    expect((await setPayoutMethodAction(undefined, fd({ kind: "zelle", handle: "a@b.co" })))?.error).toMatch(/try again/i);
+    expect(sendOrAlert).not.toHaveBeenCalled();
   });
 
   it("validates ACH and Zelle details before saving", async () => {

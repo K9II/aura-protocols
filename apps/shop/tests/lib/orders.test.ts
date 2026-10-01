@@ -90,4 +90,13 @@ describe("orders", () => {
     from = fromQueue({ stripe_events: [query({})] });
     expect(await beginStripeEvent("evt_2", "checkout.session.completed")).toBe("process");
   });
+
+  it("address, coupon and Stripe customer saves throw on a database error", async () => {
+    const boom = () => query({ error: { message: "boom" } });
+    from = fromQueue({ customers: [boom(), boom()], orders: [boom()] });
+    const { saveShipAddress, saveStripeCustomerId, saveStripeCoupon } = await import("@/lib/orders");
+    await expect(saveShipAddress("u1", ship)).rejects.toThrow();
+    await expect(saveStripeCustomerId("u1", "cus_1")).rejects.toThrow();
+    await expect(saveStripeCoupon("o1", "co_1")).rejects.toThrow();
+  });
 });
