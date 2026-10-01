@@ -39,6 +39,34 @@ export async function applyPaid(order: OrderRow, session: Stripe.Checkout.Sessio
   return true;
 }
 
+// Follow-ups once an order is refunded (by Stripe, or by the owner for an
+// order paid entirely in store credit). Each step is idempotent and alerts
+// the owner on failure without stopping the others.
+export async function afterOrderRefunded(order: OrderRow): Promise<void> {
+  try {
+    await reverseCommission(order.id, "refund");
+  } catch (err) {
+    await alertOwner(`Commission not reversed for ${order.order_number}`, String(err));
+  }
+  if (order.store_credit_cents > 0) {
+    try {
+      await refundCredit(order.customer_id, order.store_credit_cents, order.id);
+    } catch (err) {
+      await alertOwner(`Store credit not refunded for ${order.order_number}`, String(err));
+    }
+  }
+  // Automatic-tax Checkout sessions (card path) reverse their own tax
+  // transaction on refund; only the store-credit path needs this, and
+  // only once a transaction id has actually been recorded.
+  if (order.tax_transaction_id) {
+    try {
+      await getCommerceAdapter().reverseTax(order.tax_transaction_id);
+    } catch (err) {
+      await alertOwner(`Tax transaction not reversed for ${order.order_number}`, String(err));
+    }
+  }
+}
+
 export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
   switch (event.type) {
     case "checkout.session.completed": {
@@ -85,29 +113,7 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         refunded = await transitionOrder(order.id, order.status, "refunded");
       }
       if (!refunded) return;
-
-      try {
-        await reverseCommission(order.id, "refund");
-      } catch (err) {
-        await alertOwner(`Commission not reversed for ${order.order_number}`, String(err));
-      }
-      if (order.store_credit_cents > 0) {
-        try {
-          await refundCredit(order.customer_id, order.store_credit_cents, order.id);
-        } catch (err) {
-          await alertOwner(`Store credit not refunded for ${order.order_number}`, String(err));
-        }
-      }
-      // Automatic-tax Checkout sessions (card path) reverse their own tax
-      // transaction on refund; only the store-credit path needs this, and
-      // only once a transaction id has actually been recorded.
-      if (order.tax_transaction_id) {
-        try {
-          await getCommerceAdapter().reverseTax(order.tax_transaction_id);
-        } catch (err) {
-          await alertOwner(`Tax transaction not reversed for ${order.order_number}`, String(err));
-        }
-      }
+      await afterOrderRefunded(order);
       return;
     }
     case "charge.dispute.created": {

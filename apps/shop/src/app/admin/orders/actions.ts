@@ -7,6 +7,7 @@ import { getOrderById, transitionOrder } from "@/lib/orders";
 import { CARRIERS, shippedEmail } from "@/lib/emails";
 import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { markCommissionClearing } from "@/lib/partners/ledger";
+import { afterOrderRefunded } from "@/lib/stripe-events";
 
 const schema = z.object({
   orderId: z.string().uuid(),
@@ -30,5 +31,19 @@ export async function markShippedAction(form: FormData): Promise<void> {
     const shipped = (await getOrderById(orderId)) ?? { ...order, tracking_number: tracking, carrier };
     await sendOrAlert({ to: shipped.email, ...shippedEmail(shipped) }, `shipped ${shipped.order_number}`);
   }
+  revalidatePath("/admin/orders");
+}
+
+// An order paid entirely in store credit never reached Stripe, so there is no
+// Stripe refund to trigger the usual follow-ups. This refunds it here: the
+// credit goes back to the customer, the commission is reversed, tax undone.
+export async function refundCreditOrderAction(form: FormData): Promise<void> {
+  await requireOwner();
+  const parsed = z.object({ orderId: z.string().uuid() }).safeParse({ orderId: form.get("orderId") });
+  if (!parsed.success) return;
+  const order = await getOrderById(parsed.data.orderId);
+  if (!order || order.stripe_session_id || order.store_credit_cents !== order.total_cents) return;
+  if (order.status !== "paid" && order.status !== "shipped") return;
+  if (await transitionOrder(order.id, order.status, "refunded")) await afterOrderRefunded(order);
   revalidatePath("/admin/orders");
 }

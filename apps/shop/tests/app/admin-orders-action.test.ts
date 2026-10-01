@@ -6,11 +6,13 @@ const transitionOrder = vi.fn();
 const sendOrAlert = vi.fn();
 const alertOwner = vi.fn();
 const markCommissionClearing = vi.fn();
+const afterOrderRefunded = vi.fn();
 vi.mock("@/lib/dal", () => ({ requireOwner }));
 vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner }));
 vi.mock("@/lib/partners/ledger", () => ({ markCommissionClearing }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/lib/stripe-events", () => ({ afterOrderRefunded }));
 
 function fd(v: Record<string, string>) { const f = new FormData(); for (const [k, x] of Object.entries(v)) f.set(k, x); return f; }
 const id = "11111111-1111-4111-8111-111111111111";
@@ -59,5 +61,40 @@ describe("markShippedAction", () => {
     await markShippedAction(fd({ orderId: id, tracking: "9400111899223344556677", carrier: "usps" }));
     expect(transitionOrder).not.toHaveBeenCalled();
     expect(markCommissionClearing).not.toHaveBeenCalled();
+  });
+});
+
+describe("refundCreditOrderAction", () => {
+  const creditOrder = (status: string, over: Record<string, unknown> = {}) => ({
+    id, order_number: "AP-1009", status, stripe_session_id: null, store_credit_cents: 6950, total_cents: 6950, ...over,
+  });
+  beforeEach(() => { vi.resetModules(); for (const f of [requireOwner, getOrderById, transitionOrder, alertOwner, afterOrderRefunded]) f.mockReset(); });
+
+  it("is owner-only", async () => {
+    requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    const { refundCreditOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(refundCreditOrderAction(fd({ orderId: id }))).rejects.toThrow("NOT_FOUND");
+    expect(transitionOrder).not.toHaveBeenCalled();
+  });
+
+  it("refunds a paid or shipped order paid fully in store credit, then runs the refund follow-ups", async () => {
+    requireOwner.mockResolvedValue({ id: "owner" });
+    getOrderById.mockResolvedValue(creditOrder("shipped"));
+    transitionOrder.mockResolvedValue(true);
+    const { refundCreditOrderAction } = await import("@/app/admin/orders/actions");
+    await refundCreditOrderAction(fd({ orderId: id }));
+    expect(transitionOrder).toHaveBeenCalledWith(id, "shipped", "refunded");
+    expect(afterOrderRefunded).toHaveBeenCalledWith(expect.objectContaining({ id, order_number: "AP-1009" }));
+  });
+
+  it("refuses orders Stripe charged (those are refunded in Stripe) and unpaid ones", async () => {
+    requireOwner.mockResolvedValue({ id: "owner" });
+    const { refundCreditOrderAction } = await import("@/app/admin/orders/actions");
+    for (const o of [creditOrder("paid", { stripe_session_id: "cs_1" }), creditOrder("paid", { store_credit_cents: 5000 }), creditOrder("cancelled")]) {
+      getOrderById.mockResolvedValue(o);
+      await refundCreditOrderAction(fd({ orderId: id }));
+    }
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(afterOrderRefunded).not.toHaveBeenCalled();
   });
 });
