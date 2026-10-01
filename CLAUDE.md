@@ -9,7 +9,8 @@ Live at **https://auraprotocols.com** (Vercel project `aura-protocols`; PAUSED u
 
 ## Stack
 - Next.js 16 (App Router), React 19, TypeScript, Tailwind v4
-- Supabase (service role, server only) — `gate_attestations`, `subscribers`, `inquiries` (`apps/shop/supabase/storefront.sql`)
+- Supabase **Aura Store** — Auth (customer accounts, `@supabase/ssr`) + tables: `gate_attestations`, `subscribers`, `inquiries` (`apps/shop/supabase/storefront.sql`) and `customers`, `account_agreements`, `orders`, `order_items`, `stripe_events` (`apps/shop/supabase/accounts-checkout.sql`). Service role, server only.
+- Stripe hosted Checkout via `lib/commerce.ts`; webhook `app/api/stripe/webhook`; daily reconcile cron.
 - Amazon SES for email; vitest + Testing Library
 - Partner program: `lib/partners/*` (pure rules: codes, tiers, discounts, payout-math; data: `data.ts`, `ledger.ts`), tables in `apps/shop/supabase/partners.sql`, `/affiliates` (program + calculator), `/partners` (dashboard), `/admin/partners`, `/admin/payouts`, daily cron `api/cron/partners-daily` (clears commission; payouts on the 1st/15th).
 
@@ -40,5 +41,8 @@ apps/shop/src/
 - `BASE_URL` = `https://auraprotocols.com` in `layout.tsx`, `sitemap.ts`, `robots.ts` — keep in sync.
 - New static pages must be added to `sitemap.ts`. Legal pages are linked from `SiteFooter` only.
 - Checkout goes through `lib/commerce.ts` (`CommerceAdapter`); payments are a separate spec.
+- Authorization lives in `lib/dal.ts` (`requireCustomer`, `requireOwner`) — call it next to every data access. `proxy.ts` only refreshes sessions.
+- Order status changes go through `transitionOrder` (`lib/orders.ts`) and the machine in `lib/order-status.ts` — never update `status` directly.
+- Prices are rebuilt server-side by `lib/pricing.ts`; never trust cart prices from the browser.
 - One discount per order line (`lib/partners/discounts.ts`): the larger of the pack price or the partner code, never both. Store credit is a payment, not a discount — tax is pre-computed with Stripe Tax before credit applies.
 - Commission changes only through `lib/partners/ledger.ts` (created on payment, clearing on ship, reversed on refund/chargeback). Partner bank/Zelle details are AES-GCM encrypted (`PAYOUT_DETAILS_KEY`).
