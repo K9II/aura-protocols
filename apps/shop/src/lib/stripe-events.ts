@@ -7,6 +7,7 @@ import { afterOrderPaid } from "@/lib/order-paid";
 import { getCommerceAdapter } from "@/lib/commerce";
 import { refundCredit, reverseCommission } from "@/lib/partners/ledger";
 import { getPartnerById } from "@/lib/partners/data";
+import { usd } from "@/lib/html";
 
 function paymentIntentId(pi: string | { id: string } | null | undefined): string | null {
   return typeof pi === "string" ? pi : pi?.id ?? null;
@@ -102,9 +103,17 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case "charge.refunded": {
       const charge = event.data.object as Stripe.Charge;
       const pi = paymentIntentId(charge.payment_intent);
-      if (!charge.refunded || !pi) return; // partial refunds leave the order as is
+      if (!pi) return;
       const order = await getOrderByPaymentIntent(pi);
-      if (!order) return;
+      // A refund can be delivered before the paid event: retry rather than
+      // drop it, or reconcile could later mark a refunded sale paid.
+      if (!order) throw new Error(`refund on ${pi}: no order matched yet`);
+      if (!charge.refunded) {
+        // Partial refunds leave the order (and the commission) as is.
+        await alertOwner(`Partial refund on ${order.order_number}`,
+          `${usd(charge.amount_refunded ?? 0)} of order ${order.order_number} was refunded in Stripe. The order stays ${order.status} and the partner commission (if any) is unchanged - adjust it by hand if needed.`);
+        return;
+      }
       // Already refunded means a prior delivery of this event got the order
       // transitioned but (per one of the alerts below) didn't finish every
       // follow-up step — run them again; each one is idempotent.

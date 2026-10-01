@@ -18,7 +18,16 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "invalid signature" }, { status: 400 });
   }
 
-  if ((await beginStripeEvent(event.id, event.type)) === "duplicate") {
+  let begun: "process" | "duplicate";
+  try {
+    begun = await beginStripeEvent(event.id, event.type);
+  } catch (err) {
+    // The event ledger itself is unreachable: tell the owner and let Stripe retry.
+    console.error(`stripe event ${event.id} ledger failed:`, err);
+    await alertOwner(`Stripe event failed: ${event.type}`, `${event.id}\n${String(err)}`);
+    return NextResponse.json({ error: "processing failed" }, { status: 500 });
+  }
+  if (begun === "duplicate") {
     return NextResponse.json({ received: true, duplicate: true });
   }
   try {

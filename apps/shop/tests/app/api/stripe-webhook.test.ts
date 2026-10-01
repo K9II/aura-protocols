@@ -29,6 +29,16 @@ describe("POST /api/stripe/webhook", () => {
     expect(handleStripeEvent).not.toHaveBeenCalled();
   });
 
+  it("alerts the owner and asks Stripe to retry when the event ledger itself is down", async () => {
+    constructEvent.mockReturnValue({ id: "evt_1", type: "charge.refunded" });
+    beginStripeEvent.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { POST } = await import("@/app/api/stripe/webhook/route");
+    expect((await POST(post("sig"))).status).toBe(500);
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("charge.refunded"), expect.stringContaining("db down"));
+    expect(handleStripeEvent).not.toHaveBeenCalled();
+  });
+
   it("acknowledges a duplicate without processing it again", async () => {
     constructEvent.mockReturnValue({ id: "evt_1", type: "checkout.session.completed" });
     beginStripeEvent.mockResolvedValue("duplicate");

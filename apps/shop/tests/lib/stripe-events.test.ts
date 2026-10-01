@@ -123,9 +123,9 @@ describe("handleStripeEvent", () => {
   });
 
   it("a partial refund leaves the order and its commission untouched", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("paid"));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: false, payment_intent: "pi_1" }));
-    expect(getOrderByPaymentIntent).not.toHaveBeenCalled();
     expect(transitionOrder).not.toHaveBeenCalled();
     expect(reverseCommission).not.toHaveBeenCalled();
     expect(reverseTax).not.toHaveBeenCalled();
@@ -148,6 +148,22 @@ describe("handleStripeEvent", () => {
     expect(reverseCommission).toHaveBeenCalledWith("o1", "chargeback");
     expect(transitionOrder).not.toHaveBeenCalled();
     expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Chargeback"), expect.stringContaining("AP-1001"));
+  });
+
+  it("throws for a full refund whose order isn't matched yet, so Stripe retries it", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(null);
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await expect(handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_9" })))
+      .rejects.toThrow(/pi_9/);
+  });
+
+  it("tells the owner about a partial refund (commission stays at the full amount)", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: false, amount_refunded: 2000, payment_intent: "pi_1" }));
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(reverseCommission).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringMatching(/partial refund/i), expect.stringContaining("$20.00"));
   });
 
   it("alerts the owner when a payment arrives for an order that was already cancelled", async () => {
