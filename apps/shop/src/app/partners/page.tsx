@@ -4,6 +4,7 @@ import { requirePartner } from "@/lib/dal";
 import { clicksSince } from "@/lib/partners/data";
 import { creditBalance, partnerLedger } from "@/lib/partners/ledger";
 import { nextTier } from "@/lib/partners/tiers";
+import { heldCash } from "@/lib/partners/payout-math";
 import { usd } from "@/lib/html";
 import { siteUrl } from "@/lib/supabase/env";
 import CopyButton from "@/components/partners/CopyButton";
@@ -16,7 +17,7 @@ export const metadata: Metadata = { title: "Partner dashboard", robots: { index:
 const box: React.CSSProperties = { border: "1px solid var(--line)", padding: "16px 18px" };
 const th: React.CSSProperties = { textAlign: "left", padding: "0 18px 8px 0" };
 const td: React.CSSProperties = { padding: "13px 18px 13px 0", verticalAlign: "top" };
-const STATE_LABEL = { pending: "Pending", clearing: "Clearing", payable: "Payable", paid: "Paid", void: "Removed" } as const;
+const STATE_LABEL = { pending: "Pending", clearing: "Clearing", payable: "Payable", paid: "In payout", void: "Removed" } as const;
 const fmt = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 // Not a component (lowercase, no JSX) — keeps the impure Date.now() call out of the page component's render.
 function daysAgoIso(days: number): string {
@@ -56,6 +57,7 @@ export default async function PartnerDashboard() {
   const progress = next ? Math.min(100, Math.round((partner.lifetime_cents / next.fromCents) * 100)) : 100;
   const today = new Date();
   const nextPayout = today.getUTCDate() < 15 ? "the 15th" : "the 1st";
+  const held = heldCash({ carryCents: partner.cash_carry_cents, w9Checked: !!partner.w9_checked_at });
 
   return (
     <Shell eyebrow={`Partner · approved ${partner.approved_at ? fmt(partner.approved_at) : ""}`}>
@@ -67,8 +69,9 @@ export default async function PartnerDashboard() {
         <Stat label="Clicks · 30 days" value={clicks.toLocaleString("en-US")} />
         <Stat label="Orders · 30 days" value={String(ledger.ordersLast30)} />
         <Stat label="Pending + clearing" value={usd(ledger.byState.pending + ledger.byState.clearing)} note="clears 15 days after shipping" />
-        <Stat label="Payable" value={usd(ledger.byState.payable)} note={`next payout ${nextPayout}`} />
-        <Stat label="Paid to date" value={usd(ledger.byState.paid)} />
+        <Stat label="Payable" value={usd(ledger.byState.payable + (held?.cents ?? 0))}
+          note={held ? `includes ${usd(held.cents)} held until ${held.reason === "w9" ? "your W-9 is checked" : "cash reaches $100"}` : `next payout ${nextPayout}`} />
+        <Stat label="Paid to date" value={usd(ledger.receivedCents)} />
       </div>
       <div className="s-calc-grid" style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16, marginBottom: 32 }}>
         <div style={box}>

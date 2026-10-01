@@ -31,3 +31,15 @@ export function splitPayout(i: {
   if (cashDue >= CASH_MIN_CENTS && i.w9Checked) return { cashCents: cashDue, creditValueCents, newCarryCents: 0 };
   return { cashCents: 0, creditValueCents, newCarryCents: cashDue };
 }
+
+// Cash a partner is owed but that a run carried forward instead of sending.
+export function heldCash(i: { carryCents: number; w9Checked: boolean }): { cents: number; reason: "w9" | "minimum" } | null {
+  if (i.carryCents <= 0) return null;
+  return { cents: i.carryCents, reason: i.w9Checked ? "minimum" : "w9" };
+}
+
+// What a partner has actually received: store credit is added when the run
+// happens; cash counts only once it's marked sent.
+export function receivedCents(payouts: { cash_cents: number; credit_cents: number; status: "queued" | "paid" | "credited" }[]): number {
+  return payouts.reduce((sum, p) => sum + p.credit_cents + (p.status === "paid" ? p.cash_cents : 0), 0);
+}

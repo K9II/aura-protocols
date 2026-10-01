@@ -1,7 +1,7 @@
 import "server-only";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { clearsAt, commissionCents } from "@/lib/partners/tiers";
-import { splitPayout, type PayoutPref } from "@/lib/partners/payout-math";
+import { receivedCents, splitPayout, type PayoutPref } from "@/lib/partners/payout-math";
 
 export type CommissionState = "pending" | "clearing" | "payable" | "paid" | "void";
 export type CommissionRow = {
@@ -283,7 +283,7 @@ export async function payableByPartner(): Promise<Record<string, number>> {
 }
 
 export async function partnerLedger(partnerId: string): Promise<{
-  byState: Record<CommissionState, number>; recent: CommissionRow[]; payouts: PayoutRow[]; ordersLast30: number;
+  byState: Record<CommissionState, number>; recent: CommissionRow[]; payouts: PayoutRow[]; ordersLast30: number; receivedCents: number;
 }> {
   const { data: all, error: allErr } = await db().from("commissions").select("state, amount_cents, created_at").eq("partner_id", partnerId);
   if (allErr) throw dbError("ledger commissions select", allErr);
@@ -299,5 +299,10 @@ export async function partnerLedger(partnerId: string): Promise<{
   if (recentErr) throw dbError("ledger recent commissions select", recentErr);
   const { data: payouts, error: payoutsErr } = await db().from("payouts").select("*").eq("partner_id", partnerId).order("run_date", { ascending: false }).limit(12);
   if (payoutsErr) throw dbError("ledger payouts select", payoutsErr);
-  return { byState, recent: (recent as CommissionRow[] | null) ?? [], payouts: (payouts as PayoutRow[] | null) ?? [], ordersLast30 };
+  const { data: allPayouts, error: allPayoutsErr } = await db().from("payouts").select("cash_cents, credit_cents, status").eq("partner_id", partnerId);
+  if (allPayoutsErr) throw dbError("ledger payout totals select", allPayoutsErr);
+  return {
+    byState, recent: (recent as CommissionRow[] | null) ?? [], payouts: (payouts as PayoutRow[] | null) ?? [], ordersLast30,
+    receivedCents: receivedCents((allPayouts as Pick<PayoutRow, "cash_cents" | "credit_cents" | "status">[] | null) ?? []),
+  };
 }

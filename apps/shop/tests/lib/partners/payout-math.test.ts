@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { splitPayout } from "@/lib/partners/payout-math";
+import { heldCash, receivedCents, splitPayout } from "@/lib/partners/payout-math";
 
 const base = { carryCents: 0, pref: "cash" as const, splitCashPct: 50, w9Checked: true };
 
@@ -40,5 +40,32 @@ describe("splitPayout", () => {
     expect(splitPayout({ ...base, netCents: -500, carryCents: 50000, w9Checked: false })).toEqual({ cashCents: 0, creditValueCents: 0, newCarryCents: 49500 });
     expect(splitPayout({ ...base, netCents: 0, carryCents: 12000 })).toEqual({ cashCents: 12000, creditValueCents: 0, newCarryCents: 0 });
     expect(splitPayout({ ...base, netCents: -5000, carryCents: 3000 })).toEqual({ cashCents: 0, creditValueCents: 0, newCarryCents: -2000 });
+  });
+});
+
+describe("heldCash", () => {
+  it("is nothing when no cash is carried", () => {
+    expect(heldCash({ carryCents: 0, w9Checked: false })).toBeNull();
+    expect(heldCash({ carryCents: -1764, w9Checked: true })).toBeNull();
+  });
+
+  it("is held for the W-9 until it's checked, then for the $100 minimum", () => {
+    expect(heldCash({ carryCents: 1764, w9Checked: false })).toEqual({ cents: 1764, reason: "w9" });
+    expect(heldCash({ carryCents: 1764, w9Checked: true })).toEqual({ cents: 1764, reason: "minimum" });
+  });
+});
+
+describe("receivedCents", () => {
+  it("counts credit when issued and cash only once it's sent", () => {
+    expect(receivedCents([
+      { cash_cents: 12000, credit_cents: 0, status: "queued" },
+      { cash_cents: 15000, credit_cents: 2600, status: "paid" },
+      { cash_cents: 0, credit_cents: 1300, status: "credited" },
+      { cash_cents: 0, credit_cents: 500, status: "queued" },
+    ])).toBe(15000 + 2600 + 1300 + 500);
+  });
+
+  it("is zero with no payouts", () => {
+    expect(receivedCents([])).toBe(0);
   });
 });
