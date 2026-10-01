@@ -6,9 +6,9 @@ import { getCustomer } from "@/lib/dal";
 import { priceOrder, type PricedOrder, type Rejection } from "@/lib/pricing";
 import { shipAddressSchema } from "@/lib/ship-address";
 import {
-  attachCheckoutSession, createPendingOrder, saveShipAddress, saveStripeCoupon, saveStripeCustomerId, transitionOrder,
+  attachCheckoutSession, createPendingOrder, listOpenOrdersForCustomer, saveShipAddress, saveStripeCoupon, saveStripeCustomerId, transitionOrder,
 } from "@/lib/orders";
-import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS } from "@/lib/commerce";
+import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } from "@/lib/commerce";
 import { siteUrl } from "@/lib/supabase/env";
 import { resolveAttribution } from "@/lib/partners/attribution";
 import { applyPartnerCode } from "@/lib/partners/discounts";
@@ -43,6 +43,29 @@ export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; 
   return { ok: true, code: attribution.code };
 }
 
+// A customer who goes back from Stripe (or closes the tab) leaves an order
+// awaiting payment for up to 23 h, holding any store credit it reserved.
+// Starting a new checkout closes those first: expire the Stripe page, cancel
+// the order, and the release_credit_on_cancel trigger hands the credit back.
+// An order with no Stripe page yet may belong to another tab that's still
+// starting, so it's only cancelled once it's 10 minutes old.
+const ORPHAN_AFTER_MS = 10 * 60 * 1000;
+async function releaseAbandonedCheckouts(customerId: string, adapter: CommerceAdapter): Promise<void> {
+  for (const o of await listOpenOrdersForCustomer(customerId)) {
+    try {
+      if (o.stripe_session_id) {
+        if ((await adapter.expireCheckout(o.stripe_session_id)) === "complete") continue; // paid; the webhook records it
+      } else if (Date.now() - new Date(o.created_at).getTime() < ORPHAN_AFTER_MS) {
+        continue;
+      }
+      await transitionOrder(o.id, "awaiting_payment", "cancelled");
+    } catch (err) {
+      await alertOwner(`Couldn't close an earlier checkout (${o.order_number})`,
+        `Starting a new checkout for customer ${customerId}, order ${o.order_number} (${o.id}, session ${o.stripe_session_id ?? "none"}) could not be closed: ${String(err)}. Any store credit it holds stays held until it expires.`);
+    }
+  }
+}
+
 export async function startCheckoutAction(input: unknown): Promise<StartCheckoutResult> {
   const customer = await getCustomer();
   if (!customer) return { error: "Please sign in to check out." };
@@ -68,6 +91,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
 
   await saveShipAddress(customer.id, ship);
   const adapter = getCommerceAdapter();
+  await releaseAbandonedCheckouts(customer.id, adapter);
 
   // Store credit is a payment, not a discount: tax is computed on the full
   // price first, then credit covers as much of the total as it can.
@@ -139,6 +163,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     }
   }
 
+  let sessionId: string | null = null;
   try {
     const result = await adapter.createCheckout({
       orderId: order.id, orderNumber: order.orderNumber, siteUrl: siteUrl(),
@@ -151,12 +176,23 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
       await transitionOrder(order.id, "awaiting_payment", "cancelled");
       return { error: result.message };
     }
+    sessionId = result.sessionId;
     await attachCheckoutSession(order.id, result.sessionId);
     if (result.couponId) await saveStripeCoupon(order.id, result.couponId);
     if (!customer.stripeCustomerId) await saveStripeCustomerId(customer.id, result.stripeCustomerId);
     return { url: result.url };
   } catch (err) {
     console.error("checkout start failed:", err);
+    // Stripe may already have a payable page for this order: close it so the
+    // customer can't pay an order we're about to cancel.
+    if (sessionId) {
+      try {
+        await adapter.expireCheckout(sessionId);
+      } catch (expireErr) {
+        await alertOwner(`Couldn't close the Stripe page for ${order.orderNumber}`,
+          `Checkout failed after Stripe created session ${sessionId} for order ${order.orderNumber} (${order.id}); expiring it also failed: ${String(expireErr)}. If the customer pays it, the order is already cancelled - refund or recreate it.`);
+      }
+    }
     await transitionOrder(order.id, "awaiting_payment", "cancelled");
     return { error: "We couldn't start payment — please try again." };
   }

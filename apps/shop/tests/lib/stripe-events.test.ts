@@ -150,6 +150,14 @@ describe("handleStripeEvent", () => {
     expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Chargeback"), expect.stringContaining("AP-1001"));
   });
 
+  it("alerts the owner when a payment arrives for an order that was already cancelled", async () => {
+    getOrderById.mockResolvedValue(order("cancelled"));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("checkout.session.completed", session()));
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringMatching(/cancelled order/i), expect.stringContaining("AP-1001"));
+  });
+
   it("throws for a dispute whose order isn't matched yet, so Stripe retries it", async () => {
     getOrderByPaymentIntent.mockResolvedValue(null);
     const { handleStripeEvent } = await import("@/lib/stripe-events");

@@ -15,9 +15,11 @@ const creditBalance = vi.fn();
 const spendCredit = vi.fn();
 const afterOrderPaid = vi.fn();
 const alertOwner = vi.fn();
+const listOpenOrdersForCustomer = vi.fn();
+const expireCheckout = vi.fn();
 vi.mock("@/lib/dal", () => ({ getCustomer }));
-vi.mock("@/lib/orders", () => ({ createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon }));
-vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ createCheckout, quoteTax }), STRIPE_MIN_CHARGE_CENTS: 50 }));
+vi.mock("@/lib/orders", () => ({ createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon, listOpenOrdersForCustomer }));
+vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ createCheckout, quoteTax, expireCheckout }), STRIPE_MIN_CHARGE_CENTS: 50 }));
 vi.mock("@/lib/partners/attribution", () => ({ resolveAttribution }));
 vi.mock("@/lib/partners/ledger", () => ({ creditBalance, spendCredit }));
 vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
@@ -45,7 +47,8 @@ describe("startCheckoutAction", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon,
-      createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid, alertOwner]) f.mockReset();
+      createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid, alertOwner, listOpenOrdersForCustomer, expireCheckout]) f.mockReset();
+    listOpenOrdersForCustomer.mockResolvedValue([]);
     resolveAttribution.mockResolvedValue({ attribution: null });
     createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
     transitionOrder.mockResolvedValue(true);
@@ -195,6 +198,71 @@ describe("startCheckoutAction", () => {
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect((await startCheckoutAction(input)).error).toMatch(/try again/i);
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+  });
+});
+
+describe("startCheckoutAction - abandoned checkouts", () => {
+  const old = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  beforeEach(() => {
+    vi.resetModules();
+    for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon,
+      createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid, alertOwner, listOpenOrdersForCustomer, expireCheckout]) f.mockReset();
+    getCustomer.mockResolvedValue(customer);
+    resolveAttribution.mockResolvedValue({ attribution: null });
+    createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
+    transitionOrder.mockResolvedValue(true);
+    createCheckout.mockResolvedValue(redirect);
+    listOpenOrdersForCustomer.mockResolvedValue([]);
+  });
+
+  it("expires the earlier Stripe page and cancels that order before reading credit (returns held credit)", async () => {
+    listOpenOrdersForCustomer.mockResolvedValue([{ id: "o0", order_number: "AP-1000", stripe_session_id: "cs_0", created_at: old }]);
+    expireCheckout.mockResolvedValue("expired");
+    creditBalance.mockResolvedValue(0);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, useCredit: true });
+    expect(expireCheckout).toHaveBeenCalledWith("cs_0");
+    expect(transitionOrder).toHaveBeenCalledWith("o0", "awaiting_payment", "cancelled");
+    const cancelAt = transitionOrder.mock.invocationCallOrder[transitionOrder.mock.calls.findIndex((c) => c[0] === "o0")];
+    expect(cancelAt).toBeLessThan(creditBalance.mock.invocationCallOrder[0]);
+  });
+
+  it("leaves an earlier order alone when its Stripe page was actually paid", async () => {
+    listOpenOrdersForCustomer.mockResolvedValue([{ id: "o0", order_number: "AP-1000", stripe_session_id: "cs_0", created_at: old }]);
+    expireCheckout.mockResolvedValue("complete");
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction(input);
+    expect(transitionOrder).not.toHaveBeenCalledWith("o0", "awaiting_payment", "cancelled");
+  });
+
+  it("cancels an earlier order with no Stripe page only once it is 10+ minutes old", async () => {
+    listOpenOrdersForCustomer.mockResolvedValue([
+      { id: "o0", order_number: "AP-1000", stripe_session_id: null, created_at: old },
+      { id: "o9", order_number: "AP-1009", stripe_session_id: null, created_at: new Date().toISOString() },
+    ]);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction(input);
+    expect(transitionOrder).toHaveBeenCalledWith("o0", "awaiting_payment", "cancelled");
+    expect(transitionOrder).not.toHaveBeenCalledWith("o9", "awaiting_payment", "cancelled");
+  });
+
+  it("expires the Stripe page it just created if saving the session fails, so it cannot be paid", async () => {
+    attachCheckoutSession.mockRejectedValue(new Error("db down"));
+    expireCheckout.mockResolvedValue("expired");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect((await startCheckoutAction(input)).error).toMatch(/try again/i);
+    expect(expireCheckout).toHaveBeenCalledWith("cs_1");
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+  });
+
+  it("alerts the owner if that Stripe page cannot be closed", async () => {
+    attachCheckoutSession.mockRejectedValue(new Error("db down"));
+    expireCheckout.mockRejectedValue(new Error("stripe down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction(input);
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringMatching(/Stripe page/i), expect.stringContaining("cs_1"));
   });
 });
 

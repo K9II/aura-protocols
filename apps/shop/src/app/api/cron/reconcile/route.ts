@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
-import { getOrderById, transitionOrder } from "@/lib/orders";
+import { getOrderById, listOrphanedPendingOrders, transitionOrder } from "@/lib/orders";
 import { applyPaid } from "@/lib/stripe-events";
 import { alertOwner } from "@/lib/notify";
 
@@ -42,6 +42,15 @@ export async function GET(request: Request): Promise<Response> {
     const message = err instanceof Error ? err.message : String(err);
     await alertOwner("Reconcile: failed to list Stripe sessions", message);
     return NextResponse.json({ error: "list failed" }, { status: 500 });
+  }
+  // Orders whose checkout died before Stripe gave them a page: nothing will
+  // ever expire them, and any store credit they hold stays held until cancelled.
+  try {
+    for (const o of await listOrphanedPendingOrders(new Date(Date.now() - 60 * 60 * 1000).toISOString())) {
+      if (await transitionOrder(o.id, "awaiting_payment", "cancelled")) cancelled.push(o.order_number);
+    }
+  } catch (err) {
+    failed.push(`orphaned pending orders: ${err instanceof Error ? err.message : String(err)}`);
   }
   if (fixedPaid.length) {
     await alertOwner("Reconciler fixed paid orders", `These paid orders were missing their webhook and have now been recorded: ${fixedPaid.join(", ")}`);

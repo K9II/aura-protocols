@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const customersCreate = vi.fn();
 const customersUpdate = vi.fn();
 const sessionsCreate = vi.fn();
+const sessionsRetrieve = vi.fn();
+const sessionsExpire = vi.fn();
 const couponsCreate = vi.fn();
 const taxCalcCreate = vi.fn();
 const taxTxCreate = vi.fn();
@@ -10,7 +12,7 @@ const taxTxCreateReversal = vi.fn();
 vi.mock("@/lib/stripe", () => ({
   getStripe: () => ({
     customers: { create: customersCreate, update: customersUpdate },
-    checkout: { sessions: { create: sessionsCreate } },
+    checkout: { sessions: { create: sessionsCreate, retrieve: sessionsRetrieve, expire: sessionsExpire } },
     coupons: { create: couponsCreate },
     tax: { calculations: { create: taxCalcCreate }, transactions: { createFromCalculation: taxTxCreate, createReversal: taxTxCreateReversal } },
   }),
@@ -31,7 +33,7 @@ const req = {
 describe("commerce adapter", () => {
   beforeEach(() => {
     vi.resetModules();
-    customersCreate.mockReset(); customersUpdate.mockReset(); sessionsCreate.mockReset();
+    customersCreate.mockReset(); customersUpdate.mockReset(); sessionsCreate.mockReset(); sessionsRetrieve.mockReset(); sessionsExpire.mockReset();
     couponsCreate.mockReset(); taxCalcCreate.mockReset(); taxTxCreate.mockReset(); taxTxCreateReversal.mockReset();
   });
 
@@ -176,5 +178,19 @@ describe("commerce adapter", () => {
     await expect(getCommerceAdapter().reverseTax("tax_txn_1")).resolves.toBeUndefined();
     expect(taxTxCreate).not.toHaveBeenCalled();
     expect(taxTxCreateReversal).not.toHaveBeenCalled();
+  });
+
+  it("expireCheckout closes an open Stripe page and reports a page that was already paid", async () => {
+    process.env.STRIPE_SECRET_KEY = "sk_test_x";
+    const { getCommerceAdapter } = await import("@/lib/commerce");
+    sessionsRetrieve.mockResolvedValueOnce({ id: "cs_1", status: "open" });
+    expect(await getCommerceAdapter().expireCheckout("cs_1")).toBe("expired");
+    expect(sessionsExpire).toHaveBeenCalledWith("cs_1");
+    sessionsExpire.mockClear();
+    sessionsRetrieve.mockResolvedValueOnce({ id: "cs_2", status: "complete" });
+    expect(await getCommerceAdapter().expireCheckout("cs_2")).toBe("complete");
+    sessionsRetrieve.mockResolvedValueOnce({ id: "cs_3", status: "expired" });
+    expect(await getCommerceAdapter().expireCheckout("cs_3")).toBe("expired");
+    expect(sessionsExpire).not.toHaveBeenCalled();
   });
 });

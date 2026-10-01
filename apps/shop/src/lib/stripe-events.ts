@@ -23,6 +23,13 @@ async function orderForSession(session: Stripe.Checkout.Session): Promise<OrderR
 // then runs the after-payment steps. Safe to call twice. Store-credit orders
 // keep their pre-computed tax and total (Stripe only saw the remainder).
 export async function applyPaid(order: OrderRow, session: Stripe.Checkout.Session): Promise<boolean> {
+  if (order.status === "cancelled" || order.status === "refunded") {
+    // Money arrived for an order we already closed (e.g. its Stripe page
+    // outlived a failed checkout). Nothing is shipped automatically.
+    await alertOwner(`Payment received for a ${order.status} order (${order.order_number})`,
+      `Stripe session ${session.id} was paid but order ${order.order_number} (${order.id}) is ${order.status}. Refund it in Stripe, or reinstate and ship the order by hand.`);
+    return false;
+  }
   if (order.status !== "awaiting_payment" && order.status !== "processing") return false;
   const patch = order.tax_calculation_id
     ? { stripe_payment_intent: paymentIntentId(session.payment_intent) }

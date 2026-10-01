@@ -5,8 +5,9 @@ const getOrderById = vi.fn();
 const transitionOrder = vi.fn();
 const applyPaid = vi.fn();
 const alertOwner = vi.fn();
+const listOrphanedPendingOrders = vi.fn();
 vi.mock("@/lib/stripe", () => ({ getStripe: () => ({ checkout: { sessions: { list } } }) }));
-vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder }));
+vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder, listOrphanedPendingOrders }));
 vi.mock("@/lib/stripe-events", () => ({ applyPaid }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 
@@ -14,7 +15,7 @@ const get = (auth?: string) => new Request("http://localhost/api/cron/reconcile"
 async function* pages(items: unknown[]) { for (const i of items) yield i; }
 
 describe("GET /api/cron/reconcile", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner]) f.mockReset(); process.env.CRON_SECRET = "s3cret"; });
+  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner, listOrphanedPendingOrders]) f.mockReset(); listOrphanedPendingOrders.mockResolvedValue([]); process.env.CRON_SECRET = "s3cret"; });
 
   it("requires the cron secret", async () => {
     const { GET } = await import("@/app/api/cron/reconcile/route");
@@ -36,6 +37,17 @@ describe("GET /api/cron/reconcile", () => {
     expect(await res.json()).toEqual({ checked: 3, fixedPaid: ["AP-1"], cancelled: ["AP-2"], failed: [] });
     expect(transitionOrder).toHaveBeenCalledWith("o2", "awaiting_payment", "cancelled");
     expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Reconciler"), expect.stringContaining("AP-1"));
+  });
+
+  it("cancels pending orders that never got a Stripe page (credit they hold is returned by the cancel trigger)", async () => {
+    list.mockReturnValue(pages([]));
+    listOrphanedPendingOrders.mockResolvedValue([{ id: "o7", order_number: "AP-7" }]);
+    transitionOrder.mockResolvedValue(true);
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    const body = await (await GET(get("Bearer s3cret"))).json();
+    expect(listOrphanedPendingOrders.mock.calls[0][0] < new Date(Date.now() - 60 * 60 * 1000 + 1000).toISOString()).toBe(true);
+    expect(transitionOrder).toHaveBeenCalledWith("o7", "awaiting_payment", "cancelled");
+    expect(body.cancelled).toEqual(["AP-7"]);
   });
 
   it("isolates a session that throws, keeps processing the rest, and reports the failure", async () => {

@@ -39,6 +39,9 @@ export interface CommerceAdapter {
   // set). Only needed for the store-credit path — Checkout sessions with
   // automatic_tax reverse their own tax transaction on refund.
   reverseTax(reference: string): Promise<void>;
+  // Closes a checkout page so it can't be paid. "complete" means the customer
+  // already paid it (the paid webhook will record the order); leave it alone.
+  expireCheckout(sessionId: string): Promise<"expired" | "complete">;
 }
 
 export const CHECKOUT_UNAVAILABLE_MESSAGE = "Checkout opens soon — we'll email you the moment it's live.";
@@ -57,6 +60,9 @@ const unavailableAdapter: CommerceAdapter = {
   },
   async reverseTax() {
     /* nothing to reverse without a processor */
+  },
+  async expireCheckout() {
+    return "expired" as const; /* no processor, no checkout pages */
   },
 };
 
@@ -173,6 +179,14 @@ const stripeAdapter: CommerceAdapter = {
       { mode: "full", original_transaction: reference, reference: `${reference}-refund` },
       { idempotencyKey: `tax-reversal-${reference}` },
     );
+  },
+
+  async expireCheckout(sessionId) {
+    const stripe = getStripe();
+    const s = await stripe.checkout.sessions.retrieve(sessionId);
+    if (s.status === "complete") return "complete";
+    if (s.status === "open") await stripe.checkout.sessions.expire(sessionId);
+    return "expired";
   },
 };
 

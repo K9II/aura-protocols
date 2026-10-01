@@ -117,6 +117,24 @@ export async function listOrdersForOwner(status: OrderStatus | "all"): Promise<O
   return (data as OrderRow[] | null) ?? [];
 }
 
+// A customer's checkouts that never finished (newest last), so a new checkout
+// can close them and hand back any store credit they hold.
+export async function listOpenOrdersForCustomer(customerId: string): Promise<{ id: string; order_number: string; stripe_session_id: string | null; created_at: string }[]> {
+  const { data, error } = await db().from("orders").select("id, order_number, stripe_session_id, created_at")
+    .eq("customer_id", customerId).eq("status", "awaiting_payment").order("created_at", { ascending: true });
+  if (error) throw new Error(`open orders select failed: ${JSON.stringify(error)}`);
+  return (data as { id: string; order_number: string; stripe_session_id: string | null; created_at: string }[] | null) ?? [];
+}
+
+// Pending orders that never got a Stripe page (the checkout died mid-way):
+// nothing will ever expire them, so the reconcile cron cancels them.
+export async function listOrphanedPendingOrders(olderThanIso: string): Promise<{ id: string; order_number: string }[]> {
+  const { data, error } = await db().from("orders").select("id, order_number")
+    .eq("status", "awaiting_payment").is("stripe_session_id", null).lt("created_at", olderThanIso);
+  if (error) throw new Error(`orphaned orders select failed: ${JSON.stringify(error)}`);
+  return (data as { id: string; order_number: string }[] | null) ?? [];
+}
+
 // Tab counts for the owner orders page (same scope as listOrdersForOwner).
 export async function countOrdersForOwner(): Promise<{ paid: number; processing: number; shipped: number; all: number }> {
   const { data } = await db().from("orders").select("status").neq("status", "awaiting_payment");
