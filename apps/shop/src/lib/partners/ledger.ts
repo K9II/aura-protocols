@@ -47,12 +47,14 @@ export async function markCommissionClearing(orderId: string, shippedAtIso: stri
 // commission is voided and leaves lifetime sales in the same transaction;
 // already-paid commission becomes a one-time deduction on the next payout
 // instead. Safe to call more than once for the same order and reason.
-export async function reverseCommission(orderId: string, reason: "refund" | "chargeback"): Promise<void> {
+export type ReverseOutcome = "none" | "voided" | "deducted" | "already";
+
+// All outcomes are valid and idempotent; 'none' means no commission exists
+// for the order (yet), which a chargeback caller may need to retry on.
+export async function reverseCommission(orderId: string, reason: "refund" | "chargeback"): Promise<ReverseOutcome> {
   const { data, error } = await db().rpc("reverse_commission", { p_order: orderId, p_reason: reason });
   if (error) throw dbError("reverse_commission", error);
-  // data is 'none' | 'voided' | 'deducted' | 'already' — all are valid,
-  // idempotent outcomes; nothing further to do for a void-return caller.
-  void (data as string | null);
+  return data as ReverseOutcome;
 }
 
 export async function clearDueCommissions(nowIso: string = new Date().toISOString()): Promise<number> {

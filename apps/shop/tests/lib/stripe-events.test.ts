@@ -9,6 +9,8 @@ const afterOrderPaid = vi.fn();
 const reverseCommission = vi.fn();
 const refundCredit = vi.fn();
 const reverseTax = vi.fn();
+const getPartnerById = vi.fn();
+vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/orders", () => ({ getOrderById, getOrderByPaymentIntent, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
 vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
@@ -25,7 +27,7 @@ const ev = (type: string, object: unknown) => ({ id: "evt_1", type, data: { obje
 describe("handleStripeEvent", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [getOrderById, getOrderByPaymentIntent, transitionOrder, sendOrAlert, alertOwner, afterOrderPaid, reverseCommission, refundCredit, reverseTax]) f.mockReset();
+    for (const f of [getOrderById, getOrderByPaymentIntent, transitionOrder, sendOrAlert, alertOwner, afterOrderPaid, reverseCommission, refundCredit, reverseTax, getPartnerById]) f.mockReset();
     transitionOrder.mockResolvedValue(true);
   });
 
@@ -145,6 +147,33 @@ describe("handleStripeEvent", () => {
     await handleStripeEvent(ev("charge.dispute.created", { object: "dispute", payment_intent: "pi_1", reason: "fraudulent" }));
     expect(reverseCommission).toHaveBeenCalledWith("o1", "chargeback");
     expect(transitionOrder).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Chargeback"), expect.stringContaining("AP-1001"));
+  });
+
+  it("throws for a dispute whose order isn't matched yet, so Stripe retries it", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(null);
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await expect(handleStripeEvent(ev("charge.dispute.created", { object: "dispute", payment_intent: "pi_1", reason: "fraudulent" })))
+      .rejects.toThrow(/pi_1/);
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("throws (before alerting) when a partner order's commission isn't recorded yet, so the retry reverses it", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("paid", { partner_id: "p1", attributed_by: "code" }));
+    reverseCommission.mockResolvedValue("none");
+    getPartnerById.mockResolvedValue({ id: "p1", status: "approved" });
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await expect(handleStripeEvent(ev("charge.dispute.created", { object: "dispute", payment_intent: "pi_1", reason: "fraudulent" })))
+      .rejects.toThrow(/AP-1001/);
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("alerts without retrying when the order's partner was never approved (no commission is expected)", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("paid", { partner_id: "p1", attributed_by: "code" }));
+    reverseCommission.mockResolvedValue("none");
+    getPartnerById.mockResolvedValue({ id: "p1", status: "suspended" });
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("charge.dispute.created", { object: "dispute", payment_intent: "pi_1", reason: "fraudulent" }));
     expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Chargeback"), expect.stringContaining("AP-1001"));
   });
 

@@ -6,6 +6,7 @@ import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { afterOrderPaid } from "@/lib/order-paid";
 import { getCommerceAdapter } from "@/lib/commerce";
 import { refundCredit, reverseCommission } from "@/lib/partners/ledger";
+import { getPartnerById } from "@/lib/partners/data";
 
 function paymentIntentId(pi: string | { id: string } | null | undefined): string | null {
   return typeof pi === "string" ? pi : pi?.id ?? null;
@@ -105,9 +106,17 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case "charge.dispute.created": {
       const dispute = event.data.object as Stripe.Dispute;
       const pi = paymentIntentId(dispute.payment_intent);
-      const order = pi ? await getOrderByPaymentIntent(pi) : null;
-      if (!order) return;
-      await reverseCommission(order.id, "chargeback");
+      if (!pi) return;
+      // Stripe can deliver a dispute before (or alongside) the paid event.
+      // Throwing makes Stripe retry, and the webhook route alerts the owner
+      // now; the retry reverses the commission and sends the alert below.
+      const order = await getOrderByPaymentIntent(pi);
+      if (!order) throw new Error(`dispute on ${pi}: no order matched yet`);
+      const reversed = await reverseCommission(order.id, "chargeback");
+      if (reversed === "none" && order.partner_id && order.attributed_by) {
+        const partner = await getPartnerById(order.partner_id);
+        if (partner?.status === "approved") throw new Error(`dispute on ${order.order_number}: commission not recorded yet`);
+      }
       await alertOwner(`Chargeback opened on ${order.order_number}`, `Order ${order.order_number} · reason: ${dispute.reason}. Respond in the Stripe dashboard with the order, tracking and agreement records.`);
       return;
     }
