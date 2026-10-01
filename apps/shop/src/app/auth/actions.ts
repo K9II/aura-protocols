@@ -36,7 +36,12 @@ export async function signUpAction(_prev: AuthFormState, form: FormData): Promis
     email, password,
     options: { emailRedirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`, data: { full_name: fullName } },
   });
-  if (error || !data.user) return { error: error?.message.includes("registered") ? "An account with this email already exists — sign in instead." : "We couldn't create your account — please try again." };
+  const EXISTS = "An account with this email already exists — sign in instead.";
+  if (error || !data.user) return { error: error?.message.includes("registered") ? EXISTS : "We couldn't create your account — please try again." };
+  // With email confirmation on, Supabase answers a sign-up for an already
+  // verified address with a placeholder user that has no identities.
+  if (Array.isArray(data.user.identities) && data.user.identities.length === 0) return { error: EXISTS };
+  const VERIFY = "Check your email and click the link to verify your address. Then you can check out.";
 
   const admin = getSupabaseAdminClient();
   const h = await headers();
@@ -46,13 +51,17 @@ export async function signUpAction(_prev: AuthFormState, form: FormData): Promis
     customer_id: data.user.id, terms_version: TERMS_VERSION, age_21: true, ruo: true, dispute_policy: true,
     ip_hash: ip ? hashIp(ip) : null, user_agent: h.get("user-agent"),
   });
+  // A repeat sign-up of an address that hasn't been verified yet returns the
+  // EXISTING user (Supabase re-sends the link); its customer row is already
+  // there. Never delete that account - just point them at the new email.
+  if (cErr && (cErr as { code?: string }).code === "23505") return { ok: true, message: VERIFY };
   if (cErr || aErr) {
     // No half-created accounts: an account must carry its agreements record.
     console.error("sign-up record insert failed:", cErr ?? aErr);
     await admin.auth.admin.deleteUser(data.user.id);
     return { error: "We couldn't create your account — please try again." };
   }
-  return { ok: true, message: "Check your email and click the link to verify your address. Then you can check out." };
+  return { ok: true, message: VERIFY };
 }
 
 export async function signInAction(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {

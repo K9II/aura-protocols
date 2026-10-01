@@ -49,6 +49,25 @@ describe("auth actions", () => {
     expect(deleteUser).toHaveBeenCalledWith("u1");
   });
 
+  it("sign-up for an already-verified email says so (Supabase returns a user with no identities)", async () => {
+    auth.signUp.mockResolvedValue({ data: { user: { id: "fake", identities: [] } }, error: null });
+    from = fromQueue({});
+    const { signUpAction } = await import("@/app/auth/actions");
+    const r = await signUpAction(undefined, fd(signup));
+    expect(r?.error).toMatch(/already exists/i);
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("a repeat sign-up of an unverified email never deletes that existing account", async () => {
+    auth.signUp.mockResolvedValue({ data: { user: { id: "u1", identities: [{ id: "i1" }] } }, error: null });
+    from = fromQueue({ customers: [query({ error: { code: "23505", message: "duplicate key" } })] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { signUpAction } = await import("@/app/auth/actions");
+    const r = await signUpAction(undefined, fd(signup));
+    expect(deleteUser).not.toHaveBeenCalled();
+    expect(r).toEqual({ ok: true, message: expect.stringMatching(/verify/i) });
+  });
+
   it("sign-in redirects to a safe next path, or reports bad credentials", async () => {
     auth.signInWithPassword.mockResolvedValueOnce({ error: { message: "Invalid login credentials" } });
     const { signInAction } = await import("@/app/auth/actions");
