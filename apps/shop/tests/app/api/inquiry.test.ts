@@ -22,6 +22,11 @@ describe("POST /api/inquiry", () => {
     expect((await POST(post({ ...valid, message: "" }))).status).toBe(400);
   });
 
+  it("rejects the retired affiliate kind with 400 (the partner program replaced it)", async () => {
+    const { POST } = await import("@/app/api/inquiry/route");
+    expect((await POST(post({ ...valid, kind: "affiliate" }))).status).toBe(400);
+  });
+
   it("returns 500 when the insert fails, and does not email", async () => {
     fromMock.mockReturnValue({ insert: vi.fn().mockResolvedValue({ error: { message: "down" } }) });
     const { POST } = await import("@/app/api/inquiry/route");

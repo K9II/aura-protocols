@@ -42,6 +42,8 @@ const FILES = [
   ...tsxUnder("components", "account"), ...tsxUnder("app", "sign-in"), ...tsxUnder("app", "checkout"),
   ...tsxUnder("app", "account"), ...tsxUnder("app", "order"), ...tsxUnder("app", "admin"),
   ...tsxUnder("app", "forgot-password"), ...tsxUnder("app", "reset-password"),
+  ...tsxUnder("components", "partners"), ...tsxUnder("app", "partners"), ...tsxUnder("app", "affiliates"),
+  ...tsxUnder("app", "partner-agreement"), join(SRC, "lib", "emails-partners.ts"),
   join(SRC, "lib", "emails.ts"),
 ];
 

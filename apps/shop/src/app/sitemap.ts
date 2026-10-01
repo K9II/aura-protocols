@@ -10,6 +10,7 @@ const STATIC: Array<[string, MetadataRoute.Sitemap[number]["changeFrequency"], n
   ["/quality-standards", "monthly", 0.6],
   ["/wholesale", "monthly", 0.5],
   ["/affiliates", "monthly", 0.4],
+  ["/partner-agreement", "yearly", 0.3],
   ["/about", "monthly", 0.5],
   ["/terms", "yearly", 0.3],
   ["/privacy", "yearly", 0.3],

@@ -11,6 +11,7 @@ Live at **https://auraprotocols.com** (Vercel project `aura-protocols`; PAUSED u
 - Next.js 16 (App Router), React 19, TypeScript, Tailwind v4
 - Supabase (service role, server only) — `gate_attestations`, `subscribers`, `inquiries` (`apps/shop/supabase/storefront.sql`)
 - Amazon SES for email; vitest + Testing Library
+- Partner program: `lib/partners/*` (pure rules: codes, tiers, discounts, payout-math; data: `data.ts`, `ledger.ts`), tables in `apps/shop/supabase/partners.sql`, `/affiliates` (program + calculator), `/partners` (dashboard), `/admin/partners`, `/admin/payouts`, daily cron `api/cron/partners-daily` (clears commission; payouts on the 1st/15th).
 
 ## Design System — "Pharmacopoeia" + storefront
 - Scope class `.pharmacopoeia` (see `globals.css`). Tokens: paper `#EDE9E0`, paper-deep `#E2DCCC`, ink `#1C1A15`, ink-soft `#4A4438`, specimen `#A32B1F`, line `#C9C2AE`.
@@ -39,3 +40,5 @@ apps/shop/src/
 - `BASE_URL` = `https://auraprotocols.com` in `layout.tsx`, `sitemap.ts`, `robots.ts` — keep in sync.
 - New static pages must be added to `sitemap.ts`. Legal pages are linked from `SiteFooter` only.
 - Checkout goes through `lib/commerce.ts` (`CommerceAdapter`); payments are a separate spec.
+- One discount per order line (`lib/partners/discounts.ts`): the larger of the pack price or the partner code, never both. Store credit is a payment, not a discount — tax is pre-computed with Stripe Tax before credit applies.
+- Commission changes only through `lib/partners/ledger.ts` (created on payment, clearing on ship, reversed on refund/chargeback). Partner bank/Zelle details are AES-GCM encrypted (`PAYOUT_DETAILS_KEY`).
