@@ -7,6 +7,7 @@ import { applyPartnerCode } from "@/lib/partners/discounts";
 import { checkPartnerCodeAction, startCheckoutAction } from "@/app/checkout/actions";
 import type { ShipAddress } from "@/lib/ship-address";
 import { usd } from "@/lib/html";
+import { FREE_SHIPPING_THRESHOLD_USD, formatUsd } from "@/lib/cart";
 
 const field = "w-full border border-[color:var(--ink)] bg-[color:var(--paper)] px-3.5 py-3 text-sm mb-4";
 const smallBtn: React.CSSProperties = { padding: "7px 13px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: "1px solid var(--ink)", background: "transparent", color: "var(--ink)" };
@@ -126,7 +127,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
           {priced.partnerDiscountCents > 0 && (
             <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes discount code {appliedCode}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
           )}
-          <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping</span><span>{priced.shippingCents ? usd(priced.shippingCents) : <>Free <span className="text-[color:var(--ink-soft)] text-[12.5px]">($250 or more)</span></>}</span></div>
+          <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping</span><span>{priced.shippingCents ? usd(priced.shippingCents) : <>Free <span className="text-[color:var(--ink-soft)] text-[12.5px]">({formatUsd(FREE_SHIPPING_THRESHOLD_USD)} or more)</span></>}</span></div>
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping insurance</span><span>{usd(priced.insuranceCents)}</span></div>
           <div className="flex justify-between text-[15px] mt-1.5 text-[color:var(--ink-soft)]"><span>Sales tax</span><span>Calculated at payment</span></div>
           {creditBalanceCents > 0 && (
