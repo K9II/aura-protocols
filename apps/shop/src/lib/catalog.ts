@@ -21,6 +21,26 @@ export function fromPriceUsd(c: Compound): number {
   return Math.min(...c.variants.map((v) => v.priceUsd));
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+// Per-vial price inside a pack, after that pack's discount.
+export function perVialUsd(priceUsd: number, packQty: number, c: Compound): number {
+  const pct = c.packDiscounts.find((p) => p.qty === packQty)?.pct ?? 0;
+  return round2(priceUsd * (1 - pct / 100));
+}
+
+// What the cheapest purchasable option costs: cheapest variant in the smallest pack.
+export function fromPackPriceUsd(c: Compound): number {
+  const smallest = c.packDiscounts.reduce((a, b) => (b.qty < a.qty ? b : a));
+  return round2(Math.min(...c.variants.map((v) => v.priceUsd)) * smallest.qty * (1 - smallest.pct / 100));
+}
+
+// The priciest purchasable option: priciest variant in the largest pack.
+export function toPackPriceUsd(c: Compound): number {
+  const largest = c.packDiscounts.reduce((a, b) => (b.qty > a.qty ? b : a));
+  return round2(Math.max(...c.variants.map((v) => v.priceUsd)) * largest.qty * (1 - largest.pct / 100));
+}
+
 export function isPendingLot(lot: Lot | PendingLot): lot is PendingLot {
   return "pending" in lot;
 }

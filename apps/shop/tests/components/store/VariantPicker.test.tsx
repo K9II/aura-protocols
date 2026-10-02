@@ -20,13 +20,13 @@ describe("VariantPicker", () => {
   it("prices the selected size and pack and adds the exact line", () => {
     render(<CartProvider><VariantPicker compound={bpc} /><Lines /></CartProvider>);
     fireEvent.click(screen.getByRole("button", { name: "10 mg" }));
-    fireEvent.click(screen.getByRole("button", { name: /3-pack/ }));
+    fireEvent.click(screen.getByRole("button", { name: /2-pack/ }));
     const v = bpc.variants.find((x) => x.id === "10mg")!;
-    const expected = Math.round(v.priceUsd * 3 * 0.9 * 100) / 100;
+    const expected = Math.round(v.priceUsd * 2 * 0.95 * 100) / 100;
     const atc = screen.getByRole("button", { name: new RegExp(`Add to cart — \\$${expected.toFixed(2)}`) });
     fireEvent.click(atc);
     expect(JSON.parse(screen.getByTestId("lines").textContent!)).toEqual([
-      { slug: "bpc-157", variantId: "10mg", packQty: 3, quantity: 1 },
+      { slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 1 },
     ]);
   });
 

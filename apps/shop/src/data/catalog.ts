@@ -63,9 +63,10 @@ export type Compound = {
   unlisted?: boolean;
 };
 
+// Packs of 2, 5 or 10 vials; no single vial (2026-10-01 decision, spec D8).
 const STD_PACKS: PackDiscount[] = [
-  { qty: 1, pct: 0 },
-  { qty: 3, pct: 10 },
+  { qty: 2, pct: 5 },
+  { qty: 5, pct: 10 },
   { qty: 10, pct: 20 },
 ];
 const LYO = "Lyophilized powder";
