@@ -2,11 +2,14 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { compounds } from "@/data/catalog";
-import { findCompound, fromPackPriceUsd, isPendingLot, relatedCompounds, toPackPriceUsd, vialLabel } from "@/lib/catalog";
+import { findCompound, fromPackPriceUsd, isPendingLot, materialTestingRows, relatedCompounds, toPackPriceUsd, vialLabel } from "@/lib/catalog";
 import Vial from "@/components/store/Vial";
 import SpecBoxes from "@/components/store/SpecBoxes";
 import VariantPicker from "@/components/store/VariantPicker";
 import CompoundCard from "@/components/store/CompoundCard";
+import MoleculeViewer from "@/components/store/MoleculeViewer";
+import MoleculeGrid from "@/components/store/MoleculeGrid";
+import { ELEMENT_COLORS, ELEMENT_NAMES, legendElements, structureCaption, structurePanels } from "@/lib/structure";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 const BASE_URL = "https://auraprotocols.com";
@@ -40,6 +43,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const componentNames = (c.components ?? [])
     .map((s) => findCompound(s)?.name)
     .filter((n): n is string => Boolean(n));
+  const panels = structurePanels(c.slug);
+  const blend = panels.length > 1;
+  // Dedupe on the caption text: "pubchem-3d" and "computed" share one caption.
+  const captions = [...new Set(panels.map((p) => structureCaption(p.source)))];
+  const refLink = (p: (typeof panels)[number]) =>
+    p.refLabel ?? (p.source === "crystal-modeled" ? "Crystal structure paper ↗" : p.ref.includes("/compound/") ? `PubChem CID ${p.ref.split("/").pop()} ↗` : "Sequence source ↗");
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -94,6 +103,47 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
           </div>
         </section>
+      </div>
+
+      <section className="s-about">
+        <div className="p-container s-about-inner">
+          <div>
+            <h2 className="s-h2">About this <em>compound</em></h2>
+            {c.description && <p className="s-about-desc">{c.description}</p>}
+            {captions.map((cap) => <p key={cap} className="s-about-cap">{cap}</p>)}
+            {blend && <p className="s-about-cap">Each panel is one component. They are separate molecules, not bonded to each other.</p>}
+            <p className="s-micro s-mol-legend">
+              {legendElements(panels).map((e) => (
+                <span key={e}><i style={{ background: ELEMENT_COLORS[e] }} />{ELEMENT_NAMES[e]}</span>
+              ))}
+            </p>
+            <p className="s-micro s-mol-hint">Drag to rotate · scroll to zoom</p>
+            <p className="s-about-refs">
+              {panels.map((p) => (
+                <a key={p.id} className="p-link text-xs" href={p.ref} target="_blank" rel="noopener noreferrer">
+                  {blend ? `${p.label}: ` : ""}{refLink(p)}
+                </a>
+              ))}
+            </p>
+          </div>
+          {blend ? <MoleculeGrid structures={panels} /> : panels[0] && <MoleculeViewer structure={panels[0]} />}
+        </div>
+      </section>
+
+      <div className="p-container">
+        <section className="s-data">
+          <div>
+            <h2 className="s-h2">Material &amp; <em>testing</em></h2>
+            <p>How this material is made and checked. The lot certificate is the authority for the vial you receive.</p>
+          </div>
+          <table>
+            <tbody>
+              {materialTestingRows(c).map((r) => (
+                <tr key={r.label}><td className="s-micro">{r.label}</td><td>{r.value}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
 
         <section className="s-data">
           <div>
@@ -112,7 +162,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </table>
         </section>
 
-        <section className="py-11 border-t border-[color:var(--line)]">
+        <section className="py-11">
           <h2 className="s-h2 mb-6">Researchers also <em>added</em></h2>
           <div className="s-grid">
             {relatedCompounds(c, 4).map((r, i) => <CompoundCard key={r.slug} compound={r} index={i} />)}

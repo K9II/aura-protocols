@@ -585,6 +585,26 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-data td:first-child { width: 38%; color: var(--ink-soft); }
 .pharmacopoeia .s-data td.s-mono { font-size: 12.5px; word-break: break-all; }
 
+/* About this compound — full-bleed band with the rotating 3D model (layout 2, 2026-10-01 mock) */
+.pharmacopoeia .s-about { background: var(--paper-deep); }
+.pharmacopoeia .s-about-inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 64px; align-items: center; padding-top: 80px; padding-bottom: 80px; }
+@media (max-width: 900px) { .pharmacopoeia .s-about-inner { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-top: 56px; padding-bottom: 56px; } }
+.pharmacopoeia .s-about-desc { font-size: 16px; line-height: 1.6; color: var(--ink); max-width: 40ch; margin: 18px 0; }
+.pharmacopoeia .s-about-cap { font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); max-width: 40ch; margin: 18px 0; }
+.pharmacopoeia .s-mol-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--ink-soft); margin: 0; }
+.pharmacopoeia .s-mol-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.pharmacopoeia .s-mol-hint { color: var(--specimen); margin: 14px 0 18px; }
+.pharmacopoeia .s-about-refs { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.pharmacopoeia .s-mol-stage { position: relative; height: 520px; background: radial-gradient(circle at 50% 50%, var(--paper) 0, var(--paper-deep) 70%); }
+@media (max-width: 900px) { .pharmacopoeia .s-mol-stage { height: 340px; } }
+.pharmacopoeia .s-mol-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); }
+.pharmacopoeia .s-mol-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pharmacopoeia .s-mol-cell { position: relative; background: var(--paper-deep); }
+.pharmacopoeia .s-mol-cell-stage { position: relative; height: 250px; }
+@media (max-width: 640px) { .pharmacopoeia .s-mol-grid { grid-template-columns: minmax(0, 1fr); } .pharmacopoeia .s-mol-cell-stage { height: 220px; } }
+.pharmacopoeia .s-mol-tag { position: absolute; left: 10px; top: 8px; z-index: 2; color: var(--ink-soft); }
+.pharmacopoeia .s-mol-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-soft); margin: 0; }
+
 /* cart drawer */
 .s-drawer-backdrop { position: fixed; inset: 0; background: rgba(28, 26, 21, .45); z-index: 90; }
 .pharmacopoeia.s-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); z-index: 91; border-left: 1px solid var(--line); display: flex; flex-direction: column; }
