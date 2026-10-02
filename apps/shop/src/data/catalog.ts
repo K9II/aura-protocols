@@ -106,22 +106,22 @@ export const allCompounds: Compound[] = [
   // Incretin & Amylin Analogs — UNLISTED pending written payment-processor
   // approval: FDA treats "research use" semaglutide/tirzepatide/retatrutide as
   // falsely labeled, which Stripe's prohibited list covers (2026-09-28 decision).
-  placeholder("semaglutide", "Semaglutide", "Incretin & Amylin Analogs", ["5 mg", "10 mg"], 89, { unlisted: true }),
+  placeholder("semaglutide", "Semaglutide", "Incretin & Amylin Analogs", ["10 mg"], 119, { unlisted: true }),
   placeholder("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs", ["10 mg", "20 mg"], 119, { unlisted: true }),
   placeholder("retatrutide", "Retatrutide", "Incretin & Amylin Analogs", ["10 mg", "20 mg"], 139, { unlisted: true }),
-  placeholder("cagrilintide", "Cagrilintide", "Incretin & Amylin Analogs", ["5 mg", "10 mg"], 99, { unlisted: true }),
+  placeholder("cagrilintide", "Cagrilintide", "Incretin & Amylin Analogs", ["10 mg"], 129, { unlisted: true }),
   placeholder("cagrisema", "Cagrilintide / Semaglutide", "Incretin & Amylin Analogs", ["10 mg"], 159, { components: ["cagrilintide", "semaglutide"], unlisted: true }),
   placeholder("retatrutide-cagrilintide", "Retatrutide / Cagrilintide", "Incretin & Amylin Analogs", ["10 mg"], 179, { components: ["retatrutide", "cagrilintide"], unlisted: true }),
   // GH-Axis Peptides
   placeholder("cjc-1295-ipamorelin", "CJC-1295 / Ipamorelin", "GH-Axis Peptides", ["10 mg"], 89, { components: [] }),
-  placeholder("sermorelin", "Sermorelin", "GH-Axis Peptides", ["5 mg"], 59),
-  placeholder("tesamorelin", "Tesamorelin", "GH-Axis Peptides", ["5 mg", "10 mg"], 79),
+  placeholder("sermorelin", "Sermorelin", "GH-Axis Peptides", ["10 mg"], 59),
+  placeholder("tesamorelin", "Tesamorelin", "GH-Axis Peptides", ["10 mg"], 109),
   placeholder("igf-1-lr3", "IGF-1 LR3", "GH-Axis Peptides", ["1 mg"], 89),
   // Peptide Fragments
-  placeholder("bpc-157", "BPC-157", "Peptide Fragments", ["5 mg", "10 mg"], 49, { featured: true }),
-  placeholder("tb-500", "TB-500", "Peptide Fragments", ["5 mg", "10 mg"], 59),
+  placeholder("bpc-157", "BPC-157", "Peptide Fragments", ["10 mg"], 79, { featured: true }),
+  placeholder("tb-500", "TB-500", "Peptide Fragments", ["10 mg"], 89),
   placeholder("kpv", "KPV", "Peptide Fragments", ["10 mg"], 55),
-  placeholder("aod-9604", "AOD-9604", "Peptide Fragments", ["5 mg"], 59),
+  placeholder("aod-9604", "AOD-9604", "Peptide Fragments", ["10 mg"], 59),
   // Mitochondrial & Metabolic
   placeholder("ss-31", "SS-31 (Elamipretide)", "Mitochondrial & Metabolic", ["10 mg", "50 mg"], 79),
   placeholder("mots-c", "MOTS-c", "Mitochondrial & Metabolic", ["10 mg"], 69, { featured: true }),

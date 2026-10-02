@@ -10,7 +10,7 @@ function Probe() {
       <span data-testid="count">{totals.itemCount}</span>
       <span data-testid="open">{String(open)}</span>
       <span data-testid="lines">{lines.length}</span>
-      <button onClick={() => add({ slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 })}>add</button>
+      <button onClick={() => add({ slug: "bpc-157", variantId: "10mg", packQty: 1, quantity: 1 })}>add</button>
     </div>
   );
 }
@@ -28,7 +28,7 @@ describe("CartProvider", () => {
 
   it("restores lines from localStorage and drops unknown compounds", () => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([
-      { slug: "bpc-157", variantId: "5mg", packQty: 2, quantity: 2 },
+      { slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 2 },
       { slug: "discontinued", variantId: "x", packQty: 2, quantity: 1 },
     ]));
     render(<CartProvider><Probe /></CartProvider>);
@@ -37,7 +37,7 @@ describe("CartProvider", () => {
 
   it("a child that clears on mount empties a stored cart (order confirmation page)", () => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([
-      { slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 },
+      { slug: "bpc-157", variantId: "10mg", packQty: 1, quantity: 1 },
     ]));
     render(<CartProvider><ClearCart /><Probe /></CartProvider>);
     expect(screen.getByTestId("lines")).toHaveTextContent("0");
@@ -52,9 +52,9 @@ describe("CartProvider", () => {
 
   it("drops saved cart lines whose pack size is no longer offered", () => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([
-      { slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 },
-      { slug: "bpc-157", variantId: "5mg", packQty: 3, quantity: 1 },
-      { slug: "bpc-157", variantId: "5mg", packQty: 2, quantity: 1 },
+      { slug: "bpc-157", variantId: "10mg", packQty: 1, quantity: 1 },
+      { slug: "bpc-157", variantId: "10mg", packQty: 3, quantity: 1 },
+      { slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 1 },
     ]));
     render(<CartProvider><LinesProbe /></CartProvider>);
     expect(screen.getByTestId("lines-detail").textContent).toBe("bpc-157:2");
