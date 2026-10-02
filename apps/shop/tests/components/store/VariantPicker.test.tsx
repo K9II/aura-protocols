@@ -37,4 +37,21 @@ describe("VariantPicker", () => {
     rerender(<CartProvider><VariantPicker compound={{ ...bpc, currentLot: { pending: true } }} /></CartProvider>);
     expect(screen.getByRole("button", { name: /coa pending/i })).toBeDisabled();
   });
+
+  it("offers 2-, 5- and 10-packs with their discounts and no single vial", () => {
+    render(<CartProvider><VariantPicker compound={bpc} /></CartProvider>);
+    expect(screen.queryByRole("button", { name: /single/i })).toBeNull();
+    expect(screen.getByRole("button", { name: "2-pack −5%" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "5-pack −10%" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "10-pack −20%" })).toBeInTheDocument();
+  });
+
+  it("shows the per-vial price for the selected pack and the pack total on the button", () => {
+    render(<CartProvider><VariantPicker compound={bpc} /></CartProvider>);
+    expect(screen.getByText(/\$46\.55/)).toBeInTheDocument();             // 49 × 0.95
+    expect(screen.getByRole("button", { name: /add to cart — \$93\.10/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "10-pack −20%" }));
+    expect(screen.getByText(/\$39\.20/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /add to cart — \$392\.00/i })).toBeInTheDocument();
+  });
 });

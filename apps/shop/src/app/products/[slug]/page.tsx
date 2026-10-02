@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { compounds } from "@/data/catalog";
-import { findCompound, fromPriceUsd, isPendingLot, relatedCompounds, vialLabel } from "@/lib/catalog";
+import { findCompound, fromPackPriceUsd, isPendingLot, relatedCompounds, toPackPriceUsd, vialLabel } from "@/lib/catalog";
 import Vial from "@/components/store/Vial";
 import SpecBoxes from "@/components/store/SpecBoxes";
 import VariantPicker from "@/components/store/VariantPicker";
@@ -50,8 +50,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "USD",
-      lowPrice: fromPriceUsd(c),
-      highPrice: Math.max(...c.variants.map((v) => v.priceUsd)),
+      lowPrice: fromPackPriceUsd(c),
+      highPrice: toPackPriceUsd(c),
       availability: c.variants.some((v) => v.stock !== "out") ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     },
   };

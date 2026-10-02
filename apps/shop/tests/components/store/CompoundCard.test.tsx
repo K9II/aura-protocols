@@ -8,7 +8,7 @@ const c: Compound = {
   slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {},
   form: "x", storage: "x", vialMl: 3,
   variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in" }, { id: "10mg", strength: "10 mg", priceUsd: 79, stock: "in" }],
-  packDiscounts: [{ qty: 1, pct: 0 }],
+  packDiscounts: [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }],
   currentLot: { lot: "AP-0001", purityPct: 99.6, method: "HPLC", testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" },
 };
 
@@ -17,14 +17,14 @@ describe("CompoundCard", () => {
     render(<CompoundCard compound={c} />);
     expect(screen.getByRole("link")).toHaveAttribute("href", "/products/bpc-157");
     expect(screen.getByText("Peptide Fragments")).toBeInTheDocument();
-    expect(screen.getByText("from $49")).toBeInTheDocument();
+    expect(screen.getByText("from $93.10")).toBeInTheDocument();
     expect(screen.getByText("99.6% · tested")).toBeInTheDocument();
     expect(screen.getByText("◇ COA on file")).toBeInTheDocument();
   });
 
   it("shows a plain price when there is one variant", () => {
     render(<CompoundCard compound={{ ...c, variants: [c.variants[0]] }} />);
-    expect(screen.getByText("$49")).toBeInTheDocument();
+    expect(screen.getByText("from $93.10")).toBeInTheDocument();
   });
 
   it("shows COA pending instead of the tag and purity", () => {

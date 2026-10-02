@@ -8,7 +8,7 @@ vi.mock("@/components/store/AuthLinks", () => ({ default: () => <a href="/sign-i
 
 function Adder() {
   const { add } = useCart();
-  return <button onClick={() => add({ slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 2 })}>add</button>;
+  return <button onClick={() => add({ slug: "bpc-157", variantId: "5mg", packQty: 2, quantity: 2 })}>add</button>;
 }
 
 describe("SiteNav", () => {

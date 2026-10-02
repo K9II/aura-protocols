@@ -103,7 +103,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         <p className="s-micro mb-1">Order summary</p>
         {priced.items.map((i, idx) => {
           const d = priced.lineDiscounts[idx];
-          const pack = i.packQty > 1 ? ` · ${i.packQty}-pack${i.packPct ? ` −${i.packPct}%` : ""}` : " · single";
+          const pack = ` · ${i.packQty}-pack${i.packPct ? ` −${i.packPct}%` : ""}`;
           const note = appliedCode ? (d.source === "code" ? " · code −10%" : d.source === "pack" ? " (code not added)" : "") : "";
           return (
             <div key={`${i.compoundSlug}-${i.variantId}-${i.packQty}`} className="s-cart-line">

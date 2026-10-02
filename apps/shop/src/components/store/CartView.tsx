@@ -31,7 +31,7 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
             <div>
               <Link href={`/products/${c.slug}`} onClick={onNavigate} className="p-serif text-[17px]">{c.name}</Link>
               <div className="s-micro text-[color:var(--ink-soft)] mt-1">
-                {v.strength}{line.packQty > 1 ? ` · ${line.packQty}-pack` : ""}
+                {v.strength} · {line.packQty}-pack
               </div>
             </div>
             <div className="text-right">{usd(linePriceUsd(line))}</div>
