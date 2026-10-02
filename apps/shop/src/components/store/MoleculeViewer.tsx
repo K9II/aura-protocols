@@ -54,11 +54,30 @@ export default function MoleculeViewer({ structure, className = "s-mol-stage" }:
       if (entries.some((e) => e.isIntersecting)) { obs.disconnect(); void start(); }
     }, { rootMargin: "200px" });
     io.observe(el);
-    return () => { cancelled = true; io.disconnect(); viewer?.spin(false); viewer?.clear(); };
+    return () => {
+      cancelled = true;
+      io.disconnect();
+      viewer?.spin(false);
+      viewer?.clear();
+      // 3Dmol has no dispose() API and never removes the <canvas> it appends,
+      // so without this a client-routed browsing session leaks a WebGL
+      // context per product page viewed and eventually exhausts the
+      // browser's context cap. Best-effort: never let cleanup throw.
+      try {
+        el.querySelectorAll("canvas").forEach((c) => {
+          (c.getContext("webgl2") ?? c.getContext("webgl"))?.getExtension("WEBGL_lose_context")?.loseContext();
+          c.remove();
+        });
+      } catch {
+        // ignore
+      }
+    };
   }, [structure.file]);
 
+  const label = status === "unavailable" ? `3D model of ${structure.label} unavailable in this browser` : `3D model of ${structure.label}`;
+
   return (
-    <div className={className} ref={ref} role="img" aria-label={`3D model of ${structure.label}`}>
+    <div className={className} ref={ref} role="img" aria-label={label}>
       {status === "unavailable" && (
         <p className="s-mol-fallback s-micro">3D model unavailable in this browser</p>
       )}

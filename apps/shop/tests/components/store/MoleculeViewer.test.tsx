@@ -6,7 +6,12 @@ import { structurePanels } from "@/lib/structure";
 
 const spin = vi.fn();
 const viewer = { addModel: vi.fn(), setStyle: vi.fn(), zoomTo: vi.fn(), zoom: vi.fn(), spin, render: vi.fn(), clear: vi.fn() };
-vi.mock("3dmol", () => ({ createViewer: vi.fn(() => viewer) }));
+vi.mock("3dmol", () => ({
+  createViewer: vi.fn((container: HTMLElement) => {
+    container.appendChild(document.createElement("canvas"));
+    return viewer;
+  }),
+}));
 
 class IO { cb: IntersectionObserverCallback; constructor(cb: IntersectionObserverCallback) { this.cb = cb; }
   observe() { this.cb([{ isIntersecting: true } as IntersectionObserverEntry], this as unknown as IntersectionObserver); }
@@ -25,6 +30,7 @@ describe("MoleculeViewer", () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
     render(<MoleculeViewer structure={bpc} />);
     expect(await screen.findByText("3D model unavailable in this browser")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "3D model of BPC-157 unavailable in this browser" })).toBeInTheDocument();
   });
 
   it("loads the model and spins it when WebGL is available", async () => {
@@ -41,6 +47,21 @@ describe("MoleculeViewer", () => {
     render(<MoleculeViewer structure={bpc} />);
     await waitFor(() => expect(viewer.render).toHaveBeenCalled());
     expect(spin).not.toHaveBeenCalled();
+  });
+
+  it("releases the WebGL context and removes the canvas on unmount", async () => {
+    const loseContext = vi.fn();
+    const glContext = { getExtension: vi.fn(() => ({ loseContext })) };
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(glContext as unknown as RenderingContext);
+    vi.stubGlobal("matchMedia", () => ({ matches: false }));
+    const { container, unmount } = render(<MoleculeViewer structure={bpc} />);
+    await waitFor(() => expect(viewer.addModel).toHaveBeenCalled());
+    expect(container.querySelector("canvas")).not.toBeNull();
+
+    unmount();
+
+    expect(container.querySelector("canvas")).toBeNull();
+    expect(loseContext).toHaveBeenCalled();
   });
 });
 
