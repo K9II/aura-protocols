@@ -66,3 +66,7 @@ scripts/*.png
 
 # Playwright MCP bridge scratch
 .playwright-mcp/
+
+# Offline 3D-structure generator (apps/shop/scripts/build-structures.py)
+.venv-structures/
+!apps/shop/scripts/requirements-structures.txt
