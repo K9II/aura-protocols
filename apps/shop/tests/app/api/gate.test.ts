@@ -9,7 +9,7 @@ function insertChain(result: { data: { id: string } | null; error: null | { mess
 function upsertChain(result: { error: null | { message: string } }) {
   return { upsert: vi.fn().mockResolvedValue(result) };
 }
-const valid = { email: "lab@example.com", age21: true, ruo: true, disputePolicy: true };
+const valid = { age21: true, ruo: true, disputePolicy: true };
 const post = (body: unknown) =>
   new Request("http://localhost/api/gate", {
     method: "POST",
@@ -31,11 +31,6 @@ describe("POST /api/gate", () => {
     expect(fromMock).not.toHaveBeenCalled();
   });
 
-  it("rejects a bad email with 400", async () => {
-    const { POST } = await import("@/app/api/gate/route");
-    expect((await POST(post({ ...valid, email: "nope" }))).status).toBe(400);
-  });
-
   it("fails closed with 500 and no cookie when the attestation insert fails", async () => {
     fromMock.mockReturnValueOnce(insertChain({ data: null, error: { message: "db down" } }));
     const { POST } = await import("@/app/api/gate/route");
@@ -44,10 +39,9 @@ describe("POST /api/gate", () => {
     expect(res.headers.get("set-cookie")).toBeNull();
   });
 
-  it("records the attestation, subscribes the email, and sets both cookies", async () => {
+  it("records the attestation without asking who the visitor is, and sets both cookies", async () => {
     const attest = insertChain({ data: { id: "att-1" }, error: null });
-    const sub = upsertChain({ error: null });
-    fromMock.mockImplementation((table: string) => (table === "gate_attestations" ? attest : sub));
+    fromMock.mockImplementation((table: string) => (table === "gate_attestations" ? attest : upsertChain({ error: null })));
     const { POST } = await import("@/app/api/gate/route");
     const { TERMS_VERSION } = await import("@/lib/gate-shared");
 
@@ -55,9 +49,10 @@ describe("POST /api/gate", () => {
     expect(res.status).toBe(200);
 
     const row = attest.insert.mock.calls[0][0];
-    expect(row).toMatchObject({ email: "lab@example.com", terms_version: TERMS_VERSION, age_21: true, ruo: true, dispute_policy: true, user_agent: "vitest" });
+    expect(row).toMatchObject({ terms_version: TERMS_VERSION, age_21: true, ruo: true, dispute_policy: true, user_agent: "vitest" });
+    expect(row).not.toHaveProperty("email");
     expect(row.ip_hash).toMatch(/^[0-9a-f]{64}$/);
-    expect(sub.upsert).toHaveBeenCalledWith({ email: "lab@example.com", source: "gate" }, { onConflict: "email", ignoreDuplicates: true });
+    expect(fromMock).not.toHaveBeenCalledWith("subscribers");
 
     const cookies = res.headers.get("set-cookie") ?? "";
     expect(cookies).toContain(`aura_gate=${TERMS_VERSION}.att-1.`);
@@ -65,14 +60,4 @@ describe("POST /api/gate", () => {
     expect(cookies).toContain(`aura_gate_v=${TERMS_VERSION}`);
   });
 
-  it("still admits the visitor when only the subscriber upsert fails (logged, not blocking)", async () => {
-    const attest = insertChain({ data: { id: "att-2" }, error: null });
-    const sub = upsertChain({ error: { message: "dup" } });
-    fromMock.mockImplementation((table: string) => (table === "gate_attestations" ? attest : sub));
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const { POST } = await import("@/app/api/gate/route");
-    expect((await POST(post(valid))).status).toBe(200);
-    expect(spy).toHaveBeenCalled();
-    spy.mockRestore();
-  });
 });

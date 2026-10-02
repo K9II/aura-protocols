@@ -55,14 +55,16 @@ describe("EntryGate", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("keeps Enter disabled until all three boxes and an email are provided", async () => {
+  it("keeps Enter disabled until all three boxes are ticked, and asks for no email", async () => {
     render(<EntryGate />);
     const enter = await screen.findByRole("button", { name: /enter site/i });
     expect(enter).toBeDisabled();
-    for (const box of screen.getAllByRole("checkbox")) fireEvent.click(box);
+    const boxes = screen.getAllByRole("checkbox");
+    fireEvent.click(boxes[0]); fireEvent.click(boxes[1]);
     expect(enter).toBeDisabled();
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "lab@example.com" } });
+    fireEvent.click(boxes[2]);
     expect(enter).toBeEnabled();
+    expect(screen.queryByLabelText(/email/i)).toBeNull();
   });
 
   it("closes on success and shows an error on failure", async () => {
@@ -71,7 +73,6 @@ describe("EntryGate", () => {
       .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }));
     render(<EntryGate />);
     for (const box of await screen.findAllByRole("checkbox")) fireEvent.click(box);
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "lab@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: /enter site/i }));
     expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /enter site/i }));

@@ -4,8 +4,9 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { hashIp, signGateToken } from "@/lib/gate";
 import { GATE_COOKIE, GATE_HINT_COOKIE, GATE_MAX_AGE_S, TERMS_VERSION } from "@/lib/gate-shared";
 
+// The gate asks no email: who a buyer is gets recorded (and verified) at
+// account sign-up, which stores the same three agreements again.
 const schema = z.object({
-  email: z.string().email().max(254),
   age21: z.literal(true),
   ruo: z.literal(true),
   disputePolicy: z.literal(true),
@@ -20,16 +21,14 @@ export async function POST(request: Request): Promise<Response> {
   }
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "All three boxes and a valid email are required." }, { status: 400 });
+    return NextResponse.json({ error: "Please confirm all three to enter." }, { status: 400 });
   }
-  const email = parsed.data.email.trim().toLowerCase();
   const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
 
   const supabase = getSupabaseAdminClient();
   const { data, error } = await supabase
     .from("gate_attestations")
     .insert({
-      email,
       terms_version: TERMS_VERSION,
       age_21: true,
       ruo: true,
@@ -45,11 +44,6 @@ export async function POST(request: Request): Promise<Response> {
     console.error("gate attestation insert failed:", error);
     return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
   }
-
-  const { error: subError } = await supabase
-    .from("subscribers")
-    .upsert({ email, source: "gate" }, { onConflict: "email", ignoreDuplicates: true });
-  if (subError) console.error("gate subscriber upsert failed (visitor still admitted):", subError);
 
   const res = NextResponse.json({ ok: true });
   const secure = process.env.NODE_ENV === "production";

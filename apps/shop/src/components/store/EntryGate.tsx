@@ -7,14 +7,12 @@ import AuraLockup from "@/components/AuraLockup";
 import { GATE_EXEMPT_PATHS, hasCurrentGateHint, isCrawler } from "@/lib/gate-shared";
 import { useFocusTrap } from "@/components/store/useFocusTrap";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function EntryGate() {
   const [show, setShow] = useState(false);
   const [age21, setAge21] = useState(false);
   const [ruo, setRuo] = useState(false);
   const [dispute, setDispute] = useState(false);
-  const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -61,7 +59,7 @@ export default function EntryGate() {
   useFocusTrap(formRef, show);
 
   if (!show) return null;
-  const ready = age21 && ruo && dispute && EMAIL_RE.test(email.trim()) && !busy;
+  const ready = age21 && ruo && dispute && !busy;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -72,7 +70,7 @@ export default function EntryGate() {
       const res = await fetch("/api/gate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), age21, ruo, disputePolicy: dispute }),
+        body: JSON.stringify({ age21, ruo, disputePolicy: dispute }),
       });
       if (!res.ok) throw new Error(String(res.status));
       setShow(false);
@@ -100,7 +98,7 @@ export default function EntryGate() {
         <p id="gate-eyebrow" className="s-micro text-[color:var(--specimen)] mt-6 mb-2.5">Research use only</p>
         <h2>Receipts, not <em>promises.</em></h2>
         <p className="text-sm text-[color:var(--ink-soft)] leading-relaxed mb-[18px]">
-          To enter, confirm all three and add your email. You&apos;ll get order updates, lot certificates, and new-lot notices — unsubscribe anytime.
+          To enter, confirm all three.
         </p>
         <label className="s-chk">
           <input ref={firstCheckboxRef} type="checkbox" checked={age21} onChange={(e) => setAge21(e.target.checked)} />
@@ -116,8 +114,6 @@ export default function EntryGate() {
             I&apos;ve read the <Link href="/terms" target="_blank">Terms</Link> and <Link href="/refund-policy" target="_blank">Refund &amp; Dispute Policy</Link>, and will contact support before filing a payment dispute.
           </span>
         </label>
-        <label className="sr-only" htmlFor="gate-email">Email</label>
-        <input id="gate-email" type="email" autoComplete="email" placeholder="you@lab.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         {error && <p className="s-gate-error" role="alert">{error}</p>}
         <button type="submit" className="s-atc !mt-0" disabled={!ready}>{busy ? "Entering…" : "Enter site →"}</button>
         <a href="https://www.google.com" className="block text-center my-3 text-[12.5px] underline text-[color:var(--ink-soft)]">I&apos;m under 21 — leave</a>
