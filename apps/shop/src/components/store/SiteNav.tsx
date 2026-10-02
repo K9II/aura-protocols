@@ -12,8 +12,8 @@ export default function SiteNav() {
     <header className="pharmacopoeia sticky top-0 z-50">
       <div className="s-topbar">
         {/* Each phrase is nowrap so narrow screens wrap between phrases, not inside one. */}
-        <span className="whitespace-nowrap">Tested before sale</span> · <span className="whitespace-nowrap">COA per lot</span> ·{" "}
-        <em className="whitespace-nowrap">Ships from the US</em> · <span className="whitespace-nowrap">Free at ${FREE_SHIPPING_THRESHOLD_USD}+</span>
+        <span className="whitespace-nowrap">Lab-tested</span> · <span className="whitespace-nowrap">COA on every lot</span> ·{" "}
+        <em className="whitespace-nowrap">Fast domestic shipping</em> · <span className="whitespace-nowrap">Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
       </div>
       <div className="p-container pt-3.5 pb-2 bg-[color:var(--paper)]">
         {/* Logo left · links centered · Shop + Cart right (Kearney, option A, 2026-09-28).
