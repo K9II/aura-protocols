@@ -6,10 +6,10 @@ import { compounds } from "@/data/catalog";
 
 // Catalog lots are pending until sourcing; give the fixture a tested lot so
 // add-to-cart is enabled.
-const bpc = {
-  ...compounds.find((c) => c.slug === "bpc-157")!,
-  currentLot: { lot: "AP-TEST-1", purityPct: 99.4, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-TEST-1.pdf" },
-};
+const testedLot = { lot: "AP-TEST-1", purityPct: 99.4, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-TEST-1.pdf" };
+const bpc = { ...compounds.find((c) => c.slug === "bpc-157")!, currentLot: testedLot };
+// SS-31 is the product that still has two sizes (10 mg / 50 mg).
+const ss31 = { ...compounds.find((c) => c.slug === "ss-31")!, currentLot: testedLot };
 
 function Lines() {
   const { lines } = useCart();
@@ -18,15 +18,15 @@ function Lines() {
 
 describe("VariantPicker", () => {
   it("prices the selected size and pack and adds the exact line", () => {
-    render(<CartProvider><VariantPicker compound={bpc} /><Lines /></CartProvider>);
-    fireEvent.click(screen.getByRole("button", { name: "10 mg" }));
+    render(<CartProvider><VariantPicker compound={ss31} /><Lines /></CartProvider>);
+    fireEvent.click(screen.getByRole("button", { name: "50 mg" }));
     fireEvent.click(screen.getByRole("button", { name: /2-pack/ }));
-    const v = bpc.variants.find((x) => x.id === "10mg")!;
+    const v = ss31.variants.find((x) => x.id === "50mg")!;
     const expected = Math.round(v.priceUsd * 2 * 0.95 * 100) / 100;
     const atc = screen.getByRole("button", { name: new RegExp(`Add to cart — \\$${expected.toFixed(2)}`) });
     fireEvent.click(atc);
     expect(JSON.parse(screen.getByTestId("lines").textContent!)).toEqual([
-      { slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 1 },
+      { slug: "ss-31", variantId: "50mg", packQty: 2, quantity: 1 },
     ]);
   });
 
@@ -48,10 +48,10 @@ describe("VariantPicker", () => {
 
   it("shows the per-vial price for the selected pack and the pack total on the button", () => {
     render(<CartProvider><VariantPicker compound={bpc} /></CartProvider>);
-    expect(screen.getByText(/\$46\.55/)).toBeInTheDocument();             // 49 × 0.95
-    expect(screen.getByRole("button", { name: /add to cart — \$93\.10/i })).toBeInTheDocument();
+    expect(screen.getByText(/\$75\.05/)).toBeInTheDocument();             // 79 × 0.95
+    expect(screen.getByRole("button", { name: /add to cart — \$150\.10/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "10-pack −20%" }));
-    expect(screen.getByText(/\$39\.20/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /add to cart — \$392\.00/i })).toBeInTheDocument();
+    expect(screen.getByText(/\$63\.20/)).toBeInTheDocument();             // 79 × 0.80
+    expect(screen.getByRole("button", { name: /add to cart — \$632\.00/i })).toBeInTheDocument();
   });
 });
