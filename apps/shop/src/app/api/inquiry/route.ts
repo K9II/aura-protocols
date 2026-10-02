@@ -4,7 +4,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { sendEmail } from "@/lib/ses";
 
 const schema = z.object({
-  kind: z.enum(["wholesale", "affiliate"]),
+  kind: z.enum(["wholesale"]),
   name: z.string().trim().min(1).max(120),
   email: z.string().email().max(254),
   organization: z.string().trim().max(160).optional(),

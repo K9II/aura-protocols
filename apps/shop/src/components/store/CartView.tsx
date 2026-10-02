@@ -1,27 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { compounds } from "@/data/catalog";
 import { FREE_SHIPPING_THRESHOLD_USD, linePriceUsd } from "@/lib/cart";
-import { getCommerceAdapter } from "@/lib/commerce";
 import { useCart } from "@/components/store/CartProvider";
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
 
 export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
   const { lines, remove, setQty, totals } = useCart();
-  const [notice, setNotice] = useState<string | null>(null);
-
-  async function checkout() {
-    try {
-      const result = await getCommerceAdapter().createCheckout(lines);
-      if (result.kind === "redirect") window.location.href = result.url;
-      else setNotice(result.message);
-    } catch {
-      setNotice("Something went wrong — please try again.");
-    }
-  }
 
   if (lines.length === 0) {
     return (
@@ -63,8 +50,7 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
         <p className="s-micro text-[color:var(--ink-soft)]">
           {totals.freeShipping ? "Free shipping unlocked" : `${usd(totals.remainingForFreeShippingUsd)} from free shipping`}
         </p>
-        <button type="button" className="s-atc" onClick={checkout}>Checkout →</button>
-        {notice && <p role="status" className="mt-3 text-sm text-[color:var(--specimen)]">{notice}</p>}
+        <Link href="/checkout" onClick={onNavigate} className="s-atc block text-center">Checkout →</Link>
         <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
       </div>
     </div>

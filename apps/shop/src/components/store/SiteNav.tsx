@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import AuraLockup from "@/components/AuraLockup";
+import AuthLinks from "@/components/store/AuthLinks";
 import { useCart } from "@/components/store/CartProvider";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
@@ -20,12 +21,14 @@ export default function SiteNav() {
         <nav className="s-nav" aria-label="Main">
           <Link href="/" aria-label="Aura Protocols home" className="s-nav-logo"><AuraLockup size={58} mode="loop" /></Link>
           <div className="s-nav-links">
+            <Link href="/products" className="s-nav-shop-link">Shop</Link>
             <Link href="/coa">COA Lookup</Link>
             <Link href="/wholesale">Wholesale</Link>
             <Link href="/affiliates">Affiliate Program</Link>
           </div>
           <div className="s-nav-actions">
             <Link href="/products" className="s-nav-shop">Shop</Link>
+            <AuthLinks />
             <button type="button" className="s-nav-cart" onClick={() => setOpen(true)}>
               Cart ({totals.itemCount})
             </button>

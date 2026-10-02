@@ -6,7 +6,7 @@ const paths = () => sitemap().map((e) => new URL(e.url).pathname);
 
 describe("sitemap", () => {
   it("lists the storefront pages", () => {
-    for (const p of ["/", "/products", "/coa", "/wholesale", "/affiliates", "/about", "/quality-standards", "/terms", "/privacy", "/shipping", "/refund-policy", "/ruo"]) {
+    for (const p of ["/", "/products", "/coa", "/wholesale", "/affiliates", "/partner-agreement", "/about", "/quality-standards", "/terms", "/privacy", "/shipping", "/refund-policy", "/ruo"]) {
       expect(paths()).toContain(p);
     }
   });

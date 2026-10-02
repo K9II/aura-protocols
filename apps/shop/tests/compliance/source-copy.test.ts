@@ -30,7 +30,22 @@ function stripComments(source: string): string {
   return out;
 }
 
-const FILES = [...storeComponentFiles(), join(SRC, "app", "products", "page.tsx"), join(SRC, "data", "catalog.ts"), join(SRC, "lib", "catalog.ts")];
+function tsxUnder(...parts: string[]): string[] {
+  const dir = join(SRC, ...parts);
+  return readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((d) => d.isFile() && /\.tsx?$/.test(d.name))
+    .map((d) => join(d.parentPath ?? (d as unknown as { path: string }).path, d.name));
+}
+
+const FILES = [
+  ...storeComponentFiles(), join(SRC, "app", "products", "page.tsx"), join(SRC, "data", "catalog.ts"), join(SRC, "lib", "catalog.ts"),
+  ...tsxUnder("components", "account"), ...tsxUnder("app", "sign-in"), ...tsxUnder("app", "checkout"),
+  ...tsxUnder("app", "account"), ...tsxUnder("app", "order"), ...tsxUnder("app", "admin"),
+  ...tsxUnder("app", "forgot-password"), ...tsxUnder("app", "reset-password"),
+  ...tsxUnder("components", "partners"), ...tsxUnder("app", "partners"), ...tsxUnder("app", "affiliates"),
+  ...tsxUnder("app", "partner-agreement"), join(SRC, "lib", "emails-partners.ts"),
+  join(SRC, "lib", "emails.ts"),
+];
 
 describe("compliance scan — client-only and dynamic source copy", () => {
   it.each(FILES.map((f) => [f.slice(SRC.length + 1).replace(/\\/g, "/"), f] as const))("%s has no banned-phrase copy", (_label, file) => {

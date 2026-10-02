@@ -7,7 +7,7 @@ export default function InquiryForm({
   orgLabel,
   messageLabel,
 }: {
-  kind: "wholesale" | "affiliate";
+  kind: "wholesale";
   orgLabel: string;
   messageLabel: string;
 }) {
