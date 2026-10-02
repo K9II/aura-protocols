@@ -38,7 +38,7 @@ function tsxUnder(...parts: string[]): string[] {
 }
 
 const FILES = [
-  ...storeComponentFiles(), join(SRC, "app", "products", "page.tsx"), join(SRC, "data", "catalog.ts"), join(SRC, "lib", "catalog.ts"),
+  ...storeComponentFiles(), join(SRC, "app", "products", "page.tsx"), join(SRC, "data", "catalog.ts"), join(SRC, "data", "catalog-descriptions.ts"), join(SRC, "lib", "catalog.ts"),
   ...tsxUnder("components", "account"), ...tsxUnder("app", "sign-in"), ...tsxUnder("app", "checkout"),
   ...tsxUnder("app", "account"), ...tsxUnder("app", "order"), ...tsxUnder("app", "admin"),
   ...tsxUnder("app", "forgot-password"), ...tsxUnder("app", "reset-password"),

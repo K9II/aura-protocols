@@ -19,7 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const c = findCompound(slug);
   if (!c) return {};
-  const description = `${c.name} — ${c.chemicalClass}. Lot-tested research compound with certificate of analysis. For research use only.`;
+  const description = c.description
+    ?? `${c.name} — ${c.chemicalClass}. Lot-tested research compound with certificate of analysis. For research use only.`;
   return {
     title: c.name,
     description,
@@ -44,6 +45,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     "@context": "https://schema.org",
     "@type": "Product",
     name: c.name,
+    description: c.description,
     category: c.chemicalClass,
     url: `${BASE_URL}/products/${c.slug}`,
     brand: { "@type": "Brand", name: "Aura Protocols" },
