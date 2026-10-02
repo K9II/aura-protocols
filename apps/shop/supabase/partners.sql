@@ -370,3 +370,7 @@ create trigger partner_code_guard before insert on partner_code_aliases
 
 -- Private bucket for W-9 PDFs (owner reads through 60-second signed URLs).
 insert into storage.buckets (id, name, public) values ('w9', 'w9', false) on conflict (id) do nothing;
+
+-- 2026-10-01: the masked payout details a cash payout was queued with, so the
+-- owner Payouts page can flag a partner who changed them before cash is sent.
+alter table payouts add column if not exists details_hint text;

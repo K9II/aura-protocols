@@ -51,10 +51,13 @@ export default async function AdminPayoutsPage() {
               <tbody>
                 {queued.map((p, i) => {
                   const d = details[i];
+                  const current = p.partners?.payout_details_hint ?? null;
+                  const changed = !!p.details_hint && p.details_hint !== current;
                   return (
                     <tr key={p.id} style={{ borderTop: "1px solid var(--line)" }}>
                       <td style={td}><span className="p-serif text-[17px]">{p.partners?.code}</span><div className="s-micro text-[color:var(--ink-soft)] mt-1">Run {p.run_date}</div></td>
-                      <td style={td} className="text-sm">{p.partners?.payout_details_hint ?? "No payout method on file"}
+                      <td style={td} className="text-sm">{current ?? "No payout method on file"}
+                        {changed && <p role="alert" className="text-[12.5px] mt-1" style={{ color: "var(--specimen)" }}>Changed since this payout was queued (was {p.details_hint}). Confirm with the partner before sending.</p>}
                         {d && <details className="mt-1"><summary className="underline cursor-pointer text-[color:var(--specimen)]">Show full details</summary>
                           <p className="mt-1 text-[12.5px]">{d.kind === "ach" ? `Routing ${d.routing} · Account ${d.account} · ${d.bank}` : `Zelle ${d.handle}`}</p></details>}
                       </td>

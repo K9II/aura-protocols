@@ -116,4 +116,8 @@ describe("partners.sql", () => {
     expect(sql).toContain("create trigger partner_code_guard before insert on partner_code_aliases");
     expect(sql).toContain("errcode = '23505'");
   });
+
+  it("payouts keep the masked payout details they were queued with", () => {
+    expect(sql).toMatch(/alter table payouts add column if not exists details_hint text/i);
+  });
 });

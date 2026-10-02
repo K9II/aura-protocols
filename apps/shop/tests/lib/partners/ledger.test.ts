@@ -135,12 +135,13 @@ describe("partner ledger", () => {
   it("runPayouts nets an unsettled deduction against payable commission before splitting", async () => {
     const runIns = query({});
     const runDone = query({});
-    const partnersSel = query({ data: [{ id: "p1", customer_id: "u1", payout_pref: "cash", split_cash_pct: 100, cash_carry_cents: 0, w9_checked_at: "2026-01-01T00:00:00.000Z", payout_method: "ach" }] });
+    const partnersSel = query({ data: [{ id: "p1", customer_id: "u1", payout_pref: "cash", split_cash_pct: 100, cash_carry_cents: 0, w9_checked_at: "2026-01-01T00:00:00.000Z", payout_method: "ach", payout_details_hint: "ACH · checking ••••6789 · Test Bank" }] });
     const donePayouts = query({ data: [] });
+    const snapshot = query({});
     const commSel = query({ data: [{ id: "c1", amount_cents: 20000 }] });
     const adjSel = query({ data: [{ id: "a1", amount_cents: -5000 }] });
     from = fromQueue({
-      payout_runs: [runIns, runDone], partners: [partnersSel], payouts: [donePayouts],
+      payout_runs: [runIns, runDone], partners: [partnersSel], payouts: [donePayouts, snapshot],
       commissions: [commSel], commission_adjustments: [adjSel],
     });
     rpc.mockResolvedValue({ data: null, error: null });
@@ -151,6 +152,8 @@ describe("partner ledger", () => {
     expect(rpc).toHaveBeenCalledWith("apply_partner_payout", expect.objectContaining({
       p_commission_ids: ["c1"], p_adjustment_ids: ["a1"], p_cash_cents: 15000, p_credit_value_cents: 0, p_new_carry: 0,
     }));
+    // the masked details the cash is going to, so a later change is flagged on the Payouts page
+    expect(callArgs(snapshot, "update")?.[0]).toEqual({ details_hint: "ACH · checking ••••6789 · Test Bank" });
   });
 
   it("runPayouts isolates one partner's apply_partner_payout failure: others still process, but finished_at stays null so the run can be retried", async () => {
@@ -167,7 +170,7 @@ describe("partner ledger", () => {
     const comm2 = query({ data: [{ id: "c2", amount_cents: 20000 }] });
     const adj2 = query({ data: [] });
     from = fromQueue({
-      payout_runs: [runIns, runDone], partners: [partnersSel], payouts: [donePayouts],
+      payout_runs: [runIns, runDone], partners: [partnersSel], payouts: [donePayouts, query({})],  // + p2's details snapshot
       commissions: [comm1, comm2], commission_adjustments: [adj1, adj2],
     });
     rpc.mockResolvedValueOnce({ data: null, error: { message: "carry changed for partner p1" } })
@@ -191,7 +194,7 @@ describe("partner ledger", () => {
     const comm1Retry = query({ data: [{ id: "c1", amount_cents: 20000 }] });
     const adj1Retry = query({ data: [] });
     from = fromQueue({
-      payout_runs: [rerunDup, rerunLookup, rerunFinish], partners: [partnersSel2], payouts: [alreadyDone2],
+      payout_runs: [rerunDup, rerunLookup, rerunFinish], partners: [partnersSel2], payouts: [alreadyDone2, query({})],
       commissions: [comm1Retry], commission_adjustments: [adj1Retry],
     });
     rpc.mockReset();

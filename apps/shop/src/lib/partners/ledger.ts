@@ -11,7 +11,7 @@ export type CommissionRow = {
 };
 export type PayoutRow = {
   id: string; partner_id: string; run_date: string; cash_cents: number; credit_cents: number;
-  status: "queued" | "paid" | "credited"; method: string | null; reference: string | null; paid_at: string | null;
+  status: "queued" | "paid" | "credited"; method: string | null; reference: string | null; paid_at: string | null; details_hint?: string | null;
   partners?: { code: string; payout_method: string | null; payout_details_hint: string | null; customer_id: string } | null;
 };
 
@@ -92,7 +92,7 @@ export async function refundCredit(customerId: string, cents: number, orderId: s
   if (error && !isDuplicate(error)) throw dbError("credit refund insert", error);
 }
 
-type RunPartner = { id: string; customer_id: string; payout_pref: PayoutPref; split_cash_pct: number; cash_carry_cents: number; w9_checked_at: string | null; payout_method: string | null };
+type RunPartner = { id: string; customer_id: string; payout_pref: PayoutPref; split_cash_pct: number; cash_carry_cents: number; w9_checked_at: string | null; payout_method: string | null; payout_details_hint?: string | null };
 export type RunResult = { partnerId: string; cashCents: number; creditValueCents: number; carryCents: number };
 export type RunFailure = { partnerId: string; error: string };
 
@@ -118,7 +118,7 @@ export async function runPayouts(runDate: string): Promise<{ skipped: boolean; r
   }
 
   const { data: partners, error: partnersError } = await db().from("partners")
-    .select("id, customer_id, payout_pref, split_cash_pct, cash_carry_cents, w9_checked_at, payout_method").eq("status", "approved");
+    .select("id, customer_id, payout_pref, split_cash_pct, cash_carry_cents, w9_checked_at, payout_method, payout_details_hint").eq("status", "approved");
   if (partnersError) throw dbError("partners select", partnersError);
 
   const { data: already, error: alreadyError } = await db().from("payouts").select("partner_id").eq("run_date", runDate);
@@ -155,6 +155,12 @@ export async function runPayouts(runDate: string): Promise<{ skipped: boolean; r
         p_customer: p.customer_id,
       });
       if (applyError) throw dbError("apply_partner_payout", applyError);
+      if (r.cashCents > 0) {
+        // Remember where this cash is meant to go; the Payouts page flags a later change.
+        const { error: snapErr } = await db().from("payouts").update({ details_hint: p.payout_details_hint ?? null })
+          .eq("partner_id", p.id).eq("run_date", runDate);
+        if (snapErr) throw dbError("payout details snapshot", snapErr);
+      }
 
       results.push({ partnerId: p.id, cashCents: r.cashCents, creditValueCents: r.creditValueCents, carryCents: r.newCarryCents });
     } catch (err) {
