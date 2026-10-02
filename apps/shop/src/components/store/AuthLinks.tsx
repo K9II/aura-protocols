@@ -9,6 +9,18 @@ import { signOutAction } from "@/app/auth/actions";
 // stay static. Real authorization happens server-side in lib/dal.ts.
 export default function AuthLinks() {
   const [state, setState] = useState<"unknown" | "out" | "in">("unknown");
+  const [owner, setOwner] = useState(false);
+
+  // Owner status lives server-side (customers has no browser access), so ask once signed in.
+  useEffect(() => {
+    if (state !== "in") return;
+    let cancelled = false;
+    fetch("/api/me/owner", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { owner: false }))
+      .then((d: { owner?: boolean }) => { if (!cancelled) setOwner(d.owner === true); })
+      .catch(() => { if (!cancelled) setOwner(false); });
+    return () => { cancelled = true; };
+  }, [state]);
 
   useEffect(() => {
     let cancelled = false;
@@ -30,6 +42,7 @@ export default function AuthLinks() {
   if (state === "out") return <Link href="/sign-in" className="s-nav-auth">Sign in</Link>;
   return (
     <>
+      {owner && <Link href="/admin/orders" className="s-nav-auth" style={{ textDecoration: "none" }}>Admin</Link>}
       <Link href="/account" className="s-nav-auth" style={{ textDecoration: "none" }}>Account</Link>
       <form action={signOutAction} className="s-nav-signout">
         <button type="submit" className="s-nav-cart">Sign out</button>
