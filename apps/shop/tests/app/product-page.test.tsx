@@ -43,4 +43,16 @@ describe("product page", () => {
     expect(screen.getByText("Copper")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /crystal structure paper/i })).toHaveAttribute("href", expect.stringContaining("sciencedirect.com"));
   });
+
+  it("lists what to know before ordering, in line with the refund and shipping policies", async () => {
+    await renderSlug("bpc-157");
+    const box = screen.getByRole("heading", { level: 3, name: "Before ordering" }).parentElement!;
+    const items = within(box).getAllByRole("listitem").map((li) => li.textContent);
+    expect(items).toHaveLength(3);
+    expect(items[0]).toMatch(/certificate for this lot/i);
+    expect(items[1]).toMatch(/full refund until your order ships/i);
+    expect(items[1]).toMatch(/sale is final/i);
+    expect(items[2]).toMatch(/within 48 hours of delivery/i);
+    expect(items[2]).toMatch(/one replacement/i);
+  });
 });

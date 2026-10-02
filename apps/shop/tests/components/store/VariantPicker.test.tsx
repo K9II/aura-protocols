@@ -54,4 +54,30 @@ describe("VariantPicker", () => {
     expect(screen.getByText(/\$63\.20/)).toBeInTheDocument();             // 79 × 0.80
     expect(screen.getByRole("button", { name: /add to cart — \$632\.00/i })).toBeInTheDocument();
   });
+
+  it("adds the chosen number of packs and shows the running total", () => {
+    window.localStorage.clear();
+    render(<CartProvider><VariantPicker compound={bpc} /><Lines /></CartProvider>);
+    const minus = screen.getByRole("button", { name: "Decrease quantity" });
+    const plus = screen.getByRole("button", { name: "Increase quantity" });
+    expect(minus).toBeDisabled();
+    fireEvent.click(plus);
+    fireEvent.click(plus);
+    expect(screen.getByRole("group", { name: "Quantity" })).toHaveTextContent("3");
+    const atc = screen.getByRole("button", { name: /add to cart — \$450\.30/i });   // 3 × 2-pack at $79 × 0.95
+    fireEvent.click(atc);
+    expect(JSON.parse(screen.getByTestId("lines").textContent!)).toEqual([
+      { slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 3 },
+    ]);
+    fireEvent.click(minus);
+    expect(screen.getByRole("group", { name: "Quantity" })).toHaveTextContent("2");
+  });
+
+  it("caps the quantity at 20 packs", () => {
+    render(<CartProvider><VariantPicker compound={bpc} /></CartProvider>);
+    const plus = screen.getByRole("button", { name: "Increase quantity" });
+    for (let i = 0; i < 25; i++) fireEvent.click(plus);
+    expect(screen.getByRole("group", { name: "Quantity" })).toHaveTextContent("20");
+    expect(plus).toBeDisabled();
+  });
 });

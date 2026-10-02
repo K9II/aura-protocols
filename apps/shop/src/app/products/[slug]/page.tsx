@@ -6,6 +6,7 @@ import { findCompound, fromPackPriceUsd, isPendingLot, materialTestingRows, rela
 import Vial from "@/components/store/Vial";
 import SpecBoxes from "@/components/store/SpecBoxes";
 import VariantPicker from "@/components/store/VariantPicker";
+import BeforeOrdering from "@/components/store/BeforeOrdering";
 import CompoundCard from "@/components/store/CompoundCard";
 import MoleculeViewer from "@/components/store/MoleculeViewer";
 import MoleculeGrid from "@/components/store/MoleculeGrid";
@@ -101,6 +102,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <VariantPicker compound={c} />
             <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders of ${FREE_SHIPPING_THRESHOLD_USD} or more</div>
             <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
+            <BeforeOrdering />
           </div>
         </section>
       </div>
