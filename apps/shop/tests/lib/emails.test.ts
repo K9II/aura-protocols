@@ -24,9 +24,9 @@ describe("emails", () => {
 
   it("receipts show the partner code and store credit so the lines add up", () => {
     const withCode = { ...order, partner_discount_cents: 490, store_credit_cents: 0 } as OrderRow;
-    expect(orderConfirmationEmail(withCode).html).toMatch(/Partner code[\s\S]*−\$4\.90/);
+    expect(orderConfirmationEmail(withCode).html).toMatch(/Discount code[\s\S]*−\$4\.90/);
     const plain = orderConfirmationEmail({ ...order, partner_discount_cents: 0, store_credit_cents: 0 } as OrderRow).html;
-    expect(plain).not.toMatch(/Partner code|store credit/i);
+    expect(plain).not.toMatch(/Discount code|store credit/i);
     const credit = ownerNewOrderEmail({ ...order, partner_discount_cents: 0, store_credit_cents: 5000 } as OrderRow).html;
     expect(credit).toMatch(/Paid with store credit[\s\S]*−\$50\.00/);
     expect(credit).toMatch(/Charged[\s\S]*\$261\.09/);

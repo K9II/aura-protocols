@@ -30,7 +30,7 @@ function itemsTable(o: OrderRow): string {
   ).join("");
   return `<table style="width:100%;border-collapse:collapse;font-size:14px">${rows}
 <tr><td style="padding-top:10px">Subtotal</td><td style="text-align:right">${usd(o.subtotal_cents)}</td></tr>
-${o.partner_discount_cents > 0 ? `<tr><td>Partner code</td><td style="text-align:right">−${usd(o.partner_discount_cents)}</td></tr>` : ""}
+${o.partner_discount_cents > 0 ? `<tr><td>Discount code</td><td style="text-align:right">−${usd(o.partner_discount_cents)}</td></tr>` : ""}
 <tr><td>Shipping</td><td style="text-align:right">${o.shipping_cents ? usd(o.shipping_cents) : "Free"}</td></tr>
 <tr><td>Shipping insurance</td><td style="text-align:right">${usd(o.insurance_cents)}</td></tr>
 <tr><td>Sales tax</td><td style="text-align:right">${usd(o.tax_cents)}</td></tr>

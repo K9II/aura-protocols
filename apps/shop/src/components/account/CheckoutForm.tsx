@@ -87,7 +87,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
           <div><label htmlFor="co-state" className="s-micro block mb-1.5">State</label><input id="co-state" value={addr.state} onChange={set("state")} autoComplete="shipping address-level1" maxLength={2} required className={field} /></div>
           <div><label htmlFor="co-zip" className="s-micro block mb-1.5">ZIP</label><input id="co-zip" value={addr.zip} onChange={set("zip")} autoComplete="shipping postal-code" required className={field} /></div>
         </div>
-        <label htmlFor="co-code" className="s-micro block mb-1.5 mt-2">Partner code</label>
+        <label htmlFor="co-code" className="s-micro block mb-1.5 mt-2">Discount code</label>
         <div style={{ display: "flex", gap: 8 }}>
           <input id="co-code" value={codeInput} onChange={(e) => { setCodeInput(e.target.value); if (appliedCode) setAppliedCode(null); }} maxLength={20}
             className="w-full border border-[color:var(--ink)] bg-[color:var(--paper)] px-3.5 py-3 text-sm" />
@@ -124,7 +124,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         <div className="border-t border-[color:var(--line)] pt-4 mt-2">
           <div className="flex justify-between text-[15px]"><span>Subtotal</span><span>{usd(priced.subtotalCents - priced.partnerDiscountCents)}</span></div>
           {priced.partnerDiscountCents > 0 && (
-            <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes partner code {appliedCode}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
+            <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes discount code {appliedCode}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
           )}
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping</span><span>{priced.shippingCents ? usd(priced.shippingCents) : <>Free <span className="text-[color:var(--ink-soft)] text-[12.5px]">($250 or more)</span></>}</span></div>
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping insurance</span><span>{usd(priced.insuranceCents)}</span></div>
