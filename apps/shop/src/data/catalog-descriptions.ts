@@ -46,7 +46,7 @@ export const DESCRIPTIONS: Record<string, Description> = {
     source: PUBCHEM(11764719),
   },
   "mots-c": {
-    text: `MOTS-c is a 16-residue peptide whose sequence is encoded within the mitochondrial 12S rRNA gene (MT-RNR1); the material here is chemically synthesized. ${SUPPLIED}`,
+    text: `MOTS-c is a 16-residue peptide whose sequence is encoded within the mitochondrial 12S rRNA gene (MT-RNR1). ${SUPPLIED}`,
     source: "https://www.uniprot.org/uniprotkb/A0A0C5B5G6/entry",
   },
   "slu-pp-332": {
@@ -82,15 +82,15 @@ export const DESCRIPTIONS: Record<string, Description> = {
     source: PUBCHEM(124886),
   },
   "bpc-157-tb-500-blend": {
-    text: `A fixed-ratio blend of BPC-157 and TB-500, co-lyophilized as a powder in a single sealed vial.`,
+    text: `A fixed-ratio blend of BPC-157 and TB-500, supplied as a lyophilized powder in a single sealed vial.`,
     source: PUBCHEM(9941957),
   },
   "bpc-157-tb-500-ghk-cu": {
-    text: `A fixed-ratio blend of BPC-157, TB-500 and GHK-Cu, co-lyophilized as a powder in a single sealed vial.`,
+    text: `A fixed-ratio blend of BPC-157, TB-500 and GHK-Cu, supplied as a lyophilized powder in a single sealed vial.`,
     source: PUBCHEM(9941957),
   },
   "bpc-157-tb-500-ghk-cu-kpv": {
-    text: `A fixed-ratio blend of BPC-157, TB-500, GHK-Cu and KPV, co-lyophilized as a powder in a single sealed vial.`,
+    text: `A fixed-ratio blend of BPC-157, TB-500, GHK-Cu and KPV, supplied as a lyophilized powder in a single sealed vial.`,
     source: PUBCHEM(9941957),
   },
 };
