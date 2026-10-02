@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { buildStrand, shade, strandDrawItems, type Strand } from "@/lib/sphere-strand";
 
 // Decorative compound ring for the storefront homepage. Nodes are catalog
 // compounds only — NO biometric readings or human-outcome pairings (removed
@@ -43,6 +44,12 @@ type Metric = {
   ringY: number;
   ringAngle: number;
 };
+
+// SS-31 inside the sphere (2026-10-02, option C): the product page's ball-and-stick
+// model, counter-rotating at the sphere's speed. Farthest atom at this share of R.
+const STRAND_FILE = "/structures/ss-31.sdf";
+const STRAND_SIZE = 0.82;
+const STRAND_TILT = 0.35;
 
 type CloudPoint = { x: number; y: number; z: number; phase: number; speed: number };
 
@@ -116,6 +123,18 @@ export default function BiosignatureSphere() {
     const ringYFactor = compact ? 0.95 : 0.72;
 
     const cloud = makeCloudPoints(130, R);
+
+    // Decorative: if the model can't load, the sphere simply draws without it.
+    let strand: Strand | null = null;
+    let strandAbort = false;
+    fetch(STRAND_FILE)
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((txt) => {
+        if (strandAbort) return;
+        strand = buildStrand(txt, R * STRAND_SIZE);
+        if (reduced) draw(performance.now()); // static frame needs a repaint once it arrives
+      })
+      .catch((err) => console.warn("sphere strand not loaded:", err));
 
     const metrics: Metric[] = NODES.map((base) => {
       const start = Math.random();
@@ -265,6 +284,29 @@ export default function BiosignatureSphere() {
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
 
+    // Turns opposite to the sphere (ambient spin and drag), same speed.
+    function drawStrand(s: Strand, sphereAngle: number) {
+      const items = strandDrawItems(
+        s,
+        (p) => rotateX(rotateY(p, -sphereAngle), STRAND_TILT),
+        (x, y, z) => ({ ...project(x, y, z), f: persp / (persp + z) }),
+      );
+      ctx.lineCap = "round";
+      for (const it of items) {
+        if (it.kind === "stick") {
+          ctx.beginPath(); ctx.moveTo(it.x1, it.y1); ctx.lineTo(it.x2, it.y2);
+          ctx.strokeStyle = it.color; ctx.lineWidth = it.w; ctx.stroke();
+          ctx.strokeStyle = shade(it.color, 0.28); ctx.lineWidth = it.w * 0.35; ctx.stroke(); // cylinder highlight
+        } else {
+          const g = ctx.createRadialGradient(it.x - it.r * 0.35, it.y - it.r * 0.4, it.r * 0.1, it.x, it.y, it.r);
+          g.addColorStop(0, shade(it.color, 0.45));
+          g.addColorStop(0.45, it.color);
+          g.addColorStop(1, shade(it.color, -0.45));
+          ctx.beginPath(); ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+        }
+      }
+    }
+
     function draw(now: number) {
       const dt = Math.min((now - lastFrame) / 1000, 0.05);
       lastFrame = now;
@@ -298,7 +340,7 @@ export default function BiosignatureSphere() {
         return project(q.x, q.y, q.z);
       });
       const order = proj.map((_, i) => i).sort((ia, ib) => proj[ia].z - proj[ib].z);
-      order.forEach((idx) => {
+      const drawCloudPt = (idx: number) => {
         const p = proj[idx];
         const src = cloud[idx];
         const pulse = 0.6 + 0.4 * Math.sin(t * src.speed * 1.6 + src.phase);
@@ -308,7 +350,11 @@ export default function BiosignatureSphere() {
         ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${INK},${depthAlpha.toFixed(3)})`;
         ctx.fill();
-      });
+      };
+      // Back half of the cloud, then the strand, then the front half, so the strand sits inside.
+      order.filter((i) => proj[i].z < 0).forEach(drawCloudPt);
+      if (strand) drawStrand(strand, angle);
+      order.filter((i) => proj[i].z >= 0).forEach(drawCloudPt);
 
       metrics.forEach((m) => {
         const q = rotateX(rotateY(m.pos, angle), wobble);
@@ -395,6 +441,7 @@ export default function BiosignatureSphere() {
     if (reduced) draw(t0 + 1000);
 
     return () => {
+      strandAbort = true;
       if (raf) cancelAnimationFrame(raf);
       resizeObs.disconnect();
       canvas.removeEventListener("pointerdown", onPointerDown);
