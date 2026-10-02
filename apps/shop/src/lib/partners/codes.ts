@@ -7,7 +7,7 @@ export const PARTNER_TYPES = [
   { id: "industry_researcher", label: "Industry researcher", hint: "biotech, pharma or CRO", group: "research" },
   { id: "research_group", label: "Lab or research group", hint: "recommending for a team", group: "research" },
   { id: "clinician", label: "Clinician", hint: "MD, DO, PA or NP", group: "research" },
-  { id: "pharmacist", label: "Pharmacist", hint: "incl. compounding", group: "research" },
+  { id: "pharmacist", label: "Pharmacist", hint: "hospital, retail or research", group: "research" },
   { id: "educator", label: "Educator", hint: "lecturer, course or journal club", group: "research" },
   { id: "publisher", label: "Publisher", hint: "blog, website or newsletter", group: "media" },
   { id: "video_creator", label: "Video creator", hint: "YouTube, TikTok", group: "media" },

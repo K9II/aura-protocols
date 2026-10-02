@@ -20,14 +20,20 @@ export default async function OrderPage({ params, searchParams }: {
 
   // Display only: if the webhook hasn't landed yet, ask Stripe so the page can
   // say "confirming". Only the webhook / reconciler changes the order.
+  // A bank payment completes the Stripe page before the money clears, so
+  // only payment_status "paid" counts as received.
   let confirming = false;
+  let bankPending = false;
   if (order.status === "awaiting_payment" && session_id && session_id === order.stripe_session_id) {
     try {
       const s = await getStripe().checkout.sessions.retrieve(session_id);
-      confirming = s.payment_status === "paid" || s.status === "complete";
+      confirming = s.payment_status === "paid";
+      bankPending = !confirming && s.status === "complete";
     } catch { confirming = false; }
   }
-  const done = confirming || order.status !== "awaiting_payment";
+  const processing = order.status === "processing" || bankPending;
+  const closed = order.status === "cancelled" || order.status === "refunded";
+  const done = confirming || processing || order.status === "paid" || order.status === "shipped";
 
   return (
     <div className="pharmacopoeia">
@@ -35,11 +41,13 @@ export default async function OrderPage({ params, searchParams }: {
       <div className="p-container py-16" style={{ maxWidth: 760 }}>
         <p className="s-micro text-[color:var(--specimen)] mb-2.5">Order {order.order_number}</p>
         <h1 className="s-h1 mb-6" style={{ fontSize: 48 }}>
-          {order.status === "processing" ? <>Payment <em>processing.</em></> : done ? <>Thank <em>you.</em></> : <>Awaiting <em>payment.</em></>}
+          {closed ? <>Order <em>{order.status}.</em></> : processing ? <>Payment <em>processing.</em></> : done ? <>Thank <em>you.</em></> : <>Awaiting <em>payment.</em></>}
         </h1>
         <p className="text-[15px] text-[color:var(--ink-soft)] mb-6">
-          {confirming ? "Payment received — confirming your order now. A confirmation email is on its way."
-            : order.status === "processing" ? "Bank payments take a few business days to clear. We'll email you as soon as it does."
+          {order.status === "cancelled" ? "This order was cancelled and no payment was taken. Your cart is unchanged."
+            : order.status === "refunded" ? "This order was refunded. The refund goes back to the way you paid."
+            : confirming ? "Payment received — confirming your order now. A confirmation email is on its way."
+            : processing ? "Bank payments take a few business days to clear. We'll email you as soon as it does."
             : order.status === "awaiting_payment" ? "We haven't received payment for this order yet."
             : "A confirmation email is on its way. You can follow this order under your account."}
         </p>
