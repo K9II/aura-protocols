@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
 import {
-  findCompound, compoundsInClass, relatedCompounds, fromPriceUsd,
+  findCompound, compoundsInClass, relatedCompounds,
   isPendingLot, findLot, vialLabel, classCounts,
+  fromPackPriceUsd, toPackPriceUsd, perVialUsd,
 } from "@/lib/catalog";
 import { compounds } from "@/data/catalog";
 
@@ -37,10 +38,6 @@ describe("catalog helpers", () => {
     expect(relatedCompounds(fixture[0], 1, fixture).map((c) => c.slug)).toEqual(["b"]);
   });
 
-  it("reports the lowest variant price", () => {
-    expect(fromPriceUsd(fixture[0])).toBe(49);
-  });
-
   it("detects pending lots", () => {
     expect(isPendingLot(fixture[1].currentLot)).toBe(true);
     expect(isPendingLot(fixture[0].currentLot)).toBe(false);
@@ -69,5 +66,26 @@ describe("catalog helpers", () => {
       { cls: "Peptide Fragments", count: 2 },
       { cls: "Blends", count: 1 },
     ]);
+  });
+});
+
+describe("pack prices", () => {
+  const c = {
+    ...fixture[0],
+    variants: [
+      { id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in" as const },
+      { id: "10mg", strength: "10 mg", priceUsd: 79, stock: "in" as const },
+    ],
+    packDiscounts: [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }],
+  };
+  it("from = cheapest variant in the smallest pack, after its discount", () => {
+    expect(fromPackPriceUsd(c)).toBe(93.1);   // 49 × 2 × 0.95
+  });
+  it("to = priciest variant in the largest pack, after its discount", () => {
+    expect(toPackPriceUsd(c)).toBe(632);      // 79 × 10 × 0.80
+  });
+  it("per-vial price after a pack's discount", () => {
+    expect(perVialUsd(49, 2, c)).toBe(46.55);
+    expect(perVialUsd(49, 10, c)).toBe(39.2);
   });
 });

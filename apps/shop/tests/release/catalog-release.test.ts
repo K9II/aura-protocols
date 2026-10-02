@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { compounds } from "../../src/data/catalog";
-import { isPendingLot } from "../../src/lib/catalog";
+import { isPendingLot, MATERIAL_TESTING_PLACEHOLDER } from "../../src/lib/catalog";
 
 // Run before unpausing Vercel:  RELEASE_CHECK=1 pnpm --filter @aura/shop test
 // Fails while any catalog data is still a pre-sourcing placeholder.
@@ -15,5 +15,9 @@ describe.skipIf(!process.env.RELEASE_CHECK)("release check", () => {
       expect(c.currentLot.lot, c.slug).not.toMatch(/^PLACEHOLDER/);
       expect(c.currentLot.coaFile, c.slug).toMatch(/^\/coa\/.+\.(pdf|png|jpg)$/);
     }
+  });
+
+  it("Material & testing values are confirmed by sourcing (not placeholders)", () => {
+    expect(MATERIAL_TESTING_PLACEHOLDER, "confirm supplier process + lab panel, then set to false in lib/catalog.ts").toBe(false);
   });
 });

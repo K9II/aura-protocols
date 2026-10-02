@@ -19,9 +19,11 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+// Drops lines for products, sizes or pack sizes the catalog no longer offers
+// (e.g. single vials and 3-packs, retired 2026-10-01).
 function isKnown(line: CartLine): boolean {
   const c = compounds.find((x) => x.slug === line.slug);
-  return !!c && c.variants.some((v) => v.id === line.variantId);
+  return !!c && c.variants.some((v) => v.id === line.variantId) && c.packDiscounts.some((p) => p.qty === line.packQty);
 }
 
 function readStored(): CartLine[] {

@@ -18,7 +18,7 @@ export type PricedItem = {
   packQty: number;
   quantity: number;
   listUnitCents: number;  // one pack at list price, before any discount
-  packPct: number;        // pack discount already in unitPriceCents (0, 10, 20)
+  packPct: number;        // pack discount already in unitPriceCents (5, 10, 20)
   unitPriceCents: number; // one pack, after the pack discount
   lineTotalCents: number;
   lotNumber: string;

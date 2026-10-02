@@ -53,8 +53,10 @@ describe("catalog integrity", () => {
     }
   });
 
-  it("starts pack discounts at a single unit with 0%", () => {
-    for (const c of compounds) expect(c.packDiscounts[0], c.slug).toEqual({ qty: 1, pct: 0 });
+  it("offers 2 / 5 / 10-vial packs at 5 / 10 / 20% off, and no single vial", () => {
+    for (const c of compounds) {
+      expect(c.packDiscounts, c.slug).toEqual([{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }]);
+    }
   });
 
   it("only references real compounds as blend components", () => {

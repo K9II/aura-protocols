@@ -17,8 +17,24 @@ export function relatedCompounds(c: Compound, count = 4, list: Compound[] = list
   return [...same, ...rest].slice(0, count);
 }
 
-export function fromPriceUsd(c: Compound): number {
-  return Math.min(...c.variants.map((v) => v.priceUsd));
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+// Per-vial price inside a pack, after that pack's discount.
+export function perVialUsd(priceUsd: number, packQty: number, c: Compound): number {
+  const pct = c.packDiscounts.find((p) => p.qty === packQty)?.pct ?? 0;
+  return round2(priceUsd * (1 - pct / 100));
+}
+
+// What the cheapest purchasable option costs: cheapest variant in the smallest pack.
+export function fromPackPriceUsd(c: Compound): number {
+  const smallest = c.packDiscounts.reduce((a, b) => (b.qty < a.qty ? b : a));
+  return round2(Math.min(...c.variants.map((v) => v.priceUsd)) * smallest.qty * (1 - smallest.pct / 100));
+}
+
+// The priciest purchasable option: priciest variant in the largest pack.
+export function toPackPriceUsd(c: Compound): number {
+  const largest = c.packDiscounts.reduce((a, b) => (b.qty > a.qty ? b : a));
+  return round2(Math.max(...c.variants.map((v) => v.priceUsd)) * largest.qty * (1 - largest.pct / 100));
 }
 
 export function isPendingLot(lot: Lot | PendingLot): lot is PendingLot {
@@ -49,4 +65,30 @@ export function vialLabel(c: Compound): string {
 export function classCounts(list: Compound[] = listedCompounds): Array<{ cls: ChemicalClass; count: number }> {
   return CHEMICAL_CLASSES.map((cls) => ({ cls, count: list.filter((c) => c.chemicalClass === cls).length }))
     .filter((x) => x.count > 0);
+}
+
+// Material & testing (spec §4). PLACEHOLDER until sourcing confirms the
+// supplier's process and our lab's panel — the release check fails while true.
+export const MATERIAL_TESTING_PLACEHOLDER = true;
+
+export type MaterialRow = { label: string; value: string };
+
+const NON_PEPTIDE = new Set(["nad-plus", "slu-pp-332"]);
+const SYNTHESIS: Record<string, string> = {
+  "nad-plus": "Chemical synthesis",
+  "slu-pp-332": "Chemical synthesis",
+  "igf-1-lr3": "Recombinant expression",
+  "glutathione": "Fermentation",
+  "ghk-cu": "Solid-phase peptide synthesis (SPPS), then copper complexation",
+};
+
+export function materialTestingRows(c: Compound): MaterialRow[] {
+  const rows: MaterialRow[] = [{ label: "Synthesis", value: SYNTHESIS[c.slug] ?? "Solid-phase peptide synthesis (SPPS)" }];
+  if (!NON_PEPTIDE.has(c.slug)) rows.push({ label: "Purification", value: "Preparative HPLC" });
+  rows.push(
+    { label: "Identity", value: "Mass spectrometry, every lot" },
+    { label: "Purity", value: "Analytical HPLC, every lot" },
+    { label: "Certificate", value: "Posted for each lot before it ships" },
+  );
+  return rows;
 }

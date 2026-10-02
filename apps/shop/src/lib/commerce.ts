@@ -90,7 +90,7 @@ const stripeAdapter: CommerceAdapter = {
     }
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-      ...req.items.map((i) => line(`${i.compoundName} — ${i.strength}${i.packQty > 1 ? ` · ${i.packQty}-pack` : ""}`, i.unitPriceCents, i.quantity)),
+      ...req.items.map((i) => line(`${i.compoundName} — ${i.strength} · ${i.packQty}-pack`, i.unitPriceCents, i.quantity)),
       ...(req.insuranceCents > 0 ? [line("Shipping insurance (transit loss and damage)", req.insuranceCents)] : []),
     ];
     const credit = req.credit;

@@ -26,7 +26,7 @@ export function shell(title: string, body: string): string {
 
 function itemsTable(o: OrderRow): string {
   const rows = (o.order_items ?? []).map((i) =>
-    `<tr><td style="padding:6px 0">${e(i.compound_name)} · ${e(i.strength)}${i.pack_qty > 1 ? ` · ${i.pack_qty}-pack` : ""} × ${i.quantity}<br><span style="font-size:12px;color:#4A4438">Lot ${e(i.lot_number)}</span></td><td style="text-align:right">${usd(i.line_total_cents)}</td></tr>`,
+    `<tr><td style="padding:6px 0">${e(i.compound_name)} · ${e(i.strength)} · ${i.pack_qty}-pack × ${i.quantity}<br><span style="font-size:12px;color:#4A4438">Lot ${e(i.lot_number)}</span></td><td style="text-align:right">${usd(i.line_total_cents)}</td></tr>`,
   ).join("");
   return `<table style="width:100%;border-collapse:collapse;font-size:14px">${rows}
 <tr><td style="padding-top:10px">Subtotal</td><td style="text-align:right">${usd(o.subtotal_cents)}</td></tr>

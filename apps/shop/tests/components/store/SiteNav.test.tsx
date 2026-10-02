@@ -2,12 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { CartProvider, useCart } from "@/components/store/CartProvider";
 import SiteNav from "@/components/store/SiteNav";
+import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 vi.mock("@/components/store/AuthLinks", () => ({ default: () => <a href="/sign-in">Sign in</a> }));
 
 function Adder() {
   const { add } = useCart();
-  return <button onClick={() => add({ slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 2 })}>add</button>;
+  return <button onClick={() => add({ slug: "bpc-157", variantId: "5mg", packQty: 2, quantity: 2 })}>add</button>;
 }
 
 describe("SiteNav", () => {
@@ -45,5 +46,14 @@ describe("SiteNav", () => {
     expect(labels).toEqual(["Shop", "Sign in", "Cart (0)"]);
     const links = screen.getByRole("navigation", { name: "Main" }).children[1] as HTMLElement;
     expect(links.querySelector("a.s-nav-shop-link")).toHaveAttribute("href", "/products");
+  });
+
+  it("shows the banner: lab-tested, COA on every lot, fast domestic shipping, free-shipping threshold", () => {
+    render(<CartProvider><SiteNav /></CartProvider>);
+    const bar = document.querySelector(".s-topbar") as HTMLElement;
+    expect(bar.textContent?.replace(/\s+/g, " ").trim()).toBe(
+      `Lab-tested · COA on every lot · Fast domestic shipping · Free over $${FREE_SHIPPING_THRESHOLD_USD}`,
+    );
+    expect(within(bar).getByText("Fast domestic shipping").tagName).toBe("EM");
   });
 });

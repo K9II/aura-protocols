@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Compound } from "@/data/catalog";
-import { isPendingLot } from "@/lib/catalog";
+import { isPendingLot, perVialUsd } from "@/lib/catalog";
 import { linePriceUsd } from "@/lib/cart";
 import { useCart } from "@/components/store/CartProvider";
 
@@ -18,7 +18,7 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
 
   return (
     <div>
-      <div className="s-pprice">${variant.priceUsd} <span>· {variant.strength}</span></div>
+      <div className="s-pprice">${perVialUsd(variant.priceUsd, packQty, c).toFixed(2)} <span>/ vial · {variant.strength}</span></div>
       {c.variants.length > 1 && (
         <>
           <div className="s-optlabel s-micro">Size</div>
@@ -33,7 +33,7 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
       <div className="s-seg">
         {c.packDiscounts.map((p) => (
           <button key={p.qty} type="button" aria-pressed={p.qty === packQty} onClick={() => setPackQty(p.qty)}>
-            {p.qty === 1 ? "Single" : `${p.qty}-pack`}{p.pct > 0 && <em>−{p.pct}%</em>}
+            {`${p.qty}-pack`}{p.pct > 0 && <>{" "}<em>−{p.pct}%</em></>}
           </button>
         ))}
       </div>

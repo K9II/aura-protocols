@@ -28,8 +28,8 @@ describe("CartProvider", () => {
 
   it("restores lines from localStorage and drops unknown compounds", () => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([
-      { slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 2 },
-      { slug: "discontinued", variantId: "x", packQty: 1, quantity: 1 },
+      { slug: "bpc-157", variantId: "5mg", packQty: 2, quantity: 2 },
+      { slug: "discontinued", variantId: "x", packQty: 2, quantity: 1 },
     ]));
     render(<CartProvider><Probe /></CartProvider>);
     expect(screen.getByTestId("lines")).toHaveTextContent("1");
@@ -49,4 +49,21 @@ describe("CartProvider", () => {
     render(<CartProvider><Probe /></CartProvider>);
     expect(screen.getByTestId("lines")).toHaveTextContent("0");
   });
+
+  it("drops saved cart lines whose pack size is no longer offered", () => {
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([
+      { slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 },
+      { slug: "bpc-157", variantId: "5mg", packQty: 3, quantity: 1 },
+      { slug: "bpc-157", variantId: "5mg", packQty: 2, quantity: 1 },
+    ]));
+    render(<CartProvider><LinesProbe /></CartProvider>);
+    expect(screen.getByTestId("lines-detail").textContent).toBe("bpc-157:2");
+  });
 });
+
+// Named separately from Probe (above), which already uses data-testid="lines"
+// for the line COUNT — this one needs the pack qty of each surviving line.
+function LinesProbe() {
+  const { lines } = useCart();
+  return <div data-testid="lines-detail">{lines.map((l) => `${l.slug}:${l.packQty}`).join(",")}</div>;
+}

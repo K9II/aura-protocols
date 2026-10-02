@@ -323,7 +323,8 @@ main:has(> .pharmacopoeia) {
 }
 /* Horizontal padding only. This rule is unlayered, so a `padding` shorthand here
    silently overrode every py-/pt-/pb- utility on containers (footer, nav, pages). */
-.pharmacopoeia .p-container { max-width: 1080px; margin: 0 auto; padding-left: 44px; padding-right: 44px; }
+.pharmacopoeia .p-container { max-width: 1280px; margin: 0 auto; padding-left: 56px; padding-right: 56px; }
+@media (max-width: 640px) { .pharmacopoeia .p-container { padding-left: 16px; padding-right: 16px; } }
 .pharmacopoeia .p-serif { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; }
 .pharmacopoeia .p-serif-italic { font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-weight: 400; }
 
@@ -437,8 +438,8 @@ main:has(> .pharmacopoeia) {
 @media (max-width: 640px) {
   .pharmacopoeia .p-biosig-label { font-size: 11px; }
   .pharmacopoeia .p-biosig-peptide { font-size: 11px; }
-  /* Let the sphere use the full phone width, not the 44px-padded column. */
-  .pharmacopoeia .s-hero-sphere { margin: 0 -44px; }
+  /* Let the sphere use the full phone width, not the 16px-padded column. */
+  .pharmacopoeia .s-hero-sphere { margin: 0 -16px; }
 }
 
 /* reconstitution calculator — custom dropdown arrow (a data-URI is too
@@ -465,7 +466,7 @@ main:has(> .pharmacopoeia) {
 .s-topbar em { font-style: normal; color: #E8A79E; }
 /* Header: logo left · links centered · Shop + Cart right. Equal side columns
    keep the links on the true center of the bar. */
-.pharmacopoeia .s-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "logo links actions"; align-items: center; column-gap: 18px; padding: 10px 14px; border: 1px solid var(--line); background: var(--paper); }
+.pharmacopoeia .s-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "logo links actions"; align-items: center; column-gap: 18px; padding: 10px 14px; background: transparent; }
 .pharmacopoeia .s-nav-logo { grid-area: logo; justify-self: start; display: inline-flex; }
 .pharmacopoeia .s-nav-links { grid-area: links; display: flex; gap: 18px; font-size: 12.5px; color: var(--ink-soft); }
 .pharmacopoeia .s-nav-links a:hover { color: var(--specimen); }
@@ -510,7 +511,7 @@ main:has(> .pharmacopoeia) {
 /* compound cards */
 .pharmacopoeia .s-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 @media (max-width: 900px) { .pharmacopoeia .s-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.pharmacopoeia .s-card-ph { height: 330px; padding-top: 34px; position: relative; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, var(--paper-deep), var(--paper)); border: 1px solid var(--line); transition: background .3s; }
+.pharmacopoeia .s-card-ph { height: 330px; padding-top: 34px; position: relative; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, var(--paper-deep), var(--paper)); transition: background .3s; }
 @media (max-width: 640px) { .pharmacopoeia .s-card-ph { height: 250px; } .pharmacopoeia .s-card-ph svg { width: 120px; height: 200px; } }
 .pharmacopoeia .s-card:hover .s-card-ph { background: var(--paper-deep); }
 .pharmacopoeia .s-coa-tag { z-index: 2; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); font-size: 11px; padding: 4px 10px; white-space: nowrap; background: var(--paper); border: 1px solid var(--line); color: var(--specimen); }
@@ -542,17 +543,19 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-pills a[aria-current="page"] span { color: #cfc8b8; }
 
 /* product page */
-.pharmacopoeia .s-pdp { display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; padding: 36px 0 56px; position: relative; overflow: hidden; }
+.pharmacopoeia .s-pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 64px; padding: 48px 0 72px; position: relative; }
 /* minmax(0,…) lets the single mobile column shrink below its content's min width
    (a bare 1fr kept the spec boxes wider than the screen and they were clipped). */
 @media (max-width: 900px) { .pharmacopoeia .s-pdp { grid-template-columns: minmax(0, 1fr); } }
-.pharmacopoeia .s-ghost { position: absolute; left: -10px; top: 40px; font-family: var(--font-newsreader), Georgia, serif; font-size: clamp(120px, 18vw, 250px); line-height: 1; color: rgba(28, 26, 21, .055); white-space: nowrap; pointer-events: none; letter-spacing: -.02em; }
-.pharmacopoeia .s-media { position: relative; display: flex; align-items: center; justify-content: center; min-height: 520px; }
+/* The product-page ghost name spans the viewport; clip it so it never adds a horizontal scrollbar. */
+main > .pharmacopoeia { overflow-x: clip; }
+.pharmacopoeia .s-ghost { position: absolute; left: 50%; transform: translateX(-50%); width: 100vw; text-align: center; top: 70px; font-family: var(--font-newsreader), Georgia, serif; font-size: clamp(160px, 22vw, 340px); line-height: 1; color: rgba(28, 26, 21, .055); white-space: nowrap; pointer-events: none; letter-spacing: -.02em; }
+.pharmacopoeia .s-media { position: relative; display: flex; align-items: center; justify-content: center; min-height: 600px; }
+@media (max-width: 900px) { .pharmacopoeia .s-media { min-height: 420px; } }
 .pharmacopoeia .s-media .s-coa-tag { left: 18px; top: 22px; transform: none; }
 .pharmacopoeia .s-pdp-h1 { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: clamp(44px, 5.6vw, 64px); line-height: 1; margin: 0 0 22px; letter-spacing: -.01em; }
-.pharmacopoeia .s-specs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); }
-.pharmacopoeia .s-specs > div { padding: 12px 14px; }
-.pharmacopoeia .s-specs > div + div { border-left: 1px solid var(--line); }
+.pharmacopoeia .s-specs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pharmacopoeia .s-specs > div { padding: 12px 14px; background: var(--paper-deep); }
 .pharmacopoeia .s-specs small { display: block; margin-bottom: 8px; color: var(--ink-soft); }
 .pharmacopoeia .s-specs b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 22px; }
 .pharmacopoeia .s-specs b.s-mono { font-size: 15px; font-family: var(--font-jetbrains), ui-monospace, monospace; overflow-wrap: anywhere; }
@@ -573,10 +576,10 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-atc { display: block; width: 100%; text-align: center; margin-top: 24px; background: var(--ink); color: var(--paper); padding: 15px; font: 14px Georgia, serif; letter-spacing: .06em; text-transform: uppercase; border: 0; cursor: pointer; transition: background .25s; }
 .pharmacopoeia .s-atc:hover:not(:disabled) { background: var(--specimen); }
 .pharmacopoeia .s-atc:disabled { background: #8a8475; cursor: not-allowed; }
-.pharmacopoeia .s-ship { margin-top: 14px; border: 1px solid var(--line); background: var(--paper-deep); padding: 11px 14px; font-size: 13px; }
+.pharmacopoeia .s-ship { margin-top: 14px; background: var(--paper-deep); padding: 11px 14px; font-size: 13px; }
 .pharmacopoeia .s-ship b { display: block; font-size: 13.5px; }
 .pharmacopoeia .s-ruo { margin-top: 14px; color: var(--specimen); }
-.pharmacopoeia .s-data { padding: 44px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1.4fr; gap: 48px; }
+.pharmacopoeia .s-data { padding: 72px 0; display: grid; grid-template-columns: 1fr 1.4fr; gap: 48px; }
 @media (max-width: 900px) { .pharmacopoeia .s-data { grid-template-columns: 1fr; } }
 .pharmacopoeia .s-data p { color: var(--ink-soft); font-size: 14px; max-width: 36ch; }
 .pharmacopoeia .s-data table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -584,6 +587,26 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-data tr:last-child td { border-bottom: 1px solid var(--line); }
 .pharmacopoeia .s-data td:first-child { width: 38%; color: var(--ink-soft); }
 .pharmacopoeia .s-data td.s-mono { font-size: 12.5px; word-break: break-all; }
+
+/* About this compound — full-bleed band with the rotating 3D model (layout 2, 2026-10-01 mock) */
+.pharmacopoeia .s-about { background: var(--paper-deep); }
+.pharmacopoeia .s-about-inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 64px; align-items: center; padding-top: 80px; padding-bottom: 80px; }
+@media (max-width: 900px) { .pharmacopoeia .s-about-inner { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-top: 56px; padding-bottom: 56px; } }
+.pharmacopoeia .s-about-desc { font-size: 16px; line-height: 1.6; color: var(--ink); max-width: 40ch; margin: 18px 0; }
+.pharmacopoeia .s-about-cap { font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); max-width: 40ch; margin: 18px 0; }
+.pharmacopoeia .s-mol-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--ink-soft); margin: 0; }
+.pharmacopoeia .s-mol-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.pharmacopoeia .s-mol-hint { color: var(--specimen); margin: 14px 0 18px; }
+.pharmacopoeia .s-about-refs { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.pharmacopoeia .s-mol-stage { position: relative; height: 520px; background: radial-gradient(circle at 50% 50%, var(--paper) 0, var(--paper-deep) 70%); }
+@media (max-width: 900px) { .pharmacopoeia .s-mol-stage { height: 340px; } }
+.pharmacopoeia .s-mol-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); }
+.pharmacopoeia .s-mol-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pharmacopoeia .s-mol-cell { position: relative; background: var(--paper-deep); }
+.pharmacopoeia .s-mol-cell-stage { position: relative; height: 250px; }
+@media (max-width: 640px) { .pharmacopoeia .s-mol-grid { grid-template-columns: minmax(0, 1fr); } .pharmacopoeia .s-mol-cell-stage { height: 220px; } }
+.pharmacopoeia .s-mol-tag { position: absolute; left: 10px; top: 8px; z-index: 2; color: var(--ink-soft); }
+.pharmacopoeia .s-mol-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-soft); margin: 0; }
 
 /* cart drawer */
 .s-drawer-backdrop { position: fixed; inset: 0; background: rgba(28, 26, 21, .45); z-index: 90; }

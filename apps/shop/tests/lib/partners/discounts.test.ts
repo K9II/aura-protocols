@@ -45,4 +45,10 @@ describe("applyPartnerCode", () => {
     expect(r.partnerDiscountCents).toBe(3200);
     expect(r.shippingCents).toBe(1500);
   });
+
+  it("a partner code beats the 5% 2-pack discount (code is 10% off list)", () => {
+    const twoPack = item({ packQty: 2, listUnitCents: 9800, packPct: 5, unitPriceCents: 9310, lineTotalCents: 9310 });
+    const r = applyPartnerCode(order([twoPack]));
+    expect(r.lineDiscounts[0]).toEqual({ index: 0, source: "code", savingCents: 490 }); // 9310 − 8820
+  });
 });

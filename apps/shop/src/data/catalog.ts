@@ -2,6 +2,7 @@
 // RELATIVE IMPORTS ONLY — this file is reachable from next.config.ts
 // (via lib/redirects.ts) and the config transpile can't resolve "@/".
 import { IDENTITY } from "./catalog-identity";
+import { DESCRIPTIONS } from "./catalog-descriptions";
 
 export const CHEMICAL_CLASSES = [
   "Incretin & Amylin Analogs",
@@ -45,6 +46,8 @@ export type Identity = {
 export type Compound = {
   slug: string;
   name: string;               // scientific / composition name only
+  description?: string;        // identity-only, from catalog-descriptions.ts (required for listed products — tested)
+  descriptionSource?: string;  // primary source for the description's facts
   chemicalClass: ChemicalClass;
   identity: Identity;
   components?: string[];      // blends: component slugs
@@ -63,9 +66,10 @@ export type Compound = {
   unlisted?: boolean;
 };
 
+// Packs of 2, 5 or 10 vials; no single vial (2026-10-01 decision, spec D8).
 const STD_PACKS: PackDiscount[] = [
-  { qty: 1, pct: 0 },
-  { qty: 3, pct: 10 },
+  { qty: 2, pct: 5 },
+  { qty: 5, pct: 10 },
   { qty: 10, pct: 20 },
 ];
 const LYO = "Lyophilized powder";
@@ -80,6 +84,8 @@ function placeholder(
   return {
     slug, name, chemicalClass,
     identity: IDENTITY[slug] ?? {},
+    description: DESCRIPTIONS[slug]?.text,
+    descriptionSource: DESCRIPTIONS[slug]?.source,
     form: LYO, storage: COLD, vialMl: 3,
     variants: strengths.map((s, i) => ({
       id: s.replace(/\s+/g, "").toLowerCase(),
