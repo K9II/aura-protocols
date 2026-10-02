@@ -35,14 +35,14 @@ describe("applyPartnerCode", () => {
     expect(r.subtotalCents).toBe(28230);
     expect(r.partnerDiscountCents).toBe(690);
     expect(r.subtotalCents - r.partnerDiscountCents).toBe(27540);
-    expect(r.shippingCents).toBe(0); // $275.40 ≥ $250
-    expect(r.totalBeforeTaxCents).toBe(27540 + r.insuranceCents);
+    expect(r.shippingCents).toBe(1500); // $275.40 < $300
+    expect(r.totalBeforeTaxCents).toBe(27540 + 1500 + r.insuranceCents);
   });
 
   it("decides free shipping on the discounted amount", () => {
-    // 4 singles at $69 = $276.00; after code $248.40 → shipping charged.
-    const r = applyPartnerCode(order([item({ quantity: 4, lineTotalCents: 27600 })]));
-    expect(r.partnerDiscountCents).toBe(2760);
+    // 2 vials at $160 = $320.00; after code $288.00 → shipping charged.
+    const r = applyPartnerCode(order([item({ quantity: 2, listUnitCents: 16000, unitPriceCents: 16000, lineTotalCents: 32000 })]));
+    expect(r.partnerDiscountCents).toBe(3200);
     expect(r.shippingCents).toBe(1500);
   });
 });

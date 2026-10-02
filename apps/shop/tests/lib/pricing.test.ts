@@ -26,17 +26,17 @@ describe("priceOrder", () => {
     expect(r.partnerDiscountCents).toBe(0);
   });
 
-  it("charges $15 shipping under $250, none at or above it, and $5.50 insurance on every order", () => {
-    expect([SHIPPING_FLAT_CENTS, FREE_SHIPPING_MIN_CENTS, INSURANCE_CENTS]).toEqual([1500, 25000, 550]);
+  it("charges $15 shipping under $300, none at or above it, and $5.50 insurance on every order", () => {
+    expect([SHIPPING_FLAT_CENTS, FREE_SHIPPING_MIN_CENTS, INSURANCE_CENTS]).toEqual([1500, 30000, 550]);
     const small = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 1 }], list);
     expect(small.shippingCents).toBe(SHIPPING_FLAT_CENTS);
     expect(small.insuranceCents).toBe(INSURANCE_CENTS);
     expect(small.totalBeforeTaxCents).toBe(4900 + SHIPPING_FLAT_CENTS + INSURANCE_CENTS);
-    const under = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 5 }], list); // 24500
+    const under = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 6 }], list); // 29400
     expect(under.shippingCents).toBe(SHIPPING_FLAT_CENTS);
-    const over = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 6 }], list); // 29400
+    const over = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 7 }], list); // 34300
     expect(over.shippingCents).toBe(0);
-    expect(over.totalBeforeTaxCents).toBe(29400 + INSURANCE_CENTS);
+    expect(over.totalBeforeTaxCents).toBe(34300 + INSURANCE_CENTS);
   });
 
   it("rejects unknown items, pending lots, out-of-stock sizes and bad quantities", () => {

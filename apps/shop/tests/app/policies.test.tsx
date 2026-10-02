@@ -70,7 +70,7 @@ describe("/shipping", () => {
     expect(cost).toContain(formatUsd(FLAT_SHIPPING_USD));
     expect(cost).toContain(formatUsd(FREE_SHIPPING_THRESHOLD_USD));
     expect(cost).toContain(formatUsd(SHIPPING_INSURANCE_USD));
-    expect(cost).toContain("$250");
+    expect(cost).toContain("$300");
     expect(cost).toContain("$5.50");
   });
 
