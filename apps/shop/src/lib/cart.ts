@@ -12,7 +12,7 @@ export function formatUsd(amount: number): string {
 export type CartLine = {
   slug: string;
   variantId: string;
-  packQty: number;   // vials per pack (1, 3, 10)
+  packQty: number;   // vials per pack (2, 5, 10)
   quantity: number;  // number of packs
 };
 

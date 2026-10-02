@@ -70,3 +70,29 @@ export function classCounts(list: Compound[] = listedCompounds): Array<{ cls: Ch
   return CHEMICAL_CLASSES.map((cls) => ({ cls, count: list.filter((c) => c.chemicalClass === cls).length }))
     .filter((x) => x.count > 0);
 }
+
+// Material & testing (spec §4). PLACEHOLDER until sourcing confirms the
+// supplier's process and our lab's panel — the release check fails while true.
+export const MATERIAL_TESTING_PLACEHOLDER = true;
+
+export type MaterialRow = { label: string; value: string };
+
+const NON_PEPTIDE = new Set(["nad-plus", "slu-pp-332"]);
+const SYNTHESIS: Record<string, string> = {
+  "nad-plus": "Chemical synthesis",
+  "slu-pp-332": "Chemical synthesis",
+  "igf-1-lr3": "Recombinant expression",
+  "glutathione": "Fermentation",
+  "ghk-cu": "Solid-phase peptide synthesis (SPPS), then copper complexation",
+};
+
+export function materialTestingRows(c: Compound): MaterialRow[] {
+  const rows: MaterialRow[] = [{ label: "Synthesis", value: SYNTHESIS[c.slug] ?? "Solid-phase peptide synthesis (SPPS)" }];
+  if (!NON_PEPTIDE.has(c.slug)) rows.push({ label: "Purification", value: "Preparative HPLC" });
+  rows.push(
+    { label: "Identity", value: "Mass spectrometry, every lot" },
+    { label: "Purity", value: "Analytical HPLC, every lot" },
+    { label: "Certificate", value: "Posted for each lot before it ships" },
+  );
+  return rows;
+}
