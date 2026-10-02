@@ -17,10 +17,6 @@ export function relatedCompounds(c: Compound, count = 4, list: Compound[] = list
   return [...same, ...rest].slice(0, count);
 }
 
-export function fromPriceUsd(c: Compound): number {
-  return Math.min(...c.variants.map((v) => v.priceUsd));
-}
-
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 // Per-vial price inside a pack, after that pack's discount.

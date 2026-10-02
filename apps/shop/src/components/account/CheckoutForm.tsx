@@ -103,14 +103,18 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         <p className="s-micro mb-1">Order summary</p>
         {priced.items.map((i, idx) => {
           const d = priced.lineDiscounts[idx];
-          const pack = ` · ${i.packQty}-pack${i.packPct ? ` −${i.packPct}%` : ""}`;
+          const pack = ` · ${i.packQty}-pack${i.packPct && d.source !== "code" ? ` −${i.packPct}%` : ""}`;
           const note = appliedCode ? (d.source === "code" ? " · code −10%" : d.source === "pack" ? " (code not added)" : "") : "";
+          // Struck-through price is whatever this line would cost without its
+          // applied discount: LIST when the code wins (pack % never applied),
+          // the pack-discounted total when the pack wins.
+          const struckCents = d.source === "code" ? i.listUnitCents * i.quantity : i.lineTotalCents;
           return (
             <div key={`${i.compoundSlug}-${i.variantId}-${i.packQty}`} className="s-cart-line">
               <div><span className="p-serif text-[17px]">{i.compoundName}</span>
                 <div className="s-micro text-[color:var(--ink-soft)] mt-1">{i.strength}{pack}{note}{i.quantity > 1 ? ` × ${i.quantity}` : ""}</div></div>
               <div className="text-right">
-                {d.savingCents > 0 && <span className="text-[color:var(--ink-soft)] line-through text-[13px] mr-1.5">{usd(i.lineTotalCents)}</span>}
+                {d.savingCents > 0 && <span className="text-[color:var(--ink-soft)] line-through text-[13px] mr-1.5">{usd(struckCents)}</span>}
                 {usd(i.lineTotalCents - d.savingCents)}
               </div>
             </div>

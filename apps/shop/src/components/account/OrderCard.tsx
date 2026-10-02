@@ -17,7 +17,7 @@ export default function OrderCard({ order }: { order: OrderRow }) {
         <ul className="text-[13px] mt-2">
           {items.map((i) => (
             <li key={`${i.compound_slug}-${i.strength}-${i.pack_qty}`}>
-              {i.compound_name} · {i.strength}{i.pack_qty > 1 ? ` · ${i.pack_qty}-pack` : ""} × {i.quantity} ·{" "}
+              {i.compound_name} · {i.strength} · {i.pack_qty}-pack × {i.quantity} ·{" "}
               <Link className="underline" href={`/coa?lot=${encodeURIComponent(i.lot_number)}`}>Lot {i.lot_number}</Link>
             </li>
           ))}

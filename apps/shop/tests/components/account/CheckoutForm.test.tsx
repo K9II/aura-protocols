@@ -15,7 +15,7 @@ vi.mock("@/data/catalog", () => ({
   compounds: [{
     slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
     variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in" }],
-    packDiscounts: [{ qty: 1, pct: 0 }], currentLot: tested,
+    packDiscounts: [{ qty: 1, pct: 0 }, { qty: 2, pct: 5 }], currentLot: tested,
   }] satisfies Compound[],
 }));
 
@@ -62,5 +62,24 @@ describe("CheckoutForm", () => {
     fireEvent.submit(form);
     await waitFor(() => expect(startCheckoutAction).toHaveBeenCalled());
     expect(startCheckoutAction.mock.calls[0][0]).toMatchObject({ partnerCode: "SMITHLAB" });
+  });
+
+  it("shows only the code discount on a 2-pack line when a code beats the pack discount — no stacked pack %, list price struck through", async () => {
+    checkPartnerCodeAction.mockResolvedValue({ ok: true, code: "SMITHLAB" });
+    const original = [...lines];
+    lines.length = 0;
+    lines.push({ slug: "bpc-157", variantId: "5mg", packQty: 2, quantity: 1 });
+    try {
+      render(<CheckoutForm email="j@lab.org" ship={null} initialCode="smithlab" creditBalanceCents={0} />);
+      await waitFor(() => expect(screen.getByText(/code −10%/)).toBeInTheDocument());
+      const row = screen.getByText("BPC-157").closest(".s-cart-line")!;
+      expect(row.textContent).toContain("2-pack");
+      expect(row.textContent).not.toMatch(/−5%/);
+      expect(row.textContent).toContain("$98.00");
+      expect(row.textContent).toContain("$88.20");
+    } finally {
+      lines.length = 0;
+      lines.push(...original);
+    }
   });
 });

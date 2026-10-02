@@ -53,7 +53,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                   <td style={nowrap} className="p-serif text-[17px]">
                     <details><summary className="cursor-pointer">{o.order_number}</summary>
                       <p className="text-[12.5px] mt-2" style={{ whiteSpace: "normal" }}>{o.ship_name}<br />{o.ship_line1}{o.ship_line2 ? `, ${o.ship_line2}` : ""}<br />{o.ship_city}, {o.ship_state} {o.ship_zip}</p>
-                      <ul className="text-[12.5px] mt-2">{(o.order_items ?? []).map((i) => <li key={`${i.compound_slug}-${i.strength}-${i.pack_qty}`}>{i.compound_name} {i.strength}{i.pack_qty > 1 ? ` ${i.pack_qty}-pack` : ""} ×{i.quantity} · lot {i.lot_number}</li>)}</ul>
+                      <ul className="text-[12.5px] mt-2">{(o.order_items ?? []).map((i) => <li key={`${i.compound_slug}-${i.strength}-${i.pack_qty}`}>{i.compound_name} {i.strength} {i.pack_qty}-pack ×{i.quantity} · lot {i.lot_number}</li>)}</ul>
                       <p className="text-[12px] text-[color:var(--ink-soft)] mt-1">Research use confirmed {new Date(o.ruo_confirmed_at).toLocaleString("en-US")}</p>
                       {!o.stripe_session_id && o.store_credit_cents === o.total_cents && (o.status === "paid" || o.status === "shipped") && (
                         <form action={refundCreditOrderAction} className="mt-2" style={{ whiteSpace: "normal" }}>

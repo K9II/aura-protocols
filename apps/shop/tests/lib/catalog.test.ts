@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
 import {
-  findCompound, compoundsInClass, relatedCompounds, fromPriceUsd,
+  findCompound, compoundsInClass, relatedCompounds,
   isPendingLot, findLot, vialLabel, classCounts,
   fromPackPriceUsd, toPackPriceUsd, perVialUsd,
 } from "@/lib/catalog";
@@ -36,10 +36,6 @@ describe("catalog helpers", () => {
   it("puts same-class compounds first in related, excludes self, caps the count", () => {
     expect(relatedCompounds(fixture[0], 2, fixture).map((c) => c.slug)).toEqual(["b", "c"]);
     expect(relatedCompounds(fixture[0], 1, fixture).map((c) => c.slug)).toEqual(["b"]);
-  });
-
-  it("reports the lowest variant price", () => {
-    expect(fromPriceUsd(fixture[0])).toBe(49);
   });
 
   it("detects pending lots", () => {
