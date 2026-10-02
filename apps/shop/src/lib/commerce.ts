@@ -102,7 +102,7 @@ const stripeAdapter: CommerceAdapter = {
     }
 
     const couponAmount = req.partnerDiscountCents + (credit?.creditCents ?? 0);
-    const couponName = credit ? (req.partnerDiscountCents > 0 ? "Partner code and store credit" : "Store credit") : "Partner code";
+    const couponName = credit ? (req.partnerDiscountCents > 0 ? "Discount code and store credit" : "Store credit") : "Discount code";
     const coupon = couponAmount > 0
       ? await stripe.coupons.create(
           { amount_off: couponAmount, currency: "usd", duration: "once", max_redemptions: 1, name: couponName },

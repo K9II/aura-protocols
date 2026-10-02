@@ -43,7 +43,7 @@ describe("CheckoutForm", () => {
 
   it("sends a typed-but-never-applied code on submit instead of silently dropping it", async () => {
     const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} />);
-    const input = screen.getByLabelText(/partner code/i);
+    const input = screen.getByLabelText(/discount code/i);
     fireEvent.change(input, { target: { value: "loose" } });
     const form = container.querySelector("form")!;
     fireEvent.submit(form);
@@ -54,7 +54,7 @@ describe("CheckoutForm", () => {
   it("sends the applied code, not stray input, once a code has been explicitly applied", async () => {
     checkPartnerCodeAction.mockResolvedValue({ ok: true, code: "SMITHLAB" });
     const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} />);
-    const input = screen.getByLabelText(/partner code/i);
+    const input = screen.getByLabelText(/discount code/i);
     fireEvent.change(input, { target: { value: "smithlab" } });
     fireEvent.click(screen.getByRole("button", { name: /apply/i }));
     await waitFor(() => expect(screen.getByRole("button", { name: /remove/i })).toBeInTheDocument());

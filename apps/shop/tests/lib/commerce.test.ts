@@ -91,7 +91,7 @@ describe("commerce adapter", () => {
     const { getCommerceAdapter } = await import("@/lib/commerce");
     const r = await getCommerceAdapter().createCheckout({ ...req, partnerDiscountCents: 690, lineDiscountsCents: [690] });
     expect(couponsCreate).toHaveBeenCalledWith(
-      { amount_off: 690, currency: "usd", duration: "once", max_redemptions: 1, name: "Partner code" },
+      { amount_off: 690, currency: "usd", duration: "once", max_redemptions: 1, name: "Discount code" },
       { idempotencyKey: "coupon-o1" },
     );
     expect(sessionsCreate.mock.calls[0][0].discounts).toEqual([{ coupon: "co_1" }]);

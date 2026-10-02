@@ -37,3 +37,7 @@ create table if not exists inquiries (
   created_at    timestamptz not null default now()
 );
 alter table inquiries enable row level security;
+
+-- 2026-10-01: the gate no longer asks for an email (buyers are identified at
+-- account sign-up), so new attestations have none.
+alter table gate_attestations alter column email drop not null;

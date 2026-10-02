@@ -19,7 +19,7 @@ export default function PrivacyPage() {
       sections={[
         { id: "collect", heading: "What we collect", body: (
           <ul className="list-disc pl-5 space-y-1.5">
-            <li><b>Entry confirmation</b> &mdash; your email, the time you entered, the version of our Terms you accepted, a one-way hash of your IP address, and your browser type. This is our record of your age and research-use confirmation.</li>
+            <li><b>Entry confirmation</b> &mdash; the time you entered, the version of our Terms you accepted, a one-way hash of your IP address, and your browser type. This is our record of your age and research-use confirmation.</li>
             <li><b>Account</b> &mdash; your name, email, optional organization, and the agreements you accepted, with their version and time.</li>
             <li><b>Orders</b> &mdash; shipping address, order contents and lot numbers, and the research-use confirmation you give with each order.</li>
             <li><b>Payments</b> &mdash; processed by Stripe. We receive the payment status and method type, never full card or bank numbers.</li>
