@@ -70,7 +70,7 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
           <button type="button" aria-label="Increase quantity" disabled={quantity >= MAX_PACKS} onClick={() => setQuantity((q) => Math.min(MAX_PACKS, q + 1))}>+</button>
         </div>
         <button type="button" className="s-atc" disabled={out || pending} onClick={() => add(line)}>
-          {out ? "Out of stock" : pending ? "COA pending — available soon" : `Add to cart — $${total.toFixed(2)} →`}
+          {out ? "Out of stock" : pending ? "COA pending — available soon" : <>Add to cart — <span className="whitespace-nowrap">${total.toFixed(2)} →</span></>}
         </button>
       </div>
     </div>
