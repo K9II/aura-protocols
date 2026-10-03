@@ -37,6 +37,45 @@ export function toPackPriceUsd(c: Compound): number {
   return round2(Math.max(...c.variants.map((v) => v.priceUsd)) * largest.qty * (1 - largest.pct / 100));
 }
 
+// "10 mg" → 10, "250 mcg" → 0.25. Throws on any other unit so a typo can
+// never print a wrong price per mg.
+export function strengthMg(strength: string): number {
+  const m = strength.match(/^\s*([\d.]+)\s*(mg|mcg)\s*$/i);
+  if (!m) throw new Error(`Unreadable strength: "${strength}"`);
+  const amount = parseFloat(m[1]);
+  return m[2].toLowerCase() === "mcg" ? amount / 1000 : amount;
+}
+
+export type PackOption = {
+  qty: number;          // vials in the pack
+  pct: number;          // pack discount
+  packUsd: number;      // what the pack costs (same math as the cart line)
+  listUsd: number;      // before the pack discount
+  perVialUsd: number;
+  perMgUsd: number;
+  totalLabel: string;   // material in the pack, in the vial's unit: "20 mg", "500 mcg"
+};
+
+// Every pack size of one variant, priced for the product page.
+export function packOptions(c: Compound, variantId: string): PackOption[] {
+  const v = c.variants.find((x) => x.id === variantId);
+  if (!v) return [];
+  const [, amount, unit] = v.strength.match(/([\d.]+)\s*(\w+)/)!;
+  const mg = strengthMg(v.strength);
+  return c.packDiscounts.map(({ qty, pct }) => {
+    const packUsd = round2(v.priceUsd * qty * (1 - pct / 100));
+    return {
+      qty,
+      pct,
+      packUsd,
+      listUsd: round2(v.priceUsd * qty),
+      perVialUsd: perVialUsd(v.priceUsd, qty, c),
+      perMgUsd: round2(packUsd / (mg * qty)),
+      totalLabel: `${round2(parseFloat(amount) * qty)} ${unit}`,
+    };
+  });
+}
+
 export function isPendingLot(lot: Lot | PendingLot): lot is PendingLot {
   return "pending" in lot;
 }

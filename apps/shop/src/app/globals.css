@@ -570,9 +570,22 @@ main > .pharmacopoeia { overflow-x: clip; }
   .pharmacopoeia .s-specs b.s-mono { font-size: 13px; }
 }
 .pharmacopoeia .s-certlink { display: inline-block; margin: 12px 0 22px; font-size: 13px; color: var(--specimen); border-bottom: 1px solid var(--specimen); }
-.pharmacopoeia .s-pprice { font-family: var(--font-newsreader), Georgia, serif; font-size: 30px; }
-.pharmacopoeia .s-pprice span { font-size: 13px; color: var(--ink-soft); font-family: Georgia, serif; }
 .pharmacopoeia .s-optlabel { margin: 20px 0 9px; color: var(--ink-soft); }
+.pharmacopoeia .s-optlabel--split { display: flex; justify-content: space-between; }
+.pharmacopoeia .s-packs { display: grid; gap: 6px; }
+.pharmacopoeia .s-pack { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; text-align: left; border: 1px solid var(--line); background: transparent; padding: 12px 16px; font: 15.5px Georgia, serif; color: var(--ink); cursor: pointer; transition: background .2s; }
+.pharmacopoeia .s-pack:hover { background: var(--paper-deep); }
+.pharmacopoeia .s-pack[aria-pressed="true"] { border-color: var(--ink); background: var(--paper-deep); box-shadow: inset 3px 0 0 var(--specimen); }
+.pharmacopoeia .s-pack b { display: block; font-weight: 400; }
+.pharmacopoeia .s-pack-math { display: block; margin-top: 3px; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .04em; color: var(--ink-soft); }
+.pharmacopoeia .s-pack-price { flex-shrink: 0; text-align: right; }
+.pharmacopoeia .s-pack-price b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 21px; }
+.pharmacopoeia .s-pack-price .s-micro { color: var(--specimen); }
+.pharmacopoeia .s-packsel { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.pharmacopoeia .s-packsel .s-micro { color: var(--ink-soft); }
+.pharmacopoeia .s-packsel-name { margin-top: 4px; font-size: 18px; }
+.pharmacopoeia .s-packsel-price { flex-shrink: 0; text-align: right; }
+.pharmacopoeia .s-packsel-price b { display: block; margin-top: 2px; font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 42px; line-height: 1; }
 .pharmacopoeia .s-seg { display: flex; gap: 8px; flex-wrap: wrap; }
 .pharmacopoeia .s-seg button { border: 1px solid var(--line); padding: 9px 14px; font: 13px Georgia, serif; background: transparent; color: var(--ink); cursor: pointer; }
 .pharmacopoeia .s-seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }

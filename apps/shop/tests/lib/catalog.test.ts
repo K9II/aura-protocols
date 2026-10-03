@@ -2,10 +2,11 @@ import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
 import {
   findCompound, compoundsInClass, relatedCompounds,
-  isPendingLot, findLot, vialLabel, vialCap, classCounts,
+  isPendingLot, findLot, vialLabel, vialCap, classCounts, strengthMg, packOptions,
   fromPackPriceUsd, toPackPriceUsd, perVialUsd,
 } from "@/lib/catalog";
 import { compounds } from "@/data/catalog";
+import { linePriceUsd } from "@/lib/cart";
 
 const base = {
   identity: {}, form: "Lyophilized powder", storage: "−20 °C", vialMl: 3,
@@ -67,6 +68,39 @@ describe("catalog helpers", () => {
 
   it("gives a compound outside the listed catalog a red cap", () => {
     expect(vialCap({ ...fixture[0], slug: "not-listed" })).toBe("red");
+  });
+
+  it("reads a vial strength in mg", () => {
+    expect(strengthMg("10 mg")).toBe(10);
+    expect(strengthMg("250 mcg")).toBe(0.25);
+    expect(strengthMg("500 mg")).toBe(500);
+    expect(() => strengthMg("10 IU")).toThrow();
+  });
+
+  it("parses every listed strength", () => {
+    for (const c of compounds) for (const v of c.variants) expect(strengthMg(v.strength), `${c.slug} ${v.strength}`).toBeGreaterThan(0);
+  });
+
+  it("prices each pack: total, mg in the pack, per vial and per mg", () => {
+    const bpc = compounds.find((c) => c.slug === "bpc-157")!;   // $79 / 10 mg vial
+    expect(packOptions(bpc, "10mg")).toEqual([
+      { qty: 2, pct: 5, packUsd: 150.1, listUsd: 158, perVialUsd: 75.05, perMgUsd: 7.51, totalLabel: "20 mg" },
+      { qty: 5, pct: 10, packUsd: 355.5, listUsd: 395, perVialUsd: 71.1, perMgUsd: 7.11, totalLabel: "50 mg" },
+      { qty: 10, pct: 20, packUsd: 632, listUsd: 790, perVialUsd: 63.2, perMgUsd: 6.32, totalLabel: "100 mg" },
+    ]);
+  });
+
+  it("labels mcg packs in mcg and prices them per mg", () => {
+    const slu = compounds.find((c) => c.slug === "slu-pp-332")!;   // 250 mcg vials
+    const [two] = packOptions(slu, slu.variants[0].id);
+    expect(two.totalLabel).toBe("500 mcg");
+    expect(two.perMgUsd).toBeCloseTo(two.packUsd / 0.5, 2);
+  });
+
+  it("matches the cart's line price for every listed pack", () => {
+    for (const c of compounds) for (const v of c.variants) for (const o of packOptions(c, v.id)) {
+      expect(o.packUsd, `${c.slug} ${v.id} ×${o.qty}`).toBe(linePriceUsd({ slug: c.slug, variantId: v.id, packQty: o.qty, quantity: 1 }));
+    }
   });
 
   it("counts compounds per class in CHEMICAL_CLASSES order, omitting empty classes", () => {

@@ -20,7 +20,7 @@ describe("VariantPicker", () => {
   it("prices the selected size and pack and adds the exact line", () => {
     render(<CartProvider><VariantPicker compound={ss31} /><Lines /></CartProvider>);
     fireEvent.click(screen.getByRole("button", { name: "50 mg" }));
-    fireEvent.click(screen.getByRole("button", { name: /2-pack/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^2 vials × 50 mg/ }));
     const v = ss31.variants.find((x) => x.id === "50mg")!;
     const expected = Math.round(v.priceUsd * 2 * 0.95 * 100) / 100;
     const atc = screen.getByRole("button", { name: new RegExp(`Add to cart — \\$${expected.toFixed(2)}`) });
@@ -38,20 +38,30 @@ describe("VariantPicker", () => {
     expect(screen.getByRole("button", { name: /coa pending/i })).toBeDisabled();
   });
 
-  it("offers 2-, 5- and 10-packs with their discounts and no single vial", () => {
+  it("lists 2-, 5- and 10-packs with mg, $/mg, pack price and discount, and no single vial", () => {
     render(<CartProvider><VariantPicker compound={bpc} /></CartProvider>);
     expect(screen.queryByRole("button", { name: /single/i })).toBeNull();
-    expect(screen.getByRole("button", { name: "2-pack −5%" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "5-pack −10%" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "10-pack −20%" })).toBeInTheDocument();
+    const two = screen.getByRole("button", { name: /^2 vials × 10 mg/ });
+    expect(two).toHaveAttribute("aria-pressed", "true");
+    expect(two).toHaveTextContent("20 mg total · $7.51/mg");
+    expect(two).toHaveTextContent("$150.10");
+    expect(two).toHaveTextContent(/save 5%/i);
+    expect(screen.getByRole("button", { name: /^5 vials × 10 mg/ })).toHaveTextContent("$355.50");
+    expect(screen.getByRole("button", { name: /^10 vials × 10 mg/ })).toHaveTextContent("$632.00");
   });
 
-  it("shows the per-vial price for the selected pack and the pack total on the button", () => {
+  it("shows the selected pack's price large, with per-vial and per-mg, and the total on the button", () => {
     render(<CartProvider><VariantPicker compound={bpc} /></CartProvider>);
-    expect(screen.getByText(/\$75\.05/)).toBeInTheDocument();             // 79 × 0.95
+    const sel = screen.getByTestId("selected-pack");
+    expect(sel).toHaveTextContent("20 mg pack");
+    expect(sel).toHaveTextContent("$75.05/vial");              // 79 × 0.95
+    expect(sel).toHaveTextContent("$7.51/mg");
+    expect(sel).toHaveTextContent("$150.10");
     expect(screen.getByRole("button", { name: /add to cart — \$150\.10/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "10-pack −20%" }));
-    expect(screen.getByText(/\$63\.20/)).toBeInTheDocument();             // 79 × 0.80
+    fireEvent.click(screen.getByRole("button", { name: /^10 vials × 10 mg/ }));
+    expect(screen.getByRole("button", { name: /^10 vials × 10 mg/ })).toHaveAttribute("aria-pressed", "true");
+    expect(sel).toHaveTextContent("100 mg pack");
+    expect(sel).toHaveTextContent("$63.20/vial");              // 79 × 0.80
     expect(screen.getByRole("button", { name: /add to cart — \$632\.00/i })).toBeInTheDocument();
   });
 
