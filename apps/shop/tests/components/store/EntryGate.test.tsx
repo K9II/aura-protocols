@@ -34,6 +34,7 @@ describe("EntryGate", () => {
   it("shows the gate to a first-time visitor", async () => {
     render(<EntryGate />);
     expect(await screen.findByRole("dialog", { name: /research use only/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Every vial, on the record.");
   });
 
   it("opts the gate form out of browser form-state restore", async () => {

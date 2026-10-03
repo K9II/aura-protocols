@@ -96,7 +96,7 @@ export default function EntryGate() {
       >
         <AuraLockup size={60} mode="loop" />
         <p id="gate-eyebrow" className="s-micro text-[color:var(--specimen)] mt-6 mb-2.5">Research use only</p>
-        <h2>Receipts, not <em>promises.</em></h2>
+        <h2>Every vial, on the <em>record.</em></h2>
         <p className="text-sm text-[color:var(--ink-soft)] leading-relaxed mb-[18px]">
           To enter, confirm all three.
         </p>
