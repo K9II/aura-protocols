@@ -29,10 +29,10 @@ function tracePath(w: number, h: number) {
   return `M${pts.join(" L")}`;
 }
 
-function HplcTrace() {
-  const W = 300, H = 230, padL = 46, padB = 30, plotW = W - padL - 10, plotH = H - padB - 10;
+function HplcTrace({ W, H, className, decorative = false }: { W: number; H: number; className: string; decorative?: boolean }) {
+  const padL = 46, padB = 30, plotW = W - padL - 10, plotH = H - padB - 10;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="s-trace" role="img" aria-label="HPLC chromatogram: one main peak with small impurity peaks">
+    <svg viewBox={`0 0 ${W} ${H}`} className={className} {...(decorative ? { "aria-hidden": true } : { role: "img", "aria-label": "HPLC chromatogram: one main peak with small impurity peaks" })}>
       <g transform={`translate(${padL},10)`}>
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
           <line key={f} x1="0" x2={plotW} y1={plotH * f} y2={plotH * f} stroke="var(--line)" strokeWidth=".6" strokeDasharray={f === 1 ? undefined : "2 4"} />
@@ -75,7 +75,9 @@ export default function FromTheRecord() {
         <p>Tsvet named chromatography with this plate. Every lot we sell is checked by its modern form, HPLC.</p>
         <div className="s-record-trace">
           <span className="s-record-tag s-record-tag--today"><b>Today</b><span className="s-micro">HPLC</span></span>
-          <HplcTrace />
+          {/* Phones get a wider, shorter chart so the band takes less height. */}
+          <HplcTrace W={300} H={230} className="s-trace s-trace--wide" />
+          <HplcTrace W={340} H={170} className="s-trace s-trace--phone" decorative />
           <Link href="/coa" className="s-micro s-record-link">See each lot&apos;s certificate →</Link>
         </div>
         <p className="s-record-cite">M. Tswett, &ldquo;Adsorptionsanalyse und chromatographische Methode&rdquo;, Berichte der Deutschen Botanischen Gesellschaft 24 (1906), Taf. XVIII. Biodiversity Heritage Library, public domain.</p>

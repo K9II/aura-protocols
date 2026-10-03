@@ -11,9 +11,13 @@ export default function SiteNav() {
   return (
     <header className="pharmacopoeia sticky top-0 z-50">
       <div className="s-topbar">
-        {/* Each phrase is nowrap so narrow screens wrap between phrases, not inside one. */}
-        <span className="whitespace-nowrap">Lab-tested</span> · <span className="whitespace-nowrap">COA on every lot</span> ·{" "}
-        <em className="whitespace-nowrap">Fast domestic shipping</em> · <span className="whitespace-nowrap">Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
+        {/* Narrow screens wrap between phrases; each dot stays at the end of the
+            phrase before it, so no line starts with one. Only the long lab phrase
+            may wrap inside itself (320px phones). */}
+        <span>Tested by an ISO/IEC 17025-accredited US lab ·</span>{" "}
+        <span className="whitespace-nowrap">COA on every lot ·</span>{" "}
+        <span className="whitespace-nowrap"><em>Fast domestic shipping</em> ·</span>{" "}
+        <span className="whitespace-nowrap">Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
       </div>
       <div className="p-container pt-3.5 pb-2 bg-[color:var(--paper)]">
         {/* Logo left · links centered · Shop + Cart right (Kearney, option A, 2026-09-28).
