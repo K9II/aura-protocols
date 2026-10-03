@@ -50,7 +50,7 @@ export default function HomePage() {
 
         <section className="p-reveal py-14">
           <div className="s-lh">
-            <h2 className="s-h2">The <em>lineup</em></h2>
+            <h2 className="s-h2"><Link href="/products" className="s-h2-link">The <em>lineup</em></Link></h2>
             <p>No lot is sold until its certificate is on the page.</p>
           </div>
           <div className="s-grid">
