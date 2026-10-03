@@ -100,3 +100,20 @@ describe("orders", () => {
     await expect(saveStripeCoupon("o1", "co_1")).rejects.toThrow();
   });
 });
+
+describe("store credit held by abandoned checkouts", () => {
+  const now = Date.parse("2026-10-02T12:00:00Z");
+  const ago = (min: number) => new Date(now - min * 60_000).toISOString();
+
+  it("counts credit a new checkout will hand back: any with a Stripe page, or none and over 10 minutes old", async () => {
+    const { releasableCreditCents, willReleaseOnNewCheckout } = await import("@/lib/orders");
+    const open = [
+      { id: "a", order_number: "AP-1", stripe_session_id: "cs_1", created_at: ago(2), store_credit_cents: 3050 },  // left Stripe's page
+      { id: "b", order_number: "AP-2", stripe_session_id: null, created_at: ago(30), store_credit_cents: 500 },     // died before Stripe, old
+      { id: "c", order_number: "AP-3", stripe_session_id: null, created_at: ago(3), store_credit_cents: 900 },      // maybe another tab, still starting
+      { id: "d", order_number: "AP-4", stripe_session_id: "cs_4", created_at: ago(5), store_credit_cents: 0 },
+    ];
+    expect(open.map((o) => willReleaseOnNewCheckout(o, now))).toEqual([true, true, false, true]);
+    expect(releasableCreditCents(open, now)).toBe(3550);
+  });
+});

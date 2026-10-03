@@ -6,7 +6,7 @@ import { getCustomer } from "@/lib/dal";
 import { priceOrder, type PricedOrder, type Rejection } from "@/lib/pricing";
 import { shipAddressSchema } from "@/lib/ship-address";
 import {
-  attachCheckoutSession, createPendingOrder, listOpenOrdersForCustomer, saveShipAddress, saveStripeCoupon, saveStripeCustomerId, transitionOrder,
+  attachCheckoutSession, createPendingOrder, listOpenOrdersForCustomer, willReleaseOnNewCheckout, saveShipAddress, saveStripeCoupon, saveStripeCustomerId, transitionOrder,
 } from "@/lib/orders";
 import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } from "@/lib/commerce";
 import { siteUrl } from "@/lib/supabase/env";
@@ -63,16 +63,12 @@ async function bookkeep(what: string, save: () => Promise<void>): Promise<void> 
 // Starting a new checkout closes those first: expire the Stripe page, cancel
 // the order, and the release_credit_on_cancel trigger hands the credit back.
 // An order with no Stripe page yet may belong to another tab that's still
-// starting, so it's only cancelled once it's 10 minutes old.
-const ORPHAN_AFTER_MS = 10 * 60 * 1000;
+// starting, so it's only cancelled once it's 10 minutes old (willReleaseOnNewCheckout).
 async function releaseAbandonedCheckouts(customerId: string, adapter: CommerceAdapter): Promise<void> {
   for (const o of await listOpenOrdersForCustomer(customerId)) {
     try {
-      if (o.stripe_session_id) {
-        if ((await adapter.expireCheckout(o.stripe_session_id)) === "complete") continue; // paid; the webhook records it
-      } else if (Date.now() - new Date(o.created_at).getTime() < ORPHAN_AFTER_MS) {
-        continue;
-      }
+      if (!willReleaseOnNewCheckout(o)) continue;
+      if (o.stripe_session_id && (await adapter.expireCheckout(o.stripe_session_id)) === "complete") continue; // paid; the webhook records it
       await transitionOrder(o.id, "awaiting_payment", "cancelled");
     } catch (err) {
       await alertOwner(`Couldn't close an earlier checkout (${o.order_number})`,

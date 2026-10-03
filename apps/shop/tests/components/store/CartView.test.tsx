@@ -13,6 +13,7 @@ vi.mock("@/data/catalog", async (orig) => {
 });
 import { CartProvider, CART_STORAGE_KEY, CART_CODE_KEY } from "@/components/store/CartProvider";
 import CartView from "@/components/store/CartView";
+import CartBackLink from "@/components/store/CartBackLink";
 
 // BPC-157 10 mg is $79/vial: a 2-pack is $158 list, $150.10 at the pack's 5%;
 // a partner code (10% off list) makes it $142.20, so the code saves $7.90.
@@ -65,5 +66,20 @@ describe("CartView", () => {
     render(<CartProvider><CartView /></CartProvider>);
     await waitFor(() => expect(checkPartnerCodeAction).toHaveBeenCalledWith("SMITHLAB"));
     expect(await screen.findByText("−$7.90")).toBeInTheDocument();
+  });
+
+  it("on the cart page, links back to the product most recently added", async () => {
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([
+      { slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 1 },
+      { slug: "mots-c", variantId: "10mg", packQty: 2, quantity: 1 },
+    ]));
+    render(<CartProvider><CartBackLink /></CartProvider>);
+    expect(await screen.findByRole("link", { name: "← Back to MOTS-c" })).toHaveAttribute("href", "/products/mots-c");
+  });
+
+  it("with an empty cart, the back link goes to the catalog", async () => {
+    window.localStorage.clear();
+    render(<CartProvider><CartBackLink /></CartProvider>);
+    expect(await screen.findByRole("link", { name: "← Back to shop" })).toHaveAttribute("href", "/products");
   });
 });
