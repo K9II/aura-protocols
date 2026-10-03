@@ -5,6 +5,10 @@ import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import { compounds } from "@/data/catalog";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
+import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
+
+const SPHERE_NODES = sphereNodes();
+const SPHERE_PAIRS_ACTIVE = spherePairs(SPHERE_NODES);
 
 export const metadata: Metadata = {
   title: "Aura Protocols — Research Peptides, Certificate per Lot",
@@ -40,7 +44,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="load-in load-5 s-hero-sphere">
-            <BiosignatureSphere />
+            <BiosignatureSphere nodes={SPHERE_NODES} pairs={SPHERE_PAIRS_ACTIVE} />
           </div>
         </section>
 

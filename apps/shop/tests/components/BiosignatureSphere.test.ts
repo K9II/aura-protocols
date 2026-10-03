@@ -1,22 +1,36 @@
 import { describe, it, expect } from "vitest";
-import { NODES, PAIRS } from "@/components/BiosignatureSphere";
+import { SPHERE_SLUGS, sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 import { compounds } from "@/data/catalog";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
 
 describe("BiosignatureSphere nodes", () => {
-  it("labels every node with a listed compound's name and chemical class", () => {
-    for (const n of NODES) {
-      const c = compounds.find((x) => x.slug === n.key);
-      expect(c, n.key).toBeDefined();
-      expect(n.name, n.key).toBe(c!.name);
-      expect(n.cls, n.key).toBe(c!.chemicalClass);
+  it("shows every chosen slug: each is a listed compound (swap in a listed one if this fails)", () => {
+    expect(sphereNodes().map((n) => n.key)).toEqual([...SPHERE_SLUGS]);
+  });
+
+  it("labels and links every node from the listed catalog", () => {
+    for (const n of sphereNodes()) {
+      const c = compounds.find((x) => x.slug === n.key)!;
+      expect(n.name, n.key).toBe(c.name);
+      expect(n.cls, n.key).toBe(c.chemicalClass);
+      expect(n.href, n.key).toBe(`/products/${c.slug}`);
     }
   });
 
+  it("drops a compound that is no longer listed, and any pair that used it", () => {
+    const list = compounds.filter((c) => c.slug !== "mots-c");
+    const nodes = sphereNodes(list);
+    expect(nodes.map((n) => n.key)).not.toContain("mots-c");
+    expect(spherePairs(nodes).some((p) => p.a === "mots-c" || p.b === "mots-c")).toBe(false);
+  });
+
   it("only pairs compounds of the same chemical class, captioned with that class", () => {
-    for (const p of PAIRS) {
-      const a = NODES.find((n) => n.key === p.a)!;
-      const b = NODES.find((n) => n.key === p.b)!;
+    const nodes = sphereNodes();
+    const pairs = spherePairs(nodes);
+    expect(pairs.length).toBeGreaterThan(0);
+    for (const p of pairs) {
+      const a = nodes.find((n) => n.key === p.a)!;
+      const b = nodes.find((n) => n.key === p.b)!;
       expect(a.cls, p.text).toBe(b.cls);
       expect(p.text).toContain(a.cls);
       expect(findViolations(p.text)).toEqual([]);
@@ -24,7 +38,8 @@ describe("BiosignatureSphere nodes", () => {
   });
 
   it("carries no biometric readings", () => {
-    const text = JSON.stringify({ NODES, PAIRS });
+    const nodes = sphereNodes();
+    const text = JSON.stringify({ nodes, pairs: spherePairs(nodes) });
     expect(text).not.toMatch(/glucose|body fat|recovery|sleep|hrv|vo2|strain|spo2|biometric/i);
   });
 });
