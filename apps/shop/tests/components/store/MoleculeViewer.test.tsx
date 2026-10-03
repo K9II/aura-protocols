@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import MoleculeViewer from "@/components/store/MoleculeViewer";
 import MoleculeGrid from "@/components/store/MoleculeGrid";
 import { structurePanels } from "@/lib/structure";
@@ -55,7 +55,7 @@ describe("MoleculeViewer", () => {
   });
 
   it("loads the model and spins it when WebGL is available", async () => {
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({} as RenderingContext);
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ getExtension: () => null } as unknown as RenderingContext);
     vi.stubGlobal("matchMedia", () => ({ matches: false }));
     render(<MoleculeViewer structure={bpc} />);
     await waitFor(() => expect(viewer.addModel).toHaveBeenCalledWith(expect.stringContaining("V2000"), "sdf"));
@@ -63,7 +63,7 @@ describe("MoleculeViewer", () => {
   });
 
   it("zooms out after fitting so the spinning model stays inside the stage", async () => {
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({} as RenderingContext);
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ getExtension: () => null } as unknown as RenderingContext);
     vi.stubGlobal("matchMedia", () => ({ matches: false }));
     render(<MoleculeViewer structure={bpc} />);
     await waitFor(() => expect(viewer.render).toHaveBeenCalled());
@@ -73,7 +73,7 @@ describe("MoleculeViewer", () => {
   });
 
   it("draws a dashed line from copper to each coordinating N/O atom (GHK-Cu: 3)", async () => {
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({} as RenderingContext);
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ getExtension: () => null } as unknown as RenderingContext);
     vi.stubGlobal("matchMedia", () => ({ matches: false }));
     atoms = GHK_ATOMS;
     render(<MoleculeViewer structure={ghk} />);
@@ -85,7 +85,7 @@ describe("MoleculeViewer", () => {
   });
 
   it("draws no coordination lines for a molecule without copper", async () => {
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({} as RenderingContext);
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ getExtension: () => null } as unknown as RenderingContext);
     vi.stubGlobal("matchMedia", () => ({ matches: false }));
     atoms = GHK_ATOMS.filter((a) => a.elem !== "Cu");
     render(<MoleculeViewer structure={bpc} />);
@@ -94,11 +94,28 @@ describe("MoleculeViewer", () => {
   });
 
   it("does not spin under prefers-reduced-motion", async () => {
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({} as RenderingContext);
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ getExtension: () => null } as unknown as RenderingContext);
     vi.stubGlobal("matchMedia", () => ({ matches: true }));
     render(<MoleculeViewer structure={bpc} />);
     await waitFor(() => expect(viewer.render).toHaveBeenCalled());
     expect(spin).not.toHaveBeenCalled();
+  });
+
+  it("stops spinning when scrolled out of view and resumes when back", async () => {
+    let report: (visible: boolean) => void = () => {};
+    class ManualIO extends IO {
+      observe() { report = (visible) => this.cb([{ isIntersecting: visible } as IntersectionObserverEntry], this as unknown as IntersectionObserver); report(true); }
+    }
+    vi.stubGlobal("IntersectionObserver", ManualIO);
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ getExtension: () => null } as unknown as RenderingContext);
+    vi.stubGlobal("matchMedia", () => ({ matches: false }));
+    render(<MoleculeViewer structure={bpc} />);
+    await waitFor(() => expect(spin).toHaveBeenCalledWith("y", 0.6));
+    spin.mockClear();
+    act(() => report(false));
+    expect(spin).toHaveBeenLastCalledWith(false);
+    act(() => report(true));
+    expect(spin).toHaveBeenLastCalledWith("y", 0.6);
   });
 
   it("releases the WebGL context and removes the canvas on unmount", async () => {

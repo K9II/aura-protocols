@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const getCustomer = vi.fn();
+const { getCustomer } = vi.hoisted(() => ({ getCustomer: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ getCustomer }));
 import { GET } from "@/app/api/me/owner/route";
 
