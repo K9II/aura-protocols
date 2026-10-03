@@ -511,6 +511,25 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-h2 em { color: var(--specimen); }
 .pharmacopoeia .s-h2-link { color: inherit; text-decoration: none; }
 .pharmacopoeia .s-h2-link:hover, .pharmacopoeia .s-h2-link:focus-visible { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; text-decoration-color: var(--specimen); }
+.pharmacopoeia .s-record { display: grid; grid-template-columns: minmax(0, 1fr) 340px; margin-top: 8px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--paper-deep); }
+.pharmacopoeia .s-record-plate { position: relative; margin: 0; display: flex; align-items: center; justify-content: center; padding: 64px 22px 22px; border-right: 1px solid var(--line); }
+.pharmacopoeia .s-record-plate img { display: block; width: 100%; height: auto; mix-blend-mode: multiply; filter: sepia(.25) saturate(.7) contrast(1.05); box-shadow: 0 1px 0 var(--line), 0 10px 24px rgba(28, 26, 21, .10); }
+.pharmacopoeia .s-record-tag { position: absolute; left: 22px; top: 16px; display: flex; align-items: baseline; gap: 12px; color: var(--ink-soft); }
+.pharmacopoeia .s-record-tag b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1; color: var(--ink); }
+.pharmacopoeia .s-record-tag--today { position: static; margin-bottom: 4px; }
+.pharmacopoeia .s-record-side { display: flex; flex-direction: column; gap: 14px; padding: 22px 20px; background: #F4F1EA; }
+.pharmacopoeia .s-record-eyebrow { color: var(--specimen); }
+.pharmacopoeia .s-record-side .s-h2 { margin: 0; font-size: 34px; }
+.pharmacopoeia .s-record-side > p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); }
+.pharmacopoeia .s-record-trace { border: 1px solid var(--line); background: var(--paper); padding: 10px 10px 12px; }
+.pharmacopoeia .s-trace { display: block; width: 100%; height: auto; }
+.pharmacopoeia .s-record-link { display: inline-block; margin-top: 6px; color: var(--specimen); border-bottom: 1px solid var(--specimen); }
+.pharmacopoeia .s-record-side > .s-record-cite { border-top: 1px solid var(--line); padding-top: 12px; font-size: 12px; font-style: italic; }
+@media (max-width: 860px) {
+  .pharmacopoeia .s-record { grid-template-columns: 1fr; }
+  .pharmacopoeia .s-record-plate { border-right: 0; border-bottom: 1px solid var(--line); padding: 58px 12px 12px; }
+  .pharmacopoeia .s-record-tag { left: 12px; }
+}
 .pharmacopoeia .s-lh p { font-size: 14px; max-width: 38ch; margin: 0; color: var(--ink-soft); }
 
 /* compound cards */

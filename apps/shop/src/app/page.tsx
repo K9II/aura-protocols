@@ -3,6 +3,7 @@ import Link from "next/link";
 import ScrollReveal from "@/components/ScrollReveal";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
+import FromTheRecord from "@/components/store/FromTheRecord";
 import { compounds } from "@/data/catalog";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
@@ -47,6 +48,8 @@ export default function HomePage() {
             <BiosignatureSphere nodes={SPHERE_NODES} pairs={SPHERE_PAIRS_ACTIVE} />
           </div>
         </section>
+
+        <FromTheRecord />
 
         <section className="p-reveal py-14">
           <div className="s-lh">
