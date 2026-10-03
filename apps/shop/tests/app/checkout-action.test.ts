@@ -18,7 +18,10 @@ const alertOwner = vi.fn();
 const listOpenOrdersForCustomer = vi.fn();
 const expireCheckout = vi.fn();
 vi.mock("@/lib/dal", () => ({ getCustomer }));
-vi.mock("@/lib/orders", () => ({ createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon, listOpenOrdersForCustomer }));
+vi.mock("@/lib/orders", async (orig) => {
+  const { willReleaseOnNewCheckout } = await orig<typeof import("@/lib/orders")>();  // the real rule, shared with the checkout page
+  return { createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon, listOpenOrdersForCustomer, willReleaseOnNewCheckout };
+});
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ createCheckout, quoteTax, expireCheckout }), STRIPE_MIN_CHARGE_CENTS: 50 }));
 vi.mock("@/lib/partners/attribution", () => ({ resolveAttribution }));
 vi.mock("@/lib/partners/ledger", () => ({ creditBalance, spendCredit }));

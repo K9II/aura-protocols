@@ -4,6 +4,7 @@ import Link from "next/link";
 import CheckoutForm from "@/components/account/CheckoutForm";
 import { requireCustomer } from "@/lib/dal";
 import { creditBalance } from "@/lib/partners/ledger";
+import { listOpenOrdersForCustomer, releasableCreditCents } from "@/lib/orders";
 import { readRef, REF_COOKIE } from "@/lib/partners/ref-cookie";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false, follow: false } };
@@ -11,7 +12,11 @@ export const metadata: Metadata = { title: "Checkout", robots: { index: false, f
 export default async function CheckoutPage() {
   const customer = await requireCustomer("/checkout");
   const initialCode = readRef((await cookies()).get(REF_COOKIE)?.value) ?? "";
-  const creditBalanceCents = customer.emailConfirmed ? await creditBalance(customer.id) : 0;
+  // Credit held by this shopper's own abandoned checkout is handed back when
+  // they continue (startCheckoutAction releases it first), so show it as available.
+  const creditBalanceCents = customer.emailConfirmed
+    ? (await creditBalance(customer.id)) + releasableCreditCents(await listOpenOrdersForCustomer(customer.id))
+    : 0;
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-16">

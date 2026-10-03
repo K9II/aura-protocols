@@ -118,13 +118,27 @@ export async function listOrdersForOwner(status: OrderStatus | "all"): Promise<O
   return (data as OrderRow[] | null) ?? [];
 }
 
+export type OpenOrder = { id: string; order_number: string; stripe_session_id: string | null; created_at: string; store_credit_cents: number };
+
 // A customer's checkouts that never finished (newest last), so a new checkout
 // can close them and hand back any store credit they hold.
-export async function listOpenOrdersForCustomer(customerId: string): Promise<{ id: string; order_number: string; stripe_session_id: string | null; created_at: string }[]> {
-  const { data, error } = await db().from("orders").select("id, order_number, stripe_session_id, created_at")
+export async function listOpenOrdersForCustomer(customerId: string): Promise<OpenOrder[]> {
+  const { data, error } = await db().from("orders").select("id, order_number, stripe_session_id, created_at, store_credit_cents")
     .eq("customer_id", customerId).eq("status", "awaiting_payment").order("created_at", { ascending: true });
   if (error) throw new Error(`open orders select failed: ${JSON.stringify(error)}`);
-  return (data as { id: string; order_number: string; stripe_session_id: string | null; created_at: string }[] | null) ?? [];
+  return (data as OpenOrder[] | null) ?? [];
+}
+
+// Starting a new checkout closes an unfinished one if it reached Stripe's page,
+// or never did and is over 10 minutes old (a younger one may be another tab
+// still starting). The checkout page and the checkout action share this rule.
+export const ABANDONED_CHECKOUT_AFTER_MS = 10 * 60 * 1000;
+export function willReleaseOnNewCheckout(o: Pick<OpenOrder, "stripe_session_id" | "created_at">, nowMs: number = Date.now()): boolean {
+  return !!o.stripe_session_id || nowMs - new Date(o.created_at).getTime() >= ABANDONED_CHECKOUT_AFTER_MS;
+}
+// Store credit those checkouts hold, which the next checkout hands back before spending.
+export function releasableCreditCents(open: OpenOrder[], nowMs: number = Date.now()): number {
+  return open.filter((o) => willReleaseOnNewCheckout(o, nowMs)).reduce((s, o) => s + (o.store_credit_cents ?? 0), 0);
 }
 
 // Pending orders that never got a Stripe page (the checkout died mid-way):
