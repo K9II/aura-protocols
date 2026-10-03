@@ -474,6 +474,9 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-nav-shop { font-size: 13px; padding: 7px 16px; border: 1px solid var(--ink); transition: color .25s, border-color .25s; }
 .pharmacopoeia .s-nav-shop:hover { color: var(--specimen); border-color: var(--specimen); }
 .pharmacopoeia .s-nav-cart { font-size: 13px; background: none; border: 0; cursor: pointer; color: inherit; font-family: inherit; }
+/* Cart has items: filled specimen box so it reads at a glance (2026-10-02) */
+.pharmacopoeia .s-nav-cart.s-nav-cart-full { background: var(--specimen); color: var(--paper); padding: 7px 12px; white-space: nowrap; }
+.pharmacopoeia .s-nav-cart.s-nav-cart-full:hover { background: var(--ink); }
 .pharmacopoeia .s-nav-auth { font-size: 13px; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; min-width: 1px; }
 .pharmacopoeia .s-nav-signout { display: flex; margin: 0; }
 .pharmacopoeia .s-nav-signout button { color: var(--ink-soft); white-space: nowrap; }

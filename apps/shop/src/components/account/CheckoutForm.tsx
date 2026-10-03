@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/store/CartProvider";
 import { priceOrder, type Rejection } from "@/lib/pricing";
@@ -103,7 +104,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         <label className="s-chk"><input type="checkbox" checked={ruo} onChange={(e) => setRuo(e.target.checked)} /><span>I confirm the compounds in this order are for <b>laboratory research use only</b> and not for human or animal consumption.</span></label>
       </div>
       <div>
-        <p className="s-micro mb-1">Order summary</p>
+        <div className="flex justify-between items-baseline mb-1"><p className="s-micro">Order summary</p><Link href="/cart" className="p-link text-xs">Edit cart</Link></div>
         {priced.items.map((i, idx) => {
           const d = priced.lineDiscounts[idx];
           const pack = ` · ${i.packQty}-pack${i.packPct && d.source !== "code" ? ` −${i.packPct}%` : ""}`;

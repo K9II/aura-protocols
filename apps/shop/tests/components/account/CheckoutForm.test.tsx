@@ -49,6 +49,11 @@ describe("CheckoutForm", () => {
     expect(screen.getByRole("button", { name: /remove/i })).toBeInTheDocument();
   });
 
+  it("links from the order summary back to the cart to edit it", () => {
+    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} />);
+    expect(screen.getByRole("link", { name: /edit cart/i })).toHaveAttribute("href", "/cart");
+  });
+
   it("does not call the server when there is no referral code to apply", () => {
     render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} />);
     expect(checkPartnerCodeAction).not.toHaveBeenCalled();

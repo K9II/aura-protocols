@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import CheckoutForm from "@/components/account/CheckoutForm";
 import { requireCustomer } from "@/lib/dal";
 import { creditBalance } from "@/lib/partners/ledger";
@@ -14,6 +15,7 @@ export default async function CheckoutPage() {
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-16">
+        <Link href="/cart" className="p-link text-sm inline-block mb-6">← Back to cart</Link>
         <p className="s-micro text-[color:var(--specimen)] mb-2.5">Checkout · signed in as {customer.email}</p>
         <h1 className="s-h1 mb-8" style={{ fontSize: 48 }}>Review your <em>order.</em></h1>
         {customer.emailConfirmed ? (
