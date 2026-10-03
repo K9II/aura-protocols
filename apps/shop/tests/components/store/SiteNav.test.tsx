@@ -26,6 +26,13 @@ describe("SiteNav", () => {
     expect(screen.getByRole("button", { name: /cart \(2\)/i })).toBeInTheDocument();
   });
 
+  it("highlights the Cart link once something is in the cart", () => {
+    render(<CartProvider><SiteNav /><Adder /></CartProvider>);
+    expect(screen.getByRole("button", { name: /cart \(0\)/i })).not.toHaveClass("s-nav-cart-full");
+    fireEvent.click(screen.getByText("add"));
+    expect(screen.getByRole("button", { name: /cart \(2\)/i })).toHaveClass("s-nav-cart-full");
+  });
+
   it("puts the logo at the left edge, links in the middle, Shop and Cart on the right", () => {
     render(<CartProvider><SiteNav /></CartProvider>);
     const nav = screen.getByRole("navigation", { name: "Main" });

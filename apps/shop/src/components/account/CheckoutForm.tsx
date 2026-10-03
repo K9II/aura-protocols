@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/store/CartProvider";
 import { priceOrder, type Rejection } from "@/lib/pricing";
@@ -19,12 +20,14 @@ const REASON: Record<Rejection["reason"], string> = {
 export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents }: {
   email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number;
 }) {
-  const { lines } = useCart();
+  const { lines, code: cartCode, setCode: setCartCode } = useCart();
+  // A code typed in the cart wins over a referral link's code (same priority as the server).
+  const startCode = cartCode || initialCode;
   const [addr, setAddr] = useState({
     name: ship?.name ?? "", line1: ship?.line1 ?? "", line2: ship?.line2 ?? "",
     city: ship?.city ?? "", state: ship?.state ?? "", zip: ship?.zip ?? "",
   });
-  const [codeInput, setCodeInput] = useState(initialCode);
+  const [codeInput, setCodeInput] = useState(startCode);
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [codeMsg, setCodeMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [useCredit, setUseCredit] = useState(creditBalanceCents > 0);
@@ -48,7 +51,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   // ever touches the field — they never have to know a code exists.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above; the state update is inside an awaited server call, not synchronous
-    if (initialCode.trim()) void applyCodeValue(initialCode);
+    if (startCode.trim()) void applyCodeValue(startCode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -56,7 +59,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
     if (!codeInput.trim()) return;
     await applyCodeValue(codeInput);
   }
-  function removeCode() { setAppliedCode(null); setCodeInput(""); setCodeMsg(null); }
+  function removeCode() { setAppliedCode(null); setCodeInput(""); setCodeMsg(null); setCartCode(""); }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -101,7 +104,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         <label className="s-chk"><input type="checkbox" checked={ruo} onChange={(e) => setRuo(e.target.checked)} /><span>I confirm the compounds in this order are for <b>laboratory research use only</b> and not for human or animal consumption.</span></label>
       </div>
       <div>
-        <p className="s-micro mb-1">Order summary</p>
+        <div className="flex justify-between items-baseline mb-1"><p className="s-micro">Order summary</p><Link href="/cart" className="p-link text-xs">Edit cart</Link></div>
         {priced.items.map((i, idx) => {
           const d = priced.lineDiscounts[idx];
           const pack = ` · ${i.packQty}-pack${i.packPct && d.source !== "code" ? ` −${i.packPct}%` : ""}`;

@@ -283,7 +283,14 @@ describe("checkPartnerCodeAction", () => {
   it("requires a verified email before checking a code", async () => {
     getCustomer.mockResolvedValue({ ...customer, emailConfirmed: false });
     const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
-    expect(await checkPartnerCodeAction("SMITHLAB")).toEqual({ ok: false, message: "Please verify your email first — check your inbox for the link." });
+    expect(await checkPartnerCodeAction("SMITHLAB")).toEqual({ ok: false, message: "Please verify your email first — check your inbox for the link.", needsSignIn: true });
+    expect(resolveAttribution).not.toHaveBeenCalled();
+  });
+
+  it("tells a signed-out shopper (e.g. in the cart) that the code is checked once they sign in", async () => {
+    getCustomer.mockResolvedValue(null);
+    const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
+    expect(await checkPartnerCodeAction("SMITHLAB")).toEqual({ ok: false, message: "Please sign in.", needsSignIn: true });
     expect(resolveAttribution).not.toHaveBeenCalled();
   });
 

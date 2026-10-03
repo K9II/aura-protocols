@@ -29,7 +29,7 @@ export default function SiteNav() {
           <div className="s-nav-actions">
             <Link href="/products" className="s-nav-shop">Shop</Link>
             <AuthLinks />
-            <button type="button" className="s-nav-cart" onClick={() => setOpen(true)}>
+            <button type="button" className={totals.itemCount > 0 ? "s-nav-cart s-nav-cart-full" : "s-nav-cart"} onClick={() => setOpen(true)}>
               Cart ({totals.itemCount})
             </button>
           </div>

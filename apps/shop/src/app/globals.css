@@ -474,6 +474,9 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-nav-shop { font-size: 13px; padding: 7px 16px; border: 1px solid var(--ink); transition: color .25s, border-color .25s; }
 .pharmacopoeia .s-nav-shop:hover { color: var(--specimen); border-color: var(--specimen); }
 .pharmacopoeia .s-nav-cart { font-size: 13px; background: none; border: 0; cursor: pointer; color: inherit; font-family: inherit; }
+/* Cart has items: filled specimen box so it reads at a glance (2026-10-02) */
+.pharmacopoeia .s-nav-cart.s-nav-cart-full { background: var(--specimen); color: var(--paper); padding: 7px 12px; white-space: nowrap; }
+.pharmacopoeia .s-nav-cart.s-nav-cart-full:hover { background: var(--ink); }
 .pharmacopoeia .s-nav-auth { font-size: 13px; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; min-width: 1px; }
 .pharmacopoeia .s-nav-signout { display: flex; margin: 0; }
 .pharmacopoeia .s-nav-signout button { color: var(--ink-soft); white-space: nowrap; }
@@ -579,10 +582,10 @@ main > .pharmacopoeia { overflow-x: clip; }
 /* Buy box: quantity stepper beside Add to cart (2026-10-02, option A) */
 .pharmacopoeia .s-buyrow { display: flex; gap: 10px; }
 .pharmacopoeia .s-buyrow .s-atc { margin-top: 0; flex: 1; }
-.pharmacopoeia .s-qty { display: inline-flex; align-items: stretch; border: 1px solid var(--ink); flex-shrink: 0; }
-.pharmacopoeia .s-qty button { width: 44px; background: transparent; border: 0; font: 18px Georgia, serif; color: var(--ink); cursor: pointer; }
-.pharmacopoeia .s-qty button:disabled { color: var(--line); cursor: not-allowed; }
-.pharmacopoeia .s-qty span { min-width: 34px; display: flex; align-items: center; justify-content: center; font: 15px Georgia, serif; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+.pharmacopoeia .s-stepper { display: inline-flex; align-items: stretch; border: 1px solid var(--ink); flex-shrink: 0; }
+.pharmacopoeia .s-stepper button { width: 44px; background: transparent; border: 0; font: 18px Georgia, serif; color: var(--ink); cursor: pointer; }
+.pharmacopoeia .s-stepper button:disabled { color: var(--line); cursor: not-allowed; }
+.pharmacopoeia .s-stepper span { min-width: 34px; display: flex; align-items: center; justify-content: center; font: 15px Georgia, serif; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
 .pharmacopoeia .s-before { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
 .pharmacopoeia .s-before .s-micro { color: var(--specimen); margin-bottom: 8px; }
 .pharmacopoeia .s-before ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); list-style: square; }
@@ -623,7 +626,7 @@ main > .pharmacopoeia { overflow-x: clip; }
 .s-drawer-backdrop { position: fixed; inset: 0; background: rgba(28, 26, 21, .45); z-index: 90; }
 .pharmacopoeia.s-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); z-index: 91; border-left: 1px solid var(--line); display: flex; flex-direction: column; }
 .pharmacopoeia .s-cart-line { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: 14px 0; border-top: 1px solid var(--line); font-size: 14px; }
-.pharmacopoeia .s-qty { display: inline-flex; border: 1px solid var(--line); }
+.pharmacopoeia .s-qty { display: inline-flex; justify-self: start; border: 1px solid var(--line); }
 .pharmacopoeia .s-qty button { width: 28px; background: none; border: 0; cursor: pointer; color: var(--ink); }
 .pharmacopoeia .s-qty span { min-width: 28px; text-align: center; line-height: 28px; }
 .pharmacopoeia .s-freeship { height: 3px; background: var(--line); margin: 8px 0 4px; }
