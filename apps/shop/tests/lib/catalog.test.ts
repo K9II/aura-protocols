@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
 import {
   findCompound, compoundsInClass, relatedCompounds,
-  isPendingLot, findLot, vialLabel, classCounts,
+  isPendingLot, findLot, vialLabel, vialCap, classCounts,
   fromPackPriceUsd, toPackPriceUsd, perVialUsd,
 } from "@/lib/catalog";
 import { compounds } from "@/data/catalog";
@@ -59,6 +59,14 @@ describe("catalog helpers", () => {
   // 11-character label ends at x≈82 of the 94-unit label edge.
   it("keeps every listed compound's vial label within 11 characters", () => {
     for (const c of compounds) expect(vialLabel(c).length, c.slug).toBeLessThanOrEqual(11);
+  });
+
+  it("rotates vial caps red → black → white through the listed catalog", () => {
+    expect(compounds.slice(0, 4).map(vialCap)).toEqual(["red", "black", "white", "red"]);
+  });
+
+  it("gives a compound outside the listed catalog a red cap", () => {
+    expect(vialCap({ ...fixture[0], slug: "not-listed" })).toBe("red");
   });
 
   it("counts compounds per class in CHEMICAL_CLASSES order, omitting empty classes", () => {

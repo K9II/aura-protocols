@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { compounds } from "@/data/catalog";
-import { findCompound, fromPackPriceUsd, isPendingLot, materialTestingRows, relatedCompounds, toPackPriceUsd, vialLabel } from "@/lib/catalog";
+import { findCompound, fromPackPriceUsd, isPendingLot, materialTestingRows, relatedCompounds, toPackPriceUsd, vialCap, vialLabel } from "@/lib/catalog";
 import Vial from "@/components/store/Vial";
 import SpecBoxes from "@/components/store/SpecBoxes";
 import VariantPicker from "@/components/store/VariantPicker";
@@ -86,7 +86,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="s-ghost" aria-hidden>{c.name}</div>
           <div className="s-media">
             {!pending && lot.coaFile && <span className="s-coa-tag">◇ COA on file</span>}
-            <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} strength={c.variants[0].strength} tilt={-12} width={270} />
+            <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} cap={vialCap(c)} strength={c.variants[0].strength} tilt={-12} width={270} />
           </div>
           <div className="relative">
             <p className="s-micro text-[color:var(--ink-soft)] mb-3.5">

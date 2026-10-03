@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Compound } from "@/data/catalog";
-import { fromPackPriceUsd, isPendingLot, vialLabel } from "@/lib/catalog";
+import { fromPackPriceUsd, isPendingLot, vialCap, vialLabel } from "@/lib/catalog";
 import { formatUsd } from "@/lib/cart";
 import Vial from "@/components/store/Vial";
 
@@ -21,7 +21,7 @@ export default function CompoundCard({ compound: c, index = 0 }: { compound: Com
         ) : anyLow ? (
           <span className="s-flag s-micro">Low stock</span>
         ) : null}
-        <Vial id={`${c.slug}-${index}`} label={vialLabel(c)} strength={c.variants[0].strength} tilt={TILTS[index % TILTS.length]} />
+        <Vial id={`${c.slug}-${index}`} label={vialLabel(c)} cap={vialCap(c)} strength={c.variants[0].strength} tilt={TILTS[index % TILTS.length]} />
       </div>
       <div className="s-cat s-micro"><i />{c.chemicalClass}</div>
       <h3 className="s-card-name">{c.name}</h3>

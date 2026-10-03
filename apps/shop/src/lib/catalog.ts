@@ -62,6 +62,16 @@ export function vialLabel(c: Compound): string {
   return `${name.split(" / ")[0]} +`;
 }
 
+// Cap colors rotate through the listed catalog for variety; a compound keeps
+// the same cap on its card and its product page.
+export type VialCap = "red" | "black" | "white";
+const CAP_ROTATION: VialCap[] = ["red", "black", "white"];
+
+export function vialCap(c: Compound): VialCap {
+  const i = listedCompounds.findIndex((o) => o.slug === c.slug);
+  return i < 0 ? "red" : CAP_ROTATION[i % CAP_ROTATION.length];
+}
+
 export function classCounts(list: Compound[] = listedCompounds): Array<{ cls: ChemicalClass; count: number }> {
   return CHEMICAL_CLASSES.map((cls) => ({ cls, count: list.filter((c) => c.chemicalClass === cls).length }))
     .filter((x) => x.count > 0);
