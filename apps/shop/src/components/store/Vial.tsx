@@ -1,11 +1,17 @@
-// SVG stand-in for product photography: clear glass vial, specimen-red
-// flip-off cap, powder cake visible below the label, lot printed on glass.
+// SVG stand-in for product photography: clear glass vial, flip-off cap
+// (red, black or white — see vialCap()), powder cake visible below the label, lot printed on glass.
 // Label = full Aura Protocols lockup (same A geometry + pulse path as
 // AuraLockup), compound, strength, RUO.
 const PULSE = "M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86";
 const BODY = "M38,44 L82,44 L82,50 Q100,52 100,64 L100,186 Q100,195 91,195 L29,195 Q20,195 20,186 L20,64 Q20,52 38,50 Z";
 const SERIF = { fontFamily: "var(--font-newsreader), Georgia, serif" };
 const MONO = { fontFamily: "var(--font-jetbrains), monospace" };
+// Cap gradient stops, left edge → right edge.
+const CAPS = {
+  red: ["#6d1b13", "#c4473a", "#8a241a", "#7e2017"],
+  black: ["#0c0b09", "#4a4640", "#1c1a15", "#121110"],
+  white: ["#b9bcbd", "#ffffff", "#c9cccd", "#d9dbdc"],
+} as const;
 
 type VialProps = {
   id: string;            // unique per page instance (gradient ids)
@@ -13,9 +19,10 @@ type VialProps = {
   strength: string;
   tilt?: number;         // degrees
   width?: number;        // rendered width; height keeps the 120:200 ratio
+  cap?: keyof typeof CAPS;
 };
 
-export default function Vial({ id, label, strength, tilt = -10, width = 160 }: VialProps) {
+export default function Vial({ id, label, strength, tilt = -10, width = 160, cap: capColor = "red" }: VialProps) {
   const nameSize = label.length > 9 ? 10.5 : label.length > 7 ? 12.5 : 14;
   const glass = `vial-glass-${id}`;
   const alu = `vial-alu-${id}`;
@@ -50,10 +57,7 @@ export default function Vial({ id, label, strength, tilt = -10, width = 160 }: V
           <stop offset="1" stopColor="#7d8388" />
         </linearGradient>
         <linearGradient id={cap} x1="0" x2="1">
-          <stop offset="0" stopColor="#6d1b13" />
-          <stop offset=".3" stopColor="#c4473a" />
-          <stop offset=".7" stopColor="#8a241a" />
-          <stop offset="1" stopColor="#7e2017" />
+          {[0, 0.3, 0.7, 1].map((o, i) => <stop key={o} offset={o} stopColor={CAPS[capColor][i]} />)}
         </linearGradient>
         {/* Cylindrical shading across the paper label. */}
         <linearGradient id={wrap} x1="0" x2="1">
