@@ -32,7 +32,7 @@ export default function HomePage() {
       <div className="p-container">
         <section className="s-hero">
           <div>
-            <p className="s-micro s-eyebrow load-in load-1">Research peptides · COA before sale</p>
+            <p className="s-micro s-eyebrow load-in load-1">Research Peptides · Certified COA</p>
             <h1 className="s-h1 load-in load-2">Receipts,<br />not <em>promises.</em></h1>
             <p className="s-sub load-in load-3">Research compounds released only after an independent lab tests the lot. The certificate for the exact lot in your vial is published on its page.</p>
             <div className="s-ctas load-in load-4">
@@ -51,7 +51,7 @@ export default function HomePage() {
         <section className="p-reveal py-14">
           <div className="s-lh">
             <h2 className="s-h2"><Link href="/products" className="s-h2-link">The <em>lineup</em></Link></h2>
-            <p>No lot is sold until its certificate is on the page.</p>
+            <p>No matching COA - No sale</p>
           </div>
           <div className="s-grid">
             {featured.map((c, i) => <CompoundCard key={c.slug} compound={c} index={i} />)}
