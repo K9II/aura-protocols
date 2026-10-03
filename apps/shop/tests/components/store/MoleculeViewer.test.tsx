@@ -4,11 +4,11 @@ import MoleculeViewer from "@/components/store/MoleculeViewer";
 import MoleculeGrid from "@/components/store/MoleculeGrid";
 import { structurePanels } from "@/lib/structure";
 
-const spin = vi.fn();
+const rotate = vi.fn();
 type Atom = { elem: string; x: number; y: number; z: number };
 let atoms: Atom[] = [];
 const viewer = {
-  addModel: vi.fn(), setStyle: vi.fn(), zoomTo: vi.fn(), zoom: vi.fn(), spin, render: vi.fn(), clear: vi.fn(),
+  addModel: vi.fn(), setStyle: vi.fn(), zoomTo: vi.fn(), zoom: vi.fn(), rotate, resize: vi.fn(), render: vi.fn(), clear: vi.fn(),
   addCylinder: vi.fn(), selectedAtoms: vi.fn(() => atoms),
 };
 vi.mock("3dmol", () => ({
@@ -21,6 +21,17 @@ vi.mock("3dmol", () => ({
 class IO { cb: IntersectionObserverCallback; constructor(cb: IntersectionObserverCallback) { this.cb = cb; }
   observe() { this.cb([{ isIntersecting: true } as IntersectionObserverEntry], this as unknown as IntersectionObserver); }
   disconnect() {} unobserve() {} takeRecords() { return []; } root = null; rootMargin = ""; thresholds = []; }
+
+// Manual animation frames: frame() runs whatever is scheduled, 20 ms later.
+let rafQueue = new Map<number, FrameRequestCallback>();
+let rafId = 0;
+let clock = 0;
+function frame() {
+  clock = Math.max(clock, performance.now()) + 20;
+  const cbs = [...rafQueue.values()];
+  rafQueue.clear();
+  cbs.forEach((cb) => cb(clock));
+}
 
 const bpc = structurePanels("bpc-157")[0];
 const ghk = structurePanels("ghk-cu")[0];
@@ -41,7 +52,10 @@ describe("MoleculeViewer", () => {
   beforeEach(() => {
     vi.stubGlobal("IntersectionObserver", IO);
     vi.stubGlobal("fetch", vi.fn(async () => new Response("mol\n  V2000\n$$$$")));
-    spin.mockClear();
+    rafQueue = new Map();
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => { rafQueue.set(++rafId, cb); return rafId; });
+    vi.stubGlobal("cancelAnimationFrame", (id: number) => { rafQueue.delete(id); });
+    rotate.mockClear();
     viewer.addCylinder.mockClear();
     viewer.zoom.mockClear();
     atoms = [];
@@ -59,7 +73,11 @@ describe("MoleculeViewer", () => {
     vi.stubGlobal("matchMedia", () => ({ matches: false }));
     render(<MoleculeViewer structure={bpc} />);
     await waitFor(() => expect(viewer.addModel).toHaveBeenCalledWith(expect.stringContaining("V2000"), "sdf"));
-    expect(spin).toHaveBeenCalledWith("y", 0.6);
+    await waitFor(() => expect(viewer.render).toHaveBeenCalled());
+    frame();
+    frame();
+    // The second frame is exactly 20 ms after the first: 20 ms at 24°/s.
+    expect(rotate).toHaveBeenLastCalledWith(expect.closeTo(0.48, 5), "y");
   });
 
   it("zooms out after fitting so the spinning model stays inside the stage", async () => {
@@ -98,7 +116,9 @@ describe("MoleculeViewer", () => {
     vi.stubGlobal("matchMedia", () => ({ matches: true }));
     render(<MoleculeViewer structure={bpc} />);
     await waitFor(() => expect(viewer.render).toHaveBeenCalled());
-    expect(spin).not.toHaveBeenCalled();
+    frame();
+    frame();
+    expect(rotate).not.toHaveBeenCalled();
   });
 
   it("stops spinning when scrolled out of view and resumes when back", async () => {
@@ -110,12 +130,17 @@ describe("MoleculeViewer", () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ getExtension: () => null } as unknown as RenderingContext);
     vi.stubGlobal("matchMedia", () => ({ matches: false }));
     render(<MoleculeViewer structure={bpc} />);
-    await waitFor(() => expect(spin).toHaveBeenCalledWith("y", 0.6));
-    spin.mockClear();
+    await waitFor(() => expect(viewer.render).toHaveBeenCalled());
+    frame();
+    expect(rotate).toHaveBeenCalled();
+    rotate.mockClear();
     act(() => report(false));
-    expect(spin).toHaveBeenLastCalledWith(false);
+    frame();
+    frame();
+    expect(rotate).not.toHaveBeenCalled();
     act(() => report(true));
-    expect(spin).toHaveBeenLastCalledWith("y", 0.6);
+    frame();
+    expect(rotate).toHaveBeenCalledWith(expect.any(Number), "y");
   });
 
   it("releases the WebGL context and removes the canvas on unmount", async () => {
