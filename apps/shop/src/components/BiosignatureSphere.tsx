@@ -2,28 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { buildStrand, shade, strandDrawItems, type Strand } from "@/lib/sphere-strand";
+import type { SphereNode, SpherePair } from "@/lib/sphere-nodes";
 
 // Decorative compound ring for the storefront homepage. Nodes are catalog
 // compounds only — NO biometric readings or human-outcome pairings (removed
-// 2026-09-28 before Stripe review). Each label links to its product page.
-// Order matters — index 0 sits at the top of the ring, then clockwise from there.
-export const NODES = [
-  { key: "slu-pp-332", name: "SLU-PP-332", cls: "Mitochondrial & Metabolic" },
-  { key: "mots-c", name: "MOTS-c", cls: "Mitochondrial & Metabolic" },
-  { key: "bpc-157", name: "BPC-157", cls: "Peptide Fragments" },
-  { key: "tesamorelin", name: "Tesamorelin", cls: "GH-Axis Peptides" },
-  { key: "cjc-1295-ipamorelin", name: "CJC-1295 / Ipamorelin", cls: "GH-Axis Peptides" },
-  { key: "epithalon", name: "Epithalon", cls: "Short Peptides & Neuropeptides" },
-] as const;
-
-type NodeKey = (typeof NODES)[number]["key"];
-
-// Highlighted connectors only ever join two compounds of the same chemical
-// class, captioned with that class — never a combination or an outcome.
-export const PAIRS: { a: NodeKey; b: NodeKey; text: string }[] = [
-  { a: "slu-pp-332", b: "mots-c", text: "SLU-PP-332 · MOTS-c — Mitochondrial & Metabolic" },
-  { a: "tesamorelin", b: "cjc-1295-ipamorelin", text: "Tesamorelin · CJC-1295 / Ipamorelin — GH-Axis Peptides" },
-];
+// 2026-09-28 before Stripe review). The server page passes in active (listed)
+// SKUs only, via lib/sphere-nodes.ts; each label links to its product page.
 
 const INK = "28, 24, 19";
 const SPECIMEN = "163, 43, 31";
@@ -32,8 +16,9 @@ const SPECIMEN_DARK = "104, 25, 18";
 // `value` is an internal 0–1 signal that only drives node brightness; it is
 // never displayed.
 type Metric = {
-  key: NodeKey;
+  key: string;
   name: string;
+  href: string;
   value: number;
   target: number;
   prevTarget: number;
@@ -85,7 +70,7 @@ function makeCloudPoints(n: number, R: number): CloudPoint[] {
   return points;
 }
 
-export default function BiosignatureSphere() {
+export default function BiosignatureSphere({ nodes, pairs }: { nodes: SphereNode[]; pairs: SpherePair[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const labelHostRef = useRef<HTMLDivElement>(null);
   const tensionTextRef = useRef<HTMLSpanElement>(null);
@@ -136,11 +121,12 @@ export default function BiosignatureSphere() {
       })
       .catch((err) => console.warn("sphere strand not loaded:", err));
 
-    const metrics: Metric[] = NODES.map((base) => {
+    const metrics: Metric[] = nodes.map((base) => {
       const start = Math.random();
       return {
         key: base.key,
         name: base.name,
+        href: base.href,
         value: start,
         target: start,
         prevTarget: start,
@@ -164,7 +150,7 @@ export default function BiosignatureSphere() {
       m.ringAngle = (idx / metrics.length) * Math.PI * 2 - Math.PI / 2;
     });
 
-    function metric(key: NodeKey) {
+    function metric(key: string) {
       return metrics.find((m) => m.key === key)!;
     }
 
@@ -176,7 +162,7 @@ export default function BiosignatureSphere() {
       el.className = "p-biosig-label";
       const link = document.createElement("a");
       link.className = "p-biosig-peptide";
-      link.href = `/products/${m.key}`;
+      link.href = m.href;
       // Blend names ("CJC-1295 / Ipamorelin") break onto two lines so the
       // side labels don't overrun the ring and clip.
       m.name.split(" / ").forEach((part, i, parts) => {
@@ -325,9 +311,9 @@ export default function BiosignatureSphere() {
       tClock += dt;
       if (tClock >= HOLD) {
         tClock = 0;
-        tIdx = (tIdx + 1) % PAIRS.length;
+        tIdx = pairs.length ? (tIdx + 1) % pairs.length : 0;
       }
-      const active = PAIRS[tIdx];
+      const active = pairs[tIdx] as SpherePair | undefined;
       const tPhase = tClock / HOLD;
       const tAlpha = Math.sin(Math.min(tPhase, 1) * Math.PI);
 
@@ -377,7 +363,7 @@ export default function BiosignatureSphere() {
       // one, so the active connector (drawn next, brighter) reads as one
       // highlighted edge in a larger relationship network rather than an
       // isolated line appearing out of nowhere.
-      PAIRS.forEach((pair, i) => {
+      pairs.forEach((pair, i) => {
         if (i === tIdx) return;
         const pma = metric(pair.a);
         const pmb = metric(pair.b);
@@ -393,37 +379,39 @@ export default function BiosignatureSphere() {
         ctx.stroke();
       });
 
-      const ma = metric(active.a);
-      const mb = metric(active.b);
-      const qa = rotateX(rotateY(ma.pos, angle), wobble);
-      const qb = rotateX(rotateY(mb.pos, angle), wobble);
-      const pa = project(qa.x, qa.y, qa.z);
-      const pb = project(qb.x, qb.y, qb.z);
-      ctx.beginPath();
-      ctx.moveTo(pa.x, pa.y);
-      ctx.lineTo(pb.x, pb.y);
-      ctx.strokeStyle = `rgba(${SPECIMEN_DARK},${(0.35 + tAlpha * 0.6).toFixed(3)})`;
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
+      const ma = active ? metric(active.a) : undefined;
+      const mb = active ? metric(active.b) : undefined;
+      if (ma && mb) {
+        const qa = rotateX(rotateY(ma.pos, angle), wobble);
+        const qb = rotateX(rotateY(mb.pos, angle), wobble);
+        const pa = project(qa.x, qa.y, qa.z);
+        const pb = project(qb.x, qb.y, qb.z);
+        ctx.beginPath();
+        ctx.moveTo(pa.x, pa.y);
+        ctx.lineTo(pb.x, pb.y);
+        ctx.strokeStyle = `rgba(${SPECIMEN_DARK},${(0.35 + tAlpha * 0.6).toFixed(3)})`;
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
 
-      // Traveling pulse along the active connector — a small glowing dot
-      // moving back and forth, reinforcing the "live signal" framing.
-      const travel = Math.abs(((t * 0.5) % 2) - 1); // 0 -> 1 -> 0
-      const px = lerp(pa.x, pb.x, travel);
-      const py = lerp(pa.y, pb.y, travel);
-      const glowAlpha = 0.4 + tAlpha * 0.5;
-      ctx.beginPath();
-      ctx.arc(px, py, 4, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${SPECIMEN},${(glowAlpha * 0.25).toFixed(3)})`;
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(px, py, 2, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${SPECIMEN},${glowAlpha.toFixed(3)})`;
-      ctx.fill();
+        // Traveling pulse along the active connector — a small glowing dot
+        // moving back and forth, reinforcing the "live signal" framing.
+        const travel = Math.abs(((t * 0.5) % 2) - 1); // 0 -> 1 -> 0
+        const px = lerp(pa.x, pb.x, travel);
+        const py = lerp(pa.y, pb.y, travel);
+        const glowAlpha = 0.4 + tAlpha * 0.5;
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${SPECIMEN},${(glowAlpha * 0.25).toFixed(3)})`;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(px, py, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${SPECIMEN},${glowAlpha.toFixed(3)})`;
+        ctx.fill();
+      }
 
       if (now - lastDom > 90) {
         lastDom = now;
-        tensionTextEl.textContent = active.text;
+        if (active) tensionTextEl.textContent = active.text;
         tensionTextEl.style.opacity = String(0.55 + 0.45 * tAlpha);
         sevDotEl.style.background = `rgba(${SPECIMEN},${(0.55 + 0.45 * tAlpha).toFixed(3)})`;
         labelEls.forEach((el, i) => {
@@ -449,7 +437,7 @@ export default function BiosignatureSphere() {
       window.removeEventListener("pointerup", onPointerUp);
       labelHost.innerHTML = "";
     };
-  }, []);
+  }, [nodes, pairs]);
 
   return (
     <div className="overflow-hidden">
