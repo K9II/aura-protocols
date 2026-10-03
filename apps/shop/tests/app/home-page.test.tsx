@@ -8,6 +8,13 @@ vi.mock("@/components/ScrollReveal", () => ({ default: () => null }));
 import HomePage from "@/app/page";
 
 describe("/ (home)", () => {
+  it("leads with Separated. Measured. Published. and the independent third-party US lab line", () => {
+    render(<HomePage />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Separated. Measured.Published.");
+    expect(screen.getByText(/separated and measured by an independent third-party US lab before it goes on sale/i)).toBeInTheDocument();
+    expect(screen.getByText(/published under the lot number printed on your vial/i)).toBeInTheDocument();
+  });
+
   it("links the lineup heading to the full inventory", () => {
     render(<HomePage />);
     const heading = screen.getByRole("heading", { level: 2, name: /the lineup/i });
