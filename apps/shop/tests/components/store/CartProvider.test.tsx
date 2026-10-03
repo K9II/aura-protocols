@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { CartProvider, useCart, CART_STORAGE_KEY } from "@/components/store/CartProvider";
+import { CartProvider, useCart, CART_STORAGE_KEY, CART_CODE_KEY } from "@/components/store/CartProvider";
 import ClearCart from "@/components/account/ClearCart";
 
 function Probe() {
@@ -58,6 +58,23 @@ describe("CartProvider", () => {
     ]));
     render(<CartProvider><LinesProbe /></CartProvider>);
     expect(screen.getByTestId("lines-detail").textContent).toBe("bpc-157:2");
+  });
+
+  it("keeps a discount code across visits and empties it with the cart", async () => {
+    window.localStorage.clear();
+    function CodeProbe() {
+      const { code, setCode, clear } = useCart();
+      return <div><span data-testid="code">{code}</span><button onClick={() => setCode("SMITHLAB")}>set</button><button onClick={clear}>clear</button></div>;
+    }
+    const { unmount } = render(<CartProvider><CodeProbe /></CartProvider>);
+    fireEvent.click(screen.getByText("set"));
+    expect(window.localStorage.getItem(CART_CODE_KEY)).toBe("SMITHLAB");
+    unmount();
+    render(<CartProvider><CodeProbe /></CartProvider>);
+    expect(await screen.findByText("SMITHLAB")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("clear"));
+    expect(screen.getByTestId("code").textContent).toBe("");
+    expect(window.localStorage.getItem(CART_CODE_KEY)).toBeNull();
   });
 });
 

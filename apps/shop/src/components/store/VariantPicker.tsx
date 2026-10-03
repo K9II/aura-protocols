@@ -42,7 +42,7 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
       </div>
       <div className="s-optlabel s-micro">Quantity</div>
       <div className="s-buyrow">
-        <div className="s-qty" role="group" aria-label="Quantity">
+        <div className="s-stepper" role="group" aria-label="Quantity">
           <button type="button" aria-label="Decrease quantity" disabled={quantity <= 1} onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
           <span aria-live="polite">{quantity}</span>
           <button type="button" aria-label="Increase quantity" disabled={quantity >= MAX_PACKS} onClick={() => setQuantity((q) => Math.min(MAX_PACKS, q + 1))}>+</button>

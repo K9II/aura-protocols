@@ -5,6 +5,8 @@ import { compounds } from "@/data/catalog";
 import { addLine, cartTotals, removeLine, setQuantity, type CartLine } from "@/lib/cart";
 
 export const CART_STORAGE_KEY = "aura_cart_v1";
+// Discount code entered in the cart; checkout checks and applies it.
+export const CART_CODE_KEY = "aura_cart_code_v1";
 
 type CartContextValue = {
   lines: CartLine[];
@@ -12,6 +14,8 @@ type CartContextValue = {
   remove: (index: number) => void;
   setQty: (index: number, quantity: number) => void;
   clear: () => void;
+  code: string;
+  setCode: (code: string) => void;
   totals: ReturnType<typeof cartTotals>;
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -40,6 +44,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
+  const [code, setCodeState] = useState("");
 
   useEffect(() => {
     // One-time localStorage hydration after mount — must not run during SSR
@@ -47,6 +52,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // and there is no hydration mismatch.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above
     setLines(readStored());
+    try { setCodeState(window.localStorage.getItem(CART_CODE_KEY) ?? ""); } catch { /* storage unavailable */ }
     setLoaded(true);
   }, []);
 
@@ -65,21 +71,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const remove = useCallback((i: number) => setLines((prev) => removeLine(prev, i)), []);
   const setQty = useCallback((i: number, q: number) => setLines((prev) => setQuantity(prev, i, q)), []);
+  const setCode = useCallback((next: string) => {
+    const v = next.trim().toUpperCase();
+    try {
+      if (v) window.localStorage.setItem(CART_CODE_KEY, v);
+      else window.localStorage.removeItem(CART_CODE_KEY);
+    } catch {
+      // storage unavailable — the code still applies for this visit
+    }
+    setCodeState(v);
+  }, []);
   const clear = useCallback(() => {
     // Also empty storage now: a child calling clear() on mount (ClearCart)
     // runs before this provider's hydration effect, which would otherwise
     // read the old cart straight back.
     try {
       window.localStorage.setItem(CART_STORAGE_KEY, "[]");
+      window.localStorage.removeItem(CART_CODE_KEY);
     } catch {
       // storage unavailable — state clear below still applies
     }
     setLines([]);
+    setCodeState("");
   }, []);
 
   const value = useMemo(
-    () => ({ lines, add, remove, setQty, clear, totals: cartTotals(lines), open, setOpen }),
-    [lines, add, remove, setQty, clear, open],
+    () => ({ lines, add, remove, setQty, clear, code, setCode, totals: cartTotals(lines), open, setOpen }),
+    [lines, add, remove, setQty, clear, code, setCode, open],
   );
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

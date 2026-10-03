@@ -34,10 +34,13 @@ const schema = z.object({
 // today (the /api/gate and /api/inquiry routes have none either) to reuse
 // per customer, and this is a signed-in server action, not an anonymous
 // public endpoint.
-export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; code: string } | { ok: false; message: string }> {
+// needsSignIn: the code wasn't refused, the shopper just isn't signed in and
+// verified yet (codes are only checked for verified accounts). The cart then
+// keeps the code and checkout applies it.
+export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; code: string } | { ok: false; message: string; needsSignIn?: true }> {
   const customer = await getCustomer();
-  if (!customer) return { ok: false, message: "Please sign in." };
-  if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link." };
+  if (!customer) return { ok: false, message: "Please sign in.", needsSignIn: true };
+  if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link.", needsSignIn: true };
   const { attribution, codeError } = await resolveAttribution({ typedCode: String(code).slice(0, 40), buyerCustomerId: customer.id });
   if (!attribution) return { ok: false, message: codeError ?? "This code can't be used." };
   return { ok: true, code: attribution.code };

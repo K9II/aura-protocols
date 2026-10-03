@@ -1,14 +1,50 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { compounds } from "@/data/catalog";
 import { FREE_SHIPPING_THRESHOLD_USD, linePriceUsd } from "@/lib/cart";
+import { priceOrder } from "@/lib/pricing";
+import { applyPartnerCode } from "@/lib/partners/discounts";
+import { checkPartnerCodeAction } from "@/app/checkout/actions";
 import { useCart } from "@/components/store/CartProvider";
+
+const codeBtn: React.CSSProperties = { padding: "7px 13px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: "1px solid var(--ink)", background: "transparent", color: "var(--ink)", cursor: "pointer" };
+type CodeStatus = { kind: "applied" | "saved" | "error"; text: string } | null;
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
 
 export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
-  const { lines, remove, setQty, totals } = useCart();
+  const { lines, remove, setQty, totals, code, setCode } = useCart();
+  const [codeInput, setCodeInput] = useState("");
+  const [verified, setVerified] = useState<string | null>(null);
+  const [status, setStatus] = useState<CodeStatus>(null);
+  const checked = useRef<string | null>(null);
+
+  // Same rule as checkout: codes are checked only for signed-in, verified
+  // accounts. Otherwise the code is kept and checkout applies it.
+  async function check(value: string) {
+    const r = await checkPartnerCodeAction(value);
+    checked.current = r.ok ? r.code : value.trim().toUpperCase();
+    if (r.ok) {
+      setCode(r.code); setVerified(r.code); setCodeInput(r.code);
+      setStatus({ kind: "applied", text: `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` });
+    } else if (r.needsSignIn) {
+      const v = value.trim().toUpperCase();
+      setCode(v); setVerified(null); setCodeInput(v);
+      setStatus({ kind: "saved", text: `${v} saved. It's checked and applied when you sign in at checkout.` });
+    } else {
+      setVerified(null); setStatus({ kind: "error", text: r.message });
+    }
+  }
+  // A code saved earlier (this visit or a previous one) is re-checked when the cart shows.
+  useEffect(() => {
+    if (code && checked.current !== code) void check(code);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
+  function removeCode() { setCode(""); setVerified(null); setCodeInput(""); setStatus(null); checked.current = null; }
+
+  const discountCents = useMemo(() => (verified ? applyPartnerCode(priceOrder(lines)).partnerDiscountCents : 0), [lines, verified]);
 
   if (lines.length === 0) {
     return (
@@ -45,7 +81,21 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
         );
       })}
       <div className="border-t border-[color:var(--line)] pt-4 mt-2">
-        <div className="flex justify-between text-[15px]"><span>Subtotal</span><b>{usd(totals.subtotalUsd)}</b></div>
+        <label htmlFor="cart-code" className="s-micro block mb-1.5">Discount code</label>
+        <div className="flex gap-2 mb-1">
+          <input id="cart-code" value={codeInput} maxLength={20} autoComplete="off"
+            onChange={(e) => { setCodeInput(e.target.value); if (status?.kind === "error") setStatus(null); }}
+            onKeyDown={(e) => { if (e.key === "Enter" && codeInput.trim() && !code) void check(codeInput); }}
+            readOnly={!!code} className="flex-1 min-w-0 border border-[color:var(--ink)] bg-[color:var(--paper)] px-3 py-2 text-sm uppercase" />
+          {code
+            ? <button type="button" onClick={removeCode} style={codeBtn} aria-label="Remove code">Remove</button>
+            : <button type="button" onClick={() => codeInput.trim() && void check(codeInput)} style={codeBtn}>Apply</button>}
+        </div>
+        {status && <p role="status" className="text-[12.5px] mb-3" style={{ color: status.kind === "error" ? "var(--specimen)" : status.kind === "applied" ? "#2F5D3A" : "var(--ink-soft)" }}>{status.text}</p>}
+        <div className="flex justify-between text-[15px] mt-3"><span>Subtotal</span><b>{usd(totals.subtotalUsd)}</b></div>
+        {discountCents > 0 && (
+          <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Discount code {verified}</span><span>−{usd(discountCents / 100)}</span></div>
+        )}
         <div className="s-freeship" aria-hidden><i style={{ width: `${pct}%` }} /></div>
         <p className="s-micro text-[color:var(--ink-soft)]">
           {totals.freeShipping ? "Free shipping unlocked" : `${usd(totals.remainingForFreeShippingUsd)} from free shipping`}
