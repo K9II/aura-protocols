@@ -422,14 +422,36 @@ export default function BiosignatureSphere({ nodes, pairs }: { nodes: SphereNode
         });
       }
 
-      if (!reduced) raf = requestAnimationFrame(draw);
+      raf = running ? requestAnimationFrame(draw) : 0;
     }
 
-    raf = requestAnimationFrame(draw);
+    // Draw only while the sphere is on screen and the tab is in front. A
+    // full-canvas redraw every frame kept phones busy for the whole visit,
+    // long after the sphere was scrolled away. dt is capped above, so
+    // resuming doesn't jump.
+    let running = false;
+    let inView = false;
+    const syncRunning = () => {
+      const next = !reduced && inView && !document.hidden;
+      if (next === running) return;
+      running = next;
+      if (running && !raf) raf = requestAnimationFrame(draw);
+      if (!running && raf) { cancelAnimationFrame(raf); raf = 0; }
+    };
+    const visObs = new IntersectionObserver((entries) => {
+      inView = entries.some((e) => e.isIntersecting);
+      syncRunning();
+    });
+    visObs.observe(canvas);
+    document.addEventListener("visibilitychange", syncRunning);
+
     if (reduced) draw(t0 + 1000);
 
     return () => {
       strandAbort = true;
+      running = false;
+      visObs.disconnect();
+      document.removeEventListener("visibilitychange", syncRunning);
       if (raf) cancelAnimationFrame(raf);
       resizeObs.disconnect();
       canvas.removeEventListener("pointerdown", onPointerDown);
