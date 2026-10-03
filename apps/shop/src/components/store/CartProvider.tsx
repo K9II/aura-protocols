@@ -16,6 +16,7 @@ type CartContextValue = {
   clear: () => void;
   code: string;
   setCode: (code: string) => void;
+  ready: boolean; // false until the saved cart has been read from storage
   totals: ReturnType<typeof cartTotals>;
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -96,8 +97,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ lines, add, remove, setQty, clear, code, setCode, totals: cartTotals(lines), open, setOpen }),
-    [lines, add, remove, setQty, clear, code, setCode, open],
+    () => ({ lines, add, remove, setQty, clear, code, setCode, ready: loaded, totals: cartTotals(lines), open, setOpen }),
+    [lines, add, remove, setQty, clear, code, setCode, loaded, open],
   );
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
