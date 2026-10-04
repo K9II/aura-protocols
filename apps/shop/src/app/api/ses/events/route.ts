@@ -17,7 +17,7 @@ export async function POST(request: Request): Promise<Response> {
   if (m.Type === "SubscriptionConfirmation") {
     const url = new URL(m.SubscribeURL ?? "");
     if (url.protocol !== "https:" || !SNS_HOST.test(url.hostname)) return new Response("forbidden", { status: 403 });
-    const res = await fetch(url.toString());
+    const res = await fetch(url.toString(), { signal: AbortSignal.timeout(5000) });
     return new Response(res.ok ? "confirmed" : "confirm failed", { status: res.ok ? 200 : 502 });
   }
   if (m.Type !== "Notification") return new Response("ignored", { status: 200 });

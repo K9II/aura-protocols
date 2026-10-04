@@ -52,7 +52,7 @@ apps/shop/src/
 - Authorization lives in `lib/dal.ts` (`requireCustomer`, `requireOwner`, `requirePartner`, `requireApprovedPartner`) — call it next to every data access. `proxy.ts` refreshes sessions and, for `?ref=`, sets the signed `aura_ref` cookie and counts the click; it does no authorization.
 - Order status changes go through `transitionOrder` (`lib/orders.ts`) and the machine in `lib/order-status.ts` — never update `status` directly.
 - Prices are rebuilt server-side by `lib/pricing.ts`; never trust cart prices from the browser.
-- One discount per order line (`lib/partners/discounts.ts`): the larger of the pack price or the partner code, never both. Store credit is a payment, not a discount — tax is pre-computed with Stripe Tax before credit applies.
+- One discount per order line (`lib/partners/discounts.ts`): the larger of the pack price or the code discount — the partner code or the new-account percent (whichever is larger) — never both. Store credit is a payment, not a discount — tax is pre-computed with Stripe Tax before credit applies.
 - Commission changes only through `lib/partners/ledger.ts` (created on payment, clearing on ship, reversed on refund/chargeback). Partner bank/Zelle details are AES-GCM encrypted (`PAYOUT_DETAILS_KEY`).
 - Failures must be loud: a write that can fail throws (or alerts the owner via `alertOwner`), never reports success; webhook handlers throw to get a Stripe retry when an order isn't matched yet.
 - New-account offer: 15% off a first order within 14 days of sign-up, automatic (`lib/account/offer.ts`); larger-of with pack; beats a partner code but the partner keeps commission.

@@ -31,7 +31,7 @@ describe("POST /api/ses/events", () => {
     const { POST } = await import("@/app/api/ses/events/route");
     const url = "https://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription&Token=t";
     expect((await POST(post({ Type: "SubscriptionConfirmation", TopicArn: TOPIC, SubscribeURL: url }))).status).toBe(200);
-    expect(fetchMock).toHaveBeenCalledWith(url);
+    expect(fetchMock).toHaveBeenCalledWith(url, { signal: expect.any(AbortSignal) });
   });
 
   it("hands a notification's message to the handler", async () => {

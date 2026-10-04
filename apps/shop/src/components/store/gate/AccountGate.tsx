@@ -47,7 +47,9 @@ export default function AccountGate() {
   const rootRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLElement>(null);
 
-  // Who is this? Asked once per page load. A failed check shows the gate (fail closed).
+  // Who is this? Asked on every page change: the gate lives in the root layout and
+  // survives client-side navigations (incl. sign-in/sign-out redirects), so a status
+  // from an earlier page may be stale. A failed check shows the gate (fail closed).
   useEffect(() => {
     let cancelled = false;
     let crawler = false;
@@ -57,19 +59,24 @@ export default function AccountGate() {
       setStatus("ok");
       return;
     }
+    setStatus("unknown");   // never act on the previous page's answer
+    if (exempt) return;     // no gate here; the next non-exempt page checks again
     fetch("/api/me/gate", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { state: "anon" }))
       .then((d: { state?: string; email?: string }) => {
         if (cancelled) return;
         if (d.state === "ok") setStatus("ok");
         else if (d.state === "verify") { setEmail(d.email ?? ""); setStep("verify"); setStatus("verify"); }
-        else setStatus("anon");
+        else { setStep((s) => (s === "verify" ? "1" : s)); setStatus("anon"); }
       })
       .catch(() => { if (!cancelled) setStatus("anon"); });
     return () => { cancelled = true; };
-  }, []);
+  }, [pathname, exempt]);
 
-  const wanted = !exempt && (status === "anon" || status === "verify");
+  // While a re-check is in flight, a gate already on screen (or counting down) stays
+  // as it is — no flicker; it closes if the answer is "ok". Nothing new opens on "unknown".
+  const holding = status === "unknown" && phase !== "off";
+  const wanted = !exempt && (status === "anon" || status === "verify" || holding);
 
   // Entrance: mounted off-screen at once, enters at 3.5 s, form fades up after.
   useEffect(() => {

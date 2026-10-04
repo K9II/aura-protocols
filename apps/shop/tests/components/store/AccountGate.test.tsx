@@ -58,6 +58,52 @@ describe("AccountGate", () => {
     expect(document.querySelector(".ag")).toBeNull();
   });
 
+  it("re-checks on navigation: signed in on /sign-in, then /account shows no gate", async () => {
+    pathname = "/sign-in";
+    routes({ state: "anon" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    const { rerender } = render(<AccountGate />);
+    await settle();
+    expect(document.querySelector(".ag")).toBeNull();
+    routes({ state: "ok" });
+    pathname = "/account";
+    rerender(<AccountGate />);
+    await settle();
+    expect(document.querySelector(".ag")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledWith("/api/me/gate", expect.anything());
+  });
+
+  it("re-checks on navigation: signed out, the next page gates after 3.5 s", async () => {
+    routes({ state: "ok" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    const { rerender } = render(<AccountGate />);
+    await settle();
+    expect(document.querySelector(".ag")).toBeNull();
+    routes({ state: "anon" });
+    pathname = "/products";
+    rerender(<AccountGate />);
+    await waitFor(() => expect(document.querySelector(".ag")).not.toBeNull());
+    await settle(3000);
+    expect(document.querySelector(".ag.in")).toBeNull();
+    await settle(1100);
+    expect(document.querySelector(".ag.in")).not.toBeNull();
+  });
+
+  it("a shown gate stays shown (no flicker) while an anon visitor's status is re-checked", async () => {
+    routes({ state: "anon" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    const { rerender } = render(<AccountGate />);
+    await waitFor(() => expect(document.querySelector(".ag")).not.toBeNull());
+    await settle();
+    expect(document.querySelector(".ag.in")).not.toBeNull();
+    pathname = "/products";
+    rerender(<AccountGate />);
+    expect(document.querySelector(".ag.in")).not.toBeNull();
+    await settle(50);
+    expect(document.querySelector(".ag.in")).not.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("never shows on an exempt page", async () => {
     pathname = "/terms";
     routes({ state: "anon" });

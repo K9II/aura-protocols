@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/store/CartProvider";
 import { priceOrder, type Rejection } from "@/lib/pricing";
 import { applyCodeDiscount } from "@/lib/partners/discounts";
+import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
 import { discountPct, OFFER_PCT_TEXT, type FirstOrderOffer } from "@/lib/account/offer";
 import { checkPartnerCodeAction, startCheckoutAction } from "@/app/checkout/actions";
 import type { ShipAddress } from "@/lib/ship-address";
@@ -54,7 +55,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
       if (r.ok) {
         setAppliedCode(r.code); setCodeInput(r.code);
         const withCode = discountPct(!!newAccountOffer, true);
-        setCodeMsg({ ok: true, text: withCode?.newAccount ? `✓ ${r.code} applied · your new-account ${OFFER_PCT_TEXT} is larger, so it's used instead (the order still credits that partner)` : `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` });
+        setCodeMsg({ ok: true, text: withCode?.newAccount ? `✓ ${r.code} applied · your new-account ${OFFER_PCT_TEXT} is larger, so it's used instead (the order still credits that partner)` : `✓ ${r.code} applied · ${CODE_DISCOUNT_PCT}% off items that don't already have a larger pack discount` });
       }
       else { setAppliedCode(null); setCodeMsg({ ok: false, text: r.message }); }
     } catch {
@@ -132,7 +133,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         {priced.items.map((i, idx) => {
           const d = priced.lineDiscounts[idx];
           const pack = ` · ${i.packQty}-pack${i.packPct && d.source !== "code" ? ` −${i.packPct}%` : ""}`;
-          const note = discount?.newAccount ? (d.source === "code" ? ` · new account −${OFFER_PCT_TEXT}` : d.source === "pack" ? " (pack price is lower)" : "") : appliedCode ? (d.source === "code" ? " · code −10%" : d.source === "pack" ? " (code not added)" : "") : "";
+          const note = discount?.newAccount ? (d.source === "code" ? ` · new account −${OFFER_PCT_TEXT}` : d.source === "pack" ? " (pack price is lower)" : "") : appliedCode ? (d.source === "code" ? ` · code −${CODE_DISCOUNT_PCT}%` : d.source === "pack" ? " (code not added)" : "") : "";
           // Struck-through price is whatever this line would cost without its
           // applied discount: LIST when the code wins (pack % never applied),
           // the pack-discounted total when the pack wins.
