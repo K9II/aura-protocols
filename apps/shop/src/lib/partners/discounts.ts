@@ -1,5 +1,5 @@
 // One discount per line, never stacked: each line keeps its pack price or
-// takes the code's 10% off list (partner or welcome code), whichever is lower for the customer.
+// takes the code's percent off list (partner code 10%, new-account 15%), whichever is lower for the customer.
 // Pure — used by checkout (server) and the checkout form preview (client).
 import { withCharges, type PricedOrder } from "@/lib/pricing";
 import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
@@ -7,8 +7,8 @@ import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
 export type LineDiscount = { index: number; source: "code" | "pack" | "none"; savingCents: number };
 export type DiscountedOrder = PricedOrder & { lineDiscounts: LineDiscount[] };
 
-// Any 10%-off-list code (partner code or subscriber welcome code) uses the
-// same rule: per line, the larger of the pack discount or the code.
+// Any percent-off-list discount (partner code or the new-account offer) uses
+// the same rule: per line, the larger of the pack discount or the percent.
 export function applyCodeDiscount(priced: PricedOrder, pct: number): DiscountedOrder {
   const lineDiscounts: LineDiscount[] = priced.items.map((i, index) => {
     const codeUnit = Math.round((i.listUnitCents * (100 - pct)) / 100);

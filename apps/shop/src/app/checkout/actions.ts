@@ -12,14 +12,14 @@ import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } fro
 import { siteUrl } from "@/lib/supabase/env";
 import { resolveAttribution } from "@/lib/partners/attribution";
 import { applyCodeDiscount, applyPartnerCode } from "@/lib/partners/discounts";
-import { isWelcomeCodeFormat, WELCOME_PCT, type WelcomeCheck } from "@/lib/email/welcome-code";
-import { checkWelcomeForCustomer } from "@/lib/email/welcome-checkout";
+import { offerForCustomer } from "@/lib/account/offer-data";
+import { NEW_ACCOUNT_PCT, type FirstOrderOffer } from "@/lib/account/offer";
 import { creditBalance, spendCredit } from "@/lib/partners/ledger";
 import { REF_COOKIE } from "@/lib/partners/ref-cookie";
 import { afterOrderPaid } from "@/lib/order-paid";
 import { alertOwner } from "@/lib/notify";
 
-const CODE_CHECK_FAILED = "We couldn't check that code — please try again.";
+const OFFER_CHECK_FAILED = "We couldn't check your new-account discount — please try again.";
 
 export type StartCheckoutResult = { url?: string; error?: string; rejected?: Rejection[]; codeError?: string };
 
@@ -46,15 +46,6 @@ export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; 
   if (!customer) return { ok: false, message: "Please sign in.", needsSignIn: true };
   if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link.", needsSignIn: true };
   const typed = String(code).slice(0, 40); // server action: the argument is untrusted
-  if (isWelcomeCodeFormat(typed)) {
-    try {
-      const w = await checkWelcomeForCustomer(typed, customer);
-      return w.ok ? { ok: true, code: w.code } : { ok: false, message: w.message };
-    } catch (err) {
-      console.error("welcome code check failed:", err);
-      return { ok: false, message: CODE_CHECK_FAILED };
-    }
-  }
   const { attribution, codeError } = await resolveAttribution({ typedCode: typed, buyerCustomerId: customer.id });
   if (!attribution) return { ok: false, message: codeError ?? "This code can't be used." };
   return { ok: true, code: attribution.code };
@@ -104,25 +95,22 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   if (priced.rejected.length) return { error: "Some items can't be ordered right now — they've been flagged below.", rejected: priced.rejected };
   if (priced.items.length === 0) return { error: "Your cart is empty." };
 
-  // One code box: a welcome code (AURA-XXXX) or a partner code. A welcome
-  // code is checked against the signed-in email; the referral cookie still
-  // attributes the order to a partner (commission), but only one discount applies.
-  let welcome: WelcomeCheck | null = null;
-  if (partnerCode && isWelcomeCodeFormat(partnerCode)) {
-    try {
-      welcome = await checkWelcomeForCustomer(partnerCode, customer);
-    } catch (err) {
-      console.error("welcome code check failed:", err);
-      return { error: CODE_CHECK_FAILED };
-    }
-  }
-  if (welcome && !welcome.ok) return { error: welcome.message, codeError: welcome.message };
   const refCookie = (await cookies()).get(REF_COOKIE)?.value;
-  const { attribution, codeError } = await resolveAttribution({ typedCode: welcome ? undefined : partnerCode, refCookie, buyerCustomerId: customer.id });
+  const { attribution, codeError } = await resolveAttribution({ typedCode: partnerCode, refCookie, buyerCustomerId: customer.id });
   if (codeError) return { error: codeError, codeError };
+  // One discount per line. A new account's first order (within 14 days) gets
+  // 15%, which beats any partner code; a partner code or link still
+  // attributes the order to the partner for commission.
+  let offer: FirstOrderOffer = null;
+  try {
+    offer = await offerForCustomer(customer);
+  } catch (err) {
+    console.error("new-account offer check failed:", err);
+    return { error: OFFER_CHECK_FAILED };
+  }
   let lineDiscountsCents = priced.items.map(() => 0);
-  if (welcome?.ok || attribution?.via === "code") {
-    const discounted = welcome?.ok ? applyCodeDiscount(priced, WELCOME_PCT) : applyPartnerCode(priced);
+  if (offer || attribution?.via === "code") {
+    const discounted = offer ? applyCodeDiscount(priced, NEW_ACCOUNT_PCT) : applyPartnerCode(priced);
     priced = discounted;
     lineDiscountsCents = discounted.lineDiscounts.map((d) => d.savingCents);
   }
@@ -155,7 +143,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     customerId: customer.id, email: customer.email, ship, priced,
     partner: attribution ? { partnerId: attribution.partnerId, attributedBy: attribution.via } : null,
     storeCreditCents: credit?.creditCents ?? 0, taxCents: credit?.taxCents ?? 0, taxCalculationId: credit?.calculationId ?? null,
-    welcomeCode: welcome?.ok ? welcome.code : null,
+    newAccountDiscount: !!offer,
   });
 
   // Credit is held (spent) the moment we commit to it, even for a partial

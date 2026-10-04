@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 const row = { id: "u1", full_name: "Jane", organization: null, is_owner: false, stripe_customer_id: null,
-  ship_name: "Jane", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
+  ship_name: "Jane", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701", created_at: "2026-10-01T00:00:00Z" };
 
 describe("DAL", () => {
   beforeEach(() => { vi.resetModules(); getUser.mockReset(); });
@@ -31,6 +31,7 @@ describe("DAL", () => {
     expect(await getCustomer()).toEqual({
       id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false,
       stripeCustomerId: null, ship: { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX", zip: "78701" },
+      createdAt: "2026-10-01T00:00:00Z",
     });
   });
 

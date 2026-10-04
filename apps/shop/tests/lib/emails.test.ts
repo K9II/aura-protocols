@@ -46,4 +46,9 @@ describe("emails", () => {
       expect(findViolations(html.replace(/<[^>]+>/g, " "))).toEqual([]);
     }
   });
+
+  it("labels a new-account discount in the order email", () => {
+    const html = orderConfirmationEmail({ ...order, partner_discount_cents: 735, new_account_discount: true } as OrderRow).html;
+    expect(html).toContain("New-account 15%");
+  });
 });

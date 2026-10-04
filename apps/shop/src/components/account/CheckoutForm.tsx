@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/store/CartProvider";
 import { priceOrder, type Rejection } from "@/lib/pricing";
-import { applyPartnerCode } from "@/lib/partners/discounts";
+import { applyCodeDiscount, applyPartnerCode } from "@/lib/partners/discounts";
+import { NEW_ACCOUNT_PCT, OFFER_PCT_TEXT, type FirstOrderOffer } from "@/lib/account/offer";
 import { checkPartnerCodeAction, startCheckoutAction } from "@/app/checkout/actions";
 import type { ShipAddress } from "@/lib/ship-address";
 import { usd } from "@/lib/html";
@@ -17,8 +18,8 @@ const REASON: Record<Rejection["reason"], string> = {
   bad_pack: "pack size unavailable", bad_quantity: "quantity not allowed",
 };
 
-export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents }: {
-  email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number;
+export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents, newAccountOffer }: {
+  email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number; newAccountOffer: FirstOrderOffer;
 }) {
   const { lines, code: cartCode, setCode: setCartCode } = useCart();
   // A code typed in the cart wins over a referral link's code (same priority as the server).
@@ -38,13 +39,16 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
   const base = useMemo(() => priceOrder(lines), [lines]);
-  // Welcome and partner codes are both 10% (WELCOME_PCT === CODE_DISCOUNT_PCT); the server re-prices every order.
-  const priced = useMemo(() => (appliedCode ? applyPartnerCode(base) : { ...base, lineDiscounts: base.items.map((_, index) => ({ index, source: "none" as const, savingCents: 0 })) }), [base, appliedCode]);
+  // The new-account 15% (automatic) beats a 10% partner code; one discount per line. The server re-prices every order.
+  const priced = useMemo(() => (newAccountOffer
+    ? applyCodeDiscount(base, NEW_ACCOUNT_PCT)
+    : appliedCode ? applyPartnerCode(base) : { ...base, lineDiscounts: base.items.map((_, index) => ({ index, source: "none" as const, savingCents: 0 })) }),
+  [base, appliedCode, newAccountOffer]);
 
   async function applyCodeValue(code: string) {
     try {
       const r = await checkPartnerCodeAction(code);
-      if (r.ok) { setAppliedCode(r.code); setCodeInput(r.code); setCodeMsg({ ok: true, text: `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` }); }
+      if (r.ok) { setAppliedCode(r.code); setCodeInput(r.code); setCodeMsg({ ok: true, text: newAccountOffer ? `✓ ${r.code} applied · your new-account ${OFFER_PCT_TEXT} is larger, so it's used instead (the order still credits that partner)` : `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` }); }
       else { setAppliedCode(null); setCodeMsg({ ok: false, text: r.message }); }
     } catch {
       setAppliedCode(null); setCodeMsg({ ok: false, text: "Something went wrong — please try again." });
@@ -103,6 +107,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
           <div><label htmlFor="co-state" className="s-micro block mb-1.5">State</label><input id="co-state" value={addr.state} onChange={set("state")} autoComplete="shipping address-level1" maxLength={2} required className={field} /></div>
           <div><label htmlFor="co-zip" className="s-micro block mb-1.5">ZIP</label><input id="co-zip" value={addr.zip} onChange={set("zip")} autoComplete="shipping postal-code" required className={field} /></div>
         </div>
+        {newAccountOffer && <p className="text-[13.5px] mt-2 mb-3" style={{ color: "#2F5D3A" }}>New account: {OFFER_PCT_TEXT} off this first order, applied automatically.</p>}
         <label htmlFor="co-code" className="s-micro block mb-1.5 mt-2">Discount code</label>
         <div style={{ display: "flex", gap: 8 }}>
           <input id="co-code" value={codeInput} onChange={(e) => { setCodeInput(e.target.value); if (appliedCode) setAppliedCode(null); }} maxLength={20}
@@ -120,7 +125,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         {priced.items.map((i, idx) => {
           const d = priced.lineDiscounts[idx];
           const pack = ` · ${i.packQty}-pack${i.packPct && d.source !== "code" ? ` −${i.packPct}%` : ""}`;
-          const note = appliedCode ? (d.source === "code" ? " · code −10%" : d.source === "pack" ? " (code not added)" : "") : "";
+          const note = newAccountOffer ? (d.source === "code" ? ` · new account −${OFFER_PCT_TEXT}` : d.source === "pack" ? " (pack price is lower)" : "") : appliedCode ? (d.source === "code" ? " · code −10%" : d.source === "pack" ? " (code not added)" : "") : "";
           // Struck-through price is whatever this line would cost without its
           // applied discount: LIST when the code wins (pack % never applied),
           // the pack-discounted total when the pack wins.
@@ -144,7 +149,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         <div className="border-t border-[color:var(--line)] pt-4 mt-2">
           <div className="flex justify-between text-[15px]"><span>Subtotal</span><span>{usd(priced.subtotalCents - priced.partnerDiscountCents)}</span></div>
           {priced.partnerDiscountCents > 0 && (
-            <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes discount code {appliedCode}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
+            <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes {newAccountOffer ? `new-account ${OFFER_PCT_TEXT}` : `discount code ${appliedCode}`}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
           )}
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping</span><span>{priced.shippingCents ? usd(priced.shippingCents) : <>Free <span className="text-[color:var(--ink-soft)] text-[12.5px]">({formatUsd(FREE_SHIPPING_THRESHOLD_USD)} or more)</span></>}</span></div>
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping insurance</span><span>{usd(priced.insuranceCents)}</span></div>

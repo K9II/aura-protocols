@@ -9,71 +9,25 @@ const spendCredit = vi.fn();
 const recordTax = vi.fn();
 const sendOrAlert = vi.fn();
 const alertOwner = vi.fn();
-const markWelcomeCodeUsed = vi.fn();
 vi.mock("@/lib/orders", () => ({ getOrderById, saveTaxTransactionId }));
 vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/partners/ledger", () => ({ createCommission, markCommissionClearing, spendCredit }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ recordTax }) }));
-vi.mock("@/lib/email/data", () => ({ markWelcomeCodeUsed }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
 
 const order = (over: Record<string, unknown> = {}) => ({
   id: "o1", order_number: "AP-1001", customer_id: "u1", email: "j@lab.org", status: "paid", order_items: [],
   subtotal_cents: 28230, partner_discount_cents: 690, shipping_cents: 0, insurance_cents: 550, tax_cents: 0, total_cents: 28090,
   ship_name: "J", ship_line1: "1", ship_line2: null, ship_city: "A", ship_state: "TX", ship_zip: "78701",
-  partner_id: null, attributed_by: null, welcome_code: null, store_credit_cents: 0, tax_calculation_id: null, tax_transaction_id: null,
+  partner_id: null, attributed_by: null, new_account_discount: false, store_credit_cents: 0, tax_calculation_id: null, tax_transaction_id: null,
   shipped_at: null, ...over,
 });
 
 describe("afterOrderPaid", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [getOrderById, saveTaxTransactionId, getPartnerById, createCommission, markCommissionClearing, spendCredit, recordTax, sendOrAlert, alertOwner, markWelcomeCodeUsed]) f.mockReset();
+    for (const f of [getOrderById, saveTaxTransactionId, getPartnerById, createCommission, markCommissionClearing, spendCredit, recordTax, sendOrAlert, alertOwner]) f.mockReset();
     spendCredit.mockResolvedValue(true);
-  });
-
-  it("marks a welcome code used by this order", async () => {
-    getOrderById.mockResolvedValue(order({ welcome_code: "AURA-7K2Q" }));
-    markWelcomeCodeUsed.mockResolvedValue(true);
-    const { afterOrderPaid } = await import("@/lib/order-paid");
-    await afterOrderPaid("o1");
-    expect(markWelcomeCodeUsed).toHaveBeenCalledWith("AURA-7K2Q", "o1");
-    expect(alertOwner).not.toHaveBeenCalled();
-  });
-
-  it("alerts the owner when the welcome code was already used by another order, and still sends both emails", async () => {
-    getOrderById.mockResolvedValue(order({ welcome_code: "AURA-7K2Q" }));
-    markWelcomeCodeUsed.mockResolvedValue(false);
-    const { afterOrderPaid } = await import("@/lib/order-paid");
-    await afterOrderPaid("o1");
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringMatching(/^Welcome code reused/), expect.stringContaining("AURA-7K2Q"));
-    expect(sendOrAlert).toHaveBeenCalledTimes(2);
-  });
-
-  it("alerts the owner when marking the welcome code fails, and still sends both emails", async () => {
-    getOrderById.mockResolvedValue(order({ welcome_code: "AURA-7K2Q" }));
-    markWelcomeCodeUsed.mockRejectedValue(new Error("db down"));
-    const { afterOrderPaid } = await import("@/lib/order-paid");
-    await afterOrderPaid("o1");
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringMatching(/^Welcome code not marked used/), expect.stringContaining("db down"));
-    expect(sendOrAlert).toHaveBeenCalledTimes(2);
-  });
-
-  it("a second run for the same order (code already claimed by it) raises no reuse alert", async () => {
-    getOrderById.mockResolvedValue(order({ welcome_code: "AURA-7K2Q" }));
-    markWelcomeCodeUsed.mockResolvedValue(true); // the .or(...eq.<this order>) match makes a repeat claim succeed
-    const { afterOrderPaid } = await import("@/lib/order-paid");
-    await afterOrderPaid("o1");
-    await afterOrderPaid("o1");
-    expect(markWelcomeCodeUsed).toHaveBeenNthCalledWith(2, "AURA-7K2Q", "o1");
-    expect(alertOwner).not.toHaveBeenCalledWith(expect.stringMatching(/^Welcome code reused/), expect.anything());
-  });
-
-  it("does nothing with welcome codes for an order without one", async () => {
-    getOrderById.mockResolvedValue(order());
-    const { afterOrderPaid } = await import("@/lib/order-paid");
-    await afterOrderPaid("o1");
-    expect(markWelcomeCodeUsed).not.toHaveBeenCalled();
   });
 
   it("emails the customer and the owner", async () => {

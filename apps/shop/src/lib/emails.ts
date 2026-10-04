@@ -1,6 +1,7 @@
 import { escapeHtml as e, usd } from "@/lib/html";
 import type { OrderRow } from "@/lib/orders";
 import { SUPPORT_EMAIL } from "@/lib/constants";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 export const CARRIERS = ["usps", "ups", "fedex", "dhl"] as const;
 export type Carrier = (typeof CARRIERS)[number];
@@ -30,7 +31,7 @@ function itemsTable(o: OrderRow): string {
   ).join("");
   return `<table style="width:100%;border-collapse:collapse;font-size:14px">${rows}
 <tr><td style="padding-top:10px">Subtotal</td><td style="text-align:right">${usd(o.subtotal_cents)}</td></tr>
-${o.partner_discount_cents > 0 ? `<tr><td>Discount code</td><td style="text-align:right">−${usd(o.partner_discount_cents)}</td></tr>` : ""}
+${o.partner_discount_cents > 0 ? `<tr><td>${o.new_account_discount ? `New-account ${OFFER_PCT_TEXT}` : "Discount code"}</td><td style="text-align:right">−${usd(o.partner_discount_cents)}</td></tr>` : ""}
 <tr><td>Shipping</td><td style="text-align:right">${o.shipping_cents ? usd(o.shipping_cents) : "Free"}</td></tr>
 <tr><td>Shipping insurance</td><td style="text-align:right">${usd(o.insurance_cents)}</td></tr>
 <tr><td>Sales tax</td><td style="text-align:right">${usd(o.tax_cents)}</td></tr>

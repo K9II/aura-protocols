@@ -17,8 +17,8 @@ const afterOrderPaid = vi.fn();
 const alertOwner = vi.fn();
 const listOpenOrdersForCustomer = vi.fn();
 const expireCheckout = vi.fn();
-const checkWelcomeForCustomer = vi.fn();
-vi.mock("@/lib/email/welcome-checkout", () => ({ checkWelcomeForCustomer }));
+const offerForCustomer = vi.fn();
+vi.mock("@/lib/account/offer-data", () => ({ offerForCustomer }));
 vi.mock("@/lib/dal", () => ({ getCustomer }));
 vi.mock("@/lib/orders", async (orig) => {
   const { willReleaseOnNewCheckout } = await orig<typeof import("@/lib/orders")>();  // the real rule, shared with the checkout page
@@ -40,7 +40,7 @@ vi.mock("@/data/catalog", () => ({
   }] satisfies Compound[],
 }));
 
-const customer = { id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false, stripeCustomerId: null, ship: null };
+const customer = { id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false, stripeCustomerId: null, ship: null, createdAt: "2026-10-04T00:00:00Z" };
 const input = {
   lines: [{ slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 }],
   ship: { name: "Jane", line1: "1 A St", line2: "", city: "Austin", state: "TX", zip: "78701" },
@@ -53,7 +53,7 @@ describe("startCheckoutAction", () => {
     vi.resetModules();
     for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon,
       createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid, alertOwner, listOpenOrdersForCustomer, expireCheckout]) f.mockReset();
-    checkWelcomeForCustomer.mockReset();
+    offerForCustomer.mockReset(); offerForCustomer.mockResolvedValue(null);
     listOpenOrdersForCustomer.mockResolvedValue([]);
     resolveAttribution.mockResolvedValue({ attribution: null });
     createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
@@ -124,57 +124,48 @@ describe("startCheckoutAction", () => {
     expect(createPendingOrder).not.toHaveBeenCalled();
   });
 
-  it("applies a valid welcome code as 10% and records it on the order, without calling partner attribution for the code", async () => {
+  it("gives a new account's first order 15% off and records it", async () => {
     getCustomer.mockResolvedValue(customer);
-    checkWelcomeForCustomer.mockResolvedValue({ ok: true, code: "AURA-7K2Q" });
+    offerForCustomer.mockResolvedValue({ endsAt: "2026-10-18T23:59:59.999Z" });
     createCheckout.mockResolvedValue(redirect);
     const { startCheckoutAction } = await import("@/app/checkout/actions");
-    await startCheckoutAction({ ...input, partnerCode: "aura-7k2q" });
-    expect(checkWelcomeForCustomer).toHaveBeenCalledWith("aura-7k2q", customer);
-    expect(resolveAttribution).toHaveBeenCalledWith(expect.objectContaining({ typedCode: undefined }));
+    await startCheckoutAction(input);
     const order = createPendingOrder.mock.calls[0][0];
-    expect(order.welcomeCode).toBe("AURA-7K2Q");
-    expect(order.priced.partnerDiscountCents).toBe(490); // 10% of $49.00 list, pack qty 1 has no pack discount
-    expect(createCheckout.mock.calls[0][0]).toMatchObject({ partnerDiscountCents: 490, lineDiscountsCents: [490] });
+    expect(order.newAccountDiscount).toBe(true);
+    expect(order.priced.partnerDiscountCents).toBe(735); // 15% of $49.00
   });
 
-  it("a welcome code with a partner referral link: partner still attributed (commission), only the one 10% discount", async () => {
+  it("uses the 15% over a typed partner code but still attributes the order to the partner", async () => {
     getCustomer.mockResolvedValue(customer);
-    checkWelcomeForCustomer.mockResolvedValue({ ok: true, code: "AURA-7K2Q" });
-    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p2", code: "BENCHNOTES", via: "link" } });
+    offerForCustomer.mockResolvedValue({ endsAt: "2026-10-18T23:59:59.999Z" });
+    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p1", via: "code", code: "SMITHLAB" } });
     createCheckout.mockResolvedValue(redirect);
     const { startCheckoutAction } = await import("@/app/checkout/actions");
-    await startCheckoutAction({ ...input, partnerCode: "AURA-7K2Q" });
-    expect(createPendingOrder.mock.calls[0][0]).toMatchObject({
-      welcomeCode: "AURA-7K2Q", partner: { partnerId: "p2", attributedBy: "link" }, priced: { partnerDiscountCents: 490 },
-    });
+    await startCheckoutAction({ ...input, partnerCode: "SMITHLAB" });
+    const order = createPendingOrder.mock.calls[0][0];
+    expect(order.partner).toEqual({ partnerId: "p1", attributedBy: "code" });
+    expect(order.priced.partnerDiscountCents).toBe(735);
+    expect(order.newAccountDiscount).toBe(true);
   });
 
-  it("a partner code never goes through the welcome check and records no welcome code", async () => {
+  it("applies the 10% partner code when there's no new-account offer", async () => {
     getCustomer.mockResolvedValue(customer);
-    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p1", code: "SMITHLAB", via: "code" } });
+    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p1", via: "code", code: "SMITHLAB" } });
     createCheckout.mockResolvedValue(redirect);
     const { startCheckoutAction } = await import("@/app/checkout/actions");
-    await startCheckoutAction({ ...input, partnerCode: "smithlab" });
-    expect(checkWelcomeForCustomer).not.toHaveBeenCalled();
-    expect(createPendingOrder.mock.calls[0][0].welcomeCode).toBeNull();
+    await startCheckoutAction({ ...input, partnerCode: "SMITHLAB" });
+    const order = createPendingOrder.mock.calls[0][0];
+    expect(order.priced.partnerDiscountCents).toBe(490);
+    expect(order.newAccountDiscount).toBe(false);
   });
 
-  it("a welcome check that throws (DB down) returns a friendly retry message and creates nothing", async () => {
+  it("stops (loudly) when the offer can't be checked rather than charging full price", async () => {
     getCustomer.mockResolvedValue(customer);
-    checkWelcomeForCustomer.mockRejectedValue(new Error("db down"));
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    offerForCustomer.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
     const { startCheckoutAction } = await import("@/app/checkout/actions");
-    expect(await startCheckoutAction({ ...input, partnerCode: "AURA-7K2Q" })).toEqual({ error: "We couldn't check that code — please try again." });
-    expect(createPendingOrder).not.toHaveBeenCalled();
-    expect(errorSpy).toHaveBeenCalled();
-  });
-
-  it("refuses an invalid welcome code with its message", async () => {
-    getCustomer.mockResolvedValue(customer);
-    checkWelcomeForCustomer.mockResolvedValue({ ok: false, message: "This code has expired." });
-    const { startCheckoutAction } = await import("@/app/checkout/actions");
-    expect(await startCheckoutAction({ ...input, partnerCode: "AURA-7K2Q" })).toEqual({ error: "This code has expired.", codeError: "This code has expired." });
+    const r = await startCheckoutAction(input);
+    expect(r.error).toMatch(/new-account discount/i);
     expect(createPendingOrder).not.toHaveBeenCalled();
   });
 
@@ -268,6 +259,7 @@ describe("startCheckoutAction - abandoned checkouts", () => {
     for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon,
       createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid, alertOwner, listOpenOrdersForCustomer, expireCheckout]) f.mockReset();
     getCustomer.mockResolvedValue(customer);
+    offerForCustomer.mockReset(); offerForCustomer.mockResolvedValue(null);
     resolveAttribution.mockResolvedValue({ attribution: null });
     createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
     transitionOrder.mockResolvedValue(true);
@@ -338,34 +330,7 @@ describe("startCheckoutAction - abandoned checkouts", () => {
 });
 
 describe("checkPartnerCodeAction", () => {
-  beforeEach(() => { vi.resetModules(); getCustomer.mockReset(); resolveAttribution.mockReset(); checkWelcomeForCustomer.mockReset(); });
-
-  it("refuses a welcome code that belongs to a different email", async () => {
-    getCustomer.mockResolvedValue(customer);
-    const message = "This code belongs to a different email address. Sign in with the email it was sent to.";
-    checkWelcomeForCustomer.mockResolvedValue({ ok: false, message });
-    const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
-    expect(await checkPartnerCodeAction("AURA-7K2Q")).toEqual({ ok: false, message });
-  });
-
-  it("a welcome check that throws returns a friendly retry message instead of failing", async () => {
-    getCustomer.mockResolvedValue(customer);
-    checkWelcomeForCustomer.mockRejectedValue(new Error("db down"));
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
-    expect(await checkPartnerCodeAction("AURA-7K2Q")).toEqual({ ok: false, message: "We couldn't check that code — please try again." });
-  });
-
-  it("checks a welcome-format code against the signed-in customer, not the partner list", async () => {
-    getCustomer.mockResolvedValue(customer);
-    checkWelcomeForCustomer.mockResolvedValueOnce({ ok: true, code: "AURA-7K2Q" })
-      .mockResolvedValueOnce({ ok: false, message: "This code is for a first order only." });
-    const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
-    expect(await checkPartnerCodeAction("aura-7k2q")).toEqual({ ok: true, code: "AURA-7K2Q" });
-    expect(await checkPartnerCodeAction("AURA-7K2Q")).toEqual({ ok: false, message: "This code is for a first order only." });
-    expect(checkWelcomeForCustomer).toHaveBeenCalledWith("aura-7k2q", customer);
-    expect(resolveAttribution).not.toHaveBeenCalled();
-  });
+  beforeEach(() => { vi.resetModules(); getCustomer.mockReset(); resolveAttribution.mockReset(); });
 
   it("requires a verified email before checking a code", async () => {
     getCustomer.mockResolvedValue({ ...customer, emailConfirmed: false });

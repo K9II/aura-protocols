@@ -31,7 +31,7 @@ export type PricedOrder = {
   items: PricedItem[];
   rejected: Rejection[];
   subtotalCents: number;         // items at pack prices
-  partnerDiscountCents: number;  // discount from ANY code — partner or welcome (set by lib/partners/discounts.ts; 0 here); orders.welcome_code says which
+  partnerDiscountCents: number;  // discount from a partner code or the new-account 15% (set by lib/partners/discounts.ts; 0 here); orders.new_account_discount says which
   shippingCents: number;         // decided on subtotal − partner discount
   insuranceCents: number;
   totalBeforeTaxCents: number;   // subtotal − partner discount + shipping + insurance

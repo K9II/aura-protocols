@@ -17,12 +17,14 @@ export type Customer = SessionUser & {
   isOwner: boolean;
   stripeCustomerId: string | null;
   ship: ShipAddress | null;
+  createdAt: string;
 };
 
 type CustomerRow = {
   id: string; full_name: string; organization: string | null; is_owner: boolean; stripe_customer_id: string | null;
   ship_name: string | null; ship_line1: string | null; ship_line2: string | null;
   ship_city: string | null; ship_state: string | null; ship_zip: string | null;
+  created_at: string;
 };
 
 export const verifySession = cache(async (): Promise<SessionUser | null> => {
@@ -43,7 +45,7 @@ export const getCustomer = cache(async (): Promise<Customer | null> => {
     : null;
   return {
     ...user, fullName: r.full_name, organization: r.organization, isOwner: r.is_owner,
-    stripeCustomerId: r.stripe_customer_id, ship,
+    stripeCustomerId: r.stripe_customer_id, ship, createdAt: r.created_at,
   };
 });
 
