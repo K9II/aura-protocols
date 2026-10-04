@@ -61,4 +61,21 @@ describe("GET /auth/verify", () => {
     expect((await GET(get("?token=t"))).headers.get("location")).toBe("https://auraprotocols.com/verified?state=listed");
     expect(alertOwner).toHaveBeenCalled();
   });
+
+  it("lands on plain /verified without sending when confirmOptIn finds nothing to confirm", async () => {
+    consumeVerifyToken.mockResolvedValue({ customerId: "u1", email: "j@lab.org", optIn: true, already: false });
+    confirmOptIn.mockResolvedValue(false);
+    const { GET } = await import("@/app/auth/verify/route");
+    expect((await GET(get("?token=t"))).headers.get("location")).toBe("https://auraprotocols.com/verified");
+    expect(sendTracked).not.toHaveBeenCalled();
+  });
+
+  it("alerts separately and lands on plain /verified when confirmOptIn itself throws (the row stays pending, nothing retries it)", async () => {
+    consumeVerifyToken.mockResolvedValue({ customerId: "u1", email: "j@lab.org", optIn: true, already: false });
+    confirmOptIn.mockRejectedValue(new Error("db down"));
+    const { GET } = await import("@/app/auth/verify/route");
+    expect((await GET(get("?token=t"))).headers.get("location")).toBe("https://auraprotocols.com/verified");
+    expect(sendTracked).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledWith("Opt-in not confirmed at verification", "j@lab.org: Error: db down — still pending; confirm it manually");
+  });
 });
