@@ -4,7 +4,7 @@ import { withCharges, type PricedItem, type PricedOrder } from "@/lib/pricing";
 
 function item(over: Partial<PricedItem>): PricedItem {
   return {
-    compoundSlug: "x", compoundName: "X", variantId: "10mg", strength: "10 mg", packQty: 1, quantity: 1,
+    compoundSlug: "x", compoundName: "X", chemicalClass: "Peptide Fragments", variantId: "10mg", strength: "10 mg", packQty: 1, quantity: 1,
     listUnitCents: 6900, packPct: 0, unitPriceCents: 6900, lineTotalCents: 6900, lotNumber: "AP-0001", ...over,
   };
 }

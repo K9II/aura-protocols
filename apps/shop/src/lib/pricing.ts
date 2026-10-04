@@ -13,6 +13,7 @@ export const MAX_PACKS_PER_LINE = 50;
 export type PricedItem = {
   compoundSlug: string;
   compoundName: string;
+  chemicalClass: string;  // for include/exclude rules on discount codes
   variantId: string;
   strength: string;
   packQty: number;
@@ -31,8 +32,9 @@ export type PricedOrder = {
   items: PricedItem[];
   rejected: Rejection[];
   subtotalCents: number;         // items at pack prices
-  partnerDiscountCents: number;  // discount from a partner code or the new-account percent (set by lib/partners/discounts.ts; 0 here); orders.new_account_discount says which
-  shippingCents: number;         // decided on subtotal − partner discount
+  partnerDiscountCents: number;  // every discount beyond pack price (partner code, new-account percent, discount code), after the store-wide cap — set by lib/discounts/engine.ts; 0 here. Legacy name (orders.partner_discount_cents).
+  freeShipping?: boolean;        // a free-shipping discount code applies
+  shippingCents: number;         // decided on subtotal − partner discount, or 0 with freeShipping
   insuranceCents: number;
   totalBeforeTaxCents: number;   // subtotal − partner discount + shipping + insurance
 };
@@ -53,7 +55,7 @@ export function priceOrder(lines: CartLine[], list: Compound[] = listedCompounds
     const listUnitCents = Math.round(v.priceUsd * 100 * line.packQty);
     const unitPriceCents = Math.round(listUnitCents * (1 - pack.pct / 100));
     items.push({
-      compoundSlug: c.slug, compoundName: c.name, variantId: v.id, strength: v.strength,
+      compoundSlug: c.slug, compoundName: c.name, chemicalClass: c.chemicalClass, variantId: v.id, strength: v.strength,
       packQty: line.packQty, quantity: line.quantity, listUnitCents, packPct: pack.pct, unitPriceCents,
       lineTotalCents: unitPriceCents * line.quantity, lotNumber: c.currentLot.lot,
     });
@@ -66,7 +68,7 @@ export function priceOrder(lines: CartLine[], list: Compound[] = listedCompounds
 // discount. Exported so lib/partners/discounts.ts applies the same rule.
 export function withCharges(o: PricedOrder): PricedOrder {
   const goods = o.subtotalCents - o.partnerDiscountCents;
-  const shippingCents = o.items.length === 0 || goods >= FREE_SHIPPING_MIN_CENTS ? 0 : SHIPPING_FLAT_CENTS;
+  const shippingCents = o.items.length === 0 || o.freeShipping || goods >= FREE_SHIPPING_MIN_CENTS ? 0 : SHIPPING_FLAT_CENTS;
   const insuranceCents = o.items.length === 0 ? 0 : INSURANCE_CENTS;
   return { ...o, shippingCents, insuranceCents, totalBeforeTaxCents: goods + shippingCents + insuranceCents };
 }

@@ -22,7 +22,7 @@ const req = {
   orderId: "o1", orderNumber: "AP-1001", siteUrl: "https://auraprotocols.com",
   customer: { email: "j@lab.org", fullName: "Jane", stripeCustomerId: null },
   ship: { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX" as const, zip: "78701" },
-  items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", variantId: "5mg", strength: "5 mg", packQty: 3, quantity: 2,
+  items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide Fragments", variantId: "5mg", strength: "5 mg", packQty: 3, quantity: 2,
     listUnitCents: 14700, packPct: 10, unitPriceCents: 13230, lineTotalCents: 26460, lotNumber: "AP-0001" }],
   shippingCents: 0,
   insuranceCents: 550,
