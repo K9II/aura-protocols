@@ -28,8 +28,12 @@ export function buildListRows(codes: DiscountCodeRow[], batches: BatchRow[], sta
     const first = list[0];
     const sum = list.reduce((acc, c) => { const s = stats.get(c.id) ?? ZERO; return { uses: acc.uses + s.uses, held: acc.held + s.held, revenueCents: acc.revenueCents + s.revenueCents, discountCents: acc.discountCents + s.discountCents, cappedOrders: acc.cappedOrders + s.cappedOrders }; }, ZERO);
     const size = b?.size ?? list.length;
+    // Same precedence as codeStatus: ended beats used-up, so a batch that's
+    // fully redeemed AND past its end date (or ended by the owner) reads as
+    // "Ended", not "Used up".
+    const batchEnded = list.every((c) => c.status === "ended") || (first.ends_at != null && Date.parse(first.ends_at) <= nowMs);
     const anyOpen = list.some((c) => codeStatus(c, (stats.get(c.id)?.uses ?? 0) + (stats.get(c.id)?.held ?? 0), nowMs) === "active");
-    const status: CodeStatus = sum.uses + sum.held >= size ? "used_up" : anyOpen ? "active" : codeStatus(first, 0, nowMs);
+    const status: CodeStatus = batchEnded ? "ended" : sum.uses + sum.held >= size ? "used_up" : anyOpen ? "active" : codeStatus(first, 0, nowMs);
     rows.push({
       id: batchId, batchId, href: `/admin/discounts/batch/${batchId}`, code: `${b?.prefix ?? ""}·····`, sub: `Batch · ${size} single-use codes`,
       gives: describeRule(termsFromRow(first)), status, uses: sum.uses, held: sum.held, max: size,

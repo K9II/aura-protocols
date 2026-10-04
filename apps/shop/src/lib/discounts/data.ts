@@ -58,9 +58,8 @@ export async function getBatch(id: string): Promise<BatchRow | null> {
   return (data as BatchRow | null) ?? null;
 }
 export async function listBatches(): Promise<BatchRow[]> {
-  const { data, error } = await db().from("discount_batches").select("*");
-  if (error) fail("batches list", error);
-  return (data as BatchRow[] | null) ?? [];
+  return allRows<BatchRow>("batches list", (from, to) =>
+    db().from("discount_batches").select("*").order("created_at", { ascending: false }).order("id").range(from, to));
 }
 
 export type CodeStats = { uses: number; held: number; revenueCents: number; discountCents: number; cappedOrders: number };

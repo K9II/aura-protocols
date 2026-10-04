@@ -19,6 +19,22 @@ describe("buildListRows", () => {
     expect(rows.find((r) => r.id === "c1")).toMatchObject({ uses: 38, max: 200, revenueCents: 624000, status: "active", gives: "20% off order, stacks + free shipping" });
   });
 
+  it("a fully-redeemed batch past its end date (or ended by the owner) reads as ended, not used up", () => {
+    const pastEnds = "2026-09-01T00:00:00Z"; // before NOW
+    const fullOne = { uses: 1, held: 0, revenueCents: 0, discountCents: 0, cappedOrders: 0 };
+    const expired = buildListRows([
+      { ...base, id: "b-1", code: "A", max_uses: 1, batch_id: "bx", ends_at: pastEnds },
+      { ...base, id: "b-2", code: "B", max_uses: 1, batch_id: "bx", ends_at: pastEnds },
+    ], [{ id: "bx", prefix: "X-", size: 2, note: null, created_at: "" }], new Map([["b-1", fullOne], ["b-2", fullOne]]), NOW);
+    expect(expired[0]).toMatchObject({ status: "ended" });
+
+    const ownerEnded = buildListRows([
+      { ...base, id: "b-3", code: "C", max_uses: 1, batch_id: "by", status: "ended" },
+      { ...base, id: "b-4", code: "D", max_uses: 1, batch_id: "by", status: "ended" },
+    ], [{ id: "by", prefix: "Y-", size: 2, note: null, created_at: "" }], new Map([["b-3", fullOne], ["b-4", fullOne]]), NOW);
+    expect(ownerEnded[0]).toMatchObject({ status: "ended" });
+  });
+
   it("sorts by status (active, scheduled, paused, used up, ended), then end date", () => {
     const rows = buildListRows([
       { ...base, id: "e", status: "ended" }, { ...base, id: "p", status: "paused" }, { ...base, id: "a2", ends_at: "2026-12-31T00:00:00Z" }, { ...base, id: "a1" },

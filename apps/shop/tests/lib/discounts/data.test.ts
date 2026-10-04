@@ -76,6 +76,15 @@ describe("discount data", () => {
     expect(callArgs(page2, "range")).toEqual([1000, 1999]);
   });
 
+  it("listBatches also pages past PostgREST's 1,000-row limit", async () => {
+    const page1 = query({ data: Array.from({ length: 1000 }, (_, i) => ({ id: `b${i}` })) });
+    const page2 = query({ data: [{ id: "last" }] });
+    from = fromQueue({ discount_batches: [page1, page2] });
+    const { listBatches } = await import("@/lib/discounts/data");
+    expect(await listBatches()).toHaveLength(1001);
+    expect(callArgs(page2, "range")).toEqual([1000, 1999]);
+  });
+
   it("updateBatch also writes the batch's own note when the patch includes one", async () => {
     const codesUpd = query({});
     const batchUpd = query({});

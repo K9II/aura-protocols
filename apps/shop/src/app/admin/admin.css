@@ -51,6 +51,8 @@
   .adm .a-content { padding: 16px; }
   .adm .a-only-desk { display: none !important; }
   .adm .a-only-phone { display: block; }
+  .adm .a-toolbar { flex-wrap: wrap; }
+  .adm .a-search { width: 100%; margin-left: 0; }
   .adm .a-kpis { grid-template-columns: 1fr 1fr !important; }
   .adm .a-kpi { border-left: 0 !important; border-bottom: 1px solid var(--line); }
   .adm .a-kpi:nth-child(odd) { border-right: 1px solid var(--line); }
