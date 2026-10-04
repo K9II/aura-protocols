@@ -19,6 +19,10 @@ describe("outcomeMessage", () => {
     expect(outcomeMessage({ ...base, codeOutcome: "no_gain" }, "X", terms, 30))
       .toEqual({ tone: "note", text: "A larger discount already applies to these items, so this code isn't used." });
   });
+  it("a free-shipping code on an order that already ships free", () => {
+    expect(outcomeMessage({ ...base, codeOutcome: "no_gain" }, "FREESHIP", { ...terms, kind: "ship_only" }, 30))
+      .toEqual({ tone: "note", text: "Shipping is already free on this order, so this code isn't needed." });
+  });
   it("below minimum and excluded items", () => {
     expect(outcomeMessage({ ...base, codeOutcome: "below_min", shortOfMinCents: 3420 }, "X", terms, 30))
       .toEqual({ tone: "bad", text: "Add $34.20 more to use this code (minimum $150.00 after your other discounts)." });

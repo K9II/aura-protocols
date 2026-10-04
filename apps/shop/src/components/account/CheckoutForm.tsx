@@ -21,7 +21,7 @@ const REASON: Record<Rejection["reason"], string> = {
   bad_pack: "pack size unavailable", bad_quantity: "quantity not allowed",
 };
 
-export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents, newAccountOffer, capPct }: {
+export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents, newAccountOffer, capPct: pageCapPct }: {
   email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number; newAccountOffer: FirstOrderOffer; capPct: number;
 }) {
   const { lines, code: cartCode, setCode: setCartCode } = useCart();
@@ -47,6 +47,8 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   // percent, whichever is larger (they never stack). A discount code runs
   // through the same engine the server uses; the server re-prices every order.
   const discount = useMemo(() => discountPct(!!newAccountOffer, !!appliedCode && !appliedTerms), [newAccountOffer, appliedCode, appliedTerms]);
+  // The cap returned with a code is fresher than the one the page loaded with.
+  const [capPct, setCapPct] = useState(pageCapPct);
   const priced = useMemo(() => applyDiscounts(base, { auto: discount, code: appliedTerms, capPct }), [base, discount, appliedTerms, capPct]);
   const codeNote = appliedTerms && appliedCode ? outcomeMessage(priced, appliedCode, appliedTerms, capPct) : null;
   const note: CodeNote | null = codeNote ?? (codeMsg && { tone: codeMsg.ok ? "good" : "bad", text: codeMsg.text });
@@ -55,7 +57,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
     try {
       const r = await checkCodeAction(code);
       if (r.ok && r.kind === "discount") {
-        setAppliedCode(r.code); setAppliedTerms(r.terms); setCodeInput(r.code); setCodeMsg(null);
+        setAppliedCode(r.code); setAppliedTerms(r.terms); setCapPct(r.capPct); setCodeInput(r.code); setCodeMsg(null);
       } else if (r.ok) {
         setAppliedCode(r.code); setAppliedTerms(null); setCodeInput(r.code);
         const withCode = discountPct(!!newAccountOffer, true);
@@ -180,7 +182,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
           )}
         </div>
         {error && <p role="alert" className="mt-3 text-sm text-[color:var(--specimen)]">{error}</p>}
-        <button type="submit" className="s-atc" disabled={!ruo || busy || priced.items.length === 0 || allRejected.length > 0}>
+        <button type="submit" className="s-atc" disabled={!ruo || busy || priced.items.length === 0 || allRejected.length > 0 || codeNote?.tone === "bad"}>
           {busy ? "Starting secure payment…" : "Continue to secure payment →"}
         </button>
         <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-3">One code per order. Each item gets its pack price or a percent discount, whichever is lower; some codes add on top. Discounts are capped at {capPct}% of list price.</p>

@@ -37,6 +37,7 @@ export function outcomeMessage(
         ? { tone: "note", text: `${code} applied. Your discounts are capped at ${capPct}% of list price, so ${code} saves ${usd(r.codeDiscountCents)} here.` }
         : { tone: "good", text: `${code} applied — ${customerSummary(terms)}.` };
     case "no_gain":
+      if (terms.kind === "ship_only") return { tone: "note", text: "Shipping is already free on this order, so this code isn't needed." };
       return r.newAccount
         ? { tone: "note", text: `Your new-account ${OFFER_PCT_TEXT} is already larger than this code on these items, so we kept it.` }
         : { tone: "note", text: "A larger discount already applies to these items, so this code isn't used." };
