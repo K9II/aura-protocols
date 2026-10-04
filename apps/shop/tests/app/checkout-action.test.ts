@@ -292,6 +292,62 @@ describe("startCheckoutAction", () => {
     expect(createCheckout).not.toHaveBeenCalled();
   });
 
+  it("closes an earlier checkout (releasing its held use) before checking the typed code", async () => {
+    getCustomer.mockResolvedValue(customer);
+    listOpenOrdersForCustomer.mockResolvedValue([{ id: "o0", order_number: "AP-1000", stripe_session_id: "cs_0", created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString() }]);
+    expireCheckout.mockResolvedValue("expired");
+    lookupDiscountCode.mockResolvedValue({ kind: "discount", id: "c1", code: "SPRING20", terms: ship20 });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, partnerCode: "SPRING20" })).toEqual({ url: redirect.url });
+    const cancelAt = transitionOrder.mock.invocationCallOrder[transitionOrder.mock.calls.findIndex((c) => c[0] === "o0" && c[2] === "cancelled")];
+    expect(cancelAt).toBeLessThan(lookupDiscountCode.mock.invocationCallOrder[0]);
+  });
+
+  it("an invalid request never closes earlier checkouts", async () => {
+    getCustomer.mockResolvedValue(customer);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, ruoConfirmed: false, partnerCode: "SPRING20" });
+    await startCheckoutAction({ ...input, lines: [{ slug: "nope", variantId: "5mg", packQty: 1, quantity: 1 }], partnerCode: "SPRING20" });
+    expect(listOpenOrdersForCustomer).not.toHaveBeenCalled();
+  });
+
+  it("with store credit, the code's use is claimed before credit is spent", async () => {
+    getCustomer.mockResolvedValue(customer);
+    lookupDiscountCode.mockResolvedValue({ kind: "discount", id: "c1", code: "SPRING20", terms: ship20 });
+    creditBalance.mockResolvedValue(1000);
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 300 });
+    spendCredit.mockResolvedValue(true);
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, partnerCode: "SPRING20", useCredit: true });
+    expect(claimCode).toHaveBeenCalled();
+    expect(claimCode.mock.invocationCallOrder[0]).toBeLessThan(spendCredit.mock.invocationCallOrder[0]);
+  });
+
+  it("a refused claim whose cancel also fails alerts the owner and still tells the customer", async () => {
+    getCustomer.mockResolvedValue(customer);
+    lookupDiscountCode.mockResolvedValue({ kind: "discount", id: "c1", code: "SPRING20", terms: ship20 });
+    claimCode.mockResolvedValue("used_up");
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, partnerCode: "SPRING20" })).toEqual({ error: "This code has reached its limit.", codeError: "This code has reached its limit." });
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("a failed claim whose cancel also fails alerts the owner and still asks to retry", async () => {
+    getCustomer.mockResolvedValue(customer);
+    lookupDiscountCode.mockResolvedValue({ kind: "discount", id: "c1", code: "SPRING20", terms: ship20 });
+    claimCode.mockRejectedValue(new Error("db down"));
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect((await startCheckoutAction({ ...input, partnerCode: "SPRING20" })).error).toMatch(/couldn't check that code/);
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringMatching(/o1[\s\S]*reconcile/));
+  });
+
   it("a code that saves nothing is dropped silently: no claim, order goes ahead", async () => {
     getCustomer.mockResolvedValue(customer);
     offerForCustomer.mockResolvedValue({ endsAt: "2026-10-18T23:59:59.999Z" });

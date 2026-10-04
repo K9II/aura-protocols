@@ -144,14 +144,23 @@ revoke all on function claim_discount_code(uuid, uuid, uuid, integer, integer) f
 
 -- Held + used uses of a code, and of one customer (across the batch when the
 -- code is in one) -- for the checkout pre-check. One call, however big the batch.
+-- Pre-check counts only (the claim enforces limits). The customer's own held
+-- uses on orders still awaiting payment are skipped: starting a new checkout
+-- cancels those orders, which releases the use, so a customer returning from
+-- Stripe isn't told their own unfinished order used the code up.
 create or replace function discount_code_use_counts(p_code uuid, p_customer uuid) returns json language sql stable
 set search_path = public, pg_temp as $$
   select json_build_object(
-    'total', (select count(*) from code_redemptions where code_id = p_code and state in ('held', 'used')),
+    'total', (select count(*) from code_redemptions r
+              join orders o on o.id = r.order_id
+              where r.code_id = p_code and r.state in ('held', 'used')
+                and not (r.customer_id = p_customer and r.state = 'held' and o.status = 'awaiting_payment')),
     'mine', (select count(*) from code_redemptions r
              join discount_codes d on d.id = r.code_id
              join discount_codes c on c.id = p_code
+             join orders o on o.id = r.order_id
              where r.customer_id = p_customer and r.state in ('held', 'used')
+               and not (r.customer_id = p_customer and r.state = 'held' and o.status = 'awaiting_payment')
                and (d.id = p_code or (c.batch_id is not null and d.batch_id = c.batch_id)))
   )
 $$;

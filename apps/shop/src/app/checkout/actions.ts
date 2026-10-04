@@ -146,6 +146,12 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   if (priced.rejected.length) return { error: "Some items can't be ordered right now — they've been flagged below.", rejected: priced.rejected };
   if (priced.items.length === 0) return { error: "Your cart is empty." };
 
+  // Close earlier unfinished checkouts first: cancelling them releases any
+  // code use they hold, so the code check below doesn't count the customer's
+  // own abandoned order against them. Only for a valid, priceable cart.
+  const adapter = getCommerceAdapter();
+  await releaseAbandonedCheckouts(customer.id, adapter);
+
   let capPct: number;
   try {
     capPct = await getDiscountCap();
@@ -193,8 +199,6 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   const newAccountDiscount = result.newAccount;
 
   await bookkeep("saving the shipping address", () => saveShipAddress(customer.id, ship));
-  const adapter = getCommerceAdapter();
-  await releaseAbandonedCheckouts(customer.id, adapter);
 
   // Store credit is a payment, not a discount: tax is computed on the full
   // price first, then credit covers as much of the total as it can.
@@ -228,16 +232,27 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   // cancel releases it (settle_code_on_order_status trigger). A claim that
   // can't be confirmed stops checkout — never silently full price.
   if (codeApplied) {
+    // The customer still gets the code message if the cancel itself fails;
+    // the owner is told, and the reconcile cron cancels the orphan later.
+    const cancelUnclaimed = async (): Promise<void> => {
+      try {
+        await transitionOrder(order.id, "awaiting_payment", "cancelled");
+      } catch (err) {
+        console.error("cancel order after failed code claim failed:", err);
+        await alertOwner(`Couldn't cancel ${order.orderNumber} after a discount-code claim failed`,
+          `Order ${order.orderNumber} (${order.id}) could not be cancelled after its discount-code claim failed: ${String(err)}. A discount-code use may be held until the reconcile cron cancels the order.`);
+      }
+    };
     let claim: ClaimResult;
     try {
       claim = await claimCode({ codeId: discountCode!.id, orderId: order.id, customerId: customer.id, discountCents: result.codeDiscountCents, cappedCents: result.cappedCents });
     } catch (err) {
       console.error("discount code claim failed:", err);
-      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+      await cancelUnclaimed();
       return { error: CODE_MESSAGES.couldntCheck, codeError: CODE_MESSAGES.couldntCheck };
     }
     if (claim !== "ok") {
-      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+      await cancelUnclaimed();
       return { error: CLAIM_MESSAGE[claim], codeError: CLAIM_MESSAGE[claim] };
     }
   }
