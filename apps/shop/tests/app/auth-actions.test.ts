@@ -3,11 +3,20 @@ import { query, fromQueue, callArgs } from "../helpers/supabase-mock";
 
 const auth = { signUp: vi.fn(), signInWithPassword: vi.fn(), signOut: vi.fn(), resetPasswordForEmail: vi.fn(), updateUser: vi.fn() };
 const deleteUser = vi.fn();
+const startSubscription = vi.fn();
+const alertOwner = vi.fn();
 let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () => ({ auth }) }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t), auth: { admin: { deleteUser } } }) }));
 vi.mock("@/lib/gate", () => ({ hashIp: (ip: string) => `h:${ip}` }));
-vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-forwarded-for": "1.2.3.4", "user-agent": "UA" }) }));
+vi.mock("@/lib/email/subscribe", () => ({ startSubscription }));
+vi.mock("@/lib/notify", () => ({ alertOwner }));
+vi.mock("@/lib/partners/ref-cookie", () => ({ REF_COOKIE: "aura_ref", readRef: () => null }));
+let headerCookie: { value: string } | undefined;
+vi.mock("next/headers", () => ({
+  headers: async () => new Headers({ "x-forwarded-for": "1.2.3.4", "user-agent": "UA" }),
+  cookies: async () => ({ get: () => headerCookie }),
+}));
 vi.mock("next/navigation", () => ({ redirect: (u: string) => { throw new Error(`REDIRECT:${u}`); } }));
 
 function fd(values: Record<string, string>) {
@@ -18,7 +27,7 @@ function fd(values: Record<string, string>) {
 const signup = { fullName: "Jane Rivera", email: "Jane@Lab.org", password: "correct horse battery", organization: "", age21: "on", ruo: "on", dispute: "on", next: "/checkout" };
 
 describe("auth actions", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); deleteUser.mockReset(); });
+  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); deleteUser.mockReset(); startSubscription.mockReset(); alertOwner.mockReset(); headerCookie = undefined; });
 
   it("sign-up requires all three agreements", async () => {
     const { signUpAction } = await import("@/app/auth/actions");
@@ -37,6 +46,32 @@ describe("auth actions", () => {
     expect(auth.signUp).toHaveBeenCalledWith(expect.objectContaining({ email: "jane@lab.org", password: "correct horse battery" }));
     expect(callArgs(customersQ, "insert")?.[0]).toEqual({ id: "u1", full_name: "Jane Rivera", organization: null });
     expect(callArgs(agreementsQ, "insert")?.[0]).toMatchObject({ customer_id: "u1", age_21: true, ruo: true, dispute_policy: true, ip_hash: "h:1.2.3.4", user_agent: "UA" });
+  });
+
+  it("sign-up with the email opt-in checked starts a subscription", async () => {
+    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+    from = fromQueue({ customers: [query({})], account_agreements: [query({})] });
+    const { signUpAction } = await import("@/app/auth/actions");
+    await signUpAction(undefined, fd({ ...signup, emailOptIn: "on" }));
+    expect(startSubscription).toHaveBeenCalledWith({ email: "jane@lab.org", source: "signup", partnerRef: null });
+  });
+
+  it("sign-up without the email opt-in never starts a subscription", async () => {
+    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+    from = fromQueue({ customers: [query({})], account_agreements: [query({})] });
+    const { signUpAction } = await import("@/app/auth/actions");
+    await signUpAction(undefined, fd(signup));
+    expect(startSubscription).not.toHaveBeenCalled();
+  });
+
+  it("sign-up still succeeds and alerts the owner when the subscription can't be started", async () => {
+    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+    from = fromQueue({ customers: [query({})], account_agreements: [query({})] });
+    startSubscription.mockRejectedValue(new Error("ses down"));
+    const { signUpAction } = await import("@/app/auth/actions");
+    const r = await signUpAction(undefined, fd({ ...signup, emailOptIn: "on" }));
+    expect(r).toEqual({ ok: true, message: expect.stringMatching(/verify/i) });
+    expect(alertOwner).toHaveBeenCalled();
   });
 
   it("sign-up removes the auth user if the records can't be saved (no half-created accounts)", async () => {

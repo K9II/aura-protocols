@@ -1,6 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -9,6 +9,9 @@ import { hashIp } from "@/lib/gate";
 import { TERMS_VERSION } from "@/lib/gate-shared";
 import { safeNext } from "@/lib/dal";
 import { siteUrl } from "@/lib/supabase/env";
+import { startSubscription } from "@/lib/email/subscribe";
+import { REF_COOKIE, readRef } from "@/lib/partners/ref-cookie";
+import { alertOwner } from "@/lib/notify";
 
 export type AuthFormState = { ok?: boolean; error?: string; message?: string } | undefined;
 
@@ -60,6 +63,16 @@ export async function signUpAction(_prev: AuthFormState, form: FormData): Promis
     console.error("sign-up record insert failed:", cErr ?? aErr);
     await admin.auth.admin.deleteUser(data.user.id);
     return { error: "We couldn't create your account — please try again." };
+  }
+  if (form.get("emailOptIn") === "on") {
+    // Never blocks account creation; a failure is reported to the owner.
+    try {
+      let partnerRef: string | null = null;
+      try { partnerRef = readRef((await cookies()).get(REF_COOKIE)?.value); } catch { partnerRef = null; }
+      await startSubscription({ email, source: "signup", partnerRef });
+    } catch (err) {
+      await alertOwner("Sign-up email opt-in failed", `${email}: ${String(err)}`);
+    }
   }
   return { ok: true, message: VERIFY };
 }
