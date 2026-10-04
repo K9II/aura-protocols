@@ -98,7 +98,7 @@
 
 /* ---------- page header ---------- */
 .adm .a-ph { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 18px; }
-.adm .a-ph h2 { font: 400 28px/1.1 var(--serif); letter-spacing: -.01em; }
+.adm .a-ph h1, .adm .a-ph h2 { font: 400 28px/1.1 var(--serif); letter-spacing: -.01em; }
 .adm .a-ph p { color: var(--muted); margin-top: 4px; }
 .adm .a-ph .actions { margin-left: auto; display: flex; gap: 8px; }
 
@@ -141,6 +141,7 @@
 .adm .a-kpi .v { font: 400 24px/1.2 var(--serif); margin-top: 4px; }
 .adm .a-kpi .d { font-size: 12px; color: var(--muted); }
 .adm .a-kpi .d .up { color: var(--moss); }
+.adm .a-kpi .d .down { color: var(--specimen); }
 
 /* ---------- toolbar / tabs / search / select ---------- */
 .adm .a-toolbar { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-bottom: 0; background: var(--surface); padding: 8px 10px; }
@@ -149,6 +150,7 @@
 .adm .a-tabs a .n { font: 500 10.5px var(--mono); color: var(--muted); }
 .adm .a-tabs a.on { background: var(--ink); color: #F4F1EA; } .adm .a-tabs a.on .n { color: #BDB6A5; }
 .adm .a-search { height: 28px; display: flex; align-items: center; gap: 7px; border: 1px solid var(--line-strong); background: #fff; padding: 0 8px; width: 240px; color: var(--muted); margin-left: auto; }
+.adm .a-search input { border: 0; outline: 0; background: transparent; flex: 1; min-width: 0; }
 .adm .a-select { height: 28px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); background: var(--surface); padding: 0 8px; font-weight: 500; color: var(--ink-soft); }
 .adm .a-select b { color: var(--ink); font-weight: 500; }
 
@@ -164,6 +166,7 @@
 .adm .a-code { font: 500 12.5px var(--mono); letter-spacing: .02em; }
 .adm .a-code-cell .a-code { display: block; }
 .adm .a-code-cell small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
+.adm .a-code-cell small .a-i { width: 11px; height: 11px; vertical-align: -1px; }
 .adm .gives { color: var(--ink); }
 .adm .gives .plus { color: var(--muted); margin: 0 3px; }
 .adm .a-meter { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
@@ -173,6 +176,7 @@
 .adm .a-rowmenu { color: var(--faint); width: 36px; } .adm .a-rowmenu svg { display: block; margin-left: auto; }
 .adm .a-tfoot { display: flex; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-top: 0; background: var(--surface-2); color: var(--muted); font-size: 12px; }
 .adm .a-tfoot .r { margin-left: auto; display: flex; gap: 6px; }
+.adm .a-empty { border: 1px solid var(--line); background: var(--surface); padding: 32px; text-align: center; color: var(--muted); }
 .adm .a-subrow td { background: var(--surface-2) !important; height: 34px; font-size: 12px; color: var(--ink-soft); }
 .adm .a-subrow td:first-child { padding-left: 30px; }
 
