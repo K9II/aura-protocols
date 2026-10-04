@@ -142,188 +142,22 @@ describe("unsubscribe", () => {
   });
 });
 
-describe("upsertPending", () => {
-  beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
-  const noCooldown = () => [query({ data: [] }), query({ data: [] })];
+describe("confirmOptIn", () => {
+  beforeEach(() => { vi.resetModules(); });
 
-  it("returns confirmed without writing for an already-confirmed subscriber", async () => {
-    from = fromQueue({ subscribers: [query({ data: { email: "a@b.co", status: "confirmed", partner_ref: null } })] });
-    const { upsertPending } = await import("@/lib/email/data");
-    expect(await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null })).toEqual({ state: "confirmed" });
+  it("confirms a pending sign-up opt-in and reports it was new", async () => {
+    const upd = query({ data: [{ email: "a@b.co" }] });
+    from = fromQueue({ subscribers: [upd] });
+    const { confirmOptIn } = await import("@/lib/email/data");
+    expect(await confirmOptIn("A@B.co")).toBe(true);
+    expect(callArgs(upd, "update")?.[0]).toMatchObject({ status: "confirmed", unsubscribed_at: null });
+    expect(callArgs(upd, "eq")).toEqual(["email", "a@b.co"]);
   });
 
-  it("keeps the existing partner_ref when the new one is null", async () => {
-    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: "p1" } });
-    const write = query({});
-    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
-    const { upsertPending } = await import("@/lib/email/data");
-    await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null });
-    expect((callArgs(write, "upsert")?.[0] as { partner_ref: string | null }).partner_ref).toBe("p1");
-  });
-
-  it("keeps the existing source on a re-request", async () => {
-    const read = query({ data: { email: "a@b.co", status: "pending", source: "popup", partner_ref: null } });
-    const write = query({});
-    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
-    const { upsertPending } = await import("@/lib/email/data");
-    await upsertPending({ email: "a@b.co", source: "footer", partnerRef: null });
-    expect((callArgs(write, "upsert")?.[0] as { source: string }).source).toBe("popup");
-  });
-
-  it("does not re-enable an unsubscribed address — status and unsubscribed_at stay untouched", async () => {
-    const read = query({ data: { email: "a@b.co", status: "unsubscribed", source: "popup", partner_ref: null } });
-    const write = query({});
-    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
-    const { upsertPending } = await import("@/lib/email/data");
-    const result = await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null });
-    expect(result).toEqual({ state: "pending", token: expect.any(String) });
-    const patch = callArgs(write, "upsert")?.[0] as Record<string, unknown>;
-    expect(patch).not.toHaveProperty("status");
-    expect(patch).not.toHaveProperty("unsubscribed_at");
-    expect(patch).toHaveProperty("confirm_token_hash");
-  });
-
-  it("sets status pending and clears unsubscribed_at for a brand-new or still-pending address", async () => {
-    const read = query({ data: null });
-    const write = query({});
-    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
-    const { upsertPending } = await import("@/lib/email/data");
-    await upsertPending({ email: "new@b.co", source: "popup", partnerRef: null });
-    const patch = callArgs(write, "upsert")?.[0] as Record<string, unknown>;
-    expect(patch).toMatchObject({ status: "pending", unsubscribed_at: null });
-  });
-
-  it("returns cooldown without rotating a token when a confirmation went out in the last 10 minutes", async () => {
-    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: null } });
-    from = fromQueue({ subscribers: [read], email_sends: [query({ data: [{ id: "1" }] }), query({ data: [] })] });
-    const { upsertPending } = await import("@/lib/email/data");
-    expect(await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null })).toEqual({ state: "cooldown" });
-  });
-
-  it("returns cooldown after 3 confirmations in 24 hours even if none were in the last 10 minutes", async () => {
-    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: null } });
-    from = fromQueue({ subscribers: [read], email_sends: [query({ data: [] }), query({ data: [{ id: "1" }, { id: "2" }, { id: "3" }] })] });
-    const { upsertPending } = await import("@/lib/email/data");
-    expect(await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null })).toEqual({ state: "cooldown" });
-  });
-
-  it("overwrites a cart-email-unsubscribe stub's source with the new request's source", async () => {
-    const read = query({ data: { email: "a@b.co", status: "unsubscribed", source: "unsubscribe", partner_ref: null } });
-    const write = query({});
-    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
-    const { upsertPending } = await import("@/lib/email/data");
-    await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null });
-    expect((callArgs(write, "upsert")?.[0] as { source: string }).source).toBe("popup");
-  });
-});
-
-describe("confirmSubscriber", () => {
-  beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
-
-  it("issues no welcome code for a partner-referred row", async () => {
-    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: "p1", welcome_code: null } });
-    const write = query({ data: { email: "a@b.co", status: "confirmed" } });
-    from = fromQueue({ subscribers: [read, write] });
-    const { confirmSubscriber } = await import("@/lib/email/data");
-    await confirmSubscriber("tok", Date.parse("2026-12-01T00:00:00Z"));
-    const patch = callArgs(write, "update")?.[0] as Record<string, unknown>;
-    expect(patch).not.toHaveProperty("welcome_code");
-  });
-
-  it("issues an AURA- code for a non-partner-referred row", async () => {
-    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: null, welcome_code: null } });
-    const write = query({ data: { email: "a@b.co", status: "confirmed" } });
-    from = fromQueue({ subscribers: [read, write] });
-    const { confirmSubscriber } = await import("@/lib/email/data");
-    await confirmSubscriber("tok", Date.parse("2026-12-01T00:00:00Z"));
-    const patch = callArgs(write, "update")?.[0] as { welcome_code: string };
-    expect(patch.welcome_code).toMatch(/^AURA-/);
-  });
-
-  it("retries after a 23505 (duplicate code) error and succeeds on the second try", async () => {
-    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: null, welcome_code: null } });
-    const clash = query({ error: { code: "23505" } });
-    const ok = query({ data: { email: "a@b.co", status: "confirmed" } });
-    from = fromQueue({ subscribers: [read, clash, ok] });
-    const { confirmSubscriber } = await import("@/lib/email/data");
-    const result = await confirmSubscriber("tok", Date.parse("2026-12-01T00:00:00Z"));
-    expect(result).toEqual({ row: { email: "a@b.co", status: "confirmed" }, already: false });
-  });
-
-  it("does not null confirm_token_hash and clears unsubscribed_at when confirming an unsubscribed address", async () => {
-    const read = query({ data: { email: "a@b.co", status: "unsubscribed", partner_ref: "p1", welcome_code: null } });
-    const write = query({ data: { email: "a@b.co", status: "confirmed" } });
-    from = fromQueue({ subscribers: [read, write] });
-    const { confirmSubscriber } = await import("@/lib/email/data");
-    const result = await confirmSubscriber("tok", Date.parse("2026-12-01T00:00:00Z"));
-    expect(result).toEqual({ row: { email: "a@b.co", status: "confirmed" }, already: false });
-    const patch = callArgs(write, "update")?.[0] as Record<string, unknown>;
-    expect(patch).not.toHaveProperty("confirm_token_hash");
-    expect(patch).toMatchObject({ unsubscribed_at: null });
-  });
-
-  it("returns already:true without writing when the token belongs to a row that's already confirmed (double-click)", async () => {
-    const active = query({ data: null });
-    const confirmed = query({ data: { email: "a@b.co", status: "confirmed" } });
-    from = fromQueue({ subscribers: [active, confirmed] });
-    const { confirmSubscriber } = await import("@/lib/email/data");
-    const result = await confirmSubscriber("tok");
-    expect(result).toEqual({ row: { email: "a@b.co", status: "confirmed" }, already: true });
-  });
-
-  it("returns null when the token matches no subscriber at all", async () => {
-    from = fromQueue({ subscribers: [query({ data: null }), query({ data: null })] });
-    const { confirmSubscriber } = await import("@/lib/email/data");
-    expect(await confirmSubscriber("nope")).toBeNull();
-  });
-
-  it("falls through to the already-confirmed lookup when a concurrent request wins the race (update matches 0 rows)", async () => {
-    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: null, welcome_code: null } });
-    const raced = query({ data: null, error: null });
-    const confirmedLookup = query({ data: { email: "a@b.co", status: "confirmed" } });
-    from = fromQueue({ subscribers: [read, raced, confirmedLookup] });
-    const { confirmSubscriber } = await import("@/lib/email/data");
-    const result = await confirmSubscriber("tok", Date.parse("2026-12-01T00:00:00Z"));
-    expect(result).toEqual({ row: { email: "a@b.co", status: "confirmed" }, already: true });
-  });
-});
-
-describe("confirmsSentSince", () => {
-  beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
-
-  it("counts confirm sends for the email since the given time", async () => {
-    const q = query({ data: [{ id: "1" }, { id: "2" }] });
-    from = fromQueue({ email_sends: [q] });
-    const { confirmsSentSince } = await import("@/lib/email/data");
-    expect(await confirmsSentSince("A@B.co", "2026-10-01T00:00:00Z")).toBe(2);
-    const eqCalls = q.calls.filter(([m]) => m === "eq").map(([, args]) => args);
-    expect(eqCalls).toContainEqual(["email", "a@b.co"]);
-    expect(eqCalls).toContainEqual(["kind", "confirm"]);
-    expect(callArgs(q, "gte")).toEqual(["sent_at", "2026-10-01T00:00:00Z"]);
-  });
-});
-
-describe("markWelcomeCodeUsed", () => {
-  beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
-
-  it("returns false when the update matched no rows (already used)", async () => {
+  it("returns false when there was no pending row (unsubscribed since, or already confirmed)", async () => {
     from = fromQueue({ subscribers: [query({ data: [] })] });
-    const { markWelcomeCodeUsed } = await import("@/lib/email/data");
-    expect(await markWelcomeCodeUsed("AURA-7K2Q", "o1")).toBe(false);
-  });
-
-  it("claims an unused code, or one this same order already claimed (a retried call is not a reuse)", async () => {
-    const first = query({ data: [{ email: "a@b.co" }] }), again = query({ data: [{ email: "a@b.co" }] });
-    from = fromQueue({ subscribers: [first, again] });
-    const { markWelcomeCodeUsed } = await import("@/lib/email/data");
-    expect(await markWelcomeCodeUsed("AURA-7K2Q", "o1")).toBe(true);
-    expect(await markWelcomeCodeUsed("AURA-7K2Q", "o1")).toBe(true);
-    for (const q of [first, again]) {
-      expect(callArgs(q, "update")?.[0]).toEqual({ welcome_code_used_order_id: "o1" });
-      expect(callArgs(q, "eq")).toEqual(["welcome_code", "AURA-7K2Q"]);
-      expect(callArgs(q, "or")).toEqual(["welcome_code_used_order_id.is.null,welcome_code_used_order_id.eq.o1"]);
-      expect(q.calls.map(([m]) => m)).not.toContain("is");
-    }
+    const { confirmOptIn } = await import("@/lib/email/data");
+    expect(await confirmOptIn("a@b.co")).toBe(false);
   });
 });
 

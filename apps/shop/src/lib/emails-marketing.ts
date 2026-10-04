@@ -3,9 +3,9 @@
 // Appendix A). Every marketing email carries the RUO line, our mailing
 // address (CAN-SPAM) and a signed unsubscribe link.
 import { escapeHtml as e } from "@/lib/html";
+import { OFFER_PCT_TEXT, OFFER_DAYS_TEXT, type FirstOrderOffer } from "@/lib/account/offer";
 
 export type MarketingCtx = { site: string; unsubscribeUrl: string };
-export type WelcomeCode = { code: string; expiresAt: string } | null;
 export type Msg = { subject: string; html: string };
 export type CartOrder = {
   order_number: string;
@@ -50,28 +50,17 @@ function frame(label: string, title: string, body: string, ctx: MarketingCtx | n
 <p style="font-size:12px;color:${SOFT};border-top:1px solid ${LINE};padding-top:12px;margin-top:24px">${footer}</p></div>`;
 }
 
-function codeBox(c: NonNullable<WelcomeCode>): string {
-  return `<table role="presentation" style="border:1px solid ${INK};border-collapse:collapse;margin:0 0 18px"><tr><td style="padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em">FIRST ORDER · 10%<br><span style="font-size:20px;letter-spacing:.12em;color:${INK}"><b>${e(c.code)}</b></span><br><span style="color:${SOFT};letter-spacing:0">works with this email address · ends ${shortDate(c.expiresAt)}</span></td></tr></table>`;
+function offerBox(): string {
+  return `<table role="presentation" style="border:1px solid ${INK};border-collapse:collapse;margin:0 0 18px"><tr><td style="padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em">FIRST ORDER · ${OFFER_PCT_TEXT}<br><span style="font-size:20px;letter-spacing:.04em;color:${INK}"><b>Applied automatically</b></span><br><span style="color:${SOFT};letter-spacing:0">on a first order within ${OFFER_DAYS_TEXT} of opening your account</span></td></tr></table>`;
 }
 
-export function confirmEmail(confirmUrl: string): Msg {
-  const subject = "Confirm your email";
-  return {
-    subject,
-    html: frame("Aura Protocols", "One click to *confirm.*",
-      p("Confirm this address and the first of five short files arrives right after: how to read a certificate of analysis, ours or anyone's.")
-      + p(link(confirmUrl, "Confirm my email →"))
-      + p(`<span style="color:${SOFT}">Didn't ask for this? Ignore it and you won't hear from us.</span>`), null),
-  };
-}
-
-export function welcomeEmail(n: 1 | 2 | 3 | 4 | 5, ctx: MarketingCtx, code: WelcomeCode): Msg {
+export function welcomeEmail(n: 1 | 2 | 3 | 4 | 5, ctx: MarketingCtx, offer: FirstOrderOffer): Msg {
   const s = ctx.site;
   switch (n) {
     case 1: return {
       subject: "You asked for the paperwork.",
       html: frame("File 01 / 05 · The lot number", "Start with the *number.*",
-        (code ? codeBox(code) : "")
+        (offer ? offerBox() : "")
         + p("Most peptide sellers ask you to trust a label. We publish the paperwork instead. Over the next ten days we'll show you how to read all of it, ours and anyone else's.")
         + p("Start with the smallest thing on the vial: the lot number. It ties a certificate to the powder in front of you. A certificate without one proves that <em>something</em> was tested once. It doesn't prove this was.")
         + p("Every vial we ship carries a lot number. Enter it in our COA Lookup and you get the certificate for that exact lot: who tested it, when, and what they found. If a lot has no certificate yet, it isn't for sale. No matching COA, no sale.")
@@ -112,7 +101,7 @@ export function welcomeEmail(n: 1 | 2 | 3 | 4 | 5, ctx: MarketingCtx, code: Welc
         + p("<b>No instructions.</b> Everything we sell is for in-vitro laboratory research, and we don't advise on any other use.")
         + p("What is there: the compound, the amount, and the lot number, which leads back to its certificate.")
         + p("Two rules we don't bend. You must be 21 or older. And an order can be cancelled for a full refund until it ships. After that the sale is final, because research material that has left our control can't be recertified.")
-        + (code ? p(`Your code <b>${e(code.code)}</b> takes 10% off your first order until <b>${shortDate(code.expiresAt)}</b>.`) : "")
+        + (offer ? p(`Your ${OFFER_PCT_TEXT} applies automatically to a first order placed within ${OFFER_DAYS_TEXT} of opening your account.`) : "")
         + p(link(`${s}/products`, "Browse compounds →"))
         + p("From here on, we write when there's something to show you. Usually that's a new lot and its certificate.")
         + SIGN, ctx),

@@ -1,4 +1,8 @@
 import { consumeVerifyToken } from "@/lib/account/verify";
+import { confirmOptIn, sendTracked } from "@/lib/email/data";
+import { welcomeEmail } from "@/lib/emails-marketing";
+import { unsubscribeUrl } from "@/lib/email/links";
+import { offerForEmail } from "@/lib/account/offer-data";
 import { siteUrl } from "@/lib/supabase/env";
 import { alertOwner } from "@/lib/notify";
 
@@ -17,5 +21,16 @@ export async function GET(request: Request): Promise<Response> {
     return to("/verified?state=error");
   }
   if (!result) return to("/verified?state=invalid");
-  return to("/verified");
+  if (result.already || !result.optIn) return to("/verified");
+  // Opted in at sign-up: a verified address completes the double opt-in, and
+  // File 01 goes out now (the hourly run retries it if this send fails).
+  try {
+    if (await confirmOptIn(result.email)) {
+      const site = siteUrl(), unsub = unsubscribeUrl(site, result.email);
+      await sendTracked({ email: result.email, kind: "welcome_1", ref: null, msg: welcomeEmail(1, { site, unsubscribeUrl: unsub }, await offerForEmail(result.email)), unsubscribeUrl: unsub });
+    }
+  } catch (err) {
+    await alertOwner("Welcome File 01 failed at verification", `${result.email}: ${String(err)} — the hourly email run will retry.`);
+  }
+  return to("/verified?state=listed");
 }

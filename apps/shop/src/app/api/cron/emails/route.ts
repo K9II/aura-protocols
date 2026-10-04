@@ -9,6 +9,7 @@ import { siteUrl } from "@/lib/supabase/env";
 import { alertOwner } from "@/lib/notify";
 import { compounds } from "@/data/catalog";
 import { isPendingLot } from "@/lib/catalog";
+import { offerForEmail } from "@/lib/account/offer-data";
 
 // Vercel caps a Hobby/Pro cron function at a lower default; this run can
 // legitimately take a few minutes on a large list (see the time budget below).
@@ -48,10 +49,9 @@ export async function GET(request: Request): Promise<Response> {
         const kind = dueWelcome(Date.parse(s.confirmed_at), now, info.kinds, info.lastSentMs);
         if (!kind) continue;
         const n = Number(kind.slice(-1)) as 1 | 2 | 3 | 4 | 5;
-        const live = s.welcome_code && s.welcome_code_expires_at && !s.welcome_code_used_order_id && Date.parse(s.welcome_code_expires_at) > now;
-        const code = live ? { code: s.welcome_code!, expiresAt: s.welcome_code_expires_at! } : null;
+        const offer = n === 1 || n === 5 ? await offerForEmail(s.email) : null;
         const unsub = unsubscribeUrl(site, s.email);
-        if ((await sendTracked({ email: s.email, kind, ref: null, msg: welcomeEmail(n, { site, unsubscribeUrl: unsub }, code), unsubscribeUrl: unsub })) === "sent") welcome++;
+        if ((await sendTracked({ email: s.email, kind, ref: null, msg: welcomeEmail(n, { site, unsubscribeUrl: unsub }, offer), unsubscribeUrl: unsub })) === "sent") welcome++;
       } catch (err) {
         failed.push(`welcome ${s.email}: ${err instanceof Error ? err.message : String(err)}`);
       }

@@ -2,12 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const listWelcomeCandidates = vi.fn(), sentKinds = vi.fn(), sendTracked = vi.fn(), getSubscriber = vi.fn(), welcomeSendsFor = vi.fn();
 const listAbandonedCheckouts = vi.fn(), alertOwner = vi.fn(), getOrderById = vi.fn();
+const offerForEmail = vi.fn();
 vi.mock("@/lib/email/data", () => ({ listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, welcomeSendsFor }));
 vi.mock("@/lib/email/cart", () => ({ listAbandonedCheckouts }));
 vi.mock("@/lib/orders", () => ({ getOrderById }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
 vi.mock("@/data/catalog", () => ({ compounds: [] }));
+vi.mock("@/lib/account/offer-data", () => ({ offerForEmail }));
 
 const auth = (s = "cron-s") => new Request("http://localhost/api/cron/emails", { headers: { authorization: `Bearer ${s}` } });
 const H = 3600 * 1000, D = 24 * H;
@@ -15,9 +17,10 @@ const H = 3600 * 1000, D = 24 * H;
 describe("GET /api/cron/emails", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, listAbandonedCheckouts, alertOwner, welcomeSendsFor, getOrderById]) f.mockReset();
+    for (const f of [listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, listAbandonedCheckouts, alertOwner, welcomeSendsFor, getOrderById, offerForEmail]) f.mockReset();
     welcomeSendsFor.mockResolvedValue(new Map());
     getOrderById.mockResolvedValue({ status: "awaiting_payment" });
+    offerForEmail.mockResolvedValue(null);
     process.env.CRON_SECRET = "cron-s"; process.env.EMAIL_LINK_SECRET = "s"; process.env.MAILING_ADDRESS = "Aura Protocols LLC · 1 A St";
     listWelcomeCandidates.mockResolvedValue([]); listAbandonedCheckouts.mockResolvedValue([]); sendTracked.mockResolvedValue("sent");
   });
@@ -27,8 +30,8 @@ describe("GET /api/cron/emails", () => {
     expect((await GET(auth("wrong"))).status).toBe(401);
   });
 
-  it("sends the next due welcome file, with the code only while it's unused", async () => {
-    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date(Date.now() - 5.5 * D).toISOString(), welcome_code: "AURA-7K2Q", welcome_code_expires_at: new Date(Date.now() + 8 * D).toISOString(), welcome_code_used_order_id: null }]);
+  it("sends the next due welcome file", async () => {
+    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date(Date.now() - 5.5 * D).toISOString() }]);
     welcomeSendsFor.mockResolvedValue(new Map([["a@b.co", { kinds: new Set(["welcome_1", "welcome_2"]), lastSentMs: null }]]));
     const { GET } = await import("@/app/api/cron/emails/route");
     const res = await GET(auth());
@@ -36,17 +39,21 @@ describe("GET /api/cron/emails", () => {
     expect(sendTracked.mock.calls[0][0]).toMatchObject({ email: "a@b.co", kind: "welcome_3", ref: null });
   });
 
-  it("hides the welcome code in File 01 once it's used or expired", async () => {
-    listWelcomeCandidates.mockResolvedValue([
-      { email: "used@b.co", confirmed_at: new Date().toISOString(), welcome_code: "AURA-USED1", welcome_code_expires_at: new Date(Date.now() + 8 * D).toISOString(), welcome_code_used_order_id: "o1" },
-      { email: "expired@b.co", confirmed_at: new Date().toISOString(), welcome_code: "AURA-EXPQ1", welcome_code_expires_at: new Date(Date.now() - 1 * H).toISOString(), welcome_code_used_order_id: null },
-    ]);
+  it("puts the live new-account offer in File 01 and asks only for Files 01 and 05", async () => {
+    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date().toISOString() }]);
+    offerForEmail.mockResolvedValue({ endsAt: "2026-12-15T23:59:59.999Z" });
     const { GET } = await import("@/app/api/cron/emails/route");
     await GET(auth());
-    expect(sendTracked).toHaveBeenCalledTimes(2);
-    for (const call of sendTracked.mock.calls) {
-      expect(call[0].msg.html).not.toMatch(/AURA-(USED1|EXPQ1)/);
-    }
+    expect(sendTracked.mock.calls[0][0].msg.html).toContain("FIRST ORDER · 15%");
+    expect(offerForEmail).toHaveBeenCalledWith("a@b.co");
+  });
+
+  it("doesn't look up the offer for Files 02–04", async () => {
+    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date(Date.now() - 5.5 * D).toISOString() }]);
+    welcomeSendsFor.mockResolvedValue(new Map([["a@b.co", { kinds: new Set(["welcome_1", "welcome_2"]), lastSentMs: null }]]));
+    const { GET } = await import("@/app/api/cron/emails/route");
+    await GET(auth());
+    expect(offerForEmail).not.toHaveBeenCalled();
   });
 
   it("sends the due cart reminder to a subscribed-or-unknown buyer, keyed by order id", async () => {
@@ -92,8 +99,8 @@ describe("GET /api/cron/emails", () => {
 
   it("keeps going after a failure and alerts the owner once with the list", async () => {
     listWelcomeCandidates.mockResolvedValue([
-      { email: "a@b.co", confirmed_at: new Date(Date.now() - 2.5 * D).toISOString(), welcome_code: null, welcome_code_expires_at: null, welcome_code_used_order_id: null },
-      { email: "c@d.co", confirmed_at: new Date(Date.now() - 2.5 * D).toISOString(), welcome_code: null, welcome_code_expires_at: null, welcome_code_used_order_id: null },
+      { email: "a@b.co", confirmed_at: new Date(Date.now() - 2.5 * D).toISOString() },
+      { email: "c@d.co", confirmed_at: new Date(Date.now() - 2.5 * D).toISOString() },
     ]);
     welcomeSendsFor.mockResolvedValue(new Map([
       ["a@b.co", { kinds: new Set(["welcome_1"]), lastSentMs: null }],
@@ -118,7 +125,7 @@ describe("GET /api/cron/emails", () => {
   });
 
   it("keeps going when the abandoned-checkout list itself fails, after sending due welcome files", async () => {
-    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date(Date.now() - 2.5 * D).toISOString(), welcome_code: null, welcome_code_expires_at: null, welcome_code_used_order_id: null }]);
+    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date(Date.now() - 2.5 * D).toISOString() }]);
     welcomeSendsFor.mockResolvedValue(new Map());
     listAbandonedCheckouts.mockRejectedValue(new Error("db down"));
     const { GET } = await import("@/app/api/cron/emails/route");
@@ -134,8 +141,8 @@ describe("GET /api/cron/emails", () => {
       const base = new Date("2026-12-01T00:00:00Z");
       vi.setSystemTime(base);
       listWelcomeCandidates.mockResolvedValue([
-        { email: "a@b.co", confirmed_at: new Date(base.getTime() - 2.5 * D).toISOString(), welcome_code: null, welcome_code_expires_at: null, welcome_code_used_order_id: null },
-        { email: "c@d.co", confirmed_at: new Date(base.getTime() - 2.5 * D).toISOString(), welcome_code: null, welcome_code_expires_at: null, welcome_code_used_order_id: null },
+        { email: "a@b.co", confirmed_at: new Date(base.getTime() - 2.5 * D).toISOString() },
+        { email: "c@d.co", confirmed_at: new Date(base.getTime() - 2.5 * D).toISOString() },
       ]);
       welcomeSendsFor.mockResolvedValue(new Map());
       sendTracked.mockImplementation(async () => { vi.advanceTimersByTime(250_000); return "sent"; });
