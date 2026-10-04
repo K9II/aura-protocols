@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { SESSION_ONLY_COOKIE } from "@/lib/supabase/session-only";
 import { DEVICE_FLAG_COOKIE, verifyDeviceFlag } from "@/lib/gate";
 import { createAccount } from "@/lib/account/create";
 import { safeNext } from "@/lib/dal";
@@ -53,6 +54,7 @@ export async function signInAction(_prev: AuthFormState, form: FormData): Promis
 export async function signOutAction(): Promise<void> {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
+  (await cookies()).delete(SESSION_ONLY_COOKIE);
   redirect("/");
 }
 

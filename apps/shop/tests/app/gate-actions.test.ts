@@ -12,9 +12,10 @@ vi.mock("@/lib/account/create", () => ({ createAccount }));
 vi.mock("@/lib/gate", () => ({ DEVICE_FLAG_COOKIE: "aura_dev", verifyDeviceFlag: (v?: string) => v === "flag" }));
 vi.mock("@/lib/partners/ref-cookie", () => ({ REF_COOKIE: "aura_ref", readRef: (v?: string) => v ?? null }));
 let jar: Record<string, string> = {};
+const cookieSet = vi.fn(), cookieDelete = vi.fn();
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "x-forwarded-for": "1.2.3.4", "user-agent": "UA" }),
-  cookies: async () => ({ get: (n: string) => (jar[n] ? { value: jar[n] } : undefined) }),
+  cookies: async () => ({ get: (n: string) => (jar[n] ? { value: jar[n] } : undefined), set: cookieSet, delete: cookieDelete }),
 }));
 
 const customer = { id: "u1", email: "j@lab.org", emailConfirmed: false };
@@ -57,7 +58,7 @@ describe("resendVerifyAction", () => {
 });
 
 describe("gateSignInAction", () => {
-  beforeEach(() => { vi.resetModules(); signInWithPassword.mockReset(); jar = {}; });
+  beforeEach(() => { vi.resetModules(); signInWithPassword.mockReset(); cookieSet.mockReset(); cookieDelete.mockReset(); jar = {}; });
 
   it("signs in and keeps the session only for this browser session unless Remember me", async () => {
     signInWithPassword.mockResolvedValue({ error: null });
@@ -65,14 +66,27 @@ describe("gateSignInAction", () => {
     expect(await gateSignInAction({ email: "Jane@Lab.org", password: "pw", remember: false })).toEqual({ ok: true });
     expect(signInWithPassword).toHaveBeenCalledWith({ email: "jane@lab.org", password: "pw" });
     expect(sessionOnlyArg).toEqual({ sessionOnly: true });
+    expect(cookieSet).toHaveBeenCalledWith("aura_session_only", "1", expect.objectContaining({ httpOnly: false }));
+    expect(cookieDelete).not.toHaveBeenCalled();
+    cookieSet.mockClear();
     await gateSignInAction({ email: "jane@lab.org", password: "pw", remember: true });
     expect(sessionOnlyArg).toEqual({ sessionOnly: false });
+    expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
+    expect(cookieSet).not.toHaveBeenCalled();
   });
 
   it("gives one message for a wrong email or password", async () => {
     signInWithPassword.mockResolvedValue({ error: { message: "Invalid login credentials" } });
     const { gateSignInAction } = await import("@/app/auth/gate-actions");
     expect(await gateSignInAction({ email: "jane@lab.org", password: "x", remember: true })).toEqual({ error: "That email or password isn't right." });
+    expect(cookieSet).not.toHaveBeenCalled();
+    expect(cookieDelete).not.toHaveBeenCalled();
+  });
+
+  it("returns the generic error instead of throwing on a null input", async () => {
+    const { gateSignInAction } = await import("@/app/auth/gate-actions");
+    signInWithPassword.mockResolvedValue({ error: { message: "Invalid login credentials" } });
+    expect(await gateSignInAction(null as never)).toEqual({ error: "That email or password isn't right." });
   });
 });
 
@@ -99,5 +113,11 @@ describe("gateSignUpAction", () => {
     createAccount.mockResolvedValue({ ok: false, error: "An account with this email already exists — sign in instead." });
     const { gateSignUpAction } = await import("@/app/auth/gate-actions");
     expect(await gateSignUpAction(good)).toEqual({ error: "An account with this email already exists — sign in instead." });
+  });
+
+  it("returns the generic error instead of throwing on a null input", async () => {
+    const { gateSignUpAction } = await import("@/app/auth/gate-actions");
+    expect((await gateSignUpAction(null as never)).error).toMatch(/agree/i);
+    expect(createAccount).not.toHaveBeenCalled();
   });
 });

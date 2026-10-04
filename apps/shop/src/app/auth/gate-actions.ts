@@ -9,6 +9,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createAccount } from "@/lib/account/create";
 import { DEVICE_FLAG_COOKIE, verifyDeviceFlag } from "@/lib/gate";
 import { REF_COOKIE, readRef } from "@/lib/partners/ref-cookie";
+import { SESSION_ONLY_COOKIE } from "@/lib/supabase/session-only";
 
 export type GateResult = { ok: true; verifyRequired?: boolean; error?: undefined } | { ok?: false; error: string };
 
@@ -33,11 +34,18 @@ export async function resendVerifyAction(): Promise<GateResult> {
 // reloads the page itself so the header and server-rendered parts pick up
 // the new session.
 export async function gateSignInAction(input: { email: string; password: string; remember: boolean }): Promise<GateResult> {
-  const email = String(input.email ?? "").trim().toLowerCase().slice(0, 254);
-  const password = String(input.password ?? "").slice(0, 200);
-  const supabase = await createSupabaseServerClient({ sessionOnly: input.remember !== true });
+  const email = String(input?.email ?? "").trim().toLowerCase().slice(0, 254);
+  const password = String(input?.password ?? "").slice(0, 200);
+  const remember = input?.remember === true;
+  const supabase = await createSupabaseServerClient({ sessionOnly: !remember });
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: "That email or password isn't right." };
+  // The marker cookie is what every later request (a background token
+  // refresh with no explicit opts) reads to keep the session-only choice —
+  // it must be readable by the browser client too, so it is not httpOnly.
+  const jar = await cookies();
+  if (remember) jar.delete(SESSION_ONLY_COOKIE);
+  else jar.set(SESSION_ONLY_COOKIE, "1", { httpOnly: false, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/" });
   return { ok: true };
 }
 

@@ -7,9 +7,10 @@ vi.mock("@/lib/account/create", () => ({ createAccount }));
 vi.mock("@/lib/gate", () => ({ hashIp: (ip: string) => `h:${ip}`, DEVICE_FLAG_COOKIE: "aura_dev", verifyDeviceFlag: (v?: string) => v === "flag" }));
 vi.mock("@/lib/partners/ref-cookie", () => ({ REF_COOKIE: "aura_ref", readRef: () => null }));
 let cookieJar: Record<string, string> = {};
+const cookieDelete = vi.fn();
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "x-forwarded-for": "1.2.3.4", "user-agent": "UA" }),
-  cookies: async () => ({ get: (n: string) => (n in cookieJar ? { value: cookieJar[n] } : undefined) }),
+  cookies: async () => ({ get: (n: string) => (n in cookieJar ? { value: cookieJar[n] } : undefined), delete: cookieDelete }),
 }));
 vi.mock("next/navigation", () => ({ redirect: (u: string) => { throw new Error(`REDIRECT:${u}`); } }));
 
@@ -21,7 +22,7 @@ function fd(values: Record<string, string>) {
 const signup = { fullName: "Jane Rivera", email: "Jane@Lab.org", password: "correct horse battery", organization: "", agree: "on", next: "/checkout" };
 
 describe("auth actions", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); createAccount.mockReset(); cookieJar = {}; });
+  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); createAccount.mockReset(); cookieDelete.mockReset(); cookieJar = {}; });
 
   it("sign-up requires the combined agreement", async () => {
     const { signUpAction } = await import("@/app/auth/actions");
@@ -63,5 +64,12 @@ describe("auth actions", () => {
     auth.resetPasswordForEmail.mockResolvedValue({ error: { message: "User not found" } });
     const { requestPasswordResetAction } = await import("@/app/auth/actions");
     expect(await requestPasswordResetAction(undefined, fd({ email: "nobody@lab.org" }))).toEqual({ ok: true, message: expect.stringMatching(/if an account exists/i) });
+  });
+
+  it("sign-out clears the session-only marker before redirecting", async () => {
+    auth.signOut.mockResolvedValue({ error: null });
+    const { signOutAction } = await import("@/app/auth/actions");
+    await expect(signOutAction()).rejects.toThrow("REDIRECT:/");
+    expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
   });
 });
