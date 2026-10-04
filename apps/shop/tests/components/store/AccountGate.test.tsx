@@ -147,7 +147,7 @@ describe("AccountGate", () => {
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/Too many tries/));
   });
 
-  it("create account needs the agreement, sends the opt-in, and moves to verify when required", async () => {
+  it("create account needs the one agreement box, shows the marketing notice, and moves to verify when required", async () => {
     routes({ state: "anon" }, { next: "create" });
     gateSignUpAction.mockResolvedValue({ ok: true, verifyRequired: true });
     const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
@@ -162,10 +162,11 @@ describe("AccountGate", () => {
     expect(gateSignUpAction).not.toHaveBeenCalled();
     expect(screen.getByRole("alert")).toHaveTextContent(/agree/i);
     fireEvent.click(screen.getByLabelText(/I am 21 or older/));
-    fireEvent.click(screen.getByLabelText(/Email me promotions, research news and new lots\./));
+    expect(screen.getAllByRole("checkbox")).toHaveLength(1);
+    expect(screen.getByText(/also email you promotions, research news and new lots\. Unsubscribe anytime\./)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Create account/ }));
     await waitFor(() => expect(screen.getByRole("heading", { name: /Confirm your email/ })).toBeInTheDocument());
-    expect(gateSignUpAction).toHaveBeenCalledWith({ email: "new@lab.org", fullName: "Jane Rivera", password: "correct horse battery", agreed: true, optIn: true });
+    expect(gateSignUpAction).toHaveBeenCalledWith({ email: "new@lab.org", fullName: "Jane Rivera", password: "correct horse battery", agreed: true });
   });
 
   it("opens straight at the verify step for a flagged account", async () => {

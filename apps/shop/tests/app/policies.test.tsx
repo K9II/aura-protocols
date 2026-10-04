@@ -103,9 +103,9 @@ describe("/privacy", () => {
     expectNoLegacyReturns(text);
   });
 
-  it("names promotions, research news and new-lot notices as opt-in email", () => {
+  it("names promotions, research news and new-lot notices as account email, sent once the address is confirmed", () => {
     const { text } = renderPolicy(<PrivacyPage />);
-    expect(text).toContain("to send promotions, research news and new-lot notices if you opt in");
+    expect(text).toContain("to send promotions, research news and new-lot notices once your email address is confirmed");
   });
 
   it("has no leftover entry-gate language and describes the account-gate cookies", () => {

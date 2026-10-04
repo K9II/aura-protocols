@@ -6,6 +6,7 @@ import AuraLockup from "@/components/AuraLockup";
 import { gateSignInAction, gateSignUpAction, resendVerifyAction } from "@/app/auth/gate-actions";
 import { signOutAction } from "@/app/auth/actions";
 import { OFFER_DAYS_TEXT, OFFER_PCT_TEXT } from "@/lib/account/offer";
+import { MARKETING_NOTICE } from "@/lib/gate-shared";
 
 export type Step = "1" | "2a" | "2b" | "verify";
 type Variant = "a" | "pc";
@@ -146,7 +147,6 @@ function SignUpStep({ c, variant, email, onStep, onDone }: { c: (n: string) => s
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [optIn, setOptIn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function submit(e: FormEvent) {
@@ -155,7 +155,7 @@ function SignUpStep({ c, variant, email, onStep, onDone }: { c: (n: string) => s
     if (password.length < 10) { setError("Use at least 10 characters for your password."); return; }
     setBusy(true); setError(null);
     try {
-      const r = await gateSignUpAction({ email, fullName, password, agreed, optIn });
+      const r = await gateSignUpAction({ email, fullName, password, agreed });
       if (!r.ok) { setError(r.error); return; }
       if (r.verifyRequired) onStep("verify"); else onDone();
     } catch {
@@ -176,7 +176,7 @@ function SignUpStep({ c, variant, email, onStep, onDone }: { c: (n: string) => s
           <span className="hint" id="ag-pw-hint">{password.length >= 10 && <span className="ok">✓</span>}At least 10 characters</span></div>
         <label className="chk attest"><input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} /><span className="sq" />
           <span>I am 21 or older, I am buying for in-vitro laboratory research use only (not for human or animal use), and I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms</Link> and the <Link href="/refund-policy" target="_blank" rel="noopener noreferrer">Refund &amp; Dispute Policy</Link>.</span></label>
-        <label className={`chk ${c("opt")}`}><input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} /><span className="sq" /><span>Email me promotions, research news and new lots.</span></label>
+        <p className={c("note")}>{MARKETING_NOTICE}</p>
         <p className={c("priv")}><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true"><rect x="3" y="7" width="10" height="7.5" /><path d="M5.2 7V5a2.8 2.8 0 0 1 5.6 0v2" /></svg><span>We use your details to run your account and orders. See our <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="lnk">Privacy Policy</Link>.</span></p>
         <Err text={error} />
         <button className="btn" type="submit" disabled={busy}>Create account <Arrow /></button>

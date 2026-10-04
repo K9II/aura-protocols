@@ -49,7 +49,7 @@ export default function TermsPage() {
           <p>The Site&apos;s text, graphics, marks, and artwork belong to Aura Protocols LLC. You may not copy, mirror, republish, or redistribute them without our written consent. We may suspend or change access to the Site at any time.</p>
         ) },
         { id: "privacy", heading: "Privacy and communications", body: (
-          <p>Order, shipping, and account emails are part of every purchase. Marketing email is sent only if you opt in, and every marketing email has an unsubscribe link. How we handle your information is described in our <Link href="/privacy" className="p-link">Privacy Policy</Link>.</p>
+          <p>Order, shipping, and account emails are part of every purchase. Account holders also receive marketing email (promotions, research news and new lots) once their address is confirmed; every marketing email has an unsubscribe link. How we handle your information is described in our <Link href="/privacy" className="p-link">Privacy Policy</Link>.</p>
         ) },
         { id: "law", heading: "Governing law and disputes", body: (<>
           <p>If a dispute arises, you agree to contact us first at {mail} and to attempt in good faith to resolve it with us. These Terms are governed by the laws of the State of {GOVERNING_STATE ?? <mark className="s-pending">[State — pending]</mark>}, without regard to conflict-of-law rules, and any unresolved dispute will be heard in the courts of that state.</p>

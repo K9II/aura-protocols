@@ -30,10 +30,10 @@ describe("auth actions", () => {
     expect(createAccount).not.toHaveBeenCalled();
   });
 
-  it("sign-up passes the form, IP, user agent, opt-in and partner ref to createAccount", async () => {
+  it("sign-up passes the form, IP, user agent and partner ref to createAccount, with marketing on by default", async () => {
     createAccount.mockResolvedValue({ ok: true, customerId: "u1", verifyRequired: false });
     const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd({ ...signup, emailOptIn: "on" }));
+    const r = await signUpAction(undefined, fd(signup));
     expect(r).toEqual({ ok: true, message: expect.stringMatching(/confirm/i) });
     expect(createAccount).toHaveBeenCalledWith({ fullName: "Jane Rivera", email: "jane@lab.org", password: "correct horse battery", organization: null, optIn: true, ip: "1.2.3.4", userAgent: "UA", deviceFlagged: false, partnerRef: null });
   });

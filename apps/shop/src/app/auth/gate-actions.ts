@@ -54,10 +54,9 @@ const gateSignUpSchema = z.object({
   fullName: z.string().trim().min(1).max(100),
   password: z.string().min(10).max(200),
   agreed: z.literal(true),
-  optIn: z.boolean(),
 });
 
-export async function gateSignUpAction(input: { email: string; fullName: string; password: string; agreed: boolean; optIn: boolean }): Promise<GateResult> {
+export async function gateSignUpAction(input: { email: string; fullName: string; password: string; agreed: boolean }): Promise<GateResult> {
   if (input?.agreed !== true) return { error: "Please agree to the terms to create an account." };
   const parsed = gateSignUpSchema.safeParse(input);
   if (!parsed.success) return { error: "Please enter your name and a password of at least 10 characters." };
@@ -66,7 +65,7 @@ export async function gateSignUpAction(input: { email: string; fullName: string;
   let partnerRef: string | null = null;
   try { partnerRef = readRef(jar.get(REF_COOKIE)?.value); } catch { partnerRef = null; }
   const r = await createAccount({
-    fullName: parsed.data.fullName, email: parsed.data.email, password: parsed.data.password, organization: null, optIn: parsed.data.optIn,
+    fullName: parsed.data.fullName, email: parsed.data.email, password: parsed.data.password, organization: null, optIn: true, // marketing is the default (MARKETING_NOTICE); unsubscribe link in every email
     ip: (h.get("x-forwarded-for") ?? "").split(",")[0].trim(), userAgent: h.get("user-agent"),
     deviceFlagged: verifyDeviceFlag(jar.get(DEVICE_FLAG_COOKIE)?.value), partnerRef,
   });

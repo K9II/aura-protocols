@@ -34,7 +34,7 @@ export async function signUpAction(_prev: AuthFormState, form: FormData): Promis
   let partnerRef: string | null = null;
   try { partnerRef = readRef(jar.get(REF_COOKIE)?.value); } catch { partnerRef = null; }
   const r = await createAccount({
-    fullName, email, password, organization: organization ?? null, optIn: form.get("emailOptIn") === "on",
+    fullName, email, password, organization: organization ?? null, optIn: true, // marketing is the default (MARKETING_NOTICE on the form)
     ip: (h.get("x-forwarded-for") ?? "").split(",")[0].trim(), userAgent: h.get("user-agent"),
     deviceFlagged: verifyDeviceFlag(jar.get(DEVICE_FLAG_COOKIE)?.value), partnerRef,
   });

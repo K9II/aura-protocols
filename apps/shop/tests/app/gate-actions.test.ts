@@ -92,7 +92,7 @@ describe("gateSignInAction", () => {
 
 describe("gateSignUpAction", () => {
   beforeEach(() => { vi.resetModules(); createAccount.mockReset(); jar = {}; });
-  const good = { email: "jane@lab.org", fullName: "Jane Rivera", password: "correct horse battery", agreed: true, optIn: false };
+  const good = { email: "jane@lab.org", fullName: "Jane Rivera", password: "correct horse battery", agreed: true };
 
   it("requires the agreement and a 10-character password", async () => {
     const { gateSignUpAction } = await import("@/app/auth/gate-actions");
@@ -101,11 +101,11 @@ describe("gateSignUpAction", () => {
     expect(createAccount).not.toHaveBeenCalled();
   });
 
-  it("creates the account with IP, user agent, device flag and partner ref", async () => {
+  it("creates the account (marketing on by default) with IP, user agent, device flag and partner ref", async () => {
     jar = { aura_dev: "flag", aura_ref: "SMITHLAB" };
     createAccount.mockResolvedValue({ ok: true, customerId: "u1", verifyRequired: true });
     const { gateSignUpAction } = await import("@/app/auth/gate-actions");
-    expect(await gateSignUpAction({ ...good, optIn: true })).toEqual({ ok: true, verifyRequired: true });
+    expect(await gateSignUpAction(good)).toEqual({ ok: true, verifyRequired: true });
     expect(createAccount).toHaveBeenCalledWith({ fullName: "Jane Rivera", email: "jane@lab.org", password: "correct horse battery", organization: null, optIn: true, ip: "1.2.3.4", userAgent: "UA", deviceFlagged: true, partnerRef: "SMITHLAB" });
   });
 
