@@ -155,7 +155,8 @@ export default function AccountGate() {
       timer = setTimeout(() => {
         const field = el.closest<HTMLElement>(".fld") ?? el;
         const top = field.getBoundingClientRect().top - card.getBoundingClientRect().top + card.scrollTop - FIELD_TOP_GAP_PX;
-        card.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+        if (typeof card.scrollTo === "function") card.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+        else card.scrollTop = Math.max(0, top); // older browsers
       }, KEYBOARD_SETTLE_MS);
     };
     card.addEventListener("focusin", onFocus);

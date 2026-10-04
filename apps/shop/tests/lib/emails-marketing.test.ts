@@ -23,9 +23,9 @@ describe("marketing emails", () => {
     const { welcomeEmail } = await import("@/lib/emails-marketing");
     expect(welcomeEmail(1, ctx, offer).html).toContain("FIRST ORDER · 15%");
     expect(welcomeEmail(1, ctx, offer).html).toContain("Applied automatically");
-    expect(welcomeEmail(1, ctx, offer).html).toContain("on a first order within 14 days of opening your account");
+    expect(welcomeEmail(1, ctx, offer).html).toContain("on a first order within 3 days of opening your account");
     expect(welcomeEmail(1, ctx, offer).html).not.toMatch(/Dec 15|no code needed/);
-    expect(welcomeEmail(5, ctx, offer).html).toContain("Your 15% applies automatically to a first order placed within 14 days of opening your account.");
+    expect(welcomeEmail(5, ctx, offer).html).toContain("Your 15% applies automatically to a first order placed within 3 days of opening your account.");
     expect(welcomeEmail(3, ctx, offer).html).not.toContain("15%");
     expect(welcomeEmail(1, ctx, null).html).not.toContain("15%");
     expect(welcomeEmail(5, ctx, null).html).not.toContain("15%");

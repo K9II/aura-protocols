@@ -238,6 +238,9 @@ describe("AccountGate", () => {
     fireEvent.change(screen.getByPlaceholderText("you@institution.org"), { target: { value: "new@lab.org" } });
     fireEvent.click(screen.getByRole("button", { name: /Get access/ }));
     await waitFor(() => screen.getByLabelText(/Choose a password/));
+    // The step change auto-focuses "Full name" (and schedules its own scroll); let that settle first.
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText(/Full name/)));
+    await act(async () => { await vi.advanceTimersByTimeAsync(400); });
     const card = document.querySelector<HTMLElement>(".pc-card")!;
     const scrollTo = vi.fn();
     card.scrollTo = scrollTo as unknown as typeof card.scrollTo;
@@ -247,7 +250,7 @@ describe("AccountGate", () => {
     scrollTo.mockClear();
     fireEvent.focusIn(input);
     await act(async () => { await vi.advanceTimersByTimeAsync(350); });
-    expect(scrollTo).toHaveBeenCalledWith({ top: 288, behavior: "smooth" }); // 400 − 100 − 12 px gap
+    expect(scrollTo).toHaveBeenLastCalledWith({ top: 288, behavior: "smooth" }); // 400 − 100 − 12 px gap
   });
 
   it("on a phone, fits the card to the space above the keyboard", async () => {
