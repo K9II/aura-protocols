@@ -33,4 +33,9 @@ describe("email.sql", () => {
     expect(sql).toContain("references orders(id) on delete set null");
     expect(sql).toContain("references customers(id) on delete set null");
   });
+
+  it("snapshots the lot list on lot_announcements and allows only one open announcement at a time", () => {
+    expect(sql).toMatch(/alter table lot_announcements add column if not exists lots_snapshot jsonb/);
+    expect(sql).toContain("create unique index if not exists lot_announcements_one_open on lot_announcements ((true)) where finished_at is null;");
+  });
 });

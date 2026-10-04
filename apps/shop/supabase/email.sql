@@ -36,6 +36,13 @@ create table if not exists lot_announcements (
   started_at   timestamptz not null default now(),
   finished_at  timestamptz
 );
+-- The exact AlertLot[] at send time, so a resumed or re-opened announcement
+-- sends the same copy (compound/strength text, purity) instead of whatever
+-- the catalog says now.
+alter table lot_announcements add column if not exists lots_snapshot jsonb;
 alter table lot_announcements enable row level security;
+-- Only one announcement may be in flight; a second Send resumes it instead
+-- of starting another (and can't anyway — this index would reject the insert).
+create unique index if not exists lot_announcements_one_open on lot_announcements ((true)) where finished_at is null;
 
 alter table orders add column if not exists welcome_code text;
