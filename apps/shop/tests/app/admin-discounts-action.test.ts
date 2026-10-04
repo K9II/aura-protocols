@@ -116,7 +116,9 @@ describe("discount admin actions", () => {
     const endsLocal = "2026-08-31T23:59";
     const startsIso = zonedToIso(startsLocal);
     const endsIso = zonedToIso(endsLocal);
-    data.getCodeById.mockResolvedValue({ id: codeId, batch_id: null, starts_at: startsIso, ends_at: endsIso });
+    // Supabase's timestamp format, not zonedToIso's.
+    const asStored = (iso: string) => iso.replace(".000Z", "+00:00");
+    data.getCodeById.mockResolvedValue({ id: codeId, batch_id: null, starts_at: asStored(startsIso), ends_at: asStored(endsIso) });
     const { saveCodeAction } = await import("@/app/admin/discounts/actions");
     await expect(saveCodeAction(null, fd({ ...spring, id: codeId, startsAt: startsLocal, endsAt: endsLocal })))
       .rejects.toThrow(`REDIRECT /admin/discounts/${codeId}`);

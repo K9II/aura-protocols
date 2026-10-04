@@ -53,7 +53,8 @@ function parseRule(f: FormData, keepEndsAt: string | null): { input: CodeInput }
   const starts_at = toIso("startsAt");
   const ends_at = toIso("endsAt");
   if (ends_at) {
-    const floor = ends_at === keepEndsAt
+    // Compare instants: Supabase returns "+00:00", zonedToIso returns ".000Z".
+    const floor = keepEndsAt != null && Date.parse(ends_at) === Date.parse(keepEndsAt)
       ? (starts_at ? Date.parse(starts_at) : -Infinity) // unchanged end on an edit: only the after-start rule still applies
       : Math.max(Date.now(), starts_at ? Date.parse(starts_at) : 0);
     if (Date.parse(ends_at) <= floor) e.endsAt = "The end must be in the future and after the start.";
