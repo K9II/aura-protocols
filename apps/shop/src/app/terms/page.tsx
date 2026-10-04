@@ -53,7 +53,7 @@ export default function TermsPage() {
         ) },
         { id: "law", heading: "Governing law and disputes", body: (<>
           <p>If a dispute arises, you agree to contact us first at {mail} and to attempt in good faith to resolve it with us. These Terms are governed by the laws of the State of {GOVERNING_STATE ?? <mark className="s-pending">[State — pending]</mark>}, without regard to conflict-of-law rules, and any unresolved dispute will be heard in the courts of that state.</p>
-          <p>You and Aura Protocols are independent parties; nothing in these Terms creates a partnership, agency, or employment relationship. If any provision is found unenforceable, the rest remain in effect. These Terms, with the policies they reference, are the entire agreement between us about the Site and your purchases. We may update them; material changes will ask you to confirm again when you next enter the Site.</p>
+          <p>You and Aura Protocols are independent parties; nothing in these Terms creates a partnership, agency, or employment relationship. If any provision is found unenforceable, the rest remain in effect. These Terms, with the policies they reference, are the entire agreement between us about the Site and your purchases. We may update them; material changes are posted here with a new effective date, and each order is governed by the Terms in effect when you place it.</p>
         </>) },
       ]}
       closing={<p>By using the Site or placing an order you confirm that you have read and accepted these Terms, together with our Shipping, Refund &amp; Dispute, Privacy, and Research Use Only policies.</p>}

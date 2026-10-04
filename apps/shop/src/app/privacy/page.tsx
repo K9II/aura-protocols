@@ -13,7 +13,7 @@ export default function PrivacyPage() {
       title={<>Privacy <em>Policy.</em></>}
       updated="October 2, 2026"
       summary={{
-        headline: <>We collect what we need to confirm entry, run your account, and fulfil your orders &mdash; and we never sell it.</>,
+        headline: <>We collect what we need to run your account, record your research-use agreement, and fulfil your orders &mdash; and we never sell it.</>,
         detail: <>Card details go straight to our payment processor; we never see or store full card numbers.</>,
       }}
       sections={[
