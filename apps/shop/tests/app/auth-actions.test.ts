@@ -6,10 +6,10 @@ vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () =
 vi.mock("@/lib/account/create", () => ({ createAccount }));
 vi.mock("@/lib/gate", () => ({ hashIp: (ip: string) => `h:${ip}`, DEVICE_FLAG_COOKIE: "aura_dev", verifyDeviceFlag: (v?: string) => v === "flag" }));
 vi.mock("@/lib/partners/ref-cookie", () => ({ REF_COOKIE: "aura_ref", readRef: () => null }));
-let headerCookie: { value: string } | undefined;
+let cookieJar: Record<string, string> = {};
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "x-forwarded-for": "1.2.3.4", "user-agent": "UA" }),
-  cookies: async () => ({ get: () => headerCookie }),
+  cookies: async () => ({ get: (n: string) => (n in cookieJar ? { value: cookieJar[n] } : undefined) }),
 }));
 vi.mock("next/navigation", () => ({ redirect: (u: string) => { throw new Error(`REDIRECT:${u}`); } }));
 
@@ -21,7 +21,7 @@ function fd(values: Record<string, string>) {
 const signup = { fullName: "Jane Rivera", email: "Jane@Lab.org", password: "correct horse battery", organization: "", agree: "on", next: "/checkout" };
 
 describe("auth actions", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); createAccount.mockReset(); headerCookie = undefined; });
+  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); createAccount.mockReset(); cookieJar = {}; });
 
   it("sign-up requires the combined agreement", async () => {
     const { signUpAction } = await import("@/app/auth/actions");
@@ -35,6 +35,14 @@ describe("auth actions", () => {
     const r = await signUpAction(undefined, fd({ ...signup, emailOptIn: "on" }));
     expect(r).toEqual({ ok: true, message: expect.stringMatching(/confirm/i) });
     expect(createAccount).toHaveBeenCalledWith({ fullName: "Jane Rivera", email: "jane@lab.org", password: "correct horse battery", organization: null, optIn: true, ip: "1.2.3.4", userAgent: "UA", deviceFlagged: false, partnerRef: null });
+  });
+
+  it("sign-up from a flagged device tells createAccount so", async () => {
+    cookieJar = { aura_dev: "flag" };
+    createAccount.mockResolvedValue({ ok: true, customerId: "u1", verifyRequired: true });
+    const { signUpAction } = await import("@/app/auth/actions");
+    await signUpAction(undefined, fd(signup));
+    expect(createAccount).toHaveBeenCalledWith(expect.objectContaining({ deviceFlagged: true }));
   });
 
   it("sign-up shows createAccount's error", async () => {

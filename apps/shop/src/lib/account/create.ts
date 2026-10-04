@@ -19,6 +19,13 @@ const MAX_SIGNUPS_PER_IP_24H = 3;
 const EXISTS = "An account with this email already exists — sign in instead.";
 const FAILED = "We couldn't create your account — please try again.";
 
+function signUpError(error: { code?: string; message: string } | null): string {
+  if (!error) return FAILED;
+  if (error.code === "user_already_exists" || error.code === "email_exists" || error.message.toLowerCase().includes("registered")) return EXISTS;
+  if (error.code === "weak_password") return "Please choose a stronger password.";
+  return FAILED;
+}
+
 // The one way an account is made (gate and /sign-in). Supabase "Confirm
 // email" is OFF, so signUp signs the visitor in at once; our own
 // verification email goes out here and checkout waits for it.
@@ -31,7 +38,7 @@ export async function createAccount(input: CreateAccountInput): Promise<CreateAc
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({ email: input.email, password: input.password, options: { data: { full_name: input.fullName } } });
-  if (error || !data.user) return { ok: false, error: error?.message.toLowerCase().includes("registered") ? EXISTS : FAILED };
+  if (error || !data.user) return { ok: false, error: signUpError(error) };
   const id = data.user.id;
 
   const admin = getSupabaseAdminClient();
@@ -42,10 +49,17 @@ export async function createAccount(input: CreateAccountInput): Promise<CreateAc
     customer_id: id, terms_version: TERMS_VERSION, age_21: true, ruo: true, dispute_policy: true,
     ip_hash: ipHash, user_agent: input.userAgent,
   });
+  // A customer row for this id already exists: signUp handed back an
+  // EXISTING user (Supabase "Confirm email" left ON). Never delete it — the
+  // cascade would wipe a real customer.
+  if ((cErr as { code?: string } | null)?.code === "23505") return { ok: false, error: EXISTS };
   if (cErr || aErr) {
     // No half-created accounts: an account must carry its agreements record.
     console.error("sign-up record insert failed:", cErr ?? aErr);
-    await admin.auth.admin.deleteUser(id);
+    const { error: dErr } = await admin.auth.admin.deleteUser(id);
+    if (dErr) await alertOwner("Half-created account not removed", `${id} ${input.email}: ${JSON.stringify(dErr)}`);
+    // Clear the now-dead session cookies; harmless if it fails (the user is gone).
+    try { await supabase.auth.signOut({ scope: "local" }); } catch { /* ignore */ }
     return { ok: false, error: FAILED };
   }
 

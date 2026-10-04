@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
 
-const auth = { signUp: vi.fn() };
+const auth = { signUp: vi.fn(), signOut: vi.fn() };
 const deleteUser = vi.fn(), checkDeliverable = vi.fn(), signupsFromIpSince = vi.fn(), sendVerifyEmail = vi.fn(), recordOptIn = vi.fn(), alertOwner = vi.fn();
 let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () => ({ auth }) }));
@@ -18,9 +18,10 @@ const base = { fullName: "Jane Rivera", email: "jane@lab.org", password: "correc
 describe("createAccount", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [auth.signUp, deleteUser, checkDeliverable, signupsFromIpSince, sendVerifyEmail, recordOptIn, alertOwner]) f.mockReset();
+    for (const f of [auth.signUp, auth.signOut, deleteUser, checkDeliverable, signupsFromIpSince, sendVerifyEmail, recordOptIn, alertOwner]) f.mockReset();
     checkDeliverable.mockResolvedValue("ok"); signupsFromIpSince.mockResolvedValue(0);
     auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+    deleteUser.mockResolvedValue({ error: null }); auth.signOut.mockResolvedValue({ error: null });
   });
 
   it("refuses an address that can't receive mail before creating anything", async () => {
@@ -82,6 +83,43 @@ describe("createAccount", () => {
     const { createAccount } = await import("@/lib/account/create");
     expect((await createAccount(base)).ok).toBe(false);
     expect(deleteUser).toHaveBeenCalledWith("u1");
+  });
+
+  it("maps Supabase error codes: existing address → sign in, weak password → stronger", async () => {
+    const { createAccount } = await import("@/lib/account/create");
+    for (const code of ["user_already_exists", "email_exists"]) {
+      auth.signUp.mockResolvedValueOnce({ data: { user: null }, error: { code, message: "x" } });
+      expect(await createAccount(base)).toEqual({ ok: false, error: "An account with this email already exists — sign in instead." });
+    }
+    auth.signUp.mockResolvedValueOnce({ data: { user: null }, error: { code: "weak_password", message: "x" } });
+    expect(await createAccount(base)).toEqual({ ok: false, error: "Please choose a stronger password." });
+  });
+
+  it("never deletes an existing customer: a duplicate customer row means the account exists", async () => {
+    from = fromQueue({ customers: [query({ error: { code: "23505", message: "duplicate key" } })] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { createAccount } = await import("@/lib/account/create");
+    expect(await createAccount(base)).toEqual({ ok: false, error: "An account with this email already exists — sign in instead." });
+    expect(deleteUser).not.toHaveBeenCalled();
+    expect(auth.signOut).not.toHaveBeenCalled();
+  });
+
+  it("clears the dead session on rollback, even if sign-out fails", async () => {
+    from = fromQueue({ customers: [query({ error: { message: "down" } })] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    auth.signOut.mockRejectedValue(new Error("cookie write failed"));
+    const { createAccount } = await import("@/lib/account/create");
+    expect((await createAccount(base)).ok).toBe(false);
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("alerts the owner when the half-created account can't be removed", async () => {
+    from = fromQueue({ customers: [query({ error: { message: "down" } })] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    deleteUser.mockResolvedValue({ error: { message: "admin api down" } });
+    const { createAccount } = await import("@/lib/account/create");
+    expect((await createAccount(base)).ok).toBe(false);
+    expect(alertOwner).toHaveBeenCalledWith("Half-created account not removed", expect.stringContaining("u1 jane@lab.org"));
   });
 
   it("keeps the account but alerts the owner when the verify email or opt-in fails", async () => {
