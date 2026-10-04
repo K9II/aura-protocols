@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import AuraLockup from "@/components/AuraLockup";
 import AuthLinks from "@/components/store/AuthLinks";
 import { useCart } from "@/components/store/CartProvider";
@@ -8,6 +9,8 @@ import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 export default function SiteNav() {
   const { totals, setOpen } = useCart();
+  const pathname = usePathname();
+  if (pathname?.startsWith("/admin")) return null;
   return (
     <header className="pharmacopoeia sticky top-0 z-50">
       <div className="s-topbar">
