@@ -16,21 +16,16 @@ describe("email.sql", () => {
     expect(sql).toContain("unique nulls not distinct (email, kind, ref)");
   });
 
-  it("adds subscriber status, confirm token, partner ref and welcome code columns", () => {
-    for (const col of ["status", "confirm_token_hash", "confirmed_at", "partner_ref", "welcome_code", "welcome_code_expires_at", "welcome_code_used_order_id"]) {
+  it("adds subscriber status, confirm token and partner ref columns — and no welcome code", () => {
+    for (const col of ["status", "confirm_token_hash", "confirmed_at", "partner_ref"]) {
       expect(sql, col).toMatch(new RegExp(`alter table subscribers add column if not exists ${col}\\b`));
     }
     expect(sql).toContain("add column if not exists status text not null default 'pending'");
     expect(sql).toContain("check (status in ('pending','confirmed','unsubscribed'))");
-    expect(sql).toContain("create unique index if not exists subscribers_welcome_code_idx on subscribers (welcome_code)");
-  });
-
-  it("records the welcome code on orders", () => {
-    expect(sql).toContain("alter table orders add column if not exists welcome_code text");
+    expect(sql).not.toContain("welcome_code");
   });
 
   it("sets foreign keys to not block account deletion", () => {
-    expect(sql).toContain("references orders(id) on delete set null");
     expect(sql).toContain("references customers(id) on delete set null");
   });
 

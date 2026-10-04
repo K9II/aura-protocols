@@ -8,10 +8,6 @@ alter table subscribers add column if not exists status text not null default 'p
 alter table subscribers add column if not exists confirm_token_hash text;
 alter table subscribers add column if not exists confirmed_at timestamptz;
 alter table subscribers add column if not exists partner_ref text;
-alter table subscribers add column if not exists welcome_code text;
-alter table subscribers add column if not exists welcome_code_expires_at timestamptz;
-alter table subscribers add column if not exists welcome_code_used_order_id uuid references orders(id) on delete set null;
-create unique index if not exists subscribers_welcome_code_idx on subscribers (welcome_code) where welcome_code is not null;
 create unique index if not exists subscribers_confirm_token_idx on subscribers (confirm_token_hash) where confirm_token_hash is not null;
 -- Rows unsubscribed before this migration keep their state.
 update subscribers set status = 'unsubscribed' where unsubscribed_at is not null and status <> 'unsubscribed';
@@ -44,5 +40,3 @@ alter table lot_announcements enable row level security;
 -- Only one announcement may be in flight; a second Send resumes it instead
 -- of starting another (and can't anyway — this index would reject the insert).
 create unique index if not exists lot_announcements_one_open on lot_announcements ((true)) where finished_at is null;
-
-alter table orders add column if not exists welcome_code text;
