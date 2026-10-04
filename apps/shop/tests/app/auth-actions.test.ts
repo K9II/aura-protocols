@@ -1,16 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { query, fromQueue, callArgs } from "../helpers/supabase-mock";
 
-const auth = { signUp: vi.fn(), signInWithPassword: vi.fn(), signOut: vi.fn(), resetPasswordForEmail: vi.fn(), updateUser: vi.fn() };
-const deleteUser = vi.fn();
-const startSubscription = vi.fn();
-const alertOwner = vi.fn();
-let from: ReturnType<typeof fromQueue>;
+const auth = { signInWithPassword: vi.fn(), signOut: vi.fn(), resetPasswordForEmail: vi.fn(), updateUser: vi.fn() };
+const createAccount = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () => ({ auth }) }));
-vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t), auth: { admin: { deleteUser } } }) }));
-vi.mock("@/lib/gate", () => ({ hashIp: (ip: string) => `h:${ip}` }));
-vi.mock("@/lib/email/subscribe", () => ({ startSubscription }));
-vi.mock("@/lib/notify", () => ({ alertOwner }));
+vi.mock("@/lib/account/create", () => ({ createAccount }));
+vi.mock("@/lib/gate", () => ({ hashIp: (ip: string) => `h:${ip}`, DEVICE_FLAG_COOKIE: "aura_dev", verifyDeviceFlag: (v?: string) => v === "flag" }));
 vi.mock("@/lib/partners/ref-cookie", () => ({ REF_COOKIE: "aura_ref", readRef: () => null }));
 let headerCookie: { value: string } | undefined;
 vi.mock("next/headers", () => ({
@@ -24,83 +18,29 @@ function fd(values: Record<string, string>) {
   for (const [k, v] of Object.entries(values)) f.set(k, v);
   return f;
 }
-const signup = { fullName: "Jane Rivera", email: "Jane@Lab.org", password: "correct horse battery", organization: "", age21: "on", ruo: "on", dispute: "on", next: "/checkout" };
+const signup = { fullName: "Jane Rivera", email: "Jane@Lab.org", password: "correct horse battery", organization: "", agree: "on", next: "/checkout" };
 
 describe("auth actions", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); deleteUser.mockReset(); startSubscription.mockReset(); alertOwner.mockReset(); headerCookie = undefined; });
+  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); createAccount.mockReset(); headerCookie = undefined; });
 
-  it("sign-up requires all three agreements", async () => {
+  it("sign-up requires the combined agreement", async () => {
     const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd({ ...signup, ruo: "" }));
-    expect(r?.error).toMatch(/three/i);
-    expect(auth.signUp).not.toHaveBeenCalled();
+    expect((await signUpAction(undefined, fd({ ...signup, agree: "" })))?.error).toMatch(/agree/i);
+    expect(createAccount).not.toHaveBeenCalled();
   });
 
-  it("sign-up creates the auth user, the customer row and the agreements record", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    const customersQ = query({}); const agreementsQ = query({});
-    from = fromQueue({ customers: [customersQ], account_agreements: [agreementsQ] });
-    const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd(signup));
-    expect(r).toEqual({ ok: true, message: expect.stringMatching(/verify/i) });
-    expect(auth.signUp).toHaveBeenCalledWith(expect.objectContaining({ email: "jane@lab.org", password: "correct horse battery" }));
-    expect(callArgs(customersQ, "insert")?.[0]).toEqual({ id: "u1", full_name: "Jane Rivera", organization: null });
-    expect(callArgs(agreementsQ, "insert")?.[0]).toMatchObject({ customer_id: "u1", age_21: true, ruo: true, dispute_policy: true, ip_hash: "h:1.2.3.4", user_agent: "UA" });
-  });
-
-  it("sign-up with the email opt-in checked starts a subscription", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    from = fromQueue({ customers: [query({})], account_agreements: [query({})] });
-    const { signUpAction } = await import("@/app/auth/actions");
-    await signUpAction(undefined, fd({ ...signup, emailOptIn: "on" }));
-    expect(startSubscription).toHaveBeenCalledWith({ email: "jane@lab.org", source: "signup", partnerRef: null });
-  });
-
-  it("sign-up without the email opt-in never starts a subscription", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    from = fromQueue({ customers: [query({})], account_agreements: [query({})] });
-    const { signUpAction } = await import("@/app/auth/actions");
-    await signUpAction(undefined, fd(signup));
-    expect(startSubscription).not.toHaveBeenCalled();
-  });
-
-  it("sign-up still succeeds and alerts the owner when the subscription can't be started", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    from = fromQueue({ customers: [query({})], account_agreements: [query({})] });
-    startSubscription.mockRejectedValue(new Error("ses down"));
+  it("sign-up passes the form, IP, user agent, opt-in and partner ref to createAccount", async () => {
+    createAccount.mockResolvedValue({ ok: true, customerId: "u1", verifyRequired: false });
     const { signUpAction } = await import("@/app/auth/actions");
     const r = await signUpAction(undefined, fd({ ...signup, emailOptIn: "on" }));
-    expect(r).toEqual({ ok: true, message: expect.stringMatching(/verify/i) });
-    expect(alertOwner).toHaveBeenCalled();
+    expect(r).toEqual({ ok: true, message: expect.stringMatching(/confirm/i) });
+    expect(createAccount).toHaveBeenCalledWith({ fullName: "Jane Rivera", email: "jane@lab.org", password: "correct horse battery", organization: null, optIn: true, ip: "1.2.3.4", userAgent: "UA", deviceFlagged: false, partnerRef: null });
   });
 
-  it("sign-up removes the auth user if the records can't be saved (no half-created accounts)", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    from = fromQueue({ customers: [query({ error: { message: "down" } })] });
-    vi.spyOn(console, "error").mockImplementation(() => {});
+  it("sign-up shows createAccount's error", async () => {
+    createAccount.mockResolvedValue({ ok: false, error: "Please use an email address you can receive mail at." });
     const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd(signup));
-    expect(r?.error).toBeTruthy();
-    expect(deleteUser).toHaveBeenCalledWith("u1");
-  });
-
-  it("sign-up for an already-verified email says so (Supabase returns a user with no identities)", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "fake", identities: [] } }, error: null });
-    from = fromQueue({});
-    const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd(signup));
-    expect(r?.error).toMatch(/already exists/i);
-    expect(deleteUser).not.toHaveBeenCalled();
-  });
-
-  it("a repeat sign-up of an unverified email never deletes that existing account", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "u1", identities: [{ id: "i1" }] } }, error: null });
-    from = fromQueue({ customers: [query({ error: { code: "23505", message: "duplicate key" } })] });
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd(signup));
-    expect(deleteUser).not.toHaveBeenCalled();
-    expect(r).toEqual({ ok: true, message: expect.stringMatching(/verify/i) });
+    expect((await signUpAction(undefined, fd(signup)))?.error).toBe("Please use an email address you can receive mail at.");
   });
 
   it("sign-in redirects to a safe next path, or reports bad credentials", async () => {

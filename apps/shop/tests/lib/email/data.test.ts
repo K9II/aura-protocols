@@ -392,3 +392,22 @@ describe("listConfirmedEmails / listWelcomeCandidates paging", () => {
     expect(rows).toHaveLength(1003);
   });
 });
+
+describe("recordOptIn", () => {
+  beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
+
+  it("puts a new address on the list as pending, from sign-up, with the partner ref", async () => {
+    const read = query({ data: null }); const write = query({});
+    from = fromQueue({ subscribers: [read, write] });
+    const { recordOptIn } = await import("@/lib/email/data");
+    await recordOptIn("Jane@Lab.org", "SMITHLAB");
+    expect(callArgs(write, "upsert")?.[0]).toEqual({ email: "jane@lab.org", source: "signup", status: "pending", unsubscribed_at: null, partner_ref: "SMITHLAB" });
+  });
+
+  it("leaves an already-confirmed subscriber alone", async () => {
+    from = fromQueue({ subscribers: [query({ data: { email: "a@b.co", status: "confirmed" } })] });
+    const { recordOptIn } = await import("@/lib/email/data");
+    await recordOptIn("a@b.co", null);
+    expect(from).toHaveBeenCalledTimes(1);
+  });
+});

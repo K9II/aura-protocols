@@ -4,14 +4,11 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
-import { hashIp } from "@/lib/gate";
-import { TERMS_VERSION } from "@/lib/gate-shared";
+import { DEVICE_FLAG_COOKIE, verifyDeviceFlag } from "@/lib/gate";
+import { createAccount } from "@/lib/account/create";
 import { safeNext } from "@/lib/dal";
 import { siteUrl } from "@/lib/supabase/env";
-import { startSubscription } from "@/lib/email/subscribe";
 import { REF_COOKIE, readRef } from "@/lib/partners/ref-cookie";
-import { alertOwner } from "@/lib/notify";
 
 export type AuthFormState = { ok?: boolean; error?: string; message?: string } | undefined;
 
@@ -22,59 +19,26 @@ const signUpSchema = z.object({
   organization: z.string().trim().max(200).optional(),
 });
 
+// Shared with the gate's sign-up (lib/account/create.ts); this one serves the /sign-in page.
 export async function signUpAction(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {
-  if (form.get("age21") !== "on" || form.get("ruo") !== "on" || form.get("dispute") !== "on") {
-    return { error: "Please confirm all three agreements to create an account." };
-  }
+  if (form.get("agree") !== "on") return { error: "Please agree to the terms to create an account." };
   const parsed = signUpSchema.safeParse({
     fullName: form.get("fullName"), email: form.get("email"), password: form.get("password"),
     organization: form.get("organization") || undefined,
   });
   if (!parsed.success) return { error: "Please enter your name, a valid email and a password of at least 10 characters." };
   const { fullName, email, password, organization } = parsed.data;
-  const next = safeNext(String(form.get("next") ?? ""), "/checkout");
-
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signUp({
-    email, password,
-    options: { emailRedirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`, data: { full_name: fullName } },
-  });
-  const EXISTS = "An account with this email already exists — sign in instead.";
-  if (error || !data.user) return { error: error?.message.includes("registered") ? EXISTS : "We couldn't create your account — please try again." };
-  // With email confirmation on, Supabase answers a sign-up for an already
-  // verified address with a placeholder user that has no identities.
-  if (Array.isArray(data.user.identities) && data.user.identities.length === 0) return { error: EXISTS };
-  const VERIFY = "Check your email and click the link to verify your address. Then you can check out.";
-
-  const admin = getSupabaseAdminClient();
   const h = await headers();
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim();
-  const { error: cErr } = await admin.from("customers").insert({ id: data.user.id, full_name: fullName, organization: organization ?? null });
-  const { error: aErr } = cErr ? { error: cErr } : await admin.from("account_agreements").insert({
-    customer_id: data.user.id, terms_version: TERMS_VERSION, age_21: true, ruo: true, dispute_policy: true,
-    ip_hash: ip ? hashIp(ip) : null, user_agent: h.get("user-agent"),
+  const jar = await cookies();
+  let partnerRef: string | null = null;
+  try { partnerRef = readRef(jar.get(REF_COOKIE)?.value); } catch { partnerRef = null; }
+  const r = await createAccount({
+    fullName, email, password, organization: organization ?? null, optIn: form.get("emailOptIn") === "on",
+    ip: (h.get("x-forwarded-for") ?? "").split(",")[0].trim(), userAgent: h.get("user-agent"),
+    deviceFlagged: verifyDeviceFlag(jar.get(DEVICE_FLAG_COOKIE)?.value), partnerRef,
   });
-  // A repeat sign-up of an address that hasn't been verified yet returns the
-  // EXISTING user (Supabase re-sends the link); its customer row is already
-  // there. Never delete that account - just point them at the new email.
-  if (cErr && (cErr as { code?: string }).code === "23505") return { ok: true, message: VERIFY };
-  if (cErr || aErr) {
-    // No half-created accounts: an account must carry its agreements record.
-    console.error("sign-up record insert failed:", cErr ?? aErr);
-    await admin.auth.admin.deleteUser(data.user.id);
-    return { error: "We couldn't create your account — please try again." };
-  }
-  if (form.get("emailOptIn") === "on") {
-    // Never blocks account creation; a failure is reported to the owner.
-    try {
-      let partnerRef: string | null = null;
-      try { partnerRef = readRef((await cookies()).get(REF_COOKIE)?.value); } catch { partnerRef = null; }
-      await startSubscription({ email, source: "signup", partnerRef });
-    } catch (err) {
-      await alertOwner("Sign-up email opt-in failed", `${email}: ${String(err)}`);
-    }
-  }
-  return { ok: true, message: VERIFY };
+  if (!r.ok) return { error: r.error };
+  return { ok: true, message: "Account created. We've emailed you a link — confirm your address before your first order." };
 }
 
 export async function signInAction(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {

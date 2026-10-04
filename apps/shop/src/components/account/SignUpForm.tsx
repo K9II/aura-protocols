@@ -30,12 +30,11 @@ export default function SignUpForm({ next }: { next: string }) {
       <input id="su-password" name="password" type="password" autoComplete="new-password" minLength={10} required className={field} />
       <label htmlFor="su-org" className="s-micro block mb-1.5">Organization (optional)</label>
       <input id="su-org" name="organization" autoComplete="organization" className={field} />
-      <label className="s-chk"><input type="checkbox" name="age21" /><span>I confirm I am <b>21 years of age or older</b>.</span></label>
-      <label className="s-chk"><input type="checkbox" name="ruo" /><span>I agree these products are <b>for research use only</b> — not for human or animal consumption, and not for medical, veterinary, or diagnostic use.</span></label>
-      <label className="s-chk"><input type="checkbox" name="dispute" /><span>I&apos;ve read the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms</Link> and <Link href="/refund-policy" target="_blank" rel="noopener noreferrer">Refund &amp; Dispute Policy</Link>, and will contact support before filing a payment dispute.</span></label>
+      <label className="s-chk"><input type="checkbox" name="agree" required /><span>I am 21 or older, I am buying for in-vitro laboratory research use only (not for human or animal use), and I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms</Link> and the <Link href="/refund-policy" target="_blank" rel="noopener noreferrer">Refund &amp; Dispute Policy</Link>.</span></label>
+      <label className="s-chk"><input type="checkbox" name="emailOptIn" /><span>Email me promotions, research news and new lots.</span></label>
       {state?.error && <p role="alert" className="text-sm text-[color:var(--specimen)] mb-3">{state.error}</p>}
       <button type="submit" className="s-atc" disabled={pending}>Create account →</button>
-      <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-3">We&apos;ll email a link to verify your address before your first order.</p>
+      <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-3">We&apos;ll email a link to confirm your address before your first order.</p>
     </form>
   );
 }

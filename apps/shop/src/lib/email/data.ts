@@ -178,6 +178,21 @@ export async function unsubscribe(email: string): Promise<void> {
   if (retryErr) throw new Error(`unsubscribe retry failed: ${JSON.stringify(retryErr)}`);
 }
 
+// The sign-up box was ticked: the address goes on the list as pending until
+// the account's email is verified (confirmOptIn). Ticking the box is a fresh
+// request, so an earlier unsubscribe is cleared here — but nothing is sent
+// until the address is verified. Already confirmed stays as it is.
+export async function recordOptIn(email: string, partnerRef: string | null): Promise<void> {
+  const e = normalizeEmail(email);
+  const existing = await getSubscriber(e);
+  if (existing?.status === "confirmed") return;
+  const { error } = await db().from("subscribers").upsert(
+    { email: e, source: "signup", status: "pending", unsubscribed_at: null, partner_ref: partnerRef ?? existing?.partner_ref ?? null },
+    { onConflict: "email" },
+  );
+  if (error) throw new Error(`opt-in save failed: ${JSON.stringify(error)}`);
+}
+
 export async function isUnsubscribed(email: string): Promise<boolean> {
   return (await getSubscriber(email))?.status === "unsubscribed";
 }
