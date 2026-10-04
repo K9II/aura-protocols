@@ -11,9 +11,9 @@ import {
 import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } from "@/lib/commerce";
 import { siteUrl } from "@/lib/supabase/env";
 import { resolveAttribution } from "@/lib/partners/attribution";
-import { applyCodeDiscount, applyPartnerCode } from "@/lib/partners/discounts";
+import { applyCodeDiscount } from "@/lib/partners/discounts";
 import { offerForCustomer } from "@/lib/account/offer-data";
-import { NEW_ACCOUNT_PCT, type FirstOrderOffer } from "@/lib/account/offer";
+import { discountPct, type FirstOrderOffer } from "@/lib/account/offer";
 import { creditBalance, spendCredit } from "@/lib/partners/ledger";
 import { REF_COOKIE } from "@/lib/partners/ref-cookie";
 import { afterOrderPaid } from "@/lib/order-paid";
@@ -98,9 +98,10 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   const refCookie = (await cookies()).get(REF_COOKIE)?.value;
   const { attribution, codeError } = await resolveAttribution({ typedCode: partnerCode, refCookie, buyerCustomerId: customer.id });
   if (codeError) return { error: codeError, codeError };
-  // One discount per line. A new account's first order (within 14 days) gets
-  // 15%, which beats any partner code; a partner code or link still
-  // attributes the order to the partner for commission.
+  // One discount per line. A new account's first order (within the
+  // new-account window) gets the new-account percent, applied whenever it's
+  // larger than any partner code's percent (discountPct); a partner code or
+  // link still attributes the order to the partner for commission.
   let offer: FirstOrderOffer = null;
   try {
     offer = await offerForCustomer(customer);
@@ -109,10 +110,13 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     return { error: OFFER_CHECK_FAILED };
   }
   let lineDiscountsCents = priced.items.map(() => 0);
-  if (offer || attribution?.via === "code") {
-    const discounted = offer ? applyCodeDiscount(priced, NEW_ACCOUNT_PCT) : applyPartnerCode(priced);
+  const discount = discountPct(!!offer, attribution?.via === "code");
+  let newAccountDiscount = false;
+  if (discount) {
+    const discounted = applyCodeDiscount(priced, discount.pct);
     priced = discounted;
     lineDiscountsCents = discounted.lineDiscounts.map((d) => d.savingCents);
+    newAccountDiscount = discount.newAccount;
   }
 
   await bookkeep("saving the shipping address", () => saveShipAddress(customer.id, ship));
@@ -143,7 +147,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     customerId: customer.id, email: customer.email, ship, priced,
     partner: attribution ? { partnerId: attribution.partnerId, attributedBy: attribution.via } : null,
     storeCreditCents: credit?.creditCents ?? 0, taxCents: credit?.taxCents ?? 0, taxCalculationId: credit?.calculationId ?? null,
-    newAccountDiscount: !!offer,
+    newAccountDiscount,
   });
 
   // Credit is held (spent) the moment we commit to it, even for a partial

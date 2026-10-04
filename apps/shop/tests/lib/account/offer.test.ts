@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { NEW_ACCOUNT_DAYS, NEW_ACCOUNT_PCT, OFFER_DAYS_TEXT, OFFER_PCT_TEXT, offerEndsAt, offerLive } from "@/lib/account/offer";
+import { NEW_ACCOUNT_DAYS, NEW_ACCOUNT_PCT, OFFER_DAYS_TEXT, OFFER_PCT_TEXT, discountPct, discountPctWith, offerEndsAt, offerLive } from "@/lib/account/offer";
+import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
 
 describe("new-account offer", () => {
   it("is 15%", () => { expect(NEW_ACCOUNT_PCT).toBe(15); });
@@ -25,5 +26,45 @@ describe("new-account offer", () => {
 
   it("is gone once the account has a paid order", () => {
     expect(offerLive({ createdAt: "2026-10-04T15:30:00Z", hasPaidOrder: true, nowMs: Date.parse("2026-10-05T00:00:00Z") })).toBeNull();
+  });
+});
+
+describe("discountPct: which percent wins between the new-account offer and a partner code", () => {
+  it("is null when neither applies", () => {
+    expect(discountPct(false, false)).toBeNull();
+  });
+
+  it("is the new-account percent, flagged as such, when only the offer applies", () => {
+    expect(discountPct(true, false)).toEqual({ pct: NEW_ACCOUNT_PCT, newAccount: true });
+  });
+
+  it("is the partner code's percent, not flagged, when only the code applies", () => {
+    expect(discountPct(false, true)).toEqual({ pct: CODE_DISCOUNT_PCT, newAccount: false });
+  });
+
+  it("is the new-account percent (today's 15% beats the code's 10%) when both apply", () => {
+    expect(discountPct(true, true)).toEqual({ pct: NEW_ACCOUNT_PCT, newAccount: true });
+  });
+});
+
+describe("discountPctWith: the same rule, parameterized over whatever percents are configured", () => {
+  it("picks the new-account percent when it's larger (15 vs. 10)", () => {
+    expect(discountPctWith(15, 10, true, true)).toEqual({ pct: 15, newAccount: true });
+  });
+
+  it("picks the partner code's percent when it's larger (5 vs. 10), and does not flag it as new-account", () => {
+    expect(discountPctWith(5, 10, true, true)).toEqual({ pct: 10, newAccount: false });
+  });
+
+  it("is null when neither applies, regardless of the configured percents", () => {
+    expect(discountPctWith(5, 10, false, false)).toBeNull();
+  });
+
+  it("is the offer alone, flagged new-account, when there's no code", () => {
+    expect(discountPctWith(5, 10, true, false)).toEqual({ pct: 5, newAccount: true });
+  });
+
+  it("is the code alone, not flagged new-account, when there's no offer", () => {
+    expect(discountPctWith(5, 10, false, true)).toEqual({ pct: 10, newAccount: false });
   });
 });

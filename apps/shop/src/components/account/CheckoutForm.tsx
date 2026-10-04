@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/store/CartProvider";
 import { priceOrder, type Rejection } from "@/lib/pricing";
-import { applyCodeDiscount, applyPartnerCode } from "@/lib/partners/discounts";
-import { NEW_ACCOUNT_PCT, OFFER_PCT_TEXT, type FirstOrderOffer } from "@/lib/account/offer";
+import { applyCodeDiscount } from "@/lib/partners/discounts";
+import { discountPct, OFFER_PCT_TEXT, type FirstOrderOffer } from "@/lib/account/offer";
 import { checkPartnerCodeAction, startCheckoutAction } from "@/app/checkout/actions";
 import type { ShipAddress } from "@/lib/ship-address";
 import { usd } from "@/lib/html";
@@ -39,16 +39,23 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
   const base = useMemo(() => priceOrder(lines), [lines]);
-  // The new-account 15% (automatic) beats a 10% partner code; one discount per line. The server re-prices every order.
-  const priced = useMemo(() => (newAccountOffer
-    ? applyCodeDiscount(base, NEW_ACCOUNT_PCT)
-    : appliedCode ? applyPartnerCode(base) : { ...base, lineDiscounts: base.items.map((_, index) => ({ index, source: "none" as const, savingCents: 0 })) }),
-  [base, appliedCode, newAccountOffer]);
+  // The new-account percent (automatic) and a partner code's percent never
+  // stack — discountPct picks the larger one. One discount per line. The
+  // server re-prices every order.
+  const discount = useMemo(() => discountPct(!!newAccountOffer, !!appliedCode), [newAccountOffer, appliedCode]);
+  const priced = useMemo(() => (discount
+    ? applyCodeDiscount(base, discount.pct)
+    : { ...base, lineDiscounts: base.items.map((_, index) => ({ index, source: "none" as const, savingCents: 0 })) }),
+  [base, discount]);
 
   async function applyCodeValue(code: string) {
     try {
       const r = await checkPartnerCodeAction(code);
-      if (r.ok) { setAppliedCode(r.code); setCodeInput(r.code); setCodeMsg({ ok: true, text: newAccountOffer ? `✓ ${r.code} applied · your new-account ${OFFER_PCT_TEXT} is larger, so it's used instead (the order still credits that partner)` : `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` }); }
+      if (r.ok) {
+        setAppliedCode(r.code); setCodeInput(r.code);
+        const withCode = discountPct(!!newAccountOffer, true);
+        setCodeMsg({ ok: true, text: withCode?.newAccount ? `✓ ${r.code} applied · your new-account ${OFFER_PCT_TEXT} is larger, so it's used instead (the order still credits that partner)` : `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` });
+      }
       else { setAppliedCode(null); setCodeMsg({ ok: false, text: r.message }); }
     } catch {
       setAppliedCode(null); setCodeMsg({ ok: false, text: "Something went wrong — please try again." });
@@ -125,7 +132,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         {priced.items.map((i, idx) => {
           const d = priced.lineDiscounts[idx];
           const pack = ` · ${i.packQty}-pack${i.packPct && d.source !== "code" ? ` −${i.packPct}%` : ""}`;
-          const note = newAccountOffer ? (d.source === "code" ? ` · new account −${OFFER_PCT_TEXT}` : d.source === "pack" ? " (pack price is lower)" : "") : appliedCode ? (d.source === "code" ? " · code −10%" : d.source === "pack" ? " (code not added)" : "") : "";
+          const note = discount?.newAccount ? (d.source === "code" ? ` · new account −${OFFER_PCT_TEXT}` : d.source === "pack" ? " (pack price is lower)" : "") : appliedCode ? (d.source === "code" ? " · code −10%" : d.source === "pack" ? " (code not added)" : "") : "";
           // Struck-through price is whatever this line would cost without its
           // applied discount: LIST when the code wins (pack % never applied),
           // the pack-discounted total when the pack wins.
@@ -149,7 +156,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         <div className="border-t border-[color:var(--line)] pt-4 mt-2">
           <div className="flex justify-between text-[15px]"><span>Subtotal</span><span>{usd(priced.subtotalCents - priced.partnerDiscountCents)}</span></div>
           {priced.partnerDiscountCents > 0 && (
-            <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes {newAccountOffer ? `new-account ${OFFER_PCT_TEXT}` : `discount code ${appliedCode}`}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
+            <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes {discount?.newAccount ? `new-account ${OFFER_PCT_TEXT}` : `discount code ${appliedCode}`}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
           )}
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping</span><span>{priced.shippingCents ? usd(priced.shippingCents) : <>Free <span className="text-[color:var(--ink-soft)] text-[12.5px]">({formatUsd(FREE_SHIPPING_THRESHOLD_USD)} or more)</span></>}</span></div>
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping insurance</span><span>{usd(priced.insuranceCents)}</span></div>

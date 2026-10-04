@@ -133,6 +133,7 @@ describe("startCheckoutAction", () => {
     const order = createPendingOrder.mock.calls[0][0];
     expect(order.newAccountDiscount).toBe(true);
     expect(order.priced.partnerDiscountCents).toBe(735); // 15% of $49.00
+    expect(createCheckout.mock.calls[0][0]).toMatchObject({ partnerDiscountCents: 735, lineDiscountsCents: [735] });
   });
 
   it("uses the 15% over a typed partner code but still attributes the order to the partner", async () => {
