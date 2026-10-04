@@ -165,3 +165,26 @@ describe("lineEligible", () => {
     expect(lineEligible({ ...spring, excludeClasses: [], includeSlugs: ["bpc-157"], excludeSlugs: ["bpc-157"] }, i)).toBe(false);
   });
 });
+
+describe("review fixes", () => {
+  it("a code that would lose free shipping and cost more isn't applied", () => {
+    const cart = order(["tb-500", 2], ["mots-c", 2]); // $169.10 + $131.10 = $300.20 → free shipping
+    const ten: CodeTerms = { ...spring, kind: "order_amount", value: 1000, freeShipping: false, minOrderCents: null, excludeClasses: [] };
+    const r = applyDiscounts(cart, { auto: null, code: ten, capPct: CAP }); // $290.20 + $15 shipping = $305.20 > $300.20
+    expect(r.codeOutcome).toBe("no_gain");
+    expect(r.subtotalCents - r.partnerDiscountCents).toBe(30020);
+    expect(r.shippingCents).toBe(0);
+    const forty = applyDiscounts(cart, { auto: null, code: { ...ten, value: 4000 }, capPct: CAP }); // $260.20 + $15 = $275.20 < $300.20
+    expect(forty.codeOutcome).toBe("applied");
+  });
+
+  it("keeps the new-account flag when an order code stacks on top", () => {
+    const r = applyDiscounts(order(["bpc-157", 2]), { auto: { pct: 15, newAccount: true }, code: { ...spring, minOrderCents: null }, capPct: CAP });
+    expect(r.codeOutcome).toBe("applied");
+    expect(r.newAccount).toBe(true);
+  });
+
+  it("allocate never gives a line more than its weight", () => {
+    expect(allocate(1998, [999, 999, 1])).toEqual([998, 999, 1]);
+  });
+});

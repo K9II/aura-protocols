@@ -21,7 +21,7 @@ describe("outcomeMessage", () => {
   });
   it("below minimum and excluded items", () => {
     expect(outcomeMessage({ ...base, codeOutcome: "below_min", shortOfMinCents: 3420 }, "X", terms, 30))
-      .toEqual({ tone: "bad", text: "Add $34.20 more to use this code (minimum $150.00 after pack pricing)." });
+      .toEqual({ tone: "bad", text: "Add $34.20 more to use this code (minimum $150.00 after your other discounts)." });
     expect(outcomeMessage({ ...base, codeOutcome: "no_eligible_items" }, "X", terms, 30))
       .toEqual({ tone: "bad", text: "This code doesn't apply to the items in your cart." });
   });

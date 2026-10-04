@@ -33,7 +33,7 @@ export function outcomeMessage(
   switch (r.codeOutcome) {
     case null: return null;
     case "applied":
-      return r.cappedCents > 0
+      return r.cappedCents > 0 && r.codeDiscountCents > 0
         ? { tone: "note", text: `${code} applied. Your discounts are capped at ${capPct}% of list price, so ${code} saves ${usd(r.codeDiscountCents)} here.` }
         : { tone: "good", text: `${code} applied — ${customerSummary(terms)}.` };
     case "no_gain":
@@ -41,7 +41,7 @@ export function outcomeMessage(
         ? { tone: "note", text: `Your new-account ${OFFER_PCT_TEXT} is already larger than this code on these items, so we kept it.` }
         : { tone: "note", text: "A larger discount already applies to these items, so this code isn't used." };
     case "below_min":
-      return { tone: "bad", text: `Add ${usd(r.shortOfMinCents)} more to use this code (minimum ${usd(terms.minOrderCents ?? 0)} after pack pricing).` };
+      return { tone: "bad", text: `Add ${usd(r.shortOfMinCents)} more to use this code (minimum ${usd(terms.minOrderCents ?? 0)} after your other discounts).` };
     case "no_eligible_items":
       return { tone: "bad", text: "This code doesn't apply to the items in your cart." };
   }

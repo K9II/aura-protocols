@@ -39,13 +39,16 @@ export function lineEligible(t: CodeTerms, i: Pick<PricedItem, "compoundSlug" | 
 }
 
 // Splits `total` across lines in proportion to `weights`, in whole cents
-// summing exactly to `total` (the remainder goes to the last weighted line).
+// summing exactly to `total`. Leftover cents go one at a time to the lines
+// with the largest remainders, so no line gets more than its weight when
+// total ≤ sum(weights).
 export function allocate(total: number, weights: number[]): number[] {
   const w = sum(weights);
   if (w <= 0 || total === 0) return weights.map(() => 0);
   const out = weights.map((x) => Math.floor((total * x) / w));
-  const rest = total - sum(out);
-  for (let k = weights.length - 1; k >= 0; k--) if (weights[k] > 0) { out[k] += rest; break; }
+  let rest = total - sum(out);
+  const order = weights.map((x, k) => ({ k, r: (total * x) % w })).filter((o) => weights[o.k] > 0).sort((a, b) => b.r - a.r || b.k - a.k);
+  for (let n = 0; rest > 0 && order.length; n = (n + 1) % order.length, rest--) out[order[n].k] += 1;
   return out;
 }
 
@@ -135,7 +138,13 @@ export function applyDiscounts(priced: PricedOrder, input: EngineInput): EngineR
   const capped = capStage(items, s, input.capPct);
   const codeDiscountCents = Math.max(0, sum(baseCapped.stage.prices) - sum(capped.stage.prices));
   if (codeDiscountCents === 0 && !shipSaved) return withoutCode("no_gain");
-  return finish(capped.stage, capped.cappedCents, freeShipping, {
+  const result = finish(capped.stage, capped.cappedCents, freeShipping, {
     codeOutcome: "applied", codeGrossCents: baseGoods - sum(s.prices), codeDiscountCents,
+    // stacked on top, the automatic percent still priced the lines underneath
+    ...(t.stackOnTop && stage ? { newAccount: !!input.auto?.newAccount && base.sources.includes("auto") } : {}),
   });
+  // A code that drops goods under the free-shipping threshold can cost more
+  // than it saves: it only applies when the customer's total goes down.
+  if (result.totalBeforeTaxCents >= withoutCode(null).totalBeforeTaxCents) return withoutCode("no_gain");
+  return result;
 }

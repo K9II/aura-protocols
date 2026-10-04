@@ -81,7 +81,7 @@ alter table code_attempts enable row level security;
 
 create table if not exists shop_settings (
   id                boolean primary key default true check (id),
-  max_discount_pct  integer not null default 30 check (max_discount_pct between 5 and 60),
+  max_discount_pct  integer not null default 30 check (max_discount_pct between 15 and 60)  -- never below the new-account 15%,
   updated_at        timestamptz not null default now()
 );
 alter table shop_settings enable row level security;

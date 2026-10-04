@@ -1,7 +1,7 @@
 // What a code does to real baskets, for the admin form (mock screen 2).
 // Ignores lot/stock state on purpose: the owner prices codes before lots go live. Pure.
 import type { Compound } from "@/data/catalog";
-import { withCharges, type PricedOrder } from "@/lib/pricing";
+import { FREE_SHIPPING_MIN_CENTS, withCharges, type PricedOrder } from "@/lib/pricing";
 import { applyDiscounts, lineEligible, type EngineResult } from "@/lib/discounts/engine";
 import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
 import type { CodeTerms } from "@/lib/discounts/rules";
@@ -20,6 +20,8 @@ export function basketOrder(c: Compound, packQty: number): PricedOrder {
   });
 }
 
+const dollars = (cents: number) => (cents % 100 === 0 ? `$${cents / 100}` : `$${(cents / 100).toFixed(2)}`);
+
 export type BasketRow = { label: string; note: string; listCents: number; paysCents: number; offPct: number; capped: boolean; codeUsed: boolean };
 
 const pct = (r: EngineResult) => Math.round(((r.listCents - (r.subtotalCents - r.partnerDiscountCents)) / r.listCents) * 100);
@@ -28,10 +30,10 @@ function row(c: Compound, qty: number, terms: CodeTerms, capPct: number): Basket
   const r = applyDiscounts(basketOrder(c, qty), { auto: null, code: terms, capPct });
   const pack = r.items[0].packPct;
   const used = r.codeOutcome === "applied";
-  const note = r.codeOutcome === "below_min" ? `under the $${(terms.minOrderCents ?? 0) / 100} minimum`
+  const note = r.codeOutcome === "below_min" ? `under the ${dollars(terms.minOrderCents ?? 0)} minimum`
     : r.codeOutcome === "no_gain" ? "pack price is larger"
     : [pack ? `${qty}-pack ${pack}%` : null, used && terms.kind !== "ship_only" ? `code ${terms.kind === "order_amount" ? "$" + terms.value / 100 : terms.value + "%"}` : null,
-       used && (terms.freeShipping || terms.kind === "ship_only") && r.shippingCents === 0 && r.subtotalCents < 30000 ? "free ship" : null].filter(Boolean).join(" + ");
+       used && (terms.freeShipping || terms.kind === "ship_only") && r.shippingCents === 0 && r.subtotalCents - r.partnerDiscountCents < FREE_SHIPPING_MIN_CENTS ? "free ship" : null].filter(Boolean).join(" + ");
   return { label: `${c.name} × ${qty}`, note, listCents: r.listCents, paysCents: r.subtotalCents - r.partnerDiscountCents, offPct: pct(r), capped: r.cappedCents > 0, codeUsed: used };
 }
 
