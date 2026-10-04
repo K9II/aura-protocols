@@ -24,6 +24,18 @@ describe("checkDeliverable", () => {
     expect(await checkDeliverable("x@slow.example", async () => { throw err("ETIMEOUT"); })).toBe("unknown");
   });
 
+  it("looks up an internationalised domain by its ASCII (punycode) form", async () => {
+    const seen: string[] = [];
+    expect(await checkDeliverable("x@müller.de", async (d) => { seen.push(d); return [{ exchange: "mx", priority: 1 }]; })).toBe("ok");
+    expect(seen).toEqual(["xn--mller-kva.de"]);
+  });
+
+  it("rejects a domain that has no valid ASCII form", async () => {
+    let called = false;
+    expect(await checkDeliverable("x@xn--iñvalid.com", async () => { called = true; return []; })).toBe("undeliverable");
+    expect(called).toBe(false);
+  });
+
   it("rejects a malformed address", async () => {
     expect(await checkDeliverable("not-an-email", async () => [])).toBe("undeliverable");
   });

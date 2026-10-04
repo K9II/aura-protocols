@@ -16,6 +16,8 @@ describe("gate", () => {
     expect(verifyDeviceFlag(v)).toBe(true);
     expect(verifyDeviceFlag(`${v.split(".")[0]}.forged`)).toBe(false);
     expect(verifyDeviceFlag(undefined)).toBe(false);
+    expect(verifyDeviceFlag(`${v}.garbage`)).toBe(false);
+    expect(verifyDeviceFlag(`${v}.`)).toBe(false);
   });
 
   it("recognises crawlers", () => {

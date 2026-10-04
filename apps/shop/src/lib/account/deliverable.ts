@@ -1,5 +1,6 @@
 import "server-only";
 import { promises as dns } from "node:dns";
+import { domainToASCII } from "node:url";
 import { isDisposableEmailDomain } from "disposable-email-domains-js";
 
 export type Deliverability = "ok" | "undeliverable" | "unknown";
@@ -12,7 +13,10 @@ const NO_MAIL = new Set(["ENOTFOUND", "ENODATA", "ESERVFAIL", "EBADNAME"]);
 // (the account is created but must verify before browsing).
 export async function checkDeliverable(email: string, resolveMx: ResolveMx = dns.resolveMx): Promise<Deliverability> {
   const at = email.lastIndexOf("@");
-  const domain = at > 0 ? email.slice(at + 1).trim().toLowerCase() : "";
+  const raw = at > 0 ? email.slice(at + 1).trim().toLowerCase() : "";
+  // Internationalised domains are checked (and resolved) in their ASCII
+  // punycode form; domainToASCII returns "" for a domain that has none.
+  const domain = raw ? domainToASCII(raw) : "";
   if (!domain || !domain.includes(".")) return "undeliverable";
   if (isDisposableEmailDomain(domain)) return "undeliverable";
   try {

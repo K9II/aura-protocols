@@ -25,7 +25,9 @@ export function signDeviceFlag(nowMs: number = Date.now()): string {
 
 export function verifyDeviceFlag(value: string | undefined): boolean {
   if (!value) return false;
-  const [payload, given] = value.split(".");
+  const parts = value.split(".");
+  if (parts.length !== 2) return false;
+  const [payload, given] = parts;
   if (!payload || !given) return false;
   const expected = Buffer.from(sig(`dev:${payload}`));
   const actual = Buffer.from(given);
