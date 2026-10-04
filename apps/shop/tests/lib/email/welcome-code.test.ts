@@ -16,14 +16,15 @@ describe("welcome code", () => {
   });
 
   it("generates AURA- plus 4 unambiguous characters", () => {
-    const seq = [0, 0.5, 0.99, 0.2];
+    const seq = [0, 15, 30, 6];
     let i = 0;
-    const code = generateWelcomeCode(() => seq[i++ % seq.length]);
-    expect(code).toMatch(/^AURA-[A-HJ-NP-Z2-9]{4}$/);
+    const code = generateWelcomeCode((n) => seq[i++ % seq.length] % n);
+    expect(code).toMatch(/^AURA-[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{4}$/);
     expect(isWelcomeCodeFormat(code)).toBe(true);
     expect(isWelcomeCodeFormat(" aura-7k2q ")).toBe(true);
     expect(isWelcomeCodeFormat("SMITHLAB")).toBe(false);
     expect(isWelcomeCodeFormat("AURA-0O1I")).toBe(false);
+    expect(isWelcomeCodeFormat("AURA-LLLL")).toBe(false);
   });
 
   it("expires 14 days after confirmation", () => {
@@ -37,9 +38,13 @@ describe("welcome code", () => {
   it("rejects each failure with its own message", () => {
     expect(check({ row: null })).toEqual({ ok: false, message: "This code isn't valid." });
     expect(check({ row: row({ email: "other@example.com" }) })).toEqual({ ok: false, message: "This code belongs to a different email address. Sign in with the email it was sent to." });
-    expect(check({ row: row({ status: "unsubscribed" }) })).toEqual({ ok: false, message: "This code isn't valid." });
+    expect(check({ row: row({ status: "pending" }) })).toEqual({ ok: false, message: "This code isn't valid." });
     expect(check({ row: row({ welcome_code_used_order_id: "o1" }) })).toEqual({ ok: false, message: "This code has already been used." });
     expect(check({ nowMs: Date.parse("2026-12-10T00:00:01Z") })).toEqual({ ok: false, message: "This code has expired." });
     expect(check({ hasPaidOrder: true })).toEqual({ ok: false, message: "This code is for a first order only." });
+  });
+
+  it("still accepts a code after a marketing unsubscribe (not account deletion)", () => {
+    expect(check({ row: row({ status: "unsubscribed" }) })).toEqual({ ok: true, code: "AURA-7K2Q" });
   });
 });

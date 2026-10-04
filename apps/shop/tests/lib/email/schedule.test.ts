@@ -10,16 +10,21 @@ describe("welcome schedule", () => {
   });
 
   it("returns the earliest unsent file that is due, one at a time", () => {
-    expect(dueWelcome(t0, t0 + 1 * D, new Set())).toBe("welcome_1");
-    expect(dueWelcome(t0, t0 + 1 * D, new Set(["welcome_1"]))).toBeNull();
-    expect(dueWelcome(t0, t0 + 2 * D, new Set(["welcome_1"]))).toBe("welcome_2");
+    expect(dueWelcome(t0, t0 + 1 * D, new Set(), null)).toBe("welcome_1");
+    expect(dueWelcome(t0, t0 + 1 * D, new Set(["welcome_1"]), null)).toBeNull();
+    expect(dueWelcome(t0, t0 + 2 * D, new Set(["welcome_1"]), null)).toBe("welcome_2");
     // a missed day never sends two files at once
-    expect(dueWelcome(t0, t0 + 9 * D, new Set(["welcome_1"]))).toBe("welcome_2");
-    expect(dueWelcome(t0, t0 + 12 * D, new Set(["welcome_1", "welcome_2", "welcome_3", "welcome_4", "welcome_5"]))).toBeNull();
+    expect(dueWelcome(t0, t0 + 9 * D, new Set(["welcome_1"]), null)).toBe("welcome_2");
+    expect(dueWelcome(t0, t0 + 12 * D, new Set(["welcome_1", "welcome_2", "welcome_3", "welcome_4", "welcome_5"]), null)).toBeNull();
   });
 
   it("gives up on a series older than 21 days", () => {
-    expect(dueWelcome(t0, t0 + 22 * D, new Set(["welcome_1"]))).toBeNull();
+    expect(dueWelcome(t0, t0 + 22 * D, new Set(["welcome_1"]), null)).toBeNull();
+  });
+
+  it("keeps files at least a day apart after an outage", () => {
+    expect(dueWelcome(t0, t0 + 9 * D, new Set(["welcome_1"]), t0 + 9 * D - 2 * H)).toBeNull();
+    expect(dueWelcome(t0, t0 + 9 * D, new Set(["welcome_1"]), t0 + 9 * D - 25 * H)).toBe("welcome_2");
   });
 });
 

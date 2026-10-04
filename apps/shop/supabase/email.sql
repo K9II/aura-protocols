@@ -2,15 +2,15 @@
 -- Run after storefront.sql and accounts-checkout.sql. RLS on, no policies:
 -- only the service role (server) reads or writes these tables.
 
-alter table subscribers add column if not exists status text not null default 'confirmed'
+-- Rows from the old list stay 'pending': they never confirmed opt-in to these emails (decision 2026-10-03).
+alter table subscribers add column if not exists status text not null default 'pending'
   check (status in ('pending','confirmed','unsubscribed'));
-alter table subscribers alter column status set default 'pending';
 alter table subscribers add column if not exists confirm_token_hash text;
 alter table subscribers add column if not exists confirmed_at timestamptz;
 alter table subscribers add column if not exists partner_ref text;
 alter table subscribers add column if not exists welcome_code text;
 alter table subscribers add column if not exists welcome_code_expires_at timestamptz;
-alter table subscribers add column if not exists welcome_code_used_order_id uuid references orders(id);
+alter table subscribers add column if not exists welcome_code_used_order_id uuid references orders(id) on delete set null;
 create unique index if not exists subscribers_welcome_code_idx on subscribers (welcome_code) where welcome_code is not null;
 create unique index if not exists subscribers_confirm_token_idx on subscribers (confirm_token_hash) where confirm_token_hash is not null;
 -- Rows unsubscribed before this migration keep their state.
@@ -31,7 +31,7 @@ alter table email_sends enable row level security;
 create table if not exists lot_announcements (
   id           uuid primary key default gen_random_uuid(),
   lots         text[] not null,
-  sent_by      uuid references customers(id),
+  sent_by      uuid references customers(id) on delete set null,
   recipients   integer not null default 0,
   started_at   timestamptz not null default now(),
   finished_at  timestamptz

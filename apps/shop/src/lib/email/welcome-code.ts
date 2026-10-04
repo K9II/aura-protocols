@@ -1,15 +1,16 @@
 // The 10% first-order code a subscriber gets in File 01. Pure — no I/O.
 // Tied to one email address, so it can't spread on coupon sites.
+import { randomInt } from "node:crypto";
 import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
 
 export const WELCOME_PCT = CODE_DISCOUNT_PCT; // 10, same math as a partner code
 export const WELCOME_CODE_DAYS = 14;
 const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O, 1/I/L
-const FORMAT = /^AURA-[A-HJ-NP-Z2-9]{4}$/;
+const FORMAT = new RegExp(`^AURA-[${ALPHABET}]{4}$`);
 
-export function generateWelcomeCode(rand: () => number = Math.random): string {
+export function generateWelcomeCode(rand: (n: number) => number = randomInt): string {
   let s = "AURA-";
-  for (let i = 0; i < 4; i++) s += ALPHABET[Math.floor(rand() * ALPHABET.length)];
+  for (let i = 0; i < 4; i++) s += ALPHABET[rand(ALPHABET.length)];
   return s;
 }
 
@@ -38,7 +39,7 @@ export function checkWelcomeCode(input: {
 }): WelcomeCheck {
   const code = normalizeWelcomeCode(input.code);
   const r = input.row;
-  if (!r || r.welcome_code !== code || r.status !== "confirmed") return { ok: false, message: INVALID };
+  if (!r || r.welcome_code !== code || r.status === "pending") return { ok: false, message: INVALID };
   if (r.email !== input.buyerEmail.trim().toLowerCase()) {
     return { ok: false, message: "This code belongs to a different email address. Sign in with the email it was sent to." };
   }

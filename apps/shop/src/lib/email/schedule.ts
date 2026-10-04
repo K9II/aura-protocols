@@ -9,10 +9,12 @@ const H = 3600 * 1000, D = 24 * H;
 const WELCOME_GIVE_UP_DAYS = 21;
 
 // Earliest unsent file whose day has come. One per run, so a missed day
-// never lands two files in the inbox at once.
-export function dueWelcome(confirmedAtMs: number, nowMs: number, sent: Set<string>): WelcomeKind | null {
+// never lands two files in the inbox at once; files also go out at least a
+// day apart, so an outage doesn't bunch two sends within hours of each other.
+export function dueWelcome(confirmedAtMs: number, nowMs: number, sent: Set<string>, lastSentMs: number | null): WelcomeKind | null {
   const elapsed = nowMs - confirmedAtMs;
   if (elapsed > WELCOME_GIVE_UP_DAYS * D) return null;
+  if (lastSentMs !== null && nowMs - lastSentMs < 24 * H) return null;
   for (let i = 0; i < WELCOME_DAYS.length; i++) {
     const kind = `welcome_${i + 1}` as WelcomeKind;
     if (sent.has(kind)) continue;
