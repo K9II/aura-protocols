@@ -137,8 +137,10 @@ describe("AccountGate", () => {
 
   it("verify step: sign out calls the action, then reloads the home page as anon", async () => {
     routes({ state: "verify", email: "j@lab.org" });
-    // The real action redirects; the router rejects its promise with the redirect.
-    signOutAction.mockRejectedValue(new Error("NEXT_REDIRECT"));
+    // The real action redirects; the router rejects its promise with a digest-bearing error.
+    const redirectErr = Object.assign(new Error("NEXT_REDIRECT"), { digest: "NEXT_REDIRECT;replace;/;307;" });
+    signOutAction.mockRejectedValue(redirectErr);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const assign = vi.fn();
     vi.stubGlobal("location", { ...window.location, assign });
     const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
@@ -148,6 +150,24 @@ describe("AccountGate", () => {
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
     expect(signOutAction).toHaveBeenCalledTimes(1);
     expect(signOutAction.mock.invocationCallOrder[0]).toBeLessThan(assign.mock.invocationCallOrder[0]);
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it("verify step: a non-redirect sign-out failure is logged but still navigates home", async () => {
+    routes({ state: "verify", email: "j@lab.org" });
+    signOutAction.mockRejectedValue(new Error("network down"));
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, assign });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await settle();
+    fireEvent.click(screen.getByRole("button", { name: /Sign out/ }));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
+    expect(errorSpy).toHaveBeenCalledWith("[gate] sign-out failed", expect.any(Error));
+    errorSpy.mockRestore();
     vi.unstubAllGlobals();
   });
 

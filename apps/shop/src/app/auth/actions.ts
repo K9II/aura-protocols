@@ -48,6 +48,8 @@ export async function signInAction(_prev: AuthFormState, form: FormData): Promis
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: "That email or password isn't right." };
+  // A leftover marker from an earlier session-only login must not silently make this one session-only too.
+  (await cookies()).delete(SESSION_ONLY_COOKIE);
   redirect(safeNext(String(form.get("next") ?? "")));
 }
 

@@ -207,8 +207,10 @@ function VerifyStep({ c, email }: { c: (n: string) => string; email: string }) {
     setBusy(true);
     try {
       await signOutAction();
-    } catch {
+    } catch (e) {
       // The router rejects a redirecting action's promise; the reload below is the redirect.
+      const digest = (e as { digest?: unknown } | null)?.digest;
+      if (!(typeof digest === "string" && digest.startsWith("NEXT_REDIRECT"))) console.error("[gate] sign-out failed", e);
     } finally {
       window.location.assign("/");
     }

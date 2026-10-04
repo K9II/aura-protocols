@@ -56,8 +56,16 @@ describe("auth actions", () => {
     auth.signInWithPassword.mockResolvedValueOnce({ error: { message: "Invalid login credentials" } });
     const { signInAction } = await import("@/app/auth/actions");
     expect((await signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "/checkout" })))?.error).toMatch(/email or password/i);
+    expect(cookieDelete).not.toHaveBeenCalled();
     auth.signInWithPassword.mockResolvedValueOnce({ error: null });
     await expect(signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "//evil" }))).rejects.toThrow("REDIRECT:/account");
+  });
+
+  it("sign-in clears a leftover session-only marker on success", async () => {
+    auth.signInWithPassword.mockResolvedValueOnce({ error: null });
+    const { signInAction } = await import("@/app/auth/actions");
+    await expect(signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "/account" }))).rejects.toThrow("REDIRECT:/account");
+    expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
   });
 
   it("password reset never reveals whether an account exists", async () => {
