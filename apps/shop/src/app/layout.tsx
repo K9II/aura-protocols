@@ -6,7 +6,6 @@ import { CartProvider } from "@/components/store/CartProvider";
 import SiteNav from "@/components/store/SiteNav";
 import SiteFooter from "@/components/store/SiteFooter";
 import CartDrawer from "@/components/store/CartDrawer";
-import EntryGate from "@/components/store/EntryGate";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const spaceGrotesk = Space_Grotesk({
@@ -71,7 +70,6 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <SiteFooter />
           <CartDrawer />
-          <EntryGate />
         </CartProvider>
         <Analytics />
       </body>
