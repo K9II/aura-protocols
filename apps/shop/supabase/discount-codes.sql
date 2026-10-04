@@ -34,7 +34,8 @@ create table if not exists discount_codes (
   batch_id           uuid references discount_batches(id),
   created_by         uuid references customers(id),
   created_at         timestamptz not null default now(),
-  check ((kind in ('item_pct', 'order_pct') and value between 1 and 100) or (kind = 'order_amount' and value >= 1) or kind = 'ship_only')
+  check ((kind in ('item_pct', 'order_pct') and value between 1 and 100) or (kind = 'order_amount' and value >= 1) or kind = 'ship_only'),
+  check (kind <> 'ship_only' or not free_shipping)  -- ship_only already means free shipping
 );
 create index if not exists discount_codes_batch_idx on discount_codes (batch_id);
 alter table discount_codes enable row level security;
@@ -87,7 +88,7 @@ alter table shop_settings enable row level security;
 insert into shop_settings (id, max_discount_pct) values (true, 30) on conflict do nothing;
 
 alter table orders add column if not exists discount_code_id uuid references discount_codes(id);
-alter table orders add column if not exists code_discount_cents integer not null default 0;
+alter table orders add column if not exists code_discount_cents integer not null default 0 check (code_discount_cents >= 0);
 
 -- One namespace with partner codes: a discount code may not reuse a partner's
 -- current or old code. (The partner side checks discount_codes in isCodeTaken.)
@@ -104,20 +105,24 @@ create trigger discount_code_namespace before insert or update of code on discou
   for each row execute function discount_code_namespace();
 
 -- Claims one use for a pending order. Returns 'ok' | 'missing' | 'inactive' |
--- 'used_up' | 'already_used'. Idempotent per order. The code row lock
--- serialises the last use; the per-customer lock serialises
--- once-per-customer across a batch.
+-- 'used_up' | 'already_used'. Idempotent per order and code. Only an order
+-- still awaiting payment can claim (locking its row also orders the claim
+-- against a concurrent cancel). The code row lock serialises the last use;
+-- the per-customer lock serialises once-per-customer across a batch.
 create or replace function claim_discount_code(p_code uuid, p_order uuid, p_customer uuid, p_discount integer, p_capped integer)
 returns text language plpgsql
 set search_path = public, pg_temp as $$
 declare
   c discount_codes%rowtype;
   n integer;
+  v_status text;
 begin
   perform pg_advisory_xact_lock(hashtext('discount-customer:' || p_customer::text));
+  select status into v_status from orders where id = p_order for update;
   select * into c from discount_codes where id = p_code for update;
   if not found then return 'missing'; end if;
-  if exists (select 1 from code_redemptions where order_id = p_order) then return 'ok'; end if;
+  if exists (select 1 from code_redemptions where order_id = p_order and code_id = p_code and state in ('held', 'used')) then return 'ok'; end if;
+  if v_status is distinct from 'awaiting_payment' then return 'inactive'; end if;
   if c.status <> 'active' or (c.starts_at is not null and c.starts_at > now()) or (c.ends_at is not null and c.ends_at <= now()) then
     return 'inactive';
   end if;

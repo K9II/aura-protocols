@@ -28,6 +28,11 @@ describe("discount-codes.sql", () => {
     expect(sql).toContain("state in ('held', 'used')");
   });
 
+  it("only claims for an order still awaiting payment", () => {
+    expect(sql).toContain("select status into v_status from orders where id = p_order for update");
+    expect(sql).toContain("if v_status is distinct from 'awaiting_payment' then return 'inactive'; end if;");
+  });
+
   it("settles uses from the order status: paid/shipped → used, cancelled → released", () => {
     expect(sql).toContain("create trigger settle_code_on_order_status after update of status on orders");
     expect(sql).toMatch(/new\.status in \('paid', 'shipped'\)[\s\S]+set state = 'used'/);
