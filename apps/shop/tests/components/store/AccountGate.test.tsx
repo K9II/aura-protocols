@@ -163,7 +163,7 @@ describe("AccountGate", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/agree/i);
     fireEvent.click(screen.getByLabelText(/I am 21 or older/));
     expect(screen.getAllByRole("checkbox")).toHaveLength(1);
-    expect(screen.getByText(/also email you promotions, research news and new lots\. Unsubscribe anytime\./)).toBeInTheDocument();
+    expect(screen.getByText(/update you on promotions, research news, and new lots and SKUs — unsubscribe anytime\./)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Create account/ }));
     await waitFor(() => expect(screen.getByRole("heading", { name: /Confirm your email/ })).toBeInTheDocument());
     expect(gateSignUpAction).toHaveBeenCalledWith({ email: "new@lab.org", fullName: "Jane Rivera", password: "correct horse battery", agreed: true });

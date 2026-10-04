@@ -17,7 +17,7 @@ export function isGateExempt(pathname: string): boolean {
 // Kearney 2026-10-04: one required box at sign-up; marketing email is the
 // default (sent only once the address is verified) with this notice under
 // the box — every marketing email carries an unsubscribe link.
-export const MARKETING_NOTICE = "We’ll also email you promotions, research news and new lots. Unsubscribe anytime.";
+export const MARKETING_NOTICE = "We’ll update you on promotions, research news, and new lots and SKUs — unsubscribe anytime.";
 
 const CRAWLER_RE = /googlebot|bingbot|duckduckbot|yandexbot|baiduspider|applebot|slurp/i;
 

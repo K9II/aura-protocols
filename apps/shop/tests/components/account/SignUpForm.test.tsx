@@ -13,7 +13,7 @@ describe("SignUpForm", () => {
     const agree = screen.getByRole("checkbox", { name: /I am 21 or older/i });
     expect(agree).toHaveAttribute("name", "agree");
     expect(agree).toBeRequired();
-    expect(screen.getByText(/also email you promotions, research news and new lots\. Unsubscribe anytime\./)).toBeInTheDocument();
+    expect(screen.getByText(/update you on promotions, research news, and new lots and SKUs — unsubscribe anytime\./)).toBeInTheDocument();
     expect(container.querySelector('input[name="emailOptIn"]')).toBeNull();
     for (const n of ["age21", "ruo", "dispute"]) expect(container.querySelector(`input[name="${n}"]`)).toBeNull();
     expect(container.querySelector('input[name="next"]')).toHaveValue("/checkout");
