@@ -33,7 +33,7 @@ function PasswordBox({ id, value, onChange, autoComplete, describedBy }: { id: s
 function EmailReadonly({ email, onChange }: { email: string; onChange: () => void }) {
   return (
     <div className="fld"><span className="box ro" role="group" aria-label="Email">
-      <span className="lead pre">Email</span><input type="email" value={email} readOnly aria-label="Email" />
+      <span className="lead pre">Email</span><input type="email" value={email} readOnly aria-label="Email" title={email} />
       <button type="button" className="trail red" onClick={onChange}>Change</button>
     </span></div>
   );

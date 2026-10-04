@@ -17,10 +17,9 @@
 .ag .box input::placeholder{color:#958C78}
 .ag .box:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px rgba(28,26,21,.08)}
 .ag .box.ro{background:transparent;border-color:var(--line);box-shadow:none}
-.ag .box.ro input{color:var(--ink-soft)}
+.ag .box.ro input{color:var(--ink-soft);text-overflow:ellipsis}
 .ag .box .trail{flex-shrink:0;padding:0 14px;font-family:var(--font-jetbrains),monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);background:none;border:0;cursor:pointer;height:100%;display:flex;align-items:center}
 .ag .box .trail.red{color:var(--specimen)}
-.ag .box .trail:hover{color:var(--specimen)}
 .ag .box .lead.pre{display:flex;align-items:center;font-family:var(--font-jetbrains),monospace;font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);padding:0 14px 0 16px;height:22px;border-right:1px solid var(--line)}
 .ag .box .lead.pre + input{padding-left:14px;color:var(--ink)}
 @media (max-width:420px){.ag .box .lead.pre{display:none}.ag .box .lead.pre + input{padding-left:16px}}
@@ -28,9 +27,8 @@
 .ag .hint .ok{color:#2F5D3A}
 .ag .err{margin:-4px 0 14px;font-size:13px;line-height:1.45;color:var(--specimen)}
 .ag .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:54px;background:var(--ink);color:var(--paper);border:0;cursor:pointer;font-family:Georgia,serif;font-size:15px;letter-spacing:.02em;transition:background .25s}
-.ag .btn:hover{background:var(--specimen)}
 .ag .btn:disabled{opacity:.6;cursor:default;background:var(--ink)}
-.ag .btn .arr{transition:transform .25s}.ag .btn:hover .arr{transform:translateX(3px)}
+.ag .btn .arr{transition:transform .25s}
 .ag .chk{position:relative;display:flex;gap:12px;align-items:flex-start;cursor:pointer;font-size:13.5px;line-height:1.5;color:var(--ink)}
 .ag .chk input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
 .ag .chk .sq{flex-shrink:0;width:18px;height:18px;margin-top:1px;border:1px solid var(--ink);background:var(--field);display:flex;align-items:center;justify-content:center}
@@ -42,13 +40,11 @@
 .ag .row-between{display:flex;justify-content:space-between;align-items:center}
 .ag .lnk{color:var(--specimen);border-bottom:1px solid rgba(163,43,31,.35)}
 .ag .back{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-soft);border:0;border-bottom:1px solid transparent;background:none;padding:0;cursor:pointer}
-.ag .back:hover{color:var(--ink);border-bottom-color:var(--line)}
 .ag .trust{display:flex;justify-content:space-between;gap:10px;color:var(--ink-soft);font-size:12px}
 .ag .trust span{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
 .ag .trust svg{flex-shrink:0;color:var(--specimen)}
 .ag .legal{font-size:12px;color:var(--ink-soft);line-height:1.7}
 .ag .legal a{color:var(--ink-soft);border-bottom:1px solid var(--line);white-space:nowrap}
-.ag .legal a:hover{color:var(--specimen)}
 .ag .legal .sep{margin:0 7px;color:#A99F88}
 .ag .legal .copy{white-space:nowrap}
 @media (max-width:520px){.ag .legal .copy{display:block;margin-bottom:2px}.ag .legal .sep0{display:none}}
@@ -81,7 +77,6 @@
 .ag .dots{position:absolute;right:30px;bottom:38px;display:flex;align-items:center;z-index:3}
 .ag .dots button{background:none;border:0;padding:10px 4px;cursor:pointer;display:flex}
 .ag .dots button i{display:block;width:8px;height:2px;background:rgba(28,26,21,.35);transition:width .4s cubic-bezier(.16,1,.3,1),background .4s}
-.ag .dots button:hover i{background:rgba(28,26,21,.6)}
 .ag .dots button[aria-current="true"] i{width:24px;background:var(--specimen)}
 .ag .dots button:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
 .ag .a-side{display:flex;align-items:center;justify-content:center;padding:48px 56px;min-height:100vh}
@@ -128,7 +123,7 @@
 .ag-phone .pc-dots i.on{width:18px;background:var(--specimen)}
 .ag-phone .pc-cap{background:var(--ink);color:var(--paper);padding:11px 18px 12px;border-top:2px solid var(--specimen)}
 .ag-phone .pc-cap b{display:block;font:400 16px/1.2 var(--font-newsreader),Georgia,serif}
-.ag-phone .pc-cap small{display:block;font-size:11.5px;line-height:1.4;color:rgba(237,233,224,.72);margin-top:3px}
+.ag-phone .pc-cap small{display:block;font-size:11.5px;line-height:1.4;color:rgba(237,233,224,.72);margin-top:3px;text-wrap:balance}
 .ag-phone .pc-body{padding:22px 20px 20px}
 .ag-phone .pc-brand{display:flex;flex-direction:column;align-items:center;margin:0 0 16px}
 .ag-phone .pc-brand .lockup{zoom:.78}
@@ -154,3 +149,19 @@
 .ag-phone[data-step="2b"] .pc-brand .tag,.ag-phone[data-step="2b"] .pc-trust{display:none}
 .ag-phone[data-step="2b"] .pc-h{margin-bottom:18px}
 .ag-phone[data-step="2b"] .pc-brand{margin-bottom:12px}
+
+/* Visual audit 2026-10-04 (Kearney: spacing, margins, clipping on mobile).
+   Hover colours only on devices that really hover: on touch screens a tapped
+   button's :hover sticks and lit up the next step's button in the same spot. */
+@media (hover:hover){
+.ag .box .trail:hover{color:var(--specimen)}
+.ag .btn:hover{background:var(--specimen)}
+.ag .btn:hover .arr{transform:translateX(3px)}
+.ag .back:hover{color:var(--ink);border-bottom-color:var(--line)}
+.ag .legal a:hover{color:var(--specimen)}
+.ag .dots button:hover i{background:rgba(28,26,21,.6)}
+}
+/* Brand focus ring instead of the browser's orange default (keyboard users still see it). */
+.ag .btn:focus-visible,.ag .back:focus-visible,.ag .trail:focus-visible,.ag a:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+/* A long email in "We sent a link to …" breaks instead of overflowing. */
+.ag .a-sub,.ag-phone .pc-sub{overflow-wrap:anywhere}
