@@ -12,12 +12,14 @@ import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } fro
 import { siteUrl } from "@/lib/supabase/env";
 import { resolveAttribution } from "@/lib/partners/attribution";
 import { applyCodeDiscount, applyPartnerCode } from "@/lib/partners/discounts";
-import { isWelcomeCodeFormat, WELCOME_PCT } from "@/lib/email/welcome-code";
+import { isWelcomeCodeFormat, WELCOME_PCT, type WelcomeCheck } from "@/lib/email/welcome-code";
 import { checkWelcomeForCustomer } from "@/lib/email/welcome-checkout";
 import { creditBalance, spendCredit } from "@/lib/partners/ledger";
 import { REF_COOKIE } from "@/lib/partners/ref-cookie";
 import { afterOrderPaid } from "@/lib/order-paid";
 import { alertOwner } from "@/lib/notify";
+
+const CODE_CHECK_FAILED = "We couldn't check that code — please try again.";
 
 export type StartCheckoutResult = { url?: string; error?: string; rejected?: Rejection[]; codeError?: string };
 
@@ -45,8 +47,13 @@ export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; 
   if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link.", needsSignIn: true };
   const typed = String(code).slice(0, 40); // server action: the argument is untrusted
   if (isWelcomeCodeFormat(typed)) {
-    const w = await checkWelcomeForCustomer(typed, customer);
-    return w.ok ? { ok: true, code: w.code } : { ok: false, message: w.message };
+    try {
+      const w = await checkWelcomeForCustomer(typed, customer);
+      return w.ok ? { ok: true, code: w.code } : { ok: false, message: w.message };
+    } catch (err) {
+      console.error("welcome code check failed:", err);
+      return { ok: false, message: CODE_CHECK_FAILED };
+    }
   }
   const { attribution, codeError } = await resolveAttribution({ typedCode: typed, buyerCustomerId: customer.id });
   if (!attribution) return { ok: false, message: codeError ?? "This code can't be used." };
@@ -100,7 +107,15 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   // One code box: a welcome code (AURA-XXXX) or a partner code. A welcome
   // code is checked against the signed-in email; the referral cookie still
   // attributes the order to a partner (commission), but only one discount applies.
-  const welcome = partnerCode && isWelcomeCodeFormat(partnerCode) ? await checkWelcomeForCustomer(partnerCode, customer) : null;
+  let welcome: WelcomeCheck | null = null;
+  if (partnerCode && isWelcomeCodeFormat(partnerCode)) {
+    try {
+      welcome = await checkWelcomeForCustomer(partnerCode, customer);
+    } catch (err) {
+      console.error("welcome code check failed:", err);
+      return { error: CODE_CHECK_FAILED };
+    }
+  }
   if (welcome && !welcome.ok) return { error: welcome.message, codeError: welcome.message };
   const refCookie = (await cookies()).get(REF_COOKIE)?.value;
   const { attribution, codeError } = await resolveAttribution({ typedCode: welcome ? undefined : partnerCode, refCookie, buyerCustomerId: customer.id });

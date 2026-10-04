@@ -59,6 +59,16 @@ describe("afterOrderPaid", () => {
     expect(sendOrAlert).toHaveBeenCalledTimes(2);
   });
 
+  it("a second run for the same order (code already claimed by it) raises no reuse alert", async () => {
+    getOrderById.mockResolvedValue(order({ welcome_code: "AURA-7K2Q" }));
+    markWelcomeCodeUsed.mockResolvedValue(true); // the .or(...eq.<this order>) match makes a repeat claim succeed
+    const { afterOrderPaid } = await import("@/lib/order-paid");
+    await afterOrderPaid("o1");
+    await afterOrderPaid("o1");
+    expect(markWelcomeCodeUsed).toHaveBeenNthCalledWith(2, "AURA-7K2Q", "o1");
+    expect(alertOwner).not.toHaveBeenCalledWith(expect.stringMatching(/^Welcome code reused/), expect.anything());
+  });
+
   it("does nothing with welcome codes for an order without one", async () => {
     getOrderById.mockResolvedValue(order());
     const { afterOrderPaid } = await import("@/lib/order-paid");

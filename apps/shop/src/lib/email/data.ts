@@ -190,10 +190,12 @@ export async function hasPaidOrder(customerId: string): Promise<boolean> {
 }
 
 // Marks the code used by this order. Conditional, so two orders racing for
-// one code can't both claim it; returns false if it was already used.
+// one code can't both claim it; returns false if another order already used
+// it. Idempotent: a repeat call for the same order (a retry) returns true.
+// orderId is our own orders.id uuid, never user input.
 export async function markWelcomeCodeUsed(code: string, orderId: string): Promise<boolean> {
   const { data, error } = await db().from("subscribers").update({ welcome_code_used_order_id: orderId })
-    .eq("welcome_code", code).is("welcome_code_used_order_id", null).select("email");
+    .eq("welcome_code", code).or(`welcome_code_used_order_id.is.null,welcome_code_used_order_id.eq.${orderId}`).select("email");
   if (error) throw new Error(`welcome code update failed: ${JSON.stringify(error)}`);
   return Array.isArray(data) && data.length === 1;
 }

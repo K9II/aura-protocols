@@ -82,6 +82,23 @@ describe("CheckoutForm", () => {
     expect(startCheckoutAction.mock.calls[0][0]).toMatchObject({ partnerCode: "SMITHLAB" });
   });
 
+  it("re-enables the pay button and shows the error when starting checkout throws", async () => {
+    startCheckoutAction.mockRejectedValue(new Error("network"));
+    const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} />);
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.submit(container.querySelector("form")!);
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Something went wrong — please try again."));
+    expect(screen.getByRole("button", { name: /continue to secure payment/i })).toBeInTheDocument();
+  });
+
+  it("shows an error instead of hanging when checking a code throws", async () => {
+    checkPartnerCodeAction.mockRejectedValue(new Error("network"));
+    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} />);
+    fireEvent.change(screen.getByLabelText(/discount code/i), { target: { value: "AURA-7K2Q" } });
+    fireEvent.click(screen.getByRole("button", { name: /apply/i }));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Something went wrong — please try again."));
+  });
+
   it("shows only the code discount on a 2-pack line when a code beats the pack discount — no stacked pack %, list price struck through", async () => {
     checkPartnerCodeAction.mockResolvedValue({ ok: true, code: "SMITHLAB" });
     const original = [...lines];

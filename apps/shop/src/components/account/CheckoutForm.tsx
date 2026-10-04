@@ -38,12 +38,17 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
   const base = useMemo(() => priceOrder(lines), [lines]);
+  // Welcome and partner codes are both 10% (WELCOME_PCT === CODE_DISCOUNT_PCT); the server re-prices every order.
   const priced = useMemo(() => (appliedCode ? applyPartnerCode(base) : { ...base, lineDiscounts: base.items.map((_, index) => ({ index, source: "none" as const, savingCents: 0 })) }), [base, appliedCode]);
 
   async function applyCodeValue(code: string) {
-    const r = await checkPartnerCodeAction(code);
-    if (r.ok) { setAppliedCode(r.code); setCodeInput(r.code); setCodeMsg({ ok: true, text: `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` }); }
-    else { setAppliedCode(null); setCodeMsg({ ok: false, text: r.message }); }
+    try {
+      const r = await checkPartnerCodeAction(code);
+      if (r.ok) { setAppliedCode(r.code); setCodeInput(r.code); setCodeMsg({ ok: true, text: `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` }); }
+      else { setAppliedCode(null); setCodeMsg({ ok: false, text: r.message }); }
+    } catch {
+      setAppliedCode(null); setCodeMsg({ ok: false, text: "Something went wrong — please try again." });
+    }
   }
 
   // A referral link's code (initialCode, from the aura_ref cookie) is applied
@@ -64,14 +69,21 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setError(null);
-    // A code typed but never explicitly applied is still sent — the server
-    // either applies it or refuses it with a reason; it's never silently dropped.
-    const r = await startCheckoutAction({ lines, ship: addr, ruoConfirmed: ruo, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit });
-    if (r.url) { window.location.assign(r.url); return; }
-    setError(r.error ?? "Something went wrong — please try again.");
-    if (r.codeError) { setAppliedCode(null); setCodeMsg({ ok: false, text: r.codeError }); }
-    setRejected(r.rejected ?? []);
-    setBusy(false);
+    let leaving = false;
+    try {
+      // A code typed but never explicitly applied is still sent — the server
+      // either applies it or refuses it with a reason; it's never silently dropped.
+      const r = await startCheckoutAction({ lines, ship: addr, ruoConfirmed: ruo, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit });
+      if (r.url) { leaving = true; window.location.assign(r.url); return; }
+      setError(r.error ?? "Something went wrong — please try again.");
+      if (r.codeError) { setAppliedCode(null); setCodeMsg({ ok: false, text: r.codeError }); }
+      setRejected(r.rejected ?? []);
+    } catch {
+      setError("Something went wrong — please try again.");
+    } finally {
+      // Stay busy while the browser navigates to Stripe, so it can't be clicked twice.
+      if (!leaving) setBusy(false);
+    }
   }
 
   if (lines.length === 0) return <p className="text-[color:var(--ink-soft)]">Your cart is empty.</p>;

@@ -160,6 +160,16 @@ describe("startCheckoutAction", () => {
     expect(createPendingOrder.mock.calls[0][0].welcomeCode).toBeNull();
   });
 
+  it("a welcome check that throws (DB down) returns a friendly retry message and creates nothing", async () => {
+    getCustomer.mockResolvedValue(customer);
+    checkWelcomeForCustomer.mockRejectedValue(new Error("db down"));
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, partnerCode: "AURA-7K2Q" })).toEqual({ error: "We couldn't check that code — please try again." });
+    expect(createPendingOrder).not.toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalled();
+  });
+
   it("refuses an invalid welcome code with its message", async () => {
     getCustomer.mockResolvedValue(customer);
     checkWelcomeForCustomer.mockResolvedValue({ ok: false, message: "This code has expired." });
@@ -329,6 +339,22 @@ describe("startCheckoutAction - abandoned checkouts", () => {
 
 describe("checkPartnerCodeAction", () => {
   beforeEach(() => { vi.resetModules(); getCustomer.mockReset(); resolveAttribution.mockReset(); checkWelcomeForCustomer.mockReset(); });
+
+  it("refuses a welcome code that belongs to a different email", async () => {
+    getCustomer.mockResolvedValue(customer);
+    const message = "This code belongs to a different email address. Sign in with the email it was sent to.";
+    checkWelcomeForCustomer.mockResolvedValue({ ok: false, message });
+    const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
+    expect(await checkPartnerCodeAction("AURA-7K2Q")).toEqual({ ok: false, message });
+  });
+
+  it("a welcome check that throws returns a friendly retry message instead of failing", async () => {
+    getCustomer.mockResolvedValue(customer);
+    checkWelcomeForCustomer.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
+    expect(await checkPartnerCodeAction("AURA-7K2Q")).toEqual({ ok: false, message: "We couldn't check that code — please try again." });
+  });
 
   it("checks a welcome-format code against the signed-in customer, not the partner list", async () => {
     getCustomer.mockResolvedValue(customer);

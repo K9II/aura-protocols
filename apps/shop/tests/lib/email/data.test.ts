@@ -311,6 +311,20 @@ describe("markWelcomeCodeUsed", () => {
     const { markWelcomeCodeUsed } = await import("@/lib/email/data");
     expect(await markWelcomeCodeUsed("AURA-7K2Q", "o1")).toBe(false);
   });
+
+  it("claims an unused code, or one this same order already claimed (a retried call is not a reuse)", async () => {
+    const first = query({ data: [{ email: "a@b.co" }] }), again = query({ data: [{ email: "a@b.co" }] });
+    from = fromQueue({ subscribers: [first, again] });
+    const { markWelcomeCodeUsed } = await import("@/lib/email/data");
+    expect(await markWelcomeCodeUsed("AURA-7K2Q", "o1")).toBe(true);
+    expect(await markWelcomeCodeUsed("AURA-7K2Q", "o1")).toBe(true);
+    for (const q of [first, again]) {
+      expect(callArgs(q, "update")?.[0]).toEqual({ welcome_code_used_order_id: "o1" });
+      expect(callArgs(q, "eq")).toEqual(["welcome_code", "AURA-7K2Q"]);
+      expect(callArgs(q, "or")).toEqual(["welcome_code_used_order_id.is.null,welcome_code_used_order_id.eq.o1"]);
+      expect(q.calls.map(([m]) => m)).not.toContain("is");
+    }
+  });
 });
 
 describe("listConfirmedEmails / listWelcomeCandidates paging", () => {
