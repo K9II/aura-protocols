@@ -4,6 +4,11 @@ import { normalizeEmail } from "@/lib/email/links";
 
 const db = () => getSupabaseAdminClient();
 
+// Gate step 1 pads both answers (account exists / doesn't) to about the same
+// length, so a route.ts file can't export it directly (Next.js route-export
+// validation rejects non-handler exports) — it lives here instead.
+export const MIN_RESPONSE_MS = 350;
+
 // auth.users isn't exposed through the API — account_id_by_email (account-gate.sql) answers for us.
 export async function accountIdByEmail(email: string): Promise<string | null> {
   const { data, error } = await db().rpc("account_id_by_email", { p_email: normalizeEmail(email) });
