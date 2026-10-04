@@ -28,6 +28,15 @@ describe("orders", () => {
     expect(callArgs(itemsQ, "insert")?.[0]).toEqual([expect.objectContaining({ order_id: "o1", lot_number: "AP-0001", quantity: 2, line_total_cents: 9800 })]);
   });
 
+  it("records the discount code and its share", async () => {
+    const orderQ = query({ data: { id: "o1", order_number: "AP-1001" } });
+    const itemsQ = query({});
+    from = fromQueue({ orders: [orderQ], order_items: [itemsQ] });
+    const { createPendingOrder } = await import("@/lib/orders");
+    await createPendingOrder({ customerId: "u1", email: "j@lab.org", ship, priced, discountCode: { id: "c1", discountCents: 7900 } });
+    expect(callArgs(orderQ, "insert")?.[0]).toMatchObject({ discount_code_id: "c1", code_discount_cents: 7900 });
+  });
+
   it("countOrdersForOwner tallies each status and all, skipping unpaid checkouts", async () => {
     const q = query({ data: [{ status: "paid" }, { status: "paid" }, { status: "shipped" }, { status: "cancelled" }] });
     from = fromQueue({ orders: [q] });
