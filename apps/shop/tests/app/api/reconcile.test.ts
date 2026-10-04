@@ -7,17 +7,19 @@ const applyPaid = vi.fn();
 const alertOwner = vi.fn();
 const listOrphanedPendingOrders = vi.fn();
 const pruneLookups = vi.fn();
+const pruneCodeAttempts = vi.fn();
 vi.mock("@/lib/stripe", () => ({ getStripe: () => ({ checkout: { sessions: { list } } }) }));
 vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder, listOrphanedPendingOrders }));
 vi.mock("@/lib/stripe-events", () => ({ applyPaid }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("@/lib/account/data", () => ({ pruneLookups }));
+vi.mock("@/lib/discounts/data", () => ({ pruneCodeAttempts }));
 
 const get = (auth?: string) => new Request("http://localhost/api/cron/reconcile", { headers: auth ? { authorization: auth } : {} });
 async function* pages(items: unknown[]) { for (const i of items) yield i; }
 
 describe("GET /api/cron/reconcile", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner, listOrphanedPendingOrders, pruneLookups]) f.mockReset(); listOrphanedPendingOrders.mockResolvedValue([]); pruneLookups.mockResolvedValue(undefined); process.env.CRON_SECRET = "s3cret"; });
+  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner, listOrphanedPendingOrders, pruneLookups, pruneCodeAttempts]) f.mockReset(); listOrphanedPendingOrders.mockResolvedValue([]); pruneLookups.mockResolvedValue(undefined); pruneCodeAttempts.mockResolvedValue(undefined); process.env.CRON_SECRET = "s3cret"; });
 
   it("requires the cron secret", async () => {
     const { GET } = await import("@/app/api/cron/reconcile/route");
@@ -90,5 +92,15 @@ describe("GET /api/cron/reconcile", () => {
     const res = await GET(get("Bearer s3cret"));
     expect(res.status).toBe(200);
     expect((await res.json()).failed).toEqual(expect.arrayContaining([expect.stringMatching(/gate lookups prune/)]));
+  });
+
+  it("prunes old code attempts once per run and reports a prune failure without failing the run", async () => {
+    list.mockReturnValue(pages([]));
+    pruneCodeAttempts.mockRejectedValueOnce(new Error("db down"));
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    const res = await GET(get("Bearer s3cret"));
+    expect(res.status).toBe(200);
+    expect(pruneCodeAttempts).toHaveBeenCalledTimes(1);
+    expect((await res.json()).failed).toEqual(expect.arrayContaining([expect.stringMatching(/code attempts prune/)]));
   });
 });
