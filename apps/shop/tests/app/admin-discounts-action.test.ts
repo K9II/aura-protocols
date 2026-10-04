@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { zonedToIso } from "@/lib/discounts/time";
 
 const requireOwner = vi.fn();
 const data = {
@@ -73,17 +74,117 @@ describe("discount admin actions", () => {
     expect(codes).toHaveLength(50);
   });
 
+  it("rejects a batch prefix that can't start a valid code", async () => {
+    const { saveCodeAction } = await import("@/app/admin/discounts/actions");
+    expect(await saveCodeAction(null, fd({ ...spring, mode: "batch", kind: "item_pct", value: "25", prefix: "---", count: "10" })))
+      .toMatchObject({ fieldErrors: { prefix: "Start with a letter or number; letters, numbers and dashes only." } });
+    expect(data.insertBatch).not.toHaveBeenCalled();
+  });
+
+  it("handles a batch-rule edit before the new-batch branch (id wins over mode=batch)", async () => {
+    const batchId = "33333333-3333-4333-8333-333333333333";
+    const codeId = "44444444-4444-4444-8444-444444444444";
+    data.getCodeById.mockResolvedValue({ id: codeId, batch_id: batchId, ends_at: null, starts_at: null });
+    const { saveCodeAction } = await import("@/app/admin/discounts/actions");
+    // Task 17's batch-edit form submits mode="batch" with id set and no prefix/count.
+    await expect(saveCodeAction(null, fd({ ...spring, mode: "batch", id: codeId })))
+      .rejects.toThrow(`REDIRECT /admin/discounts/batch/${batchId}`);
+    expect(data.insertBatch).not.toHaveBeenCalled();
+    expect(data.updateBatch).toHaveBeenCalledTimes(1);
+    const [calledBatchId, patch] = data.updateBatch.mock.calls[0];
+    expect(calledBatchId).toBe(batchId);
+    expect(patch).not.toHaveProperty("max_uses");
+    expect(patch).not.toHaveProperty("locked_email");
+  });
+
+  it("a malformed id returns 'no longer exists' without a lookup", async () => {
+    const { saveCodeAction } = await import("@/app/admin/discounts/actions");
+    expect(await saveCodeAction(null, fd({ ...spring, id: "not-a-uuid" }))).toMatchObject({ error: "That code no longer exists." });
+    expect(data.getCodeById).not.toHaveBeenCalled();
+  });
+
+  it("an id that no longer exists returns the same message", async () => {
+    data.getCodeById.mockResolvedValue(null);
+    const { saveCodeAction } = await import("@/app/admin/discounts/actions");
+    expect(await saveCodeAction(null, fd({ ...spring, id: "55555555-5555-4555-8555-555555555555" })))
+      .toMatchObject({ error: "That code no longer exists." });
+  });
+
+  it("editing an already-ended code doesn't require a new future end date", async () => {
+    const codeId = "66666666-6666-4666-8666-666666666666";
+    const startsLocal = "2026-08-01T00:00";
+    const endsLocal = "2026-08-31T23:59";
+    const startsIso = zonedToIso(startsLocal);
+    const endsIso = zonedToIso(endsLocal);
+    data.getCodeById.mockResolvedValue({ id: codeId, batch_id: null, starts_at: startsIso, ends_at: endsIso });
+    const { saveCodeAction } = await import("@/app/admin/discounts/actions");
+    await expect(saveCodeAction(null, fd({ ...spring, id: codeId, startsAt: startsLocal, endsAt: endsLocal })))
+      .rejects.toThrow(`REDIRECT /admin/discounts/${codeId}`);
+    expect(data.updateCode).toHaveBeenCalledTimes(1);
+    const [, patch] = data.updateCode.mock.calls[0];
+    expect(patch.ends_at).toBe(endsIso);
+  });
+
+  it("editing a code still requires the end to be after the start", async () => {
+    const codeId = "77777777-7777-4777-8777-777777777777";
+    const endsLocal = "2026-08-31T23:59";
+    const endsIso = zonedToIso(endsLocal);
+    data.getCodeById.mockResolvedValue({ id: codeId, batch_id: null, starts_at: null, ends_at: endsIso });
+    const { saveCodeAction } = await import("@/app/admin/discounts/actions");
+    // startsAt moved to after the (unchanged) endsAt — still rejected.
+    expect(await saveCodeAction(null, fd({ ...spring, id: codeId, startsAt: "2026-09-01T00:00", endsAt: endsLocal })))
+      .toMatchObject({ fieldErrors: { endsAt: expect.any(String) } });
+    expect(data.updateCode).not.toHaveBeenCalled();
+  });
+
+  it("enforces per-field bounds", async () => {
+    const { saveCodeAction } = await import("@/app/admin/discounts/actions");
+    expect(await saveCodeAction(null, fd({ ...spring, note: "x".repeat(121) }))).toMatchObject({ fieldErrors: { note: expect.any(String) } });
+    expect(await saveCodeAction(null, fd({ ...spring, kind: "order_amount", value: "10000.01" }))).toMatchObject({ fieldErrors: { value: expect.any(String) } });
+    expect(await saveCodeAction(null, fd({ ...spring, minOrder: "100000.01" }))).toMatchObject({ fieldErrors: { minOrder: expect.any(String) } });
+    expect(await saveCodeAction(null, fd({ ...spring, maxUses: "1000001" }))).toMatchObject({ fieldErrors: { maxUses: expect.any(String) } });
+    expect(data.insertCode).not.toHaveBeenCalled();
+    // $10,000 exactly is still allowed — it clears parseRule and reaches the redirect.
+    await expect(saveCodeAction(null, fd({ ...spring, kind: "order_amount", value: "10000" }))).rejects.toThrow("REDIRECT");
+    expect(data.insertCode).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects an unknown scope", async () => {
+    const { saveCodeAction } = await import("@/app/admin/discounts/actions");
+    expect(await saveCodeAction(null, fd({ ...spring, scope: "bogus" }))).toMatchObject({ fieldErrors: { scope: "Pick which products." } });
+    expect(data.insertCode).not.toHaveBeenCalled();
+  });
+
   it("pause / resume / end move only from the expected state", async () => {
     data.setCodeState.mockResolvedValue(true);
     const { setCodeStateAction } = await import("@/app/admin/discounts/actions");
     await setCodeStateAction(fd({ codeId: "11111111-1111-4111-8111-111111111111", from: "active", to: "paused" }));
     expect(data.setCodeState).toHaveBeenCalledWith({ codeId: "11111111-1111-4111-8111-111111111111" }, "active", "paused", "owner");
-    await setCodeStateAction(fd({ codeId: "11111111-1111-4111-8111-111111111111", from: "ended", to: "active" }));
+    await expect(setCodeStateAction(fd({ codeId: "11111111-1111-4111-8111-111111111111", from: "ended", to: "active" })))
+      .rejects.toThrow("That code changed since the page loaded — reload and try again.");
     expect(data.setCodeState).toHaveBeenCalledTimes(1); // ended is final
   });
 
-  it("the cap must be 5–60", async () => {
+  it("setCodeStateAction throws loudly when the move no longer applies", async () => {
+    data.setCodeState.mockResolvedValue(false);
+    const { setCodeStateAction } = await import("@/app/admin/discounts/actions");
+    await expect(setCodeStateAction(fd({ codeId: "11111111-1111-4111-8111-111111111111", from: "active", to: "paused" })))
+      .rejects.toThrow("That code changed since the page loaded — reload and try again.");
+  });
+
+  it("resetUseAction throws loudly on a bad id or a reset that doesn't apply", async () => {
+    const { resetUseAction } = await import("@/app/admin/discounts/actions");
+    await expect(resetUseAction(fd({ redemptionId: "nope" }))).rejects.toThrow("Only a used code on a refunded order can be reset.");
+    data.resetUse.mockResolvedValue(false);
+    await expect(resetUseAction(fd({ redemptionId: "11111111-1111-4111-8111-111111111111" })))
+      .rejects.toThrow("Only a used code on a refunded order can be reset.");
+    data.resetUse.mockResolvedValue(true);
+    await expect(resetUseAction(fd({ redemptionId: "11111111-1111-4111-8111-111111111111" }))).resolves.toBeUndefined();
+  });
+
+  it("the cap must be 15–60", async () => {
     const { setCapAction } = await import("@/app/admin/discounts/actions");
+    expect(await setCapAction(null, fd({ cap: "10" }))).toMatchObject({ error: expect.any(String) });
     expect(await setCapAction(null, fd({ cap: "90" }))).toMatchObject({ error: expect.any(String) });
     expect(await setCapAction(null, fd({ cap: "25" }))).toEqual({ ok: true });
     expect(data.setDiscountCap).toHaveBeenCalledWith(25, "owner");

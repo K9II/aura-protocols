@@ -76,6 +76,34 @@ describe("discount data", () => {
     expect(callArgs(page2, "range")).toEqual([1000, 1999]);
   });
 
+  it("updateBatch also writes the batch's own note when the patch includes one", async () => {
+    const codesUpd = query({});
+    const batchUpd = query({});
+    const event = query({});
+    from = fromQueue({ discount_codes: [codesUpd], discount_batches: [batchUpd], discount_code_events: [event] });
+    const { updateBatch } = await import("@/lib/discounts/data");
+    await updateBatch("b1", { note: "New note" } as never, "Rule edited", "owner");
+    expect(callArgs(batchUpd, "update")).toEqual([{ note: "New note" }]);
+    expect(callArgs(batchUpd, "eq")).toEqual(["id", "b1"]);
+  });
+
+  it("updateBatch skips the note write when the patch has no note (batch-locked fields omitted)", async () => {
+    const codesUpd = query({});
+    const event = query({});
+    from = fromQueue({ discount_codes: [codesUpd], discount_code_events: [event] });
+    const { updateBatch } = await import("@/lib/discounts/data");
+    await updateBatch("b1", { value: 30 } as never, "Rule edited", "owner");
+    // No discount_batches entry was queued — a from("discount_batches") call would throw "unexpected".
+  });
+
+  it("updateBatch throws when the note write fails", async () => {
+    const codesUpd = query({});
+    const batchUpd = query({ error: { message: "down" } });
+    from = fromQueue({ discount_codes: [codesUpd], discount_batches: [batchUpd] });
+    const { updateBatch } = await import("@/lib/discounts/data");
+    await expect(updateBatch("b1", { note: "x" } as never, "Rule edited", "owner")).rejects.toThrow(/down/);
+  });
+
   it("insertBatch removes the whole batch when a chunk fails", async () => {
     const del1 = query({}); const del2 = query({});
     from = fromQueue({

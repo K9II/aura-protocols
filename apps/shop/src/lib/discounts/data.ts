@@ -127,6 +127,10 @@ export async function updateCode(id: string, patch: Partial<CodeInput>, detail: 
 export async function updateBatch(batchId: string, patch: Partial<CodeInput>, detail: string, actor: string): Promise<void> {
   const { error } = await db().from("discount_codes").update(patch).eq("batch_id", batchId);
   if (error) fail("batch update", error);
+  if ("note" in patch) {
+    const { error: ne } = await db().from("discount_batches").update({ note: patch.note ?? null }).eq("id", batchId);
+    if (ne) fail("batch note update", ne);
+  }
   await logEvent({ batchId, kind: "edited", detail, actor });
 }
 
