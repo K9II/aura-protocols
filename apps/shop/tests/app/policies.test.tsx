@@ -107,6 +107,17 @@ describe("/privacy", () => {
     const { text } = renderPolicy(<PrivacyPage />);
     expect(text).toContain("to send promotions, research news and new-lot notices if you opt in");
   });
+
+  it("has no leftover entry-gate language and describes the account-gate cookies", () => {
+    const { container, text } = renderPolicy(<PrivacyPage />);
+    expect(text).not.toMatch(/Entry confirmation/i);
+    expect(text).not.toMatch(/entry screen/i);
+    const cookies = container.querySelector("#cookies")?.textContent ?? "";
+    expect(cookies).toMatch(/Remember me/i);
+    expect(cookies).toMatch(/session ends when you close your browser/i);
+    expect(cookies).toMatch(/signed security cookie/i);
+    expect(cookies).toMatch(/60 days so the partner is credited/i);
+  });
 });
 
 describe("/ruo", () => {

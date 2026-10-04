@@ -5,7 +5,7 @@ import { SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
 
 export const metadata: Metadata = { title: "Refund & Dispute Policy", alternates: { canonical: "/refund-policy" } };
 
-// Requires legal review before launch. The entry gate links here by name.
+// Requires legal review before launch. The sign-up agreement links here by name.
 export default function RefundPolicyPage() {
   const mail = <a className="p-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>;
   return (
