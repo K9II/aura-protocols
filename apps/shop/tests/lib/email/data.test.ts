@@ -112,6 +112,34 @@ describe("unsubscribe", () => {
     const { unsubscribe } = await import("@/lib/email/data");
     await expect(unsubscribe("a@b.co")).rejects.toThrow();
   });
+
+  it("nulls confirm_token_hash so an old confirm link can't resubscribe this address", async () => {
+    const update = query({ data: [{ email: "a@b.co" }] });
+    from = fromQueue({ subscribers: [update] });
+    const { unsubscribe } = await import("@/lib/email/data");
+    await unsubscribe("a@b.co");
+    expect(callArgs(update, "update")?.[0]).toMatchObject({ confirm_token_hash: null });
+  });
+
+  it("retries the update once when the insert races with another writer (23505)", async () => {
+    const update1 = query({ data: [] });
+    const insert = query({ error: { code: "23505" } });
+    const update2 = query({});
+    from = fromQueue({ subscribers: [update1, insert, update2] });
+    const { unsubscribe } = await import("@/lib/email/data");
+    await unsubscribe("a@b.co");
+    expect(callArgs(update2, "update")?.[0]).toMatchObject({ status: "unsubscribed", confirm_token_hash: null });
+  });
+
+  it("throws if the retried update after an insert race also fails", async () => {
+    from = fromQueue({ subscribers: [
+      query({ data: [] }),
+      query({ error: { code: "23505" } }),
+      query({ error: { message: "down" } }),
+    ] });
+    const { unsubscribe } = await import("@/lib/email/data");
+    await expect(unsubscribe("a@b.co")).rejects.toThrow();
+  });
 });
 
 describe("upsertPending", () => {
@@ -178,6 +206,15 @@ describe("upsertPending", () => {
     const { upsertPending } = await import("@/lib/email/data");
     expect(await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null })).toEqual({ state: "cooldown" });
   });
+
+  it("overwrites a cart-email-unsubscribe stub's source with the new request's source", async () => {
+    const read = query({ data: { email: "a@b.co", status: "unsubscribed", source: "unsubscribe", partner_ref: null } });
+    const write = query({});
+    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
+    const { upsertPending } = await import("@/lib/email/data");
+    await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null });
+    expect((callArgs(write, "upsert")?.[0] as { source: string }).source).toBe("popup");
+  });
 });
 
 describe("confirmSubscriber", () => {
@@ -238,6 +275,16 @@ describe("confirmSubscriber", () => {
     from = fromQueue({ subscribers: [query({ data: null }), query({ data: null })] });
     const { confirmSubscriber } = await import("@/lib/email/data");
     expect(await confirmSubscriber("nope")).toBeNull();
+  });
+
+  it("falls through to the already-confirmed lookup when a concurrent request wins the race (update matches 0 rows)", async () => {
+    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: null, welcome_code: null } });
+    const raced = query({ data: null, error: null });
+    const confirmedLookup = query({ data: { email: "a@b.co", status: "confirmed" } });
+    from = fromQueue({ subscribers: [read, raced, confirmedLookup] });
+    const { confirmSubscriber } = await import("@/lib/email/data");
+    const result = await confirmSubscriber("tok", Date.parse("2026-12-01T00:00:00Z"));
+    expect(result).toEqual({ row: { email: "a@b.co", status: "confirmed" }, already: true });
   });
 });
 

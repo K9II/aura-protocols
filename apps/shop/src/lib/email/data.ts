@@ -95,9 +95,12 @@ export async function upsertPending(input: { email: string; source: "popup" | "s
   if (recent >= 1 || daily >= CONFIRM_DAILY_LIMIT) return { state: "cooldown" };
 
   const { token, hash } = newConfirmToken();
+  // A "source" of "unsubscribe" is just the stub unsubscribe() creates for
+  // an address with no subscribers row — it isn't a real source to keep.
+  const keepSource = existing?.source && existing.source !== "unsubscribe";
   const patch: Record<string, unknown> = {
     email, confirm_token_hash: hash,
-    source: existing?.source ?? input.source,
+    source: keepSource ? existing!.source : input.source,
     partner_ref: input.partnerRef ?? existing?.partner_ref ?? null,
   };
   // Leave status/unsubscribed_at alone for an unsubscribed row — a fresh
@@ -125,19 +128,27 @@ export async function confirmSubscriber(token: string, nowMs: number = Date.now(
   if (error) throw new Error(`subscriber read failed: ${JSON.stringify(error)}`);
   const row = data as SubscriberRow | null;
   if (row) {
+    let lostRace = false;
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = row.partner_ref || row.welcome_code ? null : generateWelcomeCode();
       const base = { status: "confirmed", confirmed_at: new Date(nowMs).toISOString(), unsubscribed_at: null };
       const patch = code ? { ...base, welcome_code: code, welcome_code_expires_at: welcomeExpiry(nowMs) } : base;
       const { data: updated, error: upErr } = await db().from("subscribers").update(patch)
         .eq("confirm_token_hash", hash).in("status", ["pending", "unsubscribed"]).select("*").maybeSingle();
-      if (!upErr) return { row: updated as SubscriberRow, already: false };
+      if (!upErr) {
+        if (updated) return { row: updated as SubscriberRow, already: false };
+        // Matched 0 rows: another request confirmed this row first. Fall
+        // through to the already-confirmed lookup below instead of failing.
+        lostRace = true;
+        break;
+      }
       if ((upErr as { code?: string }).code !== "23505") throw new Error(`subscriber confirm failed: ${JSON.stringify(upErr)}`);
     }
-    throw new Error("could not issue a unique welcome code after 5 tries");
+    if (!lostRace) throw new Error("could not issue a unique welcome code after 5 tries");
   }
-  // No pending/unsubscribed row matched — either an invalid token, or one
-  // that was already confirmed (and kept its hash) by an earlier click.
+  // No pending/unsubscribed row matched — either an invalid token, one
+  // already confirmed (and kept its hash) by an earlier click, or one a
+  // concurrent request just confirmed above.
   const { data: confirmedData, error: cErr } = await db().from("subscribers").select("*")
     .eq("confirm_token_hash", hash).eq("status", "confirmed").maybeSingle();
   if (cErr) throw new Error(`subscriber read failed: ${JSON.stringify(cErr)}`);
@@ -148,16 +159,23 @@ export async function confirmSubscriber(token: string, nowMs: number = Date.now(
 // Works even for an address with no subscribers row yet (cart reminders go
 // to non-subscribers too): update it in place, or insert an unsubscribed
 // stub if nothing matched, so re-sending to that address is never possible.
+// Also nulls confirm_token_hash — otherwise a confirm link sent before this
+// unsubscribe would still match in confirmSubscriber and resubscribe them.
 export async function unsubscribe(email: string): Promise<void> {
   const e = normalizeEmail(email);
   const now = new Date().toISOString();
-  const { data, error } = await db().from("subscribers")
-    .update({ status: "unsubscribed", unsubscribed_at: now }).eq("email", e).select("email");
+  const patch = { status: "unsubscribed", unsubscribed_at: now, confirm_token_hash: null };
+  const { data, error } = await db().from("subscribers").update(patch).eq("email", e).select("email");
   if (error) throw new Error(`unsubscribe failed: ${JSON.stringify(error)}`);
   if (Array.isArray(data) && data.length > 0) return;
   const { error: insErr } = await db().from("subscribers")
     .insert({ email: e, source: "unsubscribe", status: "unsubscribed", unsubscribed_at: now });
-  if (insErr) throw new Error(`unsubscribe insert failed: ${JSON.stringify(insErr)}`);
+  if (!insErr) return;
+  if ((insErr as { code?: string }).code !== "23505") throw new Error(`unsubscribe insert failed: ${JSON.stringify(insErr)}`);
+  // Another request inserted this row between our update and our insert —
+  // it exists now, so update it instead of failing.
+  const { error: retryErr } = await db().from("subscribers").update(patch).eq("email", e);
+  if (retryErr) throw new Error(`unsubscribe retry failed: ${JSON.stringify(retryErr)}`);
 }
 
 export async function isUnsubscribed(email: string): Promise<boolean> {
