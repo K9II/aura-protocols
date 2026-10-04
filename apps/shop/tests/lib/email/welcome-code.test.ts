@@ -27,8 +27,9 @@ describe("welcome code", () => {
     expect(isWelcomeCodeFormat("AURA-LLLL")).toBe(false);
   });
 
-  it("expires 14 days after confirmation", () => {
-    expect(welcomeExpiry(Date.parse("2026-12-01T00:00:00Z"))).toBe("2026-12-15T00:00:00.000Z");
+  it("expires at the end of the UTC day, 14 days after confirmation (so it doesn't end before the date shown in the email)", () => {
+    expect(welcomeExpiry(Date.parse("2026-12-01T00:00:00Z"))).toBe("2026-12-15T23:59:59.999Z");
+    expect(welcomeExpiry(Date.parse("2026-12-01T22:30:00Z"))).toBe("2026-12-15T23:59:59.999Z");
   });
 
   it("accepts the right code for the right email, case-insensitively", () => {

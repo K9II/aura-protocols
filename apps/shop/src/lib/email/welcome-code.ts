@@ -22,8 +22,12 @@ export function isWelcomeCodeFormat(raw: string): boolean {
   return FORMAT.test(normalizeWelcomeCode(raw));
 }
 
+// End-of-day UTC on the expiry date (not confirmedAtMs + 14 days exactly) so
+// the code never ends before the date shown in the email, which is a UTC
+// calendar date with no time of day.
 export function welcomeExpiry(confirmedAtMs: number): string {
-  return new Date(confirmedAtMs + WELCOME_CODE_DAYS * 24 * 3600 * 1000).toISOString();
+  const d = new Date(confirmedAtMs + WELCOME_CODE_DAYS * 24 * 3600 * 1000);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999)).toISOString();
 }
 
 export type WelcomeRow = {

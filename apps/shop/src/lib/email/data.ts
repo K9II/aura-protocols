@@ -19,6 +19,8 @@ export type SubscriberRow = WelcomeRow & {
 // first (so nothing is sent twice, even across retries and parallel runs),
 // then sends. A failed send releases the claim and throws, so the caller
 // alerts the owner and the next run retries.
+// A send that times out after SES accepted it is released and may be
+// re-sent on the next run — an accepted trade-off for marketing mail.
 export async function sendTracked(input: {
   email: string; kind: SendKind; ref: string | null; msg: Msg; unsubscribeUrl?: string;
 }): Promise<"sent" | "duplicate"> {
@@ -31,17 +33,23 @@ export async function sendTracked(input: {
     throw new Error(`email_sends claim failed: ${JSON.stringify(error)}`);
   }
   const id = (data as { id: string }).id;
+  let messageId: string | undefined;
   try {
-    const { messageId } = await sendEmail({
+    const result = await sendEmail({
       to: email, ...input.msg, fromName: SENDER_NAME, replyTo: SUPPORT_EMAIL,
       ...(input.unsubscribeUrl ? { unsubscribeUrl: input.unsubscribeUrl } : {}),
     });
-    await db().from("email_sends").update({ ses_message_id: messageId ?? null }).eq("id", id);
-    return "sent";
+    messageId = result.messageId;
   } catch (err) {
-    await db().from("email_sends").delete().eq("id", id);
+    const { error: relErr } = await db().from("email_sends").delete().eq("id", id);
+    if (relErr) {
+      throw new Error(`send failed AND claim ${id} stuck (delete it to retry): ${String(err)} / ${JSON.stringify(relErr)}`);
+    }
     throw err;
   }
+  const { error: updErr } = await db().from("email_sends").update({ ses_message_id: messageId ?? null }).eq("id", id);
+  if (updErr) console.error(`email_sends update failed for ${id} (send succeeded):`, updErr);
+  return "sent";
 }
 
 export async function getSubscriber(email: string): Promise<SubscriberRow | null> {
@@ -66,7 +74,7 @@ export async function upsertPending(input: { email: string; source: "popup" | "s
   const { token, hash } = newConfirmToken();
   const { error } = await db().from("subscribers").upsert({
     email, source: input.source, status: "pending", confirm_token_hash: hash,
-    partner_ref: input.partnerRef, unsubscribed_at: null,
+    partner_ref: input.partnerRef ?? existing?.partner_ref ?? null, unsubscribed_at: null,
   }, { onConflict: "email" });
   if (error) throw new Error(`subscriber upsert failed: ${JSON.stringify(error)}`);
   return { state: "pending", token };
@@ -104,7 +112,7 @@ export async function isUnsubscribed(email: string): Promise<boolean> {
 
 export async function hasPaidOrder(customerId: string): Promise<boolean> {
   const { count, error } = await db().from("orders").select("id", { count: "exact", head: true })
-    .eq("customer_id", customerId).in("status", ["paid", "shipped", "refunded"]);
+    .eq("customer_id", customerId).in("status", ["paid", "processing", "shipped", "refunded"]);
   if (error) throw new Error(`order count failed: ${JSON.stringify(error)}`);
   return (count ?? 0) > 0;
 }
@@ -133,15 +141,29 @@ export async function lastWelcomeSentAt(email: string): Promise<number | null> {
   return row ? Date.parse(row.sent_at) : null;
 }
 
+const PAGE_SIZE = 1000;
+
 export async function listWelcomeCandidates(sinceIso: string): Promise<SubscriberRow[]> {
-  const { data, error } = await db().from("subscribers").select("*")
-    .eq("status", "confirmed").gte("confirmed_at", sinceIso);
-  if (error) throw new Error(`subscriber list failed: ${JSON.stringify(error)}`);
-  return (data ?? []) as SubscriberRow[];
+  const out: SubscriberRow[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await db().from("subscribers").select("*")
+      .eq("status", "confirmed").gte("confirmed_at", sinceIso)
+      .order("email").range(from, from + PAGE_SIZE - 1);
+    if (error) throw new Error(`subscriber list failed: ${JSON.stringify(error)}`);
+    const rows = (data ?? []) as SubscriberRow[];
+    out.push(...rows);
+    if (rows.length < PAGE_SIZE) return out;
+  }
 }
 
 export async function listConfirmedEmails(): Promise<string[]> {
-  const { data, error } = await db().from("subscribers").select("email").eq("status", "confirmed");
-  if (error) throw new Error(`subscriber list failed: ${JSON.stringify(error)}`);
-  return ((data ?? []) as { email: string }[]).map((r) => r.email);
+  const out: string[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await db().from("subscribers").select("email").eq("status", "confirmed")
+      .order("email").range(from, from + PAGE_SIZE - 1);
+    if (error) throw new Error(`subscriber list failed: ${JSON.stringify(error)}`);
+    const rows = (data ?? []) as { email: string }[];
+    out.push(...rows.map((r) => r.email));
+    if (rows.length < PAGE_SIZE) return out;
+  }
 }

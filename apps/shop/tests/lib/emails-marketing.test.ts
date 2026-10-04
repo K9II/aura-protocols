@@ -62,6 +62,14 @@ describe("marketing emails", () => {
     expect(lotAlertEmail(ctx, [l, { ...l, lot: "AP-2612" }]).subject).toBe("Certified: 2 new lots");
   });
 
+  it("escapes a cart item name, never renders it raw", async () => {
+    const { cartEmail } = await import("@/lib/emails-marketing");
+    const order = { order_number: "AP-1042", order_items: [{ compound_name: "<script>x</script>", strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "AP-2611", compound_slug: "bpc-157" }] };
+    const html = cartEmail(1, ctx, order, () => null).html;
+    expect(html).toContain("&lt;script&gt;");
+    expect(html).not.toContain("<script>x</script>");
+  });
+
   it("throws when MAILING_ADDRESS is missing (CAN-SPAM)", async () => {
     delete process.env.MAILING_ADDRESS;
     const { welcomeEmail } = await import("@/lib/emails-marketing");
