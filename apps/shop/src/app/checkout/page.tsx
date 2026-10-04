@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import CheckoutForm from "@/components/account/CheckoutForm";
+import ResendVerify from "@/components/account/ResendVerify";
 import { requireCustomer } from "@/lib/dal";
 import { creditBalance } from "@/lib/partners/ledger";
 import { listOpenOrdersForCustomer, releasableCreditCents } from "@/lib/orders";
@@ -28,7 +29,7 @@ export default async function CheckoutPage() {
         {customer.emailConfirmed ? (
           <CheckoutForm email={customer.email} ship={customer.ship} initialCode={initialCode} creditBalanceCents={creditBalanceCents} newAccountOffer={newAccountOffer} />
         ) : (
-          <p role="alert" className="text-[15px]">Please verify your email address first — we sent a link to {customer.email}. Once verified, come back to this page.</p>
+          <p role="alert" className="text-[15px]">Please verify your email address first — we sent a link to {customer.email}. Once verified, come back to this page.<ResendVerify /></p>
         )}
       </div>
     </div>

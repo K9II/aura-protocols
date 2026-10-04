@@ -51,4 +51,13 @@ describe("emails", () => {
     const html = orderConfirmationEmail({ ...order, partner_discount_cents: 735, new_account_discount: true } as OrderRow).html;
     expect(html).toContain("New-account 15%");
   });
+
+  it("verify email links to the token URL and passes the scan", async () => {
+    const { verifyEmail } = await import("@/lib/emails");
+    const { findViolations, visibleText } = await import("../../scripts/compliance-scan.mjs");
+    const m = verifyEmail("https://auraprotocols.com/auth/verify?token=abc");
+    expect(m.subject).toBe("Confirm your email");
+    expect(m.html).toContain("https://auraprotocols.com/auth/verify?token=abc");
+    expect(findViolations(`${m.subject} ${visibleText(m.html)}`)).toEqual([]);
+  });
 });

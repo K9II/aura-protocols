@@ -77,3 +77,13 @@ export function achFailedEmail(o: OrderRow) {
 export function opsAlertEmail(title: string, detail: string) {
   return { subject: `[Aura shop] ${title}`, html: shell(title, `<pre style="white-space:pre-wrap;font-size:13px">${e(detail)}</pre>`) };
 }
+
+export function verifyEmail(url: string) {
+  return {
+    subject: "Confirm your email",
+    html: shell("Confirm your email",
+      `<p style="font-size:15px;line-height:1.6">Confirm this address to finish setting up your Aura Protocols account. You'll need it confirmed before your first order.</p>
+<p style="font-size:15px"><a href="${e(url)}" style="color:#A32B1F">Confirm my email →</a></p>
+<p style="font-size:13px;color:#4A4438">Didn't create an account? Ignore this email.</p>`),
+  };
+}
