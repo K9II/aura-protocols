@@ -5,6 +5,7 @@ import { createCommission, markCommissionClearing, spendCredit } from "@/lib/par
 import { getCommerceAdapter } from "@/lib/commerce";
 import { orderConfirmationEmail, ownerNewOrderEmail } from "@/lib/emails";
 import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
+import { markWelcomeCodeUsed } from "@/lib/email/data";
 
 // Runs once, right after an order moves to paid (webhook, reconciler, or a
 // fully store-credit order). Each step below is independent and wrapped in
@@ -61,6 +62,18 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
       }
     } catch (err) {
       await alertOwner(`Sales tax not recorded for ${order.order_number}`, String(err));
+    }
+  }
+
+  // The discount was already given at checkout; this only closes the code.
+  // A code claimed by a racing order is reported, not reversed.
+  if (order.welcome_code) {
+    try {
+      if (!(await markWelcomeCodeUsed(order.welcome_code, order.id))) {
+        await alertOwner(`Welcome code reused on ${order.order_number}`, `${order.welcome_code} was already used by another order; this order still got 10% off.`);
+      }
+    } catch (err) {
+      await alertOwner(`Welcome code not marked used for ${order.order_number}`, String(err));
     }
   }
 

@@ -17,6 +17,8 @@ const afterOrderPaid = vi.fn();
 const alertOwner = vi.fn();
 const listOpenOrdersForCustomer = vi.fn();
 const expireCheckout = vi.fn();
+const checkWelcomeForCustomer = vi.fn();
+vi.mock("@/lib/email/welcome-checkout", () => ({ checkWelcomeForCustomer }));
 vi.mock("@/lib/dal", () => ({ getCustomer }));
 vi.mock("@/lib/orders", async (orig) => {
   const { willReleaseOnNewCheckout } = await orig<typeof import("@/lib/orders")>();  // the real rule, shared with the checkout page
@@ -51,6 +53,7 @@ describe("startCheckoutAction", () => {
     vi.resetModules();
     for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon,
       createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid, alertOwner, listOpenOrdersForCustomer, expireCheckout]) f.mockReset();
+    checkWelcomeForCustomer.mockReset();
     listOpenOrdersForCustomer.mockResolvedValue([]);
     resolveAttribution.mockResolvedValue({ attribution: null });
     createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
@@ -118,6 +121,50 @@ describe("startCheckoutAction", () => {
     resolveAttribution.mockResolvedValue({ attribution: null, codeError: "This code can't be used." });
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect(await startCheckoutAction({ ...input, partnerCode: "NOPE1" })).toEqual({ error: "This code can't be used.", codeError: "This code can't be used." });
+    expect(createPendingOrder).not.toHaveBeenCalled();
+  });
+
+  it("applies a valid welcome code as 10% and records it on the order, without calling partner attribution for the code", async () => {
+    getCustomer.mockResolvedValue(customer);
+    checkWelcomeForCustomer.mockResolvedValue({ ok: true, code: "AURA-7K2Q" });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, partnerCode: "aura-7k2q" });
+    expect(checkWelcomeForCustomer).toHaveBeenCalledWith("aura-7k2q", customer);
+    expect(resolveAttribution).toHaveBeenCalledWith(expect.objectContaining({ typedCode: undefined }));
+    const order = createPendingOrder.mock.calls[0][0];
+    expect(order.welcomeCode).toBe("AURA-7K2Q");
+    expect(order.priced.partnerDiscountCents).toBe(490); // 10% of $49.00 list, pack qty 1 has no pack discount
+    expect(createCheckout.mock.calls[0][0]).toMatchObject({ partnerDiscountCents: 490, lineDiscountsCents: [490] });
+  });
+
+  it("a welcome code with a partner referral link: partner still attributed (commission), only the one 10% discount", async () => {
+    getCustomer.mockResolvedValue(customer);
+    checkWelcomeForCustomer.mockResolvedValue({ ok: true, code: "AURA-7K2Q" });
+    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p2", code: "BENCHNOTES", via: "link" } });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, partnerCode: "AURA-7K2Q" });
+    expect(createPendingOrder.mock.calls[0][0]).toMatchObject({
+      welcomeCode: "AURA-7K2Q", partner: { partnerId: "p2", attributedBy: "link" }, priced: { partnerDiscountCents: 490 },
+    });
+  });
+
+  it("a partner code never goes through the welcome check and records no welcome code", async () => {
+    getCustomer.mockResolvedValue(customer);
+    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p1", code: "SMITHLAB", via: "code" } });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, partnerCode: "smithlab" });
+    expect(checkWelcomeForCustomer).not.toHaveBeenCalled();
+    expect(createPendingOrder.mock.calls[0][0].welcomeCode).toBeNull();
+  });
+
+  it("refuses an invalid welcome code with its message", async () => {
+    getCustomer.mockResolvedValue(customer);
+    checkWelcomeForCustomer.mockResolvedValue({ ok: false, message: "This code has expired." });
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, partnerCode: "AURA-7K2Q" })).toEqual({ error: "This code has expired.", codeError: "This code has expired." });
     expect(createPendingOrder).not.toHaveBeenCalled();
   });
 
@@ -281,7 +328,18 @@ describe("startCheckoutAction - abandoned checkouts", () => {
 });
 
 describe("checkPartnerCodeAction", () => {
-  beforeEach(() => { vi.resetModules(); getCustomer.mockReset(); resolveAttribution.mockReset(); });
+  beforeEach(() => { vi.resetModules(); getCustomer.mockReset(); resolveAttribution.mockReset(); checkWelcomeForCustomer.mockReset(); });
+
+  it("checks a welcome-format code against the signed-in customer, not the partner list", async () => {
+    getCustomer.mockResolvedValue(customer);
+    checkWelcomeForCustomer.mockResolvedValueOnce({ ok: true, code: "AURA-7K2Q" })
+      .mockResolvedValueOnce({ ok: false, message: "This code is for a first order only." });
+    const { checkPartnerCodeAction } = await import("@/app/checkout/actions");
+    expect(await checkPartnerCodeAction("aura-7k2q")).toEqual({ ok: true, code: "AURA-7K2Q" });
+    expect(await checkPartnerCodeAction("AURA-7K2Q")).toEqual({ ok: false, message: "This code is for a first order only." });
+    expect(checkWelcomeForCustomer).toHaveBeenCalledWith("aura-7k2q", customer);
+    expect(resolveAttribution).not.toHaveBeenCalled();
+  });
 
   it("requires a verified email before checking a code", async () => {
     getCustomer.mockResolvedValue({ ...customer, emailConfirmed: false });

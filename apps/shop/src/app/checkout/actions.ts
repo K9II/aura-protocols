@@ -11,7 +11,9 @@ import {
 import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } from "@/lib/commerce";
 import { siteUrl } from "@/lib/supabase/env";
 import { resolveAttribution } from "@/lib/partners/attribution";
-import { applyPartnerCode } from "@/lib/partners/discounts";
+import { applyCodeDiscount, applyPartnerCode } from "@/lib/partners/discounts";
+import { isWelcomeCodeFormat, WELCOME_PCT } from "@/lib/email/welcome-code";
+import { checkWelcomeForCustomer } from "@/lib/email/welcome-checkout";
 import { creditBalance, spendCredit } from "@/lib/partners/ledger";
 import { REF_COOKIE } from "@/lib/partners/ref-cookie";
 import { afterOrderPaid } from "@/lib/order-paid";
@@ -41,7 +43,12 @@ export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; 
   const customer = await getCustomer();
   if (!customer) return { ok: false, message: "Please sign in.", needsSignIn: true };
   if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link.", needsSignIn: true };
-  const { attribution, codeError } = await resolveAttribution({ typedCode: String(code).slice(0, 40), buyerCustomerId: customer.id });
+  const typed = String(code).slice(0, 40); // server action: the argument is untrusted
+  if (isWelcomeCodeFormat(typed)) {
+    const w = await checkWelcomeForCustomer(typed, customer);
+    return w.ok ? { ok: true, code: w.code } : { ok: false, message: w.message };
+  }
+  const { attribution, codeError } = await resolveAttribution({ typedCode: typed, buyerCustomerId: customer.id });
   if (!attribution) return { ok: false, message: codeError ?? "This code can't be used." };
   return { ok: true, code: attribution.code };
 }
@@ -90,12 +97,17 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   if (priced.rejected.length) return { error: "Some items can't be ordered right now — they've been flagged below.", rejected: priced.rejected };
   if (priced.items.length === 0) return { error: "Your cart is empty." };
 
+  // One code box: a welcome code (AURA-XXXX) or a partner code. A welcome
+  // code is checked against the signed-in email; the referral cookie still
+  // attributes the order to a partner (commission), but only one discount applies.
+  const welcome = partnerCode && isWelcomeCodeFormat(partnerCode) ? await checkWelcomeForCustomer(partnerCode, customer) : null;
+  if (welcome && !welcome.ok) return { error: welcome.message, codeError: welcome.message };
   const refCookie = (await cookies()).get(REF_COOKIE)?.value;
-  const { attribution, codeError } = await resolveAttribution({ typedCode: partnerCode, refCookie, buyerCustomerId: customer.id });
+  const { attribution, codeError } = await resolveAttribution({ typedCode: welcome ? undefined : partnerCode, refCookie, buyerCustomerId: customer.id });
   if (codeError) return { error: codeError, codeError };
   let lineDiscountsCents = priced.items.map(() => 0);
-  if (attribution?.via === "code") {
-    const discounted = applyPartnerCode(priced);
+  if (welcome?.ok || attribution?.via === "code") {
+    const discounted = welcome?.ok ? applyCodeDiscount(priced, WELCOME_PCT) : applyPartnerCode(priced);
     priced = discounted;
     lineDiscountsCents = discounted.lineDiscounts.map((d) => d.savingCents);
   }
@@ -128,6 +140,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     customerId: customer.id, email: customer.email, ship, priced,
     partner: attribution ? { partnerId: attribution.partnerId, attributedBy: attribution.via } : null,
     storeCreditCents: credit?.creditCents ?? 0, taxCents: credit?.taxCents ?? 0, taxCalculationId: credit?.calculationId ?? null,
+    welcomeCode: welcome?.ok ? welcome.code : null,
   });
 
   // Credit is held (spent) the moment we commit to it, even for a partial

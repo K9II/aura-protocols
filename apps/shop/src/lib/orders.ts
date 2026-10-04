@@ -12,7 +12,7 @@ export type OrderRow = {
   id: string; order_number: string; customer_id: string; email: string; status: OrderStatus;
   ship_name: string; ship_line1: string; ship_line2: string | null; ship_city: string; ship_state: string; ship_zip: string;
   subtotal_cents: number; shipping_cents: number; insurance_cents: number; tax_cents: number; total_cents: number;
-  partner_id: string | null; attributed_by: "code" | "link" | null; partner_discount_cents: number; store_credit_cents: number;
+  partner_id: string | null; attributed_by: "code" | "link" | null; partner_discount_cents: number; welcome_code: string | null; store_credit_cents: number;
   stripe_coupon_id: string | null; tax_calculation_id: string | null; tax_transaction_id: string | null;
   ruo_confirmed_at: string; stripe_session_id: string | null; stripe_payment_intent: string | null;
   tracking_number: string | null; carrier: string | null;
@@ -31,6 +31,7 @@ export async function createPendingOrder(input: {
   customerId: string; email: string; ship: ShipAddress; priced: PricedOrder;
   partner?: { partnerId: string; attributedBy: "code" | "link" } | null;
   storeCreditCents?: number; taxCents?: number; taxCalculationId?: string | null;
+  welcomeCode?: string | null;
 }): Promise<{ id: string; orderNumber: string }> {
   const { customerId, email, ship, priced } = input;
   const taxCents = input.taxCents ?? 0;
@@ -41,7 +42,7 @@ export async function createPendingOrder(input: {
     subtotal_cents: priced.subtotalCents, shipping_cents: priced.shippingCents, insurance_cents: priced.insuranceCents, tax_cents: taxCents,
     total_cents: priced.totalBeforeTaxCents + taxCents,
     partner_id: input.partner?.partnerId ?? null, attributed_by: input.partner?.attributedBy ?? null,
-    partner_discount_cents: priced.partnerDiscountCents, store_credit_cents: input.storeCreditCents ?? 0,
+    partner_discount_cents: priced.partnerDiscountCents, welcome_code: input.welcomeCode ?? null, store_credit_cents: input.storeCreditCents ?? 0,
     tax_calculation_id: input.taxCalculationId ?? null,
     ruo_confirmed_at: now.toISOString(),
     expires_at: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
