@@ -298,3 +298,14 @@
 .adm .a-codes .used { color: var(--muted); }
 .adm .a-codes .used .a-code { text-decoration: line-through; text-decoration-color: var(--faint); }
 .adm .a-codes small { font-size: 11px; color: var(--muted); }
+
+/* ---------- create / edit form (screens 2–3) ---------- */
+.adm .a-err { color: var(--specimen); font-size: 12px; margin-top: 5px; }
+.adm .opt { color: var(--muted); font-weight: 400; }
+.adm .a-seg button:disabled { cursor: default; }
+.adm .a-tokens select { border: 0; background: transparent; color: var(--faint); font-size: 12.5px; }
+.adm .a-tok .x { border: 0; background: transparent; cursor: pointer; font: inherit; }
+.adm .a-sw, .adm .a-cb { padding: 0; cursor: pointer; }
+.adm .a-card-b .muted { color: var(--muted); }
+.adm .a-input input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.adm .a-input input[type=number]::-webkit-inner-spin-button, .adm .a-input input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
