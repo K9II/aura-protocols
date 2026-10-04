@@ -14,6 +14,9 @@ type Scenes = typeof import("./scenes.generated");
 
 const ENTER_AFTER_MS = 3500;   // owner (2026-10-04): 3.5 s on desktop and phone, so the page registers first
 const REVEAL_DESK_MS = ENTER_AFTER_MS + 1600; // form items float up midway through the slow 3.2 s fade
+const KEYBOARD_MIN_PX = 120;    // visual viewport this much shorter than the window = keyboard open
+const KEYBOARD_SETTLE_MS = 300; // the keyboard's slide-up
+const FIELD_TOP_GAP_PX = 12;    // breathing room above a focused field
 const REVEAL_PHONE_MS = ENTER_AFTER_MS + 400;  // mock: +0.4 s
 const media = (q: string) => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(q).matches;
 
@@ -108,7 +111,11 @@ export default function AccountGate() {
     const root = rootRef.current;
     if (!root) return;
     const col = root.querySelector<HTMLElement>(".a-col, .pc-body") ?? root;
+    // On a phone, step 1 appears on its own: focusing the email field would pop
+    // the keyboard over the card before the visitor has read it.
+    const phoneStart = !desktopRef.current && step === "1";
     const target =
+      (phoneStart ? root.querySelector<HTMLElement>('[role="dialog"]') : null) ??
       col.querySelector<HTMLElement>("input:not([readonly])") ??
       col.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ??
       root.querySelector<HTMLElement>('[role="dialog"]') ??
@@ -117,6 +124,43 @@ export default function AccountGate() {
   }, [phase, step]);
   useEffect(() => { if (cardRef.current) cardRef.current.scrollTop = 0; }, [step]);
   useFocusTrap(rootRef, shown, { captureOutside: true });
+
+  // Phone keyboard (Kearney 2026-10-04: fields must never sit under it). iOS
+  // doesn't shrink the layout when the keyboard opens, so the card is sized
+  // to the visual viewport (the part above the keyboard), pinned to its top,
+  // and a focused field is scrolled to the top of the card.
+  useEffect(() => {
+    if (desktop || !shown) return;
+    const root = rootRef.current, vv = window.visualViewport;
+    if (!root || !vv) return;
+    const fit = () => {
+      root.style.setProperty("--ag-vh", `${vv.height}px`);
+      root.style.setProperty("--ag-vt", `${vv.offsetTop}px`);
+      root.classList.toggle("kb", window.innerHeight - vv.height > KEYBOARD_MIN_PX);
+    };
+    fit();
+    vv.addEventListener("resize", fit);
+    vv.addEventListener("scroll", fit);
+    return () => { vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); };
+  }, [desktop, shown]);
+  useEffect(() => {
+    const card = cardRef.current;
+    if (desktop || !shown || !card) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onFocus = (e: FocusEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (!el || el.tagName !== "INPUT" || (el as HTMLInputElement).type === "checkbox") return;
+      clearTimeout(timer);
+      // After the keyboard has slid up and the card has been resized.
+      timer = setTimeout(() => {
+        const field = el.closest<HTMLElement>(".fld") ?? el;
+        const top = field.getBoundingClientRect().top - card.getBoundingClientRect().top + card.scrollTop - FIELD_TOP_GAP_PX;
+        card.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      }, KEYBOARD_SETTLE_MS);
+    };
+    card.addEventListener("focusin", onFocus);
+    return () => { clearTimeout(timer); card.removeEventListener("focusin", onFocus); };
+  }, [desktop, shown]);
 
   if (phase === "off") return null;
   const cls = `${shown ? " in" : ""}${phase === "rv" ? " rv" : ""}`;

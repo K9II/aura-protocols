@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk, Newsreader, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -25,6 +25,10 @@ const newsreader = Newsreader({
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jetbrains" });
 
 const BASE_URL = "https://auraprotocols.com";
+
+// Android: when the keyboard opens, shrink the page to the space above it so
+// the account gate's fields stay visible (iOS is handled in AccountGate).
+export const viewport: Viewport = { width: "device-width", initialScale: 1, interactiveWidget: "resizes-content" };
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

@@ -111,7 +111,11 @@
 .ag-phone.in{pointer-events:auto}
 .ag-phone .pc-dim{position:fixed;inset:0;opacity:0;-webkit-backdrop-filter:blur(3.5px) saturate(.85);backdrop-filter:blur(3.5px) saturate(.85);background:linear-gradient(180deg,rgba(28,26,21,.46),rgba(28,26,21,.6))}
 .ag-phone.in .pc-dim{opacity:1;transition:opacity .4s ease}
-.ag-phone .pc-stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px 16px 16px}
+.ag-phone .pc-stage{position:fixed;left:0;right:0;top:var(--ag-vt,0px);height:var(--ag-vh,100%);display:flex;align-items:center;justify-content:center;padding:24px 16px 16px}
+/* Keyboard open: the stage is only the part of the screen above it; pin the card to the top
+   and give it room so any field can scroll up to the top of the card. */
+.ag-phone.kb .pc-stage{align-items:flex-start;padding:8px 12px}
+.ag-phone.kb .pc-body{padding-bottom:40vh}
 .ag-phone .pc-card{position:relative;width:100%;max-width:440px;max-height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--paper);border:1px solid #CFC8B4;border-top:0;box-shadow:0 30px 70px rgba(0,0,0,.5),0 8px 22px rgba(0,0,0,.3);opacity:0;transform:translateY(24px);scrollbar-width:none}
 .ag-phone .pc-card::-webkit-scrollbar{display:none}
 .ag-phone .pc-card::after{content:"";position:sticky;display:block;bottom:0;height:26px;margin-top:-26px;background:linear-gradient(rgba(237,233,224,0),var(--paper));pointer-events:none;z-index:4}

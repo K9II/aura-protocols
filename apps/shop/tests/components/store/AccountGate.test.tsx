@@ -42,7 +42,9 @@ describe("AccountGate", () => {
     expect(document.querySelector(".ag.in")).not.toBeNull();
     expect(document.querySelector(".ag")).not.toHaveAttribute("inert");
     expect(screen.getByRole("dialog", { name: /New accounts save 15%/ })).toHaveAttribute("aria-modal", "true");
-    expect(document.activeElement).toBe(screen.getByPlaceholderText("you@institution.org"));
+    // Phone layout (jsdom has no matchMedia): step 1 focuses the card, not the email field,
+    // so the keyboard doesn't pop up over the card on arrival.
+    expect(document.activeElement).toBe(screen.getByRole("dialog", { name: /New accounts save 15%/ }));
     // Focus that escapes to the page is pulled back in on the next Tab.
     (document.activeElement as HTMLElement).blur();
     fireEvent.keyDown(document.body, { key: "Tab" });
@@ -225,6 +227,46 @@ describe("AccountGate", () => {
     render(<AccountGate />);
     await settle(50);
     expect(document.querySelector(".ag.rv")).not.toBeNull();
+    vi.unstubAllGlobals();
+  });
+  it("on a phone, scrolls a focused field to the top of the card (keyboard-safe)", async () => {
+    routes({ state: "anon" }, { next: "create" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await waitFor(() => expect(document.querySelector(".ag")).not.toBeNull());
+    await settle();
+    fireEvent.change(screen.getByPlaceholderText("you@institution.org"), { target: { value: "new@lab.org" } });
+    fireEvent.click(screen.getByRole("button", { name: /Get access/ }));
+    await waitFor(() => screen.getByLabelText(/Choose a password/));
+    const card = document.querySelector<HTMLElement>(".pc-card")!;
+    const scrollTo = vi.fn();
+    card.scrollTo = scrollTo as unknown as typeof card.scrollTo;
+    card.getBoundingClientRect = () => ({ top: 100 } as DOMRect);
+    const input = screen.getByLabelText(/Choose a password/) as HTMLInputElement;
+    input.closest<HTMLElement>(".fld")!.getBoundingClientRect = () => ({ top: 400 } as DOMRect);
+    scrollTo.mockClear();
+    fireEvent.focusIn(input);
+    await act(async () => { await vi.advanceTimersByTimeAsync(350); });
+    expect(scrollTo).toHaveBeenCalledWith({ top: 288, behavior: "smooth" }); // 400 − 100 − 12 px gap
+  });
+
+  it("on a phone, fits the card to the space above the keyboard", async () => {
+    const listeners: Record<string, () => void> = {};
+    const vv = { height: 800, offsetTop: 0, addEventListener: (t: string, f: () => void) => { listeners[t] = f; }, removeEventListener: () => {} };
+    vi.stubGlobal("visualViewport", vv);
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 800 });
+    routes({ state: "anon" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await waitFor(() => expect(document.querySelector(".ag")).not.toBeNull());
+    await settle();
+    const root = document.querySelector<HTMLElement>(".ag")!;
+    expect(root).not.toHaveClass("kb");
+    vv.height = 420; vv.offsetTop = 30;
+    act(() => listeners.resize());
+    expect(root).toHaveClass("kb");
+    expect(root.style.getPropertyValue("--ag-vh")).toBe("420px");
+    expect(root.style.getPropertyValue("--ag-vt")).toBe("30px");
     vi.unstubAllGlobals();
   });
 });
