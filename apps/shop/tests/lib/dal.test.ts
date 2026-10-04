@@ -13,7 +13,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 const row = { id: "u1", full_name: "Jane", organization: null, is_owner: false, stripe_customer_id: null,
-  ship_name: "Jane", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701", created_at: "2026-10-01T00:00:00Z" };
+  ship_name: "Jane", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701", created_at: "2026-10-01T00:00:00Z",
+  email_verified_at: "2026-09-28T00:00:00Z", verify_required: false };
 
 describe("DAL", () => {
   beforeEach(() => { vi.resetModules(); getUser.mockReset(); });
@@ -31,8 +32,15 @@ describe("DAL", () => {
     expect(await getCustomer()).toEqual({
       id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false,
       stripeCustomerId: null, ship: { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX", zip: "78701" },
-      createdAt: "2026-10-01T00:00:00Z",
+      createdAt: "2026-10-01T00:00:00Z", verifyRequired: false,
     });
+  });
+
+  it("emailConfirmed comes from our own verification, not Supabase's (which confirms everyone)", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1", email: "j@lab.org", email_confirmed_at: "2026-10-04" } }, error: null });
+    from = fromQueue({ customers: [query({ data: { ...row, email_verified_at: null, verify_required: true } })] });
+    const { getCustomer } = await import("@/lib/dal");
+    expect(await getCustomer()).toMatchObject({ emailConfirmed: false, verifyRequired: true });
   });
 
   it("requireCustomer redirects signed-out visitors to sign-in with a safe next path", async () => {
