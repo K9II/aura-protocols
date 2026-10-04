@@ -13,7 +13,7 @@ type Phase = "off" | "mounted" | "in" | "rv";
 type Scenes = typeof import("./scenes.generated");
 
 const ENTER_AFTER_MS = 3500;   // owner (2026-10-04): 3.5 s on desktop and phone, so the page registers first
-const REVEAL_DESK_MS = ENTER_AFTER_MS + 500;   // form column fades up once the 1.2 s slide is under way (mock: +0.5 s)
+const REVEAL_DESK_MS = ENTER_AFTER_MS + 1600; // form items float up midway through the slow 3.2 s fade
 const REVEAL_PHONE_MS = ENTER_AFTER_MS + 400;  // mock: +0.4 s
 const media = (q: string) => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(q).matches;
 

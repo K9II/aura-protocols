@@ -52,9 +52,11 @@
 .ag.rv .fi{opacity:1;transform:none;transition:opacity .5s ease,transform .5s ease;transition-delay:calc(var(--i)*100ms)}
 @media (prefers-reduced-motion:reduce){.ag,.ag *,.ag *::before{transition:none!important}}
 
-/* ---------- desktop: look A, slides in from the right over the live page ---------- */
-.ag-desk{position:fixed;inset:0;z-index:200;overflow-y:auto;background:var(--paper);transform:translateX(100%);box-shadow:-40px 0 90px rgba(28,26,21,.28)}
-.ag-desk.in{transform:translateX(0);transition:transform 1.2s cubic-bezier(.16,1,.3,1)}
+/* ---------- desktop: look A, fades in over the live page ---------- */
+/* Kearney 2026-10-04: fade in over the page instead of sliding in from the right.
+   Before entry it's transparent and lets clicks through to the page underneath. */
+.ag-desk{position:fixed;inset:0;z-index:200;overflow-y:auto;background:var(--paper);opacity:0;pointer-events:none}
+.ag-desk.in{opacity:1;pointer-events:auto;transition:opacity 3.2s cubic-bezier(.45,0,.55,1)}
 .ag .a{display:grid;grid-template-columns:55fr 45fr;min-height:100vh;align-items:start}
 .ag .a-media{position:sticky;top:0;overflow:hidden;background:var(--paper-deep);height:100vh}
 .ag .a-media svg.scene{position:absolute;inset:0;width:100%;height:100%;display:block}
