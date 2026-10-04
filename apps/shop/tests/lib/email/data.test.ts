@@ -327,6 +327,49 @@ describe("markWelcomeCodeUsed", () => {
   });
 });
 
+describe("welcomeSendsFor", () => {
+  beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
+
+  it("returns an empty map for an empty list without querying", async () => {
+    from = fromQueue({});
+    const { welcomeSendsFor } = await import("@/lib/email/data");
+    expect(await welcomeSendsFor([])).toEqual(new Map());
+  });
+
+  it("groups kinds and the latest welcome sent_at per email in one query", async () => {
+    const q = query({ data: [
+      { email: "a@b.co", kind: "welcome_1", sent_at: "2026-11-01T00:00:00Z" },
+      { email: "a@b.co", kind: "welcome_2", sent_at: "2026-11-03T00:00:00Z" },
+      { email: "c@d.co", kind: "welcome_1", sent_at: "2026-11-02T00:00:00Z" },
+    ] });
+    from = fromQueue({ email_sends: [q] });
+    const { welcomeSendsFor } = await import("@/lib/email/data");
+    const map = await welcomeSendsFor(["a@b.co", "c@d.co"]);
+    expect(map.get("a@b.co")).toEqual({ kinds: new Set(["welcome_1", "welcome_2"]), lastSentMs: Date.parse("2026-11-03T00:00:00Z") });
+    expect(map.get("c@d.co")).toEqual({ kinds: new Set(["welcome_1"]), lastSentMs: Date.parse("2026-11-02T00:00:00Z") });
+    expect(callArgs(q, "in")).toEqual(["email", ["a@b.co", "c@d.co"]]);
+    expect(callArgs(q, "like")).toEqual(["kind", "welcome_%"]);
+  });
+
+  it("pages past Supabase's 1,000-row cap on the email list", async () => {
+    const emails = Array.from({ length: 1200 }, (_, i) => `u${i}@example.com`);
+    const q1 = query({ data: [{ email: "u0@example.com", kind: "welcome_1", sent_at: "2026-11-01T00:00:00Z" }] });
+    const q2 = query({ data: [{ email: "u1199@example.com", kind: "welcome_1", sent_at: "2026-11-01T00:00:00Z" }] });
+    from = fromQueue({ email_sends: [q1, q2] });
+    const { welcomeSendsFor } = await import("@/lib/email/data");
+    const map = await welcomeSendsFor(emails);
+    expect(map.size).toBe(2);
+    expect(callArgs(q1, "in")?.[1]).toHaveLength(1000);
+    expect(callArgs(q2, "in")?.[1]).toHaveLength(200);
+  });
+
+  it("throws on a read error", async () => {
+    from = fromQueue({ email_sends: [query({ error: { message: "down" } })] });
+    const { welcomeSendsFor } = await import("@/lib/email/data");
+    await expect(welcomeSendsFor(["a@b.co"])).rejects.toThrow();
+  });
+});
+
 describe("listConfirmedEmails / listWelcomeCandidates paging", () => {
   beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
 

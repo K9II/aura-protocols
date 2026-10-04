@@ -62,6 +62,18 @@ describe("marketing emails", () => {
     expect(lotAlertEmail(ctx, [l, { ...l, lot: "AP-2612" }]).subject).toBe("Certified: 2 new lots");
   });
 
+  it("adds a promotional-reminder line for a non-confirmed subscriber, and omits it otherwise", async () => {
+    const { cartEmail } = await import("@/lib/emails-marketing");
+    const order = { order_number: "AP-1042", order_items: [] };
+    const promo = cartEmail(1, ctx, order, () => null, true);
+    expect(promo.html).toContain("This is a promotional reminder about your unfinished checkout.");
+    expect(findViolations(`${promo.subject} ${visibleText(promo.html)}`)).toEqual([]);
+    const notPromo = cartEmail(1, ctx, order, () => null, false);
+    expect(notPromo.html).not.toContain("promotional reminder");
+    const omitted = cartEmail(1, ctx, order, () => null);
+    expect(omitted.html).not.toContain("promotional reminder");
+  });
+
   it("escapes a cart item name, never renders it raw", async () => {
     const { cartEmail } = await import("@/lib/emails-marketing");
     const order = { order_number: "AP-1042", order_items: [{ compound_name: "<script>x</script>", strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "AP-2611", compound_slug: "bpc-157" }] };

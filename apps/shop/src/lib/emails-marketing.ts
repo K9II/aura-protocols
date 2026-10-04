@@ -127,27 +127,33 @@ function itemLines(o: CartOrder, coa?: (slug: string) => string | null, site?: s
   }).join("");
 }
 
-export function cartEmail(n: 1 | 2 | 3, ctx: MarketingCtx, o: CartOrder, coaFor: (slug: string) => string | null): Msg {
+// A non-subscriber (or one who hasn't confirmed) gets this line: CAN-SPAM
+// 15 U.S.C. §7704(a)(5)(A)(i) requires a commercial email to identify
+// itself as an advertisement to anyone who didn't opt in to the list.
+const PROMO_LINE = p(`<span style="color:${SOFT}">This is a promotional reminder about your unfinished checkout.</span>`);
+
+export function cartEmail(n: 1 | 2 | 3, ctx: MarketingCtx, o: CartOrder, coaFor: (slug: string) => string | null, promo?: boolean): Msg {
   const finish = p(link(`${ctx.site}/cart`, "Finish at checkout →"));
+  const promoLine = promo ? PROMO_LINE : "";
   switch (n) {
     case 1: return {
       subject: `Your order ${o.order_number} is still open`,
       html: frame("Checkout · Open", "Still *open.*",
         p("You started checkout and didn't finish. Nothing has been charged. Here's what was in it, with the lot each item would ship from:")
         + itemLines(o) + finish
-        + p("Orders can be cancelled for a full refund until they ship. After that the sale is final.") + SIGN, ctx),
+        + p("Orders can be cancelled for a full refund until they ship. After that the sale is final.") + SIGN + promoLine, ctx),
     };
     case 2: return {
       subject: "The certificates for your cart",
       html: frame("Checkout · The paperwork", "Read before *you buy.*",
         p("Each item in your cart ships from a tested lot. Here are the certificates:")
-        + itemLines(o, coaFor, ctx.site) + finish + SIGN, ctx),
+        + itemLines(o, coaFor, ctx.site) + finish + SIGN + promoLine, ctx),
     };
     case 3: return {
       subject: "Your checkout closes tonight",
       html: frame("Checkout · Closing", "Closing in *an hour.*",
         p("The checkout you started yesterday closes in about an hour. Nothing has been charged. Your cart is still saved in the browser you used, so you can start a new checkout whenever you're ready.")
-        + finish + SIGN, ctx),
+        + finish + SIGN + promoLine, ctx),
     };
   }
 }

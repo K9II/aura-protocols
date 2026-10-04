@@ -206,16 +206,28 @@ export async function sentKinds(email: string): Promise<Set<string>> {
   return new Set(((data ?? []) as { kind: string; ref: string | null }[]).map((r) => (r.ref ? `${r.kind}:${r.ref}` : r.kind)));
 }
 
-// When the latest welcome file went out (ms), so files stay a day apart.
-export async function lastWelcomeSentAt(email: string): Promise<number | null> {
-  const { data, error } = await db().from("email_sends").select("sent_at").eq("email", normalizeEmail(email))
-    .like("kind", "welcome_%").order("sent_at", { ascending: false }).limit(1);
-  if (error) throw new Error(`email_sends read failed: ${JSON.stringify(error)}`);
-  const row = ((data ?? []) as { sent_at: string }[])[0];
-  return row ? Date.parse(row.sent_at) : null;
-}
-
 const PAGE_SIZE = 1000;
+
+// One query per page of up to 1,000 emails instead of two reads per
+// subscriber (sentKinds + a last-sent lookup) — the hourly cron's welcome
+// loop used to do both per candidate; this does it once for the whole batch.
+export async function welcomeSendsFor(emails: string[]): Promise<Map<string, { kinds: Set<string>; lastSentMs: number | null }>> {
+  const out = new Map<string, { kinds: Set<string>; lastSentMs: number | null }>();
+  for (let from = 0; from < emails.length; from += PAGE_SIZE) {
+    const page = emails.slice(from, from + PAGE_SIZE);
+    const { data, error } = await db().from("email_sends").select("email, kind, sent_at")
+      .in("email", page).like("kind", "welcome_%");
+    if (error) throw new Error(`email_sends read failed: ${JSON.stringify(error)}`);
+    for (const r of (data ?? []) as { email: string; kind: string; sent_at: string }[]) {
+      const entry = out.get(r.email) ?? { kinds: new Set<string>(), lastSentMs: null };
+      entry.kinds.add(r.kind);
+      const ms = Date.parse(r.sent_at);
+      if (entry.lastSentMs === null || ms > entry.lastSentMs) entry.lastSentMs = ms;
+      out.set(r.email, entry);
+    }
+  }
+  return out;
+}
 
 export async function listWelcomeCandidates(sinceIso: string): Promise<SubscriberRow[]> {
   const out: SubscriberRow[] = [];

@@ -29,18 +29,18 @@ describe("welcome schedule", () => {
 });
 
 describe("cart schedule", () => {
-  it("runs at +1 h, +12 h and +23 h (before Stripe's 24 h expiry)", () => {
-    expect(CART_HOURS).toEqual([1, 12, 23]);
+  it("runs at +1 h, +12 h and +22 h (before Stripe's 23 h expiry)", () => {
+    expect(CART_HOURS).toEqual([1, 12, 22]);
   });
 
-  it("returns the latest due reminder not yet sent, and nothing before 1 h or after 24 h", () => {
+  it("returns the latest due reminder not yet sent, and nothing before 1 h or after 23 h", () => {
     expect(dueCart(t0, t0 + 30 * 60 * 1000, new Set())).toBeNull();
     expect(dueCart(t0, t0 + 2 * H, new Set())).toBe("cart_1");
     expect(dueCart(t0, t0 + 13 * H, new Set(["cart_1"]))).toBe("cart_2");
     // if the hourly run missed cart_1, skip straight to the current one
     expect(dueCart(t0, t0 + 13 * H, new Set())).toBe("cart_2");
-    expect(dueCart(t0, t0 + 23.5 * H, new Set(["cart_1", "cart_2"]))).toBe("cart_3");
-    expect(dueCart(t0, t0 + 23.5 * H, new Set(["cart_1", "cart_2", "cart_3"]))).toBeNull();
-    expect(dueCart(t0, t0 + 25 * H, new Set())).toBeNull();
+    expect(dueCart(t0, t0 + 22.5 * H, new Set(["cart_1", "cart_2"]))).toBe("cart_3");
+    expect(dueCart(t0, t0 + 22.5 * H, new Set(["cart_1", "cart_2", "cart_3"]))).toBeNull();
+    expect(dueCart(t0, t0 + 23.5 * H, new Set())).toBeNull();
   });
 });
