@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const getCustomer = vi.fn();
+// vi.hoisted: the mock factory runs before the static import below, so the
+// mock fn must be created in the hoisted block, not as a plain top-level const.
+const { getCustomer } = vi.hoisted(() => ({ getCustomer: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ getCustomer }));
 import { GET } from "@/app/api/me/owner/route";
 
