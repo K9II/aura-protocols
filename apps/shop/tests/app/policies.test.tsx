@@ -102,6 +102,11 @@ describe("/privacy", () => {
     expect(container.querySelector("#cookies")?.textContent).toMatch(/sign-in session/i);
     expectNoLegacyReturns(text);
   });
+
+  it("names promotions, research news and new-lot notices as opt-in email", () => {
+    const { text } = renderPolicy(<PrivacyPage />);
+    expect(text).toContain("to send promotions, research news and new-lot notices if you opt in");
+  });
 });
 
 describe("/ruo", () => {

@@ -4,6 +4,7 @@ import { getStripe } from "@/lib/stripe";
 import { getOrderById, listOrphanedPendingOrders, transitionOrder } from "@/lib/orders";
 import { applyPaid } from "@/lib/stripe-events";
 import { alertOwner } from "@/lib/notify";
+import { pruneLookups } from "@/lib/account/data";
 
 // Daily safety net (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`):
 // any Stripe session paid in the last 3 days whose order we never marked paid
@@ -51,6 +52,12 @@ export async function GET(request: Request): Promise<Response> {
     }
   } catch (err) {
     failed.push(`orphaned pending orders: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  // Email-check rate-limit rows older than two days are no longer needed.
+  try {
+    await pruneLookups();
+  } catch (err) {
+    failed.push(`gate lookups prune: ${err instanceof Error ? err.message : String(err)}`);
   }
   if (fixedPaid.length) {
     await alertOwner("Reconciler fixed paid orders", `These paid orders were missing their webhook and have now been recorded: ${fixedPaid.join(", ")}`);

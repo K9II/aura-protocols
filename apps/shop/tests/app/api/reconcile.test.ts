@@ -6,16 +6,18 @@ const transitionOrder = vi.fn();
 const applyPaid = vi.fn();
 const alertOwner = vi.fn();
 const listOrphanedPendingOrders = vi.fn();
+const pruneLookups = vi.fn();
 vi.mock("@/lib/stripe", () => ({ getStripe: () => ({ checkout: { sessions: { list } } }) }));
 vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder, listOrphanedPendingOrders }));
 vi.mock("@/lib/stripe-events", () => ({ applyPaid }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
+vi.mock("@/lib/account/data", () => ({ pruneLookups }));
 
 const get = (auth?: string) => new Request("http://localhost/api/cron/reconcile", { headers: auth ? { authorization: auth } : {} });
 async function* pages(items: unknown[]) { for (const i of items) yield i; }
 
 describe("GET /api/cron/reconcile", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner, listOrphanedPendingOrders]) f.mockReset(); listOrphanedPendingOrders.mockResolvedValue([]); process.env.CRON_SECRET = "s3cret"; });
+  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner, listOrphanedPendingOrders, pruneLookups]) f.mockReset(); listOrphanedPendingOrders.mockResolvedValue([]); pruneLookups.mockResolvedValue(undefined); process.env.CRON_SECRET = "s3cret"; });
 
   it("requires the cron secret", async () => {
     const { GET } = await import("@/app/api/cron/reconcile/route");
@@ -79,5 +81,14 @@ describe("GET /api/cron/reconcile", () => {
     const res = await GET(get("Bearer s3cret"));
     expect(res.status).toBe(500);
     expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Reconcile"), expect.stringContaining("stripe outage"));
+  });
+
+  it("prunes old gate lookups and reports a prune failure without failing the run", async () => {
+    list.mockReturnValue(pages([]));
+    pruneLookups.mockRejectedValueOnce(new Error("db down"));
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    const res = await GET(get("Bearer s3cret"));
+    expect(res.status).toBe(200);
+    expect((await res.json()).failed).toEqual(expect.arrayContaining([expect.stringMatching(/gate lookups prune/)]));
   });
 });

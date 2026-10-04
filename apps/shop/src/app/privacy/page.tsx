@@ -31,7 +31,7 @@ export default function PrivacyPage() {
           <p>When you enter the Site we set two first-party cookies: a signed one recording that you accepted the current Terms, and a readable one that lets the Site skip the entry screen on later visits. Signing in adds a sign-in session cookie. Your cart is kept in your own browser&apos;s storage.</p>
         ) },
         { id: "use", heading: "How we use it", body: (
-          <p>To fulfil and support your orders; to send order, shipping, and account emails; to send lot certificates and new-lot notices if you opt in (unsubscribe any time from any such email); to keep the records we need for tax, legal, and payment-dispute purposes; and to comply with the law. We do not sell your personal information.</p>
+          <p>To fulfil and support your orders; to send order, shipping, and account emails; to send promotions, research news and new-lot notices if you opt in (unsubscribe any time from any such email); to keep the records we need for tax, legal, and payment-dispute purposes; and to comply with the law. We do not sell your personal information.</p>
         ) },
         { id: "sharing", heading: "Who we share it with", body: (
           <p>Only the service providers that run the Site and your orders for us &mdash; hosting (Vercel), database and sign-in (Supabase), email delivery (Amazon SES), payments (Stripe), our fulfillment partner, and shipping carriers &mdash; and authorities when the law requires it.</p>
