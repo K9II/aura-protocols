@@ -13,6 +13,11 @@ describe("POST /api/ses/events", () => {
     vi.stubGlobal("fetch", fetchMock); process.env.SES_EVENTS_TOPIC_ARN = TOPIC; verifySnsMessage.mockResolvedValue(true);
   });
 
+  it("400s when the body isn't a plain object", async () => {
+    const { POST } = await import("@/app/api/ses/events/route");
+    expect((await POST(post(null))).status).toBe(400);
+  });
+
   it("403s a bad signature or another topic", async () => {
     const { POST } = await import("@/app/api/ses/events/route");
     verifySnsMessage.mockResolvedValueOnce(false);

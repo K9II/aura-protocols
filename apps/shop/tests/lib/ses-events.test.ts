@@ -9,15 +9,15 @@ const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 20
 const pem = publicKey.export({ type: "spki", format: "pem" }).toString();
 const CERT = "https://sns.us-east-1.amazonaws.com/SimpleNotificationService-abc.pem";
 
-function signed(msg: Record<string, string>) {
+function signed(msg: Record<string, string>, version: "1" | "2" = "2") {
   const keys = msg.Type === "Notification"
     ? ["Message", "MessageId", ...(msg.Subject ? ["Subject"] : []), "Timestamp", "TopicArn", "Type"]
     : ["Message", "MessageId", "SubscribeURL", "Timestamp", "Token", "TopicArn", "Type"];
-  const s = createSign("RSA-SHA256");
+  const s = createSign(version === "1" ? "RSA-SHA1" : "RSA-SHA256");
   s.update(keys.map((k) => `${k}\n${msg[k]}\n`).join(""));
-  return { ...msg, SignatureVersion: "2", SigningCertURL: CERT, Signature: s.sign(privateKey, "base64") };
+  return { ...msg, SignatureVersion: version, SigningCertURL: CERT, Signature: s.sign(privateKey, "base64") };
 }
-const note = (message: unknown) => signed({ Type: "Notification", MessageId: "m1", TopicArn: "arn:aws:sns:us-east-1:1:ses", Timestamp: "2026-10-04T00:00:00Z", Message: JSON.stringify(message) });
+const note = (message: unknown, version: "1" | "2" = "2") => signed({ Type: "Notification", MessageId: "m1", TopicArn: "arn:aws:sns:us-east-1:1:ses", Timestamp: "2026-10-04T00:00:00Z", Message: JSON.stringify(message) }, version);
 
 describe("ses-events", () => {
   beforeEach(() => { vi.resetModules(); for (const f of [accountIdByEmail, flagVerifyRequired, unsubscribe]) f.mockReset(); });
@@ -28,6 +28,52 @@ describe("ses-events", () => {
     expect(await verifySnsMessage(msg, async () => pem)).toBe(true);
     expect(await verifySnsMessage({ ...msg, Message: "{}" }, async () => pem)).toBe(false);
     expect(await verifySnsMessage({ ...msg, SigningCertURL: "https://evil.example/x.pem" }, async () => pem)).toBe(false);
+  });
+
+  it("verifies a SignatureVersion 1 (SHA1) message", async () => {
+    const { verifySnsMessage } = await import("@/lib/ses-events");
+    const msg = note({ notificationType: "Complaint" }, "1");
+    expect(await verifySnsMessage(msg, async () => pem)).toBe(true);
+  });
+
+  it("verifies a Notification that carries a Subject", async () => {
+    const { verifySnsMessage } = await import("@/lib/ses-events");
+    const msg = signed({ Type: "Notification", MessageId: "m-subj", Subject: "re: ses", TopicArn: "arn:aws:sns:us-east-1:1:ses", Timestamp: "2026-10-04T00:00:00Z", Message: JSON.stringify({ notificationType: "Complaint" }) });
+    expect(await verifySnsMessage(msg, async () => pem)).toBe(true);
+  });
+
+  it("verifies a SubscriptionConfirmation (SubscribeURL/Token key order)", async () => {
+    const { verifySnsMessage } = await import("@/lib/ses-events");
+    const msg = signed({
+      Type: "SubscriptionConfirmation",
+      MessageId: "m-sub",
+      Token: "tok",
+      TopicArn: "arn:aws:sns:us-east-1:1:ses",
+      Timestamp: "2026-10-04T00:00:00Z",
+      SubscribeURL: "https://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription&Token=tok",
+      Message: "You have chosen to subscribe to the topic.",
+    });
+    expect(await verifySnsMessage(msg, async () => pem)).toBe(true);
+  });
+
+  it("rejects cert URLs with a lookalike suffix, embedded authority, query, or fragment", async () => {
+    const msg = note({ notificationType: "Complaint" });
+    const badCertUrls = [
+      "https://sns.us-east-1.amazonaws.com.evil.com/x.pem",
+      "https://sns.us-east-1.amazonaws.com@evil.com/x.pem",
+      "https://sns.us-east-1.amazonaws.com/x.pem?x=1",
+      "https://sns.us-east-1.amazonaws.com/x.pem#x",
+    ];
+    const { verifySnsMessage } = await import("@/lib/ses-events");
+    for (const bad of badCertUrls) {
+      expect(await verifySnsMessage({ ...msg, SigningCertURL: bad }, async () => pem)).toBe(false);
+    }
+  });
+
+  it("rejects an unknown SignatureVersion", async () => {
+    const { verifySnsMessage } = await import("@/lib/ses-events");
+    const msg = note({ notificationType: "Complaint" });
+    expect(await verifySnsMessage({ ...msg, SignatureVersion: "3" }, async () => pem)).toBe(false);
   });
 
   it("a permanent bounce flags the account and stops marketing mail", async () => {

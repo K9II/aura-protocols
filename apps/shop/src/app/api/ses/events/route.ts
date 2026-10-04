@@ -6,9 +6,12 @@ const SNS_HOST = /^sns\.[a-z0-9-]+\.amazonaws\.com$/;
 // SES → SNS → here. Only signed messages from our own topic are acted on.
 // Handling errors return 500 so SNS retries.
 export async function POST(request: Request): Promise<Response> {
-  let m: SnsMessage;
-  try { m = JSON.parse(await request.text()) as SnsMessage; } catch { return new Response("bad request", { status: 400 }); }
+  let body: unknown;
+  try { body = JSON.parse(await request.text()); } catch { return new Response("bad request", { status: 400 }); }
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return new Response("bad request", { status: 400 });
+  const m = body as SnsMessage;
   const topic = process.env.SES_EVENTS_TOPIC_ARN;
+  if (!topic) console.error("SES_EVENTS_TOPIC_ARN is not set; refusing SES events");
   if (!topic || m.TopicArn !== topic || !(await verifySnsMessage(m))) return new Response("forbidden", { status: 403 });
 
   if (m.Type === "SubscriptionConfirmation") {
