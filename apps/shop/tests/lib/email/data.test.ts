@@ -80,8 +80,43 @@ describe("hasPaidOrder", () => {
   });
 });
 
+describe("unsubscribe", () => {
+  beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
+
+  it("updates an existing subscriber row in place", async () => {
+    const update = query({ data: [{ email: "a@b.co" }] });
+    from = fromQueue({ subscribers: [update] });
+    const { unsubscribe } = await import("@/lib/email/data");
+    await unsubscribe("a@b.co");
+    expect(callArgs(update, "update")?.[0]).toMatchObject({ status: "unsubscribed" });
+    expect(callArgs(update, "eq")).toEqual(["email", "a@b.co"]);
+  });
+
+  it("inserts a row for an address with no subscriber row (e.g. a cart-reminder-only email)", async () => {
+    const update = query({ data: [] });
+    const insert = query({});
+    from = fromQueue({ subscribers: [update, insert] });
+    const { unsubscribe } = await import("@/lib/email/data");
+    await unsubscribe("new@b.co");
+    expect(callArgs(insert, "insert")?.[0]).toMatchObject({ email: "new@b.co", source: "unsubscribe", status: "unsubscribed" });
+  });
+
+  it("throws on an update error", async () => {
+    from = fromQueue({ subscribers: [query({ error: { message: "down" } })] });
+    const { unsubscribe } = await import("@/lib/email/data");
+    await expect(unsubscribe("a@b.co")).rejects.toThrow();
+  });
+
+  it("throws on an insert error", async () => {
+    from = fromQueue({ subscribers: [query({ data: [] }), query({ error: { message: "down" } })] });
+    const { unsubscribe } = await import("@/lib/email/data");
+    await expect(unsubscribe("a@b.co")).rejects.toThrow();
+  });
+});
+
 describe("upsertPending", () => {
   beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
+  const noCooldown = () => [query({ data: [] }), query({ data: [] })];
 
   it("returns confirmed without writing for an already-confirmed subscriber", async () => {
     from = fromQueue({ subscribers: [query({ data: { email: "a@b.co", status: "confirmed", partner_ref: null } })] });
@@ -92,10 +127,56 @@ describe("upsertPending", () => {
   it("keeps the existing partner_ref when the new one is null", async () => {
     const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: "p1" } });
     const write = query({});
-    from = fromQueue({ subscribers: [read, write] });
+    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
     const { upsertPending } = await import("@/lib/email/data");
     await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null });
     expect((callArgs(write, "upsert")?.[0] as { partner_ref: string | null }).partner_ref).toBe("p1");
+  });
+
+  it("keeps the existing source on a re-request", async () => {
+    const read = query({ data: { email: "a@b.co", status: "pending", source: "popup", partner_ref: null } });
+    const write = query({});
+    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
+    const { upsertPending } = await import("@/lib/email/data");
+    await upsertPending({ email: "a@b.co", source: "footer", partnerRef: null });
+    expect((callArgs(write, "upsert")?.[0] as { source: string }).source).toBe("popup");
+  });
+
+  it("does not re-enable an unsubscribed address — status and unsubscribed_at stay untouched", async () => {
+    const read = query({ data: { email: "a@b.co", status: "unsubscribed", source: "popup", partner_ref: null } });
+    const write = query({});
+    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
+    const { upsertPending } = await import("@/lib/email/data");
+    const result = await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null });
+    expect(result).toEqual({ state: "pending", token: expect.any(String) });
+    const patch = callArgs(write, "upsert")?.[0] as Record<string, unknown>;
+    expect(patch).not.toHaveProperty("status");
+    expect(patch).not.toHaveProperty("unsubscribed_at");
+    expect(patch).toHaveProperty("confirm_token_hash");
+  });
+
+  it("sets status pending and clears unsubscribed_at for a brand-new or still-pending address", async () => {
+    const read = query({ data: null });
+    const write = query({});
+    from = fromQueue({ subscribers: [read, write], email_sends: noCooldown() });
+    const { upsertPending } = await import("@/lib/email/data");
+    await upsertPending({ email: "new@b.co", source: "popup", partnerRef: null });
+    const patch = callArgs(write, "upsert")?.[0] as Record<string, unknown>;
+    expect(patch).toMatchObject({ status: "pending", unsubscribed_at: null });
+  });
+
+  it("returns cooldown without rotating a token when a confirmation went out in the last 10 minutes", async () => {
+    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: null } });
+    from = fromQueue({ subscribers: [read], email_sends: [query({ data: [{ id: "1" }] }), query({ data: [] })] });
+    const { upsertPending } = await import("@/lib/email/data");
+    expect(await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null })).toEqual({ state: "cooldown" });
+  });
+
+  it("returns cooldown after 3 confirmations in 24 hours even if none were in the last 10 minutes", async () => {
+    const read = query({ data: { email: "a@b.co", status: "pending", partner_ref: null } });
+    from = fromQueue({ subscribers: [read], email_sends: [query({ data: [] }), query({ data: [{ id: "1" }, { id: "2" }, { id: "3" }] })] });
+    const { upsertPending } = await import("@/lib/email/data");
+    expect(await upsertPending({ email: "a@b.co", source: "popup", partnerRef: null })).toEqual({ state: "cooldown" });
   });
 });
 
@@ -129,7 +210,49 @@ describe("confirmSubscriber", () => {
     from = fromQueue({ subscribers: [read, clash, ok] });
     const { confirmSubscriber } = await import("@/lib/email/data");
     const result = await confirmSubscriber("tok", Date.parse("2026-12-01T00:00:00Z"));
-    expect(result).toEqual({ email: "a@b.co", status: "confirmed" });
+    expect(result).toEqual({ row: { email: "a@b.co", status: "confirmed" }, already: false });
+  });
+
+  it("does not null confirm_token_hash and clears unsubscribed_at when confirming an unsubscribed address", async () => {
+    const read = query({ data: { email: "a@b.co", status: "unsubscribed", partner_ref: "p1", welcome_code: null } });
+    const write = query({ data: { email: "a@b.co", status: "confirmed" } });
+    from = fromQueue({ subscribers: [read, write] });
+    const { confirmSubscriber } = await import("@/lib/email/data");
+    const result = await confirmSubscriber("tok", Date.parse("2026-12-01T00:00:00Z"));
+    expect(result).toEqual({ row: { email: "a@b.co", status: "confirmed" }, already: false });
+    const patch = callArgs(write, "update")?.[0] as Record<string, unknown>;
+    expect(patch).not.toHaveProperty("confirm_token_hash");
+    expect(patch).toMatchObject({ unsubscribed_at: null });
+  });
+
+  it("returns already:true without writing when the token belongs to a row that's already confirmed (double-click)", async () => {
+    const active = query({ data: null });
+    const confirmed = query({ data: { email: "a@b.co", status: "confirmed" } });
+    from = fromQueue({ subscribers: [active, confirmed] });
+    const { confirmSubscriber } = await import("@/lib/email/data");
+    const result = await confirmSubscriber("tok");
+    expect(result).toEqual({ row: { email: "a@b.co", status: "confirmed" }, already: true });
+  });
+
+  it("returns null when the token matches no subscriber at all", async () => {
+    from = fromQueue({ subscribers: [query({ data: null }), query({ data: null })] });
+    const { confirmSubscriber } = await import("@/lib/email/data");
+    expect(await confirmSubscriber("nope")).toBeNull();
+  });
+});
+
+describe("confirmsSentSince", () => {
+  beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
+
+  it("counts confirm sends for the email since the given time", async () => {
+    const q = query({ data: [{ id: "1" }, { id: "2" }] });
+    from = fromQueue({ email_sends: [q] });
+    const { confirmsSentSince } = await import("@/lib/email/data");
+    expect(await confirmsSentSince("A@B.co", "2026-10-01T00:00:00Z")).toBe(2);
+    const eqCalls = q.calls.filter(([m]) => m === "eq").map(([, args]) => args);
+    expect(eqCalls).toContainEqual(["email", "a@b.co"]);
+    expect(eqCalls).toContainEqual(["kind", "confirm"]);
+    expect(callArgs(q, "gte")).toEqual(["sent_at", "2026-10-01T00:00:00Z"]);
   });
 });
 

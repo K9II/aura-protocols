@@ -7,8 +7,10 @@ export const GATE_MAX_AGE_S = 60 * 60 * 24 * 365;
 
 // Policy pages the gate itself links to (Terms, Refund & Dispute Policy) plus
 // the other legal/compliance pages — a visitor must be able to read these
-// without first clearing the gate that asks them to.
-export const GATE_EXEMPT_PATHS = ["/terms", "/refund-policy", "/privacy", "/shipping", "/ruo"] as const;
+// without first clearing the gate that asks them to. /subscribed and
+// /unsubscribed are landed on straight from an email link, often before the
+// gate cookie exists on that device.
+export const GATE_EXEMPT_PATHS = ["/terms", "/refund-policy", "/privacy", "/shipping", "/ruo", "/subscribed", "/unsubscribed"] as const;
 
 const CRAWLER_RE = /googlebot|bingbot|duckduckbot|yandexbot|baiduspider|applebot|slurp/i;
 

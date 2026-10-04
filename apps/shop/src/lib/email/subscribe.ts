@@ -11,6 +11,9 @@ export async function startSubscription(input: {
 }): Promise<"pending" | "confirmed"> {
   const r = await upsertPending(input);
   if (r.state === "confirmed") return "confirmed";
+  // Cooldown (anti email-bomb): looks identical to "pending" to the caller —
+  // nothing to send, nothing to reveal.
+  if (r.state === "cooldown") return "pending";
   const url = `${siteUrl()}/api/subscribe/confirm?token=${encodeURIComponent(r.token)}`;
   // ref = token hash: each fresh request gets its own confirmation email.
   await sendTracked({ email: input.email, kind: "confirm", ref: hashToken(r.token), msg: confirmEmail(url) });

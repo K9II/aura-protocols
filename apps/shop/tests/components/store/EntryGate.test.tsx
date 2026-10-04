@@ -25,6 +25,15 @@ describe("EntryGate", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  it("stays hidden on the email confirm/unsubscribe result pages", () => {
+    for (const path of ["/subscribed", "/unsubscribed"]) {
+      mockUsePathname.mockReturnValue(path);
+      const { unmount } = render(<EntryGate />);
+      expect(screen.queryByRole("dialog")).toBeNull();
+      unmount();
+    }
+  });
+
   it("still shows on / with no cookie", async () => {
     mockUsePathname.mockReturnValue("/");
     render(<EntryGate />);

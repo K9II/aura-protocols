@@ -32,7 +32,7 @@ describe("POST /api/subscribe", () => {
     sendTracked.mockResolvedValue("sent");
     const { POST } = await import("@/app/api/subscribe/route");
     const res = await POST(post({ email: "Lab@Example.com", source: "popup" }));
-    expect(await res.json()).toEqual({ ok: true, state: "pending" });
+    expect(await res.json()).toEqual({ ok: true });
     expect(upsertPending).toHaveBeenCalledWith({ email: "lab@example.com", source: "popup", partnerRef: null });
     const arg = sendTracked.mock.calls[0][0];
     expect(arg.kind).toBe("confirm");
@@ -48,10 +48,17 @@ describe("POST /api/subscribe", () => {
     expect(upsertPending).toHaveBeenCalledWith({ email: "a@b.co", source: "footer", partnerRef: "SMITHLAB" });
   });
 
-  it("tells an already-confirmed subscriber, without sending anything", async () => {
+  it("responds the same for an already-confirmed address, without sending anything", async () => {
     upsertPending.mockResolvedValue({ state: "confirmed" });
     const { POST } = await import("@/app/api/subscribe/route");
-    expect(await (await POST(post({ email: "a@b.co", source: "popup" }))).json()).toEqual({ ok: true, state: "confirmed" });
+    expect(await (await POST(post({ email: "a@b.co", source: "popup" }))).json()).toEqual({ ok: true });
+    expect(sendTracked).not.toHaveBeenCalled();
+  });
+
+  it("responds the same for an address in cooldown, without sending anything", async () => {
+    upsertPending.mockResolvedValue({ state: "cooldown" });
+    const { POST } = await import("@/app/api/subscribe/route");
+    expect(await (await POST(post({ email: "a@b.co", source: "popup" }))).json()).toEqual({ ok: true });
     expect(sendTracked).not.toHaveBeenCalled();
   });
 

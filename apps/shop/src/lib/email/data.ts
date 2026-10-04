@@ -64,46 +64,100 @@ export async function getSubscriberByCode(code: string): Promise<SubscriberRow |
   return (data as SubscriberRow | null) ?? null;
 }
 
+// How many "confirm" emails went to this address since the given instant —
+// an anti email-bomb gate (upsertPending), not a user-facing count.
+export async function confirmsSentSince(email: string, sinceIso: string): Promise<number> {
+  const { data, error } = await db().from("email_sends").select("id")
+    .eq("email", normalizeEmail(email)).eq("kind", "confirm").gte("sent_at", sinceIso);
+  if (error) throw new Error(`email_sends count failed: ${JSON.stringify(error)}`);
+  return Array.isArray(data) ? data.length : 0;
+}
+
+const CONFIRM_COOLDOWN_MS = 10 * 60 * 1000;
+const CONFIRM_DAILY_WINDOW_MS = 24 * 3600 * 1000;
+const CONFIRM_DAILY_LIMIT = 3;
+
 // New or returning subscriber → pending with a fresh confirm token.
 // Already confirmed → nothing changes (no second code, no second series).
-export async function upsertPending(input: { email: string; source: "popup" | "signup" | "footer"; partnerRef: string | null }):
-  Promise<{ state: "confirmed" } | { state: "pending"; token: string }> {
+// Already unsubscribed → the address stays unsubscribed; only a confirmed
+// click (confirmSubscriber) undoes that. Too many recent confirm emails →
+// cooldown: no new token, nothing sent (anti email-bomb).
+export async function upsertPending(input: { email: string; source: "popup" | "signup" | "footer"; partnerRef: string | null }, nowMs: number = Date.now()):
+  Promise<{ state: "confirmed" } | { state: "pending"; token: string } | { state: "cooldown" }> {
   const email = normalizeEmail(input.email);
   const existing = await getSubscriber(email);
   if (existing?.status === "confirmed") return { state: "confirmed" };
+
+  const [recent, daily] = await Promise.all([
+    confirmsSentSince(email, new Date(nowMs - CONFIRM_COOLDOWN_MS).toISOString()),
+    confirmsSentSince(email, new Date(nowMs - CONFIRM_DAILY_WINDOW_MS).toISOString()),
+  ]);
+  if (recent >= 1 || daily >= CONFIRM_DAILY_LIMIT) return { state: "cooldown" };
+
   const { token, hash } = newConfirmToken();
-  const { error } = await db().from("subscribers").upsert({
-    email, source: input.source, status: "pending", confirm_token_hash: hash,
-    partner_ref: input.partnerRef ?? existing?.partner_ref ?? null, unsubscribed_at: null,
-  }, { onConflict: "email" });
+  const patch: Record<string, unknown> = {
+    email, confirm_token_hash: hash,
+    source: existing?.source ?? input.source,
+    partner_ref: input.partnerRef ?? existing?.partner_ref ?? null,
+  };
+  // Leave status/unsubscribed_at alone for an unsubscribed row — a fresh
+  // confirm token lets them resubscribe, but only by clicking it.
+  if (existing?.status !== "unsubscribed") {
+    patch.status = "pending";
+    patch.unsubscribed_at = null;
+  }
+  const { error } = await db().from("subscribers").upsert(patch, { onConflict: "email" });
   if (error) throw new Error(`subscriber upsert failed: ${JSON.stringify(error)}`);
   return { state: "pending", token };
 }
 
+export type ConfirmResult = { row: SubscriberRow; already: boolean };
+
 // Confirm link → confirmed; issues the welcome code unless the subscriber
 // arrived through a partner link (their partner's code already gives 10%).
-export async function confirmSubscriber(token: string, nowMs: number = Date.now()): Promise<SubscriberRow | null> {
+// Never nulls confirm_token_hash, so a second click on the same link (a
+// double-click, or a mail client/link-scanner prefetching it) is detected
+// as `already: true` instead of failing — and never re-sends File 01.
+export async function confirmSubscriber(token: string, nowMs: number = Date.now()): Promise<ConfirmResult | null> {
+  const hash = hashToken(token);
   const { data, error } = await db().from("subscribers").select("*")
-    .eq("confirm_token_hash", hashToken(token)).eq("status", "pending").maybeSingle();
+    .eq("confirm_token_hash", hash).in("status", ["pending", "unsubscribed"]).maybeSingle();
   if (error) throw new Error(`subscriber read failed: ${JSON.stringify(error)}`);
   const row = data as SubscriberRow | null;
-  if (!row) return null;
-  const base = { status: "confirmed", confirmed_at: new Date(nowMs).toISOString(), confirm_token_hash: null };
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const code = row.partner_ref || row.welcome_code ? null : generateWelcomeCode();
-    const patch = code ? { ...base, welcome_code: code, welcome_code_expires_at: welcomeExpiry(nowMs) } : base;
-    const { data: updated, error: upErr } = await db().from("subscribers").update(patch)
-      .eq("email", row.email).eq("status", "pending").select("*").maybeSingle();
-    if (!upErr) return (updated as SubscriberRow | null) ?? null;
-    if ((upErr as { code?: string }).code !== "23505") throw new Error(`subscriber confirm failed: ${JSON.stringify(upErr)}`);
+  if (row) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = row.partner_ref || row.welcome_code ? null : generateWelcomeCode();
+      const base = { status: "confirmed", confirmed_at: new Date(nowMs).toISOString(), unsubscribed_at: null };
+      const patch = code ? { ...base, welcome_code: code, welcome_code_expires_at: welcomeExpiry(nowMs) } : base;
+      const { data: updated, error: upErr } = await db().from("subscribers").update(patch)
+        .eq("confirm_token_hash", hash).in("status", ["pending", "unsubscribed"]).select("*").maybeSingle();
+      if (!upErr) return { row: updated as SubscriberRow, already: false };
+      if ((upErr as { code?: string }).code !== "23505") throw new Error(`subscriber confirm failed: ${JSON.stringify(upErr)}`);
+    }
+    throw new Error("could not issue a unique welcome code after 5 tries");
   }
-  throw new Error("could not issue a unique welcome code after 5 tries");
+  // No pending/unsubscribed row matched — either an invalid token, or one
+  // that was already confirmed (and kept its hash) by an earlier click.
+  const { data: confirmedData, error: cErr } = await db().from("subscribers").select("*")
+    .eq("confirm_token_hash", hash).eq("status", "confirmed").maybeSingle();
+  if (cErr) throw new Error(`subscriber read failed: ${JSON.stringify(cErr)}`);
+  if (confirmedData) return { row: confirmedData as SubscriberRow, already: true };
+  return null;
 }
 
+// Works even for an address with no subscribers row yet (cart reminders go
+// to non-subscribers too): update it in place, or insert an unsubscribed
+// stub if nothing matched, so re-sending to that address is never possible.
 export async function unsubscribe(email: string): Promise<void> {
-  const { error } = await db().from("subscribers")
-    .update({ status: "unsubscribed", unsubscribed_at: new Date().toISOString() }).eq("email", normalizeEmail(email));
+  const e = normalizeEmail(email);
+  const now = new Date().toISOString();
+  const { data, error } = await db().from("subscribers")
+    .update({ status: "unsubscribed", unsubscribed_at: now }).eq("email", e).select("email");
   if (error) throw new Error(`unsubscribe failed: ${JSON.stringify(error)}`);
+  if (Array.isArray(data) && data.length > 0) return;
+  const { error: insErr } = await db().from("subscribers")
+    .insert({ email: e, source: "unsubscribe", status: "unsubscribed", unsubscribed_at: now });
+  if (insErr) throw new Error(`unsubscribe insert failed: ${JSON.stringify(insErr)}`);
 }
 
 export async function isUnsubscribed(email: string): Promise<boolean> {

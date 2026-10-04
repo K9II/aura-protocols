@@ -17,14 +17,16 @@ export async function POST(request: Request): Promise<Response> {
   try { body = await request.json(); } catch { return Response.json({ error: "Bad request" }, { status: 400 }); }
   const parsed = schema.safeParse(body);
   if (!parsed.success) return Response.json({ error: "Please enter a valid email address." }, { status: 400 });
-  if (parsed.data.website) return Response.json({ ok: true, state: "pending" });
+  if (parsed.data.website) return Response.json({ ok: true });
 
   let partnerRef: string | null = null;
   try { partnerRef = readRef((await cookies()).get(REF_COOKIE)?.value); } catch { partnerRef = null; }
 
   try {
-    const state = await startSubscription({ email: parsed.data.email, source: parsed.data.source, partnerRef });
-    return Response.json({ ok: true, state });
+    // Never reveal whether this address is new, already subscribed, or in a
+    // cooldown window — the response is identical either way.
+    await startSubscription({ email: parsed.data.email, source: parsed.data.source, partnerRef });
+    return Response.json({ ok: true });
   } catch (err) {
     await alertOwner("Email signup failed", `${parsed.data.email} (${parsed.data.source}): ${String(err)}`);
     return Response.json({ error: "We couldn't sign you up just now. Please try again." }, { status: 500 });

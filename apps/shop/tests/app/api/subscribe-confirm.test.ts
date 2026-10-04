@@ -26,7 +26,7 @@ describe("GET /api/subscribe/confirm", () => {
   });
 
   it("confirms, sends File 01 with the code, and redirects", async () => {
-    confirmSubscriber.mockResolvedValue(row);
+    confirmSubscriber.mockResolvedValue({ row, already: false });
     sendTracked.mockResolvedValue("sent");
     const { GET } = await import("@/app/api/subscribe/confirm/route");
     const res = await GET(get("?token=tok"));
@@ -38,10 +38,35 @@ describe("GET /api/subscribe/confirm", () => {
   });
 
   it("still redirects to success when File 01 fails, and alerts the owner (the hourly run retries)", async () => {
-    confirmSubscriber.mockResolvedValue(row);
+    confirmSubscriber.mockResolvedValue({ row, already: false });
     sendTracked.mockRejectedValue(new Error("ses"));
     const { GET } = await import("@/app/api/subscribe/confirm/route");
     expect((await GET(get("?token=tok"))).headers.get("location")).toBe("https://auraprotocols.com/subscribed");
     expect(alertOwner).toHaveBeenCalled();
+  });
+
+  it("redirects to 'error' and alerts the owner when confirmSubscriber itself fails", async () => {
+    confirmSubscriber.mockRejectedValue(new Error("db down"));
+    const { GET } = await import("@/app/api/subscribe/confirm/route");
+    const res = await GET(get("?token=tok"));
+    expect(res.headers.get("location")).toBe("https://auraprotocols.com/subscribed?state=error");
+    expect(alertOwner).toHaveBeenCalledWith("Email confirm failed", expect.stringContaining("db down"));
+    expect(sendTracked).not.toHaveBeenCalled();
+  });
+
+  it("redirects to 'returning' and sends nothing for an already-confirmed token (double-click)", async () => {
+    confirmSubscriber.mockResolvedValue({ row, already: true });
+    const { GET } = await import("@/app/api/subscribe/confirm/route");
+    const res = await GET(get("?token=tok"));
+    expect(res.headers.get("location")).toBe("https://auraprotocols.com/subscribed?state=returning");
+    expect(sendTracked).not.toHaveBeenCalled();
+  });
+
+  it("redirects to 'returning' when sendTracked reports File 01 already went out", async () => {
+    confirmSubscriber.mockResolvedValue({ row, already: false });
+    sendTracked.mockResolvedValue("duplicate");
+    const { GET } = await import("@/app/api/subscribe/confirm/route");
+    const res = await GET(get("?token=tok"));
+    expect(res.headers.get("location")).toBe("https://auraprotocols.com/subscribed?state=returning");
   });
 });
