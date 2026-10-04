@@ -17,12 +17,16 @@ export type Customer = SessionUser & {
   isOwner: boolean;
   stripeCustomerId: string | null;
   ship: ShipAddress | null;
+  createdAt: string;
+  verifyRequired: boolean;
 };
 
 type CustomerRow = {
   id: string; full_name: string; organization: string | null; is_owner: boolean; stripe_customer_id: string | null;
   ship_name: string | null; ship_line1: string | null; ship_line2: string | null;
   ship_city: string | null; ship_state: string | null; ship_zip: string | null;
+  created_at: string;
+  email_verified_at: string | null; verify_required: boolean;
 };
 
 export const verifySession = cache(async (): Promise<SessionUser | null> => {
@@ -32,6 +36,9 @@ export const verifySession = cache(async (): Promise<SessionUser | null> => {
   return { id: data.user.id, email: data.user.email, emailConfirmed: !!data.user.email_confirmed_at };
 });
 
+// Supabase "Confirm email" is OFF (sign-up signs in at once), so Supabase
+// marks every address confirmed; a verified address is our own
+// customers.email_verified_at (lib/account/verify.ts).
 export const getCustomer = cache(async (): Promise<Customer | null> => {
   const user = await verifySession();
   if (!user) return null;
@@ -43,7 +50,8 @@ export const getCustomer = cache(async (): Promise<Customer | null> => {
     : null;
   return {
     ...user, fullName: r.full_name, organization: r.organization, isOwner: r.is_owner,
-    stripeCustomerId: r.stripe_customer_id, ship,
+    stripeCustomerId: r.stripe_customer_id, ship, createdAt: r.created_at,
+    emailConfirmed: !!r.email_verified_at, verifyRequired: r.verify_required,
   };
 });
 

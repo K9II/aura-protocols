@@ -49,11 +49,11 @@ export default function TermsPage() {
           <p>The Site&apos;s text, graphics, marks, and artwork belong to Aura Protocols LLC. You may not copy, mirror, republish, or redistribute them without our written consent. We may suspend or change access to the Site at any time.</p>
         ) },
         { id: "privacy", heading: "Privacy and communications", body: (
-          <p>Order, shipping, and account emails are part of every purchase. Marketing email is sent only if you opt in, and every marketing email has an unsubscribe link. How we handle your information is described in our <Link href="/privacy" className="p-link">Privacy Policy</Link>.</p>
+          <p>Order, shipping, and account emails are part of every purchase. Account holders also receive marketing email (promotions, research news and new lots) once their address is confirmed; every marketing email has an unsubscribe link. How we handle your information is described in our <Link href="/privacy" className="p-link">Privacy Policy</Link>.</p>
         ) },
         { id: "law", heading: "Governing law and disputes", body: (<>
           <p>If a dispute arises, you agree to contact us first at {mail} and to attempt in good faith to resolve it with us. These Terms are governed by the laws of the State of {GOVERNING_STATE ?? <mark className="s-pending">[State — pending]</mark>}, without regard to conflict-of-law rules, and any unresolved dispute will be heard in the courts of that state.</p>
-          <p>You and Aura Protocols are independent parties; nothing in these Terms creates a partnership, agency, or employment relationship. If any provision is found unenforceable, the rest remain in effect. These Terms, with the policies they reference, are the entire agreement between us about the Site and your purchases. We may update them; material changes will ask you to confirm again when you next enter the Site.</p>
+          <p>You and Aura Protocols are independent parties; nothing in these Terms creates a partnership, agency, or employment relationship. If any provision is found unenforceable, the rest remain in effect. These Terms, with the policies they reference, are the entire agreement between us about the Site and your purchases. We may update them; material changes are posted here with a new effective date, and each order is governed by the Terms in effect when you place it.</p>
         </>) },
       ]}
       closing={<p>By using the Site or placing an order you confirm that you have read and accepted these Terms, together with our Shipping, Refund &amp; Dispute, Privacy, and Research Use Only policies.</p>}

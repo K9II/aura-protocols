@@ -17,6 +17,8 @@ const afterOrderPaid = vi.fn();
 const alertOwner = vi.fn();
 const listOpenOrdersForCustomer = vi.fn();
 const expireCheckout = vi.fn();
+const offerForCustomer = vi.fn();
+vi.mock("@/lib/account/offer-data", () => ({ offerForCustomer }));
 vi.mock("@/lib/dal", () => ({ getCustomer }));
 vi.mock("@/lib/orders", async (orig) => {
   const { willReleaseOnNewCheckout } = await orig<typeof import("@/lib/orders")>();  // the real rule, shared with the checkout page
@@ -38,7 +40,7 @@ vi.mock("@/data/catalog", () => ({
   }] satisfies Compound[],
 }));
 
-const customer = { id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false, stripeCustomerId: null, ship: null };
+const customer = { id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false, stripeCustomerId: null, ship: null, createdAt: "2026-10-04T00:00:00Z" };
 const input = {
   lines: [{ slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 }],
   ship: { name: "Jane", line1: "1 A St", line2: "", city: "Austin", state: "TX", zip: "78701" },
@@ -51,6 +53,7 @@ describe("startCheckoutAction", () => {
     vi.resetModules();
     for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon,
       createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid, alertOwner, listOpenOrdersForCustomer, expireCheckout]) f.mockReset();
+    offerForCustomer.mockReset(); offerForCustomer.mockResolvedValue(null);
     listOpenOrdersForCustomer.mockResolvedValue([]);
     resolveAttribution.mockResolvedValue({ attribution: null });
     createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
@@ -118,6 +121,52 @@ describe("startCheckoutAction", () => {
     resolveAttribution.mockResolvedValue({ attribution: null, codeError: "This code can't be used." });
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect(await startCheckoutAction({ ...input, partnerCode: "NOPE1" })).toEqual({ error: "This code can't be used.", codeError: "This code can't be used." });
+    expect(createPendingOrder).not.toHaveBeenCalled();
+  });
+
+  it("gives a new account's first order 15% off and records it", async () => {
+    getCustomer.mockResolvedValue(customer);
+    offerForCustomer.mockResolvedValue({ endsAt: "2026-10-18T23:59:59.999Z" });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction(input);
+    const order = createPendingOrder.mock.calls[0][0];
+    expect(order.newAccountDiscount).toBe(true);
+    expect(order.priced.partnerDiscountCents).toBe(735); // 15% of $49.00
+    expect(createCheckout.mock.calls[0][0]).toMatchObject({ partnerDiscountCents: 735, lineDiscountsCents: [735] });
+  });
+
+  it("uses the 15% over a typed partner code but still attributes the order to the partner", async () => {
+    getCustomer.mockResolvedValue(customer);
+    offerForCustomer.mockResolvedValue({ endsAt: "2026-10-18T23:59:59.999Z" });
+    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p1", via: "code", code: "SMITHLAB" } });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, partnerCode: "SMITHLAB" });
+    const order = createPendingOrder.mock.calls[0][0];
+    expect(order.partner).toEqual({ partnerId: "p1", attributedBy: "code" });
+    expect(order.priced.partnerDiscountCents).toBe(735);
+    expect(order.newAccountDiscount).toBe(true);
+  });
+
+  it("applies the 10% partner code when there's no new-account offer", async () => {
+    getCustomer.mockResolvedValue(customer);
+    resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p1", via: "code", code: "SMITHLAB" } });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, partnerCode: "SMITHLAB" });
+    const order = createPendingOrder.mock.calls[0][0];
+    expect(order.priced.partnerDiscountCents).toBe(490);
+    expect(order.newAccountDiscount).toBe(false);
+  });
+
+  it("stops (loudly) when the offer can't be checked rather than charging full price", async () => {
+    getCustomer.mockResolvedValue(customer);
+    offerForCustomer.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    const r = await startCheckoutAction(input);
+    expect(r.error).toMatch(/new-account discount/i);
     expect(createPendingOrder).not.toHaveBeenCalled();
   });
 
@@ -211,6 +260,7 @@ describe("startCheckoutAction - abandoned checkouts", () => {
     for (const f of [getCustomer, createPendingOrder, attachCheckoutSession, transitionOrder, saveShipAddress, saveStripeCustomerId, saveStripeCoupon,
       createCheckout, quoteTax, resolveAttribution, creditBalance, spendCredit, afterOrderPaid, alertOwner, listOpenOrdersForCustomer, expireCheckout]) f.mockReset();
     getCustomer.mockResolvedValue(customer);
+    offerForCustomer.mockReset(); offerForCustomer.mockResolvedValue(null);
     resolveAttribution.mockResolvedValue({ attribution: null });
     createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
     transitionOrder.mockResolvedValue(true);

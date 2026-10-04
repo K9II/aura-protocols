@@ -8,6 +8,7 @@ const { requireCustomer, creditBalance, listOpenOrdersForCustomer } = vi.hoisted
 }));
 vi.mock("@/lib/dal", () => ({ requireCustomer }));
 vi.mock("@/lib/partners/ledger", () => ({ creditBalance }));
+vi.mock("@/lib/account/offer-data", () => ({ offerForCustomer: async () => null }));
 vi.mock("@/lib/orders", async (orig) => ({ ...(await orig<typeof import("@/lib/orders")>()), listOpenOrdersForCustomer }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock("@/components/account/CheckoutForm", () => ({ default: (p: { creditBalanceCents: number }) => <div data-testid="credit">{p.creditBalanceCents}</div> }));

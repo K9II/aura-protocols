@@ -5,7 +5,7 @@ import { SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
 
 export const metadata: Metadata = { title: "Refund & Dispute Policy", alternates: { canonical: "/refund-policy" } };
 
-// Requires legal review before launch. The entry gate links here by name.
+// Requires legal review before launch. The sign-up agreement links here by name.
 export default function RefundPolicyPage() {
   const mail = <a className="p-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>;
   return (
@@ -33,7 +33,7 @@ export default function RefundPolicyPage() {
           <p>Approved claims receive one replacement or reshipment of the affected items. Claims are settled by replacement only &mdash; no cash refunds.</p>
         </>) },
         { id: "chargebacks", heading: "Chargebacks", body: (
-          <p>You agreed at entry to contact us before filing a payment dispute &mdash; most problems are fixed within two business days. If a dispute is filed without contacting us first, we will send the card issuer our records: your order, the delivery tracking, this policy, and your timestamped entry and account agreements.</p>
+          <p>You agreed when you created your account to contact us before filing a payment dispute &mdash; most problems are fixed within two business days. If a dispute is filed without contacting us first, we will send the card issuer our records: your order, the delivery tracking, this policy, and your timestamped account agreements.</p>
         ) },
         { id: "questions", heading: "Questions before you order", body: (
           <p>If anything about a product, quantity, shipping, or this policy is unclear, email {mail} before you place your order.</p>

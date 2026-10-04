@@ -19,7 +19,7 @@ const order = (over: Record<string, unknown> = {}) => ({
   id: "o1", order_number: "AP-1001", customer_id: "u1", email: "j@lab.org", status: "paid", order_items: [],
   subtotal_cents: 28230, partner_discount_cents: 690, shipping_cents: 0, insurance_cents: 550, tax_cents: 0, total_cents: 28090,
   ship_name: "J", ship_line1: "1", ship_line2: null, ship_city: "A", ship_state: "TX", ship_zip: "78701",
-  partner_id: null, attributed_by: null, store_credit_cents: 0, tax_calculation_id: null, tax_transaction_id: null,
+  partner_id: null, attributed_by: null, new_account_discount: false, store_credit_cents: 0, tax_calculation_id: null, tax_transaction_id: null,
   shipped_at: null, ...over,
 });
 

@@ -11,11 +11,15 @@ import {
 import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } from "@/lib/commerce";
 import { siteUrl } from "@/lib/supabase/env";
 import { resolveAttribution } from "@/lib/partners/attribution";
-import { applyPartnerCode } from "@/lib/partners/discounts";
+import { applyCodeDiscount } from "@/lib/partners/discounts";
+import { offerForCustomer } from "@/lib/account/offer-data";
+import { discountPct, type FirstOrderOffer } from "@/lib/account/offer";
 import { creditBalance, spendCredit } from "@/lib/partners/ledger";
 import { REF_COOKIE } from "@/lib/partners/ref-cookie";
 import { afterOrderPaid } from "@/lib/order-paid";
 import { alertOwner } from "@/lib/notify";
+
+const OFFER_CHECK_FAILED = "We couldn't check your new-account discount — please try again.";
 
 export type StartCheckoutResult = { url?: string; error?: string; rejected?: Rejection[]; codeError?: string };
 
@@ -41,7 +45,8 @@ export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; 
   const customer = await getCustomer();
   if (!customer) return { ok: false, message: "Please sign in.", needsSignIn: true };
   if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link.", needsSignIn: true };
-  const { attribution, codeError } = await resolveAttribution({ typedCode: String(code).slice(0, 40), buyerCustomerId: customer.id });
+  const typed = String(code).slice(0, 40); // server action: the argument is untrusted
+  const { attribution, codeError } = await resolveAttribution({ typedCode: typed, buyerCustomerId: customer.id });
   if (!attribution) return { ok: false, message: codeError ?? "This code can't be used." };
   return { ok: true, code: attribution.code };
 }
@@ -93,11 +98,25 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   const refCookie = (await cookies()).get(REF_COOKIE)?.value;
   const { attribution, codeError } = await resolveAttribution({ typedCode: partnerCode, refCookie, buyerCustomerId: customer.id });
   if (codeError) return { error: codeError, codeError };
+  // One discount per line. A new account's first order (within the
+  // new-account window) gets the new-account percent, applied whenever it's
+  // larger than any partner code's percent (discountPct); a partner code or
+  // link still attributes the order to the partner for commission.
+  let offer: FirstOrderOffer = null;
+  try {
+    offer = await offerForCustomer(customer);
+  } catch (err) {
+    console.error("new-account offer check failed:", err);
+    return { error: OFFER_CHECK_FAILED };
+  }
   let lineDiscountsCents = priced.items.map(() => 0);
-  if (attribution?.via === "code") {
-    const discounted = applyPartnerCode(priced);
+  const discount = discountPct(!!offer, attribution?.via === "code");
+  let newAccountDiscount = false;
+  if (discount) {
+    const discounted = applyCodeDiscount(priced, discount.pct);
     priced = discounted;
     lineDiscountsCents = discounted.lineDiscounts.map((d) => d.savingCents);
+    newAccountDiscount = discount.newAccount;
   }
 
   await bookkeep("saving the shipping address", () => saveShipAddress(customer.id, ship));
@@ -128,6 +147,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     customerId: customer.id, email: customer.email, ship, priced,
     partner: attribution ? { partnerId: attribution.partnerId, attributedBy: attribution.via } : null,
     storeCreditCents: credit?.creditCents ?? 0, taxCents: credit?.taxCents ?? 0, taxCalculationId: credit?.calculationId ?? null,
+    newAccountDiscount,
   });
 
   // Credit is held (spent) the moment we commit to it, even for a partial

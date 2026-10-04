@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/store/CartProvider";
 import { priceOrder, type Rejection } from "@/lib/pricing";
-import { applyPartnerCode } from "@/lib/partners/discounts";
+import { applyCodeDiscount } from "@/lib/partners/discounts";
+import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
+import { discountPct, OFFER_PCT_TEXT, type FirstOrderOffer } from "@/lib/account/offer";
 import { checkPartnerCodeAction, startCheckoutAction } from "@/app/checkout/actions";
 import type { ShipAddress } from "@/lib/ship-address";
 import { usd } from "@/lib/html";
@@ -17,8 +19,8 @@ const REASON: Record<Rejection["reason"], string> = {
   bad_pack: "pack size unavailable", bad_quantity: "quantity not allowed",
 };
 
-export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents }: {
-  email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number;
+export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents, newAccountOffer }: {
+  email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number; newAccountOffer: FirstOrderOffer;
 }) {
   const { lines, code: cartCode, setCode: setCartCode } = useCart();
   // A code typed in the cart wins over a referral link's code (same priority as the server).
@@ -38,12 +40,27 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
   const base = useMemo(() => priceOrder(lines), [lines]);
-  const priced = useMemo(() => (appliedCode ? applyPartnerCode(base) : { ...base, lineDiscounts: base.items.map((_, index) => ({ index, source: "none" as const, savingCents: 0 })) }), [base, appliedCode]);
+  // The new-account percent (automatic) and a partner code's percent never
+  // stack — discountPct picks the larger one. One discount per line. The
+  // server re-prices every order.
+  const discount = useMemo(() => discountPct(!!newAccountOffer, !!appliedCode), [newAccountOffer, appliedCode]);
+  const priced = useMemo(() => (discount
+    ? applyCodeDiscount(base, discount.pct)
+    : { ...base, lineDiscounts: base.items.map((_, index) => ({ index, source: "none" as const, savingCents: 0 })) }),
+  [base, discount]);
 
   async function applyCodeValue(code: string) {
-    const r = await checkPartnerCodeAction(code);
-    if (r.ok) { setAppliedCode(r.code); setCodeInput(r.code); setCodeMsg({ ok: true, text: `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` }); }
-    else { setAppliedCode(null); setCodeMsg({ ok: false, text: r.message }); }
+    try {
+      const r = await checkPartnerCodeAction(code);
+      if (r.ok) {
+        setAppliedCode(r.code); setCodeInput(r.code);
+        const withCode = discountPct(!!newAccountOffer, true);
+        setCodeMsg({ ok: true, text: withCode?.newAccount ? `✓ ${r.code} applied · your new-account ${OFFER_PCT_TEXT} is larger, so it's used instead (the order still credits that partner)` : `✓ ${r.code} applied · ${CODE_DISCOUNT_PCT}% off items that don't already have a larger pack discount` });
+      }
+      else { setAppliedCode(null); setCodeMsg({ ok: false, text: r.message }); }
+    } catch {
+      setAppliedCode(null); setCodeMsg({ ok: false, text: "Something went wrong — please try again." });
+    }
   }
 
   // A referral link's code (initialCode, from the aura_ref cookie) is applied
@@ -64,14 +81,21 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setError(null);
-    // A code typed but never explicitly applied is still sent — the server
-    // either applies it or refuses it with a reason; it's never silently dropped.
-    const r = await startCheckoutAction({ lines, ship: addr, ruoConfirmed: ruo, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit });
-    if (r.url) { window.location.assign(r.url); return; }
-    setError(r.error ?? "Something went wrong — please try again.");
-    if (r.codeError) { setAppliedCode(null); setCodeMsg({ ok: false, text: r.codeError }); }
-    setRejected(r.rejected ?? []);
-    setBusy(false);
+    let leaving = false;
+    try {
+      // A code typed but never explicitly applied is still sent — the server
+      // either applies it or refuses it with a reason; it's never silently dropped.
+      const r = await startCheckoutAction({ lines, ship: addr, ruoConfirmed: ruo, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit });
+      if (r.url) { leaving = true; window.location.assign(r.url); return; }
+      setError(r.error ?? "Something went wrong — please try again.");
+      if (r.codeError) { setAppliedCode(null); setCodeMsg({ ok: false, text: r.codeError }); }
+      setRejected(r.rejected ?? []);
+    } catch {
+      setError("Something went wrong — please try again.");
+    } finally {
+      // Stay busy while the browser navigates to Stripe, so it can't be clicked twice.
+      if (!leaving) setBusy(false);
+    }
   }
 
   if (lines.length === 0) return <p className="text-[color:var(--ink-soft)]">Your cart is empty.</p>;
@@ -91,6 +115,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
           <div><label htmlFor="co-state" className="s-micro block mb-1.5">State</label><input id="co-state" value={addr.state} onChange={set("state")} autoComplete="shipping address-level1" maxLength={2} required className={field} /></div>
           <div><label htmlFor="co-zip" className="s-micro block mb-1.5">ZIP</label><input id="co-zip" value={addr.zip} onChange={set("zip")} autoComplete="shipping postal-code" required className={field} /></div>
         </div>
+        {newAccountOffer && <p className="text-[13.5px] mt-2 mb-3" style={{ color: "#2F5D3A" }}>New account: {OFFER_PCT_TEXT} off this first order, applied automatically.</p>}
         <label htmlFor="co-code" className="s-micro block mb-1.5 mt-2">Discount code</label>
         <div style={{ display: "flex", gap: 8 }}>
           <input id="co-code" value={codeInput} onChange={(e) => { setCodeInput(e.target.value); if (appliedCode) setAppliedCode(null); }} maxLength={20}
@@ -108,7 +133,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         {priced.items.map((i, idx) => {
           const d = priced.lineDiscounts[idx];
           const pack = ` · ${i.packQty}-pack${i.packPct && d.source !== "code" ? ` −${i.packPct}%` : ""}`;
-          const note = appliedCode ? (d.source === "code" ? " · code −10%" : d.source === "pack" ? " (code not added)" : "") : "";
+          const note = discount?.newAccount ? (d.source === "code" ? ` · new account −${OFFER_PCT_TEXT}` : d.source === "pack" ? " (pack price is lower)" : "") : appliedCode ? (d.source === "code" ? ` · code −${CODE_DISCOUNT_PCT}%` : d.source === "pack" ? " (code not added)" : "") : "";
           // Struck-through price is whatever this line would cost without its
           // applied discount: LIST when the code wins (pack % never applied),
           // the pack-discounted total when the pack wins.
@@ -132,7 +157,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         <div className="border-t border-[color:var(--line)] pt-4 mt-2">
           <div className="flex justify-between text-[15px]"><span>Subtotal</span><span>{usd(priced.subtotalCents - priced.partnerDiscountCents)}</span></div>
           {priced.partnerDiscountCents > 0 && (
-            <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes discount code {appliedCode}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
+            <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes {discount?.newAccount ? `new-account ${OFFER_PCT_TEXT}` : `discount code ${appliedCode}`}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
           )}
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping</span><span>{priced.shippingCents ? usd(priced.shippingCents) : <>Free <span className="text-[color:var(--ink-soft)] text-[12.5px]">({formatUsd(FREE_SHIPPING_THRESHOLD_USD)} or more)</span></>}</span></div>
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping insurance</span><span>{usd(priced.insuranceCents)}</span></div>

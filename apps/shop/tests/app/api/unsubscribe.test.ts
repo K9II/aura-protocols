@@ -1,44 +1,44 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const fromMock = vi.fn();
-vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: fromMock }) }));
+const unsubscribe = vi.fn();
+vi.mock("@/lib/email/data", () => ({ unsubscribe }));
+vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
 
-const updateChain = (error: null | { message: string }) => ({
-  update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error }) }),
-});
-const get = (qs: string) => new Request(`http://localhost/api/unsubscribe${qs}`);
+async function signed(email: string) {
+  const { unsubscribeSig } = await import("@/lib/email/links");
+  return `?e=${encodeURIComponent(email)}&s=${unsubscribeSig(email)}`;
+}
 
-describe("GET /api/unsubscribe", () => {
-  beforeEach(() => { vi.resetModules(); fromMock.mockReset(); });
+describe("/api/unsubscribe", () => {
+  beforeEach(() => { vi.resetModules(); unsubscribe.mockReset(); process.env.EMAIL_LINK_SECRET = "s"; });
 
-  it("400s without an email", async () => {
+  it("GET with a valid signature unsubscribes and redirects to the confirmation page", async () => {
     const { GET } = await import("@/app/api/unsubscribe/route");
-    expect((await GET(get(""))).status).toBe(400);
+    const res = await GET(new Request(`http://localhost/api/unsubscribe${await signed("lab@example.com")}`));
+    expect(unsubscribe).toHaveBeenCalledWith("lab@example.com");
+    expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("https://auraprotocols.com/unsubscribed");
   });
 
-  it("unsubscribes from both the storefront list and the legacy list", async () => {
-    fromMock.mockImplementation(() => updateChain(null));
+  it("GET with a missing or forged signature changes nothing", async () => {
     const { GET } = await import("@/app/api/unsubscribe/route");
-    const res = await GET(get("?email=lab%40example.com"));
+    for (const qs of ["?email=lab%40example.com", "?e=lab%40example.com&s=forged"]) {
+      const res = await GET(new Request(`http://localhost/api/unsubscribe${qs}`));
+      expect(res.headers.get("location")).toBe("https://auraprotocols.com/unsubscribed?state=invalid");
+    }
+    expect(unsubscribe).not.toHaveBeenCalled();
+  });
+
+  it("POST (one-click from Gmail/Yahoo) unsubscribes and returns 200", async () => {
+    const { POST } = await import("@/app/api/unsubscribe/route");
+    const res = await POST(new Request(`http://localhost/api/unsubscribe${await signed("lab@example.com")}`, { method: "POST", body: "List-Unsubscribe=One-Click" }));
     expect(res.status).toBe(200);
-    expect(fromMock).toHaveBeenCalledWith("subscribers");
-    expect(fromMock).toHaveBeenCalledWith("lead_magnet_contacts");
-    expect(await res.text()).toContain("You won't receive any more emails");
+    expect(unsubscribe).toHaveBeenCalledWith("lab@example.com");
   });
 
-  it("normalizes the email (trim + lowercase) before matching", async () => {
-    const eqSpy = vi.fn().mockResolvedValue({ error: null });
-    fromMock.mockImplementation(() => ({ update: vi.fn().mockReturnValue({ eq: eqSpy }) }));
-    const { GET } = await import("@/app/api/unsubscribe/route");
-    const res = await GET(get("?email=%20%20Lab%40Example.COM%20%20"));
-    expect(res.status).toBe(200);
-    expect(eqSpy).toHaveBeenCalledWith("email", "lab@example.com");
-    expect(eqSpy).not.toHaveBeenCalledWith("email", "  Lab@Example.COM  ");
-  });
-
-  it("500s if either update fails", async () => {
-    fromMock.mockImplementation((t: string) => updateChain(t === "subscribers" ? { message: "down" } : null));
-    const { GET } = await import("@/app/api/unsubscribe/route");
-    expect((await GET(get("?email=lab%40example.com"))).status).toBe(500);
+  it("returns 500 when the write fails (loud, not a fake success)", async () => {
+    unsubscribe.mockRejectedValue(new Error("down"));
+    const { POST } = await import("@/app/api/unsubscribe/route");
+    expect((await POST(new Request(`http://localhost/api/unsubscribe${await signed("a@b.co")}`, { method: "POST" }))).status).toBe(500);
   });
 });

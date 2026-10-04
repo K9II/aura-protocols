@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { validateCode } from "@/lib/partners/codes";
 import { REF_COOKIE, REF_MAX_AGE_S, readRef, signRef } from "@/lib/partners/ref-cookie";
 import { recordClickByCode } from "@/lib/partners/data";
+import { SESSION_ONLY_COOKIE, sessionCookieOptions } from "@/lib/supabase/session-only";
 
 // 1) Refreshes the Supabase session on signed-in routes only (authorization
 //    stays in lib/dal.ts). 2) On any page, a valid ?ref=CODE sets the signed
@@ -20,13 +21,16 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (url && anonKey && SESSION_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    // A background token refresh here must respect "Remember me" too — read
+    // from the request cookie, since this is the visitor's inbound session.
+    const sessionOnly = request.cookies.get(SESSION_ONLY_COOKIE)?.value === "1";
     const supabase = createServerClient(url, anonKey, {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (list) => {
           for (const { name, value } of list) request.cookies.set(name, value);
           response = NextResponse.next({ request });
-          for (const { name, value, options } of list) response.cookies.set(name, value, options);
+          for (const { name, value, options } of list) response.cookies.set(name, value, sessionCookieOptions(options ?? {}, sessionOnly, value));
         },
       },
     });
