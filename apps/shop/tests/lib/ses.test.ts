@@ -48,6 +48,23 @@ describe("sendEmail", () => {
     });
   });
 
+  it("adds sender name, reply-to and one-click unsubscribe headers when given", async () => {
+    sendMock.mockResolvedValueOnce({ MessageId: "m-1" });
+    const { sendEmail } = await import("@/lib/ses");
+    await sendEmail({
+      to: "lab@example.com", subject: "S", html: "<p>h</p>",
+      fromName: "Alvester at Aura Protocols", replyTo: "support@auraprotocols.com",
+      unsubscribeUrl: "https://auraprotocols.com/api/unsubscribe?e=lab%40example.com&s=x",
+    });
+    const input = sendMock.mock.calls[0][0].input;
+    expect(input.FromEmailAddress).toBe('"Alvester at Aura Protocols" <support@send.auraprotocols.com>');
+    expect(input.ReplyToAddresses).toEqual(["support@auraprotocols.com"]);
+    expect(input.Content.Simple.Headers).toEqual([
+      { Name: "List-Unsubscribe", Value: "<https://auraprotocols.com/api/unsubscribe?e=lab%40example.com&s=x>" },
+      { Name: "List-Unsubscribe-Post", Value: "List-Unsubscribe=One-Click" },
+    ]);
+  });
+
   it("throws if SES_FROM_EMAIL is not configured", async () => {
     delete process.env.SES_FROM_EMAIL;
     const { sendEmail } = await import("@/lib/ses");
