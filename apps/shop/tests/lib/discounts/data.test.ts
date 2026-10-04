@@ -59,4 +59,33 @@ describe("discount data", () => {
     const { resetUse } = await import("@/lib/discounts/data");
     expect(await resetUse("r1", "owner")).toBe(false);
   });
+
+  it("useCounts asks the SQL function once, however big the batch", async () => {
+    rpc.mockResolvedValue({ data: { total: 3, mine: 1 }, error: null });
+    const { useCounts } = await import("@/lib/discounts/data");
+    expect(await useCounts({ id: "c1", batch_id: "b1" }, "u1")).toEqual({ total: 3, mine: 1 });
+    expect(rpc).toHaveBeenCalledWith("discount_code_use_counts", { p_code: "c1", p_customer: "u1" });
+  });
+
+  it("listCodes pages past PostgREST's 1,000-row limit", async () => {
+    const page1 = query({ data: Array.from({ length: 1000 }, (_, i) => ({ id: `c${i}` })) });
+    const page2 = query({ data: [{ id: "last" }] });
+    from = fromQueue({ discount_codes: [page1, page2] });
+    const { listCodes } = await import("@/lib/discounts/data");
+    expect(await listCodes()).toHaveLength(1001);
+    expect(callArgs(page2, "range")).toEqual([1000, 1999]);
+  });
+
+  it("insertBatch removes the whole batch when a chunk fails", async () => {
+    const del1 = query({}); const del2 = query({});
+    from = fromQueue({
+      discount_batches: [query({ data: { id: "b1" } }), del2],
+      discount_codes: [query({}), query({ error: { code: "23505" } }), del1],
+    });
+    const { insertBatch } = await import("@/lib/discounts/data");
+    const codes = Array.from({ length: 600 }, (_, i) => `VIP-${i}`);
+    expect(await insertBatch("VIP-", codes, {} as never, "owner")).toEqual({ error: "taken" });
+    expect(callArgs(del1, "eq")).toEqual(["batch_id", "b1"]);
+    expect(callArgs(del2, "eq")).toEqual(["id", "b1"]);
+  });
 });

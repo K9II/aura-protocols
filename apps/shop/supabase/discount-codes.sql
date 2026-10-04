@@ -81,7 +81,7 @@ alter table code_attempts enable row level security;
 
 create table if not exists shop_settings (
   id                boolean primary key default true check (id),
-  max_discount_pct  integer not null default 30 check (max_discount_pct between 15 and 60)  -- never below the new-account 15%,
+  max_discount_pct  integer not null default 30 check (max_discount_pct between 15 and 60),  -- never below the new-account 15%
   updated_at        timestamptz not null default now()
 );
 alter table shop_settings enable row level security;
@@ -141,6 +141,21 @@ begin
   return 'ok';
 end $$;
 revoke all on function claim_discount_code(uuid, uuid, uuid, integer, integer) from public, anon, authenticated;
+
+-- Held + used uses of a code, and of one customer (across the batch when the
+-- code is in one) -- for the checkout pre-check. One call, however big the batch.
+create or replace function discount_code_use_counts(p_code uuid, p_customer uuid) returns json language sql stable
+set search_path = public, pg_temp as $$
+  select json_build_object(
+    'total', (select count(*) from code_redemptions where code_id = p_code and state in ('held', 'used')),
+    'mine', (select count(*) from code_redemptions r
+             join discount_codes d on d.id = r.code_id
+             join discount_codes c on c.id = p_code
+             where r.customer_id = p_customer and r.state in ('held', 'used')
+               and (d.id = p_code or (c.batch_id is not null and d.batch_id = c.batch_id)))
+  )
+$$;
+revoke all on function discount_code_use_counts(uuid, uuid) from public, anon, authenticated;
 
 -- Settles a held use on every path, with no application code: payment marks
 -- it used; a cancel (checkout failure, expiry, reconcile cron, a newer

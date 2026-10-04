@@ -46,10 +46,16 @@ describe("discount-codes.sql", () => {
   });
 
   it("keeps functions and the stats view away from the anon key", () => {
-    for (const f of ["claim_discount_code(uuid, uuid, uuid, integer, integer)", "discount_dashboard()"]) {
+    for (const f of ["claim_discount_code(uuid, uuid, uuid, integer, integer)", "discount_code_use_counts(uuid, uuid)", "discount_dashboard()"]) {
       expect(sql).toContain(`revoke all on function ${f} from public, anon, authenticated;`);
     }
     expect(sql).toContain("with (security_invoker = true)");
     expect(sql).toContain("revoke all on discount_code_stats from public, anon, authenticated;");
+  });
+
+  it("every column definition in shop_settings ends with a comma (none lost inside a comment)", () => {
+    const body = /create table if not exists shop_settings \(([\s\S]*?)\n\);/.exec(sql)![1];
+    const lines = body.split("\n").map((l) => l.replace(/--.*$/, "").trim()).filter(Boolean);
+    lines.slice(0, -1).forEach((l) => expect(l, l).toMatch(/,$/));
   });
 });
