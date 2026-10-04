@@ -4,9 +4,9 @@ import "./account-gate.css";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { isCrawler, isGateExempt } from "@/lib/gate-shared";
-import { useFocusTrap } from "@/components/store/useFocusTrap";
+import { FOCUSABLE_SELECTOR, useFocusTrap } from "@/components/store/useFocusTrap";
 import GateCarousel from "./GateCarousel";
-import GateSteps, { type Step } from "./GateSteps";
+import GateSteps, { TITLE_ID, type Step } from "./GateSteps";
 
 type Status = "unknown" | "anon" | "ok" | "verify";
 type Phase = "off" | "mounted" | "in" | "rv";
@@ -94,19 +94,32 @@ export default function AccountGate() {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, [shown]);
+  // On reveal and on every step: the first field, else the first control in the
+  // form column (the verify step has no field), else the dialog itself.
   useEffect(() => {
-    if (phase === "rv") rootRef.current?.querySelector<HTMLInputElement>("input:not([readonly])")?.focus({ preventScroll: true });
+    if (phase !== "rv") return;
+    const root = rootRef.current;
+    if (!root) return;
+    const col = root.querySelector<HTMLElement>(".a-col, .pc-body") ?? root;
+    const target =
+      col.querySelector<HTMLElement>("input:not([readonly])") ??
+      col.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ??
+      root.querySelector<HTMLElement>('[role="dialog"]') ??
+      root;
+    target.focus({ preventScroll: true });
   }, [phase, step]);
   useEffect(() => { if (cardRef.current) cardRef.current.scrollTop = 0; }, [step]);
-  useFocusTrap(rootRef, shown);
+  useFocusTrap(rootRef, shown, { captureOutside: true });
 
   if (phase === "off") return null;
   const cls = `${shown ? " in" : ""}${phase === "rv" ? " rv" : ""}`;
+  // Before it enters, the gate is off-screen/transparent: inert (no Tab stops) and not yet a modal dialog.
+  const dialog = shown ? ({ role: "dialog", "aria-modal": true, "aria-labelledby": TITLE_ID, tabIndex: -1 } as const) : {};
   const steps = <GateSteps variant={desktop ? "a" : "pc"} step={step} email={email} onStep={setStep} onEmail={setEmail} onDone={() => window.location.reload()} />;
 
   if (desktop) {
     return (
-      <div ref={rootRef} className={`ag ag-desk${cls}`} data-step={step} role="dialog" aria-modal="true" aria-label="Create a free account">
+      <div ref={rootRef} className={`ag ag-desk${cls}`} data-step={step} inert={!shown} {...dialog}>
         <div className="a">
           <GateCarousel scenes={scenes?.DESK_SCENES ?? null} running={shown} />
           <section className="a-side"><div className="a-col">{steps}</div></section>
@@ -115,10 +128,10 @@ export default function AccountGate() {
     );
   }
   return (
-    <div ref={rootRef} className={`ag ag-phone${cls}`} data-step={step}>
+    <div ref={rootRef} className={`ag ag-phone${cls}`} data-step={step} inert={!shown}>
       <div className="pc-dim" aria-hidden="true" />
       <div className="pc-stage">
-        <section ref={cardRef} className="pc-card" role="dialog" aria-modal="true" aria-label="Create a free account">
+        <section ref={cardRef} className="pc-card" {...dialog}>
           <div className="pc-strip">
             {scenes && <div aria-hidden="true" dangerouslySetInnerHTML={{ __html: step === "1" ? scenes.PHONE_STRIP : scenes.PHONE_MINI }} />}
             {step === "1" && <span className="pc-dots" aria-hidden="true"><i className="on" /><i /><i /></span>}

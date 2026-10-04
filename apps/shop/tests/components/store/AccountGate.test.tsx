@@ -4,9 +4,11 @@ import { render, screen, act, fireEvent, waitFor } from "@testing-library/react"
 let pathname = "/";
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
 vi.mock("@/components/store/gate/scenes.generated", () => ({ DESK_SCENES: ["<svg class=\"scene\"></svg>", "<svg class=\"scene\"></svg>", "<svg class=\"scene\"></svg>"], PHONE_STRIP: "<svg class=\"scene\"></svg>", PHONE_MINI: "<svg class=\"scene\"></svg>" }));
-const gateSignInAction = vi.fn(), gateSignUpAction = vi.fn(), resendVerifyAction = vi.fn();
+const { gateSignInAction, gateSignUpAction, resendVerifyAction, signOutAction } = vi.hoisted(() => ({
+  gateSignInAction: vi.fn(), gateSignUpAction: vi.fn(), resendVerifyAction: vi.fn(), signOutAction: vi.fn(),
+}));
 vi.mock("@/app/auth/gate-actions", () => ({ gateSignInAction, gateSignUpAction, resendVerifyAction }));
-vi.mock("@/app/auth/actions", () => ({ signOutAction: vi.fn() }));
+vi.mock("@/app/auth/actions", () => ({ signOutAction }));
 vi.mock("@/components/AuraLockup", () => ({ default: () => <span>Aura</span> }));
 
 const fetchMock = vi.fn();
@@ -20,7 +22,7 @@ describe("AccountGate", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     pathname = "/";
-    for (const f of [fetchMock, gateSignInAction, gateSignUpAction, resendVerifyAction]) f.mockReset();
+    for (const f of [fetchMock, gateSignInAction, gateSignUpAction, resendVerifyAction, signOutAction]) f.mockReset();
     vi.stubGlobal("fetch", fetchMock);
   });
   afterEach(() => { vi.useRealTimers(); });
@@ -33,8 +35,18 @@ describe("AccountGate", () => {
     await waitFor(() => expect(document.querySelector(".ag")).not.toBeNull());
     await settle(3000);
     expect(document.querySelector(".ag.in")).toBeNull();
+    // Before entry: inert (no Tab stops) and no modal dialog hiding the page.
+    expect(document.querySelector(".ag")).toHaveAttribute("inert");
+    expect(screen.queryByRole("dialog", { hidden: true })).toBeNull();
     await settle(1100);
     expect(document.querySelector(".ag.in")).not.toBeNull();
+    expect(document.querySelector(".ag")).not.toHaveAttribute("inert");
+    expect(screen.getByRole("dialog", { name: /New accounts save 15%/ })).toHaveAttribute("aria-modal", "true");
+    expect(document.activeElement).toBe(screen.getByPlaceholderText("you@institution.org"));
+    // Focus that escapes to the page is pulled back in on the next Tab.
+    (document.activeElement as HTMLElement).blur();
+    fireEvent.keyDown(document.body, { key: "Tab" });
+    expect(document.querySelector(".ag")!.contains(document.activeElement)).toBe(true);
     expect(screen.getByRole("heading", { name: /New accounts save 15%/ })).toBeInTheDocument();
   });
 
@@ -115,10 +127,28 @@ describe("AccountGate", () => {
     resendVerifyAction.mockResolvedValue({ ok: true });
     const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
     render(<AccountGate />);
+    await waitFor(() => expect(document.querySelector(".ag")).not.toBeNull());
     await settle();
     expect(screen.getByText(/We sent a link to j@lab.org/)).toBeInTheDocument();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: /Resend the link/ }));
     fireEvent.click(screen.getByRole("button", { name: /Resend the link/ }));
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/Sent/));
+  });
+
+  it("verify step: sign out calls the action, then reloads the home page as anon", async () => {
+    routes({ state: "verify", email: "j@lab.org" });
+    // The real action redirects; the router rejects its promise with the redirect.
+    signOutAction.mockRejectedValue(new Error("NEXT_REDIRECT"));
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, assign });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await settle();
+    fireEvent.click(screen.getByRole("button", { name: /Sign out/ }));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
+    expect(signOutAction).toHaveBeenCalledTimes(1);
+    expect(signOutAction.mock.invocationCallOrder[0]).toBeLessThan(assign.mock.invocationCallOrder[0]);
+    vi.unstubAllGlobals();
   });
 
   it("appears at once (no delay) with reduced motion", async () => {

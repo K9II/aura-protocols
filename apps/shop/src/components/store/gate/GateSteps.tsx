@@ -13,16 +13,18 @@ type Props = { variant: Variant; step: Step; email: string; onStep: (s: Step) =>
 
 const i = (n: number) => ({ "--i": n }) as CSSProperties;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Every step's heading carries this id; the dialog is aria-labelledby it.
+export const TITLE_ID = "ag-title";
 const OOPS = "Something went wrong — please try again.";
 
 function Arrow() { return <span className="arr">→</span>; }
 function Err({ text }: { text: string | null }) { return text ? <p className="err" role="alert">{text}</p> : null; }
 
-function PasswordBox({ id, value, onChange, autoComplete }: { id: string; value: string; onChange: (v: string) => void; autoComplete: string }) {
+function PasswordBox({ id, value, onChange, autoComplete, describedBy }: { id: string; value: string; onChange: (v: string) => void; autoComplete: string; describedBy?: string }) {
   const [show, setShow] = useState(false);
   return (
     <span className="box">
-      <input id={id} type={show ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete} required />
+      <input id={id} type={show ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete} aria-describedby={describedBy} required />
       <button type="button" className="trail" onClick={() => setShow(!show)}>{show ? "Hide" : "Show"}</button>
     </span>
   );
@@ -91,7 +93,7 @@ function EmailStep({ c, email, onEmail, onStep }: { c: (n: string) => string; em
   }
   return (
     <div>
-      <h1 className={`${c("h")} fi`} style={i(2)}>New accounts save <em>{OFFER_PCT_TEXT}</em></h1>
+      <h1 id={TITLE_ID} className={`${c("h")} fi`} style={i(2)}>New accounts save <em>{OFFER_PCT_TEXT}</em></h1>
       <p className={`${c("sub")} fi`} style={i(3)}>Create a free account to browse the catalog. New accounts save {OFFER_PCT_TEXT} on a first order placed within {OFFER_DAYS_TEXT}.</p>
       <form noValidate className="fi" style={i(4)} onSubmit={submit}>
         <label className="fld"><span className="fld-top"><span className="fld-lab">Email<span className="fld-req">* Required</span></span></span>
@@ -123,12 +125,12 @@ function SignInStep({ c, email, onStep, onDone }: { c: (n: string) => string; em
   }
   return (
     <div>
-      <h1 className={`${c("h")} fi`} style={i(2)}>Welcome back.</h1>
+      <h1 id={TITLE_ID} className={`${c("h")} fi`} style={i(2)}>Welcome back.</h1>
       <p className={`${c("sub")}${c("sub") === "a-sub" ? " tight" : ""} fi`} style={i(3)}>Enter your password to sign in.</p>
       <form className="fi" style={i(4)} onSubmit={submit}>
         <EmailReadonly email={email} onChange={() => onStep("1")} />
-        <label className="fld" htmlFor="ag-pw-in"><span className="fld-top"><span className="fld-lab">Password</span></span>
-          <PasswordBox id="ag-pw-in" value={password} onChange={setPassword} autoComplete="current-password" /></label>
+        <div className="fld"><label className="fld-top" htmlFor="ag-pw-in"><span className="fld-lab">Password</span></label>
+          <PasswordBox id="ag-pw-in" value={password} onChange={setPassword} autoComplete="current-password" /></div>
         <div className={`row-between ${c("rem")}`}>
           <label className="chk"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /><span className="sq" />Remember me</label>
           <Link href="/forgot-password" className="lnk" style={{ fontSize: 13.5 }}>Forgot password?</Link>
@@ -164,14 +166,14 @@ function SignUpStep({ c, variant, email, onStep, onDone }: { c: (n: string) => s
   }
   return (
     <div>
-      <h1 className={`${c("h")} fi`} style={i(2)}>Let’s create your account.</h1>
+      <h1 id={TITLE_ID} className={`${c("h")} fi`} style={i(2)}>Let’s create your account.</h1>
       <form className="fi" style={i(variant === "a" ? 4 : 3)} onSubmit={submit} noValidate>
         <EmailReadonly email={email} onChange={() => onStep("1")} />
         <label className="fld" htmlFor="ag-name"><span className="fld-top"><span className="fld-lab">Full name</span></span>
           <span className="box"><input id="ag-name" type="text" autoComplete="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} /></span></label>
-        <label className="fld" htmlFor="ag-pw-new"><span className="fld-top"><span className="fld-lab">Choose a password</span></span>
-          <PasswordBox id="ag-pw-new" value={password} onChange={setPassword} autoComplete="new-password" />
-          <span className="hint">{password.length >= 10 && <span className="ok">✓</span>}At least 10 characters</span></label>
+        <div className="fld"><label className="fld-top" htmlFor="ag-pw-new"><span className="fld-lab">Choose a password</span></label>
+          <PasswordBox id="ag-pw-new" value={password} onChange={setPassword} autoComplete="new-password" describedBy="ag-pw-hint" />
+          <span className="hint" id="ag-pw-hint">{password.length >= 10 && <span className="ok">✓</span>}At least 10 characters</span></div>
         <label className="chk attest"><input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} /><span className="sq" />
           <span>I am 21 or older, I am buying for in-vitro laboratory research use only (not for human or animal use), and I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms</Link> and the <Link href="/refund-policy" target="_blank" rel="noopener noreferrer">Refund &amp; Dispute Policy</Link>.</span></label>
         <label className={`chk ${c("opt")}`}><input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} /><span className="sq" /><span>Email me promotions, research news and new lots.</span></label>
@@ -199,16 +201,28 @@ function VerifyStep({ c, email }: { c: (n: string) => string; email: string }) {
       setBusy(false);
     }
   }
+  // The layout-mounted gate would keep its "verify" state through the action's
+  // client-side redirect, so finish with a full page load: the visitor comes back as anon.
+  async function signOut() {
+    setBusy(true);
+    try {
+      await signOutAction();
+    } catch {
+      // The router rejects a redirecting action's promise; the reload below is the redirect.
+    } finally {
+      window.location.assign("/");
+    }
+  }
   return (
     <div>
-      <h1 className={`${c("h")} fi`} style={i(2)}>Confirm your <em>email.</em></h1>
+      <h1 id={TITLE_ID} className={`${c("h")} fi`} style={i(2)}>Confirm your <em>email.</em></h1>
       <p className={`${c("sub")} fi`} style={i(3)}>We sent a link to {email}. Confirm it to keep browsing.</p>
       <div className="fi" style={i(4)}>
         <Err text={error} />
         {msg && <p className="hint" role="status" style={{ margin: "-4px 0 14px" }}><span className="ok">✓</span>{msg}</p>}
         <button className="btn" type="button" onClick={resend} disabled={busy}>Resend the link <Arrow /></button>
       </div>
-      <form action={signOutAction} className={`${c("back")} fi`} style={i(5)}><button type="submit" className="back">← Sign out</button></form>
+      <p className={`${c("back")} fi`} style={i(5)}><button type="button" className="back" onClick={signOut} disabled={busy}>← Sign out</button></p>
     </div>
   );
 }
