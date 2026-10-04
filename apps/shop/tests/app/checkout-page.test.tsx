@@ -9,9 +9,10 @@ const { requireCustomer, creditBalance, listOpenOrdersForCustomer } = vi.hoisted
 vi.mock("@/lib/dal", () => ({ requireCustomer }));
 vi.mock("@/lib/partners/ledger", () => ({ creditBalance }));
 vi.mock("@/lib/account/offer-data", () => ({ offerForCustomer: async () => null }));
+vi.mock("@/lib/discounts/data", () => ({ getDiscountCap: vi.fn().mockResolvedValue(30) }));
 vi.mock("@/lib/orders", async (orig) => ({ ...(await orig<typeof import("@/lib/orders")>()), listOpenOrdersForCustomer }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
-vi.mock("@/components/account/CheckoutForm", () => ({ default: (p: { creditBalanceCents: number }) => <div data-testid="credit">{p.creditBalanceCents}</div> }));
+vi.mock("@/components/account/CheckoutForm", () => ({ default: (p: { creditBalanceCents: number; capPct: number }) => <><div data-testid="credit">{p.creditBalanceCents}</div><div data-testid="cap">{p.capPct}</div></> }));
 import CheckoutPage from "@/app/checkout/page";
 
 describe("checkout page", () => {
@@ -28,5 +29,11 @@ describe("checkout page", () => {
     listOpenOrdersForCustomer.mockResolvedValueOnce([{ id: "o1", order_number: "AP-1", stripe_session_id: "cs_1", created_at: new Date().toISOString(), store_credit_cents: 3050 }]);
     render(await CheckoutPage());
     expect(screen.getByTestId("credit").textContent).toBe("3050");
+  });
+
+  it("passes the store-wide discount cap to the form", async () => {
+    requireCustomer.mockResolvedValueOnce({ id: "u1", email: "j@lab.org", emailConfirmed: true, ship: null });
+    render(await CheckoutPage());
+    expect(screen.getByTestId("cap").textContent).toBe("30");
   });
 });

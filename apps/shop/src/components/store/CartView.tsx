@@ -6,7 +6,8 @@ import { compounds } from "@/data/catalog";
 import { FREE_SHIPPING_THRESHOLD_USD, linePriceUsd } from "@/lib/cart";
 import { priceOrder } from "@/lib/pricing";
 import { applyPartnerCode } from "@/lib/partners/discounts";
-import { checkPartnerCodeAction } from "@/app/checkout/actions";
+import { checkCodeAction } from "@/app/checkout/actions";
+import { customerSummary } from "@/lib/discounts/rules";
 import { useCart } from "@/components/store/CartProvider";
 
 const codeBtn: React.CSSProperties = { padding: "7px 13px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: "1px solid var(--ink)", background: "transparent", color: "var(--ink)", cursor: "pointer" };
@@ -24,9 +25,12 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
   // Same rule as checkout: codes are checked only for signed-in, verified
   // accounts. Otherwise the code is kept and checkout applies it.
   async function check(value: string) {
-    const r = await checkPartnerCodeAction(value);
+    const r = await checkCodeAction(value);
     checked.current = r.ok ? r.code : value.trim().toUpperCase();
-    if (r.ok) {
+    if (r.ok && r.kind === "discount") {
+      setCode(r.code); setVerified(null); setCodeInput(r.code);
+      setStatus({ kind: "applied", text: `✓ ${r.code} · ${customerSummary(r.terms)} — applied at checkout` });
+    } else if (r.ok) {
       setCode(r.code); setVerified(r.code); setCodeInput(r.code);
       setStatus({ kind: "applied", text: `✓ ${r.code} applied · 10% off items that don't already have a larger pack discount` });
     } else if (r.needsSignIn) {
@@ -83,7 +87,7 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
       <div className="border-t border-[color:var(--line)] pt-4 mt-2">
         <label htmlFor="cart-code" className="s-micro block mb-1.5">Discount code</label>
         <div className="flex gap-2 mb-1">
-          <input id="cart-code" value={codeInput} maxLength={20} autoComplete="off"
+          <input id="cart-code" value={codeInput} maxLength={24} autoComplete="off"
             onChange={(e) => { setCodeInput(e.target.value); if (status?.kind === "error") setStatus(null); }}
             onKeyDown={(e) => { if (e.key === "Enter" && codeInput.trim() && !code) void check(codeInput); }}
             readOnly={!!code} className="flex-1 min-w-0 border border-[color:var(--ink)] bg-[color:var(--paper)] px-3 py-2 text-sm uppercase" />

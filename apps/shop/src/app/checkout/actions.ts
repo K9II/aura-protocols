@@ -109,11 +109,6 @@ export async function checkCodeAction(code: string): Promise<CodeCheckResult> {
   return { ok: true, kind: "partner", code: attribution.code };
 }
 
-// removed in Task 12
-export async function checkPartnerCodeAction(code: string): Promise<CodeCheckResult> {
-  return checkCodeAction(code);
-}
-
 // A customer who goes back from Stripe (or closes the tab) leaves an order
 // awaiting payment for up to 23 h, holding any store credit it reserved.
 // Starting a new checkout closes those first: expire the Stripe page, cancel
