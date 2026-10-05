@@ -13,6 +13,7 @@ const STOCK: Record<AdminRow["stock"], [string, string]> = { in: ["c-in", "In st
 function Stock({ r }: { r: AdminRow }) { const [c, l] = STOCK[r.stock]; return <span className={`a-chip ${c}`}>{l}</span>; }
 function Selling({ r }: { r: AdminRow }) {
   if (r.selling) return <span className="a-lotref">{r.selling.lotNumber}<small>{r.selling.purityPct}% · {r.selling.method}</small></span>;
+  if (!r.shown && !r.lastSoldOut) return <span className="a-lotref">—<small>no lot</small></span>;
   return <span className="a-lotref muted">—<small>{r.lastSoldOut ? `${r.lastSoldOut} sold out` : "COA pending · no lot yet"}</small></span>;
 }
 function Next({ r }: { r: AdminRow }) {

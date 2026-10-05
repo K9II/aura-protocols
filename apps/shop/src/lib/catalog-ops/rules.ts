@@ -100,8 +100,13 @@ export function parseSku(s: string): { ok: true; value: string | null } | { ok: 
 // ---- admin list ----
 export type AdminLotRow = LotStockRow & {
   ordered_qty: number; counted_qty: number; damaged_qty: number; adjust_qty: number; discrepancy_note: string | null;
-  received_by: string | null; received_at: string; retired_at: string | null;
+  received_by: string | null; received_by_name: string | null; received_at: string; retired_at: string | null;
 };
+
+// Same order as hold_vials (oldest lot first; live_at ties broken by lot_number).
+export function byLiveThenNumber(a: AdminLotRow, b: AdminLotRow): number {
+  return (a.live_at ?? "").localeCompare(b.live_at ?? "") || a.lot_number.localeCompare(b.lot_number);
+}
 export type AdminOps = Omit<CatalogOps, "lots"> & { lots: AdminLotRow[] };
 type ContentLite = { slug: string; name: string; chemicalClass: string; variants: Array<{ id: string; strength: string }> };
 export type LotRef = { lotNumber: string; purityPct: number; method: string; status: "draft" | "live" | "retired"; discrepancy: boolean; available: number; sellable: number };
@@ -125,7 +130,7 @@ export function adminRows(content: ContentLite[], ops: AdminOps): AdminRow[] {
       const vr = ops.variants.find((x) => x.slug === c.slug && x.variant_id === v.id);
       if (!vr) continue;
       const lots = ops.lots.filter((l) => l.slug === c.slug && l.variant_id === v.id);
-      const live = lots.filter((l) => l.status === "live").sort((a, b) => (a.live_at ?? "").localeCompare(b.live_at ?? ""));
+      const live = lots.filter((l) => l.status === "live").sort(byLiveThenNumber);
       const withVials = live.filter((l) => l.available > 0);
       const drafts = lots.filter((l) => l.status === "draft").sort((a, b) => a.lot_number.localeCompare(b.lot_number));
       const available = withVials.reduce((s, l) => s + l.available, 0);

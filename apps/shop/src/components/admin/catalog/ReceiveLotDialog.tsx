@@ -39,7 +39,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small 
   return (
     <>
       <button type="button" className={`a-btn${small ? " sm" : ""}`} onClick={() => ref.current?.showModal()}>
-        {draft ? <><Icon name="edit" />Edit</> : small ? <><Icon name="plus" />Receive</> : <><Icon name="plus" />Receive a lot</>}
+        {draft ? <><Icon name="edit" />Edit</> : <><Icon name="plus" />Receive <span className="a-only-desk">a lot</span></>}
       </button>
       <dialog ref={ref} className="a-modal wide" aria-labelledby={`recv-${scope}`}>
         <form action={action}>

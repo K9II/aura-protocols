@@ -12,6 +12,18 @@ const num = <T extends { purity_pct: unknown; sellable: unknown; held: unknown; 
 const LOT_COLS = "id, lot_number, slug, variant_id, purity_pct, method, tested_on, coa_path, status, live_at, sellable, held, sold, available";
 const ADMIN_LOT_COLS = `${LOT_COLS}, ordered_qty, counted_qty, damaged_qty, adjust_qty, discrepancy_note, received_by, received_at, retired_at`;
 
+// First names for a batch of customer ids, one query — used for both catalog
+// event actors and a lot's received_by (no N+1 per row).
+async function actorNames(ids: Array<string | null>): Promise<Map<string, string>> {
+  const uniq = [...new Set(ids.filter((x): x is string => !!x))];
+  const names = new Map<string, string>();
+  if (!uniq.length) return names;
+  const { data: people, error } = await db().from("customers").select("id, full_name").in("id", uniq);
+  if (error) fail("actor names read", error);
+  for (const c of (people ?? []) as Array<{ id: string; full_name: string }>) names.set(c.id, c.full_name.split(" ")[0]);
+  return names;
+}
+
 // ---------- storefront ----------
 export async function fetchCatalogOps(): Promise<CatalogOps> {
   const [p, v, l] = await Promise.all([
@@ -35,10 +47,12 @@ export async function fetchAdminOps(slug?: string): Promise<AdminOps> {
   if (slug) variants = variants.eq("slug", slug);
   const [p, v, l] = await Promise.all([db().from("catalog_products").select("slug, shown"), variants, lots]);
   if (p.error || v.error || l.error) fail("admin catalog read", p.error ?? v.error ?? l.error);
+  const lotRows = ((l.data ?? []) as AdminLotRow[]).map(num);
+  const names = await actorNames(lotRows.map((r) => r.received_by));
   return {
     products: (p.data ?? []) as AdminOps["products"],
     variants: (v.data ?? []) as AdminOps["variants"],
-    lots: ((l.data ?? []) as AdminLotRow[]).map(num),
+    lots: lotRows.map((r) => ({ ...r, received_by_name: r.received_by ? names.get(r.received_by) ?? null : null })),
   };
 }
 
@@ -51,13 +65,7 @@ export async function catalogEvents(slug: string, limit = 50): Promise<CatalogEv
   const { data, error } = await db().from("catalog_events").select("*, lots(lot_number)").eq("slug", slug).order("created_at", { ascending: false }).limit(limit);
   if (error) fail("catalog events read", error);
   const rows = (data ?? []) as Array<Omit<CatalogEvent, "actorName" | "lotNumber"> & { lots: { lot_number: string } | null }>;
-  const ids = [...new Set(rows.map((r) => r.actor_id).filter((x): x is string => !!x))];
-  const names = new Map<string, string>();
-  if (ids.length) {
-    const { data: people, error: e2 } = await db().from("customers").select("id, full_name").in("id", ids);
-    if (e2) fail("event actor names read", e2);
-    for (const c of (people ?? []) as Array<{ id: string; full_name: string }>) names.set(c.id, c.full_name.split(" ")[0]);
-  }
+  const names = await actorNames(rows.map((r) => r.actor_id));
   return rows.map(({ lots, ...r }) => ({ ...r, actorName: r.actor_id ? names.get(r.actor_id) ?? null : null, lotNumber: lots?.lot_number ?? null }));
 }
 

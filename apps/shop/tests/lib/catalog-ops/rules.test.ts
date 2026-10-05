@@ -100,8 +100,8 @@ describe("admin rows + tabs", () => {
     // hidden (shown: false) and kpv is shown — only the shown one counts
     // under the "out" tab.
     lots: [
-      { id: "1", lot_number: "BPC-1", slug: "bpc-157", variant_id: "10mg", purity_pct: 99.4, method: "HPLC" as const, tested_on: "2026-09-01", coa_path: "a.pdf", status: "live" as const, live_at: "2026-09-02", sellable: 50, held: 0, sold: 40, available: 10, ordered_qty: 50, counted_qty: 50, damaged_qty: 0, adjust_qty: 0, discrepancy_note: null, received_by: null, received_at: "2026-09-02T00:00:00Z", retired_at: null },
-      { id: "2", lot_number: "BPC-2", slug: "bpc-157", variant_id: "10mg", purity_pct: 99.1, method: "HPLC" as const, tested_on: "2026-10-01", coa_path: null, status: "draft" as const, live_at: null, sellable: 96, held: 0, sold: 0, available: 96, ordered_qty: 100, counted_qty: 96, damaged_qty: 0, adjust_qty: 0, discrepancy_note: "short 4", received_by: null, received_at: "2026-10-01T00:00:00Z", retired_at: null },
+      { id: "1", lot_number: "BPC-1", slug: "bpc-157", variant_id: "10mg", purity_pct: 99.4, method: "HPLC" as const, tested_on: "2026-09-01", coa_path: "a.pdf", status: "live" as const, live_at: "2026-09-02", sellable: 50, held: 0, sold: 40, available: 10, ordered_qty: 50, counted_qty: 50, damaged_qty: 0, adjust_qty: 0, discrepancy_note: null, received_by: null, received_by_name: null, received_at: "2026-09-02T00:00:00Z", retired_at: null },
+      { id: "2", lot_number: "BPC-2", slug: "bpc-157", variant_id: "10mg", purity_pct: 99.1, method: "HPLC" as const, tested_on: "2026-10-01", coa_path: null, status: "draft" as const, live_at: null, sellable: 96, held: 0, sold: 0, available: 96, ordered_qty: 100, counted_qty: 96, damaged_qty: 0, adjust_qty: 0, discrepancy_note: "short 4", received_by: null, received_by_name: null, received_at: "2026-10-01T00:00:00Z", retired_at: null },
     ],
   };
   it("one row per strength with stock, selling-now and next lot", () => {
