@@ -20,7 +20,11 @@ const STATIC: Array<[string, MetadataRoute.Sitemap[number]["changeFrequency"], n
 ];
 
 // Product URLs come from the live shown catalog. A read error fails the
-// sitemap request — it never lists hidden products.
+// sitemap request — it never lists hidden products. Rendered per request
+// (data still comes through the cached live catalog) so a build never
+// depends on reaching Aura Store.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const compounds = (await getLiveCatalog()).shown;
