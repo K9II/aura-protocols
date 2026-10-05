@@ -74,7 +74,7 @@ export async function GET(request: Request): Promise<Response> {
   // The lot selling now; else the last one that sold out; never a retired lot.
   const coaFor = (slug: string) => {
     const lots = live?.lots.filter((l) => l.slug === slug) ?? [];
-    return (lots.find((l) => l.status === "live") ?? lots.find((l) => l.status === "sold_out"))?.coaFile || null;
+    return (lots.find((l) => l.status === "live") ?? lots.findLast((l) => l.status === "sold_out"))?.coaFile || null;
   };
 
   // Once the budget is spent, don't start a second list — the next hourly
