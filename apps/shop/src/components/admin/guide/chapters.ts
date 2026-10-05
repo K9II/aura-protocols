@@ -7,6 +7,7 @@ export const CHAPTERS = [
   { id: "start", title: "Start here", group: null, href: null },
   { id: "discounts", title: "Discounts", group: "Sell", href: "/admin/discounts" },
   { id: "orders", title: "Orders", group: "Sell", href: "/admin/orders" },
+  { id: "customers", title: "Customers", group: "Sell", href: "/admin/customers" },
   { id: "partners", title: "Partners", group: "Partners", href: "/admin/partners" },
   { id: "payouts", title: "Payouts", group: "Partners", href: "/admin/payouts" },
 ] as const;

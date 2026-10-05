@@ -5,6 +5,7 @@ import GuideNav from "@/components/admin/guide/GuideNav";
 import StartHere from "@/components/admin/guide/StartHere";
 import Discounts from "@/components/admin/guide/Discounts";
 import Orders from "@/components/admin/guide/Orders";
+import Customers from "@/components/admin/guide/Customers";
 import Partners from "@/components/admin/guide/Partners";
 import Payouts from "@/components/admin/guide/Payouts";
 
@@ -24,6 +25,7 @@ export default async function AdminGuidePage() {
         <StartHere />
         <Discounts capPct={capPct} />
         <Orders />
+        <Customers />
         <Partners />
         <Payouts />
       </article>
