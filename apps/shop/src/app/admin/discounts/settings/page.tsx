@@ -20,25 +20,19 @@ export default async function DiscountSettingsPage() {
     ["Tax", "Stripe Tax on what's charged"],
     ["Store credit", "Pays down the total last"],
   ] as const;
-  return (
-    <div className="a-page narrow">
-      <Crumbs items={[{ label: "Discounts", href: "/admin/discounts" }, { label: "Settings" }]} />
-      <div className="a-ph"><div><h1>Discount settings</h1><p>Apply to every order, whatever codes, packs or partner links are involved.</p></div></div>
 
-      <section className="a-fsec">
-        <div className="a-fsec-h"><h3>Store-wide cap</h3><span>The most any order&apos;s goods can be discounted</span></div>
-        <div className="a-fsec-b a-cap-grid">
-          <CapForm cap={cap} />
-          <div>
-            <div className="a-callout info"><Icon name="info" /><div>Counts pack prices, new-account, partner and code discounts together. Free shipping and store credit don&apos;t count — store credit is a payment, not a discount.</div></div>
-            <table className="a-bk" style={{ marginTop: 12 }}>
-              <thead><tr><th>At {cap}% · last 30 days</th><th>Orders</th><th>Trimmed</th></tr></thead>
-              <tbody><tr><td>Orders over the cap<small>showed &quot;capped at {cap}%&quot;</small></td><td>{dash.capped_30d}</td><td>{usd(dash.trimmed_30d)}</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+  const aside = (
+    <div>
+      <div className="a-callout info"><Icon name="info" /><div>Counts pack prices, new-account, partner and code discounts together. Free shipping and store credit don&apos;t count — store credit is a payment, not a discount.</div></div>
+      <table className="a-bk" style={{ marginTop: 12 }}>
+        <thead><tr><th>At {cap}% · last 30 days</th><th>Orders</th><th>Trimmed</th></tr></thead>
+        <tbody><tr><td>Orders over the cap<small>showed &quot;capped at {cap}%&quot;</small></td><td>{dash.capped_30d}</td><td>{usd(dash.trimmed_30d)}</td></tr></tbody>
+      </table>
+    </div>
+  );
 
+  const after = (
+    <>
       <section className="a-fsec">
         <div className="a-fsec-h"><h3>Order of operations</h3><span>Fixed — shown so every price is explainable</span></div>
         <div className="a-fsec-b"><div className="a-steps">{steps.map(([b, s], i) => (
@@ -56,6 +50,14 @@ export default async function DiscountSettingsPage() {
           <div className="k">Refunds</div><div>The use stays counted; reset it from the code&apos;s page</div>
         </div></div>
       </section>
+    </>
+  );
+
+  return (
+    <div className="a-page narrow">
+      <Crumbs items={[{ label: "Discounts", href: "/admin/discounts" }, { label: "Settings" }]} />
+      <div className="a-ph"><div><h1>Discount settings</h1><p>Apply to every order, whatever codes, packs or partner links are involved.</p></div></div>
+      <CapForm cap={cap} aside={aside} after={after} />
     </div>
   );
 }

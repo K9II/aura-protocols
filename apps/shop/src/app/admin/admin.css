@@ -59,6 +59,10 @@
   .adm .a-grid2, .adm .a-grid-d, .adm .a-row, .adm .a-row3, .adm .a-cap-grid { grid-template-columns: 1fr !important; }
   .adm .a-seg { grid-template-columns: 1fr 1fr; }
   .adm .a-steps { grid-template-columns: 1fr 1fr; }
+  .adm .a-step:nth-child(odd) { border-left: 0; }
+  .adm .a-step:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .adm .a-rules { grid-template-columns: 1fr; }
+  .adm .a-rules .k { border-bottom: 0; padding-bottom: 0; }
   .adm .a-codes { grid-template-columns: 1fr 1fr; }
   .adm .a-ph { flex-wrap: wrap; }
   .adm .a-ph .actions { margin-left: 0; flex-wrap: wrap; }
