@@ -3,7 +3,7 @@
 import { findViolations } from "../../../../scripts/compliance-scan.mjs";
 import type { CodeStatus } from "@/lib/discounts/rules";
 import { shortDate } from "@/lib/discounts/time";
-import type { CampaignKind } from "@/lib/email/campaigns/rules";
+import { isSitePath, type CampaignKind } from "@/lib/email/campaigns/rules";
 
 export type Check = { level: "block" | "warn" | "ok"; field?: string; text: string };
 export type CheckFields = { subject: string; previewText: string; headline: string; body: string; buttonLabel: string; buttonPath: string };
@@ -23,7 +23,7 @@ export function campaignChecks(i: { kind: CampaignKind; fields: CheckFields; lot
       out.push({ level: "block", field, text: `${label}: "${h.rule}" is a banned phrase. Fix it to send.` });
     }
   }
-  if (!banned) out.push({ level: "ok", text: "Compliance scan passed: subject, headline, body and button." });
+  if (!banned) out.push({ level: "ok", text: "Compliance scan passed: subject, preview text, headline, body and button." });
 
   if (i.kind === "new_lots") {
     const gone = i.lots.filter((l) => !l.waiting);
@@ -48,7 +48,11 @@ export function campaignChecks(i: { kind: CampaignKind; fields: CheckFields; lot
     }
   }
 
-  if (i.fields.buttonPath) out.push({ level: "ok", text: "Button link is on auraprotocols.com." });
+  if (i.fields.buttonPath) {
+    out.push(isSitePath(i.fields.buttonPath)
+      ? { level: "ok", text: "Button link is on auraprotocols.com." }
+      : { level: "block", field: "buttonPath", text: "Button link must be a path on auraprotocols.com, like /products." });
+  }
   return out;
 }
 

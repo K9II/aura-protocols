@@ -9,7 +9,7 @@ describe("campaignChecks", () => {
   it("all clear", () => {
     const c = campaignChecks({ kind: "news", fields, lots: [], code: null, recipients: 2310 }, now);
     expect(c).toEqual([
-      { level: "ok", text: "Compliance scan passed: subject, headline, body and button." },
+      { level: "ok", text: "Compliance scan passed: subject, preview text, headline, body and button." },
       { level: "ok", text: "Button link is on auraprotocols.com." },
     ]);
     expect(isBlocked(c)).toBe(false);
@@ -19,6 +19,11 @@ describe("campaignChecks", () => {
     const c = campaignChecks({ kind: "news", fields: { ...fields, body: "Pair them for your stack." }, lots: [], code: null, recipients: 1 }, now);
     expect(c[0]).toEqual({ level: "block", field: "body", text: 'Body: "stack" is a banned phrase. Fix it to send.' });
     expect(isBlocked(c)).toBe(true);
+  });
+
+  it("an off-site button link blocks", () => {
+    const c = campaignChecks({ kind: "news", fields: { ...fields, buttonPath: "@evil.com" }, lots: [], code: null, recipients: 1 }, now);
+    expect(c).toContainEqual({ level: "block", field: "buttonPath", text: "Button link must be a path on auraprotocols.com, like /products." });
   });
 
   it("new lots: every lot must still be waiting", () => {
