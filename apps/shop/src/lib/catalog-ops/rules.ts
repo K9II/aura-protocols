@@ -185,3 +185,10 @@ export function soldOutMessage(items: Array<{ name: string; strength: string }>)
 export function coaObjectPath(lotNumber: string, nowMs: number): string {
   return `${lotNumber}/${nowMs}.pdf`;
 }
+
+// Does this submitted path actually belong to this lot's own folder — not
+// another lot's, not a traversal attempt? Exact match against what
+// coaObjectPath produces: `<lot>/<13-digit ms timestamp>.pdf`.
+export function isCoaPathFor(lotNumber: string, path: string): boolean {
+  return new RegExp(`^${lotNumber}/\\d{13}\\.pdf$`).test(path);
+}

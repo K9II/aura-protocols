@@ -8,7 +8,7 @@ import {
   coaUploaded, correctCount, createCoaUpload, lotById, putLotLive, receiveLot, replaceCertificate, retireLot,
   setShown, setVariantField, updateDraftLot,
 } from "@/lib/catalog-ops/data";
-import { isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku } from "@/lib/catalog-ops/rules";
+import { isCoaPathFor, isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku } from "@/lib/catalog-ops/rules";
 import { catalogChangedByOwner } from "@/lib/catalog-live";
 import { alertOwner } from "@/lib/notify";
 
@@ -50,7 +50,7 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
   const p = parseReceive(receiveInput(f), today());
   if (!p.ok) return { fieldErrors: p.fieldErrors };
   const val = p.value;
-  if (val.coaPath && !(val.coaPath.startsWith(`${val.lotNumber}/`) && await coaUploaded(val.coaPath))) {
+  if (val.coaPath && !(isCoaPathFor(val.lotNumber, val.coaPath) && await coaUploaded(val.coaPath))) {
     return { fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } };
   }
   const editing = str(f, "lotId");
@@ -64,10 +64,10 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
     const r = await receiveLot(slug, variantId, val, owner.id);
     if (!r.ok) return { fieldErrors: { lotNumber: "That lot number is already used." } };
     id = r.id;
-    if (isDiscrepancy(val.orderedQty, val.countedQty, val.damagedQty)) {
-      await alertOwner(`Lot ${val.lotNumber} arrived short or damaged`,
-        `${c.name} ${v.strength}, lot ${val.lotNumber}: ordered ${val.orderedQty}, counted ${val.countedQty}, damaged ${val.damagedQty}. Note: ${val.discrepancyNote}`);
-    }
+  }
+  if (isDiscrepancy(val.orderedQty, val.countedQty, val.damagedQty)) {
+    await alertOwner(`Lot ${val.lotNumber} arrived short or damaged`,
+      `${c.name} ${v.strength}, lot ${val.lotNumber}: ordered ${val.orderedQty}, counted ${val.countedQty}, damaged ${val.damagedQty}. Note: ${val.discrepancyNote}`);
   }
   if (str(f, "intent") === "live") {
     const r = await putLotLive(id, owner.id);
@@ -116,7 +116,7 @@ export async function replaceCertificateAction(_prev: ActionState, f: FormData):
   const lot = await lotById(id);
   if (!lot) throw new Error(STALE);
   const path = str(f, "coaPath");
-  if (!path.startsWith(`${lot.lot_number}/`) || !(await coaUploaded(path))) return { fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } };
+  if (!isCoaPathFor(lot.lot_number, path) || !(await coaUploaded(path))) return { fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } };
   if (!(await replaceCertificate(id, path, owner.id))) throw new Error(STALE);
   refresh(lot.slug);
   return { ok: "Certificate replaced. The old file stays in the log." };
@@ -128,7 +128,7 @@ export async function setFieldAction(_prev: ActionState, f: FormData): Promise<A
   const slug = str(f, "slug"), variantId = str(f, "variantId");
   variantOf(slug, variantId);
   const field = str(f, "field") as keyof typeof FIELDS;
-  if (!(field in FIELDS)) throw new Error("Unknown field.");
+  if (!Object.hasOwn(FIELDS, field)) throw new Error("Unknown field.");
   const parsed = field === "price" ? parsePrice(str(f, "value")) : field === "low" ? parseLowAt(str(f, "value")) : parseSku(str(f, "value"));
   if (!parsed.ok) return { error: parsed.error };
   const r = await setVariantField(slug, variantId, FIELDS[field], parsed.value, owner.id);

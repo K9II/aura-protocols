@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   parseReceive, isDiscrepancy, liveRefusal, parseCorrection, parsePrice, parseLowAt, parseSku,
-  adminRows, rowsForTab, tabCounts, lotsMatch, soldOutMessage, coaObjectPath, COA_MAX_BYTES,
+  adminRows, rowsForTab, tabCounts, lotsMatch, soldOutMessage, coaObjectPath, isCoaPathFor, COA_MAX_BYTES,
 } from "@/lib/catalog-ops/rules";
 
 const base = { lotNumber: "bpc-2610-03", purity: "99.4", method: "HPLC+MS", testedOn: "2026-10-02", ordered: "200", counted: "200", damaged: "0", note: "", coaPath: "BPC-2610-03/1.pdf" };
@@ -132,5 +132,13 @@ describe("lotsMatch / soldOutMessage / coaObjectPath", () => {
   it("certificate path is per lot and unique", () => {
     expect(coaObjectPath("BPC-2610-03", 1759651200000)).toBe("BPC-2610-03/1759651200000.pdf");
     expect(COA_MAX_BYTES).toBe(10 * 1024 * 1024);
+  });
+  it("isCoaPathFor accepts only this lot's own, well-formed object path", () => {
+    expect(isCoaPathFor("BPC-2610-03", "BPC-2610-03/1759651200000.pdf")).toBe(true);
+    expect(isCoaPathFor("BPC-2610-03", "OTHER-LOT/1759651200000.pdf")).toBe(false);
+    expect(isCoaPathFor("BPC-2610-03", "BPC-2610-03/../1759651200000.pdf")).toBe(false);
+    expect(isCoaPathFor("BPC-2610-03", "BPC-2610-03/../OTHER-LOT/1759651200000.pdf")).toBe(false);
+    expect(isCoaPathFor("BPC-2610-03", "BPC-2610-03/1759651200000.pdf.exe")).toBe(false);
+    expect(isCoaPathFor("BPC-2610-03", "BPC-2610-03/123.pdf")).toBe(false); // not 13 digits
   });
 });
