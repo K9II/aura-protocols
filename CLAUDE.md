@@ -34,7 +34,7 @@ apps/shop/src/
   components/account/ partners/  # checkout, order, address forms; partner dashboard widgets
   app/                       # /, /products, /products/[slug], /coa, /cart, /wholesale, /affiliates, /about, /quality-standards, /terms, /privacy, /shipping, /refund-policy, /ruo, /api/gate/lookup, /api/me/gate, /api/inquiry, /api/unsubscribe, /api/ses/events, /auth/verify, /verified
                              # accounts: /sign-in, /forgot-password, /reset-password, /auth/callback, /account, /checkout, /order/[number]
-                             # partners: /partners/apply, /partners, /partner-agreement; owner (command-center shell `app/admin/layout.tsx` + `components/admin/`): /admin/discounts (list, new, [id], [id]/edit, batch/[id], batch/[id]/codes.csv, settings), /admin/orders, /admin/partners, /admin/payouts
+                             # partners: /partners/apply, /partners, /partner-agreement; owner (command-center shell `app/admin/layout.tsx` + `components/admin/`): /admin/discounts (list, new, [id], [id]/edit, batch/[id], batch/[id]/codes.csv, settings), /admin/orders, /admin/partners, /admin/payouts, /admin/guide (owner manual; `components/admin/guide/`)
                              # /api/stripe/webhook, /api/cron/reconcile, /api/cron/partners-daily (Bearer CRON_SECRET)
   data/posts.ts              # 35 guides, UNPUBLISHED (BLOG_PUBLISHED=false) pending research-summary rewrites
 ```
@@ -57,6 +57,7 @@ apps/shop/src/
 - Commission changes only through `lib/partners/ledger.ts` (created on payment, clearing on ship, reversed on refund/chargeback). Partner bank/Zelle details are AES-GCM encrypted (`PAYOUT_DETAILS_KEY`).
 - Failures must be loud: a write that can fail throws (or alerts the owner via `alertOwner`), never reports success; webhook handlers throw to get a Stripe retry when an order isn't matched yet.
 - New-account offer: 15% off a first order within 3 days of sign-up (NEW_ACCOUNT_DAYS), automatic (`lib/account/offer.ts`); larger-of with pack; beats a partner code but the partner keeps commission.
+- **Every command-center module ships with its Guide chapter** (`/admin/guide`, `components/admin/guide/`): add it to `chapters.ts` (that also gives its pages the top-bar "How this works" link), write lede → Common tasks → How it works → Watch out for with on-screen labels in `<Ui>`, and take figures from constants, never typed numbers.
 
 ## Environment
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `GATE_COOKIE_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CRON_SECRET`, `PARTNER_REF_SECRET`, `PAYOUT_DETAILS_KEY` (32-byte base64), `ORDER_ALERT_EMAIL`, `INQUIRY_NOTIFY_EMAIL`, `AWS_REGION` + AWS keys, `SES_FROM_EMAIL`, `SES_EVENTS_TOPIC_ARN`, `EMAIL_LINK_SECRET`, `MAILING_ADDRESS`. All must be set in Vercel before unpausing.

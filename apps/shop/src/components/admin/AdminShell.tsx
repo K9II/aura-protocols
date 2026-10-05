@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Icon, type IconName } from "@/components/admin/ui";
+import { GUIDE_PATH, chapterForPath, guideHref } from "@/components/admin/guide/chapters";
 
 type Item = { href: string; label: string; icon: IconName; live: boolean; count?: "orders" | "partners" };
 const NAV: Array<{ group?: string; items: Item[] }> = [
@@ -29,6 +30,8 @@ export default function AdminShell({ counts, testMode, ownerName, children }: {
 }) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
+  const chapter = chapterForPath(pathname);
+  const guideOn = pathname === GUIDE_PATH;
   const side = (
     <aside className="a-side">
       <div className="a-brand">
@@ -53,6 +56,11 @@ export default function AdminShell({ counts, testMode, ownerName, children }: {
           </div>
         ))}
       </nav>
+      <div className="a-nav-foot">
+        <Link href={GUIDE_PATH} className={guideOn ? "on" : undefined} aria-current={guideOn ? "page" : undefined} onClick={() => setOpen(false)}>
+          <Icon name="book" />Guide
+        </Link>
+      </div>
       <div className="a-side-foot">
         <div className="a-avatar" aria-hidden>{ownerName.slice(0, 2).toUpperCase()}</div>
         <div className="a-who">{ownerName}<small>Owner</small></div>
@@ -69,7 +77,12 @@ export default function AdminShell({ counts, testMode, ownerName, children }: {
             <button type="button" className="a-menu-btn" aria-label="Open menu" onClick={() => setOpen(true)}><Icon name="menu" /></button>
             <span className="a-top-title">Command center</span>
             <div className="a-top-right">
-              {testMode && <span className="a-env">Test mode</span>}
+              {chapter && (
+                <Link className="a-help" href={guideHref(chapter)} aria-label="How this works">
+                  <span className="q" aria-hidden>?</span><span className="a-help-t">How this works</span>
+                </Link>
+              )}
+              {testMode && <span className="a-env"><span className="a-env-t">Test mode</span><span className="a-env-s" aria-hidden>Test</span></span>}
               <a className="a-toplink" href="/" target="_blank" rel="noopener noreferrer">View store <Icon name="ext" /></a>
             </div>
           </header>

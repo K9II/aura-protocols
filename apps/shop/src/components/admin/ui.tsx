@@ -30,6 +30,8 @@ const PATHS = {
   menu: <path d="M2 4h12M2 8h12M2 12h12" />,
   info: <><circle cx="8" cy="8" r="6" /><path d="M8 7v4.5M8 4.8v.01" /></>,
   reset: <><path d="M3 3v4h4" /><path d="M3.5 7A5 5 0 1 1 4 11" /></>,
+  book: <path d="M2.5 3h4a1.5 1.5 0 0 1 1.5 1.5V14a1.5 1.5 0 0 0-1.5-1.5h-4zM13.5 3h-4A1.5 1.5 0 0 0 8 4.5V14a1.5 1.5 0 0 1 1.5-1.5h4z" />,
+  arrow: <path d="M3 8h10M9 4l4 4-4 4" />,
 } as const;
 export type IconName = keyof typeof PATHS;
 

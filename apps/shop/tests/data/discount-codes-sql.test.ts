@@ -61,7 +61,7 @@ describe("discount-codes.sql", () => {
 
   it("every column definition in shop_settings ends with a comma (none lost inside a comment)", () => {
     const body = /create table if not exists shop_settings \(([\s\S]*?)\n\);/.exec(sql)![1];
-    const lines = body.split("\n").map((l) => l.replace(/--.*$/, "").trim()).filter(Boolean);
+    const lines = body.split(/\r?\n/).map((l) => l.replace(/--.*$/, "").trim()).filter(Boolean);
     lines.slice(0, -1).forEach((l) => expect(l, l).toMatch(/,$/));
   });
 });
