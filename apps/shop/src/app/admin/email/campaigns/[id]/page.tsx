@@ -5,7 +5,7 @@ import { requireOwner } from "@/lib/dal";
 import { getCampaign, lotChoices } from "@/lib/email/campaigns/data";
 import { audienceCounts } from "@/lib/email/stats";
 import { listAdminEvents } from "@/lib/email/admin-data";
-import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, KIND_LABEL, nextHourMs } from "@/lib/email/campaigns/rules";
+import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, currentMs, KIND_LABEL, nextHourMs } from "@/lib/email/campaigns/rules";
 import { promotionCodes } from "@/app/admin/email/campaigns/codes";
 import { unscheduleAction } from "@/app/admin/email/actions";
 import { checksFor } from "@/lib/email/campaigns/checks-server";
@@ -31,7 +31,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const [lots, counts, codes, events] = await Promise.all([
     c.kind === "new_lots" ? lotChoices(c.id) : Promise.resolve([]), audienceCounts(), promotionCodes(c.discount_code_id), listAdminEvents(c.id),
   ]);
-  const checks = await checksFor(c, c.scheduled_for ? Date.parse(c.scheduled_for) : Date.now());
+  const checks = await checksFor(c, c.scheduled_for ? Date.parse(c.scheduled_for) : currentMs());
   const lastTest = events.find((e) => e.action === "test_sent");
   const site = siteUrl(), mailingAddress = process.env.MAILING_ADDRESS ?? "[mailing address]";
   const head = (
@@ -59,7 +59,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
       {head}
       <CampaignEditor campaign={c} kind={c.kind} lotChoices={lots} codes={codes.options} codeRender={codes.render} audienceCounts={counts} checks={checks}
         site={site} mailingAddress={mailingAddress} lastTest={lastTest ? `${dateTime(lastTest.at)} to ${lastTest.note}` : null}
-        defaultScheduleLocal={isoToZonedLocal(new Date(nextHourMs(Date.now())).toISOString())} />
+        defaultScheduleLocal={isoToZonedLocal(new Date(nextHourMs(currentMs())).toISOString())} />
     </div>
   );
 }

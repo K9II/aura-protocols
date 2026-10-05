@@ -5,7 +5,7 @@ import { emailOverview, sendStats, attribution, cartRecovery } from "@/lib/email
 import { statKey, sumAttribution, sumKinds } from "@/lib/email/stat-keys";
 import { getEmailSettings, listRuns, AUTOMATION_LABEL } from "@/lib/email/admin-data";
 import { campaignCounts, listCampaigns, waitingLots, type CampaignTab } from "@/lib/email/campaigns/data";
-import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, KIND_LABEL } from "@/lib/email/campaigns/rules";
+import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, currentMs, KIND_LABEL } from "@/lib/email/campaigns/rules";
 import { CAMPAIGNS_PER_PAGE, STATS_DAYS } from "@/lib/email/constants";
 import { WELCOME_DAYS, CART_HOURS } from "@/lib/email/schedule";
 import { shortDate, dateTime } from "@/lib/discounts/time";
@@ -29,7 +29,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
   const tab: CampaignTab = TABS.some(([t]) => t === tabRaw) ? (tabRaw as CampaignTab) : "all";
   const pageRaw = Number(first(sp.page));
   const page = Number.isFinite(pageRaw) && pageRaw >= 1 ? Math.trunc(pageRaw) : 1;
-  const since = new Date(Date.now() - STATS_DAYS * 86_400_000).toISOString();
+  const since = new Date(currentMs() - STATS_DAYS * 86_400_000).toISOString();
 
   let loaded;
   try {
