@@ -26,28 +26,40 @@ function mailingAddress(): string {
 }
 
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-const p = (html: string) => `<p style="font-size:15px;line-height:1.6;margin:0 0 14px">${html}</p>`;
+export const p = (html: string) => `<p style="font-size:15px;line-height:1.6;margin:0 0 14px">${html}</p>`;
 // Only the attribute-breakout character needs escaping here — these hrefs are
 // server-built URLs (never raw user text), and callers compare the rendered
 // link against the exact unsubscribe/confirm URL, so "&" must stay literal.
 const attr = (s: string) => s.replace(/"/g, "&quot;");
-const link = (href: string, text: string) => `<a href="${attr(href)}" style="color:${RED}">${text}</a>`;
+export const link = (href: string, text: string) => `<a href="${attr(href)}" style="color:${RED}">${text}</a>`;
 const check = (href: string, text: string) => p(`<b>Check it yourself →</b> ${link(href, text)}`);
-const SIGN = `<p style="font-size:15px;margin:18px 0 0">— Alvester<br><span style="color:${SOFT}">Aura Protocols</span></p>`;
+export const SIGN = `<p style="font-size:15px;margin:18px 0 0">— Alvester<br><span style="color:${SOFT}">Aura Protocols</span></p>`;
 
 // headline: plain text with one *italic* accent, e.g. "Start with the *number.*"
-function headline(text: string): string {
+export function headline(text: string): string {
   return e(text).replace(/\*(.+?)\*/, `<em style="color:${RED}">$1</em>`);
 }
 
-function frame(label: string, title: string, body: string, ctx: MarketingCtx | null): string {
-  const footer = ctx
-    ? `${RUO}<br>${e(mailingAddress())}<br>${link(ctx.unsubscribeUrl, "Unsubscribe")}`
-    : RUO;
-  return `<div style="font-family:Georgia,serif;color:${INK};max-width:560px">
-<p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${RED};margin:0 0 8px">${e(label)}</p>
-<h1 style="font-weight:400;font-size:26px;margin:0 0 18px">${headline(title)}</h1>${body}
+// Certificates live in the public coa bucket (absolute URLs); a site path
+// still works.
+export const certUrl = (site: string, file: string) => (/^https?:\/\//.test(file) ? file : `${site}${file}`);
+
+// Inbox preview line (the grey text after the subject). Hidden in the body.
+const preheader = (text: string) =>
+  `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${e(text)}</div>`;
+
+// The approved marketing frame. Pure: the caller passes the mailing address
+// (the browser preview has no env), so it's safe on client and server.
+export function frameHtml(o: { label: string; title: string; body: string; footer: { address: string; unsubscribeUrl: string } | null; preview?: string }): string {
+  const footer = o.footer ? `${RUO}<br>${e(o.footer.address)}<br>${link(o.footer.unsubscribeUrl, "Unsubscribe")}` : RUO;
+  return `${o.preview ? preheader(o.preview) : ""}<div style="font-family:Georgia,serif;color:${INK};max-width:560px">
+<p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${RED};margin:0 0 8px">${e(o.label)}</p>
+<h1 style="font-weight:400;font-size:26px;margin:0 0 18px">${headline(o.title)}</h1>${o.body}
 <p style="font-size:12px;color:${SOFT};border-top:1px solid ${LINE};padding-top:12px;margin-top:24px">${footer}</p></div>`;
+}
+
+function frame(label: string, title: string, body: string, ctx: MarketingCtx | null): string {
+  return frameHtml({ label, title, body, footer: ctx ? { address: mailingAddress(), unsubscribeUrl: ctx.unsubscribeUrl } : null });
 }
 
 function offerBox(): string {
@@ -109,10 +121,6 @@ export function welcomeEmail(n: 1 | 2 | 3 | 4 | 5, ctx: MarketingCtx, offer: Fir
   }
 }
 
-// Certificates live in the public coa bucket (absolute URLs); a site path
-// still works.
-const certUrl = (site: string, file: string) => (/^https?:\/\//.test(file) ? file : `${site}${file}`);
-
 // The certificate is looked up per product AND strength (each strength sells
 // from its own lots).
 type CoaFor = (slug: string, variantId: string) => string | null;
@@ -154,17 +162,16 @@ export function cartEmail(n: 1 | 2 | 3, ctx: MarketingCtx, o: CartOrder, coaFor:
   }
 }
 
-export function lotAlertEmail(ctx: MarketingCtx, lots: AlertLot[]): Msg {
-  const subject = lots.length === 1 ? `Certified: ${lots[0].compoundName}, lot ${lots[0].lot}` : `Certified: ${lots.length} new lots`;
+export function lotTable(site: string, lots: AlertLot[]): string {
   const th = `style="text-align:left;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${SOFT};padding:6px 8px 6px 0;border-bottom:1px solid ${LINE}"`;
   const td = `style="font-size:14px;padding:8px 8px 8px 0;border-bottom:1px solid ${LINE}"`;
   const rows = lots.map((l) => `<tr><td ${td}>${e(l.compoundName)} · ${e(l.strengths)}</td><td ${td}>${e(l.lot)}</td><td ${td}>${l.purityPct.toFixed(1)}%</td><td ${td}>${l.method === "HPLC+MS" ? "Confirmed" : "—"}</td><td ${td}>${shortDate(l.testedOn)}</td></tr>
-<tr><td colspan="5" style="font-size:13px;padding:4px 0 10px">${l.coaFile ? `${link(certUrl(ctx.site, l.coaFile), "Certificate →")} · ` : ""}${link(`${ctx.site}/products/${l.slug}`, "Product page →")}</td></tr>`).join("");
+<tr><td colspan="5" style="font-size:13px;padding:4px 0 10px">${l.coaFile ? `${link(certUrl(site, l.coaFile), "Certificate →")} · ` : ""}${link(`${site}/products/${l.slug}`, "Product page →")}</td></tr>`).join("");
+  return `<table role="presentation" style="width:100%;border-collapse:collapse;margin:0 0 14px"><tr><th ${th}>Compound</th><th ${th}>Lot</th><th ${th}>Purity (HPLC)</th><th ${th}>Identity (MS)</th><th ${th}>Tested</th></tr>${rows}</table>`;
+}
+
+export function lotAlertEmail(ctx: MarketingCtx, lots: AlertLot[]): Msg {
+  const subject = lots.length === 1 ? `Certified: ${lots[0].compoundName}, lot ${lots[0].lot}` : `Certified: ${lots.length} new lots`;
   const title = lots.length === 1 ? `Lot ${lots[0].lot} is *in.*` : `${lots.length} new lots are *in.*`;
-  return {
-    subject,
-    html: frame("New lot · Certified", title,
-      `<table role="presentation" style="width:100%;border-collapse:collapse;margin:0 0 14px"><tr><th ${th}>Compound</th><th ${th}>Lot</th><th ${th}>Purity (HPLC)</th><th ${th}>Identity (MS)</th><th ${th}>Tested</th></tr>${rows}</table>`
-      + SIGN, ctx),
-  };
+  return { subject, html: frame("New lot · Certified", title, lotTable(ctx.site, lots) + SIGN, ctx) };
 }
