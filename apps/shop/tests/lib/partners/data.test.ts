@@ -105,9 +105,16 @@ describe("partner data", () => {
     from = fromQueue({
       partners: [query({ data: { id: "x" } }), query({ data: null })],
       partner_code_aliases: [query({ data: null })],
+      discount_codes: [query({ data: null })],
     });
     expect(await issueCode()).toMatch(/^[A-HJKMNP-Z2-9]{8}$/);
-    expect(from).toHaveBeenCalledTimes(3); // first candidate taken, second free
+    expect(from).toHaveBeenCalledTimes(4); // first candidate taken (partners); second free (partners, aliases, discount codes)
+  });
+
+  it("isCodeTaken also refuses a code used by a discount code", async () => {
+    from = fromQueue({ partners: [query({ data: null })], partner_code_aliases: [query({ data: null })], discount_codes: [query({ data: { id: "c1" } })] });
+    const { isCodeTaken } = await import("@/lib/partners/data");
+    expect(await isCodeTaken("SPRING20")).toBe(true);
   });
 
   it("changeCode keeps the old code as an alias and switches to the new one", async () => {

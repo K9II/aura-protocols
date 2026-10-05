@@ -6,7 +6,7 @@ vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (
 
 const ship = { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX" as const, zip: "78701" };
 const priced = {
-  items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", variantId: "5mg", strength: "5 mg", packQty: 1, quantity: 2,
+  items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide Fragments", variantId: "5mg", strength: "5 mg", packQty: 1, quantity: 2,
     listUnitCents: 4900, packPct: 0, unitPriceCents: 4900, lineTotalCents: 9800, lotNumber: "AP-0001" }],
   rejected: [], subtotalCents: 9800, partnerDiscountCents: 0, shippingCents: 1500, insuranceCents: 550, totalBeforeTaxCents: 11850,
 };
@@ -26,6 +26,15 @@ describe("orders", () => {
       subtotal_cents: 9800, shipping_cents: 1500, insurance_cents: 550, tax_cents: 0, total_cents: 11850,
     });
     expect(callArgs(itemsQ, "insert")?.[0]).toEqual([expect.objectContaining({ order_id: "o1", lot_number: "AP-0001", quantity: 2, line_total_cents: 9800 })]);
+  });
+
+  it("records the discount code and its share", async () => {
+    const orderQ = query({ data: { id: "o1", order_number: "AP-1001" } });
+    const itemsQ = query({});
+    from = fromQueue({ orders: [orderQ], order_items: [itemsQ] });
+    const { createPendingOrder } = await import("@/lib/orders");
+    await createPendingOrder({ customerId: "u1", email: "j@lab.org", ship, priced, discountCode: { id: "c1", discountCents: 7900 } });
+    expect(callArgs(orderQ, "insert")?.[0]).toMatchObject({ discount_code_id: "c1", code_discount_cents: 7900 });
   });
 
   it("countOrdersForOwner tallies each status and all, skipping unpaid checkouts", async () => {

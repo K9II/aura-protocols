@@ -5,6 +5,8 @@ import SiteNav from "@/components/store/SiteNav";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 vi.mock("@/components/store/AuthLinks", () => ({ default: () => <a href="/sign-in">Sign in</a> }));
+let pathname = "/";
+vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
 
 function Adder() {
   const { add } = useCart();
@@ -12,7 +14,13 @@ function Adder() {
 }
 
 describe("SiteNav", () => {
-  beforeEach(() => window.localStorage.clear());
+  beforeEach(() => { window.localStorage.clear(); pathname = "/"; });
+
+  it("renders nothing inside the admin command center", () => {
+    pathname = "/admin/discounts";
+    const { container } = render(<CartProvider><SiteNav /></CartProvider>);
+    expect(container).toBeEmptyDOMElement();
+  });
 
   it("shows Shop, the store links and a live cart count", () => {
     render(<CartProvider><SiteNav /><Adder /></CartProvider>);

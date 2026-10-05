@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
-import { priceOrder, SHIPPING_FLAT_CENTS, FREE_SHIPPING_MIN_CENTS, INSURANCE_CENTS } from "@/lib/pricing";
+import { priceOrder, withCharges, SHIPPING_FLAT_CENTS, FREE_SHIPPING_MIN_CENTS, INSURANCE_CENTS } from "@/lib/pricing";
 
 const base = {
   identity: {}, form: "Lyophilized powder", storage: "−20 °C", vialMl: 3, chemicalClass: "Peptide Fragments" as const,
@@ -19,7 +19,7 @@ describe("priceOrder", () => {
     const r = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 3, quantity: 2 }], list);
     expect(r.rejected).toEqual([]);
     expect(r.items).toEqual([{
-      compoundSlug: "alpha", compoundName: "Alpha", variantId: "5mg", strength: "5 mg",
+      compoundSlug: "alpha", compoundName: "Alpha", chemicalClass: "Peptide Fragments", variantId: "5mg", strength: "5 mg",
       packQty: 3, quantity: 2, listUnitCents: 14700, packPct: 10, unitPriceCents: 13230, lineTotalCents: 26460, lotNumber: "AP-0001",
     }]);
     expect(r.subtotalCents).toBe(26460);
@@ -52,5 +52,18 @@ describe("priceOrder", () => {
     expect(r.rejected.map((x) => x.reason)).toEqual(["unknown", "pending_lot", "out_of_stock", "bad_pack", "bad_quantity", "bad_quantity"]);
     expect(r.shippingCents).toBe(0);
     expect(r.insuranceCents).toBe(0);
+  });
+
+  it("carries each item's chemical class for code eligibility", () => {
+    const o = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 1 }], list);
+    expect(o.items[0].chemicalClass).toBe(list.find((c) => c.slug === "alpha")!.chemicalClass);
+  });
+
+  it("withCharges gives free shipping when the order has a free-shipping code", () => {
+    const o = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 1 }], list);
+    expect(o.shippingCents).toBeGreaterThan(0);
+    const free = withCharges({ ...o, freeShipping: true });
+    expect(free.shippingCents).toBe(0);
+    expect(free.totalBeforeTaxCents).toBe(o.totalBeforeTaxCents - o.shippingCents);
   });
 });

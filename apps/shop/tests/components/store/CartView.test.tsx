@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
-const { checkPartnerCodeAction } = vi.hoisted(() => ({ checkPartnerCodeAction: vi.fn() }));
-vi.mock("@/app/checkout/actions", () => ({ checkPartnerCodeAction }));
+const { checkCodeAction } = vi.hoisted(() => ({ checkCodeAction: vi.fn() }));
+vi.mock("@/app/checkout/actions", () => ({ checkCodeAction }));
 // Real catalog lots are pending until sourcing (pending items can't be priced or
 // bought), so this cart uses a BPC-157 with a tested lot.
 vi.mock("@/data/catalog", async (orig) => {
@@ -20,7 +20,7 @@ import CartBackLink from "@/components/store/CartBackLink";
 const oneTwoPack = () => window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([{ slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 1 }]));
 
 describe("CartView", () => {
-  beforeEach(() => { window.localStorage.clear(); checkPartnerCodeAction.mockReset(); oneTwoPack(); });
+  beforeEach(() => { window.localStorage.clear(); checkCodeAction.mockReset(); oneTwoPack(); });
 
   it("sends the shopper to /checkout", async () => {
     render(<CartProvider><CartView /></CartProvider>);
@@ -28,7 +28,7 @@ describe("CartView", () => {
   });
 
   it("applies a discount code in the cart and shows the saving", async () => {
-    checkPartnerCodeAction.mockResolvedValue({ ok: true, code: "SMITHLAB" });
+    checkCodeAction.mockResolvedValue({ ok: true, kind: "partner", code: "SMITHLAB" });
     render(<CartProvider><CartView /></CartProvider>);
     fireEvent.change(await screen.findByLabelText("Discount code"), { target: { value: "smithlab" } });
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
@@ -41,8 +41,18 @@ describe("CartView", () => {
     expect(window.localStorage.getItem(CART_CODE_KEY)).toBeNull();
   });
 
+  it("a discount code is saved and applied at checkout", async () => {
+    checkCodeAction.mockResolvedValue({ ok: true, kind: "discount", code: "SPRING20", capPct: 30,
+      terms: { kind: "order_pct", value: 20, stackOnTop: true, freeShipping: false, minOrderCents: null, includeSlugs: [], excludeSlugs: [], includeClasses: [], excludeClasses: [] } });
+    render(<CartProvider><CartView /></CartProvider>);
+    fireEvent.change(await screen.findByLabelText("Discount code"), { target: { value: "spring20" } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(await screen.findByText("✓ SPRING20 · 20% off your order — applied at checkout")).toBeInTheDocument();
+    expect(window.localStorage.getItem(CART_CODE_KEY)).toBe("SPRING20");
+  });
+
   it("saves the code for checkout when the shopper isn't signed in yet", async () => {
-    checkPartnerCodeAction.mockResolvedValue({ ok: false, message: "Please sign in.", needsSignIn: true });
+    checkCodeAction.mockResolvedValue({ ok: false, message: "Please sign in.", needsSignIn: true });
     render(<CartProvider><CartView /></CartProvider>);
     fireEvent.change(await screen.findByLabelText("Discount code"), { target: { value: "smithlab" } });
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
@@ -52,7 +62,7 @@ describe("CartView", () => {
   });
 
   it("explains a refused code and doesn't keep it", async () => {
-    checkPartnerCodeAction.mockResolvedValue({ ok: false, message: "This code can't be used." });
+    checkCodeAction.mockResolvedValue({ ok: false, message: "This code can't be used." });
     render(<CartProvider><CartView /></CartProvider>);
     fireEvent.change(await screen.findByLabelText("Discount code"), { target: { value: "nope" } });
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
@@ -62,9 +72,9 @@ describe("CartView", () => {
 
   it("re-checks a code saved earlier when the cart opens", async () => {
     window.localStorage.setItem(CART_CODE_KEY, "SMITHLAB");
-    checkPartnerCodeAction.mockResolvedValue({ ok: true, code: "SMITHLAB" });
+    checkCodeAction.mockResolvedValue({ ok: true, kind: "partner", code: "SMITHLAB" });
     render(<CartProvider><CartView /></CartProvider>);
-    await waitFor(() => expect(checkPartnerCodeAction).toHaveBeenCalledWith("SMITHLAB"));
+    await waitFor(() => expect(checkCodeAction).toHaveBeenCalledWith("SMITHLAB"));
     expect(await screen.findByText("−$7.90")).toBeInTheDocument();
   });
 

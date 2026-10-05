@@ -7,6 +7,7 @@ import SiteNav from "@/components/store/SiteNav";
 import SiteFooter from "@/components/store/SiteFooter";
 import CartDrawer from "@/components/store/CartDrawer";
 import AccountGate from "@/components/store/gate/AccountGate";
+import HideOnAdmin from "@/components/store/HideOnAdmin";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const spaceGrotesk = Space_Grotesk({
@@ -71,9 +72,9 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable} ${jetbrains.variable}`}>
       <body className="min-h-screen flex flex-col bg-[#EDE9E0]">
         <CartProvider>
-          <SiteNav />
+          <HideOnAdmin><SiteNav /></HideOnAdmin>
           <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <HideOnAdmin><SiteFooter /></HideOnAdmin>
           <CartDrawer />
           <AccountGate />
         </CartProvider>

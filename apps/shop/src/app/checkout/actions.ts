@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { getCustomer } from "@/lib/dal";
 import { priceOrder, type PricedOrder, type Rejection } from "@/lib/pricing";
@@ -11,13 +11,18 @@ import {
 import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } from "@/lib/commerce";
 import { siteUrl } from "@/lib/supabase/env";
 import { resolveAttribution } from "@/lib/partners/attribution";
-import { applyCodeDiscount } from "@/lib/partners/discounts";
 import { offerForCustomer } from "@/lib/account/offer-data";
 import { discountPct, type FirstOrderOffer } from "@/lib/account/offer";
 import { creditBalance, spendCredit } from "@/lib/partners/ledger";
 import { REF_COOKIE } from "@/lib/partners/ref-cookie";
 import { afterOrderPaid } from "@/lib/order-paid";
 import { alertOwner } from "@/lib/notify";
+import { applyDiscounts } from "@/lib/discounts/engine";
+import { claimCode, codeAttemptAllowed, getDiscountCap, recordCodeFailure } from "@/lib/discounts/data";
+import { lookupDiscountCode } from "@/lib/discounts/redeem";
+import { CLAIM_MESSAGE, CODE_MESSAGES, outcomeMessage, type ClaimResult } from "@/lib/discounts/messages";
+import type { CodeTerms } from "@/lib/discounts/rules";
+import { hashIp } from "@/lib/gate";
 
 const OFFER_CHECK_FAILED = "We couldn't check your new-account discount — please try again.";
 
@@ -34,23 +39,6 @@ const schema = z.object({
   useCredit: z.boolean().optional(),
 });
 
-// No rate limiter is applied here: none exists anywhere in this codebase
-// today (the /api/gate and /api/inquiry routes have none either) to reuse
-// per customer, and this is a signed-in server action, not an anonymous
-// public endpoint.
-// needsSignIn: the code wasn't refused, the shopper just isn't signed in and
-// verified yet (codes are only checked for verified accounts). The cart then
-// keeps the code and checkout applies it.
-export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; code: string } | { ok: false; message: string; needsSignIn?: true }> {
-  const customer = await getCustomer();
-  if (!customer) return { ok: false, message: "Please sign in.", needsSignIn: true };
-  if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link.", needsSignIn: true };
-  const typed = String(code).slice(0, 40); // server action: the argument is untrusted
-  const { attribution, codeError } = await resolveAttribution({ typedCode: typed, buyerCustomerId: customer.id });
-  if (!attribution) return { ok: false, message: codeError ?? "This code can't be used." };
-  return { ok: true, code: attribution.code };
-}
-
 // Saves that only keep records tidy (saved address, coupon id, Stripe
 // customer id) must never cancel a checkout the customer can pay; a failure
 // is reported to the owner instead.
@@ -61,6 +49,64 @@ async function bookkeep(what: string, save: () => Promise<void>): Promise<void> 
     console.error(`${what} failed:`, err);
     await alertOwner(`Checkout: ${what} failed`, String(err));
   }
+}
+
+async function requestIpHash(): Promise<string> {
+  const ip = ((await headers()).get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+  return hashIp(ip);
+}
+
+type TypedCode =
+  | { kind: "discount"; id: string; code: string; terms: CodeTerms }
+  | { kind: "partner"; typed: string }
+  | { kind: "error"; message: string };
+
+// One code box: a discount code (lib/discounts) or a partner code. Wrong
+// codes count toward 10 tries per 10 minutes per account and per network.
+async function readTypedCode(typed: string, customer: { id: string; email: string }, ipHash: string): Promise<TypedCode> {
+  try {
+    if (!(await codeAttemptAllowed(customer.id, ipHash))) return { kind: "error", message: CODE_MESSAGES.tooMany };
+    const r = await lookupDiscountCode(typed, customer);
+    if (r.kind === "discount") return r;
+    if (r.kind === "error") { await noteFailedCode(customer.id, ipHash); return r; }
+    return { kind: "partner", typed };
+  } catch (err) {
+    console.error("discount code check failed:", err);
+    return { kind: "error", message: CODE_MESSAGES.couldntCheck };
+  }
+}
+
+async function noteFailedCode(customerId: string, ipHash: string): Promise<void> {
+  await bookkeep("recording a failed code try", () => recordCodeFailure(customerId, ipHash));
+}
+
+export type CodeCheckResult =
+  | { ok: true; kind: "partner"; code: string }
+  | { ok: true; kind: "discount"; code: string; terms: CodeTerms; capPct: number }
+  | { ok: false; message: string; needsSignIn?: true };
+
+// needsSignIn: the code wasn't refused, the shopper just isn't signed in and
+// verified yet (codes are only checked for verified accounts). The cart then
+// keeps the code and checkout applies it.
+export async function checkCodeAction(code: string): Promise<CodeCheckResult> {
+  const customer = await getCustomer();
+  if (!customer) return { ok: false, message: "Please sign in.", needsSignIn: true };
+  if (!customer.emailConfirmed) return { ok: false, message: CODE_MESSAGES.confirmEmail, needsSignIn: true };
+  const typed = String(code).slice(0, 40); // server action: the argument is untrusted
+  const ipHash = await requestIpHash();
+  const r = await readTypedCode(typed, customer, ipHash);
+  if (r.kind === "error") return { ok: false, message: r.message };
+  if (r.kind === "discount") {
+    try {
+      return { ok: true, kind: "discount", code: r.code, terms: r.terms, capPct: await getDiscountCap() };
+    } catch (err) {
+      console.error("discount cap read failed:", err);
+      return { ok: false, message: CODE_MESSAGES.couldntCheck };
+    }
+  }
+  const { attribution, codeError } = await resolveAttribution({ typedCode: typed, buyerCustomerId: customer.id });
+  if (!attribution) { await noteFailedCode(customer.id, ipHash); return { ok: false, message: codeError ?? CODE_MESSAGES.invalid }; }
+  return { ok: true, kind: "partner", code: attribution.code };
 }
 
 // A customer who goes back from Stripe (or closes the tab) leaves an order
@@ -95,13 +141,41 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   if (priced.rejected.length) return { error: "Some items can't be ordered right now — they've been flagged below.", rejected: priced.rejected };
   if (priced.items.length === 0) return { error: "Your cart is empty." };
 
+  // Close earlier unfinished checkouts first: cancelling them releases any
+  // code use they hold, so the code check below doesn't count the customer's
+  // own abandoned order against them. Only for a valid, priceable cart.
+  const adapter = getCommerceAdapter();
+  await releaseAbandonedCheckouts(customer.id, adapter);
+
+  let capPct: number;
+  try {
+    capPct = await getDiscountCap();
+  } catch (err) {
+    console.error("discount cap read failed:", err);
+    return { error: CODE_MESSAGES.couldntCheck };
+  }
+
+  const ipHash = await requestIpHash();
+  const typed = partnerCode?.trim();
+  let discountCode: { id: string; code: string; terms: CodeTerms } | null = null;
+  let partnerTyped: string | undefined;
+  if (typed) {
+    const r = await readTypedCode(typed, customer, ipHash);
+    if (r.kind === "error") return { error: r.message, codeError: r.message };
+    if (r.kind === "discount") discountCode = r; else partnerTyped = r.typed;
+  }
+
   const refCookie = (await cookies()).get(REF_COOKIE)?.value;
-  const { attribution, codeError } = await resolveAttribution({ typedCode: partnerCode, refCookie, buyerCustomerId: customer.id });
-  if (codeError) return { error: codeError, codeError };
-  // One discount per line. A new account's first order (within the
-  // new-account window) gets the new-account percent, applied whenever it's
-  // larger than any partner code's percent (discountPct); a partner code or
-  // link still attributes the order to the partner for commission.
+  const { attribution, codeError } = await resolveAttribution({ typedCode: partnerTyped, refCookie, buyerCustomerId: customer.id });
+  if (codeError) {
+    await noteFailedCode(customer.id, ipHash);
+    return { error: codeError, codeError };
+  }
+  // Discounts (lib/discounts/engine.ts): per item the larger of pack, the
+  // automatic percent (new-account offer or a partner code, whichever is
+  // larger — discountPct) or an item-% code; then an order code; then the
+  // store-wide cap. A partner code or link still attributes the order to the
+  // partner for commission.
   let offer: FirstOrderOffer = null;
   try {
     offer = await offerForCustomer(customer);
@@ -109,19 +183,17 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     console.error("new-account offer check failed:", err);
     return { error: OFFER_CHECK_FAILED };
   }
-  let lineDiscountsCents = priced.items.map(() => 0);
-  const discount = discountPct(!!offer, attribution?.via === "code");
-  let newAccountDiscount = false;
-  if (discount) {
-    const discounted = applyCodeDiscount(priced, discount.pct);
-    priced = discounted;
-    lineDiscountsCents = discounted.lineDiscounts.map((d) => d.savingCents);
-    newAccountDiscount = discount.newAccount;
+  const result = applyDiscounts(priced, { auto: discountPct(!!offer, attribution?.via === "code"), code: discountCode?.terms ?? null, capPct });
+  if (discountCode && (result.codeOutcome === "below_min" || result.codeOutcome === "no_eligible_items")) {
+    const m = outcomeMessage(result, discountCode.code, discountCode.terms, capPct)!.text;
+    return { error: m, codeError: m };
   }
+  const codeApplied = !!discountCode && result.codeOutcome === "applied";
+  priced = result;
+  const lineDiscountsCents = result.lineDiscounts.map((d) => d.savingCents);
+  const newAccountDiscount = result.newAccount;
 
   await bookkeep("saving the shipping address", () => saveShipAddress(customer.id, ship));
-  const adapter = getCommerceAdapter();
-  await releaseAbandonedCheckouts(customer.id, adapter);
 
   // Store credit is a payment, not a discount: tax is computed on the full
   // price first, then credit covers as much of the total as it can.
@@ -148,7 +220,37 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     partner: attribution ? { partnerId: attribution.partnerId, attributedBy: attribution.via } : null,
     storeCreditCents: credit?.creditCents ?? 0, taxCents: credit?.taxCents ?? 0, taxCalculationId: credit?.calculationId ?? null,
     newAccountDiscount,
+    discountCode: codeApplied ? { id: discountCode!.id, discountCents: result.codeDiscountCents } : null,
   });
+
+  // A use is held the moment the order exists; payment marks it used and any
+  // cancel releases it (settle_code_on_order_status trigger). A claim that
+  // can't be confirmed stops checkout — never silently full price.
+  if (codeApplied) {
+    // The customer still gets the code message if the cancel itself fails;
+    // the owner is told, and the reconcile cron cancels the orphan later.
+    const cancelUnclaimed = async (): Promise<void> => {
+      try {
+        await transitionOrder(order.id, "awaiting_payment", "cancelled");
+      } catch (err) {
+        console.error("cancel order after failed code claim failed:", err);
+        await alertOwner(`Couldn't cancel ${order.orderNumber} after a discount-code claim failed`,
+          `Order ${order.orderNumber} (${order.id}) could not be cancelled after its discount-code claim failed: ${String(err)}. A discount-code use may be held until the reconcile cron cancels the order.`);
+      }
+    };
+    let claim: ClaimResult;
+    try {
+      claim = await claimCode({ codeId: discountCode!.id, orderId: order.id, customerId: customer.id, discountCents: result.codeDiscountCents, cappedCents: result.cappedCents });
+    } catch (err) {
+      console.error("discount code claim failed:", err);
+      await cancelUnclaimed();
+      return { error: CODE_MESSAGES.couldntCheck, codeError: CODE_MESSAGES.couldntCheck };
+    }
+    if (claim !== "ok") {
+      await cancelUnclaimed();
+      return { error: CLAIM_MESSAGE[claim], codeError: CLAIM_MESSAGE[claim] };
+    }
+  }
 
   // Credit is held (spent) the moment we commit to it, even for a partial
   // amount — before Stripe ever sees a checkout, so nothing is discounted

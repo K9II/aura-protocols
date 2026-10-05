@@ -5,6 +5,7 @@ import { getOrderById, listOrphanedPendingOrders, transitionOrder } from "@/lib/
 import { applyPaid } from "@/lib/stripe-events";
 import { alertOwner } from "@/lib/notify";
 import { pruneLookups } from "@/lib/account/data";
+import { pruneCodeAttempts } from "@/lib/discounts/data";
 
 // Daily safety net (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`):
 // any Stripe session paid in the last 3 days whose order we never marked paid
@@ -58,6 +59,12 @@ export async function GET(request: Request): Promise<Response> {
     await pruneLookups();
   } catch (err) {
     failed.push(`gate lookups prune: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  // Old discount-code tries (the wrong-code rate limit) are no longer needed.
+  try {
+    await pruneCodeAttempts();
+  } catch (err) {
+    failed.push(`code attempts prune: ${err instanceof Error ? err.message : String(err)}`);
   }
   if (fixedPaid.length) {
     await alertOwner("Reconciler fixed paid orders", `These paid orders were missing their webhook and have now been recorded: ${fixedPaid.join(", ")}`);
