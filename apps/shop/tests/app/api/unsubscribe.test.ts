@@ -4,6 +4,8 @@ const unsubscribe = vi.fn();
 const recordEmailEvent = vi.fn();
 vi.mock("@/lib/email/data", () => ({ unsubscribe }));
 vi.mock("@/lib/email/admin-data", () => ({ recordEmailEvent }));
+const alertOwner = vi.fn();
+vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
 
 async function signed(email: string) {
@@ -13,7 +15,7 @@ async function signed(email: string) {
 
 describe("/api/unsubscribe", () => {
   beforeEach(() => {
-    vi.resetModules(); unsubscribe.mockReset(); recordEmailEvent.mockReset();
+    vi.resetModules(); unsubscribe.mockReset(); recordEmailEvent.mockReset(); alertOwner.mockReset();
     process.env.EMAIL_LINK_SECRET = "s"; unsubscribe.mockResolvedValue(true);
   });
 
@@ -81,5 +83,6 @@ describe("/api/unsubscribe", () => {
     const { GET } = await import("@/app/api/unsubscribe/route");
     const res = await GET(new Request(`http://localhost/api/unsubscribe${await signed("a@b.co")}`));
     expect(res.headers.get("location")).toBe("https://auraprotocols.com/unsubscribed");
+    expect(alertOwner).toHaveBeenCalledWith("Unsubscribe not counted", expect.stringContaining("a@b.co"));
   });
 });

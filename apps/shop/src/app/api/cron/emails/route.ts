@@ -51,7 +51,7 @@ export async function GET(request: Request): Promise<Response> {
         if (!kind) continue;
         const n = Number(kind.slice(-1)) as 1 | 2 | 3 | 4 | 5;
         const offer = n === 1 || n === 5 ? await offerForEmail(s.email) : null;
-        const unsub = unsubscribeUrl(site, s.email);
+        const unsub = unsubscribeUrl(site, s.email, kind);
         if ((await sendTracked({ email: s.email, kind, ref: null, msg: welcomeEmail(n, { site, unsubscribeUrl: unsub }, offer), unsubscribeUrl: unsub })) === "sent") welcome++;
       } catch (err) {
         failed.push(`welcome ${s.email}: ${err instanceof Error ? err.message : String(err)}`);
@@ -92,7 +92,7 @@ export async function GET(request: Request): Promise<Response> {
           const sent = new Set([...(await sentKinds(o.email))].filter((k) => k.endsWith(`:${o.id}`)).map((k) => k.split(":")[0]));
           const kind = dueCart(Date.parse(o.created_at), now, sent);
           if (!kind) continue;
-          const unsub = unsubscribeUrl(site, o.email);
+          const unsub = unsubscribeUrl(site, o.email, kind);
           // A non-subscriber (or one who hasn't confirmed) must see the
           // promotional-reminder disclosure (CAN-SPAM §7704(a)(5)(A)(i)).
           const promo = sub?.status !== "confirmed";

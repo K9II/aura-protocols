@@ -5,6 +5,7 @@
 import { unsubscribe } from "@/lib/email/data";
 import { recordEmailEvent } from "@/lib/email/admin-data";
 import { normalizeEmail, parseUnsubTag, verifyUnsubscribe } from "@/lib/email/links";
+import { alertOwner } from "@/lib/notify";
 import { siteUrl } from "@/lib/supabase/env";
 
 function signed(request: Request): { email: string; tag: string | null } | null {
@@ -21,9 +22,9 @@ async function run(s: { email: string; tag: string | null }): Promise<void> {
   if (!changed) return;
   const src = parseUnsubTag(s.tag);
   // The count is secondary: the unsubscribe already happened, so a failed
-  // event write is logged, not shown to the person as an error.
+  // event write alerts the owner, not shown to the person as an error.
   try { await recordEmailEvent({ type: "unsubscribe", email: s.email, sourceKind: src?.kind ?? null, sourceRef: src?.ref ?? null }); }
-  catch (err) { console.error("unsubscribe event not recorded:", err); }
+  catch (err) { await alertOwner("Unsubscribe not counted", `${s.email} (${s.tag ?? "untagged"}): ${String(err)}`); }
 }
 
 export async function GET(request: Request): Promise<Response> {
