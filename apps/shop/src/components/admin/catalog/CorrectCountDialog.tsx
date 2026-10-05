@@ -9,7 +9,16 @@ export default function CorrectCountDialog({ lotId, lotNumber, left, held, sold 
   const [state, action, pending] = useActionState(correctCountAction, null);
   const [dir, setDir] = useState<"remove" | "add">("remove");
   const [vials, setVials] = useState("");
-  useEffect(() => { if (state?.ok) ref.current?.close(); }, [state]);
+  const [resetKey, setResetKey] = useState(0);
+  useEffect(() => {
+    if (state?.ok) {
+      ref.current?.close();
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
+      setDir("remove");
+      setVials("");
+      setResetKey((k) => k + 1); // remounts the uncontrolled note field blank
+    }
+  }, [state]);
   const n = Math.max(0, Math.trunc(Number(vials) || 0));
   const after = dir === "remove" ? left - n : left + n;
   const fe = state?.fieldErrors ?? {};
@@ -31,7 +40,7 @@ export default function CorrectCountDialog({ lotId, lotNumber, left, held, sold 
               <div className="a-fld"><label htmlFor={`cc-r-${lotId}`}>Reason</label><div className="a-input"><select id={`cc-r-${lotId}`} name="reason" defaultValue="damaged" style={{ flex: 1, border: 0, background: "transparent", height: "100%", padding: "0 10px" }}>
                 {COUNT_REASONS.map((r) => <option key={r} value={r}>{COUNT_REASON_LABEL[r]}</option>)}</select></div></div>
             </div>
-            <div className="a-fld"><label htmlFor={`cc-note-${lotId}`}>Note</label><div className="a-input"><input id={`cc-note-${lotId}`} name="note" maxLength={300} /></div>
+            <div className="a-fld"><label htmlFor={`cc-note-${lotId}`}>Note</label><div className="a-input"><input key={resetKey} id={`cc-note-${lotId}`} name="note" maxLength={300} /></div>
               {fe.note ? <div className="a-err" role="alert">{fe.note}</div> : <div className="help">Reasons: Damaged, Recount, Found, Other (Other needs a note).</div>}</div>
             <div className="a-balance">Left <span className="from">{left}</span><Icon name="arrow" /><span className="to">{Math.max(0, after)}</span><span className="muted" style={{ marginLeft: "auto" }}>{held} held, {sold} sold stay as they are</span></div>
           </div>

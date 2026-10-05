@@ -31,4 +31,20 @@ describe("ReceiveLotDialog", () => {
     fireEvent.change(screen.getByLabelText(/Purity/), { target: { value: "98.5" } });
     expect(screen.getByText("Below the 99% shown on the site.")).toBeInTheDocument();
   });
+
+  it("scopes field ids so two dialogs on one page don't collide", () => {
+    render(<>
+      <ReceiveLotDialog slug="bpc-157" variantId="10mg" title="BPC-157 10 mg" />
+      <ReceiveLotDialog slug="bpc-157" variantId="20mg" title="BPC-157 20 mg" />
+    </>);
+    const [open10, open20] = screen.getAllByRole("button", { name: /Receive a lot/ });
+    fireEvent.click(open10);
+    fireEvent.click(open20);
+    const lotInputs = screen.getAllByLabelText("Lot number");
+    expect(lotInputs).toHaveLength(2);
+    fireEvent.change(lotInputs[0], { target: { value: "AAA-1" } });
+    fireEvent.change(lotInputs[1], { target: { value: "BBB-2" } });
+    expect(lotInputs[0]).toHaveValue("AAA-1");
+    expect(lotInputs[1]).toHaveValue("BBB-2");
+  });
 });

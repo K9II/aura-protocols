@@ -12,8 +12,20 @@ const EMPTY: Omit<DraftLot, "id"> = { lotNumber: "", purity: "", method: "HPLC+M
 export default function ReceiveLotDialog({ slug, variantId, title, draft, small }: { slug: string; variantId: string; title: string; draft?: DraftLot; small?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState(receiveLotAction, null);
-  const [v, setV] = useState(draft ?? { id: "", ...EMPTY });
-  useEffect(() => { if (state?.ok) ref.current?.close(); }, [state]);
+  const initial = () => draft ?? { id: "", ...EMPTY };
+  const [v, setV] = useState(initial);
+  // Two dialogs can sit on the same product page (one strength per card, plus
+  // a separate "Receive a lot" vs "Edit draft" trigger for the same strength)
+  // — scope every field id so their labels never collide.
+  const scope = `${slug}-${variantId}${draft ? `-${draft.id}` : ""}`;
+  useEffect(() => {
+    if (state?.ok) {
+      ref.current?.close();
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
+      setV(initial());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only reacts to a fresh action result
+  }, [state]);
   const set = (k: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setV({ ...v, [k]: e.target.value });
   const n = (s: string) => (s.trim() === "" ? NaN : Number(s));
   const ordered = n(v.ordered), counted = n(v.counted), damaged = n(v.damaged || "0");
@@ -27,36 +39,36 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small 
   return (
     <>
       <button type="button" className={`a-btn${small ? " sm" : ""}`} onClick={() => ref.current?.showModal()}>
-        {draft ? <><Icon name="edit" />Edit</> : <><Icon name="plus" />Receive a lot</>}
+        {draft ? <><Icon name="edit" />Edit</> : small ? <><Icon name="plus" />Receive</> : <><Icon name="plus" />Receive a lot</>}
       </button>
-      <dialog ref={ref} className="a-modal wide" aria-labelledby={`recv-${slug}-${variantId}`}>
+      <dialog ref={ref} className="a-modal wide" aria-labelledby={`recv-${scope}`}>
         <form action={action}>
           <input type="hidden" name="slug" value={slug} />
           <input type="hidden" name="variantId" value={variantId} />
           {draft && <input type="hidden" name="lotId" value={draft.id} />}
           <input type="hidden" name="coaPath" value={v.coaPath} />
-          <div className="a-modal-h"><h2 id={`recv-${slug}-${variantId}`}>{draft ? "Edit draft lot" : "Receive a lot"} · {title}</h2><button type="button" className="x" aria-label="Close" onClick={() => ref.current?.close()}>×</button></div>
+          <div className="a-modal-h"><h2 id={`recv-${scope}`}>{draft ? "Edit draft lot" : "Receive a lot"} · {title}</h2><button type="button" className="x" aria-label="Close" onClick={() => ref.current?.close()}>×</button></div>
           <div className="a-modal-b">
             <div className="a-row3">
-              <div className="a-fld"><label htmlFor="r-lot">Lot number</label><div className="a-input mono"><input id="r-lot" name="lotNumber" value={v.lotNumber} onChange={set("lotNumber")} required /></div>{fe.lotNumber && <div className="a-err" role="alert">{fe.lotNumber}</div>}</div>
-              <div className="a-fld"><label htmlFor="r-purity">Purity</label><div className={`a-input${lowPurity ? " warn" : ""}`}><input id="r-purity" name="purity" inputMode="decimal" value={v.purity} onChange={set("purity")} required /><span className="affix">%</span></div>
+              <div className="a-fld"><label htmlFor={`r-lot-${scope}`}>Lot number</label><div className="a-input mono"><input id={`r-lot-${scope}`} name="lotNumber" value={v.lotNumber} onChange={set("lotNumber")} required /></div>{fe.lotNumber && <div className="a-err" role="alert">{fe.lotNumber}</div>}</div>
+              <div className="a-fld"><label htmlFor={`r-purity-${scope}`}>Purity</label><div className={`a-input${lowPurity ? " warn" : ""}`}><input id={`r-purity-${scope}`} name="purity" inputMode="decimal" value={v.purity} onChange={set("purity")} required /><span className="affix">%</span></div>
                 {lowPurity && <div className="a-warnline"><Icon name="warn" />Below the {PURITY_FLOOR_PCT}% shown on the site.</div>}{fe.purity && <div className="a-err" role="alert">{fe.purity}</div>}</div>
-              <div className="a-fld"><label htmlFor="r-method">Method</label><div className="a-input"><select id="r-method" name="method" value={v.method} onChange={set("method")} style={{ flex: 1, border: 0, background: "transparent", height: "100%", padding: "0 10px" }}>
+              <div className="a-fld"><label htmlFor={`r-method-${scope}`}>Method</label><div className="a-input"><select id={`r-method-${scope}`} name="method" value={v.method} onChange={set("method")} style={{ flex: 1, border: 0, background: "transparent", height: "100%", padding: "0 10px" }}>
                 {METHODS.map((m) => <option key={m} value={m}>{m === "HPLC+MS" ? "HPLC + MS" : m}</option>)}</select></div></div>
             </div>
             <div className="a-row3">
-              <div className="a-fld"><label htmlFor="r-tested">Tested on</label><div className="a-input"><input id="r-tested" name="testedOn" type="date" value={v.testedOn} onChange={set("testedOn")} required /></div>{fe.testedOn && <div className="a-err" role="alert">{fe.testedOn}</div>}</div>
-              <div style={{ gridColumn: "span 2" }}><CoaUpload lotNumber={v.lotNumber} path={v.coaPath} onPath={(p) => setV({ ...v, coaPath: p })} error={fe.coa} /></div>
+              <div className="a-fld"><label htmlFor={`r-tested-${scope}`}>Tested on</label><div className="a-input"><input id={`r-tested-${scope}`} name="testedOn" type="date" value={v.testedOn} onChange={set("testedOn")} required /></div>{fe.testedOn && <div className="a-err" role="alert">{fe.testedOn}</div>}</div>
+              <div style={{ gridColumn: "span 2" }}><CoaUpload idSuffix={scope} lotNumber={v.lotNumber} path={v.coaPath} onPath={(p) => setV({ ...v, coaPath: p })} error={fe.coa} /></div>
             </div>
             <div className="a-recv">
               <div className="h">Receiving check {disc && <span className="a-chip c-disc">Discrepancy</span>}</div>
               <div className="a-row3">
-                <div className="a-fld"><label htmlFor="r-ordered">Ordered <span className="muted" style={{ fontWeight: 400 }}>(invoice)</span></label><div className="a-input"><input id="r-ordered" name="ordered" inputMode="numeric" value={v.ordered} onChange={set("ordered")} required /></div>{fe.ordered && <div className="a-err" role="alert">{fe.ordered}</div>}</div>
-                <div className="a-fld"><label htmlFor="r-counted">Counted</label><div className={`a-input${disc ? " warn" : ""}`}><input id="r-counted" name="counted" inputMode="numeric" value={v.counted} onChange={set("counted")} required /></div>{fe.counted && <div className="a-err" role="alert">{fe.counted}</div>}</div>
-                <div className="a-fld"><label htmlFor="r-damaged">Damaged</label><div className={`a-input${damaged > 0 ? " warn" : ""}`}><input id="r-damaged" name="damaged" inputMode="numeric" value={v.damaged} onChange={set("damaged")} /></div>{fe.damaged && <div className="a-err" role="alert">{fe.damaged}</div>}</div>
+                <div className="a-fld"><label htmlFor={`r-ordered-${scope}`}>Ordered <span className="muted" style={{ fontWeight: 400 }}>(invoice)</span></label><div className="a-input"><input id={`r-ordered-${scope}`} name="ordered" inputMode="numeric" value={v.ordered} onChange={set("ordered")} required /></div>{fe.ordered && <div className="a-err" role="alert">{fe.ordered}</div>}</div>
+                <div className="a-fld"><label htmlFor={`r-counted-${scope}`}>Counted</label><div className={`a-input${disc ? " warn" : ""}`}><input id={`r-counted-${scope}`} name="counted" inputMode="numeric" value={v.counted} onChange={set("counted")} required /></div>{fe.counted && <div className="a-err" role="alert">{fe.counted}</div>}</div>
+                <div className="a-fld"><label htmlFor={`r-damaged-${scope}`}>Damaged</label><div className={`a-input${damaged > 0 ? " warn" : ""}`}><input id={`r-damaged-${scope}`} name="damaged" inputMode="numeric" value={v.damaged} onChange={set("damaged")} /></div>{fe.damaged && <div className="a-err" role="alert">{fe.damaged}</div>}</div>
               </div>
-              {disc && <div className="a-fld" style={{ marginTop: 12 }}><label htmlFor="r-note">What happened <span className="muted" style={{ fontWeight: 400 }}>· required when counts don&apos;t match</span></label>
-                <textarea id="r-note" name="note" className="a-textarea" maxLength={500} value={v.note} onChange={set("note")} required />{fe.note && <div className="a-err" role="alert">{fe.note}</div>}</div>}
+              {disc && <div className="a-fld" style={{ marginTop: 12 }}><label htmlFor={`r-note-${scope}`}>What happened <span className="muted" style={{ fontWeight: 400 }}>· required when counts don&apos;t match</span></label>
+                <textarea id={`r-note-${scope}`} name="note" className="a-textarea" maxLength={500} value={v.note} onChange={set("note")} required />{fe.note && <div className="a-err" role="alert">{fe.note}</div>}</div>}
               <div className="sum"><span>Sellable <b>{sellable ?? "—"}</b></span>{known && <span className="muted">= {counted} counted − {damaged} damaged</span>}{disc && <span className="muted" style={{ marginLeft: "auto" }}>You&apos;ll get an email about the shortfall</span>}</div>
             </div>
             <ul className="a-checks">

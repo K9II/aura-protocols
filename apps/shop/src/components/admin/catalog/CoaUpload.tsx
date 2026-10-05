@@ -7,7 +7,8 @@ import { coaUploadAction } from "@/app/admin/catalog/actions";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { COA_MAX_BYTES } from "@/lib/catalog-ops/rules";
 
-export default function CoaUpload({ lotNumber, path, onPath, error }: { lotNumber: string; path: string; onPath: (p: string) => void; error?: string }) {
+export default function CoaUpload({ lotNumber, path, onPath, error, idSuffix }: { lotNumber: string; path: string; onPath: (p: string) => void; error?: string; idSuffix: string }) {
+  const id = `coa-file-${idSuffix}`;
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -30,12 +31,12 @@ export default function CoaUpload({ lotNumber, path, onPath, error }: { lotNumbe
   }
   return (
     <div className="a-fld">
-      <label htmlFor="coa-file">Certificate (PDF)</label>
+      <label htmlFor={id}>Certificate (PDF)</label>
       <div className="a-file">
         <span className="pdf">PDF</span>
         <span><b>{name ?? (path ? path.split("/").pop() : "No file yet")}</b><small>{busy ? "Uploading…" : path ? "uploaded" : `up to ${COA_MAX_BYTES / 1024 / 1024} MB`}</small></span>
-        <label className="a-btn sm r" htmlFor="coa-file">{path ? "Replace" : "Attach"}</label>
-        <input id="coa-file" type="file" accept="application/pdf" hidden onChange={(e) => pick(e.target.files?.[0])} />
+        <label className="a-btn sm r" htmlFor={id}>{path ? "Replace" : "Attach"}</label>
+        <input id={id} type="file" accept="application/pdf" hidden onChange={(e) => pick(e.target.files?.[0])} />
       </div>
       {(msg || error) && <div className="a-err" role="alert">{msg ?? error}</div>}
     </div>

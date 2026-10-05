@@ -9,7 +9,7 @@ export default function ShownSwitch({ slug, name, shown }: { slug: string; name:
       <input type="hidden" name="shown" value={shown ? "false" : "true"} />
       <ConfirmSubmit className={`a-switch${shown ? "" : " off"}`}
         message={shown ? `Hide ${name}? It disappears from the store; open checkouts still complete.` : `Show ${name} on the store again?`}>
-        <span className="k" />{shown ? "Shown on store" : "Hidden"}
+        <span className="k" />{shown ? <>Shown<span className="a-only-desk"> on store</span></> : "Hidden"}
       </ConfirmSubmit>
     </form>
   );
