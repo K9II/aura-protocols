@@ -14,7 +14,7 @@ const NAV: Array<{ group?: string; items: Item[] }> = [
     { href: "/admin/customers", label: "Customers", icon: "customers", live: true },
     { href: "/admin/discounts", label: "Discounts", icon: "discounts", live: true },
   ] },
-  { group: "Stock", items: [{ href: "/admin/catalog", label: "Catalog & lots", icon: "catalog", live: false }] },
+  { group: "Stock", items: [{ href: "/admin/catalog", label: "Catalog & lots", icon: "catalog", live: true }] },
   { group: "Reach", items: [
     { href: "/admin/email", label: "Email", icon: "mail", live: false },
     { href: "/admin/inquiries", label: "Inquiries", icon: "inbox", live: false },

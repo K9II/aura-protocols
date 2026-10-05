@@ -17,6 +17,13 @@ describe("AdminShell", () => {
     expect(screen.getByText("page")).toBeInTheDocument();
   });
 
+  it("Catalog & lots is live in the menu", async () => {
+    nav.path = "/admin/catalog";
+    const { default: AdminShell } = await import("@/components/admin/AdminShell");
+    render(<AdminShell counts={{ orders: 0, partners: 0 }} testMode ownerName="Kearney"><p /></AdminShell>);
+    expect(screen.getByRole("link", { name: /Catalog & lots/ })).toHaveAttribute("href", "/admin/catalog");
+  });
+
   it("hides the Test mode tag on live keys", async () => {
     nav.path = "/admin/discounts/abc";
     const { default: AdminShell } = await import("@/components/admin/AdminShell");
