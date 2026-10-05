@@ -1,0 +1,54 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+
+const { requireOwner, getCustomerDetail } = vi.hoisted(() => ({ requireOwner: vi.fn(async () => ({ id: "owner" })), getCustomerDetail: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/customers/data", () => ({ getCustomerDetail }));
+vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
+vi.mock("@/app/admin/customers/actions", () => ({ adjustCreditAction: vi.fn(), blockAction: vi.fn(), unblockAction: vi.fn(), resendVerifyAdminAction: vi.fn() }));
+import CustomerPage from "@/app/admin/customers/[id]/page";
+
+const ID = "3f1e2d4c-5b6a-4789-8abc-def012345678";
+const detail = {
+  id: ID, email: "e@lab.edu", fullName: "Elena Novak", organization: "Novak Lab", isOwner: false, createdAt: "2026-09-30T20:07:00Z",
+  verifiedAt: "2026-09-30T20:09:00Z", verifySentAt: null, marketingOptIn: true, blockedAt: null, blockedReason: null,
+  ship: { name: "Elena Novak", line1: "1550 Linden Dr", line2: null, city: "Madison", state: "WI", zip: "53706" },
+  orders: [
+    { id: "o2", order_number: "AP-1090", status: "awaiting_payment", created_at: "2026-10-03T20:00:00Z", total_cents: 49_995, store_credit_cents: 0, new_account_discount: false, partner_id: null, attributed_by: null, order_items: [{ quantity: 1 }] },
+    { id: "o1", order_number: "AP-1041", status: "shipped", created_at: "2026-09-30T21:00:00Z", total_cents: 61_230, store_credit_cents: 0, new_account_discount: true, partner_id: null, attributed_by: null, order_items: [{ quantity: 1 }, { quantity: 1 }] },
+  ],
+  agreements: [{ id: "a1", terms_version: "2026-10-01", age_21: true, ruo: true, dispute_policy: true, ip_hash: "3f9a1c07ff", user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/129.0 Safari/537.36", agreed_at: "2026-09-30T20:07:22Z" }],
+  attestations: [], ledger: [{ id: "l1", amount_cents: 15_000, reason: "owner_adjust", ref_id: "e1", note: "late shipment", created_at: "2026-10-02T22:12:00Z" }],
+  events: [{ id: "e1", kind: "credit_added", amount_cents: 15_000, reason: "goodwill", note: "late shipment", actor_id: "owner", created_at: "2026-10-02T22:12:00Z", actorName: "Kearney" }],
+  isPartner: false, referrer: null, blockedBy: null,
+};
+
+describe("/admin/customers/[id]", () => {
+  beforeEach(() => getCustomerDetail.mockResolvedValue(detail));
+
+  it("404s a bad id or a missing customer", async () => {
+    await expect(CustomerPage({ params: Promise.resolve({ id: "nope" }) })).rejects.toThrow("NOT_FOUND");
+    getCustomerDetail.mockResolvedValueOnce(null);
+    await expect(CustomerPage({ params: Promise.resolve({ id: ID }) })).rejects.toThrow("NOT_FOUND");
+  });
+
+  it("renders totals from paid orders only, the agreement record, ledger and actions", async () => {
+    render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(screen.getByRole("heading", { level: 1, name: /Elena Novak/ })).toBeInTheDocument();
+    expect(screen.getAllByText("$612.30").length).toBeGreaterThan(0); // spent = AP-1041 only
+    expect(screen.getByText("Chrome on macOS")).toBeInTheDocument();
+    expect(screen.getByText("3f9a1c07")).toBeInTheDocument();
+    expect(screen.getByText(/Used on/)).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "AP-1041" })[0]).toHaveAttribute("href", "/admin/orders?status=shipped#AP-1041");
+    expect(screen.getByRole("button", { name: "Block" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Resend verification" })).toBeNull(); // verified
+  });
+
+  it("blocked: banner with Unblock, no Block button; owners get no Block either", async () => {
+    getCustomerDetail.mockResolvedValueOnce({ ...detail, blockedAt: "2026-10-04T16:31:00Z", blockedReason: "two chargebacks", blockedBy: "Kearney" });
+    render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(screen.getByText(/two chargebacks/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Unblock" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Block" })).toBeNull();
+  });
+});
