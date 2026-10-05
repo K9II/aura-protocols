@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { allCompounds as compounds, compounds as listed, CHEMICAL_CLASSES } from "@/data/catalog";
+import { catalogContent as compounds, CHEMICAL_CLASSES } from "@/data/catalog";
 
 // Slugs with no registered CAS number. Each entry needs a comment naming the
 // primary source consulted. Keep empty unless fetch-identity proved it.
@@ -8,17 +8,14 @@ const NO_CAS = new Set<string>([]);
 const isBlend = (c: (typeof compounds)[number]) => c.components !== undefined;
 
 describe("catalog integrity", () => {
-  it("has the 27 catalog compounds, 21 of them listed", () => {
+  // Which are shown is Aura Store's call (catalog_products.shown; the seed
+  // hides the six incretin & amylin analogs — tests/data/catalog-ops-sql.test.ts).
+  it("has the 27 catalog compounds, content only (no prices, stock or lots)", () => {
     expect(compounds).toHaveLength(27);
-    expect(listed).toHaveLength(21);
-  });
-
-  it("keeps every incretin/amylin analog unlisted (pending processor approval)", () => {
-    const unlisted = compounds.filter((c) => c.unlisted).map((c) => c.slug);
-    expect(unlisted.sort()).toEqual(
-      ["cagrilintide", "cagrisema", "retatrutide", "retatrutide-cagrilintide", "semaglutide", "tirzepatide"],
-    );
-    expect(listed.some((c) => c.chemicalClass === "Incretin & Amylin Analogs")).toBe(false);
+    for (const c of compounds) {
+      expect(c, c.slug).not.toHaveProperty("currentLot");
+      for (const v of c.variants) expect(Object.keys(v).sort(), c.slug).toEqual(["id", "strength"]);
+    }
   });
 
   it("has unique slugs", () => {
@@ -45,11 +42,10 @@ describe("catalog integrity", () => {
     }
   });
 
-  it("gives every compound at least one variant with a unique id and positive price", () => {
+  it("gives every compound at least one variant with a unique id", () => {
     for (const c of compounds) {
       expect(c.variants.length, c.slug).toBeGreaterThan(0);
       expect(new Set(c.variants.map((v) => v.id)).size, c.slug).toBe(c.variants.length);
-      for (const v of c.variants) expect(v.priceUsd, c.slug).toBeGreaterThan(0);
     }
   });
 
@@ -64,14 +60,9 @@ describe("catalog integrity", () => {
     for (const c of compounds) for (const s of c.components ?? []) expect(slugs.has(s), `${c.slug}→${s}`).toBe(true);
   });
 
-  it("never shows a tested lot without its certificate file", () => {
-    for (const c of compounds) {
-      if ("pending" in c.currentLot) continue;
-      expect(c.currentLot.coaFile, c.slug).toMatch(/^\/coa\/.+/);
-    }
-  });
-
-  it("features exactly four listed compounds", () => {
-    expect(listed.filter((c) => c.featured)).toHaveLength(4);
+  it("features exactly four compounds, none of them incretin & amylin analogs", () => {
+    const featured = compounds.filter((c) => c.featured);
+    expect(featured).toHaveLength(4);
+    expect(featured.some((c) => c.chemicalClass === "Incretin & Amylin Analogs")).toBe(false);
   });
 });

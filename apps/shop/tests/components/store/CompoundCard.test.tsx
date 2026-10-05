@@ -4,12 +4,12 @@ import CompoundCard from "@/components/store/CompoundCard";
 import SpecBoxes from "@/components/store/SpecBoxes";
 import type { Compound } from "@/data/catalog";
 
+const lot = { lot: "AP-0001", purityPct: 99.6, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
 const c: Compound = {
   slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {},
   form: "x", storage: "x", vialMl: 3,
-  variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in" }, { id: "10mg", strength: "10 mg", priceUsd: 79, stock: "in" }],
+  variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in", availableVials: 40, lot }, { id: "10mg", strength: "10 mg", priceUsd: 79, stock: "in", availableVials: 40, lot }],
   packDiscounts: [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }],
-  currentLot: { lot: "AP-0001", purityPct: 99.6, method: "HPLC", testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" },
 };
 
 describe("CompoundCard", () => {
@@ -28,9 +28,14 @@ describe("CompoundCard", () => {
   });
 
   it("shows COA pending instead of the tag and purity", () => {
-    render(<CompoundCard compound={{ ...c, currentLot: { pending: true } }} />);
+    render(<CompoundCard compound={{ ...c, variants: c.variants.map((v) => ({ ...v, stock: "out" as const, availableVials: 0, lot: { pending: true as const } })) }} />);
     expect(screen.getByText("COA pending")).toBeInTheDocument();
     expect(screen.queryByText("◇ COA on file")).toBeNull();
+  });
+
+  it("takes the lot line from the first strength with a released lot", () => {
+    render(<CompoundCard compound={{ ...c, variants: [{ ...c.variants[0], stock: "out", availableVials: 0, lot: { pending: true } }, c.variants[1]] }} />);
+    expect(screen.getByText("99.6% · tested")).toBeInTheDocument();
   });
 
   it("flags low stock, and out of stock when every variant is out", () => {
@@ -43,7 +48,7 @@ describe("CompoundCard", () => {
 
 describe("SpecBoxes", () => {
   it("shows purity, method and lot", () => {
-    render(<SpecBoxes lot={c.currentLot} />);
+    render(<SpecBoxes lot={lot} />);
     expect(screen.getByText("99.6%")).toBeInTheDocument();
     expect(screen.getByText("HPLC")).toBeInTheDocument();
     expect(screen.getByText("AP-0001")).toBeInTheDocument();

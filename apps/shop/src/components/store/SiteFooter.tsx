@@ -2,8 +2,9 @@ import Link from "next/link";
 import AuraLockup from "@/components/AuraLockup";
 import { classCounts } from "@/lib/catalog";
 import { SUPPORT_EMAIL } from "@/lib/constants";
+import type { Compound } from "@/data/catalog";
 
-export default function SiteFooter() {
+export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
   return (
     <footer className="pharmacopoeia border-t border-[color:var(--line)]">
       <div className="p-container py-14 grid gap-10 md:grid-cols-[1.3fr_1fr_1fr_1fr]">
@@ -17,7 +18,7 @@ export default function SiteFooter() {
           <h6 className="s-micro text-[color:var(--ink-soft)] mb-3.5">Shop</h6>
           <ul className="text-[13.5px] space-y-2.5">
             <li><Link href="/products">All compounds</Link></li>
-            {classCounts().map(({ cls }) => (
+            {classCounts(catalog).map(({ cls }) => (
               <li key={cls}><Link href={`/products?cat=${encodeURIComponent(cls)}`}>{cls}</Link></li>
             ))}
           </ul>

@@ -1,16 +1,18 @@
 // RELATIVE IMPORTS ONLY (reachable from next.config.ts).
-import { CHEMICAL_CLASSES, compounds as listedCompounds } from "../data/catalog";
+import { CHEMICAL_CLASSES, catalogContent } from "../data/catalog";
 import type { ChemicalClass, Compound, Lot, PendingLot } from "../data/catalog";
 
-export function findCompound(slug: string, list: Compound[] = listedCompounds): Compound | undefined {
+// The catalog is always a parameter: storefront callers pass the live
+// catalog (lib/catalog-live.ts); there are no code prices to fall back to.
+export function findCompound(slug: string, list: Compound[]): Compound | undefined {
   return list.find((c) => c.slug === slug);
 }
 
-export function compoundsInClass(cls: ChemicalClass, list: Compound[] = listedCompounds): Compound[] {
+export function compoundsInClass(cls: ChemicalClass, list: Compound[]): Compound[] {
   return list.filter((c) => c.chemicalClass === cls);
 }
 
-export function relatedCompounds(c: Compound, count = 4, list: Compound[] = listedCompounds): Compound[] {
+export function relatedCompounds(c: Compound, count: number, list: Compound[]): Compound[] {
   const others = list.filter((o) => o.slug !== c.slug);
   const same = others.filter((o) => o.chemicalClass === c.chemicalClass);
   const rest = others.filter((o) => o.chemicalClass !== c.chemicalClass);
@@ -80,38 +82,26 @@ export function isPendingLot(lot: Lot | PendingLot): lot is PendingLot {
   return "pending" in lot;
 }
 
-export function findLot(
-  lotNo: string,
-  list: Compound[] = listedCompounds,
-): { compound: Compound; lot: Lot } | undefined {
-  const needle = lotNo.trim().toUpperCase();
-  for (const compound of list) {
-    const lot = compound.currentLot;
-    if (!isPendingLot(lot) && lot.lot.toUpperCase() === needle) return { compound, lot };
-  }
-  return undefined;
-}
-
 // Vial labels fit ~11 characters at the smallest name size (see Vial.tsx).
 // Parenthetical synonyms drop ("PT-141 (Bremelanotide)" → "PT-141"); long
 // blends show their first component plus "+".
-export function vialLabel(c: Compound): string {
+export function vialLabel(c: { name: string }): string {
   const name = c.name.replace(/\s*\([^)]*\)\s*$/, "");
   if (name.length <= 11 || !name.includes(" / ")) return name;
   return `${name.split(" / ")[0]} +`;
 }
 
-// Cap colors rotate through the listed catalog for variety; a compound keeps
-// the same cap on its card and its product page.
+// Cap colors rotate through the content catalog for variety; a compound keeps
+// the same cap on its card and its product page, whatever is shown or hidden.
 export type VialCap = "red" | "black" | "white";
 const CAP_ROTATION: VialCap[] = ["red", "black", "white"];
 
-export function vialCap(c: Compound): VialCap {
-  const i = listedCompounds.findIndex((o) => o.slug === c.slug);
+export function vialCap(c: { slug: string }): VialCap {
+  const i = catalogContent.findIndex((o) => o.slug === c.slug);
   return i < 0 ? "red" : CAP_ROTATION[i % CAP_ROTATION.length];
 }
 
-export function classCounts(list: Compound[] = listedCompounds): Array<{ cls: ChemicalClass; count: number }> {
+export function classCounts(list: Compound[]): Array<{ cls: ChemicalClass; count: number }> {
   return CHEMICAL_CLASSES.map((cls) => ({ cls, count: list.filter((c) => c.chemicalClass === cls).length }))
     .filter((x) => x.count > 0);
 }

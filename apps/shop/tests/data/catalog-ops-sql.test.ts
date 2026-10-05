@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { allCompounds } from "../../src/data/catalog";
+import { catalogContent } from "../../src/data/catalog";
+
+const HIDDEN_AT_LAUNCH = ["semaglutide", "tirzepatide", "retatrutide", "cagrilintide", "cagrisema", "retatrutide-cagrilintide"];
 
 const sql = readFileSync(join(__dirname, "..", "..", "supabase", "catalog-ops.sql"), "utf8");
 
@@ -67,10 +69,10 @@ describe("catalog-ops.sql", () => {
     expect(sql).toMatch(/insert into storage\.buckets[^;]+'coa'[^;]+true[^;]+application\/pdf[^;]+on conflict/);
   });
 
-  it("seeds a product row for every code product (the six incretin & amylin analogs hidden) and a variant row for every strength", () => {
-    for (const c of allCompounds) {
-      expect(sql, c.slug).toContain(`('${c.slug}', ${c.unlisted ? "false" : "true"})`);
-      for (const v of c.variants) expect(sql, `${c.slug} ${v.id}`).toContain(`('${c.slug}', '${v.id}', ${Math.round(v.priceUsd * 100)})`);
+  it("seeds a row for every code product and strength", () => {
+    for (const c of catalogContent) {
+      expect(sql, c.slug).toContain(`('${c.slug}', ${HIDDEN_AT_LAUNCH.includes(c.slug) ? "false" : "true"})`);
+      for (const v of c.variants) expect(sql, `${c.slug} ${v.id}`).toMatch(new RegExp(`\\('${c.slug}', '${v.id}', \\d+\\)`));
     }
   });
 });

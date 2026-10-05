@@ -4,21 +4,17 @@ import ScrollReveal from "@/components/ScrollReveal";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import FromTheRecord from "@/components/store/FromTheRecord";
-import { compounds } from "@/data/catalog";
+import Unavailable from "@/components/store/Unavailable";
+import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 import { PURITY_FLOOR_PCT } from "@/lib/constants";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
-
-const SPHERE_NODES = sphereNodes();
-const SPHERE_PAIRS_ACTIVE = spherePairs(SPHERE_NODES);
 
 export const metadata: Metadata = {
   title: "Aura Protocols — Research Peptides, Certificate per Lot",
   description: "Research compounds released only after independent lot testing, with the certificate for each lot published. For laboratory research use only.",
   alternates: { canonical: "/" },
 };
-
-const featured = compounds.filter((c) => c.featured);
 
 const faq = [
   { q: "Are these for human use?", a: "No. Every compound is sold strictly for in-vitro laboratory research. Not for human or animal consumption, and not for medical, veterinary, or diagnostic use." },
@@ -27,7 +23,12 @@ const faq = [
   { q: "What if a product says “COA pending”?", a: "The lot is still at the lab. The certificate is posted the day results come back." },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const live = await getLiveCatalogOrNull();
+  if (!live) return <Unavailable />;
+  const featured = live.shown.filter((c) => c.featured);
+  const sphere = sphereNodes(live.shown);
+  const spherePairsActive = spherePairs(sphere);
   return (
     <div className="pharmacopoeia">
       <ScrollReveal />
@@ -46,7 +47,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="load-in load-5 s-hero-sphere">
-            <BiosignatureSphere nodes={SPHERE_NODES} pairs={SPHERE_PAIRS_ACTIVE} />
+            <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
           </div>
         </section>
 
@@ -61,7 +62,7 @@ export default function HomePage() {
             {featured.map((c, i) => <CompoundCard key={c.slug} compound={c} index={i} />)}
           </div>
           <div className="mt-8">
-            <Link href="/products" className="p-see-all s-micro">See all {compounds.length} compounds →</Link>
+            <Link href="/products" className="p-see-all s-micro">See all {live.shown.length} compounds →</Link>
           </div>
         </section>
 

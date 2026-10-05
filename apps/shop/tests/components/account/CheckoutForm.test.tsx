@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import type { Compound } from "@/data/catalog";
 
+const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
+// The live catalog comes from the cart context (CartProvider's `catalog`).
+const catalog: Compound[] = [{
+  slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
+  variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in", availableVials: 100, lot: tested }],
+  packDiscounts: [{ qty: 1, pct: 0 }, { qty: 2, pct: 5 }],
+}];
 const { checkCodeAction, startCheckoutAction, lines, cart } = vi.hoisted(() => ({
   checkCodeAction: vi.fn(),
   startCheckoutAction: vi.fn(),
@@ -9,16 +16,7 @@ const { checkCodeAction, startCheckoutAction, lines, cart } = vi.hoisted(() => (
   cart: { code: "", setCode: vi.fn() },
 }));
 vi.mock("@/app/checkout/actions", () => ({ checkCodeAction, startCheckoutAction }));
-vi.mock("@/components/store/CartProvider", () => ({ useCart: () => ({ lines, code: cart.code, setCode: cart.setCode }) }));
-
-const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
-vi.mock("@/data/catalog", () => ({
-  compounds: [{
-    slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
-    variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in" }],
-    packDiscounts: [{ qty: 1, pct: 0 }, { qty: 2, pct: 5 }], currentLot: tested,
-  }] satisfies Compound[],
-}));
+vi.mock("@/components/store/CartProvider", () => ({ useCart: () => ({ catalog, lines, code: cart.code, setCode: cart.setCode }) }));
 
 const { default: CheckoutForm } = await import("@/components/account/CheckoutForm");
 type FormProps = Parameters<typeof CheckoutForm>[0];

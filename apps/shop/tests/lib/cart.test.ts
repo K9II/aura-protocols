@@ -8,9 +8,8 @@ import {
 const c: Compound = {
   slug: "a", name: "Alpha", chemicalClass: "Peptide Fragments", identity: {},
   form: "x", storage: "x", vialMl: 3,
-  variants: [{ id: "5mg", strength: "5 mg", priceUsd: 50, stock: "in" }],
+  variants: [{ id: "5mg", strength: "5 mg", priceUsd: 50, stock: "in", availableVials: 50, lot: { pending: true } }],
   packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }, { qty: 10, pct: 20 }],
-  currentLot: { pending: true },
 };
 const list = [c];
 const line = (over: Partial<CartLine> = {}): CartLine => ({ slug: "a", variantId: "5mg", packQty: 1, quantity: 1, ...over });

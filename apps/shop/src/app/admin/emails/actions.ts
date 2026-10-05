@@ -9,7 +9,7 @@
 
 import { requireOwner } from "@/lib/dal";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
-import { compounds } from "@/data/catalog";
+import { getLiveCatalog } from "@/lib/catalog-live";
 import { unannouncedLots } from "@/lib/email/lots";
 import { listConfirmedEmails, sendTracked } from "@/lib/email/data";
 import { lotAlertEmail, type AlertLot } from "@/lib/emails-marketing";
@@ -40,7 +40,7 @@ async function pickLots(lots: string[]): Promise<{ picked: AlertLot[]; missing: 
   const rows = await loadAnnouncementRows();
   const finishedLots = new Set(rows.filter((r) => r.finished_at).flatMap((r) => r.lots));
   const openLots = new Set(rows.find((r) => !r.finished_at)?.lots ?? []);
-  const waiting = unannouncedLots(compounds, finishedLots);
+  const waiting = unannouncedLots((await getLiveCatalog()).lots, finishedLots);
   const picked = waiting.filter((l) => lots.includes(l.lot) && !openLots.has(l.lot));
   const stuckInOpen = lots.filter((x) => openLots.has(x));
   const missing = lots.filter((x) => !picked.some((l) => l.lot === x) && !openLots.has(x));

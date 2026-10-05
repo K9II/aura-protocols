@@ -14,7 +14,7 @@ export type CatalogOps = {
   variants: Array<{ slug: string; variant_id: string; price_cents: number; low_at: number; threepl_sku: string | null }>;
   lots: LotStockRow[];   // live + retired only (fetchCatalogOps filters drafts)
 };
-export type LiveCatalog = { all: LiveCompound[]; shown: LiveCompound[]; lots: PublicLot[] };
+export type LiveCatalog<C extends string = string> = { all: LiveCompound<C>[]; shown: LiveCompound<C>[]; lots: PublicLot[] };
 
 export function stockState(available: number, lowAt: number): StockState {
   if (available <= 0) return "out";
@@ -26,14 +26,14 @@ const toLot = (r: LotStockRow, coaUrl: (p: string) => string): Lot => ({
 });
 const byLiveAt = (a: LotStockRow, b: LotStockRow) => (a.live_at ?? "").localeCompare(b.live_at ?? "") || a.lot_number.localeCompare(b.lot_number);
 
-export function mergeCatalog(content: CatalogEntry[], ops: CatalogOps, coaUrl: (path: string) => string): LiveCatalog {
+export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: CatalogOps, coaUrl: (path: string) => string): LiveCatalog<C> {
   const shownBySlug = new Map(ops.products.map((p) => [p.slug, p.shown]));
   const variantRow = new Map(ops.variants.map((v) => [`${v.slug}:${v.variant_id}`, v]));
   const lotsFor = (slug: string, variantId: string) =>
     ops.lots.filter((l) => l.slug === slug && l.variant_id === variantId && l.live_at).sort(byLiveAt);
 
-  const all: LiveCompound[] = [];
-  const shown: LiveCompound[] = [];
+  const all: LiveCompound<C>[] = [];
+  const shown: LiveCompound<C>[] = [];
   const lots: PublicLot[] = [];
   for (const c of content) {
     if (!shownBySlug.has(c.slug)) continue;
@@ -55,7 +55,7 @@ export function mergeCatalog(content: CatalogEntry[], ops: CatalogOps, coaUrl: (
       }
     }
     if (!variants.length) continue;
-    const compound: LiveCompound = { ...c, variants };
+    const compound: LiveCompound<C> = { ...c, variants };
     all.push(compound);
     if (shownBySlug.get(c.slug)) shown.push(compound);
   }

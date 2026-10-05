@@ -9,7 +9,7 @@ const lot = { lot: "AP-1", purityPct: 99.5, method: "HPLC" as const, testedOn: "
 const packs = [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }];
 const mk = (slug: string, cls: Compound["chemicalClass"], usd: number): Compound => ({
   slug, name: slug.toUpperCase(), chemicalClass: cls, identity: {}, form: "", storage: "", vialMl: 3,
-  variants: [{ id: "10mg", strength: "10 mg", priceUsd: usd, stock: "in" }], packDiscounts: packs, currentLot: lot,
+  variants: [{ id: "10mg", strength: "10 mg", priceUsd: usd, stock: "in", availableVials: 100, lot }], packDiscounts: packs,
 });
 const list: Compound[] = [mk("bpc-157", "Peptide Fragments", 79), mk("tb-500", "Peptide Fragments", 89), mk("mots-c", "Mitochondrial & Metabolic", 69), mk("blend", "Blends", 99)];
 const order = (...l: Array<[string, number, number?]>) => priceOrder(l.map(([slug, packQty, quantity]) => ({ slug, variantId: "10mg", packQty, quantity: quantity ?? 1 })), list);

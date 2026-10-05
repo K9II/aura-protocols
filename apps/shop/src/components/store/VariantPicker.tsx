@@ -5,12 +5,14 @@ import type { Compound } from "@/data/catalog";
 import { isPendingLot, packOptions } from "@/lib/catalog";
 import { linePriceUsd } from "@/lib/cart";
 import { useCart } from "@/components/store/CartProvider";
+import SpecBoxes from "@/components/store/SpecBoxes";
 
 const MAX_PACKS = 20;
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 // Pack list: every pack shows its price, the material it holds and $/mg, so
-// the total and the bulk saving are visible before anything is clicked.
+// the total and the bulk saving are visible before anything is clicked. The
+// lot boxes and certificate link follow the selected strength.
 export default function VariantPicker({ compound: c }: { compound: Compound }) {
   const { add } = useCart();
   const [variantId, setVariantId] = useState(c.variants[0].id);
@@ -21,11 +23,18 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
   const sel = packs.find((p) => p.qty === packQty)!;
   const line = { slug: c.slug, variantId, packQty, quantity };
   const total = linePriceUsd(line, [c]);
-  const pending = isPendingLot(c.currentLot);
-  const out = variant.stock === "out";
+  const lot = variant.lot;
+  const pending = isPendingLot(lot);
+  const out = variant.stock === "out"; // a pending lot is always out
 
   return (
     <div>
+      <SpecBoxes lot={lot} />
+      {!pending && lot.coaFile ? (
+        <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
+      ) : (
+        <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
+      )}
       {c.variants.length > 1 && (
         <>
           <div className="s-optlabel s-micro">Size</div>
@@ -69,8 +78,8 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
           <span aria-live="polite">{quantity}</span>
           <button type="button" aria-label="Increase quantity" disabled={quantity >= MAX_PACKS} onClick={() => setQuantity((q) => Math.min(MAX_PACKS, q + 1))}>+</button>
         </div>
-        <button type="button" className="s-atc" disabled={out || pending} onClick={() => add(line)}>
-          {out ? "Out of stock" : pending ? "COA pending — available soon" : <>Add to cart — <span className="whitespace-nowrap">${total.toFixed(2)} →</span></>}
+        <button type="button" className="s-atc" disabled={out} onClick={() => add(line)}>
+          {pending ? "COA pending — available soon" : out ? "Out of stock" : <>Add to cart — <span className="whitespace-nowrap">${total.toFixed(2)} →</span></>}
         </button>
       </div>
     </div>

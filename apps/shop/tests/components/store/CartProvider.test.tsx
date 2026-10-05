@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { liveFixture } from "../../helpers/live-catalog";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { CartProvider, useCart, CART_STORAGE_KEY, CART_CODE_KEY } from "@/components/store/CartProvider";
 import ClearCart from "@/components/account/ClearCart";
@@ -19,7 +20,7 @@ describe("CartProvider", () => {
   beforeEach(() => window.localStorage.clear());
 
   it("adds a line, opens the drawer and persists to localStorage", () => {
-    render(<CartProvider><Probe /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><Probe /></CartProvider>);
     fireEvent.click(screen.getByText("add"));
     expect(screen.getByTestId("count")).toHaveTextContent("1");
     expect(screen.getByTestId("open")).toHaveTextContent("true");
@@ -31,7 +32,7 @@ describe("CartProvider", () => {
       { slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 2 },
       { slug: "discontinued", variantId: "x", packQty: 2, quantity: 1 },
     ]));
-    render(<CartProvider><Probe /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><Probe /></CartProvider>);
     expect(screen.getByTestId("lines")).toHaveTextContent("1");
   });
 
@@ -39,14 +40,14 @@ describe("CartProvider", () => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([
       { slug: "bpc-157", variantId: "10mg", packQty: 1, quantity: 1 },
     ]));
-    render(<CartProvider><ClearCart /><Probe /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><ClearCart /><Probe /></CartProvider>);
     expect(screen.getByTestId("lines")).toHaveTextContent("0");
     expect(JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY) ?? "[]")).toHaveLength(0);
   });
 
   it("survives corrupted storage", () => {
     window.localStorage.setItem(CART_STORAGE_KEY, "{not json");
-    render(<CartProvider><Probe /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><Probe /></CartProvider>);
     expect(screen.getByTestId("lines")).toHaveTextContent("0");
   });
 
@@ -56,7 +57,7 @@ describe("CartProvider", () => {
       { slug: "bpc-157", variantId: "10mg", packQty: 3, quantity: 1 },
       { slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 1 },
     ]));
-    render(<CartProvider><LinesProbe /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><LinesProbe /></CartProvider>);
     expect(screen.getByTestId("lines-detail").textContent).toBe("bpc-157:2");
   });
 
@@ -66,11 +67,11 @@ describe("CartProvider", () => {
       const { code, setCode, clear } = useCart();
       return <div><span data-testid="code">{code}</span><button onClick={() => setCode("SMITHLAB")}>set</button><button onClick={clear}>clear</button></div>;
     }
-    const { unmount } = render(<CartProvider><CodeProbe /></CartProvider>);
+    const { unmount } = render(<CartProvider catalog={liveFixture()}><CodeProbe /></CartProvider>);
     fireEvent.click(screen.getByText("set"));
     expect(window.localStorage.getItem(CART_CODE_KEY)).toBe("SMITHLAB");
     unmount();
-    render(<CartProvider><CodeProbe /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><CodeProbe /></CartProvider>);
     expect(await screen.findByText("SMITHLAB")).toBeInTheDocument();
     fireEvent.click(screen.getByText("clear"));
     expect(screen.getByTestId("code").textContent).toBe("");

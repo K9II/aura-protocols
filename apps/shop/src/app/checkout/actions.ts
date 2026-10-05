@@ -24,6 +24,7 @@ import { lookupDiscountCode } from "@/lib/discounts/redeem";
 import { CLAIM_MESSAGE, CODE_MESSAGES, outcomeMessage, type ClaimResult } from "@/lib/discounts/messages";
 import type { CodeTerms } from "@/lib/discounts/rules";
 import { hashIp } from "@/lib/gate";
+import { getLiveCatalog } from "@/lib/catalog-live";
 
 const OFFER_CHECK_FAILED = "We couldn't check your new-account discount — please try again.";
 
@@ -133,7 +134,14 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   if (!parsed.success) return { error: "Please complete the shipping address and confirm research use." };
   const { lines, ship, partnerCode, useCredit } = parsed.data;
 
-  let priced: PricedOrder = priceOrder(lines);
+  let live;
+  try {
+    live = await getLiveCatalog();
+  } catch (err) {
+    console.error("live catalog read failed:", err);
+    return { error: "The store is briefly unavailable — please try again." };
+  }
+  let priced: PricedOrder = priceOrder(lines, live.shown);
   if (priced.rejected.length) return { error: "Some items can't be ordered right now — they've been flagged below.", rejected: priced.rejected };
   if (priced.items.length === 0) return { error: "Your cart is empty." };
 

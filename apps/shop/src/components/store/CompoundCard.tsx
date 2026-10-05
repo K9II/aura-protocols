@@ -7,7 +7,8 @@ import Vial from "@/components/store/Vial";
 const TILTS = [-14, -8, -12, -6];
 
 export default function CompoundCard({ compound: c, index = 0 }: { compound: Compound; index?: number }) {
-  const lot = c.currentLot;
+  // Lot line from the first strength with a released lot.
+  const lot = c.variants.find((v) => !isPendingLot(v.lot))?.lot ?? { pending: true as const };
   const pending = isPendingLot(lot);
   const allOut = c.variants.every((v) => v.stock === "out");
   const anyLow = c.variants.some((v) => v.stock === "low");

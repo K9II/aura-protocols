@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { compounds } from "@/data/catalog";
 import { FREE_SHIPPING_THRESHOLD_USD, linePriceUsd } from "@/lib/cart";
 import { priceOrder } from "@/lib/pricing";
 import { applyPartnerCode } from "@/lib/partners/discounts";
@@ -16,7 +15,7 @@ type CodeStatus = { kind: "applied" | "saved" | "error"; text: string } | null;
 const usd = (n: number) => `$${n.toFixed(2)}`;
 
 export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
-  const { lines, remove, setQty, totals, code, setCode } = useCart();
+  const { catalog, lines, remove, setQty, totals, code, setCode } = useCart();
   const [codeInput, setCodeInput] = useState("");
   const [verified, setVerified] = useState<string | null>(null);
   const [status, setStatus] = useState<CodeStatus>(null);
@@ -48,7 +47,7 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
   }, [code]);
   function removeCode() { setCode(""); setVerified(null); setCodeInput(""); setStatus(null); checked.current = null; }
 
-  const discountCents = useMemo(() => (verified ? applyPartnerCode(priceOrder(lines)).partnerDiscountCents : 0), [lines, verified]);
+  const discountCents = useMemo(() => (verified ? applyPartnerCode(priceOrder(lines, catalog)).partnerDiscountCents : 0), [lines, catalog, verified]);
 
   if (lines.length === 0) {
     return (
@@ -63,7 +62,7 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div>
       {lines.map((line, i) => {
-        const c = compounds.find((x) => x.slug === line.slug);
+        const c = catalog.find((x) => x.slug === line.slug);
         const v = c?.variants.find((x) => x.id === line.variantId);
         if (!c || !v) return null;
         return (
@@ -74,7 +73,7 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
                 {v.strength} · {line.packQty}-pack
               </div>
             </div>
-            <div className="text-right">{usd(linePriceUsd(line))}</div>
+            <div className="text-right">{usd(linePriceUsd(line, catalog))}</div>
             <div className="s-qty" aria-label={`Quantity for ${c.name}`}>
               <button type="button" aria-label="Decrease" onClick={() => setQty(i, line.quantity - 1)}>−</button>
               <span>{line.quantity}</span>

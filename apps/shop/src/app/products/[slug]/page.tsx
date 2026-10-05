@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { compounds } from "@/data/catalog";
+import { catalogContent } from "@/data/catalog";
+import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { findCompound, fromPackPriceUsd, isPendingLot, materialTestingRows, relatedCompounds, toPackPriceUsd, vialCap, vialLabel } from "@/lib/catalog";
 import Vial from "@/components/store/Vial";
-import SpecBoxes from "@/components/store/SpecBoxes";
+import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
 import BeforeOrdering from "@/components/store/BeforeOrdering";
 import CompoundCard from "@/components/store/CompoundCard";
@@ -15,13 +16,14 @@ import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 const BASE_URL = "https://auraprotocols.com";
 
+// Every content product; hidden ones 404 at render (the live catalog decides).
 export function generateStaticParams() {
-  return compounds.map((c) => ({ slug: c.slug }));
+  return catalogContent.map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const c = findCompound(slug);
+  const c = catalogContent.find((x) => x.slug === slug);
   if (!c) return {};
   const description = c.description
     ?? `${c.name} — ${c.chemicalClass}. Lot-tested research compound with certificate of analysis. For research use only.`;
@@ -36,13 +38,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const c = findCompound(slug);
+  const live = await getLiveCatalogOrNull();
+  if (!live) return <Unavailable />;
+  const c = findCompound(slug, live.shown);
   if (!c) notFound();
-  const lot = c.currentLot;
-  const pending = isPendingLot(lot);
+  const hasCertificate = c.variants.some((v) => !isPendingLot(v.lot) && v.lot.coaFile);
   const strengths = c.variants.map((v) => v.strength.replace(/\s/g, " ")).join(" / ");
   const componentNames = (c.components ?? [])
-    .map((s) => findCompound(s)?.name)
+    .map((s) => catalogContent.find((x) => x.slug === s)?.name)
     .filter((n): n is string => Boolean(n));
   const panels = structurePanels(c.slug);
   const blend = panels.length > 1;
@@ -85,7 +88,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <section className="s-pdp">
           <div className="s-ghost" aria-hidden>{c.name}</div>
           <div className="s-media">
-            {!pending && lot.coaFile && <span className="s-coa-tag">◇ COA on file</span>}
+            {hasCertificate && <span className="s-coa-tag">◇ COA on file</span>}
             <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} cap={vialCap(c)} strength={c.variants[0].strength} tilt={-12} width={270} />
           </div>
           <div className="relative">
@@ -93,12 +96,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <Link href={`/products?cat=${encodeURIComponent(c.chemicalClass)}`}>{c.chemicalClass}</Link> · {c.vialMl} mL vial · {strengths}
             </p>
             <h1 className="s-pdp-h1">{c.name}</h1>
-            <SpecBoxes lot={lot} />
-            {!pending && lot.coaFile ? (
-              <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
-            ) : (
-              <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
-            )}
             <VariantPicker compound={c} />
             <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders of ${FREE_SHIPPING_THRESHOLD_USD} or more</div>
             <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
@@ -167,7 +164,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <section className="pt-18 pb-11">
           <h2 className="s-h2 mb-6">Researchers also <em>added</em></h2>
           <div className="s-grid">
-            {relatedCompounds(c, 4).map((r, i) => <CompoundCard key={r.slug} compound={r} index={i} />)}
+            {relatedCompounds(c, 4, live.shown).map((r, i) => <CompoundCard key={r.slug} compound={r} index={i} />)}
           </div>
         </section>
       </div>

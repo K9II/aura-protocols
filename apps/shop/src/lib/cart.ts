@@ -1,4 +1,4 @@
-import { compounds as listedCompounds, type Compound } from "@/data/catalog";
+import type { Compound } from "@/data/catalog";
 
 // Shipping economics — the policy pages, cart and checkout all read these.
 export const FREE_SHIPPING_THRESHOLD_USD = 300;
@@ -24,7 +24,7 @@ export function packPct(c: Compound, packQty: number): number {
   return c.packDiscounts.find((p) => p.qty === packQty)?.pct ?? 0;
 }
 
-export function linePriceUsd(line: CartLine, list: Compound[] = listedCompounds): number {
+export function linePriceUsd(line: CartLine, list: Compound[]): number {
   const c = list.find((x) => x.slug === line.slug);
   const v = c?.variants.find((x) => x.id === line.variantId);
   if (!c || !v) return 0;
@@ -46,7 +46,7 @@ export function setQuantity(lines: CartLine[], index: number, quantity: number):
   return lines.map((l, j) => (j === index ? { ...l, quantity } : l));
 }
 
-export function cartTotals(lines: CartLine[], list: Compound[] = listedCompounds) {
+export function cartTotals(lines: CartLine[], list: Compound[]) {
   const subtotalUsd = cents(lines.reduce((sum, l) => sum + linePriceUsd(l, list), 0));
   return {
     subtotalUsd,

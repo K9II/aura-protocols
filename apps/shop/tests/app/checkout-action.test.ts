@@ -40,13 +40,12 @@ vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }), headers: async () => new Headers({ "x-forwarded-for": "1.2.3.4" }) }));
 
 const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
-vi.mock("@/data/catalog", () => ({
-  compounds: [{
-    slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
-    variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in" }],
-    packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }], currentLot: tested,
-  }] satisfies Compound[],
-}));
+const liveList: Compound[] = [{
+  slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
+  variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in", availableVials: 100, lot: tested }],
+  packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }],
+}];
+vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog: async () => ({ all: liveList, shown: liveList, lots: [] }) }));
 
 const customer = { id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false, stripeCustomerId: null, ship: null, createdAt: "2026-10-04T00:00:00Z" };
 const input = {

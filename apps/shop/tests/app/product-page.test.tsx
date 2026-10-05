@@ -1,18 +1,42 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { liveFixture } from "../helpers/live-catalog";
 import { render, screen, within } from "@testing-library/react";
 import ProductPage from "@/app/products/[slug]/page";
 import { CartProvider } from "@/components/store/CartProvider";
 
+const { live } = vi.hoisted(() => ({ live: vi.fn() }));
+vi.mock("@/lib/catalog-live", () => ({ getLiveCatalogOrNull: live, getLiveCatalog: live }));
 vi.mock("@/components/store/MoleculeViewer", () => ({
   default: ({ structure }: { structure: { label: string } }) => <div data-testid="mol">{structure.label}</div>,
 }));
 
 async function renderSlug(slug: string) {
   const ui = await ProductPage({ params: Promise.resolve({ slug }) });
-  return render(<CartProvider>{ui}</CartProvider>);
+  return render(<CartProvider catalog={liveFixture()}>{ui}</CartProvider>);
 }
 
 describe("product page", () => {
+  beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [] }); });
+
+  it("fails closed when the live catalog can't be read: Unavailable, no price", async () => {
+    live.mockResolvedValue(null);
+    const { container } = await renderSlug("bpc-157");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Unavailable right now");
+    expect(container.textContent).not.toMatch(/\$\d/);
+    expect(screen.queryByRole("button", { name: /add to cart/i })).toBeNull();
+  });
+
+  it("404s a product the live catalog doesn't show", async () => {
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture().filter((c) => c.slug !== "bpc-157"), lots: [] });
+    await expect(ProductPage({ params: Promise.resolve({ slug: "bpc-157" }) })).rejects.toThrow();
+  });
+
+  it("shows the COA tag and the selected strength's lot", async () => {
+    const { container } = await renderSlug("bpc-157");
+    expect(container.querySelector(".s-media")).toHaveTextContent("◇ COA on file");
+    expect(screen.getByText("BPC-2609-01")).toBeInTheDocument();
+  });
+
   it("orders sections: hero, About this compound, Material & testing, Compound data, Researchers also added", async () => {
     await renderSlug("bpc-157");
     const h2s = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);

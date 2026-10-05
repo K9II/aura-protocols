@@ -17,14 +17,14 @@ import { FREE_SHIPPING_THRESHOLD_USD, formatUsd } from "@/lib/cart";
 const field = "w-full border border-[color:var(--ink)] bg-[color:var(--paper)] px-3.5 py-3 text-sm mb-4";
 const smallBtn: React.CSSProperties = { padding: "7px 13px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: "1px solid var(--ink)", background: "transparent", color: "var(--ink)" };
 const REASON: Record<Rejection["reason"], string> = {
-  unknown: "no longer listed", pending_lot: "certificate pending", out_of_stock: "out of stock",
+  unknown: "no longer listed", pending_lot: "certificate pending", out_of_stock: "out of stock", sold_out: "sold out",
   bad_pack: "pack size unavailable", bad_quantity: "quantity not allowed",
 };
 
 export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents, newAccountOffer, capPct: pageCapPct }: {
   email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number; newAccountOffer: FirstOrderOffer; capPct: number;
 }) {
-  const { lines, code: cartCode, setCode: setCartCode } = useCart();
+  const { catalog, lines, code: cartCode, setCode: setCartCode } = useCart();
   // A code typed in the cart wins over a referral link's code (same priority as the server).
   const startCode = cartCode || initialCode;
   const [addr, setAddr] = useState({
@@ -42,7 +42,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const [rejected, setRejected] = useState<Rejection[]>([]);
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
-  const base = useMemo(() => priceOrder(lines), [lines]);
+  const base = useMemo(() => priceOrder(lines, catalog), [lines, catalog]);
   // The automatic percent: the new-account percent or a partner code's
   // percent, whichever is larger (they never stack). A discount code runs
   // through the same engine the server uses; the server re-prices every order.

@@ -8,7 +8,8 @@ vi.mock("@/lib/email/cart", () => ({ listAbandonedCheckouts }));
 vi.mock("@/lib/orders", () => ({ getOrderById }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
-vi.mock("@/data/catalog", () => ({ compounds: [] }));
+const getLiveCatalog = vi.fn();
+vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog }));
 vi.mock("@/lib/account/offer-data", () => ({ offerForEmail }));
 
 const auth = (s = "cron-s") => new Request("http://localhost/api/cron/emails", { headers: { authorization: `Bearer ${s}` } });
@@ -17,7 +18,8 @@ const H = 3600 * 1000, D = 24 * H;
 describe("GET /api/cron/emails", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, listAbandonedCheckouts, alertOwner, welcomeSendsFor, getOrderById, offerForEmail]) f.mockReset();
+    for (const f of [listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, listAbandonedCheckouts, alertOwner, welcomeSendsFor, getOrderById, offerForEmail, getLiveCatalog]) f.mockReset();
+    getLiveCatalog.mockResolvedValue({ all: [], shown: [], lots: [] });
     welcomeSendsFor.mockResolvedValue(new Map());
     getOrderById.mockResolvedValue({ status: "awaiting_payment" });
     offerForEmail.mockResolvedValue(null);
@@ -133,6 +135,16 @@ describe("GET /api/cron/emails", () => {
     expect(await res.json()).toMatchObject({ welcome: 1, cart: 0, failed: 1 });
     expect(alertOwner).toHaveBeenCalledTimes(1);
     expect(alertOwner.mock.calls[0][1]).toContain("cart list:");
+  });
+
+  it("skips the cart list (but still sends welcome files) when the live catalog can't be read, with one alert", async () => {
+    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date(Date.now() - 2.5 * D).toISOString() }]);
+    getLiveCatalog.mockRejectedValue(new Error("catalog down"));
+    const { GET } = await import("@/app/api/cron/emails/route");
+    const res = await GET(auth());
+    expect(await res.json()).toMatchObject({ welcome: 1, cart: 0, failed: 1 });
+    expect(listAbandonedCheckouts).not.toHaveBeenCalled();
+    expect(alertOwner.mock.calls[0][1]).toContain("live catalog: catalog down");
   });
 
   it("stops before the 240s deadline and reports how many are left, without starting the cart loop", async () => {

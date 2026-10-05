@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Section, LinkPart } from "@/data/posts";
-import { findCompound } from "@/lib/catalog";
+import { catalogContent } from "@/data/catalog";
 
 // Renders an array of post Sections in the pharmacopoeia theme. Used by the
 // blog article renderer (/blog/[slug]). Caller must provide a `.pharmacopoeia`
@@ -73,9 +73,9 @@ export function renderSection(section: Section, i: number) {
       );
     case "cta": {
       // Retail-only: never render an outbound vendor link. Only a same-site
-      // /products/<slug> link, and only when that compound still exists in
-      // the current catalog — otherwise render nothing.
-      const compound = section.productSlug ? findCompound(section.productSlug) : undefined;
+      // /products/<slug> link, and only when that compound exists in the
+      // content catalog — otherwise render nothing. (Blog is unpublished; no prices.)
+      const compound = section.productSlug ? catalogContent.find((c) => c.slug === section.productSlug) : undefined;
       if (!compound) return null;
       return (
         <div key={i} className="p-card p-6 my-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

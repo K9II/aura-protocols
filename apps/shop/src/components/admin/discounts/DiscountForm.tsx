@@ -4,7 +4,7 @@
 // (batch Code section). Posts to saveCodeAction (app/admin/discounts/actions.ts).
 import Link from "next/link";
 import { useActionState, useEffect, useId, useMemo, useState } from "react";
-import { compounds, CHEMICAL_CLASSES } from "@/data/catalog";
+import { CHEMICAL_CLASSES, type Compound } from "@/data/catalog";
 import { codeAvailableAction, saveCodeAction, type SaveState } from "@/app/admin/discounts/actions";
 import { generateBatchCodes, MAX_BATCH_SIZE, normalizePrefix, ruleSentence, type CodeKind, type CodeTerms, type DiscountCodeRow } from "@/lib/discounts/rules";
 import { typicalBaskets, worstCase } from "@/lib/discounts/preview";
@@ -25,8 +25,6 @@ const MAX_NOTE_LEN = 120;
 const MAX_ORDER_AMOUNT = 10_000;
 const MAX_MIN_ORDER = 100_000;
 const MAX_USES = 1_000_000;
-
-const nameOf = (slug: string) => compounds.find((c) => c.slug === slug)?.name ?? slug;
 
 function Toggle({ on, set, label, help, kind }: { on: boolean; set: (b: boolean) => void; label: string; help?: string; kind: "switch" | "checkbox" }) {
   const id = useId();
@@ -66,7 +64,9 @@ function futureStart(local: string): string | null {
   } catch { return null; }
 }
 
-export default function DiscountForm({ mode, capPct, existing }: { mode: "single" | "batch"; capPct: number; existing?: DiscountCodeRow }) {
+// `catalog`: the live catalog, every product (shown or hidden), from the page.
+export default function DiscountForm({ mode, capPct, existing, catalog }: { mode: "single" | "batch"; capPct: number; existing?: DiscountCodeRow; catalog: Compound[] }) {
+  const nameOf = (slug: string) => catalog.find((c) => c.slug === slug)?.name ?? slug;
   const [state, action, pending] = useActionState<SaveState, FormData>(saveCodeAction, null);
   const fe = state?.fieldErrors ?? {};
   const [code, setCode] = useState(existing?.code ?? "");
@@ -108,8 +108,8 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
   }, [kind, value, isOrder, onTop, freeShip, minOrder, scope, tokens]);
   const valid = kind === "ship_only" || terms.value > 0;
   const label = batch ? (existing ? "Each code" : `${normalizePrefix(prefix) || "PREFIX-"}·····`) : (code.trim().toUpperCase() || "This code");
-  const worst = useMemo(() => (valid ? worstCase(terms, compounds, capPct) : null), [terms, valid, capPct]);
-  const baskets = useMemo(() => (valid ? typicalBaskets(terms, compounds, capPct) : []), [terms, valid, capPct]);
+  const worst = useMemo(() => (valid ? worstCase(terms, catalog, capPct) : null), [terms, valid, capPct, catalog]);
+  const baskets = useMemo(() => (valid ? typicalBaskets(terms, catalog, capPct) : []), [terms, valid, capPct, catalog]);
   const startsOn = futureStart(startsAt);
 
   const checkable = mode === "single" && !existing && code.trim().length >= 3;
@@ -257,7 +257,7 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
                     <select aria-label="Add a product or chemical class" value="" onChange={(e) => addToken(e.target.value)}>
                       <option value="">Add a product or chemical class…</option>
                       <optgroup label="Chemical classes">{CHEMICAL_CLASSES.map((c) => <option key={c} value={`class:${c}`}>{c}</option>)}</optgroup>
-                      <optgroup label="Products">{compounds.map((c) => <option key={c.slug} value={`product:${c.slug}`}>{c.name}</option>)}</optgroup>
+                      <optgroup label="Products">{catalog.map((c) => <option key={c.slug} value={`product:${c.slug}`}>{c.name}</option>)}</optgroup>
                     </select>
                   </div>
                 </div>

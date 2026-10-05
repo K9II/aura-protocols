@@ -1,22 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { compounds } from "../../src/data/catalog";
-import { isPendingLot, MATERIAL_TESTING_PLACEHOLDER } from "../../src/lib/catalog";
+import { MATERIAL_TESTING_PLACEHOLDER } from "../../src/lib/catalog";
 
 // Run before unpausing Vercel:  RELEASE_CHECK=1 pnpm --filter @aura/shop test
-// Fails while any catalog data is still a pre-sourcing placeholder.
+// Prices, lots and certificates no longer live in code (data/catalog.ts is
+// content only); the live-DB check (every shown strength has a live lot with
+// a certificate) is added with the Aura Store release check.
 describe.skipIf(!process.env.RELEASE_CHECK)("release check", () => {
-  it("has no placeholder catalog data", () => {
-    expect(compounds.filter((c) => c.placeholderData).map((c) => c.slug)).toEqual([]);
-  });
-
-  it("has no placeholder lots, and every non-pending lot has a certificate file", () => {
-    for (const c of compounds) {
-      if (isPendingLot(c.currentLot)) continue;
-      expect(c.currentLot.lot, c.slug).not.toMatch(/^PLACEHOLDER/);
-      expect(c.currentLot.coaFile, c.slug).toMatch(/^\/coa\/.+\.(pdf|png|jpg)$/);
-    }
-  });
-
   it("Material & testing values are confirmed by sourcing (not placeholders)", () => {
     expect(MATERIAL_TESTING_PLACEHOLDER, "confirm supplier process + lab panel, then set to false in lib/catalog.ts").toBe(false);
   });

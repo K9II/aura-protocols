@@ -7,8 +7,9 @@ import { cartEmail, welcomeEmail } from "@/lib/emails-marketing";
 import { unsubscribeUrl } from "@/lib/email/links";
 import { siteUrl } from "@/lib/supabase/env";
 import { alertOwner } from "@/lib/notify";
-import { compounds } from "@/data/catalog";
-import { isPendingLot } from "@/lib/catalog";
+import { getLiveCatalog } from "@/lib/catalog-live";
+import type { LiveCatalog } from "@/lib/catalog-merge";
+import type { ChemicalClass } from "@/data/catalog";
 import { offerForEmail } from "@/lib/account/offer-data";
 
 // Vercel caps a Hobby/Pro cron function at a lower default; this run can
@@ -60,14 +61,22 @@ export async function GET(request: Request): Promise<Response> {
     failed.push(`welcome list: ${err instanceof Error ? err.message : String(err)}`);
   }
 
-  const coaFor = (slug: string) => {
-    const c = compounds.find((x) => x.slug === slug);
-    return c && !isPendingLot(c.currentLot) && c.currentLot.coaFile ? c.currentLot.coaFile : null;
-  };
+  // Cart reminders link the current certificate, so they need the live
+  // catalog; if it can't be read, the cart list waits for the next run.
+  let live: LiveCatalog<ChemicalClass> | null = null;
+  if (!truncated) {
+    try {
+      live = await getLiveCatalog();
+    } catch (err) {
+      failed.push(`live catalog: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  const coaFor = (slug: string) =>
+    live?.lots.find((l) => l.slug === slug && l.status !== "retired")?.coaFile || null;
 
   // Once the budget is spent, don't start a second list — the next hourly
   // run continues where this one stopped.
-  if (!truncated) {
+  if (!truncated && live) {
     try {
       const checkouts = await listAbandonedCheckouts(now);
       for (let i = 0; i < checkouts.length; i++) {

@@ -1,7 +1,7 @@
 // Server-authoritative order pricing. The browser's cart is only a list of
 // (slug, variant, pack, quantity); every price, discount and shipping charge
-// is rebuilt here from the catalog. Pure — safe to import on client and server.
-import { compounds as listedCompounds, type Compound } from "@/data/catalog";
+// is rebuilt here from the live catalog (passed in). Pure — safe to import on client and server.
+import type { Compound } from "@/data/catalog";
 import { FLAT_SHIPPING_USD, FREE_SHIPPING_THRESHOLD_USD, SHIPPING_INSURANCE_USD, type CartLine } from "@/lib/cart";
 import { isPendingLot } from "@/lib/catalog";
 
@@ -25,7 +25,8 @@ export type PricedItem = {
   lotNumber: string;
 };
 
-export type RejectReason = "unknown" | "pending_lot" | "out_of_stock" | "bad_pack" | "bad_quantity";
+// "sold_out": set by checkout when hold_vials finds a strength short.
+export type RejectReason = "unknown" | "pending_lot" | "out_of_stock" | "sold_out" | "bad_pack" | "bad_quantity";
 export type Rejection = { slug: string; variantId: string; reason: RejectReason };
 
 export type PricedOrder = {
@@ -39,7 +40,7 @@ export type PricedOrder = {
   totalBeforeTaxCents: number;   // subtotal − partner discount + shipping + insurance
 };
 
-export function priceOrder(lines: CartLine[], list: Compound[] = listedCompounds): PricedOrder {
+export function priceOrder(lines: CartLine[], list: Compound[]): PricedOrder {
   const items: PricedItem[] = [];
   const rejected: Rejection[] = [];
   for (const line of lines) {
@@ -47,8 +48,7 @@ export function priceOrder(lines: CartLine[], list: Compound[] = listedCompounds
     const c = list.find((x) => x.slug === line.slug);
     const v = c?.variants.find((x) => x.id === line.variantId);
     if (!c || !v) { reject("unknown"); continue; }
-    if (isPendingLot(c.currentLot)) { reject("pending_lot"); continue; }
-    if (v.stock === "out") { reject("out_of_stock"); continue; }
+    if (v.stock === "out") { reject(isPendingLot(v.lot) ? "pending_lot" : "out_of_stock"); continue; }
     const pack = c.packDiscounts.find((p) => p.qty === line.packQty);
     if (!pack) { reject("bad_pack"); continue; }
     if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > MAX_PACKS_PER_LINE) { reject("bad_quantity"); continue; }
@@ -57,7 +57,7 @@ export function priceOrder(lines: CartLine[], list: Compound[] = listedCompounds
     items.push({
       compoundSlug: c.slug, compoundName: c.name, chemicalClass: c.chemicalClass, variantId: v.id, strength: v.strength,
       packQty: line.packQty, quantity: line.quantity, listUnitCents, packPct: pack.pct, unitPriceCents,
-      lineTotalCents: unitPriceCents * line.quantity, lotNumber: c.currentLot.lot,
+      lineTotalCents: unitPriceCents * line.quantity, lotNumber: isPendingLot(v.lot) ? "" : v.lot.lot, // hold_vials overwrites it with the real allocation
     });
   }
   const subtotalCents = items.reduce((s, i) => s + i.lineTotalCents, 0);
