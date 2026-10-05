@@ -53,6 +53,19 @@ describe("DAL", () => {
     expect(await getCustomer()).toBeNull();
   });
 
+  it("a session Supabase refuses as banned is blocked, not just signed out (the gate says closed)", async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: { code: "user_banned", status: 403, message: "User is banned" } });
+    const { verifySession, getAccountState } = await import("@/lib/dal");
+    expect(await verifySession()).toBeNull();
+    expect(await getAccountState()).toEqual({ customer: null, blocked: true });
+  });
+
+  it("any other auth error is signed out, not blocked", async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: { code: "session_not_found", status: 403, message: "x" } });
+    const { getAccountState } = await import("@/lib/dal");
+    expect(await getAccountState()).toEqual({ customer: null, blocked: false });
+  });
+
   it("requireCustomer redirects signed-out visitors to sign-in with a safe next path", async () => {
     getUser.mockResolvedValue({ data: { user: null }, error: null });
     const { requireCustomer } = await import("@/lib/dal");

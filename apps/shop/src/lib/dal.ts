@@ -30,20 +30,25 @@ type CustomerRow = {
   blocked_at: string | null;
 };
 
-export const verifySession = cache(async (): Promise<SessionUser | null> => {
+// Supabase refuses a banned user's still-live access token with "user_banned";
+// that's a blocked account, not a signed-out visitor.
+const readSession = cache(async (): Promise<{ user: SessionUser | null; banned: boolean }> => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser(); // verified with the auth server, not just the cookie
-  if (error || !data.user?.email) return null;
-  return { id: data.user.id, email: data.user.email, emailConfirmed: !!data.user.email_confirmed_at };
+  if (error) return { user: null, banned: (error as { code?: string }).code === "user_banned" };
+  if (!data.user?.email) return { user: null, banned: false };
+  return { user: { id: data.user.id, email: data.user.email, emailConfirmed: !!data.user.email_confirmed_at }, banned: false };
 });
+
+export const verifySession = cache(async (): Promise<SessionUser | null> => (await readSession()).user);
 
 // A blocked account (admin Customers → Block) is treated as signed out
 // everywhere: no page, action or checkout gets a customer. Supabase's ban
 // stops new sign-ins and token refreshes; this covers an access token that
 // is still live (up to an hour). The gate asks getAccountState to say "closed".
 export const getAccountState = cache(async (): Promise<{ customer: Customer | null; blocked: boolean }> => {
-  const user = await verifySession();
-  if (!user) return { customer: null, blocked: false };
+  const { user, banned } = await readSession();
+  if (!user) return { customer: null, blocked: banned };
   const { data } = await getSupabaseAdminClient().from("customers").select("*").eq("id", user.id).maybeSingle();
   if (!data) return { customer: null, blocked: false };
   const r = data as CustomerRow;
