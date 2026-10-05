@@ -35,6 +35,32 @@ describe("catalog-ops.sql", () => {
     expect(sql).toMatch(/new\.status = 'refunded' and old\.status = 'paid'[\s\S]+state = 'returned'/);
   });
 
+  it("takes the sorted stock locks in an explicit loop", () => {
+    expect(sql).toMatch(/for lk in select distinct compound_slug \|\| ':' \|\| variant_id as k\s+from order_items where order_id = p_order order by 1 loop\s+perform pg_advisory_xact_lock\(hashtext\('stock:' \|\| lk\.k\)\);\s+end loop;/);
+    expect(sql).not.toMatch(/perform pg_advisory_xact_lock\([^;]*\)\s+from /);
+  });
+
+  it("hold_vials fails loudly if a line is left unheld", () => {
+    expect(sql).toMatch(/end loop;\s+if need > 0 then raise exception 'hold_vials:/);
+  });
+
+  const shipped = sql.slice(sql.indexOf("create or replace function record_shipped_lots("), sql.indexOf("revoke all on function record_shipped_lots("));
+
+  it("record_shipped_lots refuses empty input and sums repeated lot numbers", () => {
+    expect(shipped).toMatch(/if p_entries is null or json_typeof\(p_entries\) <> 'array' or json_array_length\(p_entries\) = 0 then\s+raise exception/);
+    expect(shipped).toMatch(/select lot_number, sum\(qty\)::int as qty\s+from json_to_recordset\(p_entries\)[^;]+group by lot_number\) x/);
+  });
+
+  it("record_shipped_lots re-compares on retry instead of returning ok blindly", () => {
+    expect(shipped).not.toMatch(/if exists \(select 1 from shipped_lots where order_item_id = p_item\) then return 'ok'/);
+    expect(shipped).toMatch(/if same then return 'ok'; end if;\s+if not v_first then return 'alert'; end if;/);
+  });
+
+  it("record_shipped_lots never moves vials onto a draft lot and logs the order number", () => {
+    expect(shipped).toMatch(/if not found or lt\.status = 'draft' or/);
+    expect(shipped).toMatch(/json_build_object\('order_number', v_order, 'order_item_id', p_item,/);
+  });
+
   it("creates the public coa bucket (PDF only)", () => {
     expect(sql).toMatch(/insert into storage\.buckets[^;]+'coa'[^;]+true[^;]+application\/pdf[^;]+on conflict/);
   });

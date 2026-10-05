@@ -119,6 +119,7 @@ declare
   v_status text;
   it record;
   lt record;
+  lk record;
   need integer;
   take integer;
   shorts text[] := '{}';
@@ -126,8 +127,10 @@ begin
   select status into v_status from orders where id = p_order for update;
   if v_status is distinct from 'awaiting_payment' then return json_build_object('ok', false, 'reason', 'inactive'); end if;
   if exists (select 1 from lot_holds where order_id = p_order) then return json_build_object('ok', true); end if;
-  perform pg_advisory_xact_lock(hashtext('stock:' || k))
-    from (select distinct compound_slug || ':' || variant_id as k from order_items where order_id = p_order order by 1) s;
+  for lk in select distinct compound_slug || ':' || variant_id as k
+            from order_items where order_id = p_order order by 1 loop
+    perform pg_advisory_xact_lock(hashtext('stock:' || lk.k));
+  end loop;
   for it in select compound_slug, variant_id, sum(pack_qty * quantity)::int as need
             from order_items where order_id = p_order group by 1, 2 loop
     if coalesce((select sum(available) from lot_stock
@@ -149,6 +152,7 @@ begin
       insert into lot_holds (order_id, order_item_id, lot_id, qty) values (p_order, it.id, lt.id, take);
       need := need - take;
     end loop;
+    if need > 0 then raise exception 'hold_vials: % vials of %:% left unheld on order %', need, it.compound_slug, it.variant_id, p_order; end if;
     update order_items set lot_number = (
       select string_agg(l.lot_number, ', ' order by l.live_at, l.lot_number)
       from lot_holds h join lots l on l.id = h.lot_id where h.order_item_id = it.id
@@ -249,41 +253,53 @@ end $$;
 revoke all on function admin_retire_lot(uuid, uuid) from public, anon, authenticated;
 
 -- Records what actually shipped for one order line: p_entries =
--- [{"lot_number": "...", "qty": n}, ...]. Same lots and quantities as the
--- sold holds → 'ok'. Different → the sold holds move to the shipped lots
--- ('moved' + new 'sold' rows) when every shipped lot exists for that
--- strength and has the room → 'moved'; otherwise nothing moves → 'alert'.
--- Both mismatch outcomes log 'lot_mismatch'. Idempotent: a line that already
--- has shipped rows returns 'ok' without writing.
+-- [{"lot_number": "...", "qty": n}, ...] (null or [] raises; repeated lot
+-- numbers are summed). Same lots and quantities as the sold holds → 'ok'.
+-- Different → the sold holds move to the shipped lots ('moved' + new 'sold'
+-- rows) when every shipped lot exists for that strength, isn't a draft and
+-- has the room → 'moved'; otherwise nothing moves → 'alert'. Both mismatch
+-- outcomes log 'lot_mismatch' (with the order number). Retry-safe: a line
+-- that already has shipped rows writes nothing and re-compares them with its
+-- holds → 'ok' if they match, 'alert' if not (a failed alert resurfaces).
 create or replace function record_shipped_lots(p_item uuid, p_entries json, p_source text) returns text language plpgsql
 set search_path = public, pg_temp as $$
 declare
   i order_items%rowtype;
+  v_order text;
+  v_first boolean := false;
   e record;
   lt record;
   same boolean;
   fits boolean := true;
 begin
+  if p_entries is null or json_typeof(p_entries) <> 'array' or json_array_length(p_entries) = 0 then
+    raise exception 'record_shipped_lots: no shipped lots given for order item %', p_item;
+  end if;
   select * into i from order_items where id = p_item for update;
   if not found then raise exception 'order item % not found', p_item; end if;
-  if exists (select 1 from shipped_lots where order_item_id = p_item) then return 'ok'; end if;
+  select order_number into v_order from orders where id = i.order_id;
   perform pg_advisory_xact_lock(hashtext('stock:' || i.compound_slug || ':' || i.variant_id));
-  insert into shipped_lots (order_item_id, lot_id, lot_number, qty, source)
-    select p_item, l.id, x.lot_number, x.qty, p_source
-    from json_to_recordset(p_entries) as x(lot_number text, qty integer)
-    left join lots l on l.lot_number = x.lot_number;
-  select coalesce(bool_and(a.qty is not distinct from b.qty), false)
-         and (select count(*) from shipped_lots where order_item_id = p_item)
-           = (select count(distinct lot_id) from lot_holds where order_item_id = p_item and state = 'sold')
-    into same
-  from (select lot_number, sum(qty) as qty from shipped_lots where order_item_id = p_item group by 1) a
-  full join (select l.lot_number, sum(h.qty) as qty from lot_holds h join lots l on l.id = h.lot_id
-             where h.order_item_id = p_item and h.state = 'sold' group by 1) b on a.lot_number = b.lot_number;
+  if not exists (select 1 from shipped_lots where order_item_id = p_item) then
+    insert into shipped_lots (order_item_id, lot_id, lot_number, qty, source)
+      select p_item, l.id, x.lot_number, x.qty, p_source
+      from (select lot_number, sum(qty)::int as qty
+            from json_to_recordset(p_entries) as r(lot_number text, qty integer) group by lot_number) x
+      left join lots l on l.lot_number = x.lot_number;
+    v_first := true;
+  end if;
+  select not exists (
+    select 1
+    from (select lot_number, sum(qty)::int as qty from shipped_lots where order_item_id = p_item group by 1) a
+    full join (select l.lot_number, sum(h.qty)::int as qty from lot_holds h join lots l on l.id = h.lot_id
+               where h.order_item_id = p_item and h.state = 'sold' group by 1) b on a.lot_number = b.lot_number
+    where a.qty is distinct from b.qty
+  ) into same;
   if same then return 'ok'; end if;
-  for e in select s.lot_id, s.lot_number, s.qty from shipped_lots s where s.order_item_id = p_item loop
-    select id, available into lt from lot_stock
+  if not v_first then return 'alert'; end if;
+  for e in select s.lot_id, s.qty from shipped_lots s where s.order_item_id = p_item loop
+    select id, status, available into lt from lot_stock
       where id = e.lot_id and slug = i.compound_slug and variant_id = i.variant_id;
-    if not found or lt.available + coalesce((select sum(qty) from lot_holds
+    if not found or lt.status = 'draft' or lt.available + coalesce((select sum(qty) from lot_holds
         where order_item_id = p_item and lot_id = e.lot_id and state = 'sold'), 0) < e.qty then
       fits := false;
     end if;
@@ -292,7 +308,10 @@ begin
     values (i.compound_slug, i.variant_id, 'lot_mismatch',
       (select json_agg(json_build_object('lot_number', l.lot_number, 'qty', h.qty)) from lot_holds h join lots l on l.id = h.lot_id
         where h.order_item_id = p_item and h.state = 'sold'),
-      p_entries::jsonb, p_source, case when fits then 'moved' else 'not moved' end);
+      json_build_object('order_number', v_order, 'order_item_id', p_item,
+        'shipped', (select json_agg(json_build_object('lot_number', s.lot_number, 'qty', s.qty) order by s.lot_number)
+                    from shipped_lots s where s.order_item_id = p_item)),
+      p_source, case when fits then 'moved' else 'not moved' end);
   if not fits then return 'alert'; end if;
   update lot_holds set state = 'moved', settled_at = now() where order_item_id = p_item and state = 'sold';
   insert into lot_holds (order_id, order_item_id, lot_id, qty, state, settled_at)
