@@ -9,7 +9,7 @@ import type { Msg } from "@/lib/emails-marketing";
 const db = () => getSupabaseAdminClient();
 export const SENDER_NAME = "Alvester at Aura Protocols";
 
-export type SendKind = "confirm" | "welcome_1" | "welcome_2" | "welcome_3" | "welcome_4" | "welcome_5" | "cart_1" | "cart_2" | "cart_3" | "lot_alert";
+export type SendKind = "confirm" | "welcome_1" | "welcome_2" | "welcome_3" | "welcome_4" | "welcome_5" | "cart_1" | "cart_2" | "cart_3" | "lot_alert" | "campaign";
 export type SubscriberRow = {
   email: string; status: string; source: string; partner_ref: string | null; confirmed_at: string | null; unsubscribed_at: string | null;
 };
@@ -158,6 +158,25 @@ export async function listWelcomeCandidates(sinceIso: string): Promise<Subscribe
     out.push(...rows);
     if (rows.length < PAGE_SIZE) return out;
   }
+}
+
+// A due cart reminder while reminders are paused: claim it as skipped so the
+// sequence moves on and nothing is sent late after resuming. Not counted as sent.
+export async function markSkipped(email: string, kind: SendKind, ref: string | null): Promise<boolean> {
+  const { error } = await db().from("email_sends").insert({ email: normalizeEmail(email), kind, ref, skipped: true }).select("id").single();
+  if (!error) return true;
+  if ((error as { code?: string }).code === "23505") return false;
+  throw new Error(`skip marker failed: ${JSON.stringify(error)}`);
+}
+
+// Current status of each address, in one read (campaign sender).
+export async function subscriberStatuses(emails: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!emails.length) return out;
+  const { data, error } = await db().from("subscribers").select("email, status").in("email", emails);
+  if (error) throw new Error(`subscriber status read failed: ${JSON.stringify(error)}`);
+  for (const r of (data ?? []) as { email: string; status: string }[]) out.set(r.email, r.status);
+  return out;
 }
 
 export async function listConfirmedEmails(): Promise<string[]> {

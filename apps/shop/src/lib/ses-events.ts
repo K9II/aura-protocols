@@ -2,6 +2,7 @@ import "server-only";
 import { createVerify } from "node:crypto";
 import { accountIdByEmail, flagVerifyRequired } from "@/lib/account/data";
 import { unsubscribe } from "@/lib/email/data";
+import { recordEmailEvent, sourceForMessage } from "@/lib/email/admin-data";
 import { normalizeEmail } from "@/lib/email/links";
 
 export type SnsMessage = Record<string, string | undefined>;
@@ -54,14 +55,21 @@ export async function verifySnsMessage(m: SnsMessage, fetchCert: FetchCert = fet
 type Recipient = { emailAddress?: string };
 type SesEvent = {
   notificationType?: string; eventType?: string;
+  mail?: { messageId?: string };
   bounce?: { bounceType?: string; bouncedRecipients?: Recipient[] };
   complaint?: { complainedRecipients?: Recipient[] };
 };
+
+async function record(type: "bounce" | "complaint", email: string, messageId: string | undefined): Promise<void> {
+  const src = messageId ? await sourceForMessage(messageId) : null;
+  await recordEmailEvent({ type, email, sesMessageId: messageId ?? null, sourceKind: src?.kind ?? null, sourceRef: src?.ref ?? null });
+}
 
 // Identity notifications use notificationType; configuration-set event
 // publishing uses eventType — accept both.
 export async function handleSesEvent(e: SesEvent): Promise<void> {
   const type = e.notificationType ?? e.eventType;
+  const messageId = e.mail?.messageId;
   if (type === "Bounce" && e.bounce?.bounceType === "Permanent") {
     for (const r of e.bounce.bouncedRecipients ?? []) {
       if (!r.emailAddress) continue;
@@ -69,10 +77,14 @@ export async function handleSesEvent(e: SesEvent): Promise<void> {
       const id = await accountIdByEmail(email);
       if (id) await flagVerifyRequired(id);
       await unsubscribe(email);
+      await record("bounce", email, messageId);
     }
   } else if (type === "Complaint") {
     for (const r of e.complaint?.complainedRecipients ?? []) {
-      if (r.emailAddress) await unsubscribe(normalizeEmail(r.emailAddress));
+      if (!r.emailAddress) continue;
+      const email = normalizeEmail(r.emailAddress);
+      await unsubscribe(email);
+      await record("complaint", email, messageId);
     }
   }
 }
