@@ -32,6 +32,16 @@ describe("parseReceive", () => {
   it("certificate is optional for a draft", () => {
     expect(parseReceive({ ...base, coaPath: "" }, "2026-10-05")).toMatchObject({ ok: true, value: { coaPath: null } });
   });
+  it("blank ordered/counted are required; blank damaged defaults to 0", () => {
+    const r1 = parseReceive({ ...base, ordered: "" }, "2026-10-05");
+    expect(r1.ok).toBe(false);
+    if (!r1.ok) expect(r1.fieldErrors.ordered).toBe("Required.");
+    const r2 = parseReceive({ ...base, counted: "" }, "2026-10-05");
+    expect(r2.ok).toBe(false);
+    if (!r2.ok) expect(r2.fieldErrors.counted).toBe("Required.");
+    const r3 = parseReceive({ ...base, damaged: "" }, "2026-10-05");
+    expect(r3.ok && r3.value.damagedQty).toBe(0);
+  });
 });
 
 describe("isDiscrepancy / liveRefusal", () => {
@@ -68,6 +78,7 @@ describe("parsePrice / parseLowAt / parseSku", () => {
   it("low level 0–10000 whole vials", () => {
     expect(parseLowAt("20")).toEqual({ ok: true, value: 20 });
     expect(parseLowAt("-1").ok).toBe(false);
+    expect(parseLowAt("").ok).toBe(false);
   });
   it("SKU upper-case letters, digits, dashes; empty clears", () => {
     expect(parseSku(" ap-ss31-10 ")).toEqual({ ok: true, value: "AP-SS31-10" });
@@ -78,11 +89,16 @@ describe("parsePrice / parseLowAt / parseSku", () => {
 
 describe("admin rows + tabs", () => {
   const content = [{ slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", variants: [{ id: "10mg", strength: "10 mg" }] },
-                   { slug: "tb-500", name: "TB-500", chemicalClass: "Peptide Fragments", variants: [{ id: "10mg", strength: "10 mg" }] }];
+                   { slug: "tb-500", name: "TB-500", chemicalClass: "Peptide Fragments", variants: [{ id: "10mg", strength: "10 mg" }] },
+                   { slug: "kpv", name: "KPV", chemicalClass: "Peptide Fragments", variants: [{ id: "10mg", strength: "10 mg" }] }];
   const ops = {
-    products: [{ slug: "bpc-157", shown: true }, { slug: "tb-500", shown: false }],
+    products: [{ slug: "bpc-157", shown: true }, { slug: "tb-500", shown: false }, { slug: "kpv", shown: true }],
     variants: [{ slug: "bpc-157", variant_id: "10mg", price_cents: 7900, low_at: 20, threepl_sku: null },
-               { slug: "tb-500", variant_id: "10mg", price_cents: 8900, low_at: 20, threepl_sku: null }],
+               { slug: "tb-500", variant_id: "10mg", price_cents: 8900, low_at: 20, threepl_sku: null },
+               { slug: "kpv", variant_id: "10mg", price_cents: 5900, low_at: 20, threepl_sku: null }],
+    // tb-500 and kpv have no lots at all, so both are out of stock; tb-500 is
+    // hidden (shown: false) and kpv is shown — only the shown one counts
+    // under the "out" tab.
     lots: [
       { id: "1", lot_number: "BPC-1", slug: "bpc-157", variant_id: "10mg", purity_pct: 99.4, method: "HPLC" as const, tested_on: "2026-09-01", coa_path: "a.pdf", status: "live" as const, live_at: "2026-09-02", sellable: 50, held: 0, sold: 40, available: 10, ordered_qty: 50, counted_qty: 50, damaged_qty: 0, adjust_qty: 0, discrepancy_note: null, received_by: null, received_at: "2026-09-02T00:00:00Z", retired_at: null },
       { id: "2", lot_number: "BPC-2", slug: "bpc-157", variant_id: "10mg", purity_pct: 99.1, method: "HPLC" as const, tested_on: "2026-10-01", coa_path: null, status: "draft" as const, live_at: null, sellable: 96, held: 0, sold: 0, available: 96, ordered_qty: 100, counted_qty: 96, damaged_qty: 0, adjust_qty: 0, discrepancy_note: "short 4", received_by: null, received_at: "2026-10-01T00:00:00Z", retired_at: null },
@@ -92,10 +108,12 @@ describe("admin rows + tabs", () => {
     const rows = adminRows(content, ops);
     expect(rows[0]).toMatchObject({ slug: "bpc-157", variantId: "10mg", priceCents: 7900, stock: "low", available: 10, selling: { lotNumber: "BPC-1" }, next: { lotNumber: "BPC-2", status: "draft", discrepancy: true }, shown: true });
     expect(rows[1]).toMatchObject({ slug: "tb-500", stock: "out", shown: false, selling: null });
+    expect(rows[2]).toMatchObject({ slug: "kpv", stock: "out", shown: true, selling: null });
   });
-  it("tabs and counts", () => {
+  it("tabs and counts — a hidden out-of-stock product counts under Hidden, not Out", () => {
     const rows = adminRows(content, ops);
-    expect(tabCounts(rows)).toEqual({ all: 2, low: 1, out: 1, hidden: 1, drafts: 1, discrepancies: 1 });
+    expect(tabCounts(rows)).toEqual({ all: 3, low: 1, out: 1, hidden: 1, drafts: 1, discrepancies: 1 });
+    expect(rowsForTab(rows, "out").map((r) => r.slug)).toEqual(["kpv"]);
     expect(rowsForTab(rows, "hidden").map((r) => r.slug)).toEqual(["tb-500"]);
     expect(rowsForTab(rows, "drafts").map((r) => r.slug)).toEqual(["bpc-157"]);
   });

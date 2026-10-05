@@ -37,11 +37,13 @@ export function parseReceive(i: ReceiveInput, today: string):
   if (!method) e.method = "Pick HPLC or HPLC + MS.";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(i.testedOn)) e.testedOn = "Pick the test date.";
   else if (i.testedOn > today) e.testedOn = "The test date can't be in the future.";
-  const ordered = intIn(i.ordered, 0, 100000);
-  const counted = intIn(i.counted, 0, 100000);
+  let ordered: number | null = null;
+  if (!i.ordered.trim()) e.ordered = "Required.";
+  else { ordered = intIn(i.ordered, 0, 100000); if (ordered === null) e.ordered = "Whole vials."; }
+  let counted: number | null = null;
+  if (!i.counted.trim()) e.counted = "Required.";
+  else { counted = intIn(i.counted, 0, 100000); if (counted === null) e.counted = "Whole vials."; }
   const damaged = intIn(i.damaged || "0", 0, 100000);
-  if (ordered === null) e.ordered = "Whole vials.";
-  if (counted === null) e.counted = "Whole vials.";
   if (damaged === null) e.damaged = "Whole vials.";
   else if (counted !== null && damaged > counted) e.damaged = "Can't be more than counted.";
   const note = i.note.trim().slice(0, 500);
@@ -85,6 +87,7 @@ export function parsePrice(s: string): { ok: true; value: number } | { ok: false
   return { ok: true, value: Math.round(n * 100) };
 }
 export function parseLowAt(s: string): { ok: true; value: number } | { ok: false; error: string } {
+  if (!s.trim()) return { ok: false, error: "Required." };
   const n = intIn(s, 0, 10000);
   return n === null ? { ok: false, error: "Whole vials, 0 or more." } : { ok: true, value: n };
 }
@@ -148,8 +151,8 @@ export const TAB_LABEL: Record<CatalogTab, string> = { all: "All", low: "Low", o
 
 export function rowsForTab(rows: AdminRow[], tab: CatalogTab): AdminRow[] {
   switch (tab) {
-    case "low": return rows.filter((r) => r.stock === "low");
-    case "out": return rows.filter((r) => r.stock === "out");
+    case "low": return rows.filter((r) => r.shown && r.stock === "low");
+    case "out": return rows.filter((r) => r.shown && r.stock === "out");
     case "hidden": return rows.filter((r) => !r.shown);
     case "drafts": return rows.filter((r) => r.hasDraft);
     case "discrepancies": return rows.filter((r) => r.hasDiscrepancy);
