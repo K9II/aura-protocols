@@ -1,5 +1,5 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
-import { PURITY_FLOOR_PCT } from "@/lib/constants";
+import { CHECKOUT_EXPIRY_HOURS, PURITY_FLOOR_PCT } from "@/lib/constants";
 import { COA_MAX_BYTES, COUNT_REASONS, COUNT_REASON_LABEL, DEFAULT_LOW_AT, PURITY_MIN } from "@/lib/catalog-ops/rules";
 
 const reasons = COUNT_REASONS.map((r) => COUNT_REASON_LABEL[r]).join(", ");
@@ -17,7 +17,7 @@ export default function Catalog() {
           <Step>Choose <Ui>Save and put live</Ui> to start selling it, or <Ui>Save as draft</Ui> to finish later.</Step>
         </Task>
         <Task title="Put a draft lot live">
-          <Step>Drafts show under the live lots with <Ui>Put live</Ui>. It&apos;s greyed out until the certificate is attached and the receiving check is complete. Use <Ui>Edit</Ui> to fix anything first — once live, the lot&apos;s details can&apos;t change.</Step>
+          <Step>Drafts show under the live lots with <Ui>Put live</Ui>. It&apos;s greyed out until the certificate is attached (the receiving check is already done — a lot can&apos;t be saved without it). Use <Ui>Edit</Ui> to fix anything first — once live, the lot&apos;s details can&apos;t change.</Step>
         </Task>
         <Task title="Change a price">
           <Step>On the product, click the pencil next to <Ui>Price / vial</Ui>, type the new price and choose Save. Checkouts already open keep the price they were shown.</Step>
@@ -49,17 +49,17 @@ export default function Catalog() {
           ["Stock", <>Each lot has its own count. <Ui>Left</Ui> = sellable − held − sold, where sellable is counted minus damaged plus any corrections. Customers only ever see <Ui>In stock</Ui>, <Ui>Low stock</Ui> or <Ui>Out of stock</Ui>, never the number.</>],
           ["Low stock", <>A strength shows Low at or under its <Ui>Low at</Ui> level ({DEFAULT_LOW_AT} vials unless you set it when adding the strength, or change it after).</>],
           ["Oldest first", <>Orders take vials from the oldest live lot, then the next. One order line can take some from each; the order shows exactly which.</>],
-          ["Held vials", <>Vials are held the moment a customer opens checkout, so two people can never buy the last vial. Paying sells them; an abandoned or cancelled checkout puts them back.</>],
+          ["Held vials", <>Vials are held the moment a customer opens checkout, so two people can never buy the last vial. Paying sells them; a cancelled checkout puts them back at once, and an abandoned one when its payment page expires after {CHECKOUT_EXPIRY_HOURS} hours (or sooner if the same customer starts a new checkout).</>],
           ["Strengths", <>Product content (name, class, description) stays code — a new product needs a code change. Strengths are different: <Ui>Add a strength</Ui>, <Ui>Hide from store</Ui> / <Ui>Show on store</Ui>, <Ui>Archive strength</Ui> and <Ui>Delete strength</Ui> all happen right here, with no code change, so you can act on a market review the same day.</>],
           ["Hidden vs. archived", <>Hidden stays in the main list, greyed out — pause a strength without losing track of it. Archived leaves the main list entirely (its own section and tab) — for one you don&apos;t expect to sell again soon. Both keep every lot, certificate and order; both come back with <Ui>Show on store</Ui> or <Ui>Restore</Ui>.</>],
-          ["Certificates", <>Every lot that was ever live stays findable in COA lookup, so a customer with an older vial can still check it — including lots of a hidden or archived strength.</>],
+          ["Certificates", <>Every lot that was ever live stays findable in COA lookup, so a customer with an older vial can still check it — including lots of a hidden or archived strength, as long as the product itself is shown.</>],
           ["Purity", <>The dialog warns below {PURITY_FLOOR_PCT}% (the figure the site promises) and refuses anything under {PURITY_MIN}%.</>],
           ["3PL SKU", <>The code your warehouse uses for each strength — the same for every lot. It prints on the pick list.</>],
         ]} />
       }
       watch={[
         <>A live lot&apos;s number, purity, method and test date are fixed — customers have seen them. Check the draft before putting it live.</>,
-        <>Retiring the last live lot, or archiving the last strength on the store, makes that product show Out of stock straight away.</>,
+        <>Retiring a strength&apos;s last live lot shows that strength Out of stock straight away. Archiving the last strength on the store takes the whole product off the store until you add or restore one.</>,
         <>If a strength sells out while it&apos;s in someone&apos;s cart, checkout removes it and tells them. Receive the next lot before the current one runs out.</>,
         <>Delete is only for a strength added by mistake — one with no lots and no orders. Everything else is Archive, which keeps the record.</>,
         <>You&apos;ll get an email if an order is ever paid without enough held vials (oversold) — check the counts that day.</>,
