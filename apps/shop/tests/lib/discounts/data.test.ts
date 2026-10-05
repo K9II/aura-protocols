@@ -60,6 +60,17 @@ describe("discount data", () => {
     expect(await resetUse("r1", "owner")).toBe(false);
   });
 
+  it("orderNumbersForRedemptions reads every order number in one query", async () => {
+    const q = query({ data: [{ id: "r1", orders: { order_number: "AP-10372" } }, { id: "r2", orders: null }] });
+    from = fromQueue({ code_redemptions: [q] });
+    const { orderNumbersForRedemptions } = await import("@/lib/discounts/data");
+    const m = await orderNumbersForRedemptions(["r1", "r2"]);
+    expect(m.get("r1")).toBe("AP-10372");
+    expect(m.has("r2")).toBe(false);
+    expect(callArgs(q, "in")).toEqual(["id", ["r1", "r2"]]);
+    expect(await orderNumbersForRedemptions([])).toEqual(new Map());
+  });
+
   it("useCounts asks the SQL function once, however big the batch", async () => {
     rpc.mockResolvedValue({ data: { total: 3, mine: 1 }, error: null });
     const { useCounts } = await import("@/lib/discounts/data");

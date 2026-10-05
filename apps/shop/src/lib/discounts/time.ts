@@ -38,3 +38,9 @@ export function dateTime(iso: string, tz: string = SHOP_TZ): string {
   const time = d.toLocaleTimeString("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit" }).replace(" AM", " am").replace(" PM", " pm");
   return `${date}, ${time}`;
 }
+
+// Whole Mountain calendar days from now until `iso` (0 on the day itself or once past).
+export function mountainDaysUntil(iso: string, nowMs: number = Date.now(), tz: string = SHOP_TZ): number {
+  const day = (ms: number) => { const p = parts(ms, tz); return Date.UTC(p.year, p.month - 1, p.day); };
+  return Math.max(0, Math.round((day(Date.parse(iso)) - day(nowMs)) / 86400000));
+}

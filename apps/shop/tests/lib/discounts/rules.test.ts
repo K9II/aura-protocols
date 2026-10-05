@@ -57,7 +57,7 @@ describe("codeStatus", () => {
 
 describe("plain-English rules", () => {
   it("describes what a code gives (admin list)", () => {
-    expect(describeRule(terms)).toBe("20% off order, stacks + free shipping");
+    expect(describeRule(terms)).toBe("20% off order, on top + free shipping");
     expect(describeRule({ ...terms, kind: "item_pct", value: 15, stackOnTop: false, freeShipping: false })).toBe("15% off items");
     expect(describeRule({ ...terms, kind: "order_amount", value: 1000, stackOnTop: false, freeShipping: false })).toBe("$10 off order");
     expect(describeRule({ ...terms, kind: "ship_only", value: 0 })).toBe("Free shipping");

@@ -95,8 +95,8 @@ export function describeRule(t: CodeTerms): string {
   const ship = t.freeShipping ? " + free shipping" : "";
   switch (t.kind) {
     case "item_pct": return `${t.value}% off ${itemsWord(t)}${ship}`;
-    case "order_pct": return `${t.value}% off order${t.stackOnTop ? ", stacks" : ""}${ship}`;
-    case "order_amount": return `${dollars(t.value)} off order${t.stackOnTop ? ", stacks" : ""}${ship}`;
+    case "order_pct": return `${t.value}% off order${t.stackOnTop ? ", on top" : ""}${ship}`;
+    case "order_amount": return `${dollars(t.value)} off order${t.stackOnTop ? ", on top" : ""}${ship}`;
     case "ship_only": return "Free shipping";
   }
 }

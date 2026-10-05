@@ -324,6 +324,7 @@
 .adm .a-dh .actions form { display: contents; }
 .adm .a-codes .held, .adm .a-codes .held small { color: var(--slate); }
 .adm .a-tfoot.flush { border: 0; border-top: 1px solid var(--line); }
+.adm .a-email { display: inline-block; max-width: 13ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
 @media (max-width: 860px) {
   .adm .a-dh { flex-wrap: wrap; }
   .adm .a-dh .bigcode { font-size: 20px; }

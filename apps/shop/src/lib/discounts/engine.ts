@@ -2,7 +2,7 @@
 //   1. item discounts — per item, the larger of pack price, the automatic
 //      percent (partner code 10% or new-account 15%) or an item-% code
 //   2. order code — replaces step 1 on its items when that's cheaper, or with
-//      "stack on top" applies after it
+//      "on top" applies after it
 //   3. store-wide cap — total discount on goods ≤ capPct of list; never raises
 //      a pack price
 //   4. shipping — free over the threshold or with a free-shipping code

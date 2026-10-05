@@ -75,7 +75,7 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
   const [note, setNote] = useState(existing?.note ?? "");
   const [kind, setKind] = useState<CodeKind>(existing?.kind ?? "item_pct");
   const [value, setValue] = useState(existing ? String(existing.kind === "order_amount" ? existing.value / 100 : existing.value || "") : "");
-  const [stack, setStack] = useState(existing?.stack_on_top ?? false);
+  const [onTop, setOnTop] = useState(existing?.stack_on_top ?? false);
   const [freeShip, setFreeShip] = useState(existing?.free_shipping ?? false);
   const [startsAt, setStartsAt] = useState(existing?.starts_at ? isoToZonedLocal(existing.starts_at) : "");
   const [endsAt, setEndsAt] = useState(existing?.ends_at ? isoToZonedLocal(existing.ends_at) : "");
@@ -99,12 +99,12 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
     const v = kind === "order_amount" ? Math.round(n * 100) : kind === "ship_only" ? 0 : Math.round(n);
     const pick = (t: Token["type"]) => tokens.filter((x) => x.type === t).map((x) => x.value);
     return {
-      kind, value: Number.isFinite(v) ? v : 0, stackOnTop: isOrder && stack, freeShipping: kind !== "ship_only" && freeShip,
+      kind, value: Number.isFinite(v) ? v : 0, stackOnTop: isOrder && onTop, freeShipping: kind !== "ship_only" && freeShip,
       minOrderCents: minOrder ? Math.round(Number(minOrder) * 100) || null : null,
       includeSlugs: scope === "only" ? pick("product") : [], excludeSlugs: scope === "except" ? pick("product") : [],
       includeClasses: scope === "only" ? pick("class") : [], excludeClasses: scope === "except" ? pick("class") : [],
     };
-  }, [kind, value, isOrder, stack, freeShip, minOrder, scope, tokens]);
+  }, [kind, value, isOrder, onTop, freeShip, minOrder, scope, tokens]);
   const valid = kind === "ship_only" || terms.value > 0;
   const label = batch ? (existing ? "Each code" : `${normalizePrefix(prefix) || "PREFIX-"}·····`) : (code.trim().toUpperCase() || "This code");
   const worst = useMemo(() => (valid ? worstCase(terms, compounds, capPct) : null), [terms, valid, capPct]);
@@ -150,7 +150,7 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
       {/* Free shipping has no product scope: never post a stale "only" list. */}
       <input type="hidden" name="scope" value={shipOnly ? "all" : scope} />
       <input type="hidden" name="scopeItems" value={shipOnly ? "[]" : JSON.stringify(tokens)} />
-      {stack && <input type="hidden" name="stackOnTop" value="on" />}
+      {onTop && <input type="hidden" name="stackOnTop" value="on" />}
       {freeShip && <input type="hidden" name="freeShipping" value="on" />}
       {once && <input type="hidden" name="oncePerCustomer" value="on" />}
       {!batch && lock && <input type="hidden" name="lockEmail" value="on" />}
@@ -212,7 +212,7 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
                 {err("value")}
               </div>
             )}
-            {isOrder && <Toggle kind="switch" on={stack} set={setStack} label="Stack on top of item discounts" help="On: applies after pack, new-account and partner discounts. Off: the customer gets whichever is larger — those, or this code." />}
+            {isOrder && <Toggle kind="switch" on={onTop} set={setOnTop} label="Apply on top of item discounts" help="On: applies after pack, new-account and partner discounts. Off: the customer gets whichever is larger — those, or this code." />}
             {kind !== "ship_only" && <Toggle kind="checkbox" on={freeShip} set={setFreeShip} label="Also give free shipping" help="Free shipping always combines with other discounts." />}
           </div>
         </section>

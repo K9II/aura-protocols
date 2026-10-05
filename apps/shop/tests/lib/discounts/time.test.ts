@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isoToZonedLocal, shortDate, dateTime, zonedToIso } from "@/lib/discounts/time";
+import { isoToZonedLocal, shortDate, dateTime, zonedToIso, mountainDaysUntil } from "@/lib/discounts/time";
 
 describe("Mountain time", () => {
   it("converts a form's local time to ISO across daylight saving", () => {
@@ -16,5 +16,17 @@ describe("Mountain time", () => {
   });
   it("rejects malformed input", () => {
     expect(() => zonedToIso("not a date")).toThrow();
+  });
+});
+
+describe("mountainDaysUntil", () => {
+  it("counts Mountain calendar days, not 24-hour blocks", () => {
+    // Oct 4, 11 pm Mountain → Oct 5, 1 am Mountain: one calendar day though only 2 hours.
+    expect(mountainDaysUntil("2026-10-05T07:00:00Z", Date.parse("2026-10-05T05:00:00Z"))).toBe(1);
+    // Oct 31 11:59 pm Mountain, from Oct 4 noon Mountain: 27 days.
+    expect(mountainDaysUntil("2026-11-01T05:59:00Z", Date.parse("2026-10-04T18:00:00Z"))).toBe(27);
+    // Same day, and past ends: 0.
+    expect(mountainDaysUntil("2026-10-05T05:00:00Z", Date.parse("2026-10-04T18:00:00Z"))).toBe(0);
+    expect(mountainDaysUntil("2026-09-01T00:00:00Z", Date.parse("2026-10-04T18:00:00Z"))).toBe(0);
   });
 });

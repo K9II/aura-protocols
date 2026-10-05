@@ -186,13 +186,27 @@ export type Redemption = {
   id: string; code_id: string; discount_cents: number; capped_cents: number; state: "held" | "used" | "released" | "reset"; created_at: string;
   orders: { order_number: string; email: string; status: string; subtotal_cents: number; partner_discount_cents: number } | null;
 };
+// The code detail page shows the latest this many uses.
+export const REDEMPTIONS_LIMIT = 500;
 export async function listRedemptions(codeIds: string[]): Promise<Redemption[]> {
   if (!codeIds.length) return [];
   const { data, error } = await db().from("code_redemptions")
     .select("id, code_id, discount_cents, capped_cents, state, created_at, orders(order_number, email, status, subtotal_cents, partner_discount_cents)")
-    .in("code_id", codeIds).order("created_at", { ascending: false }).limit(500);
+    .in("code_id", codeIds).order("created_at", { ascending: false }).limit(REDEMPTIONS_LIMIT);
   if (error) fail("redemptions list", error);
   return (data as Redemption[] | null) ?? [];
+}
+
+// Order numbers for a set of redemptions (activity log: "Use reset on AP-…"). One query.
+export async function orderNumbersForRedemptions(ids: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!ids.length) return out;
+  const { data, error } = await db().from("code_redemptions").select("id, orders(order_number)").in("id", ids);
+  if (error) fail("redemption order numbers", error);
+  for (const r of (data as Array<{ id: string; orders: { order_number: string } | null }> | null) ?? []) {
+    if (r.orders?.order_number) out.set(r.id, r.orders.order_number);
+  }
+  return out;
 }
 
 export async function claimCode(i: { codeId: string; orderId: string; customerId: string; discountCents: number; cappedCents: number }): Promise<ClaimResult> {

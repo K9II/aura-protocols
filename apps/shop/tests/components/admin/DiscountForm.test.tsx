@@ -24,7 +24,7 @@ describe("DiscountForm", () => {
     fireEvent.change(screen.getByLabelText("Code"), { target: { value: "SPRING20" } });
     fireEvent.click(screen.getByRole("radio", { name: /Order %/ }));
     fireEvent.change(screen.getByLabelText("Percent off"), { target: { value: "20" } });
-    fireEvent.click(screen.getByRole("switch", { name: /Stack on top/ }));
+    fireEvent.click(screen.getByRole("switch", { name: /Apply on top/ }));
     expect(screen.getByTestId("rule-summary")).toHaveTextContent("SPRING20 takes 20% off the goods total after pack, new-account and partner discounts.");
   });
 
@@ -33,7 +33,7 @@ describe("DiscountForm", () => {
     render(<DiscountForm mode="single" capPct={30} />);
     fireEvent.click(screen.getByRole("radio", { name: /Order %/ }));
     fireEvent.change(screen.getByLabelText("Percent off"), { target: { value: "20" } });
-    fireEvent.click(screen.getByRole("switch", { name: /Stack on top/ }));
+    fireEvent.click(screen.getByRole("switch", { name: /Apply on top/ }));
     expect(screen.getByTestId("worst-case")).toHaveTextContent(/30% off list/);
     expect(screen.getByTestId("worst-case")).toHaveTextContent(/Shipping/);
     expect(screen.getByRole("note")).toHaveTextContent(/30% cap trims it/);

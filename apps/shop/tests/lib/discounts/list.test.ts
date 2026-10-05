@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildListRows } from "@/lib/discounts/list";
+import { batchStatus, buildListRows } from "@/lib/discounts/list";
 import type { DiscountCodeRow } from "@/lib/discounts/rules";
 
 const base: DiscountCodeRow = {
@@ -16,7 +16,7 @@ describe("buildListRows", () => {
     const rows = buildListRows(codes, [{ id: "b1", prefix: "VIP-OCT-", size: 2, note: null, created_at: "" }], stats, NOW);
     expect(rows).toHaveLength(2);
     expect(rows.find((r) => r.batchId === "b1")).toMatchObject({ code: "VIP-OCT-·····", uses: 1, max: 2, href: "/admin/discounts/batch/b1", sub: "Batch · 2 single-use codes", status: "active" });
-    expect(rows.find((r) => r.id === "c1")).toMatchObject({ uses: 38, max: 200, revenueCents: 624000, status: "active", gives: "20% off order, stacks + free shipping" });
+    expect(rows.find((r) => r.id === "c1")).toMatchObject({ uses: 38, max: 200, revenueCents: 624000, status: "active", gives: "20% off order, on top + free shipping" });
   });
 
   it("a fully-redeemed batch past its end date (or ended by the owner) reads as ended, not used up", () => {
@@ -40,5 +40,18 @@ describe("buildListRows", () => {
       { ...base, id: "e", status: "ended" }, { ...base, id: "p", status: "paused" }, { ...base, id: "a2", ends_at: "2026-12-31T00:00:00Z" }, { ...base, id: "a1" },
     ], [], new Map(), NOW);
     expect(rows.map((r) => r.id)).toEqual(["a1", "a2", "p", "e"]);
+  });
+});
+
+describe("batchStatus", () => {
+  const row = { status: "active" as const, starts_at: null, ends_at: "2026-11-01T05:59:00Z", max_uses: 1 };
+  it("ended beats used up: fully used AND past its end reads as ended", () => {
+    expect(batchStatus([{ row: { ...row, ends_at: "2026-09-01T00:00:00Z" }, uses: 1 }, { row: { ...row, ends_at: "2026-09-01T00:00:00Z" }, uses: 1 }], 2, NOW)).toBe("ended");
+    expect(batchStatus([{ row: { ...row, status: "ended" as const }, uses: 1 }, { row: { ...row, status: "ended" as const }, uses: 1 }], 2, NOW)).toBe("ended");
+  });
+  it("used up when every code is held or used, active while one is open, paused when paused", () => {
+    expect(batchStatus([{ row, uses: 1 }, { row, uses: 1 }], 2, NOW)).toBe("used_up");
+    expect(batchStatus([{ row, uses: 1 }, { row, uses: 0 }], 2, NOW)).toBe("active");
+    expect(batchStatus([{ row: { ...row, status: "paused" as const }, uses: 0 }], 1 + 1, NOW)).toBe("paused");
   });
 });

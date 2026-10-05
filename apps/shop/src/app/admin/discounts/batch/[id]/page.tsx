@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireOwner } from "@/lib/dal";
 import { getBatch, getCodeById, listBatchCodes } from "@/lib/discounts/data";
-import { codeStatus, describeRule, termsFromRow } from "@/lib/discounts/rules";
+import { describeRule, termsFromRow } from "@/lib/discounts/rules";
+import { batchStatus } from "@/lib/discounts/list";
 import { shortDate } from "@/lib/discounts/time";
 import { setCodeStateAction } from "@/app/admin/discounts/actions";
 import ConfirmSubmit from "@/components/admin/ConfirmSubmit";
@@ -28,7 +29,8 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
   if (!first) notFound();
   const used = codes.filter((c) => c.redemption?.state === "used").length;
   const held = codes.filter((c) => c.redemption?.state === "held").length;
-  const status = used + held >= codes.length ? "used_up" : codeStatus(first, 0);
+  // Batch codes share the rule's dates; each carries its own stored status.
+  const status = batchStatus(codes.map((c) => ({ row: { ...first, status: c.status }, uses: c.redemption ? 1 : 0 })), batch.size);
   const showKey = sp.show === "unused" || sp.show === "used" ? sp.show : undefined;
   const show = showKey === "unused" ? codes.filter((c) => !c.redemption) : showKey === "used" ? codes.filter((c) => c.redemption) : codes;
   const visible = sp.all ? show : show.slice(0, PAGE);
@@ -45,9 +47,9 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
         <span className="bigcode">{batch.prefix}·····</span><StatusChip status={status} />
         <div className="actions">
           <Link className="a-btn" href={`/admin/discounts/${first.id}/edit`}><Icon name="edit" />Edit rule</Link>
-          {stored === "active" && <form action={setCodeStateAction}>{hidden("paused")}<button className="a-btn" type="submit"><Icon name="pause" />Pause all</button></form>}
-          {stored === "paused" && <form action={setCodeStateAction}>{hidden("active")}<button className="a-btn" type="submit"><Icon name="play" />Resume all</button></form>}
-          {stored !== "ended" && (
+          {stored === "active" && (status === "active" || status === "scheduled") && <form action={setCodeStateAction}>{hidden("paused")}<button className="a-btn" type="submit"><Icon name="pause" />Pause all</button></form>}
+          {stored === "paused" && status === "paused" && <form action={setCodeStateAction}>{hidden("active")}<button className="a-btn" type="submit"><Icon name="play" />Resume all</button></form>}
+          {stored !== "ended" && status !== "ended" && (
             <form action={setCodeStateAction}>{hidden("ended")}<ConfirmSubmit className="a-btn danger" message="End every code in this batch? This can't be undone."><Icon name="stop" />End all</ConfirmSubmit></form>
           )}
         </div>
@@ -56,7 +58,7 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
 
       <div className="a-card">
         <div className="a-card-h">
-          <h3>{name}</h3><StatusChip status={status} /><span className="sub">{used} of {codes.length} used{held ? ` · ${held} held` : ""}</span>
+          <h3>{name}</h3><span className="sub">{used} of {codes.length} used{held ? ` · ${held} held` : ""}</span>
           <span className="r">
             <span className="a-seg2">
               <Link href={base} className={!showKey ? "on" : undefined}>All {codes.length}</Link>

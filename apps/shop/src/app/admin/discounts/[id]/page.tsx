@@ -4,9 +4,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireOwner } from "@/lib/dal";
-import { codeStatsById, discountDashboard, getCodeById, getDiscountCap, listEvents, listRedemptions, type Redemption } from "@/lib/discounts/data";
+import { codeStatsById, discountDashboard, getCodeById, getDiscountCap, listEvents, listRedemptions, orderNumbersForRedemptions, REDEMPTIONS_LIMIT, type CodeEvent, type Redemption } from "@/lib/discounts/data";
 import { codeStatus, describeRule, termsFromRow, type DiscountCodeRow, type StoredStatus } from "@/lib/discounts/rules";
-import { dateTime, shortDate } from "@/lib/discounts/time";
+import { dateTime, mountainDaysUntil, shortDate } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
 import { setCodeStateAction, resetUseAction } from "@/app/admin/discounts/actions";
 import ConfirmSubmit from "@/components/admin/ConfirmSubmit";
@@ -16,6 +16,12 @@ import { Chip, Crumbs, Icon, Kpis, StatusChip, money } from "@/components/admin/
 export const metadata: Metadata = { title: "Discount code", robots: { index: false, follow: false } };
 
 const EVENT_TEXT: Record<string, string> = { created: "Created", edited: "Rule edited", paused: "Paused", resumed: "Resumed", ended: "Ended", use_reset: "Use reset" };
+
+// A reset event's detail is the redemption id; show the order it belonged to.
+function eventText(e: CodeEvent, orderOf: Map<string, string>): string {
+  if (e.kind === "use_reset") { const o = e.detail ? orderOf.get(e.detail) : undefined; return o ? `Use reset on ${o}` : "Use reset"; }
+  return `${EVENT_TEXT[e.kind] ?? e.kind}${e.detail ? ` — ${e.detail}` : ""}`;
+}
 const KIND_TEXT: Record<DiscountCodeRow["kind"], string> = { item_pct: "Item %", order_pct: "Order %", order_amount: "Order $", ship_only: "Free shipping" };
 const TABS = ["all", "used", "held", "released"] as const;
 
@@ -70,13 +76,17 @@ export default async function CodePage({ params, searchParams }: { params: Promi
   if (!code) notFound();
   if (code.batch_id) redirect(`/admin/discounts/batch/${code.batch_id}`);
   const [stats, redemptions, events, dash, capPct] = await Promise.all([codeStatsById(), listRedemptions([id]), listEvents({ codeId: id }), discountDashboard(), getDiscountCap()]);
+  const orderOf = await orderNumbersForRedemptions(events.filter((e) => e.kind === "use_reset" && e.detail).map((e) => e.detail!));
   const s = stats.get(id) ?? { uses: 0, held: 0, revenueCents: 0, discountCents: 0, cappedOrders: 0 };
   const status = codeStatus(code, s.uses + s.held);
   const tabRaw = (await searchParams).tab;
   const tab = TABS.find((t) => t === tabRaw) ?? "all";
   const shown = redemptions.filter((r) => tab === "all" || r.state === tab);
-  const n = (st: string) => redemptions.filter((r) => r.state === st).length;
-  const daysLeft = code.ends_at ? Math.max(0, Math.ceil((Date.parse(code.ends_at) - Date.now()) / 86400000)) : null;
+  // The list stops at the latest REDEMPTIONS_LIMIT; used/held counts come from the stats view.
+  const capped = redemptions.length >= REDEMPTIONS_LIMIT;
+  const released = redemptions.filter((r) => r.state === "released").length;
+  const counts = { all: capped ? `${REDEMPTIONS_LIMIT}+` : String(redemptions.length), used: String(s.uses), held: String(s.held), released: capped ? `${released}+` : String(released) };
+  const daysLeft = code.ends_at ? mountainDaysUntil(code.ends_at) : null;
   const storeAvg = dash.orders_30d ? dash.goods_revenue_30d / dash.orders_30d : 0;
   const stored = code.status;
 
@@ -88,9 +98,10 @@ export default async function CodePage({ params, searchParams }: { params: Promi
         <div className="actions">
           <CopyAll codes={[code.code]} label="Copy" className="a-btn" />
           <Link className="a-btn" href={`/admin/discounts/${id}/edit`}><Icon name="edit" />Edit</Link>
-          {stored === "active" && <Move id={id} from={stored} to="paused" />}
-          {stored === "paused" && <Move id={id} from={stored} to="active" />}
-          {stored !== "ended" && <Move id={id} from={stored} to="ended" />}
+          {/* Offer only moves that change something the owner can see. */}
+          {stored === "active" && (status === "active" || status === "scheduled") && <Move id={id} from={stored} to="paused" />}
+          {stored === "paused" && status === "paused" && <Move id={id} from={stored} to="active" />}
+          {stored !== "ended" && status !== "ended" && <Move id={id} from={stored} to="ended" />}
         </div>
       </div>
       <div className="a-dsub">
@@ -111,7 +122,7 @@ export default async function CodePage({ params, searchParams }: { params: Promi
         <div>
           <div className="a-toolbar">
             <div className="a-tabs">
-              {([["all", "Redemptions", redemptions.length], ["used", "Used", n("used")], ["held", "Held", n("held")], ["released", "Released", n("released")]] as const).map(([k, l, c]) => (
+              {([["all", "Redemptions", counts.all], ["used", "Used", counts.used], ["held", "Held", counts.held], ["released", "Released", counts.released]] as const).map(([k, l, c]) => (
                 <Link key={k} href={`/admin/discounts/${id}${k === "all" ? "" : `?tab=${k}`}`} className={tab === k ? "on" : undefined} aria-current={tab === k ? "page" : undefined}>{l} <span className="n">{c}</span></Link>
               ))}
             </div>
@@ -123,7 +134,7 @@ export default async function CodePage({ params, searchParams }: { params: Promi
                 <tbody>{shown.map((r) => (
                   <tr key={r.id}>
                     <td className="a-code">{r.orders?.order_number ?? "—"}</td>
-                    <td>{r.orders?.email ?? "—"}</td>
+                    <td><span className="a-email" title={r.orders?.email}>{r.orders?.email ?? "—"}</span></td>
                     <td className="muted">{dateTime(r.created_at)}</td>
                     <td className="num">{r.orders ? usd(r.orders.subtotal_cents - r.orders.partner_discount_cents) : "—"}</td>
                     <td className="num">−{usd(r.discount_cents)}{r.capped_cents > 0 && <> <span className="a-chip refund nodot sm">capped</span></>}</td>
@@ -132,6 +143,7 @@ export default async function CodePage({ params, searchParams }: { params: Promi
                   </tr>
                 ))}</tbody>
               </table>
+              {capped && <div className="a-tfoot a-only-desk">Showing the latest {REDEMPTIONS_LIMIT}</div>}
               <div className="a-plist a-only-phone">{shown.map((r) => (
                 <div key={r.id} className="a-pitem">
                   <span className="a-code">{r.orders?.order_number ?? "—"}</span>{stateChip(r)}
@@ -139,6 +151,7 @@ export default async function CodePage({ params, searchParams }: { params: Promi
                   <div className="meta">{dateTime(r.created_at)}{canReset(r) && <ResetUse id={r.id} style={{ marginLeft: "auto" }} />}</div>
                 </div>
               ))}</div>
+              {capped && <div className="a-tfoot a-only-phone">Showing the latest {REDEMPTIONS_LIMIT}</div>}
             </>
           )}
         </div>
@@ -151,7 +164,7 @@ export default async function CodePage({ params, searchParams }: { params: Promi
             <div className="a-card-h"><h3>Activity</h3></div>
             <div className="a-card-b">
               {events.length === 0 ? <p className="muted">Nothing yet.</p> : (
-                <ul className="a-log">{events.map((e) => <li key={e.id}><div>{EVENT_TEXT[e.kind] ?? e.kind}{e.detail && e.kind !== "use_reset" ? ` — ${e.detail}` : ""}<small>{dateTime(e.at)}</small></div></li>)}</ul>
+                <ul className="a-log">{events.map((e) => <li key={e.id}><div>{eventText(e, orderOf)}<small>{dateTime(e.at)}</small></div></li>)}</ul>
               )}
             </div>
           </div>
