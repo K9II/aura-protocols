@@ -171,6 +171,22 @@ export async function setRecipient(id: string, email: string, patch: { state: "s
   if (error) fail("recipient update", error);
 }
 
+// The Email nav badge: lots waiting to announce + drafts. Cosmetic — a read
+// failure logs and shows no badge rather than breaking every admin page.
+export async function emailNavCount(): Promise<number> {
+  try {
+    const [lots, drafts] = await Promise.all([
+      waitingLots(),
+      db().from("campaigns").select("id", { count: "exact", head: true }).eq("status", "draft"),
+    ]);
+    if (drafts.error) throw new Error(JSON.stringify(drafts.error));
+    return lots.length + (drafts.count ?? 0);
+  } catch (err) {
+    console.error("email nav count failed:", err);
+    return 0;
+  }
+}
+
 export async function recipientCounts(id: string): Promise<{ pending: number; sent: number; skipped: number; failed: number }> {
   const { data, error } = await db().from("campaign_recipients").select("state").eq("campaign_id", id);
   if (error) fail("recipient counts", error);

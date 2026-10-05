@@ -101,4 +101,13 @@ describe("campaign data", () => {
     expect(r?.facts).toEqual({ code: "OCT10", status: "active", startsAt: null, endsAt: null, maxUses: 500, uses: 9 });
     expect(r?.render).toEqual({ code: "OCT10", summary: "10% off items", endsAt: null, oncePerCustomer: true, minOrderCents: null });
   });
+
+  it("nav count = waiting lots + drafts; a failure is 0 (logged), never breaks the admin", async () => {
+    getLiveCatalog.mockResolvedValue({ lots: [liveLot("AP-1")] });
+    from = fromQueue({ lot_announcements: [query({ data: [] })], campaigns: [query({ data: [] }), query({ count: 2 })] });
+    const { emailNavCount } = await import("@/lib/email/campaigns/data");
+    expect(await emailNavCount()).toBe(3);
+    getLiveCatalog.mockRejectedValue(new Error("down"));
+    expect(await emailNavCount()).toBe(0);
+  });
 });

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Icon, type IconName } from "@/components/admin/ui";
 import { GUIDE_PATH, chapterForPath, guideHref } from "@/components/admin/guide/chapters";
 
-type Item = { href: string; label: string; icon: IconName; live: boolean; count?: "orders" | "partners" };
+type Item = { href: string; label: string; icon: IconName; live: boolean; count?: "orders" | "partners" | "email" };
 const NAV: Array<{ group?: string; items: Item[] }> = [
   { items: [{ href: "/admin", label: "Today", icon: "today", live: false }] },
   { group: "Sell", items: [
@@ -16,7 +16,7 @@ const NAV: Array<{ group?: string; items: Item[] }> = [
   ] },
   { group: "Stock", items: [{ href: "/admin/catalog", label: "Catalog & lots", icon: "catalog", live: true }] },
   { group: "Reach", items: [
-    { href: "/admin/email", label: "Email", icon: "mail", live: false },
+    { href: "/admin/email", label: "Email", icon: "mail", live: true, count: "email" },
     { href: "/admin/inquiries", label: "Inquiries", icon: "inbox", live: false },
   ] },
   { group: "Partners", items: [
@@ -26,7 +26,7 @@ const NAV: Array<{ group?: string; items: Item[] }> = [
 ];
 
 export default function AdminShell({ counts, testMode, ownerName, children }: {
-  counts: { orders: number; partners: number }; testMode: boolean; ownerName: string; children: React.ReactNode;
+  counts: { orders: number; partners: number; email: number }; testMode: boolean; ownerName: string; children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
