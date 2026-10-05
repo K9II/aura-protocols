@@ -7,6 +7,10 @@ export const BLOG_PUBLISHED = false;
 
 // Customer support mailbox — Kearney must confirm it receives mail before unpause.
 export const SUPPORT_EMAIL = "support@auraprotocols.com";
+
+// The purity the site promises (homepage "99% purity floor"). The receive-a-lot
+// dialog warns below it.
+export const PURITY_FLOOR_PCT = 99;
 // Shown at sign-in to a blocked account (admin Customers → Block).
 export const ACCOUNT_CLOSED_MESSAGE = `This account is closed. If you think this is a mistake, email ${SUPPORT_EMAIL} from the address on the account.`;
 

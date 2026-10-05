@@ -6,6 +6,7 @@ import CompoundCard from "@/components/store/CompoundCard";
 import FromTheRecord from "@/components/store/FromTheRecord";
 import { compounds } from "@/data/catalog";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
+import { PURITY_FLOOR_PCT } from "@/lib/constants";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 
 const SPHERE_NODES = sphereNodes();
@@ -41,7 +42,7 @@ export default function HomePage() {
               <Link href="/coa" className="p-btn-outline">See the COAs</Link>
             </div>
             <div className="s-proof s-micro load-in load-5">
-              <span>99% purity floor</span><span>Lot-matched COAs</span><span>Free at ${FREE_SHIPPING_THRESHOLD_USD}+</span>
+              <span>{PURITY_FLOOR_PCT}% purity floor</span><span>Lot-matched COAs</span><span>Free at ${FREE_SHIPPING_THRESHOLD_USD}+</span>
             </div>
           </div>
           <div className="load-in load-5 s-hero-sphere">
