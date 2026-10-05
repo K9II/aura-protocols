@@ -111,13 +111,13 @@ describe("sendCampaignBatch", () => {
     pendingRecipients.mockResolvedValueOnce(recipients);
     subscriberStatuses.mockResolvedValue(new Map(recipients.map((r) => [r.email, "confirmed"])));
     sendTracked.mockRejectedValue(new Error("SES down"));
+    recipientCounts.mockResolvedValue({ pending: 8, sent: 0, skipped: 0, failed: 0 });
     const { sendCampaignBatch } = await import("@/lib/email/campaigns/send");
     const r = await sendCampaignBatch("k1", Date.now() + 60_000);
     expect(sendTracked).toHaveBeenCalledTimes(5);
     expect(setRecipient).toHaveBeenCalledTimes(5);
-    expect(r).toMatchObject({ sent: 0, failed: 5, finished: false, stopped: false });
+    expect(r).toMatchObject({ sent: 0, failed: 5, remaining: 8, finished: false, stopped: false });
     expect(moveCampaign).not.toHaveBeenCalled();
-    expect(recipientCounts).not.toHaveBeenCalled();
     expect(alertOwner).toHaveBeenCalledTimes(1);
     expect(alertOwner.mock.calls[0][0]).toContain("5 failures in a row");
   });

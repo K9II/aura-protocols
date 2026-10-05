@@ -119,6 +119,7 @@ export async function sendCampaignBatch(id: string, deadlineMs: number): Promise
       `Campaign "${c?.name ?? id}": stopped after ${CAMPAIGN_FAIL_STREAK} failures in a row`,
       `${lastError}\n\n${failures.join("\n")}`,
     );
+    out.remaining = (await recipientCounts(id)).pending; // still pending: the next run retries them
     return out;
   }
 
