@@ -119,16 +119,15 @@ export async function sendNowAction(_prev: EmailActionState, f: FormData): Promi
     const message = err instanceof Error ? err.message : String(err);
     await alertOwner(`Campaign "${c.name}": send now failed to start`, message);
     refresh(c.id);
-    return { error: `Sending didn't start: ${message}` };
+    return { error: `Sending hit a problem: ${message}. Anything not yet sent goes out on the next hourly run once it's fixed, or press Stop.` };
   }
   refresh(c.id);
   const n = r.sent.toLocaleString("en-US");
   let ok: string;
   if (!r.finished && !r.stopped && r.failed > 0) {
     // The failure breaker tripped (or the batch otherwise ended mid-run with
-    // failures): some sent, some didn't — never phrase this as a clean
-    // "go out on the next hourly run" remainder.
-    ok = `${n} sent. ${r.failed.toLocaleString("en-US")} couldn't be sent — the hourly run will try again.`;
+    // failures): a partial failure, shown as an error, never as success.
+    return { error: `${n} sent. ${r.failed.toLocaleString("en-US")} couldn't be sent; ${r.remaining.toLocaleString("en-US")} still to go — the hourly run will try again.` };
   } else if (r.remaining) {
     ok = `${n} sent. The other ${r.remaining.toLocaleString("en-US")} go out on the next hourly run.`;
   } else {

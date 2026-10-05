@@ -36,7 +36,8 @@ function mailingAddress(): string {
 
 export async function renderFor(c: CampaignRow, email: string, code: RenderCode | null, opts: { test?: boolean } = {}) {
   const site = siteUrl();
-  const unsub = unsubscribeUrl(site, email, `campaign.${c.id}`);
+  // A test send isn't counted against the campaign if the owner clicks unsubscribe.
+  const unsub = unsubscribeUrl(site, email, opts.test ? undefined : `campaign.${c.id}`);
   const msg = campaignEmail(
     { kind: c.kind, subject: c.subject, previewText: c.preview_text, content: c.content, lots: c.lots_snapshot, code },
     { site, unsubscribeUrl: unsub, mailingAddress: mailingAddress() }, opts,

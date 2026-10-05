@@ -128,12 +128,7 @@ describe("admin email actions", () => {
     sendCampaignBatch.mockResolvedValue({ sent: 410, skipped: 0, failed: 5, remaining: 1895, finished: false, stopped: false });
     const { sendNowAction } = await import("@/app/admin/email/actions");
     const r = await sendNowAction(null, fd({ id: K, from: "draft" }));
-    expect(r?.ok).toBeDefined();
-    expect(r?.ok).toContain("410");
-    expect(r?.ok).toMatch(/couldn.t be sent/i);
-    expect(r?.ok).toMatch(/hourly run/i);
-    expect(r?.ok).not.toMatch(/^410 sent\.$/); // not the plain "all done" phrasing
-    expect(r?.ok).not.toContain("go out on the next hourly run"); // that phrasing implies a clean remainder, not failures
+    expect(r).toEqual({ error: "410 sent. 5 couldn't be sent; 1,895 still to go — the hourly run will try again." });
   });
 
   it("pause switch: ok, or a stale click throws", async () => {
