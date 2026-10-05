@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, trackingUrl } from "@/lib/emails";
+import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl } from "@/lib/emails";
 import type { OrderRow } from "@/lib/orders";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
 
@@ -59,5 +59,20 @@ describe("emails", () => {
     expect(m.subject).toBe("Confirm your email");
     expect(m.html).toContain("https://auraprotocols.com/auth/verify?token=abc");
     expect(findViolations(`${m.subject} ${visibleText(m.html)}`)).toEqual([]);
+  });
+});
+
+describe("storeCreditAddedEmail", () => {
+  it("states amount and balance, tells them to tick Apply store credit, and escapes the message", () => {
+    const m = storeCreditAddedEmail(5_000, 17_000, "Thanks <b>so</b> much", "https://auraprotocols.com");
+    expect(m.subject).toBe("$50.00 store credit added to your account");
+    expect(m.html).toContain("$170.00");
+    expect(m.html).toContain("Apply store credit");
+    expect(m.html).toContain("Thanks &lt;b&gt;so&lt;/b&gt; much");
+    expect(m.html).toContain('href="https://auraprotocols.com/account"');
+    expect(findViolations(m.html.replace(/<[^>]+>/g, " "))).toEqual([]);
+  });
+  it("leaves the message out when there isn't one", () => {
+    expect(storeCreditAddedEmail(5_000, 5_000, null, "https://x.test").html).not.toContain("border-left");
   });
 });

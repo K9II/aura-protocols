@@ -87,3 +87,15 @@ export function verifyEmail(url: string) {
 <p style="font-size:13px;color:#4A4438">Didn't create an account? Ignore this email.</p>`),
   };
 }
+
+// Owner added store credit (admin Customers → Adjust credit, "Email the customer").
+export function storeCreditAddedEmail(amountCents: number, balanceCents: number, message: string | null, site: string) {
+  const title = `${usd(amountCents)} has been added to your account`;
+  return {
+    subject: `${usd(amountCents)} store credit added to your account`,
+    html: shell(title,
+      `<p style="font-size:15px;line-height:1.6">Your store credit balance is now <b>${usd(balanceCents)}</b>. To use it, tick <b>Apply store credit</b> at checkout.</p>
+${message ? `<p style="font-size:15px;line-height:1.6;border-left:2px solid #C9C2AE;padding-left:12px;color:#4A4438;font-style:italic">${e(message)}</p>` : ""}
+<p style="font-size:15px"><a href="${e(site)}/account" style="color:#A32B1F">View your account →</a></p>`),
+  };
+}
