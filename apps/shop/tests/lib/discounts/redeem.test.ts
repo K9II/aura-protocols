@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { DiscountCodeRow } from "@/lib/discounts/rules";
 
 const findCodeByText = vi.fn();
-const useCounts = vi.fn();
-vi.mock("@/lib/discounts/data", () => ({ findCodeByText, useCounts }));
+const countUses = vi.fn();
+vi.mock("@/lib/discounts/data", () => ({ findCodeByText, countUses }));
 
 const row: DiscountCodeRow = {
   id: "c1", code: "SPRING20", note: null, kind: "order_pct", value: 20, stack_on_top: true, free_shipping: true,
@@ -15,7 +15,7 @@ const me = { id: "u1", email: "j@lab.org" };
 const NOW = Date.parse("2026-10-04T12:00:00Z");
 
 describe("lookupDiscountCode", () => {
-  beforeEach(() => { vi.resetModules(); findCodeByText.mockReset(); useCounts.mockReset(); useCounts.mockResolvedValue({ total: 3, mine: 0 }); });
+  beforeEach(() => { vi.resetModules(); findCodeByText.mockReset(); countUses.mockReset(); countUses.mockResolvedValue({ total: 3, mine: 0 }); });
 
   it("none when no discount code has that text (partner path continues)", async () => {
     findCodeByText.mockResolvedValue(null);
@@ -39,7 +39,7 @@ describe("lookupDiscountCode", () => {
     [{ locked_email: "p@meridian.edu" }, { total: 0, mine: 0 }, "This code isn't valid for the email on your account."],
   ])("refuses %o", async (patch, counts, message) => {
     findCodeByText.mockResolvedValue({ ...row, ...patch });
-    useCounts.mockResolvedValue(counts);
+    countUses.mockResolvedValue(counts);
     const { lookupDiscountCode } = await import("@/lib/discounts/redeem");
     expect(await lookupDiscountCode("SPRING20", me, NOW)).toEqual({ kind: "error", message });
   });

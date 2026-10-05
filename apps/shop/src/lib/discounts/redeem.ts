@@ -2,7 +2,7 @@
 // checkout is the authority on limits; this gives the customer the right
 // message early.
 import "server-only";
-import { findCodeByText, useCounts } from "@/lib/discounts/data";
+import { findCodeByText, countUses } from "@/lib/discounts/data";
 import { CODE_MESSAGES } from "@/lib/discounts/messages";
 import { codeStatus, termsFromRow, type CodeTerms } from "@/lib/discounts/rules";
 import { shortDate } from "@/lib/discounts/time";
@@ -15,7 +15,7 @@ export type CodeLookup =
 export async function lookupDiscountCode(typed: string, customer: { id: string; email: string }, nowMs: number = Date.now()): Promise<CodeLookup> {
   const row = await findCodeByText(typed);
   if (!row) return { kind: "none" };
-  const counts = await useCounts(row, customer.id);
+  const counts = await countUses(row, customer.id);
   const status = codeStatus(row, counts.total, nowMs);
   if (status === "ended") return { kind: "error", message: row.ends_at && row.status !== "ended" ? CODE_MESSAGES.ended(shortDate(row.ends_at)) : CODE_MESSAGES.invalid };
   if (status === "used_up") return { kind: "error", message: CODE_MESSAGES.usedUp };

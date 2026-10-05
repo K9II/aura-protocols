@@ -84,7 +84,7 @@ export async function discountDashboard(): Promise<Dashboard> {
 }
 
 // Held + used uses of a code, and of this customer (across the batch when the code is in one).
-export async function useCounts(code: Pick<DiscountCodeRow, "id" | "batch_id">, customerId: string): Promise<{ total: number; mine: number }> {
+export async function countUses(code: Pick<DiscountCodeRow, "id" | "batch_id">, customerId: string): Promise<{ total: number; mine: number }> {
   const { data, error } = await db().rpc("discount_code_use_counts", { p_code: code.id, p_customer: customerId });
   if (error || !data) fail("discount_code_use_counts", error ?? "empty");
   const r = data as { total: number; mine: number };

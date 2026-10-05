@@ -71,10 +71,10 @@ describe("discount data", () => {
     expect(await orderNumbersForRedemptions([])).toEqual(new Map());
   });
 
-  it("useCounts asks the SQL function once, however big the batch", async () => {
+  it("countUses asks the SQL function once, however big the batch", async () => {
     rpc.mockResolvedValue({ data: { total: 3, mine: 1 }, error: null });
-    const { useCounts } = await import("@/lib/discounts/data");
-    expect(await useCounts({ id: "c1", batch_id: "b1" }, "u1")).toEqual({ total: 3, mine: 1 });
+    const { countUses } = await import("@/lib/discounts/data");
+    expect(await countUses({ id: "c1", batch_id: "b1" }, "u1")).toEqual({ total: 3, mine: 1 });
     expect(rpc).toHaveBeenCalledWith("discount_code_use_counts", { p_code: "c1", p_customer: "u1" });
   });
 

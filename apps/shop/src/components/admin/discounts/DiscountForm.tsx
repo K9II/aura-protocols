@@ -90,7 +90,8 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
     ...[...existing.include_classes, ...existing.exclude_classes].map((value) => ({ type: "class" as const, value })),
     ...[...existing.include_slugs, ...existing.exclude_slugs].map((value) => ({ type: "product" as const, value })),
   ] : []);
-  const [avail, setAvail] = useState<{ ok: boolean; message: string } | null>(null);
+  // The last availability answer, tagged with the code it was for.
+  const [availFor, setAvailFor] = useState<{ code: string; ok: boolean; message: string } | null>(null);
 
   const batch = mode === "batch";
   const isOrder = kind === "order_pct" || kind === "order_amount";
@@ -111,14 +112,16 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
   const baskets = useMemo(() => (valid ? typicalBaskets(terms, compounds, capPct) : []), [terms, valid, capPct]);
   const startsOn = futureStart(startsAt);
 
+  const checkable = mode === "single" && !existing && code.trim().length >= 3;
+  const avail = checkable && availFor?.code === code ? availFor : null;
   useEffect(() => {
-    if (mode !== "single" || existing || code.trim().length < 3) { setAvail(null); return; }
+    if (!checkable) return;
     let cancelled = false; // a slower, older response must not overwrite a newer one
     const t = setTimeout(() => {
-      void codeAvailableAction(code).then((r) => { if (!cancelled) setAvail(r); }).catch(() => { if (!cancelled) setAvail(null); });
+      void codeAvailableAction(code).then((r) => { if (!cancelled) setAvailFor({ code, ...r }); }).catch(() => { if (!cancelled) setAvailFor(null); });
     }, 400);
     return () => { cancelled = true; clearTimeout(t); };
-  }, [code, mode, existing]);
+  }, [code, checkable]);
 
   const addToken = (raw: string) => {
     if (!raw) return;
