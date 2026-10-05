@@ -132,6 +132,15 @@ describe("CheckoutForm", () => {
     renderForm({ initialCode: "SPRING20" });
     expect(await screen.findByRole("status")).toHaveTextContent("SPRING20 applied — 20% off your order and free shipping.");
     expect(screen.getByText(/^Shipping$/).parentElement).toHaveTextContent(/Free/);
+    expect(screen.getByText(/Includes discount code SPRING20/)).not.toHaveTextContent(/capped/);
+  });
+
+  it("labels the code's line 'capped at N%' when the store-wide cap trims it", async () => {
+    checkCodeAction.mockResolvedValue({ ok: true, kind: "discount", code: "BIG40", capPct: 30,
+      terms: { kind: "order_pct", value: 40, stackOnTop: true, freeShipping: false, minOrderCents: null, includeSlugs: [], excludeSlugs: [], includeClasses: [], excludeClasses: [] } });
+    renderForm({ initialCode: "BIG40" });
+    expect(await screen.findByRole("status")).toHaveTextContent("capped at 30% of list price");
+    expect(screen.getByText(/Includes discount code BIG40/)).toHaveTextContent("Includes discount code BIG40 (capped at 30%)");
   });
 
   it("shows the bigger-discount note when the code saves nothing", async () => {

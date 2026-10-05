@@ -169,7 +169,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
           {priced.partnerDiscountCents > 0 && (
             <div className="flex justify-between text-[13px] mt-1 text-[color:var(--ink-soft)]"><span>Includes {priced.codeOutcome === "applied" && priced.codeDiscountCents > 0
               ? (priced.newAccount ? `new-account ${OFFER_PCT_TEXT} and code ${appliedCode}` : `discount code ${appliedCode}`)
-              : discount?.newAccount ? `new-account ${OFFER_PCT_TEXT}` : `discount code ${appliedCode}`}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
+              : discount?.newAccount ? `new-account ${OFFER_PCT_TEXT}` : `discount code ${appliedCode}`}{priced.cappedCents > 0 ? ` (capped at ${capPct}%)` : ""}</span><span>−{usd(priced.partnerDiscountCents)}</span></div>
           )}
           <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping</span><span>{priced.shippingCents ? usd(priced.shippingCents)
             : codeShipping ? <>Free <span className="text-[color:var(--ink-soft)] text-[12.5px]">(code {appliedCode})</span></>

@@ -81,11 +81,11 @@ alter table code_attempts enable row level security;
 
 create table if not exists shop_settings (
   id                boolean primary key default true check (id),
-  max_discount_pct  integer not null default 30 check (max_discount_pct between 15 and 60),  -- never below the new-account 15%
+  max_discount_pct  integer not null default 35 check (max_discount_pct between 15 and 60),  -- never below the new-account 15%
   updated_at        timestamptz not null default now()
 );
 alter table shop_settings enable row level security;
-insert into shop_settings (id, max_discount_pct) values (true, 30) on conflict do nothing;
+insert into shop_settings (id, max_discount_pct) values (true, 35) on conflict do nothing;
 
 alter table orders add column if not exists discount_code_id uuid references discount_codes(id);
 alter table orders add column if not exists code_discount_cents integer not null default 0 check (code_discount_cents >= 0);
