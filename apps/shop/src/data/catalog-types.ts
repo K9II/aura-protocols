@@ -49,7 +49,7 @@ export type LiveVariant = VariantContent & {
 
 export type LiveCompound<C extends string = string> = Omit<CatalogEntry<C>, "variants"> & { variants: LiveVariant[] };
 
-// Every lot that was ever live — for COA lookup and lot alerts.
+// Every lot that was ever live, of shown products only — for COA lookup and lot alerts.
 export type PublicLot = Lot & {
   slug: string;
   compoundName: string;

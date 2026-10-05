@@ -50,6 +50,18 @@ describe("marketing emails", () => {
     }
   });
 
+  it("links a bucket certificate as-is and a site path under the site", async () => {
+    const { cartEmail, lotAlertEmail } = await import("@/lib/emails-marketing");
+    const bucket = "https://p.supabase.co/storage/v1/object/public/coa/AP-2611/1.pdf";
+    const order = { order_number: "AP-1042", order_items: [{ compound_name: "BPC-157", strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "AP-2611", compound_slug: "bpc-157" }] };
+    expect(cartEmail(2, ctx, order, () => bucket).html).toContain(`href="${bucket}"`);
+    expect(cartEmail(2, ctx, order, () => "/coa/AP-2611.pdf").html).toContain(`href="${ctx.site}/coa/AP-2611.pdf"`);
+    const l = { compoundName: "BPC-157", slug: "bpc-157", strengths: "10 mg", lot: "AP-2611", purityPct: 99.4, method: "HPLC+MS" as const, testedOn: "2026-11-28", coaFile: bucket };
+    const html = lotAlertEmail(ctx, [l]).html;
+    expect(html).toContain(`href="${bucket}"`);
+    expect(html).not.toContain(`${ctx.site}https://`);
+  });
+
   it("names a single lot in the lot-alert subject and counts several", async () => {
     const { lotAlertEmail } = await import("@/lib/emails-marketing");
     const l = { compoundName: "BPC-157", slug: "bpc-157", strengths: "10 mg", lot: "AP-2611", purityPct: 99.4, method: "HPLC+MS" as const, testedOn: "2026-11-28", coaFile: "/coa/AP-2611.pdf" };

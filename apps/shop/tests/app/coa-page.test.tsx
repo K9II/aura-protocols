@@ -39,6 +39,21 @@ describe("/coa", () => {
     expect(screen.getByText("Lot BPC-2609-01 · Current")).toBeInTheDocument();
   });
 
+  it("never lists a hidden product's lot", async () => {
+    const { mergeCatalog } = await import("@/lib/catalog-merge");
+    const { catalogContent } = await import("@/data/catalog");
+    const row = (slug: string, no: string) => ({ id: no, lot_number: no, slug, variant_id: "10mg", purity_pct: 99.4, method: "HPLC+MS" as const,
+      tested_on: "2026-09-18", coa_path: `${no}/1.pdf`, status: "live" as const, live_at: "2026-09-24T00:00:00Z", sellable: 100, held: 0, sold: 0, available: 100 });
+    live.mockResolvedValue(mergeCatalog(catalogContent, {
+      products: [{ slug: "bpc-157", shown: true }, { slug: "semaglutide", shown: false }],
+      variants: [{ slug: "bpc-157", variant_id: "10mg", price_cents: 7900, low_at: 10, threepl_sku: null }, { slug: "semaglutide", variant_id: "10mg", price_cents: 11900, low_at: 10, threepl_sku: null }],
+      lots: [row("bpc-157", "BPC-2609-01"), row("semaglutide", "SEM-2609-01")],
+    }, (p) => `https://x/coa/${p}`));
+    await lookUp("SEM-2609-01");
+    expect(screen.getByText(/No lot “SEM-2609-01” found/)).toBeInTheDocument();
+    expect(screen.queryByText(/Semaglutide/)).toBeNull();
+  });
+
   it("fails closed when the live catalog can't be read", async () => {
     live.mockResolvedValue(null);
     render(await CoaPage());

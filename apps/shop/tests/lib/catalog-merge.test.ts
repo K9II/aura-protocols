@@ -69,6 +69,17 @@ describe("mergeCatalog", () => {
     expect(m.lots).toEqual([expect.objectContaining({ lot: "BPC-2609-01", status: "retired", compoundName: "BPC-157", strength: "10 mg" })]);
   });
 
+  it("keeps a hidden product's lots out of the public lot list", () => {
+    const m = mergeCatalog([entry("bpc-157"), entry("tb-500")], ops({
+      products: [{ slug: "bpc-157", shown: true }, { slug: "tb-500", shown: false }],
+      variants: [{ slug: "bpc-157", variant_id: "10mg", price_cents: 7900, low_at: 10, threepl_sku: null }, { slug: "tb-500", variant_id: "10mg", price_cents: 8900, low_at: 10, threepl_sku: null }],
+      lots: [lot({}), lot({ id: "l2", lot_number: "TB-2609-01", slug: "tb-500" })],
+    }), url);
+    expect(m.all.map((c) => c.slug)).toEqual(["bpc-157", "tb-500"]);
+    expect(m.all[1].variants[0].lot).toMatchObject({ lot: "TB-2609-01" });
+    expect(m.lots.map((l) => l.lot)).toEqual(["BPC-2609-01"]);
+  });
+
   it("marks a live lot with nothing left as sold_out in the public list", () => {
     const m = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({ available: 0, sold: 200 })] }), url);
     expect(m.lots[0].status).toBe("sold_out");

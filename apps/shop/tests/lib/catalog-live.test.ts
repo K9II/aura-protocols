@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const fetchCatalogOps = vi.fn(), alertOwner = vi.fn(), revalidateTag = vi.fn(), updateTag = vi.fn();
 vi.mock("next/cache", () => ({ unstable_cache: (fn: () => unknown) => fn, revalidateTag, updateTag }));
@@ -20,6 +20,27 @@ describe("catalog-live", () => {
     expect(await getLiveCatalogOrNull()).toBeNull();
     expect(await getLiveCatalogOrNull()).toBeNull();
     expect(alertOwner).toHaveBeenCalledTimes(1);
+  });
+
+  describe("during next build", () => {
+    beforeEach(() => { vi.stubEnv("NEXT_PHASE", "phase-production-build"); });
+    afterEach(() => { vi.unstubAllEnvs(); });
+
+    it("a local build without the DB returns null without emailing the owner", async () => {
+      vi.stubEnv("VERCEL", "");
+      fetchCatalogOps.mockRejectedValue(new Error("down"));
+      const { getLiveCatalogOrNull } = await import("@/lib/catalog-live");
+      expect(await getLiveCatalogOrNull()).toBeNull();
+      expect(alertOwner).not.toHaveBeenCalled();
+    });
+
+    it("a Vercel build rethrows so the deploy fails instead of baking in Unavailable", async () => {
+      vi.stubEnv("VERCEL", "1");
+      fetchCatalogOps.mockRejectedValue(new Error("down"));
+      const { getLiveCatalogOrNull } = await import("@/lib/catalog-live");
+      await expect(getLiveCatalogOrNull()).rejects.toThrow("down");
+      expect(alertOwner).not.toHaveBeenCalled();
+    });
   });
 
   it("owner changes update the tag; stock changes expire it now", async () => {

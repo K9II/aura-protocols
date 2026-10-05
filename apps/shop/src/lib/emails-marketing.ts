@@ -109,10 +109,14 @@ export function welcomeEmail(n: 1 | 2 | 3 | 4 | 5, ctx: MarketingCtx, offer: Fir
   }
 }
 
+// Certificates live in the public coa bucket (absolute URLs); a site path
+// still works.
+const certUrl = (site: string, file: string) => (/^https?:\/\//.test(file) ? file : `${site}${file}`);
+
 function itemLines(o: CartOrder, coa?: (slug: string) => string | null, site?: string): string {
   return (o.order_items ?? []).map((i) => {
     const cert = coa && site ? coa(i.compound_slug) : null;
-    return p(`${e(i.compound_name)} · ${e(i.strength)} · ${i.pack_qty}-pack × ${i.quantity}<br><span style="font-size:13px;color:${SOFT}">Lot ${e(i.lot_number)}${cert ? ` — ${link(`${site}${cert}`, "Certificate →")}` : ""}</span>`);
+    return p(`${e(i.compound_name)} · ${e(i.strength)} · ${i.pack_qty}-pack × ${i.quantity}<br><span style="font-size:13px;color:${SOFT}">Lot ${e(i.lot_number)}${cert ? ` — ${link(certUrl(site!, cert), "Certificate →")}` : ""}</span>`);
   }).join("");
 }
 
@@ -152,7 +156,7 @@ export function lotAlertEmail(ctx: MarketingCtx, lots: AlertLot[]): Msg {
   const th = `style="text-align:left;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${SOFT};padding:6px 8px 6px 0;border-bottom:1px solid ${LINE}"`;
   const td = `style="font-size:14px;padding:8px 8px 8px 0;border-bottom:1px solid ${LINE}"`;
   const rows = lots.map((l) => `<tr><td ${td}>${e(l.compoundName)} · ${e(l.strengths)}</td><td ${td}>${e(l.lot)}</td><td ${td}>${l.purityPct.toFixed(1)}%</td><td ${td}>${l.method === "HPLC+MS" ? "Confirmed" : "—"}</td><td ${td}>${shortDate(l.testedOn)}</td></tr>
-<tr><td colspan="5" style="font-size:13px;padding:4px 0 10px">${l.coaFile ? `${link(`${ctx.site}${l.coaFile}`, "Certificate →")} · ` : ""}${link(`${ctx.site}/products/${l.slug}`, "Product page →")}</td></tr>`).join("");
+<tr><td colspan="5" style="font-size:13px;padding:4px 0 10px">${l.coaFile ? `${link(certUrl(ctx.site, l.coaFile), "Certificate →")} · ` : ""}${link(`${ctx.site}/products/${l.slug}`, "Product page →")}</td></tr>`).join("");
   const title = lots.length === 1 ? `Lot ${lots[0].lot} is *in.*` : `${lots.length} new lots are *in.*`;
   return {
     subject,

@@ -38,6 +38,7 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
   for (const c of content) {
     if (!shownBySlug.has(c.slug)) continue;
     const variants: LiveVariant[] = [];
+    const compoundLots: PublicLot[] = [];
     for (const v of c.variants) {
       const row = variantRow.get(`${c.slug}:${v.id}`);
       if (!row) continue;
@@ -48,7 +49,7 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
       const lot: Lot | PendingLot = selling ? toLot(selling, coaUrl) : { pending: true };
       variants.push({ ...v, priceUsd: row.price_cents / 100, stock: stockState(availableVials, row.low_at), availableVials, lot });
       for (const l of ever) {
-        lots.push({
+        compoundLots.push({
           ...toLot(l, coaUrl), slug: c.slug, compoundName: c.name, variantId: v.id, strength: v.strength, liveAt: l.live_at!,
           status: l.status === "retired" ? "retired" : l.available > 0 ? "live" : "sold_out",
         });
@@ -57,7 +58,8 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
     if (!variants.length) continue;
     const compound: LiveCompound<C> = { ...c, variants };
     all.push(compound);
-    if (shownBySlug.get(c.slug)) shown.push(compound);
+    // Public lot list (COA lookup, lot alerts, cart emails): shown products only.
+    if (shownBySlug.get(c.slug)) { shown.push(compound); lots.push(...compoundLots); }
   }
   return { all, shown, lots };
 }

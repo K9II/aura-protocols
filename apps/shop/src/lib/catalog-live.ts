@@ -23,12 +23,19 @@ export async function getLiveCatalog(): Promise<LiveCatalog<ChemicalClass>> {
 
 // Storefront pages: null means "show Unavailable" — never fall back to code
 // prices. Alerts at most every 15 minutes per server instance.
+// During `next build` it never emails: a local build without the DB renders
+// "Unavailable" quietly; a Vercel build rethrows, so a deploy fails loudly
+// instead of baking "Unavailable" into static pages.
 let lastAlertAt = 0;
 export async function getLiveCatalogOrNull(): Promise<LiveCatalog<ChemicalClass> | null> {
   try {
     return await getLiveCatalog();
   } catch (err) {
     console.error("live catalog read failed:", err);
+    if (process.env.NEXT_PHASE === "phase-production-build") {
+      if (process.env.VERCEL) throw err;
+      return null;
+    }
     if (Date.now() - lastAlertAt > 15 * 60 * 1000) {
       lastAlertAt = Date.now();
       await alertOwner("The store can't read the catalog", `Product pages show "Unavailable right now" and checkout refuses until this clears: ${String(err)}`);

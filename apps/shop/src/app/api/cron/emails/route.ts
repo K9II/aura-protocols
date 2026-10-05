@@ -71,8 +71,11 @@ export async function GET(request: Request): Promise<Response> {
       failed.push(`live catalog: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
-  const coaFor = (slug: string) =>
-    live?.lots.find((l) => l.slug === slug && l.status !== "retired")?.coaFile || null;
+  // The lot selling now; else the last one that sold out; never a retired lot.
+  const coaFor = (slug: string) => {
+    const lots = live?.lots.filter((l) => l.slug === slug) ?? [];
+    return (lots.find((l) => l.status === "live") ?? lots.find((l) => l.status === "sold_out"))?.coaFile || null;
+  };
 
   // Once the budget is spent, don't start a second list — the next hourly
   // run continues where this one stopped.
