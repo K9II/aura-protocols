@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
 import {
   findCompound, compoundsInClass, relatedCompounds,
-  isPendingLot, vialLabel, vialCap, classCounts, strengthMg, packOptions,
+  isPendingLot, vialLabel, vialCap, classCounts, strengthMg, packOptions, strengthInPriceUnit,
   fromPackPriceUsd, toPackPriceUsd, perVialUsd,
 } from "@/lib/catalog";
 import { catalogContent } from "@/data/catalog";
@@ -99,6 +99,18 @@ describe("catalog helpers", () => {
     const [two] = packOptions(slu, slu.variants[0].id);
     expect(two.totalLabel).toBe("500 mcg");
     expect(two.perMgUsd).toBeCloseTo(two.packUsd / 0.5, 2);
+  });
+
+  it("prices IU strengths per IU and never throws on a stored unit", () => {
+    expect(strengthInPriceUnit("5000 IU")).toEqual({ amount: 5000, unit: "IU" });
+    expect(strengthInPriceUnit("250 mcg")).toEqual({ amount: 0.25, unit: "mg" });
+    expect(strengthInPriceUnit("10 mg")).toEqual({ amount: 10, unit: "mg" });
+    expect(() => strengthInPriceUnit("10 ml")).toThrow();
+    const bpc = compounds.find((c) => c.slug === "bpc-157")!;
+    const iu = { ...bpc, variants: [{ ...bpc.variants[0], id: "5000iu", strength: "5000 IU", priceUsd: 400 }] };
+    expect(packOptions(iu, "5000iu")[0]).toEqual(
+      { qty: 2, pct: 5, packUsd: 760, listUsd: 800, perVialUsd: 380, perMgUsd: 0.08, totalLabel: "10000 IU" },
+    );
   });
 
   it("matches the cart's line price for every listed pack", () => {

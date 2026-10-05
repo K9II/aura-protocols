@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Compound } from "@/data/catalog";
-import { isPendingLot, packOptions } from "@/lib/catalog";
+import { isPendingLot, packOptions, strengthInPriceUnit } from "@/lib/catalog";
 import { linePriceUsd } from "@/lib/cart";
 import { useCart } from "@/components/store/CartProvider";
 import SpecBoxes from "@/components/store/SpecBoxes";
@@ -10,7 +10,8 @@ import SpecBoxes from "@/components/store/SpecBoxes";
 const MAX_PACKS = 20;
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-// Pack list: every pack shows its price, the material it holds and $/mg, so
+// Pack list: every pack shows its price, the material it holds and $/mg ($/IU
+// for an IU strength), so
 // the total and the bulk saving are visible before anything is clicked. The
 // lot boxes and certificate link follow the selected strength.
 export default function VariantPicker({ compound: c }: { compound: Compound }) {
@@ -20,6 +21,7 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
   const [quantity, setQuantity] = useState(1);
   const variant = c.variants.find((v) => v.id === variantId)!;
   const packs = packOptions(c, variantId);
+  const per = `/${strengthInPriceUnit(variant.strength).unit}`;
   const sel = packs.find((p) => p.qty === packQty)!;
   const line = { slug: c.slug, variantId, packQty, quantity };
   const total = linePriceUsd(line, [c]);
@@ -51,7 +53,7 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
           <button key={p.qty} type="button" className="s-pack" aria-pressed={p.qty === packQty} onClick={() => setPackQty(p.qty)}>
             <span>
               <b>{p.qty} vials × {variant.strength}</b>
-              <span className="s-pack-math">{p.totalLabel} total · {usd(p.perMgUsd)}/mg</span>
+              <span className="s-pack-math">{p.totalLabel} total · {usd(p.perMgUsd)}{per}</span>
             </span>
             <span className="s-pack-price">
               <b>{usd(p.packUsd)}</b>
@@ -64,7 +66,7 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
         <div>
           <div className="s-micro">Selected pack</div>
           <div className="s-packsel-name">{sel.totalLabel} pack</div>
-          <span className="s-pack-math">{sel.qty} vials × {variant.strength} · {usd(sel.perVialUsd)}/vial · {usd(sel.perMgUsd)}/mg</span>
+          <span className="s-pack-math">{sel.qty} vials × {variant.strength} · {usd(sel.perVialUsd)}/vial · {usd(sel.perMgUsd)}{per}</span>
         </div>
         <div className="s-packsel-price">
           <div className="s-micro">Pack price</div>

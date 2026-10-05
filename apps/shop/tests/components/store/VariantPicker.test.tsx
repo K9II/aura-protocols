@@ -77,6 +77,16 @@ describe("VariantPicker", () => {
     expect(screen.getByRole("button", { name: /add to cart — \$632\.00/i })).toBeInTheDocument();
   });
 
+  it("prices an IU strength per IU", () => {
+    const iu = { ...bpc, variants: [{ ...bpc.variants[0], id: "5000iu", strength: "5000 IU", priceUsd: 400 }] };
+    render(<CartProvider catalog={[iu]}><VariantPicker compound={iu} /></CartProvider>);
+    const two = screen.getByRole("button", { name: /^2 vials × 5000 IU/ });
+    expect(two).toHaveTextContent("10000 IU total · $0.08/IU");
+    const sel = screen.getByTestId("selected-pack");
+    expect(sel).toHaveTextContent("$380.00/vial · $0.08/IU");
+    expect(sel).not.toHaveTextContent("/mg");
+  });
+
   it("adds the chosen number of packs and shows the running total", () => {
     window.localStorage.clear();
     render(<CartProvider catalog={liveFixture()}><VariantPicker compound={bpc} /><Lines /></CartProvider>);

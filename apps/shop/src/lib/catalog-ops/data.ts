@@ -284,19 +284,27 @@ export async function logOversold(slug: string, variantId: string, orderNumber: 
 
 export type ItemLots = { allocated: LotQty[]; shipped: LotQty[] };
 // Allocated (held or sold holds) and shipped lots per order item.
+// Ids go in the query string; /admin/orders can pass hundreds, so read in
+// chunks to stay well under URL-length limits.
+export const ORDER_ITEM_ID_CHUNK = 100;
+
 export async function orderItemLots(orderItemIds: string[]): Promise<Map<string, ItemLots>> {
   const out = new Map<string, ItemLots>(orderItemIds.map((id) => [id, { allocated: [], shipped: [] }]));
-  if (!orderItemIds.length) return out;
-  const [h, s] = await Promise.all([
-    db().from("lot_holds").select("order_item_id, qty, state, lots(lot_number)").in("order_item_id", orderItemIds).in("state", ["held", "sold"]),
-    db().from("shipped_lots").select("order_item_id, lot_number, qty").in("order_item_id", orderItemIds),
-  ]);
-  if (h.error || s.error) fail("order lots read", h.error ?? s.error);
-  for (const r of (h.data ?? []) as unknown as Array<{ order_item_id: string; qty: number; lots: { lot_number: string } }>) {
-    out.get(r.order_item_id)?.allocated.push({ lotNumber: r.lots.lot_number, qty: r.qty });
-  }
-  for (const r of (s.data ?? []) as Array<{ order_item_id: string; lot_number: string; qty: number }>) {
-    out.get(r.order_item_id)?.shipped.push({ lotNumber: r.lot_number, qty: r.qty });
+  const ids = [...out.keys()];
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += ORDER_ITEM_ID_CHUNK) chunks.push(ids.slice(i, i + ORDER_ITEM_ID_CHUNK));
+  const reads = await Promise.all(chunks.map((chunk) => Promise.all([
+    db().from("lot_holds").select("order_item_id, qty, state, lots(lot_number)").in("order_item_id", chunk).in("state", ["held", "sold"]),
+    db().from("shipped_lots").select("order_item_id, lot_number, qty").in("order_item_id", chunk),
+  ])));
+  for (const [h, s] of reads) {
+    if (h.error || s.error) fail("order lots read", h.error ?? s.error);
+    for (const r of (h.data ?? []) as unknown as Array<{ order_item_id: string; qty: number; lots: { lot_number: string } }>) {
+      out.get(r.order_item_id)?.allocated.push({ lotNumber: r.lots.lot_number, qty: r.qty });
+    }
+    for (const r of (s.data ?? []) as Array<{ order_item_id: string; lot_number: string; qty: number }>) {
+      out.get(r.order_item_id)?.shipped.push({ lotNumber: r.lot_number, qty: r.qty });
+    }
   }
   return out;
 }

@@ -48,13 +48,23 @@ export function strengthMg(strength: string): number {
   return m[2].toLowerCase() === "mcg" ? amount / 1000 : amount;
 }
 
+// The unit a strength is priced per: mass strengths per mg (mcg ÷ 1000),
+// IU strengths per IU. Every unit the admin can store (mg, mcg, IU) reads;
+// anything else throws so a typo can never print a wrong unit price.
+export type PriceUnit = "mg" | "IU";
+export function strengthInPriceUnit(strength: string): { amount: number; unit: PriceUnit } {
+  const iu = strength.match(/^\s*([\d.]+)\s*IU\s*$/i);
+  if (iu) return { amount: parseFloat(iu[1]), unit: "IU" };
+  return { amount: strengthMg(strength), unit: "mg" };
+}
+
 export type PackOption = {
   qty: number;          // vials in the pack
   pct: number;          // pack discount
   packUsd: number;      // what the pack costs (same math as the cart line)
   listUsd: number;      // before the pack discount
   perVialUsd: number;
-  perMgUsd: number;
+  perMgUsd: number;     // per mg — or per IU for an IU strength (strengthInPriceUnit)
   totalLabel: string;   // material in the pack, in the vial's unit: "20 mg", "500 mcg"
 };
 
@@ -63,7 +73,7 @@ export function packOptions(c: Compound, variantId: string): PackOption[] {
   const v = c.variants.find((x) => x.id === variantId);
   if (!v) return [];
   const [, amount, unit] = v.strength.match(/([\d.]+)\s*(\w+)/)!;
-  const mg = strengthMg(v.strength);
+  const { amount: per } = strengthInPriceUnit(v.strength);
   return c.packDiscounts.map(({ qty, pct }) => {
     const packUsd = round2(v.priceUsd * qty * (1 - pct / 100));
     return {
@@ -72,7 +82,7 @@ export function packOptions(c: Compound, variantId: string): PackOption[] {
       packUsd,
       listUsd: round2(v.priceUsd * qty),
       perVialUsd: perVialUsd(v.priceUsd, qty, c),
-      perMgUsd: round2(packUsd / (mg * qty)),
+      perMgUsd: round2(packUsd / (per * qty)),
       totalLabel: `${round2(parseFloat(amount) * qty)} ${unit}`,
     };
   });

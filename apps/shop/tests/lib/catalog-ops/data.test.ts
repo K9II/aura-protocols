@@ -25,6 +25,41 @@ describe("catalog-ops data", () => {
     await expect(fetchCatalogOps()).rejects.toThrow(/catalog read failed/);
   });
 
+  it("orderItemLots reads more than 100 ids in chunks and merges the results", async () => {
+    const ids = Array.from({ length: 250 }, (_, i) => `i${i}`);
+    const holds = [
+      query({ data: [{ order_item_id: "i0", qty: 2, state: "held", lots: { lot_number: "A1" } }] }),
+      query({ data: [{ order_item_id: "i150", qty: 1, state: "sold", lots: { lot_number: "B2" } }] }),
+      query({ data: [{ order_item_id: "i249", qty: 3, state: "held", lots: { lot_number: "C3" } }] }),
+    ];
+    const shipped = [query({ data: [] }), query({ data: [{ order_item_id: "i150", lot_number: "B2", qty: 1 }] }), query({ data: [] })];
+    from = fromQueue({ lot_holds: [...holds], shipped_lots: [...shipped] });
+    const { orderItemLots } = await import("@/lib/catalog-ops/data");
+    const out = await orderItemLots(ids);
+    expect(from).toHaveBeenCalledTimes(6);
+    expect(holds.map((q) => (callArgs(q, "in")![1] as string[]).length)).toEqual([100, 100, 50]);
+    expect(shipped.map((q) => (callArgs(q, "in")![1] as string[]).length)).toEqual([100, 100, 50]);
+    expect((callArgs(holds[2], "in")![1] as string[])[0]).toBe("i200");
+    expect(out.size).toBe(250);
+    expect(out.get("i0")).toEqual({ allocated: [{ lotNumber: "A1", qty: 2 }], shipped: [] });
+    expect(out.get("i150")).toEqual({ allocated: [{ lotNumber: "B2", qty: 1 }], shipped: [{ lotNumber: "B2", qty: 1 }] });
+    expect(out.get("i249")!.allocated).toEqual([{ lotNumber: "C3", qty: 3 }]);
+  });
+
+  it("orderItemLots throws when any chunk fails", async () => {
+    const ids = Array.from({ length: 150 }, (_, i) => `i${i}`);
+    from = fromQueue({ lot_holds: [query({ data: [] }), query({ error: { message: "down" } })], shipped_lots: [query({ data: [] }), query({ data: [] })] });
+    const { orderItemLots } = await import("@/lib/catalog-ops/data");
+    await expect(orderItemLots(ids)).rejects.toThrow();
+  });
+
+  it("orderItemLots makes no reads for no ids", async () => {
+    from = fromQueue({});
+    const { orderItemLots } = await import("@/lib/catalog-ops/data");
+    expect((await orderItemLots([])).size).toBe(0);
+    expect(from).not.toHaveBeenCalled();
+  });
+
   it("holdVials maps the function's answer", async () => {
     rpc.mockResolvedValueOnce({ data: { ok: false, reason: "sold_out", short: ["mots-c:10mg"] }, error: null });
     const { holdVials } = await import("@/lib/catalog-ops/data");
