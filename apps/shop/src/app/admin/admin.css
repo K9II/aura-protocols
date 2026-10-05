@@ -535,3 +535,13 @@
   .adm .a-modal-f .r .a-btn { flex: 1; justify-content: center; height: 38px; }
   .adm .a-banner { flex-wrap: wrap; }
 }
+
+/* ---------- Shipped lots / pick list (2026-10-05 catalog & lots) ---------- */
+.adm .a-chip.c-in { color: var(--moss); background: var(--moss-bg); border-color: #B9CDB0; }
+.adm .a-chip.c-low { color: var(--specimen); background: var(--specimen-bg); border-color: #E2BDB5; }
+.adm table.a-pick-t td { vertical-align: top; }
+.adm .a-pick-t .a-prod b { display: block; font-weight: 600; }
+.adm .a-pick-t .a-prod small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
+.adm .a-pickbox { display: grid; gap: 3px; }
+.adm .a-pickbox div { font: 500 12.5px var(--mono); }
+.adm .a-pickbox .q { display: inline-block; min-width: 20px; color: var(--ink-soft); margin-right: 6px; }

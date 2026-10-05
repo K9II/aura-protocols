@@ -7,18 +7,27 @@ const sendOrAlert = vi.fn();
 const alertOwner = vi.fn();
 const markCommissionClearing = vi.fn();
 const afterOrderRefunded = vi.fn();
+const orderItemLots = vi.fn();
+const recordShipped = vi.fn();
+const catalogStockChanged = vi.fn();
 vi.mock("@/lib/dal", () => ({ requireOwner }));
 vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner }));
 vi.mock("@/lib/partners/ledger", () => ({ markCommissionClearing }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/stripe-events", () => ({ afterOrderRefunded }));
+vi.mock("@/lib/catalog-ops/data", () => ({ orderItemLots, recordShipped }));
+vi.mock("@/lib/catalog-live", () => ({ catalogStockChanged }));
 
 function fd(v: Record<string, string>) { const f = new FormData(); for (const [k, x] of Object.entries(v)) f.set(k, x); return f; }
 const id = "11111111-1111-4111-8111-111111111111";
 
 describe("markShippedAction", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [requireOwner, getOrderById, transitionOrder, sendOrAlert, alertOwner, markCommissionClearing]) f.mockReset(); });
+  beforeEach(() => {
+    vi.resetModules();
+    for (const f of [requireOwner, getOrderById, transitionOrder, sendOrAlert, alertOwner, markCommissionClearing, orderItemLots, recordShipped, catalogStockChanged]) f.mockReset();
+    orderItemLots.mockResolvedValue(new Map());
+  });
 
   it("is owner-only", async () => {
     requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
@@ -51,6 +60,94 @@ describe("markShippedAction", () => {
     await markShippedAction(fd({ orderId: id, tracking: "9400111899223344556677", carrier: "usps" }));
     expect(alertOwner).toHaveBeenCalledWith("Commission not cleared for AP-1001", expect.stringContaining("db down"));
     expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "j@lab.org", subject: "Order AP-1001 has shipped" });
+  });
+
+  it("marking shipped records each line's allocated lots as shipped (manual)", async () => {
+    requireOwner.mockResolvedValue({ id: "owner" });
+    const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
+    getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
+      .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
+    transitionOrder.mockResolvedValue(true);
+    orderItemLots.mockResolvedValue(new Map([["i1", { allocated: [{ lotNumber: "BPC-1", qty: 6 }, { lotNumber: "BPC-2", qty: 4 }], shipped: [] }]]));
+    recordShipped.mockResolvedValue("ok");
+    const { markShippedAction } = await import("@/app/admin/orders/actions");
+    await markShippedAction(fd({ orderId: id, tracking: "778122104410", carrier: "fedex" }));
+    expect(recordShipped).toHaveBeenCalledWith("i1", [{ lotNumber: "BPC-1", qty: 6 }, { lotNumber: "BPC-2", qty: 4 }], "manual");
+    expect(alertOwner).not.toHaveBeenCalled();
+    expect(sendOrAlert).toHaveBeenCalled();
+  });
+
+  it("skips a line already recorded as shipped", async () => {
+    requireOwner.mockResolvedValue({ id: "owner" });
+    const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
+    getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
+      .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
+    transitionOrder.mockResolvedValue(true);
+    orderItemLots.mockResolvedValue(new Map([["i1", { allocated: [{ lotNumber: "BPC-1", qty: 6 }], shipped: [{ lotNumber: "BPC-1", qty: 6 }] }]]));
+    const { markShippedAction } = await import("@/app/admin/orders/actions");
+    await markShippedAction(fd({ orderId: id, tracking: "778122104410", carrier: "fedex" }));
+    expect(recordShipped).not.toHaveBeenCalled();
+  });
+
+  it("'moved' expires the live catalog", async () => {
+    requireOwner.mockResolvedValue({ id: "owner" });
+    const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
+    getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
+      .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
+    transitionOrder.mockResolvedValue(true);
+    orderItemLots.mockResolvedValue(new Map([["i1", { allocated: [{ lotNumber: "BPC-1", qty: 6 }], shipped: [] }]]));
+    recordShipped.mockResolvedValue("moved");
+    const { markShippedAction } = await import("@/app/admin/orders/actions");
+    await markShippedAction(fd({ orderId: id, tracking: "778122104410", carrier: "fedex" }));
+    expect(catalogStockChanged).toHaveBeenCalled();
+    expect(alertOwner).not.toHaveBeenCalled();
+    expect(sendOrAlert).toHaveBeenCalled();
+  });
+
+  it("'alert' notifies the owner by order and line, but the shipment still stands", async () => {
+    requireOwner.mockResolvedValue({ id: "owner" });
+    const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
+    getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
+      .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
+    transitionOrder.mockResolvedValue(true);
+    orderItemLots.mockResolvedValue(new Map([["i1", { allocated: [{ lotNumber: "BPC-1", qty: 6 }], shipped: [] }]]));
+    recordShipped.mockResolvedValue("alert");
+    const { markShippedAction } = await import("@/app/admin/orders/actions");
+    await markShippedAction(fd({ orderId: id, tracking: "778122104410", carrier: "fedex" }));
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("i1"));
+    expect(catalogStockChanged).not.toHaveBeenCalled();
+    expect(sendOrAlert).toHaveBeenCalled();
+  });
+
+  it("a thrown recordShipped for one line alerts the owner by line, but other lines and the shipment still go through", async () => {
+    requireOwner.mockResolvedValue({ id: "owner" });
+    const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
+    getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }, { id: "i2" }], ...ship })
+      .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
+    transitionOrder.mockResolvedValue(true);
+    orderItemLots.mockResolvedValue(new Map([
+      ["i1", { allocated: [{ lotNumber: "BPC-1", qty: 6 }], shipped: [] }],
+      ["i2", { allocated: [{ lotNumber: "BPC-2", qty: 4 }], shipped: [] }],
+    ]));
+    recordShipped.mockImplementation(async (itemId: string) => { if (itemId === "i1") throw new Error("db down"); return "ok"; });
+    const { markShippedAction } = await import("@/app/admin/orders/actions");
+    await markShippedAction(fd({ orderId: id, tracking: "778122104410", carrier: "fedex" }));
+    expect(alertOwner).toHaveBeenCalledWith(`Shipped lots not recorded for AP-1001`, expect.stringContaining("i1"));
+    expect(recordShipped).toHaveBeenCalledWith("i2", [{ lotNumber: "BPC-2", qty: 4 }], "manual");
+    expect(sendOrAlert).toHaveBeenCalled();
+  });
+
+  it("a failed shipped-lot record alerts the owner but the shipment stands", async () => {
+    requireOwner.mockResolvedValue({ id: "owner" });
+    const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
+    getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
+      .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
+    transitionOrder.mockResolvedValue(true);
+    orderItemLots.mockRejectedValue(new Error("down"));
+    const { markShippedAction } = await import("@/app/admin/orders/actions");
+    await markShippedAction(fd({ orderId: id, tracking: "778122104410", carrier: "fedex" }));
+    expect(alertOwner).toHaveBeenCalledWith(`Shipped lots not recorded for AP-1001`, expect.any(String));
+    expect(sendOrAlert).toHaveBeenCalled();
   });
 
   it("ignores bad input and non-paid orders", async () => {

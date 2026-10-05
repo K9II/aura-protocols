@@ -26,4 +26,11 @@ describe("OrderCard", () => {
     expect(screen.getByRole("link", { name: "9400 1118 9922 3344 5566 77" }))
       .toHaveAttribute("href", "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400111899223344556677");
   });
+
+  it("links each lot of a split line to COA lookup", () => {
+    const ITEM = base.order_items![0];
+    render(<OrderCard order={{ ...base, status: "paid", order_items: [{ ...ITEM, lot_number: "BPC-2609-01, BPC-2610-02" }] }} />);
+    expect(screen.getByRole("link", { name: "Lot BPC-2609-01" })).toHaveAttribute("href", "/coa?lot=BPC-2609-01");
+    expect(screen.getByRole("link", { name: "Lot BPC-2610-02" })).toHaveAttribute("href", "/coa?lot=BPC-2610-02");
+  });
 });

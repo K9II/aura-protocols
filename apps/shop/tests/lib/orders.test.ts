@@ -39,6 +39,14 @@ describe("orders", () => {
     expect(callArgs(orderQ, "insert")?.[0]).toMatchObject({ discount_code_id: "c1", code_discount_cents: 7900 });
   });
 
+  it("getOrderByNumber finds the order by its order_number", async () => {
+    const q = query({ data: { id: "o1", order_number: "AP-1001" } });
+    from = fromQueue({ orders: [q] });
+    const { getOrderByNumber } = await import("@/lib/orders");
+    expect(await getOrderByNumber("AP-1001")).toEqual({ id: "o1", order_number: "AP-1001" });
+    expect(callArgs(q, "eq")).toEqual(["order_number", "AP-1001"]);
+  });
+
   it("countOrdersForOwner tallies each status and all, skipping unpaid checkouts", async () => {
     const q = query({ data: [{ status: "paid" }, { status: "paid" }, { status: "shipped" }, { status: "cancelled" }] });
     from = fromQueue({ orders: [q] });

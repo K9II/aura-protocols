@@ -103,6 +103,11 @@ export async function getOrderById(id: string): Promise<OrderRow | null> {
   return (data as OrderRow | null) ?? null;
 }
 
+export async function getOrderByNumber(orderNumber: string): Promise<OrderRow | null> {
+  const { data } = await db().from("orders").select(ORDER_WITH_ITEMS).eq("order_number", orderNumber).maybeSingle();
+  return (data as OrderRow | null) ?? null;
+}
+
 export async function getOrderByPaymentIntent(paymentIntent: string): Promise<OrderRow | null> {
   const { data } = await db().from("orders").select(ORDER_WITH_ITEMS).eq("stripe_payment_intent", paymentIntent).maybeSingle();
   return (data as OrderRow | null) ?? null;

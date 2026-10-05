@@ -211,6 +211,15 @@ export async function orderItemLots(orderItemIds: string[]): Promise<Map<string,
 
 // v1: what we allocated is what shipped (source manual). The 3PL feed later
 // calls recordShipped with its own entries and source "3pl".
+//
+// Contract for callers (markShippedAction, the future 3PL feed handler):
+// 'ok' needs no follow-up. 'moved' means the shipped lot(s) differ from what
+// was held, so stock moved between lots — call catalogStockChanged() to
+// expire the live catalog. 'alert' means the shipped quantity doesn't
+// reconcile against what was allocated — alertOwner, naming the order and
+// line, so a human looks at it (the SQL still records what it can). Throws
+// (bad/empty entries, a DB error) must not be swallowed — alert the owner
+// with the order and line so a failed recording is never silent.
 export async function recordShipped(orderItemId: string, entries: LotQty[], source: "manual" | "3pl"): Promise<"ok" | "moved" | "alert"> {
   const { data, error } = await db().rpc("record_shipped_lots", {
     p_item: orderItemId, p_entries: entries.map((e) => ({ lot_number: e.lotNumber, qty: e.qty })), p_source: source,

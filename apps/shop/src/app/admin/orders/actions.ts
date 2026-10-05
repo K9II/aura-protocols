@@ -8,6 +8,8 @@ import { CARRIERS, shippedEmail } from "@/lib/emails";
 import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { markCommissionClearing } from "@/lib/partners/ledger";
 import { afterOrderRefunded } from "@/lib/stripe-events";
+import { orderItemLots, recordShipped } from "@/lib/catalog-ops/data";
+import { catalogStockChanged } from "@/lib/catalog-live";
 
 const schema = z.object({
   orderId: z.string().uuid(),
@@ -27,6 +29,28 @@ export async function markShippedAction(form: FormData): Promise<void> {
       await markCommissionClearing(orderId, new Date().toISOString());
     } catch (err) {
       await alertOwner(`Commission not cleared for ${order.order_number}`, String(err));
+    }
+    // Each line's held/sold lots become its shipped record. A line already
+    // recorded (e.g. a retry) is left alone. One line's failure is reported
+    // by name and doesn't stop the others — a loud per-line alert, not a
+    // silently half-recorded shipment.
+    try {
+      const lots = await orderItemLots((order.order_items ?? []).map((i) => i.id));
+      for (const [itemId, l] of lots) {
+        if (!l.allocated.length || l.shipped.length) continue;
+        try {
+          const result = await recordShipped(itemId, l.allocated, "manual");
+          if (result === "alert") {
+            await alertOwner(`Shipped lots don't match allocated for ${order.order_number}`, `Line ${itemId}: lots shipped don't match lots allocated`);
+          } else if (result === "moved") {
+            catalogStockChanged();
+          }
+        } catch (err) {
+          await alertOwner(`Shipped lots not recorded for ${order.order_number}`, `Line ${itemId}: ${String(err)}`);
+        }
+      }
+    } catch (err) {
+      await alertOwner(`Shipped lots not recorded for ${order.order_number}`, String(err));
     }
     const shipped = (await getOrderById(orderId)) ?? { ...order, tracking_number: tracking, carrier };
     await sendOrAlert({ to: shipped.email, ...shippedEmail(shipped) }, `shipped ${shipped.order_number}`);
