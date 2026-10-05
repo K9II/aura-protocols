@@ -116,7 +116,8 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
     }
   }
 
-  if (lines.length === 0) return <p className="text-[color:var(--ink-soft)]">Your cart is empty.</p>;
+  // A sold-out line can empty the cart; keep its message on screen.
+  if (lines.length === 0) return <>{error && <p role="alert" className="mb-3 text-sm text-[color:var(--specimen)]">{error}</p>}<p className="text-[color:var(--ink-soft)]">Your cart is empty.</p></>;
   const allRejected = [...priced.rejected, ...rejected];
   // Free only because of the code, not the order-size threshold.
   const codeShipping = !!priced.freeShipping && priced.shippingCents === 0 && priced.subtotalCents - priced.partnerDiscountCents < FREE_SHIPPING_THRESHOLD_USD * 100;

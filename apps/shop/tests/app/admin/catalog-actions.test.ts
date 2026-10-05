@@ -184,6 +184,14 @@ describe("catalog actions", () => {
     expect(catalogChangedByOwner).not.toHaveBeenCalled();
   });
 
+  it("correct count: the message counts one vial as a vial", async () => {
+    data.correctCount.mockResolvedValue("ok");
+    data.lotById.mockResolvedValue({ slug: "mots-c" });
+    const { correctCountAction } = await import("@/app/admin/catalog/actions");
+    expect(await correctCountAction(null, fd({ lotId: VALID_UUID, direction: "remove", vials: "1", reason: "damaged", note: "" }))).toEqual({ ok: "Removed 1 vial." });
+    expect(await correctCountAction(null, fd({ lotId: VALID_UUID, direction: "add", vials: "3", reason: "found", note: "" }))).toEqual({ ok: "Added 3 vials." });
+  });
+
   describe("replaceCertificateAction", () => {
     it("refuses a path under another lot without checking storage", async () => {
       data.lotById.mockResolvedValue({ lot_number: "BPC-2610-03", slug: "bpc-157" });

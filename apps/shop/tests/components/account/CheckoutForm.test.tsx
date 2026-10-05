@@ -56,6 +56,23 @@ describe("CheckoutForm", () => {
     }
   });
 
+  it("still shows the sold-out message when the sold-out line was the whole cart", async () => {
+    const msg = "BPC-157 5 mg just sold out — we've removed it from your cart.";
+    startCheckoutAction.mockResolvedValue({ error: msg, rejected: [{ slug: "bpc-157", variantId: "5mg", reason: "sold_out" }] });
+    const original = [...lines];
+    cart.removeStrengths.mockImplementation(() => { lines.length = 0; });
+    try {
+      const { container } = renderForm();
+      fireEvent.click(screen.getByRole("checkbox"));
+      fireEvent.submit(container.querySelector("form")!);
+      await waitFor(() => expect(screen.getByText("Your cart is empty.")).toBeInTheDocument());
+      expect(screen.getByRole("alert")).toHaveTextContent(msg);
+    } finally {
+      lines.length = 0;
+      lines.push(...original);
+    }
+  });
+
   it("other rejections stay listed and don't refresh or remove anything", async () => {
     startCheckoutAction.mockResolvedValue({ error: "Some items can't be ordered right now — they've been flagged below.", rejected: [{ slug: "bpc-157", variantId: "5mg", reason: "pending_lot" }] });
     const { container } = renderForm();

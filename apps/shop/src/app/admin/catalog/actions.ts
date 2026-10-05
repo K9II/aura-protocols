@@ -128,7 +128,8 @@ export async function correctCountAction(_prev: ActionState, f: FormData): Promi
   if (r !== "ok") throw new Error(STALE);
   const lot = await lotById(id);
   refresh(lot?.slug ?? "");
-  return { ok: p.value.delta < 0 ? `Removed ${-p.value.delta} vials.` : `Added ${p.value.delta} vials.` };
+  const n = Math.abs(p.value.delta), vials = `${n} vial${n === 1 ? "" : "s"}`;
+  return { ok: p.value.delta < 0 ? `Removed ${vials}.` : `Added ${vials}.` };
 }
 
 export async function replaceCertificateAction(_prev: ActionState, f: FormData): Promise<ActionState> {
