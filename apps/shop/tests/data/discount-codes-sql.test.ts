@@ -15,10 +15,10 @@ describe("discount-codes.sql", () => {
     for (const t of tables) expect(sql, t).toContain(`alter table ${t} enable row level security;`);
   });
 
-  it("adds the code columns to orders and seeds the 30% cap", () => {
+  it("adds the code columns to orders and seeds the 35% cap", () => {
     expect(sql).toContain("add column if not exists discount_code_id");
     expect(sql).toContain("add column if not exists code_discount_cents");
-    expect(sql).toMatch(/insert into shop_settings[^;]+30[^;]+on conflict do nothing/);
+    expect(sql).toMatch(/insert into shop_settings[^;]+35[^;]+on conflict do nothing/);
   });
 
   it("claims a use atomically: row lock, per-customer lock, limits counted on held + used", () => {
