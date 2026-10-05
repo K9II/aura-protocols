@@ -121,6 +121,8 @@ begin
   if v_status is null or v_status <> p_from or v_status not in ('draft','scheduled') then
     raise exception 'stale_campaign';
   end if;
+  -- Serialise starts of different campaigns so two can't both pass the busy check.
+  perform pg_advisory_xact_lock(hashtext('admin_start_campaign'));
   if exists (select 1 from campaigns where status = 'sending') then
     raise exception 'campaign_busy';
   end if;
@@ -182,7 +184,7 @@ language sql stable security definer set search_path = public, pg_temp as $$
       select es.kind, case when es.kind = 'campaign' then es.ref end as ref
       from email_sends es
       where es.email = p.email and not es.skipped
-        and (es.kind = 'campaign' or es.kind like 'welcome_%')
+        and (es.kind = 'campaign' or es.kind like 'welcome\_%')
         and coalesce(es.ref, '') not like 'test-%'
         and es.sent_at <= p.paid_at and es.sent_at > p.paid_at - make_interval(days => p_days)
       order by es.sent_at desc limit 1) x)
@@ -197,7 +199,8 @@ language sql stable security definer set search_path = public, pg_temp as $$
   with reminded as (
     select es.ref::uuid as order_id, min(es.sent_at) as first_sent, max(es.sent_at) as last_sent
     from email_sends es
-    where es.kind like 'cart_%' and not es.skipped and es.sent_at >= p_since
+    where es.kind like 'cart\_%' and not es.skipped and es.sent_at >= p_since
+      and es.ref is not null and es.ref not like 'test-%'
     group by es.ref),
   rec as (
     select r.order_id, coalesce(
