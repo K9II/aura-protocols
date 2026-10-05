@@ -1,5 +1,6 @@
 "use server";
 
+import { ACCOUNT_CLOSED_MESSAGE } from "@/lib/constants";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { getCustomer } from "@/lib/dal";
@@ -39,7 +40,7 @@ export async function gateSignInAction(input: { email: string; password: string;
   const remember = input?.remember === true;
   const supabase = await createSupabaseServerClient({ sessionOnly: !remember });
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "That email or password isn't right." };
+  if (error) return { error: (error as { code?: string }).code === "user_banned" ? ACCOUNT_CLOSED_MESSAGE : "That email or password isn't right." };
   // The marker cookie is what every later request (a background token
   // refresh with no explicit opts) reads to keep the session-only choice —
   // it must be readable by the browser client too, so it is not httpOnly.

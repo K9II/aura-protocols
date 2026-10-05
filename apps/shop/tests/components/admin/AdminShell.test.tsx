@@ -11,7 +11,8 @@ describe("AdminShell", () => {
     render(<AdminShell counts={{ orders: 3, partners: 2 }} testMode ownerName="Kearney">{<p>page</p>}</AdminShell>);
     expect(screen.getByRole("link", { name: /Discounts/ })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: /Orders/ })).toHaveTextContent("3");
-    expect(screen.getByText("Customers").closest("[aria-disabled]")).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("link", { name: "Customers" })).toHaveAttribute("href", "/admin/customers");
+    expect(screen.getByText("Inquiries").closest("[aria-disabled]")).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByText("Test mode")).toBeInTheDocument();
     expect(screen.getByText("page")).toBeInTheDocument();
   });

@@ -49,7 +49,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             </tr></thead>
             <tbody>
               {orders.map((o) => (
-                <tr key={o.id} style={{ borderTop: "1px solid var(--line)" }}>
+                <tr key={o.id} id={o.order_number} style={{ borderTop: "1px solid var(--line)" }}>
                   <td style={nowrap} className="p-serif text-[17px]">
                     <details><summary className="cursor-pointer">{o.order_number}</summary>
                       <p className="text-[12.5px] mt-2" style={{ whiteSpace: "normal" }}>{o.ship_name}<br />{o.ship_line1}{o.ship_line2 ? `, ${o.ship_line2}` : ""}<br />{o.ship_city}, {o.ship_state} {o.ship_zip}</p>

@@ -14,7 +14,7 @@ vi.mock("next/navigation", () => ({
 
 const row = { id: "u1", full_name: "Jane", organization: null, is_owner: false, stripe_customer_id: null,
   ship_name: "Jane", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701", created_at: "2026-10-01T00:00:00Z",
-  email_verified_at: "2026-09-28T00:00:00Z", verify_required: false };
+  email_verified_at: "2026-09-28T00:00:00Z", verify_required: false, blocked_at: null };
 
 describe("DAL", () => {
   beforeEach(() => { vi.resetModules(); getUser.mockReset(); });
@@ -41,6 +41,29 @@ describe("DAL", () => {
     from = fromQueue({ customers: [query({ data: { ...row, email_verified_at: null, verify_required: true } })] });
     const { getCustomer } = await import("@/lib/dal");
     expect(await getCustomer()).toMatchObject({ emailConfirmed: false, verifyRequired: true });
+  });
+
+  it("a blocked account has no customer, and getAccountState says blocked", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1", email: "j@lab.org" } }, error: null });
+    const blockedRow = { ...row, blocked_at: "2026-10-04T00:00:00Z" };
+    // React's cache() may not memoize outside a request, so queue a read per call.
+    from = fromQueue({ customers: [query({ data: blockedRow }), query({ data: blockedRow })] });
+    const { getCustomer, getAccountState } = await import("@/lib/dal");
+    expect(await getAccountState()).toEqual({ customer: null, blocked: true });
+    expect(await getCustomer()).toBeNull();
+  });
+
+  it("a session Supabase refuses as banned is blocked, not just signed out (the gate says closed)", async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: { code: "user_banned", status: 403, message: "User is banned" } });
+    const { verifySession, getAccountState } = await import("@/lib/dal");
+    expect(await verifySession()).toBeNull();
+    expect(await getAccountState()).toEqual({ customer: null, blocked: true });
+  });
+
+  it("any other auth error is signed out, not blocked", async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: { code: "session_not_found", status: 403, message: "x" } });
+    const { getAccountState } = await import("@/lib/dal");
+    expect(await getAccountState()).toEqual({ customer: null, blocked: false });
   });
 
   it("requireCustomer redirects signed-out visitors to sign-in with a safe next path", async () => {

@@ -61,6 +61,12 @@ describe("auth actions", () => {
     await expect(signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "//evil" }))).rejects.toThrow("REDIRECT:/account");
   });
 
+  it("a blocked (banned) account is told it's closed", async () => {
+    auth.signInWithPassword.mockResolvedValueOnce({ error: { code: "user_banned", message: "User is banned" } });
+    const { signInAction } = await import("@/app/auth/actions");
+    expect((await signInAction(undefined, fd({ email: "x@y.co", password: "pw", next: "/account" })))?.error).toMatch(/This account is closed/);
+  });
+
   it("sign-in clears a leftover session-only marker on success", async () => {
     auth.signInWithPassword.mockResolvedValueOnce({ error: null });
     const { signInAction } = await import("@/app/auth/actions");

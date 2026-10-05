@@ -11,7 +11,7 @@ const NAV: Array<{ group?: string; items: Item[] }> = [
   { items: [{ href: "/admin", label: "Today", icon: "today", live: false }] },
   { group: "Sell", items: [
     { href: "/admin/orders", label: "Orders", icon: "orders", live: true, count: "orders" },
-    { href: "/admin/customers", label: "Customers", icon: "customers", live: false },
+    { href: "/admin/customers", label: "Customers", icon: "customers", live: true },
     { href: "/admin/discounts", label: "Discounts", icon: "discounts", live: true },
   ] },
   { group: "Stock", items: [{ href: "/admin/catalog", label: "Catalog & lots", icon: "catalog", live: false }] },

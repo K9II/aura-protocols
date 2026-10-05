@@ -8,7 +8,7 @@ import { FOCUSABLE_SELECTOR, useFocusTrap } from "@/components/store/useFocusTra
 import GateCarousel from "./GateCarousel";
 import GateSteps, { TITLE_ID, type Step } from "./GateSteps";
 
-type Status = "unknown" | "anon" | "ok" | "verify";
+type Status = "unknown" | "anon" | "ok" | "verify" | "closed";
 type Phase = "off" | "mounted" | "in" | "rv";
 type Scenes = typeof import("./scenes.generated");
 
@@ -70,7 +70,8 @@ export default function AccountGate() {
         if (cancelled) return;
         if (d.state === "ok") setStatus("ok");
         else if (d.state === "verify") { setEmail(d.email ?? ""); setStep("verify"); setStatus("verify"); }
-        else { setStep((s) => (s === "verify" ? "1" : s)); setStatus("anon"); }
+        else if (d.state === "closed") { setStep("closed"); setStatus("closed"); }
+        else { setStep((s) => (s === "verify" || s === "closed" ? "1" : s)); setStatus("anon"); }
       })
       .catch(() => { if (!cancelled) setStatus("anon"); });
     return () => { cancelled = true; };
@@ -79,7 +80,7 @@ export default function AccountGate() {
   // While a re-check is in flight, a gate already on screen (or counting down) stays
   // as it is — no flicker; it closes if the answer is "ok". Nothing new opens on "unknown".
   const holding = status === "unknown" && phase !== "off";
-  const wanted = !exempt && (status === "anon" || status === "verify" || holding);
+  const wanted = !exempt && (status === "anon" || status === "verify" || status === "closed" || holding);
 
   // Entrance: mounted off-screen at once, enters at 3.5 s, form fades up after.
   useEffect(() => {
