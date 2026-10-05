@@ -51,7 +51,7 @@ function eventLine(e: CatalogEvent, strengthOf: (variantId: string | null) => st
     case "certificate_replaced": return <>{who} replaced the certificate for {lot}</>;
     case "price_changed": return <>{who} changed {strengthOf(e.variant_id)} price <b>{usd(Number(b.price_cents))} → {usd(Number(a.price_cents))}</b></>;
     case "low_at_changed": return <>{who} set {strengthOf(e.variant_id)} low level to {a.low_at}</>;
-    case "threepl_sku_changed": return <>{who} set {strengthOf(e.variant_id)} 3PL SKU to {a.threepl_sku ?? "none"}</>;
+    case "threepl_sku_changed": return <>{who} set {strengthOf(e.variant_id)} 3PL SKU to <span className="a-nw">{a.threepl_sku ?? "none"}</span></>;
     case "shown": return <>{who} showed it on the store</>;
     case "hidden": return <>{who} hid it from the store</>;
     case "oversold": return <>Oversold on {e.note}: {a.need} ordered, {a.covered} held</>;
@@ -211,7 +211,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <div className="a-card-b" style={{ paddingTop: 6, paddingBottom: 6 }}>
               <dl className="a-facts2">
                 <dt>Visibility</dt><dd>{shown ? "Shown" : "Hidden"}</dd>
-                {rows.filter((r) => r.shown).map((r) => <span key={r.variantId} style={{ display: "contents" }}><dt>{r.strength}</dt><dd>{r.stock === "in" ? "In stock" : r.stock === "low" ? "Low stock" : "Out of stock"}{r.selling ? ` · lot ${r.selling.lotNumber}` : ""}</dd></span>)}
+                {rows.filter((r) => r.shown).map((r) => <span key={r.variantId} style={{ display: "contents" }}><dt>{r.strength}</dt><dd>{r.stock === "in" ? "In stock" : r.stock === "low" ? "Low stock" : "Out of stock"}{r.selling ? <> · lot <span className="a-nw">{r.selling.lotNumber}</span></> : null}</dd></span>)}
                 <dt>COA lookup</dt><dd>{ops.lots.filter((l) => l.live_at).length} lots findable</dd>
               </dl>
             </div>

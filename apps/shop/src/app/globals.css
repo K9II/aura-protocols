@@ -594,6 +594,12 @@ main > .pharmacopoeia { overflow-x: clip; }
   .pharmacopoeia .s-specs > div { padding: 10px; }
   .pharmacopoeia .s-specs b { font-size: 18px; }
   .pharmacopoeia .s-specs b.s-mono { font-size: 13px; }
+  /* A 12-character lot number (e.g. SS10-2609-01) stays on one line on a phone. */
+  .pharmacopoeia .s-specs { grid-template-columns: minmax(0, .9fr) minmax(0, 1fr) minmax(0, 1.3fr); gap: 8px; }
+}
+@media (max-width: 360px) {
+  .pharmacopoeia .s-specs b { font-size: 15px; }
+  .pharmacopoeia .s-specs b.s-mono { font-size: 12px; }
 }
 .pharmacopoeia .s-certlink { display: inline-block; margin: 12px 0 22px; font-size: 13px; color: var(--specimen); border-bottom: 1px solid var(--specimen); }
 .pharmacopoeia .s-optlabel { margin: 20px 0 9px; color: var(--ink-soft); }

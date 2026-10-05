@@ -658,3 +658,36 @@
   .adm .a-plot .top .a-chip:first-of-type { margin-left: auto; }
   .adm .a-plot .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
 }
+
+/* Visual audit fixes (2026-10-05 live check) */
+.adm .a-nw, .adm .a-log b, .adm .a-pickbox > div, .adm table.a-pick-t .a-mono { white-space: nowrap; }
+/* "Receive a lot", "Shown on store": the desktop-only words join the label text instead of sitting a flex gap away. */
+.adm .a-btn > span.a-only-desk, .adm .a-switch > span.a-only-desk { display: contents; }
+@media (max-width: 860px) {
+  /* List toolbar (mock k5): search on its own line above, tabs one scrolling row. */
+  .adm .a-toolbar .a-search { width: 100% !important; order: -1; }
+  .adm .a-tabs a { white-space: nowrap; flex-shrink: 0; }
+  .adm .a-vh .sub { flex-wrap: wrap; gap: 2px 8px; }
+  /* Receive a lot (mock k5): two columns, certificate and receiving check full width. */
+  .adm dialog.a-modal.wide .a-modal-b { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 12px; }
+  .adm dialog.a-modal.wide .a-modal-b > * { grid-column: 1 / -1; }
+  .adm dialog.a-modal.wide .a-modal-b > .a-row3 { display: contents; }
+  .adm dialog.a-modal.wide .a-modal-b > .a-row3 > * { grid-column: auto; }
+  .adm dialog.a-modal.wide .a-modal-b > .a-row3 > [style*="span"] { grid-column: 1 / -1 !important; }
+  .adm dialog.a-modal.wide .a-recv .a-row3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px; }
+  .adm dialog.a-modal.wide .a-recv .a-row3 > * { min-width: 0; }
+  .adm dialog.a-modal.wide .a-recv label .muted { display: none; }
+  .adm dialog.a-modal.wide .a-modal-f .r > .a-btn:not([type=submit]) { display: none; }
+  .adm dialog.a-modal.wide .a-modal-f .r .a-btn { padding: 0 8px; }
+  /* Pick list: one card per line. */
+  .adm table.a-pick-t, .adm table.a-pick-t tbody { display: block; }
+  .adm table.a-pick-t thead { display: none; }
+  .adm table.a-pick-t tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .adm table.a-pick-t tr:last-child { border-bottom: 0; }
+  .adm table.a-pick-t td { display: block; height: auto; padding: 0; border: 0; }
+  .adm table.a-pick-t td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; font-size: 12px; }
+  .adm table.a-pick-t td:nth-child(2)::before { content: "SKU "; color: var(--muted); }
+  .adm table.a-pick-t td:nth-child(3) { grid-column: 2; grid-row: 1; }
+  .adm table.a-pick-t td:nth-child(3)::after { content: " vials"; color: var(--muted); font-family: var(--sans); }
+  .adm table.a-pick-t td:nth-child(4) { grid-column: 1 / -1; }
+}
