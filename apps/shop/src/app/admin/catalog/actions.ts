@@ -61,10 +61,17 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
   const p = parseReceive(receiveInput(f), today());
   if (!p.ok) return { fieldErrors: p.fieldErrors };
   const val = p.value;
+  const editing = str(f, "lotId");
+  // Editing a draft: what it was before, to spot a rename and changed counts.
+  const prev = editing ? await lotById(uuid(f, "lotId")) : null;
+  if (editing && (!prev || prev.status !== "draft")) throw new Error(STALE);
+  if (val.coaPath && prev && prev.lot_number !== val.lotNumber
+      && isCoaPathFor(prev.lot_number, val.coaPath) && !isCoaPathFor(val.lotNumber, val.coaPath)) {
+    return { fieldErrors: { coa: "The certificate was attached under the old lot number — attach it again." } };
+  }
   if (val.coaPath && !(isCoaPathFor(val.lotNumber, val.coaPath) && await coaUploaded(val.coaPath))) {
     return { fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } };
   }
-  const editing = str(f, "lotId");
   let id: string;
   if (editing) {
     id = uuid(f, "lotId");
@@ -76,7 +83,10 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
     if (!r.ok) return { fieldErrors: { lotNumber: "That lot number is already used." } };
     id = r.id;
   }
-  if (isDiscrepancy(val.orderedQty, val.countedQty, val.damagedQty)) {
+  // A new lot alerts on any discrepancy; an edited draft only when its counts
+  // changed and still don't add up (not on every save).
+  const countsChanged = !prev || prev.ordered_qty !== val.orderedQty || prev.counted_qty !== val.countedQty || prev.damaged_qty !== val.damagedQty;
+  if (countsChanged && isDiscrepancy(val.orderedQty, val.countedQty, val.damagedQty)) {
     await alertOwner(`Lot ${val.lotNumber} arrived short or damaged`,
       `${c.name} ${v.strength}, lot ${val.lotNumber}: ordered ${val.orderedQty}, counted ${val.countedQty}, damaged ${val.damagedQty}. Note: ${val.discrepancyNote}`);
   }

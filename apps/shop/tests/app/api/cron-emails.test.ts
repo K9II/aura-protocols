@@ -74,7 +74,7 @@ describe("GET /api/cron/emails", () => {
       pl("TB-RET", "tb-500", "retired"), pl("TB-SOLD", "tb-500", "sold_out"),
       pl("KPV-RET", "kpv", "retired"),
     ] });
-    const item = (slug: string) => ({ compound_name: slug, strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "x", compound_slug: slug });
+    const item = (slug: string) => ({ compound_name: slug, strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "x", compound_slug: slug, variant_id: "10mg" });
     listAbandonedCheckouts.mockResolvedValue([{ id: "o1", order_number: "AP-1042", email: "a@b.co", created_at: new Date(Date.now() - 13 * H).toISOString(), order_items: [item("bpc-157"), item("tb-500"), item("kpv")] }]);
     sentKinds.mockResolvedValue(new Set(["cart_1:o1"]));
     getSubscriber.mockResolvedValue(null);
@@ -86,6 +86,20 @@ describe("GET /api/cron/emails", () => {
     expect(html).not.toContain("BPC-OLD");
     expect(html).toContain("https://b/coa/TB-SOLD.pdf");
     expect(html).not.toContain("RET.pdf");
+  });
+
+  it("links each strength's own certificate on a two-strength product", async () => {
+    const pl = (lot: string, variantId: string, status: string) => ({ lot, slug: "ss-31", status, coaFile: `https://b/coa/${lot}.pdf`, compoundName: "SS-31", variantId, strength: variantId.replace("mg", " mg"), purityPct: 99, method: "HPLC", testedOn: "2026-09-01", liveAt: "2026-09-02T00:00:00Z", onStore: true });
+    getLiveCatalog.mockResolvedValue({ all: [], shown: [], lots: [pl("SS-10-LIVE", "10mg", "live"), pl("SS-50-LIVE", "50mg", "live")] });
+    const item = (variantId: string) => ({ compound_name: "SS-31", strength: variantId.replace("mg", " mg"), pack_qty: 2, quantity: 1, lot_number: "x", compound_slug: "ss-31", variant_id: variantId });
+    listAbandonedCheckouts.mockResolvedValue([{ id: "o1", order_number: "AP-1042", email: "a@b.co", created_at: new Date(Date.now() - 13 * H).toISOString(), order_items: [item("50mg")] }]);
+    sentKinds.mockResolvedValue(new Set(["cart_1:o1"]));
+    getSubscriber.mockResolvedValue(null);
+    const { GET } = await import("@/app/api/cron/emails/route");
+    await GET(auth());
+    const html: string = sendTracked.mock.calls[0][0].msg.html;
+    expect(html).toContain("https://b/coa/SS-50-LIVE.pdf");
+    expect(html).not.toContain("SS-10-LIVE");
   });
 
   it("skips cart reminders for unsubscribed buyers", async () => {

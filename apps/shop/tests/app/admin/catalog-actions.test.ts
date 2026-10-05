@@ -80,12 +80,72 @@ describe("catalog actions", () => {
   });
 
   describe("editing a draft", () => {
-    it("fires the same discrepancy alert as a new receive", async () => {
+    // The draft as saved before this edit: same number, full count.
+    const draft = (o: Record<string, unknown> = {}) => ({
+      id: VALID_UUID, lot_number: "BPC-2610-03", slug: "bpc-157", status: "draft", coa_path: "BPC-2610-03/1700000000000.pdf",
+      ordered_qty: 200, counted_qty: 200, damaged_qty: 0, ...o,
+    });
+    beforeEach(() => { data.lotById.mockResolvedValue(draft()); });
+
+    it("fires the discrepancy alert when the counts change into a discrepancy", async () => {
       data.coaUploaded.mockResolvedValue(true);
       data.updateDraftLot.mockResolvedValue({ ok: true });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
       await receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" }));
       expect(alertOwner).toHaveBeenCalledWith("Lot BPC-2610-03 arrived short or damaged", expect.stringContaining("ordered 200, counted 196, damaged 2"));
+    });
+
+    it("re-saving a draft with the same discrepancy does not alert again", async () => {
+      data.lotById.mockResolvedValue(draft({ counted_qty: 196, damaged_qty: 2 }));
+      data.coaUploaded.mockResolvedValue(true);
+      data.updateDraftLot.mockResolvedValue({ ok: true });
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      expect(await receiveLotAction(null, fd({ ...receive, purity: "99.6", lotId: VALID_UUID, intent: "draft" }))).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
+      expect(alertOwner).not.toHaveBeenCalled();
+    });
+
+    it("changed counts that now add up do not alert", async () => {
+      data.lotById.mockResolvedValue(draft({ counted_qty: 196, damaged_qty: 2 }));
+      data.coaUploaded.mockResolvedValue(true);
+      data.updateDraftLot.mockResolvedValue({ ok: true });
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      await receiveLotAction(null, fd({ ...receive, counted: "200", damaged: "0", note: "", lotId: VALID_UUID, intent: "draft" }));
+      expect(alertOwner).not.toHaveBeenCalled();
+    });
+
+    it("a different discrepancy alerts again", async () => {
+      data.lotById.mockResolvedValue(draft({ counted_qty: 196, damaged_qty: 2 }));
+      data.coaUploaded.mockResolvedValue(true);
+      data.updateDraftLot.mockResolvedValue({ ok: true });
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      await receiveLotAction(null, fd({ ...receive, counted: "190", lotId: VALID_UUID, intent: "draft" }));
+      expect(alertOwner).toHaveBeenCalledWith("Lot BPC-2610-03 arrived short or damaged", expect.stringContaining("ordered 200, counted 190, damaged 2"));
+    });
+
+    it("renaming a lot whose certificate was attached under the old number asks to attach it again", async () => {
+      data.lotById.mockResolvedValue(draft({ lot_number: "BPC-2610-OLD", coa_path: "BPC-2610-OLD/1700000000000.pdf" }));
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      expect(await receiveLotAction(null, fd({ ...receive, coaPath: "BPC-2610-OLD/1700000000000.pdf", lotId: VALID_UUID, intent: "draft" })))
+        .toEqual({ fieldErrors: { coa: "The certificate was attached under the old lot number — attach it again." } });
+      expect(data.coaUploaded).not.toHaveBeenCalled();
+      expect(data.updateDraftLot).not.toHaveBeenCalled();
+    });
+
+    it("renaming with a certificate re-attached under the new number saves", async () => {
+      data.lotById.mockResolvedValue(draft({ lot_number: "BPC-2610-OLD", coa_path: "BPC-2610-OLD/1700000000000.pdf" }));
+      data.coaUploaded.mockResolvedValue(true);
+      data.updateDraftLot.mockResolvedValue({ ok: true });
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      expect(await receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" }))).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
+    });
+
+    it("a lot that's gone or no longer a draft throws (stale) before saving", async () => {
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      data.lotById.mockResolvedValue(null);
+      await expect(receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" }))).rejects.toThrow(/reload/);
+      data.lotById.mockResolvedValue(draft({ status: "live" }));
+      await expect(receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" }))).rejects.toThrow(/reload/);
+      expect(data.updateDraftLot).not.toHaveBeenCalled();
     });
 
     it("a taken lot number is a field error", async () => {

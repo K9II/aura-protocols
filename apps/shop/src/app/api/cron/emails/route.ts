@@ -71,9 +71,10 @@ export async function GET(request: Request): Promise<Response> {
       failed.push(`live catalog: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
-  // The lot selling now; else the last one that sold out; never a retired lot.
-  const coaFor = (slug: string) => {
-    const lots = live?.lots.filter((l) => l.slug === slug) ?? [];
+  // Per product AND strength: the lot selling now; else the last one that
+  // sold out; never a retired lot.
+  const coaFor = (slug: string, variantId: string) => {
+    const lots = live?.lots.filter((l) => l.slug === slug && l.variantId === variantId) ?? [];
     return (lots.find((l) => l.status === "live") ?? lots.findLast((l) => l.status === "sold_out"))?.coaFile || null;
   };
 

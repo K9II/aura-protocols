@@ -9,7 +9,7 @@ export type MarketingCtx = { site: string; unsubscribeUrl: string };
 export type Msg = { subject: string; html: string };
 export type CartOrder = {
   order_number: string;
-  order_items?: { compound_name: string; compound_slug: string; strength: string; pack_qty: number; quantity: number; lot_number: string }[];
+  order_items?: { compound_name: string; compound_slug: string; variant_id: string; strength: string; pack_qty: number; quantity: number; lot_number: string }[];
 };
 export type AlertLot = {
   compoundName: string; slug: string; strengths: string; lot: string;
@@ -113,9 +113,12 @@ export function welcomeEmail(n: 1 | 2 | 3 | 4 | 5, ctx: MarketingCtx, offer: Fir
 // still works.
 const certUrl = (site: string, file: string) => (/^https?:\/\//.test(file) ? file : `${site}${file}`);
 
-function itemLines(o: CartOrder, coa?: (slug: string) => string | null, site?: string): string {
+// The certificate is looked up per product AND strength (each strength sells
+// from its own lots).
+type CoaFor = (slug: string, variantId: string) => string | null;
+function itemLines(o: CartOrder, coa?: CoaFor, site?: string): string {
   return (o.order_items ?? []).map((i) => {
-    const cert = coa && site ? coa(i.compound_slug) : null;
+    const cert = coa && site ? coa(i.compound_slug, i.variant_id) : null;
     return p(`${e(i.compound_name)} · ${e(i.strength)} · ${i.pack_qty}-pack × ${i.quantity}<br><span style="font-size:13px;color:${SOFT}">Lot ${e(i.lot_number)}${cert ? ` — ${link(certUrl(site!, cert), "Certificate →")}` : ""}</span>`);
   }).join("");
 }
@@ -125,7 +128,7 @@ function itemLines(o: CartOrder, coa?: (slug: string) => string | null, site?: s
 // itself as an advertisement to anyone who didn't opt in to the list.
 const PROMO_LINE = p(`<span style="color:${SOFT}">This is a promotional reminder about your unfinished checkout.</span>`);
 
-export function cartEmail(n: 1 | 2 | 3, ctx: MarketingCtx, o: CartOrder, coaFor: (slug: string) => string | null, promo?: boolean): Msg {
+export function cartEmail(n: 1 | 2 | 3, ctx: MarketingCtx, o: CartOrder, coaFor: CoaFor, promo?: boolean): Msg {
   const finish = p(link(`${ctx.site}/cart`, "Finish at checkout →"));
   const promoLine = promo ? PROMO_LINE : "";
   switch (n) {

@@ -34,7 +34,7 @@ describe("marketing emails", () => {
 
   it("every marketing email has the RUO line, mailing address, unsubscribe link and Alvester's sign-off", async () => {
     const m = await import("@/lib/emails-marketing");
-    const order = { order_number: "AP-1042", order_items: [{ compound_name: "BPC-157", strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "AP-2611", compound_slug: "bpc-157" }] };
+    const order = { order_number: "AP-1042", order_items: [{ compound_name: "BPC-157", strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "AP-2611", compound_slug: "bpc-157", variant_id: "10mg" }] };
     const lots = [{ compoundName: "BPC-157", slug: "bpc-157", strengths: "10 mg", lot: "AP-2611", purityPct: 99.4, method: "HPLC+MS" as const, testedOn: "2026-11-28", coaFile: "/coa/AP-2611.pdf" }];
     const all = [
       ...[1, 2, 3, 4, 5].map((n) => m.welcomeEmail(n as 1 | 2 | 3 | 4 | 5, ctx, offer)),
@@ -53,7 +53,7 @@ describe("marketing emails", () => {
   it("links a bucket certificate as-is and a site path under the site", async () => {
     const { cartEmail, lotAlertEmail } = await import("@/lib/emails-marketing");
     const bucket = "https://p.supabase.co/storage/v1/object/public/coa/AP-2611/1.pdf";
-    const order = { order_number: "AP-1042", order_items: [{ compound_name: "BPC-157", strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "AP-2611", compound_slug: "bpc-157" }] };
+    const order = { order_number: "AP-1042", order_items: [{ compound_name: "BPC-157", strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "AP-2611", compound_slug: "bpc-157", variant_id: "10mg" }] };
     expect(cartEmail(2, ctx, order, () => bucket).html).toContain(`href="${bucket}"`);
     expect(cartEmail(2, ctx, order, () => "/coa/AP-2611.pdf").html).toContain(`href="${ctx.site}/coa/AP-2611.pdf"`);
     const l = { compoundName: "BPC-157", slug: "bpc-157", strengths: "10 mg", lot: "AP-2611", purityPct: 99.4, method: "HPLC+MS" as const, testedOn: "2026-11-28", coaFile: bucket };
@@ -83,7 +83,7 @@ describe("marketing emails", () => {
 
   it("escapes a cart item name, never renders it raw", async () => {
     const { cartEmail } = await import("@/lib/emails-marketing");
-    const order = { order_number: "AP-1042", order_items: [{ compound_name: "<script>x</script>", strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "AP-2611", compound_slug: "bpc-157" }] };
+    const order = { order_number: "AP-1042", order_items: [{ compound_name: "<script>x</script>", strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "AP-2611", compound_slug: "bpc-157", variant_id: "10mg" }] };
     const html = cartEmail(1, ctx, order, () => null).html;
     expect(html).toContain("&lt;script&gt;");
     expect(html).not.toContain("<script>x</script>");
