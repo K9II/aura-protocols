@@ -123,7 +123,7 @@ async function releaseAbandonedCheckouts(customerId: string, adapter: CommerceAd
   const { failed } = await closeOpenCheckouts(customerId, adapter, { all: false });
   for (const f of failed) {
     await alertOwner(`Couldn't close an earlier checkout (${f.orderNumber})`,
-      `Starting a new checkout for customer ${customerId}, order ${f.orderNumber} (${f.id}, session ${f.sessionId ?? "none"}) could not be closed: ${f.error}. Any store credit it holds stays held until it expires.`);
+      `Starting a new checkout for customer ${customerId}, order ${f.orderNumber} (${f.id}, session ${f.sessionId ?? "none"}) could not be closed: ${f.error}. Any vials, discount-code use or store credit it holds stay held until it expires or the reconcile cron cancels it.`);
   }
 }
 
@@ -293,8 +293,16 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   // the release_credit_on_cancel trigger (partners.sql) returns the held
   // amount automatically — no extra app code needed.
   if (credit) {
-    if (!(await spendCredit(customer.id, credit.creditCents, order.id))) {
-      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    let spent: boolean;
+    try {
+      spent = await spendCredit(customer.id, credit.creditCents, order.id);
+    } catch (err) {
+      console.error("spend store credit failed:", err);
+      await cancelPending("a failed store-credit hold");
+      return { error: "We couldn't apply your store credit — please try again." };
+    }
+    if (!spent) {
+      await cancelPending("a store-credit balance change");
       return { error: "Your store credit balance changed — please review your order again." };
     }
     if (credit.creditCents === priced.totalBeforeTaxCents + credit.taxCents) {
@@ -339,7 +347,8 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
       ...(credit ? { credit: { creditCents: credit.creditCents, taxCents: credit.taxCents } } : {}),
     });
     if (result.kind === "unavailable") {
-      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+      // cancelPending never throws, so the catch below can't cancel a second time.
+      await cancelPending("Stripe was unavailable");
       return { error: result.message };
     }
     sessionId = result.sessionId;
@@ -360,7 +369,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
           `Checkout failed after Stripe created session ${sessionId} for order ${order.orderNumber} (${order.id}); expiring it also failed: ${String(expireErr)}. If the customer pays it, the order is already cancelled - refund or recreate it.`);
       }
     }
-    await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    await cancelPending("a failed payment start");
     return { error: "We couldn't start payment — please try again." };
   }
 }

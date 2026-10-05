@@ -471,6 +471,53 @@ describe("startCheckoutAction", () => {
     expect(createPendingOrder.mock.calls[0][0].priced.items[0].unitPriceCents).toBe(15010);
   });
 
+  it("store credit that can't be spent (spendCredit throws) cancels the order and never starts Stripe", async () => {
+    getCustomer.mockResolvedValue(customer);
+    creditBalance.mockResolvedValue(1000);
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    spendCredit.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, useCredit: true })).toEqual({ error: "We couldn't apply your store credit — please try again." });
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("a balance-changed cancel that fails alerts the owner and still tells the customer", async () => {
+    getCustomer.mockResolvedValue(customer);
+    creditBalance.mockResolvedValue(1000);
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    spendCredit.mockResolvedValue(false);
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, useCredit: true })).toEqual({ error: "Your store credit balance changed — please review your order again." });
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("Stripe unavailable cancels the order exactly once, even when that cancel fails", async () => {
+    getCustomer.mockResolvedValue(customer);
+    createCheckout.mockResolvedValue({ kind: "unavailable", message: "Payments are paused." });
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction(input)).toEqual({ error: "Payments are paused." });
+    expect(transitionOrder.mock.calls.filter((c) => c[0] === "o1" && c[2] === "cancelled")).toHaveLength(1);
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+  });
+
+  it("a Stripe session failure whose cancel also fails alerts the owner and asks to retry", async () => {
+    getCustomer.mockResolvedValue(customer);
+    createCheckout.mockRejectedValue(new Error("stripe down"));
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction(input)).toEqual({ error: "We couldn't start payment — please try again." });
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+  });
+
   it("cancels the pending order if Stripe fails, and charges nothing", async () => {
     getCustomer.mockResolvedValue(customer);
     createCheckout.mockRejectedValue(new Error("stripe down"));

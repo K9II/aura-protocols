@@ -13,10 +13,10 @@ const { checkCodeAction, startCheckoutAction, lines, cart } = vi.hoisted(() => (
   checkCodeAction: vi.fn(),
   startCheckoutAction: vi.fn(),
   lines: [{ slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 }],
-  cart: { code: "", setCode: vi.fn(), remove: vi.fn(), refresh: vi.fn() },
+  cart: { code: "", setCode: vi.fn(), removeStrengths: vi.fn(), refresh: vi.fn() },
 }));
 vi.mock("@/app/checkout/actions", () => ({ checkCodeAction, startCheckoutAction }));
-vi.mock("@/components/store/CartProvider", () => ({ useCart: () => ({ catalog, lines, code: cart.code, setCode: cart.setCode, remove: cart.remove }) }));
+vi.mock("@/components/store/CartProvider", () => ({ useCart: () => ({ catalog, lines, code: cart.code, setCode: cart.setCode, removeStrengths: cart.removeStrengths }) }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: cart.refresh }) }));
 
 const { default: CheckoutForm } = await import("@/components/account/CheckoutForm");
@@ -29,7 +29,7 @@ describe("CheckoutForm", () => {
     checkCodeAction.mockReset();
     startCheckoutAction.mockReset();
     startCheckoutAction.mockResolvedValue({ error: "stopped for the test" });
-    cart.code = ""; cart.setCode.mockReset(); cart.remove.mockReset(); cart.refresh.mockReset();
+    cart.code = ""; cart.setCode.mockReset(); cart.removeStrengths.mockReset(); cart.refresh.mockReset();
   });
 
   it("removes sold-out lines from the cart, shows the message and refreshes the page's stock", async () => {
@@ -44,8 +44,8 @@ describe("CheckoutForm", () => {
       fireEvent.click(screen.getByRole("checkbox"));
       fireEvent.submit(container.querySelector("form")!);
       await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(msg));
-      expect(cart.remove).toHaveBeenCalledTimes(1);
-      expect(cart.remove).toHaveBeenCalledWith(0);
+      expect(cart.removeStrengths).toHaveBeenCalledTimes(1);
+      expect(cart.removeStrengths).toHaveBeenCalledWith([{ slug: "mots-c", variantId: "10mg", reason: "sold_out" }]);
       expect(cart.refresh).toHaveBeenCalled();
       // The removed line isn't left listed as blocking checkout.
       expect(screen.queryByText(/remove it from your cart to continue/)).not.toBeInTheDocument();
@@ -62,7 +62,7 @@ describe("CheckoutForm", () => {
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(screen.getByText(/certificate pending; remove it from your cart to continue/)).toBeInTheDocument());
-    expect(cart.remove).not.toHaveBeenCalled();
+    expect(cart.removeStrengths).not.toHaveBeenCalled();
     expect(cart.refresh).not.toHaveBeenCalled();
   });
 

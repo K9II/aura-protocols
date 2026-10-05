@@ -42,7 +42,24 @@ describe("afterOrderPaid", () => {
     expect(orderHoldShortfall).toHaveBeenCalledWith("o1");
     expect(logOversold).toHaveBeenCalledWith("mots-c", "10mg", "AP-1001", 4, 0);
     expect(alertOwner).toHaveBeenCalledWith("Oversold on AP-1001", expect.stringContaining("mots-c 10mg: 4 ordered, 0 held"));
+    expect(alertOwner.mock.invocationCallOrder[0]).toBeLessThan(logOversold.mock.invocationCallOrder[0]);
     expect(sendOrAlert).toHaveBeenCalledTimes(2);
+  });
+
+  it("a failed oversold log still sends the shortfall alert, logs the other lines, and says which log failed", async () => {
+    getOrderById.mockResolvedValue(order());
+    orderHoldShortfall.mockResolvedValue([
+      { order_item_id: "i1", compound_slug: "mots-c", variant_id: "10mg", need: 4, covered: 0 },
+      { order_item_id: "i2", compound_slug: "bpc-157", variant_id: "10mg", need: 2, covered: 1 },
+    ]);
+    logOversold.mockRejectedValueOnce(new Error("insert failed"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { afterOrderPaid } = await import("@/lib/order-paid");
+    await afterOrderPaid("o1");
+    expect(alertOwner).toHaveBeenCalledWith("Oversold on AP-1001", expect.stringContaining("bpc-157 10mg: 2 ordered, 1 held"));
+    expect(logOversold).toHaveBeenCalledTimes(2);
+    expect(alertOwner).toHaveBeenCalledWith("Oversold event not logged for AP-1001", expect.stringContaining("mots-c 10mg"));
+    expect(alertOwner).not.toHaveBeenCalledWith("Stock check failed for AP-1001", expect.anything());
   });
 
   it("names the alert and still sends both emails when the stock check throws", async () => {

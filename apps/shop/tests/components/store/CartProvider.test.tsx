@@ -16,8 +16,27 @@ function Probe() {
   );
 }
 
+function StrengthProbe() {
+  const { lines, add, removeStrengths } = useCart();
+  return (
+    <div>
+      <span data-testid="keys">{lines.map((l) => `${l.slug}:${l.variantId}:${l.packQty}`).join(",")}</span>
+      <button onClick={() => { add({ slug: "mots-c", variantId: "10mg", packQty: 2, quantity: 1 }); add({ slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 1 }); add({ slug: "mots-c", variantId: "10mg", packQty: 5, quantity: 1 }); }}>fill</button>
+      <button onClick={() => removeStrengths([{ slug: "mots-c", variantId: "10mg" }])}>drop</button>
+    </div>
+  );
+}
+
 describe("CartProvider", () => {
   beforeEach(() => window.localStorage.clear());
+
+  it("removeStrengths drops every pack of those strengths and keeps the rest", () => {
+    render(<CartProvider catalog={liveFixture()}><StrengthProbe /></CartProvider>);
+    fireEvent.click(screen.getByText("fill"));
+    expect(screen.getByTestId("keys").textContent).toContain("mots-c:10mg:2");
+    fireEvent.click(screen.getByText("drop"));
+    expect(screen.getByTestId("keys")).toHaveTextContent(/^bpc-157:10mg:2$/);
+  });
 
   it("adds a line, opens the drawer and persists to localStorage", () => {
     render(<CartProvider catalog={liveFixture()}><Probe /></CartProvider>);

@@ -13,6 +13,8 @@ type CartContextValue = {
   lines: CartLine[];
   add: (line: CartLine) => void;
   remove: (index: number) => void;
+  // Drops every line of these strengths (all pack sizes) in one state update.
+  removeStrengths: (keys: Array<{ slug: string; variantId: string }>) => void;
   setQty: (index: number, quantity: number) => void;
   clear: () => void;
   code: string;
@@ -75,6 +77,8 @@ export function CartProvider({ catalog, children }: { catalog: Compound[]; child
     setOpen(true);
   }, []);
   const remove = useCallback((i: number) => setLines((prev) => removeLine(prev, i)), []);
+  const removeStrengths = useCallback((keys: Array<{ slug: string; variantId: string }>) =>
+    setLines((prev) => prev.filter((l) => !keys.some((k) => k.slug === l.slug && k.variantId === l.variantId))), []);
   const setQty = useCallback((i: number, q: number) => setLines((prev) => setQuantity(prev, i, q)), []);
   const setCode = useCallback((next: string) => {
     const v = next.trim().toUpperCase();
@@ -101,8 +105,8 @@ export function CartProvider({ catalog, children }: { catalog: Compound[]; child
   }, []);
 
   const value = useMemo(
-    () => ({ catalog, lines, add, remove, setQty, clear, code, setCode, ready: loaded, totals: cartTotals(lines, catalog), open, setOpen }),
-    [catalog, lines, add, remove, setQty, clear, code, setCode, loaded, open],
+    () => ({ catalog, lines, add, remove, removeStrengths, setQty, clear, code, setCode, ready: loaded, totals: cartTotals(lines, catalog), open, setOpen }),
+    [catalog, lines, add, remove, removeStrengths, setQty, clear, code, setCode, loaded, open],
   );
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

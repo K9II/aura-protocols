@@ -25,7 +25,7 @@ const REASON: Record<Rejection["reason"], string> = {
 export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents, newAccountOffer, capPct: pageCapPct }: {
   email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number; newAccountOffer: FirstOrderOffer; capPct: number;
 }) {
-  const { catalog, lines, remove, code: cartCode, setCode: setCartCode } = useCart();
+  const { catalog, lines, removeStrengths, code: cartCode, setCode: setCartCode } = useCart();
   const router = useRouter();
   // A code typed in the cart wins over a referral link's code (same priority as the server).
   const startCode = cartCode || initialCode;
@@ -101,10 +101,9 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
       // they aren't listed as blocking; anything else stays flagged below.
       setRejected((r.rejected ?? []).filter((x) => x.reason !== "sold_out"));
       if (soldOut.length) {
-        // Remove from the end so indexes stay valid.
-        lines.map((l, i) => ({ l, i })).reverse()
-          .filter(({ l }) => soldOut.some((s) => s.slug === l.slug && s.variantId === l.variantId))
-          .forEach(({ i }) => remove(i));
+        // Matched by strength against the cart as it is now (one state
+        // update), not by indexes captured when the form was submitted.
+        removeStrengths(soldOut);
         // The cart's catalog comes from the root layout and may be stale:
         // re-render it so every line shows current stock.
         router.refresh();
