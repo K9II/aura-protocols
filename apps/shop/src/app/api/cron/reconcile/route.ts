@@ -6,6 +6,7 @@ import { applyPaid } from "@/lib/stripe-events";
 import { alertOwner } from "@/lib/notify";
 import { pruneLookups } from "@/lib/account/data";
 import { pruneCodeAttempts } from "@/lib/discounts/data";
+import { lotIntegrity } from "@/lib/catalog-ops/data";
 
 // Daily safety net (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`):
 // any Stripe session paid in the last 3 days whose order we never marked paid
@@ -65,6 +66,18 @@ export async function GET(request: Request): Promise<Response> {
     await pruneCodeAttempts();
   } catch (err) {
     failed.push(`code attempts prune: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  // Stock integrity: a lot gone below zero or vials still held on a finished
+  // order means the numbers are wrong somewhere — never silent.
+  try {
+    const s = await lotIntegrity();
+    const lines = [
+      s.negative.length ? `Lots below zero: ${s.negative.join(", ")}` : "",
+      s.stale_holds.length ? `Held vials on finished orders: ${s.stale_holds.join(", ")}` : "",
+    ].filter(Boolean);
+    if (lines.length) await alertOwner("Reconcile: stock needs a look", lines.join("\n"));
+  } catch (err) {
+    failed.push(`lot integrity: ${err instanceof Error ? err.message : String(err)}`);
   }
   if (fixedPaid.length) {
     await alertOwner("Reconciler fixed paid orders", `These paid orders were missing their webhook and have now been recorded: ${fixedPaid.join(", ")}`);
