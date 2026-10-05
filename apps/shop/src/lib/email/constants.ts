@@ -24,6 +24,12 @@ export const STATS_DAYS = 30;
 export const SEND_TIME_BUDGET_MS = 240_000;
 export const MAX_SEND_ATTEMPTS = 3;
 export const CAMPAIGN_BATCH = 200;
+// A run of this many per-recipient failures in a row trips the circuit
+// breaker (smells like an outage, not bad addresses) and stops the batch.
+export const CAMPAIGN_FAIL_STREAK = 5;
+// Re-read the campaign status this often inside a batch, so Stop takes
+// effect promptly instead of only between batches of CAMPAIGN_BATCH.
+export const CAMPAIGN_STOP_CHECK_EVERY = 20;
 
 // Scheduling: on the hour, at most this far ahead.
 export const MAX_SCHEDULE_DAYS = 90;

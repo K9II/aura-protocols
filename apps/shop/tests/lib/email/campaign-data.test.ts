@@ -82,6 +82,17 @@ describe("campaign data", () => {
     await expect(startCampaign("k1", "owner1", "draft")).rejects.toThrow();
   });
 
+  it("setRecipient only updates a row still pending (an overlapping run can't overwrite sent)", async () => {
+    const upd = query({ data: [{ email: "a@b.co" }] });
+    from = fromQueue({ campaign_recipients: [upd] });
+    const { setRecipient } = await import("@/lib/email/campaigns/data");
+    await setRecipient("k1", "a@b.co", { state: "sent" });
+    const eqCalls = upd.calls.filter(([m]) => m === "eq").map(([, a]) => a);
+    expect(eqCalls).toContainEqual(["campaign_id", "k1"]);
+    expect(eqCalls).toContainEqual(["email", "a@b.co"]);
+    expect(eqCalls).toContainEqual(["state", "pending"]);
+  });
+
   it("code facts combine the code row with its held + used count", async () => {
     getCodeById.mockResolvedValue({ id: "c1", code: "OCT10", status: "active", starts_at: null, ends_at: null, max_uses: 500, kind: "item_pct", value: 10, stack_on_top: false, free_shipping: false, min_order_cents: null, include_slugs: [], exclude_slugs: [], include_classes: [], exclude_classes: [], once_per_customer: true });
     codeStatsById.mockResolvedValue(new Map([["c1", { uses: 7, held: 2, revenueCents: 0, discountCents: 0, cappedOrders: 0 }]]));

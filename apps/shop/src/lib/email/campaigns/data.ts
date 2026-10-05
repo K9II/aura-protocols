@@ -162,10 +162,12 @@ export async function pendingRecipients(id: string, afterEmail: string, limit: n
   return (data ?? []) as Array<{ email: string; attempts: number }>;
 }
 
+// Only a row still "pending" is updated, so an overlapping run (a retried
+// cron tick, Send now pressed twice) can't overwrite one already "sent".
 export async function setRecipient(id: string, email: string, patch: { state: "sent" | "skipped" | "failed" | "pending"; attempts?: number; last_error?: string | null }): Promise<void> {
   const row: Record<string, unknown> = { ...patch };
   if (patch.state === "sent") row.sent_at = new Date().toISOString();
-  const { error } = await db().from("campaign_recipients").update(row).eq("campaign_id", id).eq("email", email);
+  const { error } = await db().from("campaign_recipients").update(row).eq("campaign_id", id).eq("email", email).eq("state", "pending");
   if (error) fail("recipient update", error);
 }
 
