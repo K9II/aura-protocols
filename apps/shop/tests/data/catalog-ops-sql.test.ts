@@ -21,6 +21,17 @@ describe("catalog-ops.sql", () => {
     expect(sql).toContain("revoke all on lot_stock from public, anon, authenticated;");
   });
 
+  it("lot_stock lists every lots column explicitly (no l.*), in table order, then the derived counts", () => {
+    const view = sql.slice(sql.indexOf("create or replace view lot_stock"), sql.indexOf("revoke all on lot_stock"));
+    expect(view).not.toContain("l.*");
+    const table = sql.slice(sql.indexOf("create table if not exists lots ("), sql.indexOf("alter table lots enable"));
+    const cols = [...table.matchAll(/^\s{2}(\w+)\s+(?:uuid|text|numeric|date|integer|timestamptz)/gm)].map((m) => m[1]);
+    expect(cols).toContain("purity_pct");
+    const listed = view.slice(view.indexOf("select") + 6, view.indexOf("(l.counted_qty")).split(",").map((c) => c.trim()).filter(Boolean);
+    expect(listed).toEqual(cols.map((c) => `l.${c}`));
+    for (const c of ["sellable", "held", "sold", "available"]) expect(view).toContain(`as ${c}`);
+  });
+
   it("every function is server-only", () => {
     const fns = [...sql.matchAll(/create or replace function (\w+)\(/g)].map((m) => m[1]).filter((f) => f !== "settle_holds_on_order_status");
     expect(fns.sort()).toEqual(["admin_correct_count", "admin_delete_variant", "admin_lot_live", "admin_retire_lot", "hold_vials", "lot_integrity", "order_hold_shortfall", "record_shipped_lots", "variant_history"]);
@@ -66,15 +77,21 @@ describe("catalog-ops.sql", () => {
     expect(shipped).toMatch(/json_build_object\('order_number', v_order, 'order_item_id', p_item,/);
   });
 
+  it("record_shipped_lots on 'moved' rewrites the line's lot_number from the shipped lots", () => {
+    const moved = shipped.slice(shipped.indexOf("update lot_holds set state = 'moved'"));
+    expect(moved).toMatch(/update order_items set lot_number = \(\s+select string_agg\(l\.lot_number, ', ' order by l\.live_at, l\.lot_number\)\s+from lot_holds h join lots l on l\.id = h\.lot_id where h\.order_item_id = p_item and h\.state = 'sold'\s+\) where id = p_item;\s+return 'moved';/);
+  });
+
   it("creates the public coa bucket (PDF only)", () => {
     expect(sql).toMatch(/insert into storage\.buckets[^;]+'coa'[^;]+true[^;]+application\/pdf[^;]+on conflict/);
   });
 
-  it("seeds a row for every code product, and today's strengths (labels and ids) shown", () => {
+  it("seeds a row for every code product, and today's strengths (labels and ids) shown — strengths only into an empty table", () => {
     expect(Object.keys(SEED_STRENGTHS).sort()).toEqual(catalogContent.map((c) => c.slug).sort());
     const seeded = [...sql.matchAll(/\('([a-z0-9-]+)', '([0-9a-z.]+)', '([^']+)', \d+, true\)/g)].map((m) => `${m[1]}:${m[2]}:${m[3]}`);
     const expected = Object.entries(SEED_STRENGTHS).flatMap(([slug, ss]) => ss.map((s) => `${slug}:${strengthId(s)}:${s}`));
     expect(seeded.sort()).toEqual(expected.sort());
+    expect(sql).toMatch(/\) as v\(slug, variant_id, strength, price_cents, shown\)\s+where not exists \(select 1 from catalog_variants\)\s+on conflict do nothing;/);
     for (const c of catalogContent) {
       expect(sql, c.slug).toContain(`('${c.slug}', ${HIDDEN_AT_LAUNCH.includes(c.slug) ? "false" : "true"})`);
     }

@@ -101,8 +101,12 @@ create index if not exists catalog_events_slug_idx on catalog_events (slug, crea
 alter table catalog_events enable row level security;
 
 -- Held + sold vials per lot; available = sellable − held − sold.
+-- Columns listed (not l.*) so a column added to lots later can't change the
+-- view's shape and break a re-run of this file.
 create or replace view lot_stock with (security_invoker = true) as
-select l.*,
+select l.id, l.lot_number, l.slug, l.variant_id, l.purity_pct, l.method, l.tested_on, l.coa_path, l.status,
+  l.ordered_qty, l.counted_qty, l.damaged_qty, l.adjust_qty, l.discrepancy_note, l.received_by, l.received_at,
+  l.live_at, l.retired_at, l.created_at,
   (l.counted_qty - l.damaged_qty + l.adjust_qty) as sellable,
   coalesce(h.held, 0)::int as held,
   coalesce(h.sold, 0)::int as sold,
@@ -369,6 +373,11 @@ begin
   update lot_holds set state = 'moved', settled_at = now() where order_item_id = p_item and state = 'sold';
   insert into lot_holds (order_id, order_item_id, lot_id, qty, state, settled_at)
     select i.order_id, p_item, s.lot_id, s.qty, 'sold', now() from shipped_lots s where s.order_item_id = p_item;
+  -- The line now names the lots that shipped (same "A, B" format as hold_vials).
+  update order_items set lot_number = (
+    select string_agg(l.lot_number, ', ' order by l.live_at, l.lot_number)
+    from lot_holds h join lots l on l.id = h.lot_id where h.order_item_id = p_item and h.state = 'sold'
+  ) where id = p_item;
   return 'moved';
 end $$;
 revoke all on function record_shipped_lots(uuid, json, text) from public, anon, authenticated;
@@ -395,6 +404,8 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 -- data/catalog.ts (strengths now live here), every strength shown; the six
 -- incretin & amylin analogs hidden at the product level. No lots — every
 -- strength starts Out of stock / COA pending, which is true today.
+-- Strengths seed only into an empty table, so a re-run never brings back a
+-- strength the owner deleted.
 insert into catalog_products (slug, shown) values
   ('semaglutide', false), ('tirzepatide', false), ('retatrutide', false), ('cagrilintide', false),
   ('cagrisema', false), ('retatrutide-cagrilintide', false),
@@ -406,7 +417,8 @@ insert into catalog_products (slug, shown) values
   ('bpc-157-tb-500-blend', true), ('bpc-157-tb-500-ghk-cu', true), ('bpc-157-tb-500-ghk-cu-kpv', true)
 on conflict do nothing;
 
-insert into catalog_variants (slug, variant_id, strength, price_cents, shown) values
+insert into catalog_variants (slug, variant_id, strength, price_cents, shown)
+select v.slug, v.variant_id, v.strength, v.price_cents, v.shown from (values
   ('semaglutide', '10mg', '10 mg', 11900, true),
   ('tirzepatide', '10mg', '10 mg', 11900, true),
   ('tirzepatide', '20mg', '20 mg', 14900, true),
@@ -437,4 +449,6 @@ insert into catalog_variants (slug, variant_id, strength, price_cents, shown) va
   ('bpc-157-tb-500-blend', '10mg', '10 mg', 9900, true),
   ('bpc-157-tb-500-ghk-cu', '70mg', '70 mg', 15900, true),
   ('bpc-157-tb-500-ghk-cu-kpv', '80mg', '80 mg', 18900, true)
+) as v(slug, variant_id, strength, price_cents, shown)
+where not exists (select 1 from catalog_variants)
 on conflict do nothing;
