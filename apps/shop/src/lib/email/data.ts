@@ -71,23 +71,25 @@ export async function confirmOptIn(email: string, nowMs: number = Date.now()): P
 // Works even for an address with no subscribers row yet (cart reminders go
 // to non-subscribers too): update it in place, or insert an unsubscribed
 // stub if nothing matched, so re-sending to that address is never possible.
-// Also nulls confirm_token_hash — the column stays in email.sql, but any
-// token issued before this unsubscribe must never resubscribe them.
-export async function unsubscribe(email: string): Promise<void> {
+// Also nulls confirm_token_hash. Returns true only when this call changed
+// the address to unsubscribed (so an unsubscribe is counted once, even when
+// the mail client's one-click POST and the footer link both fire).
+export async function unsubscribe(email: string): Promise<boolean> {
   const e = normalizeEmail(email);
   const now = new Date().toISOString();
   const patch = { status: "unsubscribed", unsubscribed_at: now, confirm_token_hash: null };
-  const { data, error } = await db().from("subscribers").update(patch).eq("email", e).select("email");
+  const { data, error } = await db().from("subscribers").update(patch).eq("email", e).neq("status", "unsubscribed").select("email");
   if (error) throw new Error(`unsubscribe failed: ${JSON.stringify(error)}`);
-  if (Array.isArray(data) && data.length > 0) return;
+  if (Array.isArray(data) && data.length > 0) return true;
+  if (await getSubscriber(e)) return false; // already unsubscribed
   const { error: insErr } = await db().from("subscribers")
     .insert({ email: e, source: "unsubscribe", status: "unsubscribed", unsubscribed_at: now });
-  if (!insErr) return;
+  if (!insErr) return true;
   if ((insErr as { code?: string }).code !== "23505") throw new Error(`unsubscribe insert failed: ${JSON.stringify(insErr)}`);
-  // Another request inserted this row between our update and our insert —
-  // it exists now, so update it instead of failing.
-  const { error: retryErr } = await db().from("subscribers").update(patch).eq("email", e);
+  // Another request inserted this row between our read and our insert.
+  const { data: again, error: retryErr } = await db().from("subscribers").update(patch).eq("email", e).neq("status", "unsubscribed").select("email");
   if (retryErr) throw new Error(`unsubscribe retry failed: ${JSON.stringify(retryErr)}`);
+  return Array.isArray(again) && again.length > 0;
 }
 
 // The sign-up box was ticked: the address goes on the list as pending until

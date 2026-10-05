@@ -13,20 +13,32 @@ export function normalizeEmail(raw: string): string {
   return raw.trim().toLowerCase();
 }
 
-export function unsubscribeSig(email: string): string {
-  return createHmac("sha256", secret()).update(`unsub:${normalizeEmail(email)}`).digest("base64url");
+// The optional tag (c=) says which email the link came from, for per-email
+// unsubscribe counts. It's signed together with the address, so it can't be
+// swapped. Links sent before tags existed carry no tag and still verify.
+export function unsubscribeSig(email: string, tag?: string | null): string {
+  return createHmac("sha256", secret()).update(`unsub:${normalizeEmail(email)}${tag ? `|${tag}` : ""}`).digest("base64url");
 }
 
-export function verifyUnsubscribe(email: string, sig: string | null | undefined): boolean {
+export function verifyUnsubscribe(email: string, sig: string | null | undefined, tag?: string | null): boolean {
   if (!sig) return false;
-  const expected = Buffer.from(unsubscribeSig(email));
+  const expected = Buffer.from(unsubscribeSig(email, tag));
   const given = Buffer.from(sig);
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
-export function unsubscribeUrl(site: string, email: string): string {
+export function unsubscribeUrl(site: string, email: string, tag?: string): string {
   const e = normalizeEmail(email);
-  return `${site}/api/unsubscribe?e=${encodeURIComponent(e)}&s=${unsubscribeSig(e)}`;
+  return `${site}/api/unsubscribe?e=${encodeURIComponent(e)}${tag ? `&c=${encodeURIComponent(tag)}` : ""}&s=${unsubscribeSig(e, tag)}`;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+export function parseUnsubTag(tag: string | null | undefined): { kind: string; ref: string | null } | null {
+  if (!tag) return null;
+  if (/^(welcome_[1-5]|cart_[1-3]|confirm)$/.test(tag)) return { kind: tag, ref: null };
+  const m = /^campaign\.(.+)$/.exec(tag);
+  if (m && UUID.test(m[1])) return { kind: "campaign", ref: m[1] };
+  return null;
 }
 
 export function hashToken(token: string): string {
