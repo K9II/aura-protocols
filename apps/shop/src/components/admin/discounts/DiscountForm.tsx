@@ -34,7 +34,7 @@ function Toggle({ on, set, label, help, kind }: { on: boolean; set: (b: boolean)
     <div className="a-toggle">
       <button type="button" role={kind} aria-checked={on} aria-labelledby={`${id}-l`} aria-describedby={help ? `${id}-h` : undefined}
         className={kind === "switch" ? `a-sw${on ? " on" : ""}` : `a-cb${on ? " on" : ""}`} onClick={() => set(!on)} />
-      <div><b id={`${id}-l`}>{label}</b>{help && <small id={`${id}-h`}>{help}</small>}</div>
+      <div><b id={`${id}-l`} className="a-toggle-l" onClick={() => set(!on)}>{label}</b>{help && <small id={`${id}-h`}>{help}</small>}</div>
     </div>
   );
 }

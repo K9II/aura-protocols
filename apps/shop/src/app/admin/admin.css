@@ -56,13 +56,8 @@
   .adm .a-kpis { grid-template-columns: 1fr 1fr !important; }
   .adm .a-kpi { border-left: 0 !important; border-bottom: 1px solid var(--line); }
   .adm .a-kpi:nth-child(odd) { border-right: 1px solid var(--line); }
-  .adm .a-grid2, .adm .a-grid-d, .adm .a-row, .adm .a-row3, .adm .a-cap-grid { grid-template-columns: 1fr !important; }
+  .adm .a-grid2, .adm .a-grid-d, .adm .a-row, .adm .a-row3, .adm .a-cap-grid { grid-template-columns: minmax(0, 1fr) !important; }
   .adm .a-seg { grid-template-columns: 1fr 1fr; }
-  .adm .a-steps { grid-template-columns: 1fr 1fr; }
-  .adm .a-step:nth-child(odd) { border-left: 0; }
-  .adm .a-step:nth-child(n+3) { border-top: 1px solid var(--line); }
-  .adm .a-rules { grid-template-columns: 1fr; }
-  .adm .a-rules .k { border-bottom: 0; padding-bottom: 0; }
   .adm .a-codes { grid-template-columns: 1fr 1fr; }
   .adm .a-ph { flex-wrap: wrap; }
   .adm .a-ph .actions { margin-left: 0; flex-wrap: wrap; }
@@ -325,7 +320,7 @@
 .adm .a-kpi .a-big-meter { display: block; }
 .adm .a-facts.flat { margin: 0; padding: 0; border: 0; }
 .adm .a-chip.sm { height: 18px; font-size: 10.5px; }
-.adm .a-card-h .r a:not(.a-btn) { color: var(--ink-soft); font-weight: 500; text-decoration: none; }
+.adm .a-card-h .r > a:not(.a-btn) { color: var(--ink-soft); font-weight: 500; text-decoration: none; }
 .adm .a-card-h .r form { display: contents; }
 .adm .a-dh .actions form { display: contents; }
 .adm .a-codes .held, .adm .a-codes .held small { color: var(--slate); }
@@ -343,4 +338,28 @@
   .adm .a-codes { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
   .adm .a-codes div { min-width: 0; }
   .adm .a-codes .a-code { overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* The toggle's label text switches it too, like a <label>. */
+.adm .a-toggle-l { cursor: pointer; user-select: none; }
+
+/* Phone overrides that must come after the base rules above. */
+@media (max-width: 860px) {
+  .adm .a-steps { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .adm .a-step:nth-child(odd) { border-left: 0; }
+  .adm .a-step:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .adm .a-grid2 > *, .adm .a-grid-d > *, .adm .a-row > *, .adm .a-row3 > * { min-width: 0; }
+  .adm .a-savebar .r { flex-wrap: wrap; justify-content: flex-end; }
+  .adm .a-tabs { overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+  .adm .a-rules { grid-template-columns: minmax(0, 1fr); }
+  .adm .a-rules .k { border-bottom: 0; padding-bottom: 0; }
+  /* A lone text link (e.g. the Rule card's Edit) stays on the title's line. */
+  .adm .a-card-h .r:has(> a:only-child:not(.a-btn)) { margin-left: auto; flex-basis: auto; }
+}
+
+/* Very narrow phones: keep the top bar on one line. */
+.adm .a-top-title, .adm .a-env, .adm .a-toplink { white-space: nowrap; }
+@media (max-width: 360px) {
+  .adm .a-top-title { font-size: 15px; }
+  .adm .a-env { display: none; }
 }
