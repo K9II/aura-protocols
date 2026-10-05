@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { catalogContent } from "../../src/data/catalog";
+import { SEED_STRENGTHS, strengthId } from "../helpers/seed-strengths";
 
 const HIDDEN_AT_LAUNCH = ["semaglutide", "tirzepatide", "retatrutide", "cagrilintide", "cagrisema", "retatrutide-cagrilintide"];
 
@@ -22,7 +23,7 @@ describe("catalog-ops.sql", () => {
 
   it("every function is server-only", () => {
     const fns = [...sql.matchAll(/create or replace function (\w+)\(/g)].map((m) => m[1]).filter((f) => f !== "settle_holds_on_order_status");
-    expect(fns.sort()).toEqual(["admin_correct_count", "admin_lot_live", "admin_retire_lot", "hold_vials", "lot_integrity", "order_hold_shortfall", "record_shipped_lots"]);
+    expect(fns.sort()).toEqual(["admin_correct_count", "admin_delete_variant", "admin_lot_live", "admin_retire_lot", "hold_vials", "lot_integrity", "order_hold_shortfall", "record_shipped_lots"]);
     for (const f of fns) expect(sql, f).toMatch(new RegExp(`revoke all on function ${f}\\([^)]*\\) from public, anon, authenticated;`));
   });
 
@@ -69,10 +70,41 @@ describe("catalog-ops.sql", () => {
     expect(sql).toMatch(/insert into storage\.buckets[^;]+'coa'[^;]+true[^;]+application\/pdf[^;]+on conflict/);
   });
 
-  it("seeds a row for every code product and strength", () => {
+  it("seeds a row for every code product, and today's strengths (labels and ids) shown", () => {
+    expect(Object.keys(SEED_STRENGTHS).sort()).toEqual(catalogContent.map((c) => c.slug).sort());
+    const seeded = [...sql.matchAll(/\('([a-z0-9-]+)', '([0-9a-z.]+)', '([^']+)', \d+, true\)/g)].map((m) => `${m[1]}:${m[2]}:${m[3]}`);
+    const expected = Object.entries(SEED_STRENGTHS).flatMap(([slug, ss]) => ss.map((s) => `${slug}:${strengthId(s)}:${s}`));
+    expect(seeded.sort()).toEqual(expected.sort());
     for (const c of catalogContent) {
       expect(sql, c.slug).toContain(`('${c.slug}', ${HIDDEN_AT_LAUNCH.includes(c.slug) ? "false" : "true"})`);
-      for (const v of c.variants) expect(sql, `${c.slug} ${v.id}`).toMatch(new RegExp(`\\('${c.slug}', '${v.id}', \\d+\\)`));
     }
+  });
+
+  it("strengths: label and derived-id checks, shown/archived columns, new strengths start hidden", () => {
+    const table = sql.slice(sql.indexOf("create table if not exists catalog_variants"), sql.indexOf("alter table catalog_variants"));
+    expect(table).toContain("variant_id   text not null check (variant_id ~ '^[0-9.]+(mg|mcg|iu)$')");
+    expect(table).toContain("strength     text not null check (strength ~ '^[0-9]+(\\.[0-9]+)? (mg|mcg|IU)$')");
+    expect(table).toContain("shown        boolean not null default false");
+    expect(table).toContain("archived_at  timestamptz");
+    expect(table).toContain("created_at   timestamptz not null default now()");
+  });
+
+  it("logs every strength change kind", () => {
+    for (const k of ["strength_added", "strength_shown", "strength_hidden", "strength_archived", "strength_restored", "strength_deleted"]) {
+      expect(sql, k).toContain(`'${k}'`);
+    }
+  });
+
+  it("admin_delete_variant locks the row and the stock key, refuses a strength with lots or orders, logs the delete", () => {
+    const fn = sql.slice(sql.indexOf("create or replace function admin_delete_variant("), sql.indexOf("revoke all on function admin_delete_variant("));
+    expect(fn).toMatch(/where slug = p_slug and variant_id = p_variant for update;/);
+    expect(fn).toContain("pg_advisory_xact_lock(hashtext('stock:' || p_slug || ':' || p_variant))");
+    expect(fn).toMatch(/exists \(select 1 from lots where slug = p_slug and variant_id = p_variant\)\s+or exists \(select 1 from order_items where compound_slug = p_slug and variant_id = p_variant\) then\s+return 'has_history';/);
+    expect(fn).toMatch(/'strength_deleted', json_build_object\('strength', v\.strength, 'price_cents', v\.price_cents\)/);
+  });
+
+  it("hold_vials refuses a hidden product or a hidden / archived strength", () => {
+    const fn = sql.slice(sql.indexOf("create or replace function hold_vials("), sql.indexOf("revoke all on function hold_vials("));
+    expect(fn).toMatch(/p\.shown is not true or v\.shown is not true or v\.archived_at is not null\)\) then\s+return json_build_object\('ok', false, 'reason', 'inactive'\);/);
   });
 });

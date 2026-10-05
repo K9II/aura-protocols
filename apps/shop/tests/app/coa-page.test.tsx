@@ -8,7 +8,7 @@ import CoaPage from "@/app/coa/page";
 
 const lot = (no: string, status: PublicLot["status"], liveAt: string): PublicLot => ({
   lot: no, purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-09-18", coaFile: `https://x/coa/${no}/1.pdf`,
-  slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", status, liveAt,
+  slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", status, liveAt, onStore: true,
 });
 
 async function lookUp(no: string) {
@@ -46,7 +46,7 @@ describe("/coa", () => {
       tested_on: "2026-09-18", coa_path: `${no}/1.pdf`, status: "live" as const, live_at: "2026-09-24T00:00:00Z", sellable: 100, held: 0, sold: 0, available: 100 });
     live.mockResolvedValue(mergeCatalog(catalogContent, {
       products: [{ slug: "bpc-157", shown: true }, { slug: "semaglutide", shown: false }],
-      variants: [{ slug: "bpc-157", variant_id: "10mg", price_cents: 7900, low_at: 10, threepl_sku: null }, { slug: "semaglutide", variant_id: "10mg", price_cents: 11900, low_at: 10, threepl_sku: null }],
+      variants: [{ slug: "bpc-157", variant_id: "10mg", strength: "10 mg", price_cents: 7900, low_at: 10, threepl_sku: null, shown: true, archived_at: null }, { slug: "semaglutide", variant_id: "10mg", strength: "10 mg", price_cents: 11900, low_at: 10, threepl_sku: null, shown: true, archived_at: null }],
       lots: [row("bpc-157", "BPC-2609-01"), row("semaglutide", "SEM-2609-01")],
     }, (p) => `https://x/coa/${p}`));
     await lookUp("SEM-2609-01");

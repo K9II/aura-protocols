@@ -10,7 +10,7 @@ vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
 vi.mock("@/lib/catalog-live", () => ({
   getLiveCatalog: async () => ({ all: [], shown: [], lots: [
-    { slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", status: "live", liveAt: "2026-11-29T00:00:00Z",
+    { slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", status: "live", liveAt: "2026-11-29T00:00:00Z", onStore: true,
       lot: "AP-2611", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-11-28", coaFile: "/coa/AP-2611.pdf" },
   ] }),
 }));

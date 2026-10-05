@@ -30,11 +30,11 @@ const STD_PACKS: PackDiscount[] = [
 const LYO = "Lyophilized powder";
 const COLD = "−20 °C, desiccated, protected from light";
 
-// Content only. Prices, visibility, lots and stock live in Aura Store
-// (supabase/catalog-ops.sql) and are edited in /admin/catalog.
+// Content only. Strengths, prices, visibility, lots and stock live in Aura
+// Store (supabase/catalog-ops.sql) and are edited in /admin/catalog.
 function entry(
   slug: string, name: string, chemicalClass: ChemicalClass,
-  strengths: string[], extra: Partial<CatalogEntry<ChemicalClass>> = {},
+  extra: Partial<CatalogEntry<ChemicalClass>> = {},
 ): CatalogEntry<ChemicalClass> {
   return {
     slug, name, chemicalClass,
@@ -42,7 +42,6 @@ function entry(
     description: DESCRIPTIONS[slug]?.text,
     descriptionSource: DESCRIPTIONS[slug]?.source,
     form: LYO, storage: COLD, vialMl: 3,
-    variants: strengths.map((s) => ({ id: s.replace(/\s+/g, "").toLowerCase(), strength: s })),
     packDiscounts: STD_PACKS,
     ...extra,
   };
@@ -53,37 +52,37 @@ export const catalogContent: CatalogEntry<ChemicalClass>[] = [
   // false) pending written payment-processor approval: FDA treats "research
   // use" semaglutide/tirzepatide/retatrutide as falsely labeled, which
   // Stripe's prohibited list covers (2026-09-28 decision).
-  entry("semaglutide", "Semaglutide", "Incretin & Amylin Analogs", ["10 mg"]),
-  entry("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs", ["10 mg", "20 mg"]),
-  entry("retatrutide", "Retatrutide", "Incretin & Amylin Analogs", ["10 mg", "20 mg"]),
-  entry("cagrilintide", "Cagrilintide", "Incretin & Amylin Analogs", ["10 mg"]),
-  entry("cagrisema", "Cagrilintide / Semaglutide", "Incretin & Amylin Analogs", ["10 mg"], { components: ["cagrilintide", "semaglutide"] }),
-  entry("retatrutide-cagrilintide", "Retatrutide / Cagrilintide", "Incretin & Amylin Analogs", ["10 mg"], { components: ["retatrutide", "cagrilintide"] }),
+  entry("semaglutide", "Semaglutide", "Incretin & Amylin Analogs"),
+  entry("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs"),
+  entry("retatrutide", "Retatrutide", "Incretin & Amylin Analogs"),
+  entry("cagrilintide", "Cagrilintide", "Incretin & Amylin Analogs"),
+  entry("cagrisema", "Cagrilintide / Semaglutide", "Incretin & Amylin Analogs", { components: ["cagrilintide", "semaglutide"] }),
+  entry("retatrutide-cagrilintide", "Retatrutide / Cagrilintide", "Incretin & Amylin Analogs", { components: ["retatrutide", "cagrilintide"] }),
   // GH-Axis Peptides
-  entry("cjc-1295-ipamorelin", "CJC-1295 / Ipamorelin", "GH-Axis Peptides", ["10 mg"], { components: [] }),
-  entry("sermorelin", "Sermorelin", "GH-Axis Peptides", ["10 mg"]),
-  entry("tesamorelin", "Tesamorelin", "GH-Axis Peptides", ["10 mg"]),
-  entry("igf-1-lr3", "IGF-1 LR3", "GH-Axis Peptides", ["1 mg"]),
+  entry("cjc-1295-ipamorelin", "CJC-1295 / Ipamorelin", "GH-Axis Peptides", { components: [] }),
+  entry("sermorelin", "Sermorelin", "GH-Axis Peptides"),
+  entry("tesamorelin", "Tesamorelin", "GH-Axis Peptides"),
+  entry("igf-1-lr3", "IGF-1 LR3", "GH-Axis Peptides"),
   // Peptide Fragments
-  entry("bpc-157", "BPC-157", "Peptide Fragments", ["10 mg"], { featured: true }),
-  entry("tb-500", "TB-500", "Peptide Fragments", ["10 mg"]),
-  entry("kpv", "KPV", "Peptide Fragments", ["10 mg"]),
-  entry("aod-9604", "AOD-9604", "Peptide Fragments", ["10 mg"]),
+  entry("bpc-157", "BPC-157", "Peptide Fragments", { featured: true }),
+  entry("tb-500", "TB-500", "Peptide Fragments"),
+  entry("kpv", "KPV", "Peptide Fragments"),
+  entry("aod-9604", "AOD-9604", "Peptide Fragments"),
   // Mitochondrial & Metabolic
-  entry("ss-31", "SS-31 (Elamipretide)", "Mitochondrial & Metabolic", ["10 mg", "50 mg"]),
-  entry("mots-c", "MOTS-c", "Mitochondrial & Metabolic", ["10 mg"], { featured: true }),
-  entry("slu-pp-332", "SLU-PP-332", "Mitochondrial & Metabolic", ["250 mcg"]),
+  entry("ss-31", "SS-31 (Elamipretide)", "Mitochondrial & Metabolic"),
+  entry("mots-c", "MOTS-c", "Mitochondrial & Metabolic", { featured: true }),
+  entry("slu-pp-332", "SLU-PP-332", "Mitochondrial & Metabolic"),
   // Short Peptides & Neuropeptides
-  entry("epithalon", "Epithalon", "Short Peptides & Neuropeptides", ["10 mg"]),
-  entry("pinealon", "Pinealon", "Short Peptides & Neuropeptides", ["10 mg"]),
-  entry("dsip", "DSIP", "Short Peptides & Neuropeptides", ["5 mg"]),
-  entry("pt-141", "PT-141 (Bremelanotide)", "Short Peptides & Neuropeptides", ["10 mg"]),
+  entry("epithalon", "Epithalon", "Short Peptides & Neuropeptides"),
+  entry("pinealon", "Pinealon", "Short Peptides & Neuropeptides"),
+  entry("dsip", "DSIP", "Short Peptides & Neuropeptides"),
+  entry("pt-141", "PT-141 (Bremelanotide)", "Short Peptides & Neuropeptides"),
   // Cofactors & Conjugates
-  entry("ghk-cu", "GHK-Cu", "Cofactors & Conjugates", ["50 mg"], { featured: true }),
-  entry("nad-plus", "NAD+", "Cofactors & Conjugates", ["500 mg"], { featured: true }),
-  entry("glutathione", "Glutathione", "Cofactors & Conjugates", ["600 mg"]),
+  entry("ghk-cu", "GHK-Cu", "Cofactors & Conjugates", { featured: true }),
+  entry("nad-plus", "NAD+", "Cofactors & Conjugates", { featured: true }),
+  entry("glutathione", "Glutathione", "Cofactors & Conjugates"),
   // Blends (renamed by composition; old slugs 301 in lib/redirects.ts)
-  entry("bpc-157-tb-500-blend", "BPC-157 / TB-500", "Blends", ["10 mg"], { components: ["bpc-157", "tb-500"] }),
-  entry("bpc-157-tb-500-ghk-cu", "BPC-157 / TB-500 / GHK-Cu", "Blends", ["70 mg"], { components: ["bpc-157", "tb-500", "ghk-cu"] }),
-  entry("bpc-157-tb-500-ghk-cu-kpv", "BPC-157 / TB-500 / GHK-Cu / KPV", "Blends", ["80 mg"], { components: ["bpc-157", "tb-500", "ghk-cu", "kpv"] }),
+  entry("bpc-157-tb-500-blend", "BPC-157 / TB-500", "Blends", { components: ["bpc-157", "tb-500"] }),
+  entry("bpc-157-tb-500-ghk-cu", "BPC-157 / TB-500 / GHK-Cu", "Blends", { components: ["bpc-157", "tb-500", "ghk-cu"] }),
+  entry("bpc-157-tb-500-ghk-cu-kpv", "BPC-157 / TB-500 / GHK-Cu / KPV", "Blends", { components: ["bpc-157", "tb-500", "ghk-cu", "kpv"] }),
 ];

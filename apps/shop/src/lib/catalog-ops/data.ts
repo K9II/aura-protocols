@@ -9,6 +9,7 @@ const fail = (what: string, error: unknown): never => { throw new Error(`${what}
 const num = <T extends { purity_pct: unknown; sellable: unknown; held: unknown; sold: unknown; available: unknown }>(r: T): T =>
   ({ ...r, purity_pct: Number(r.purity_pct), sellable: Number(r.sellable), held: Number(r.held), sold: Number(r.sold), available: Number(r.available) });
 
+const VARIANT_COLS = "slug, variant_id, strength, price_cents, low_at, threepl_sku, shown, archived_at";
 const LOT_COLS = "id, lot_number, slug, variant_id, purity_pct, method, tested_on, coa_path, status, live_at, sellable, held, sold, available";
 const ADMIN_LOT_COLS = `${LOT_COLS}, ordered_qty, counted_qty, damaged_qty, adjust_qty, discrepancy_note, received_by, received_at, retired_at`;
 
@@ -28,7 +29,7 @@ async function actorNames(ids: Array<string | null>): Promise<Map<string, string
 export async function fetchCatalogOps(): Promise<CatalogOps> {
   const [p, v, l] = await Promise.all([
     db().from("catalog_products").select("slug, shown"),
-    db().from("catalog_variants").select("slug, variant_id, price_cents, low_at, threepl_sku"),
+    db().from("catalog_variants").select(VARIANT_COLS),
     db().from("lot_stock").select(LOT_COLS).in("status", ["live", "retired"]),
   ]);
   if (p.error || v.error || l.error) fail("catalog read", p.error ?? v.error ?? l.error);
@@ -43,7 +44,7 @@ export async function fetchCatalogOps(): Promise<CatalogOps> {
 export async function fetchAdminOps(slug?: string): Promise<AdminOps> {
   let lots = db().from("lot_stock").select(ADMIN_LOT_COLS);
   if (slug) lots = lots.eq("slug", slug);
-  let variants = db().from("catalog_variants").select("slug, variant_id, price_cents, low_at, threepl_sku");
+  let variants = db().from("catalog_variants").select(VARIANT_COLS);
   if (slug) variants = variants.eq("slug", slug);
   const [p, v, l] = await Promise.all([db().from("catalog_products").select("slug, shown"), variants, lots]);
   if (p.error || v.error || l.error) fail("admin catalog read", p.error ?? v.error ?? l.error);
@@ -160,6 +161,93 @@ export async function setShown(slug: string, shown: boolean, actorId: string): P
   if (!(data as unknown[] | null)?.length) return false;
   await logEvent({ slug, kind: shown ? "shown" : "hidden", actor_id: actorId });
   return true;
+}
+
+// ---------- strengths ----------
+const isUnique = (e: unknown) => (e as { code?: string } | null)?.code === "23505";
+
+// One strength row, for action checks (exists? archived?). null = no row.
+export async function variantRow(slug: string, variantId: string): Promise<{ strength: string; shown: boolean; archived_at: string | null } | null> {
+  const { data, error } = await db().from("catalog_variants").select("strength, shown, archived_at").eq("slug", slug).eq("variant_id", variantId).maybeSingle();
+  if (error) fail("variant read", error);
+  return (data as { strength: string; shown: boolean; archived_at: string | null } | null) ?? null;
+}
+
+export type AddVariant = { strength: string; variantId: string; priceCents: number; lowAt: number; sku: string | null };
+// New strengths start hidden. An archived row with the same key is reported
+// (restore it instead), never overwritten.
+export async function addVariant(slug: string, v: AddVariant, actorId: string): Promise<{ ok: true } | { ok: false; reason: "taken" | "sku_taken" | "archived" }> {
+  const existing = await variantRow(slug, v.variantId);
+  if (existing) return { ok: false, reason: existing.archived_at ? "archived" : "taken" };
+  const { error } = await db().from("catalog_variants").insert({
+    slug, variant_id: v.variantId, strength: v.strength, price_cents: v.priceCents, low_at: v.lowAt, threepl_sku: v.sku, shown: false,
+  });
+  if (isUnique(error)) return { ok: false, reason: /threepl_sku/.test(JSON.stringify(error)) ? "sku_taken" : "taken" };
+  if (error) fail("strength insert", error);
+  await logEvent({ slug, variant_id: v.variantId, kind: "strength_added", actor_id: actorId,
+    after: { strength: v.strength, price_cents: v.priceCents, shown: false } });
+  return { ok: true };
+}
+
+// State-checked update of one strength; ok:false when no row matched (the caller throws: stale).
+async function updateVariant(slug: string, variantId: string, patch: Record<string, unknown>, archived: boolean, what: string): Promise<{ strength: string } | null> {
+  let q = db().from("catalog_variants").update({ ...patch, updated_at: new Date().toISOString() }).eq("slug", slug).eq("variant_id", variantId);
+  q = archived ? q.not("archived_at", "is", null) : q.is("archived_at", null);
+  const { data, error } = await q.select("strength");
+  if (error) fail(what, error);
+  return (data as Array<{ strength: string }> | null)?.[0] ?? null;
+}
+
+// Not archived only.
+export async function setVariantShown(slug: string, variantId: string, shown: boolean, actorId: string): Promise<{ ok: boolean }> {
+  const row = await updateVariant(slug, variantId, { shown }, false, "strength visibility update");
+  if (!row) return { ok: false };
+  await logEvent({ slug, variant_id: variantId, kind: shown ? "strength_shown" : "strength_hidden", actor_id: actorId, after: { strength: row.strength } });
+  return { ok: true };
+}
+
+// Off the store and out of the list; lots, certificates and orders stay.
+export async function archiveVariant(slug: string, variantId: string, actorId: string): Promise<{ ok: boolean }> {
+  const row = await updateVariant(slug, variantId, { archived_at: new Date().toISOString(), shown: false }, false, "strength archive");
+  if (!row) return { ok: false };
+  await logEvent({ slug, variant_id: variantId, kind: "strength_archived", actor_id: actorId, after: { strength: row.strength } });
+  return { ok: true };
+}
+
+// Back in the list, hidden.
+export async function restoreVariant(slug: string, variantId: string, actorId: string): Promise<{ ok: boolean }> {
+  const row = await updateVariant(slug, variantId, { archived_at: null, shown: false }, true, "strength restore");
+  if (!row) return { ok: false };
+  await logEvent({ slug, variant_id: variantId, kind: "strength_restored", actor_id: actorId, after: { strength: row.strength, shown: false } });
+  return { ok: true };
+}
+
+// Only a strength with no lots and no order lines ever (admin_delete_variant logs it).
+export async function deleteVariant(slug: string, variantId: string, actorId: string): Promise<"ok" | "missing" | "has_history"> {
+  const { data, error } = await db().rpc("admin_delete_variant", { p_slug: slug, p_variant: variantId, p_actor: actorId });
+  if (error) fail("admin_delete_variant", error);
+  if (data !== "ok" && data !== "missing" && data !== "has_history") fail("admin_delete_variant", `unexpected answer ${String(data)}`);
+  return data as "ok" | "missing" | "has_history";
+}
+
+// Per strength: lots ever received and distinct orders that included it.
+// Two queries for the whole product (no N+1).
+export async function variantHistory(slug: string): Promise<Map<string, { lots: number; orders: number }>> {
+  const [l, o] = await Promise.all([
+    db().from("lots").select("variant_id").eq("slug", slug),
+    db().from("order_items").select("variant_id, order_id").eq("compound_slug", slug),
+  ]);
+  if (l.error || o.error) fail("strength history read", l.error ?? o.error);
+  const out = new Map<string, { lots: number; orders: number }>();
+  const get = (id: string) => { let h = out.get(id); if (!h) { h = { lots: 0, orders: 0 }; out.set(id, h); } return h; };
+  for (const r of (l.data ?? []) as Array<{ variant_id: string }>) get(r.variant_id).lots += 1;
+  const seen = new Set<string>();
+  for (const r of (o.data ?? []) as Array<{ variant_id: string; order_id: string }>) {
+    if (seen.has(`${r.variant_id}:${r.order_id}`)) continue;
+    seen.add(`${r.variant_id}:${r.order_id}`);
+    get(r.variant_id).orders += 1;
+  }
+  return out;
 }
 
 // ---------- certificates ----------

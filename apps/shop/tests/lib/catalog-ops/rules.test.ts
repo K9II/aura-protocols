@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   parseReceive, isDiscrepancy, liveRefusal, parseCorrection, parsePrice, parseLowAt, parseSku,
-  adminRows, rowsForTab, tabCounts, lotsMatch, soldOutMessage, coaObjectPath, isCoaPathFor, COA_MAX_BYTES,
+  adminRows, rowsForTab, tabCounts, lotsMatch, parseStrength, strengthSortKey, soldOutMessage, coaObjectPath, isCoaPathFor, COA_MAX_BYTES,
 } from "@/lib/catalog-ops/rules";
 
 const base = { lotNumber: "bpc-2610-03", purity: "99.4", method: "HPLC+MS", testedOn: "2026-10-02", ordered: "200", counted: "200", damaged: "0", note: "", coaPath: "BPC-2610-03/1.pdf" };
@@ -88,14 +88,14 @@ describe("parsePrice / parseLowAt / parseSku", () => {
 });
 
 describe("admin rows + tabs", () => {
-  const content = [{ slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", variants: [{ id: "10mg", strength: "10 mg" }] },
-                   { slug: "tb-500", name: "TB-500", chemicalClass: "Peptide Fragments", variants: [{ id: "10mg", strength: "10 mg" }] },
-                   { slug: "kpv", name: "KPV", chemicalClass: "Peptide Fragments", variants: [{ id: "10mg", strength: "10 mg" }] }];
+  const content = [{ slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments" },
+                   { slug: "tb-500", name: "TB-500", chemicalClass: "Peptide Fragments" },
+                   { slug: "kpv", name: "KPV", chemicalClass: "Peptide Fragments" }];
+  const v = (slug: string, strength: string, price_cents: number, over: { shown?: boolean; archived_at?: string | null } = {}) =>
+    ({ slug, variant_id: strength.replace(" ", "").toLowerCase(), strength, price_cents, low_at: 20, threepl_sku: null, shown: true, archived_at: null, ...over });
   const ops = {
     products: [{ slug: "bpc-157", shown: true }, { slug: "tb-500", shown: false }, { slug: "kpv", shown: true }],
-    variants: [{ slug: "bpc-157", variant_id: "10mg", price_cents: 7900, low_at: 20, threepl_sku: null },
-               { slug: "tb-500", variant_id: "10mg", price_cents: 8900, low_at: 20, threepl_sku: null },
-               { slug: "kpv", variant_id: "10mg", price_cents: 5900, low_at: 20, threepl_sku: null }],
+    variants: [v("bpc-157", "10 mg", 7900), v("tb-500", "10 mg", 8900), v("kpv", "10 mg", 5900)],
     // tb-500 and kpv have no lots at all, so both are out of stock; tb-500 is
     // hidden (shown: false) and kpv is shown — only the shown one counts
     // under the "out" tab.
@@ -112,10 +112,40 @@ describe("admin rows + tabs", () => {
   });
   it("tabs and counts — a hidden out-of-stock product counts under Hidden, not Out", () => {
     const rows = adminRows(content, ops);
-    expect(tabCounts(rows)).toEqual({ all: 3, low: 1, out: 1, hidden: 1, drafts: 1, discrepancies: 1 });
+    expect(tabCounts(rows)).toEqual({ all: 3, low: 1, out: 1, hidden: 1, drafts: 1, discrepancies: 1, archived: 0 });
     expect(rowsForTab(rows, "out").map((r) => r.slug)).toEqual(["kpv"]);
     expect(rowsForTab(rows, "hidden").map((r) => r.slug)).toEqual(["tb-500"]);
     expect(rowsForTab(rows, "drafts").map((r) => r.slug)).toEqual(["bpc-157"]);
+  });
+  it("strengths: hidden strength counts under Hidden (not Out); archived only under Archived; sorted by amount", () => {
+    const withMore = { ...ops, variants: [...ops.variants,
+      v("kpv", "50 mg", 9900, { shown: false }), v("kpv", "5 mg", 3900, { archived_at: "2026-10-04T09:02:00Z" })] };
+    const rows = adminRows(content, withMore);
+    expect(rows.filter((r) => r.slug === "kpv").map((r) => r.strength)).toEqual(["5 mg", "10 mg", "50 mg"]);
+    expect(rows.find((r) => r.variantId === "50mg")).toMatchObject({ shown: false, productShown: true, strengthShown: false, archivedAt: null });
+    expect(tabCounts(rows)).toEqual({ all: 4, low: 1, out: 1, hidden: 2, drafts: 1, discrepancies: 1, archived: 1 });
+    expect(rowsForTab(rows, "hidden").map((r) => `${r.slug} ${r.strength}`)).toEqual(["tb-500 10 mg", "kpv 50 mg"]);
+    expect(rowsForTab(rows, "out").map((r) => `${r.slug} ${r.strength}`)).toEqual(["kpv 10 mg"]);
+    expect(rowsForTab(rows, "archived").map((r) => `${r.slug} ${r.strength}`)).toEqual(["kpv 5 mg"]);
+    expect(rowsForTab(rows, "all").some((r) => r.archivedAt)).toBe(false);
+  });
+});
+
+describe("parseStrength / strengthSortKey", () => {
+  it("what customers see and the derived key", () => {
+    expect(parseStrength("30", "mg")).toEqual({ ok: true, value: { strength: "30 mg", variantId: "30mg" } });
+    expect(parseStrength(" 250 ", "mcg")).toEqual({ ok: true, value: { strength: "250 mcg", variantId: "250mcg" } });
+    expect(parseStrength("5000", "IU")).toEqual({ ok: true, value: { strength: "5000 IU", variantId: "5000iu" } });
+    expect(parseStrength("1.50", "mg")).toEqual({ ok: true, value: { strength: "1.5 mg", variantId: "1.5mg" } });
+    expect(parseStrength("100000", "mg").ok).toBe(true);
+  });
+  it("refuses zero, negatives, 3 decimals, over 100000, words, exponents and unknown units", () => {
+    for (const a of ["0", "-5", "1.234", "100001", "abc", "", "1e3", "0.00"]) expect(parseStrength(a, "mg").ok, a).toBe(false);
+    expect(parseStrength("10", "g")).toEqual({ ok: false, error: "Pick mg, mcg or IU." });
+    expect(parseStrength("10", "iu").ok).toBe(false);
+  });
+  it("sort key: mg as-is, mcg ÷ 1000, IU after all mass units", () => {
+    expect(["5000 IU", "10 mg", "250 mcg", "2 mg"].sort((a, b) => strengthSortKey(a) - strengthSortKey(b))).toEqual(["250 mcg", "2 mg", "10 mg", "5000 IU"]);
   });
 });
 

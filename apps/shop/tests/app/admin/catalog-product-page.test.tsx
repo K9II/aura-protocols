@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 vi.mock("@/lib/dal", () => ({ requireOwner: async () => ({ id: "owner" }) }));
-vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(), replaceCertificateAction: vi.fn() }));
+vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(), replaceCertificateAction: vi.fn(),
+  addStrengthAction: vi.fn(), setStrengthShownAction: vi.fn(), archiveStrengthAction: vi.fn(), restoreStrengthAction: vi.fn(), deleteStrengthAction: vi.fn() }));
 // catalog-live.ts also imports fetchCatalogOps from catalog-ops/data at module
 // scope (unstable_cache(fetchCatalogOps, ...)); mocked wholesale like every
 // other test that touches it, so only coaPublicUrl is needed here.
@@ -11,7 +12,12 @@ const draftLot = lot({ id: "b", lot_number: "SS50-2610-01", variant_id: "50mg", 
 vi.mock("@/lib/catalog-ops/data", () => ({
   fetchAdminOps: async () => ({
     products: [{ slug: "ss-31", shown: true }],
-    variants: [{ slug: "ss-31", variant_id: "10mg", price_cents: 7900, low_at: 20, threepl_sku: "AP-SS31-10" }, { slug: "ss-31", variant_id: "50mg", price_cents: 10900, low_at: 10, threepl_sku: null }],
+    variants: [
+      { slug: "ss-31", variant_id: "10mg", strength: "10 mg", price_cents: 7900, low_at: 20, threepl_sku: "AP-SS31-10", shown: true, archived_at: null },
+      { slug: "ss-31", variant_id: "50mg", strength: "50 mg", price_cents: 10900, low_at: 10, threepl_sku: null, shown: true, archived_at: null },
+      { slug: "ss-31", variant_id: "30mg", strength: "30 mg", price_cents: 9900, low_at: 10, threepl_sku: "AP-SS31-30", shown: false, archived_at: null },
+      { slug: "ss-31", variant_id: "5mg", strength: "5 mg", price_cents: 4900, low_at: 10, threepl_sku: null, shown: false, archived_at: "2026-10-04T09:02:00Z" },
+    ],
     lots: [
       lot({ id: "a", lot_number: "SS10-2609-01", variant_id: "10mg", status: "live", live_at: "2026-09-24", sellable: 200, held: 3, sold: 159, available: 38 }),
       // Same live_at as "a" on a different variant — not a tie-break case by
@@ -25,8 +31,12 @@ vi.mock("@/lib/catalog-ops/data", () => ({
   catalogEvents: async () => [
     { id: "e1", kind: "lot_live", lotNumber: "SS10-2609-01", actorName: "Kearney", created_at: "2026-10-03T18:05:00Z", before: null, after: null, reason: null, note: null, source: "manual", variant_id: "10mg", lot_id: "a", actor_id: "owner" },
     { id: "e2", kind: "price_changed", lotNumber: null, actorName: "Kearney", created_at: "2026-10-02T15:00:00Z", before: { price_cents: 7500 }, after: { price_cents: 7900 }, reason: null, note: null, source: "manual", variant_id: "10mg", lot_id: null, actor_id: "owner" },
+    { id: "e4", kind: "strength_added", lotNumber: null, actorName: "Kearney", created_at: "2026-10-05T14:10:00Z", before: null, after: { strength: "30 mg", price_cents: 9900, shown: false }, reason: null, note: null, source: "manual", variant_id: "30mg", lot_id: null, actor_id: "owner" },
+    { id: "e5", kind: "strength_archived", lotNumber: null, actorName: "Kearney", created_at: "2026-10-04T09:02:00Z", before: null, after: { strength: "5 mg" }, reason: null, note: null, source: "manual", variant_id: "5mg", lot_id: null, actor_id: "owner" },
+    { id: "e6", kind: "strength_deleted", lotNumber: null, actorName: "Kearney", created_at: "2026-10-03T09:02:00Z", before: { strength: "20 mg", price_cents: 8900 }, after: null, reason: null, note: null, source: "manual", variant_id: "20mg", lot_id: null, actor_id: "owner" },
     { id: "e3", kind: "lot_mismatch", lotNumber: "SS10-2609-01", actorName: null, created_at: "2026-10-01T12:00:00Z", before: null, after: { order_number: "AP-1104", order_item_id: "oi1", shipped: [] }, reason: null, note: "moved", source: "3pl", variant_id: "10mg", lot_id: "a", actor_id: null },
   ],
+  variantHistory: async () => new Map([["10mg", { lots: 3, orders: 12 }], ["50mg", { lots: 1, orders: 0 }], ["5mg", { lots: 2, orders: 47 }]]),
 }));
 import ProductPage from "@/app/admin/catalog/[slug]/page";
 
@@ -65,5 +75,69 @@ describe("/admin/catalog/[slug]", () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     const refs = screen.getAllByText(/^SS10-/).map((n) => n.textContent);
     expect(refs.indexOf("SS10-2608-09")).toBeLessThan(refs.indexOf("SS10-2609-01"));
+  });
+
+  describe("strengths (Screen 8)", () => {
+    const page = async () => render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+
+    it("header counts strengths on the store, hidden and archived", async () => {
+      await page();
+      expect(screen.getByText(/2 strengths on the store · 1 hidden · 1 archived/)).toBeInTheDocument();
+    });
+
+    it("a hidden strength card is greyed, says Hidden, offers Show on store and the first-lot guidance", async () => {
+      const { container } = await page();
+      const card = screen.getByRole("heading", { name: "30 mg" }).closest(".a-card")!;
+      expect(card).toHaveClass("hid");
+      expect(card).toHaveTextContent("Hidden");
+      expect(card.querySelector("button[type=submit]")).toHaveTextContent("Show on store");
+      expect(card).toHaveTextContent("New strengths start hidden. Receive the first lot, put it live, then show it on the store.");
+      expect(card).not.toHaveTextContent("No lots yet");
+      expect(container.querySelectorAll(".a-card.hid")).toHaveLength(1);
+    });
+
+    it("archived strengths sit in their own section with lots, orders and Restore — not as cards", async () => {
+      await page();
+      expect(screen.queryByRole("heading", { name: "5 mg" })).not.toBeInTheDocument();
+      expect(screen.getByText("Archived strengths · not on the store")).toBeInTheDocument();
+      expect(screen.getByText("archived Oct 4 · 2 lots · 47 orders · certificates stay in COA lookup")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Restore" })).toBeInTheDocument();
+    });
+
+    it("the ⋯ menu disables Delete with the reason when the strength has history", async () => {
+      await page();
+      fireEvent.click(screen.getByRole("button", { name: "More for 10 mg" }));
+      const del = screen.getByRole("button", { name: /Delete strength/ });
+      expect(del).toBeDisabled();
+      expect(del).toHaveTextContent("This one has lots or orders, so archive it instead.");
+    });
+
+    it("the ⋯ menu allows Delete for a strength with no lots or orders", async () => {
+      await page();
+      fireEvent.click(screen.getByRole("button", { name: "More for 30 mg" }));
+      expect(screen.getByRole("button", { name: /Delete strength/ })).toBeEnabled();
+      expect(screen.getByRole("button", { name: /Show on store.*Customers see it again/ })).toBeInTheDocument();
+    });
+
+    it("renders the Add a strength button and dialog", async () => {
+      await page();
+      expect(screen.getByRole("button", { name: "Add a strength" })).toBeInTheDocument();
+      expect(screen.getByText(/Add a strength · SS-31/)).toBeInTheDocument();
+    });
+
+    it("the On the store rail lists only strengths on the store", async () => {
+      await page();
+      const rail = screen.getByRole("heading", { name: "On the store" }).closest(".a-card")!;
+      expect(rail).toHaveTextContent("10 mg");
+      expect(rail).not.toHaveTextContent("30 mg");
+      expect(rail).not.toHaveTextContent("5 mg");
+    });
+
+    it("activity reads the strength changes in plain words, even for a deleted strength", async () => {
+      await page();
+      expect(screen.getByText(/Kearney added/)).toHaveTextContent("Kearney added 30 mg · $99.00 · hidden");
+      expect(screen.getByText(/Kearney archived/)).toHaveTextContent("Kearney archived 5 mg");
+      expect(screen.getByText(/Kearney deleted/)).toHaveTextContent("Kearney deleted 20 mg");
+    });
   });
 });

@@ -8,7 +8,7 @@ const lot = { lot: "AP-0001", purityPct: 99.6, method: "HPLC" as const, testedOn
 const c: Compound = {
   slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {},
   form: "x", storage: "x", vialMl: 3,
-  variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in", availableVials: 40, lot }, { id: "10mg", strength: "10 mg", priceUsd: 79, stock: "in", availableVials: 40, lot }],
+  variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", availableVials: 40, lot }, { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "in", availableVials: 40, lot }],
   packDiscounts: [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }],
 };
 

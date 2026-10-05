@@ -10,11 +10,13 @@ const isBlend = (c: (typeof compounds)[number]) => c.components !== undefined;
 describe("catalog integrity", () => {
   // Which are shown is Aura Store's call (catalog_products.shown; the seed
   // hides the six incretin & amylin analogs — tests/data/catalog-ops-sql.test.ts).
-  it("has the 27 catalog compounds, content only (no prices, stock or lots)", () => {
+  // Strengths live in Aura Store (catalog_variants, managed in /admin/catalog);
+  // the seed's strengths are checked in tests/data/catalog-ops-sql.test.ts.
+  it("has the 27 catalog compounds, content only (no strengths, prices, stock or lots)", () => {
     expect(compounds).toHaveLength(27);
     for (const c of compounds) {
       expect(c, c.slug).not.toHaveProperty("currentLot");
-      for (const v of c.variants) expect(Object.keys(v).sort(), c.slug).toEqual(["id", "strength"]);
+      expect(c, c.slug).not.toHaveProperty("variants");
     }
   });
 
@@ -39,13 +41,6 @@ describe("catalog integrity", () => {
       expect(c.identity.molecularWeight, c.slug).toMatch(/g\/mol$/);
       expect(c.identity.source, c.slug).toMatch(/^https:\/\//);
       if (!NO_CAS.has(c.slug)) expect(c.identity.cas, c.slug).toMatch(/^\d{2,7}-\d{2}-\d$/);
-    }
-  });
-
-  it("gives every compound at least one variant with a unique id", () => {
-    for (const c of compounds) {
-      expect(c.variants.length, c.slug).toBeGreaterThan(0);
-      expect(new Set(c.variants.map((v) => v.id)).size, c.slug).toBe(c.variants.length);
     }
   });
 

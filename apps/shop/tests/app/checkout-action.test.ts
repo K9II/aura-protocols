@@ -43,7 +43,7 @@ vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined })
 const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
 const liveList: Compound[] = [{
   slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
-  variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in", availableVials: 100, lot: tested }],
+  variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", availableVials: 100, lot: tested }],
   packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }],
 }];
 let liveCat: Compound[] = liveList;

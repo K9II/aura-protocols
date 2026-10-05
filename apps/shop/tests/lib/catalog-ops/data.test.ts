@@ -80,4 +80,100 @@ describe("catalog-ops data", () => {
     expect(await coaUploaded("BPC-1/5.pdf")).toBe(true);
     expect(list).toHaveBeenCalledWith("BPC-1", { search: "5.pdf" });
   });
+  describe("strengths", () => {
+    const add = { strength: "30 mg", variantId: "30mg", priceCents: 9900, lowAt: 10, sku: "AP-SS31-30" };
+
+    it("fetchCatalogOps and fetchAdminOps read strength, shown and archived_at", async () => {
+      const v1 = query({ data: [] }), v2 = query({ data: [] });
+      from = fromQueue({ catalog_products: [query({ data: [] }), query({ data: [] })], catalog_variants: [v1, v2], lot_stock: [query({ data: [] }), query({ data: [] })] });
+      const { fetchCatalogOps, fetchAdminOps } = await import("@/lib/catalog-ops/data");
+      await fetchCatalogOps();
+      await fetchAdminOps("ss-31");
+      for (const q of [v1, v2]) expect(String(callArgs(q, "select")?.[0])).toMatch(/strength.*shown, archived_at/);
+    });
+
+    it("addVariant inserts it hidden and logs strength_added", async () => {
+      const ins = query({}), ev = query({});
+      from = fromQueue({ catalog_variants: [query({ data: null }), ins], catalog_events: [ev] });
+      const { addVariant } = await import("@/lib/catalog-ops/data");
+      expect(await addVariant("ss-31", add, "owner")).toEqual({ ok: true });
+      expect(callArgs(ins, "insert")?.[0]).toEqual({ slug: "ss-31", variant_id: "30mg", strength: "30 mg", price_cents: 9900, low_at: 10, threepl_sku: "AP-SS31-30", shown: false });
+      expect(callArgs(ev, "insert")?.[0]).toMatchObject({ kind: "strength_added", variant_id: "30mg", actor_id: "owner", after: { strength: "30 mg", price_cents: 9900, shown: false } });
+    });
+
+    it("addVariant reports an existing or archived key before inserting", async () => {
+      from = fromQueue({ catalog_variants: [query({ data: { strength: "30 mg", shown: false, archived_at: null } }), query({ data: { strength: "30 mg", shown: false, archived_at: "2026-10-04T00:00:00Z" } })] });
+      const { addVariant } = await import("@/lib/catalog-ops/data");
+      expect(await addVariant("ss-31", add, "owner")).toEqual({ ok: false, reason: "taken" });
+      expect(await addVariant("ss-31", add, "owner")).toEqual({ ok: false, reason: "archived" });
+    });
+
+    it("addVariant maps unique violations: the SKU, else the key (a race)", async () => {
+      from = fromQueue({ catalog_variants: [
+        query({ data: null }), query({ error: { code: "23505", message: 'duplicate key value violates unique constraint "catalog_variants_threepl_sku_key"' } }),
+        query({ data: null }), query({ error: { code: "23505", message: 'duplicate key value violates unique constraint "catalog_variants_pkey"' } }),
+      ] });
+      const { addVariant } = await import("@/lib/catalog-ops/data");
+      expect(await addVariant("ss-31", add, "owner")).toEqual({ ok: false, reason: "sku_taken" });
+      expect(await addVariant("ss-31", add, "owner")).toEqual({ ok: false, reason: "taken" });
+    });
+
+    it("addVariant throws on any other error", async () => {
+      from = fromQueue({ catalog_variants: [query({ data: null }), query({ error: { code: "23514", message: "check" } })] });
+      const { addVariant } = await import("@/lib/catalog-ops/data");
+      await expect(addVariant("ss-31", add, "owner")).rejects.toThrow(/strength insert failed/);
+    });
+
+    it("setVariantShown only touches non-archived rows and logs shown / hidden; no row → ok:false, no event", async () => {
+      const upd = query({ data: [{ strength: "30 mg" }] }), ev = query({});
+      from = fromQueue({ catalog_variants: [upd, query({ data: [] })], catalog_events: [ev] });
+      const { setVariantShown } = await import("@/lib/catalog-ops/data");
+      expect(await setVariantShown("ss-31", "30mg", true, "owner")).toEqual({ ok: true });
+      expect(callArgs(upd, "update")?.[0]).toMatchObject({ shown: true });
+      expect(callArgs(upd, "is")).toEqual(["archived_at", null]);
+      expect(callArgs(ev, "insert")?.[0]).toMatchObject({ kind: "strength_shown", after: { strength: "30 mg" } });
+      expect(await setVariantShown("ss-31", "30mg", false, "owner")).toEqual({ ok: false });
+    });
+
+    it("archiveVariant hides and archives a non-archived row; restoreVariant brings an archived one back hidden", async () => {
+      const arch = query({ data: [{ strength: "50 mg" }] }), rest = query({ data: [{ strength: "50 mg" }] });
+      const e1 = query({}), e2 = query({});
+      from = fromQueue({ catalog_variants: [arch, rest], catalog_events: [e1, e2] });
+      const { archiveVariant, restoreVariant } = await import("@/lib/catalog-ops/data");
+      expect(await archiveVariant("ss-31", "50mg", "owner")).toEqual({ ok: true });
+      expect(callArgs(arch, "update")?.[0]).toMatchObject({ shown: false, archived_at: expect.any(String) });
+      expect(callArgs(arch, "is")).toEqual(["archived_at", null]);
+      expect(callArgs(e1, "insert")?.[0]).toMatchObject({ kind: "strength_archived" });
+      expect(await restoreVariant("ss-31", "50mg", "owner")).toEqual({ ok: true });
+      expect(callArgs(rest, "update")?.[0]).toMatchObject({ shown: false, archived_at: null });
+      expect(callArgs(rest, "not")).toEqual(["archived_at", "is", null]);
+      expect(callArgs(e2, "insert")?.[0]).toMatchObject({ kind: "strength_restored" });
+    });
+
+    it("archive / restore throw on a database error", async () => {
+      from = fromQueue({ catalog_variants: [query({ error: { message: "down" } })] });
+      const { archiveVariant } = await import("@/lib/catalog-ops/data");
+      await expect(archiveVariant("ss-31", "50mg", "owner")).rejects.toThrow(/strength archive failed/);
+    });
+
+    it("deleteVariant calls admin_delete_variant and refuses an unexpected answer", async () => {
+      rpc.mockResolvedValueOnce({ data: "has_history", error: null }).mockResolvedValueOnce({ data: "weird", error: null });
+      const { deleteVariant } = await import("@/lib/catalog-ops/data");
+      expect(await deleteVariant("ss-31", "50mg", "owner")).toBe("has_history");
+      expect(rpc).toHaveBeenCalledWith("admin_delete_variant", { p_slug: "ss-31", p_variant: "50mg", p_actor: "owner" });
+      await expect(deleteVariant("ss-31", "50mg", "owner")).rejects.toThrow(/admin_delete_variant failed/);
+    });
+
+    it("variantHistory counts lots and distinct orders per strength in two queries", async () => {
+      const l = query({ data: [{ variant_id: "50mg" }, { variant_id: "50mg" }, { variant_id: "10mg" }] });
+      const o = query({ data: [{ variant_id: "50mg", order_id: "o1" }, { variant_id: "50mg", order_id: "o1" }, { variant_id: "50mg", order_id: "o2" }] });
+      from = fromQueue({ lots: [l], order_items: [o] });
+      const { variantHistory } = await import("@/lib/catalog-ops/data");
+      const h = await variantHistory("ss-31");
+      expect(h.get("50mg")).toEqual({ lots: 2, orders: 2 });
+      expect(h.get("10mg")).toEqual({ lots: 1, orders: 0 });
+      expect(h.get("30mg")).toBeUndefined();
+      expect(callArgs(o, "eq")).toEqual(["compound_slug", "ss-31"]);
+    });
+  });
 });

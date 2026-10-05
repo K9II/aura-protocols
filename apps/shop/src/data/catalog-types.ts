@@ -22,6 +22,7 @@ export type Identity = {
   source?: string;
 };
 
+// A strength as stored in Aura Store (catalog_variants): id "30mg", strength "30 mg".
 export type VariantContent = { id: string; strength: string };
 
 export type CatalogEntry<C extends string = string> = {
@@ -35,19 +36,19 @@ export type CatalogEntry<C extends string = string> = {
   form: string;
   storage: string;
   vialMl: number;
-  variants: VariantContent[];
   packDiscounts: PackDiscount[];
   featured?: boolean;
 };
 
 export type LiveVariant = VariantContent & {
+  shown: boolean;          // strength shown on the store (LiveCatalog.shown keeps only these)
   priceUsd: number;
   stock: StockState;
   availableVials: number;
   lot: Lot | PendingLot;   // lot selling now; else the last live lot (sold out); else pending
 };
 
-export type LiveCompound<C extends string = string> = Omit<CatalogEntry<C>, "variants"> & { variants: LiveVariant[] };
+export type LiveCompound<C extends string = string> = CatalogEntry<C> & { variants: LiveVariant[] };
 
 // Every lot that was ever live, of shown products only — for COA lookup and lot alerts.
 export type PublicLot = Lot & {
@@ -57,4 +58,5 @@ export type PublicLot = Lot & {
   strength: string;
   status: "live" | "sold_out" | "retired";
   liveAt: string;
+  onStore: boolean;   // its strength is shown and not archived (lot alerts announce only these)
 };

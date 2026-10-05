@@ -4,6 +4,7 @@ const requireOwner = vi.fn(async () => ({ id: "owner", fullName: "Kearney Adams"
 const data = {
   receiveLot: vi.fn(), updateDraftLot: vi.fn(), putLotLive: vi.fn(), correctCount: vi.fn(), retireLot: vi.fn(),
   replaceCertificate: vi.fn(), setVariantField: vi.fn(), setShown: vi.fn(), createCoaUpload: vi.fn(), coaUploaded: vi.fn(), lotById: vi.fn(),
+  variantRow: vi.fn(), addVariant: vi.fn(), setVariantShown: vi.fn(), archiveVariant: vi.fn(), restoreVariant: vi.fn(), deleteVariant: vi.fn(),
 };
 const catalogChangedByOwner = vi.fn(), alertOwner = vi.fn();
 vi.mock("@/lib/dal", () => ({ requireOwner }));
@@ -17,7 +18,10 @@ const VALID_UUID = "11111111-1111-4111-8111-111111111111";
 const receive = { slug: "bpc-157", variantId: "10mg", lotNumber: "BPC-2610-03", purity: "99.4", method: "HPLC+MS", testedOn: "2026-10-02", ordered: "200", counted: "196", damaged: "2", note: "Short 4; 2 cracked.", coaPath: "BPC-2610-03/1700000000000.pdf" };
 
 describe("catalog actions", () => {
-  beforeEach(() => { vi.resetModules(); Object.values(data).forEach((f) => f.mockReset()); catalogChangedByOwner.mockReset(); alertOwner.mockReset(); });
+  beforeEach(() => {
+    vi.resetModules(); Object.values(data).forEach((f) => f.mockReset()); catalogChangedByOwner.mockReset(); alertOwner.mockReset();
+    data.variantRow.mockResolvedValue({ strength: "10 mg", shown: true, archived_at: null });
+  });
 
   it("receive: saves a draft, alerts on a discrepancy, refreshes", async () => {
     data.coaUploaded.mockResolvedValue(true);
@@ -175,6 +179,7 @@ describe("catalog actions", () => {
   });
 
   it("an unknown strength throws before any write", async () => {
+    data.variantRow.mockResolvedValue(null);
     const { setFieldAction } = await import("@/app/admin/catalog/actions");
     await expect(setFieldAction(null, fd({ slug: "ss-31", variantId: "999mg", field: "price", value: "$1" }))).rejects.toThrow(/reload the page/);
     expect(data.setVariantField).not.toHaveBeenCalled();
@@ -202,6 +207,90 @@ describe("catalog actions", () => {
     });
   });
 
+  describe("strengths in the database", () => {
+    it("receive into a hidden strength works; into an archived one throws (stale)", async () => {
+      data.coaUploaded.mockResolvedValue(true);
+      data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
+      data.variantRow.mockResolvedValue({ strength: "30 mg", shown: false, archived_at: null });
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      expect(await receiveLotAction(null, fd({ ...receive, slug: "ss-31", variantId: "30mg", intent: "draft" }))).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
+      expect(alertOwner).toHaveBeenCalledWith(expect.any(String), expect.stringContaining("SS-31 (Elamipretide) 30 mg"));
+      data.variantRow.mockResolvedValue({ strength: "50 mg", shown: false, archived_at: "2026-10-04T00:00:00Z" });
+      data.receiveLot.mockClear();
+      await expect(receiveLotAction(null, fd({ ...receive, slug: "ss-31", variantId: "50mg", intent: "draft" }))).rejects.toThrow(/reload/);
+      expect(data.receiveLot).not.toHaveBeenCalled();
+    });
+
+    const addForm = { slug: "ss-31", amount: "30", unit: "mg", price: "$99", lowAt: "10", sku: "ap-ss31-30" };
+
+    it("add: parses, inserts hidden, refreshes", async () => {
+      data.addVariant.mockResolvedValue({ ok: true });
+      const { addStrengthAction } = await import("@/app/admin/catalog/actions");
+      expect(await addStrengthAction(null, fd(addForm))).toEqual({ ok: "Added 30 mg — hidden until you show it." });
+      expect(data.addVariant).toHaveBeenCalledWith("ss-31", { strength: "30 mg", variantId: "30mg", priceCents: 9900, lowAt: 10, sku: "AP-SS31-30" }, "owner");
+      expect(catalogChangedByOwner).toHaveBeenCalled();
+    });
+
+    it("add: field errors for bad amount, unit, price, low level and SKU, without writing", async () => {
+      const { addStrengthAction } = await import("@/app/admin/catalog/actions");
+      const r = await addStrengthAction(null, fd({ slug: "ss-31", amount: "0", unit: "mg", price: "0", lowAt: "-1", sku: "bad sku!" }));
+      expect(Object.keys(r?.fieldErrors ?? {}).sort()).toEqual(["lowAt", "price", "sku", "strength"]);
+      expect((await addStrengthAction(null, fd({ ...addForm, unit: "g" })))?.fieldErrors).toEqual({ strength: "Pick mg, mcg or IU." });
+      expect(data.addVariant).not.toHaveBeenCalled();
+      expect(catalogChangedByOwner).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["taken", { strength: "That strength already exists." }],
+      ["archived", { strength: "That strength is archived — restore it instead." }],
+      ["sku_taken", { sku: "That SKU is already used." }],
+    ] as const)("add: %s is a field error and does not refresh", async (reason, fieldErrors) => {
+      data.addVariant.mockResolvedValue({ ok: false, reason });
+      const { addStrengthAction } = await import("@/app/admin/catalog/actions");
+      expect(await addStrengthAction(null, fd(addForm))).toEqual({ fieldErrors });
+      expect(catalogChangedByOwner).not.toHaveBeenCalled();
+    });
+
+    it("add: an unknown product throws before any write", async () => {
+      const { addStrengthAction } = await import("@/app/admin/catalog/actions");
+      await expect(addStrengthAction(null, fd({ ...addForm, slug: "no-such-slug" }))).rejects.toThrow(/reload the page/);
+      expect(data.addVariant).not.toHaveBeenCalled();
+    });
+
+    it("show / hide: passes the state; stale throws", async () => {
+      data.setVariantShown.mockResolvedValueOnce({ ok: true }).mockResolvedValueOnce({ ok: false });
+      const { setStrengthShownAction } = await import("@/app/admin/catalog/actions");
+      await setStrengthShownAction(fd({ slug: "ss-31", variantId: "30mg", shown: "true" }));
+      expect(data.setVariantShown).toHaveBeenCalledWith("ss-31", "30mg", true, "owner");
+      expect(catalogChangedByOwner).toHaveBeenCalledTimes(1);
+      await expect(setStrengthShownAction(fd({ slug: "ss-31", variantId: "30mg", shown: "false" }))).rejects.toThrow(/reload/);
+      expect(catalogChangedByOwner).toHaveBeenCalledTimes(1);
+    });
+
+    it("archive and restore; stale throws", async () => {
+      data.archiveVariant.mockResolvedValueOnce({ ok: true }).mockResolvedValueOnce({ ok: false });
+      data.restoreVariant.mockResolvedValueOnce({ ok: true }).mockResolvedValueOnce({ ok: false });
+      const { archiveStrengthAction, restoreStrengthAction } = await import("@/app/admin/catalog/actions");
+      await archiveStrengthAction(fd({ slug: "ss-31", variantId: "50mg" }));
+      expect(data.archiveVariant).toHaveBeenCalledWith("ss-31", "50mg", "owner");
+      await expect(archiveStrengthAction(fd({ slug: "ss-31", variantId: "50mg" }))).rejects.toThrow(/reload/);
+      await restoreStrengthAction(fd({ slug: "ss-31", variantId: "50mg" }));
+      expect(data.restoreVariant).toHaveBeenCalledWith("ss-31", "50mg", "owner");
+      await expect(restoreStrengthAction(fd({ slug: "ss-31", variantId: "50mg" }))).rejects.toThrow(/reload/);
+      expect(catalogChangedByOwner).toHaveBeenCalledTimes(2);
+    });
+
+    it("delete: ok refreshes; history says archive instead; missing throws", async () => {
+      data.deleteVariant.mockResolvedValueOnce("ok").mockResolvedValueOnce("has_history").mockResolvedValueOnce("missing");
+      const { deleteStrengthAction } = await import("@/app/admin/catalog/actions");
+      expect(await deleteStrengthAction(null, fd({ slug: "ss-31", variantId: "30mg" }))).toEqual({ ok: "Deleted." });
+      expect(data.deleteVariant).toHaveBeenCalledWith("ss-31", "30mg", "owner");
+      expect(await deleteStrengthAction(null, fd({ slug: "ss-31", variantId: "50mg" }))).toEqual({ error: "This one has lots or orders, so archive it instead." });
+      await expect(deleteStrengthAction(null, fd({ slug: "ss-31", variantId: "30mg" }))).rejects.toThrow(/reload/);
+      expect(catalogChangedByOwner).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe("every action checks the owner first", () => {
     const cases: Array<[string, (m: typeof import("@/app/admin/catalog/actions")) => Promise<unknown>]> = [
       ["coaUploadAction", (m) => m.coaUploadAction("ABC-1234")],
@@ -212,6 +301,11 @@ describe("catalog actions", () => {
       ["replaceCertificateAction", (m) => m.replaceCertificateAction(null, fd({ lotId: VALID_UUID, coaPath: "X/1700000000000.pdf" }))],
       ["setFieldAction", (m) => m.setFieldAction(null, fd({ slug: "ss-31", variantId: "50mg", field: "price", value: "$1" }))],
       ["setShownAction", (m) => m.setShownAction(fd({ slug: "bpc-157", shown: "false" }))],
+      ["addStrengthAction", (m) => m.addStrengthAction(null, fd({ slug: "ss-31", amount: "30", unit: "mg", price: "99", lowAt: "10", sku: "" }))],
+      ["setStrengthShownAction", (m) => m.setStrengthShownAction(fd({ slug: "ss-31", variantId: "30mg", shown: "true" }))],
+      ["archiveStrengthAction", (m) => m.archiveStrengthAction(fd({ slug: "ss-31", variantId: "50mg" }))],
+      ["restoreStrengthAction", (m) => m.restoreStrengthAction(fd({ slug: "ss-31", variantId: "50mg" }))],
+      ["deleteStrengthAction", (m) => m.deleteStrengthAction(null, fd({ slug: "ss-31", variantId: "30mg" }))],
     ];
 
     it.each(cases)("%s", async (_name, run) => {

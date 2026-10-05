@@ -68,7 +68,7 @@ describe("GET /api/cron/emails", () => {
   });
 
   it("links the certificate of the lot selling now, else the last sold-out one, never a retired lot", async () => {
-    const pl = (lot: string, slug: string, status: string) => ({ lot, slug, status, coaFile: `https://b/coa/${lot}.pdf`, compoundName: slug, variantId: "10mg", strength: "10 mg", purityPct: 99, method: "HPLC", testedOn: "2026-09-01", liveAt: "2026-09-02T00:00:00Z" });
+    const pl = (lot: string, slug: string, status: string) => ({ lot, slug, status, coaFile: `https://b/coa/${lot}.pdf`, compoundName: slug, variantId: "10mg", strength: "10 mg", purityPct: 99, method: "HPLC", testedOn: "2026-09-01", liveAt: "2026-09-02T00:00:00Z", onStore: true });
     getLiveCatalog.mockResolvedValue({ all: [], shown: [], lots: [
       pl("BPC-OLD", "bpc-157", "sold_out"), pl("BPC-NOW", "bpc-157", "live"),
       pl("TB-RET", "tb-500", "retired"), pl("TB-SOLD", "tb-500", "sold_out"),

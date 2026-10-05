@@ -5,23 +5,34 @@ import { z } from "zod";
 import { requireOwner } from "@/lib/dal";
 import { catalogContent } from "@/data/catalog";
 import {
-  coaUploaded, correctCount, createCoaUpload, lotById, putLotLive, receiveLot, replaceCertificate, retireLot,
-  setShown, setVariantField, updateDraftLot,
+  addVariant, archiveVariant, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot,
+  replaceCertificate, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, updateDraftLot, variantRow,
 } from "@/lib/catalog-ops/data";
-import { isCoaPathFor, isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku } from "@/lib/catalog-ops/rules";
+import {
+  isCoaPathFor, isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku, parseStrength,
+} from "@/lib/catalog-ops/rules";
 import { catalogChangedByOwner } from "@/lib/catalog-live";
 import { alertOwner } from "@/lib/notify";
 
 export type ActionState = { ok?: string; error?: string; warning?: string; fieldErrors?: Record<string, string> } | null;
 
 const STALE = "That lot changed — reload the page.";
+const PRODUCT_STALE = "That product changed — reload the page.";
 const str = (f: FormData, k: string) => String(f.get(k) ?? "");
 const today = () => new Date().toISOString().slice(0, 10);
 const uuid = (f: FormData, k: string) => { const r = z.string().uuid().safeParse(f.get(k)); if (!r.success) throw new Error(STALE); return r.data; };
-const variantOf = (slug: string, variantId: string) => {
+const productOf = (slug: string) => {
   const c = catalogContent.find((x) => x.slug === slug);
-  const v = c?.variants.find((x) => x.id === variantId);
-  if (!c || !v) throw new Error("That product changed — reload the page.");
+  if (!c) throw new Error(PRODUCT_STALE);
+  return c;
+};
+// Strengths live in the database: it must exist and, for anything but a
+// restore or delete, not be archived (hidden strengths are fine — the owner
+// receives a lot for a new strength before showing it).
+const variantOf = async (slug: string, variantId: string) => {
+  const c = productOf(slug);
+  const v = await variantRow(slug, variantId);
+  if (!v || v.archived_at) throw new Error(PRODUCT_STALE);
   return { c, v };
 };
 const refresh = (slug: string) => { catalogChangedByOwner(); revalidatePath("/admin/catalog"); revalidatePath(`/admin/catalog/${slug}`); };
@@ -46,7 +57,7 @@ export async function coaUploadAction(lotNumber: string): Promise<{ path: string
 export async function receiveLotAction(_prev: ActionState, f: FormData): Promise<ActionState> {
   const owner = await requireOwner();
   const slug = str(f, "slug"), variantId = str(f, "variantId");
-  const { c, v } = variantOf(slug, variantId);
+  const { c, v } = await variantOf(slug, variantId);
   const p = parseReceive(receiveInput(f), today());
   if (!p.ok) return { fieldErrors: p.fieldErrors };
   const val = p.value;
@@ -126,14 +137,14 @@ const FIELDS = { price: "price_cents", low: "low_at", sku: "threepl_sku" } as co
 export async function setFieldAction(_prev: ActionState, f: FormData): Promise<ActionState> {
   const owner = await requireOwner();
   const slug = str(f, "slug"), variantId = str(f, "variantId");
-  variantOf(slug, variantId);
+  await variantOf(slug, variantId);
   const field = str(f, "field") as keyof typeof FIELDS;
   if (!Object.hasOwn(FIELDS, field)) throw new Error("Unknown field.");
   const parsed = field === "price" ? parsePrice(str(f, "value")) : field === "low" ? parseLowAt(str(f, "value")) : parseSku(str(f, "value"));
   if (!parsed.ok) return { error: parsed.error };
   const r = await setVariantField(slug, variantId, FIELDS[field], parsed.value, owner.id);
   if (!r.ok && r.reason === "taken") return { error: "Another strength already uses that SKU." };
-  if (!r.ok) throw new Error("That product changed — reload the page.");
+  if (!r.ok) throw new Error(PRODUCT_STALE);
   refresh(slug);
   return { ok: "Saved." };
 }
@@ -141,7 +152,69 @@ export async function setFieldAction(_prev: ActionState, f: FormData): Promise<A
 export async function setShownAction(f: FormData): Promise<void> {
   const owner = await requireOwner();
   const slug = str(f, "slug");
-  if (!catalogContent.some((c) => c.slug === slug)) throw new Error("That product changed — reload the page.");
-  if (!(await setShown(slug, str(f, "shown") === "true", owner.id))) throw new Error("That product changed — reload the page.");
+  productOf(slug);
+  if (!(await setShown(slug, str(f, "shown") === "true", owner.id))) throw new Error(PRODUCT_STALE);
   refresh(slug);
+}
+
+// ---------- strengths ----------
+export async function addStrengthAction(_prev: ActionState, f: FormData): Promise<ActionState> {
+  const owner = await requireOwner();
+  const slug = str(f, "slug");
+  productOf(slug);
+  const e: Record<string, string> = {};
+  const strength = parseStrength(str(f, "amount"), str(f, "unit"));
+  if (!strength.ok) e.strength = strength.error;
+  const price = parsePrice(str(f, "price"));
+  if (!price.ok) e.price = price.error;
+  const low = parseLowAt(str(f, "lowAt"));
+  if (!low.ok) e.lowAt = low.error;
+  const sku = parseSku(str(f, "sku"));
+  if (!sku.ok) e.sku = sku.error;
+  if (!strength.ok || !price.ok || !low.ok || !sku.ok) return { fieldErrors: e };
+  const r = await addVariant(slug, { ...strength.value, priceCents: price.value, lowAt: low.value, sku: sku.value }, owner.id);
+  if (!r.ok) {
+    if (r.reason === "archived") return { fieldErrors: { strength: "That strength is archived — restore it instead." } };
+    if (r.reason === "sku_taken") return { fieldErrors: { sku: "That SKU is already used." } };
+    return { fieldErrors: { strength: "That strength already exists." } };
+  }
+  refresh(slug);
+  return { ok: `Added ${strength.value.strength} — hidden until you show it.` };
+}
+
+const strengthTarget = (f: FormData) => {
+  const slug = str(f, "slug");
+  productOf(slug);
+  return { slug, variantId: str(f, "variantId") };
+};
+
+export async function setStrengthShownAction(f: FormData): Promise<void> {
+  const owner = await requireOwner();
+  const { slug, variantId } = strengthTarget(f);
+  if (!(await setVariantShown(slug, variantId, str(f, "shown") === "true", owner.id)).ok) throw new Error(PRODUCT_STALE);
+  refresh(slug);
+}
+
+export async function archiveStrengthAction(f: FormData): Promise<void> {
+  const owner = await requireOwner();
+  const { slug, variantId } = strengthTarget(f);
+  if (!(await archiveVariant(slug, variantId, owner.id)).ok) throw new Error(PRODUCT_STALE);
+  refresh(slug);
+}
+
+export async function restoreStrengthAction(f: FormData): Promise<void> {
+  const owner = await requireOwner();
+  const { slug, variantId } = strengthTarget(f);
+  if (!(await restoreVariant(slug, variantId, owner.id)).ok) throw new Error(PRODUCT_STALE);
+  refresh(slug);
+}
+
+export async function deleteStrengthAction(_prev: ActionState, f: FormData): Promise<ActionState> {
+  const owner = await requireOwner();
+  const { slug, variantId } = strengthTarget(f);
+  const r = await deleteVariant(slug, variantId, owner.id);
+  if (r === "has_history") return { error: "This one has lots or orders, so archive it instead." };
+  if (r !== "ok") throw new Error(PRODUCT_STALE);
+  refresh(slug);
+  return { ok: "Deleted." };
 }

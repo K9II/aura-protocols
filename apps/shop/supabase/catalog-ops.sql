@@ -10,12 +10,19 @@ create table if not exists catalog_products (
 );
 alter table catalog_products enable row level security;
 
+-- Strengths are managed in /admin/catalog (added hidden, shown, hidden,
+-- archived, restored, deleted). strength is what customers see ("30 mg");
+-- variant_id is derived from it (lower-case, no spaces: "30mg", "5000iu").
 create table if not exists catalog_variants (
   slug         text not null references catalog_products(slug) on delete cascade,
-  variant_id   text not null,
+  variant_id   text not null check (variant_id ~ '^[0-9.]+(mg|mcg|iu)$'),
+  strength     text not null check (strength ~ '^[0-9]+(\.[0-9]+)? (mg|mcg|IU)$'),
   price_cents  integer not null check (price_cents > 0),
   low_at       integer not null default 20 check (low_at >= 0),
   threepl_sku  text unique check (threepl_sku is null or threepl_sku ~ '^[A-Z0-9][A-Z0-9-]{1,39}$'),
+  shown        boolean not null default false,
+  archived_at  timestamptz,
+  created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now(),
   primary key (slug, variant_id)
 );
@@ -80,7 +87,8 @@ create table if not exists catalog_events (
   lot_id      uuid references lots(id),
   kind        text not null check (kind in ('price_changed', 'low_at_changed', 'threepl_sku_changed', 'shown', 'hidden',
                 'lot_received', 'lot_edited', 'lot_live', 'lot_retired', 'count_corrected', 'certificate_replaced',
-                'oversold', 'lot_mismatch')),
+                'oversold', 'lot_mismatch', 'strength_added', 'strength_shown', 'strength_hidden', 'strength_archived',
+                'strength_restored', 'strength_deleted')),
   before      jsonb,
   after       jsonb,
   reason      text,
@@ -109,7 +117,9 @@ left join (
 revoke all on lot_stock from public, anon, authenticated;
 
 -- Holds every vial of a pending order, oldest live lot first, all or nothing.
--- Returns {"ok": true} | {"ok": false, "reason": "inactive"} |
+-- Returns {"ok": true} | {"ok": false, "reason": "inactive"} (order not
+-- pending, or a line's product isn't shown / its strength is hidden or
+-- archived — pricing already refuses those; this is defence in depth) |
 -- {"ok": false, "reason": "sold_out", "short": ["slug:variant", ...]}.
 -- Idempotent per order. The order row lock orders it against a cancel; the
 -- per-strength advisory locks (taken in sorted order) serialise the last vial.
@@ -127,6 +137,12 @@ begin
   select status into v_status from orders where id = p_order for update;
   if v_status is distinct from 'awaiting_payment' then return json_build_object('ok', false, 'reason', 'inactive'); end if;
   if exists (select 1 from lot_holds where order_id = p_order) then return json_build_object('ok', true); end if;
+  if exists (select 1 from order_items i
+             left join catalog_products p on p.slug = i.compound_slug
+             left join catalog_variants v on v.slug = i.compound_slug and v.variant_id = i.variant_id
+             where i.order_id = p_order and (p.shown is not true or v.shown is not true or v.archived_at is not null)) then
+    return json_build_object('ok', false, 'reason', 'inactive');
+  end if;
   for lk in select distinct compound_slug || ':' || variant_id as k
             from order_items where order_id = p_order order by 1 loop
     perform pg_advisory_xact_lock(hashtext('stock:' || lk.k));
@@ -252,6 +268,26 @@ begin
 end $$;
 revoke all on function admin_retire_lot(uuid, uuid) from public, anon, authenticated;
 
+-- Deletes a strength added by mistake: only with no lots and no order lines
+-- ever (otherwise archive it). 'ok' | 'missing' | 'has_history'.
+create or replace function admin_delete_variant(p_slug text, p_variant text, p_actor uuid) returns text language plpgsql
+set search_path = public, pg_temp as $$
+declare v catalog_variants%rowtype;
+begin
+  select * into v from catalog_variants where slug = p_slug and variant_id = p_variant for update;
+  if not found then return 'missing'; end if;
+  perform pg_advisory_xact_lock(hashtext('stock:' || p_slug || ':' || p_variant));
+  if exists (select 1 from lots where slug = p_slug and variant_id = p_variant)
+     or exists (select 1 from order_items where compound_slug = p_slug and variant_id = p_variant) then
+    return 'has_history';
+  end if;
+  delete from catalog_variants where slug = p_slug and variant_id = p_variant;
+  insert into catalog_events (slug, variant_id, kind, before, actor_id)
+    values (p_slug, p_variant, 'strength_deleted', json_build_object('strength', v.strength, 'price_cents', v.price_cents), p_actor);
+  return 'ok';
+end $$;
+revoke all on function admin_delete_variant(text, text, uuid) from public, anon, authenticated;
+
 -- Records what actually shipped for one order line: p_entries =
 -- [{"lot_number": "...", "qty": n}, ...] (null or [] raises; repeated lot
 -- numbers are summed). Same lots and quantities as the sold holds → 'ok'.
@@ -342,9 +378,10 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
   values ('coa', 'coa', true, 10485760, array['application/pdf'])
   on conflict (id) do update set public = true, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
--- Seed from today's code (2026-10-05): prices from data/catalog.ts, the six
--- incretin & amylin analogs hidden. No lots — every strength starts Out of
--- stock / COA pending, which is true today.
+-- Seed from today's code (2026-10-05): strengths and prices from
+-- data/catalog.ts (strengths now live here), every strength shown; the six
+-- incretin & amylin analogs hidden at the product level. No lots — every
+-- strength starts Out of stock / COA pending, which is true today.
 insert into catalog_products (slug, shown) values
   ('semaglutide', false), ('tirzepatide', false), ('retatrutide', false), ('cagrilintide', false),
   ('cagrisema', false), ('retatrutide-cagrilintide', false),
@@ -356,15 +393,35 @@ insert into catalog_products (slug, shown) values
   ('bpc-157-tb-500-blend', true), ('bpc-157-tb-500-ghk-cu', true), ('bpc-157-tb-500-ghk-cu-kpv', true)
 on conflict do nothing;
 
-insert into catalog_variants (slug, variant_id, price_cents) values
-  ('semaglutide', '10mg', 11900), ('tirzepatide', '10mg', 11900), ('tirzepatide', '20mg', 14900),
-  ('retatrutide', '10mg', 13900), ('retatrutide', '20mg', 16900), ('cagrilintide', '10mg', 12900),
-  ('cagrisema', '10mg', 15900), ('retatrutide-cagrilintide', '10mg', 17900),
-  ('cjc-1295-ipamorelin', '10mg', 8900), ('sermorelin', '10mg', 5900), ('tesamorelin', '10mg', 10900),
-  ('igf-1-lr3', '1mg', 8900), ('bpc-157', '10mg', 7900), ('tb-500', '10mg', 8900), ('kpv', '10mg', 5500),
-  ('aod-9604', '10mg', 5900), ('ss-31', '10mg', 7900), ('ss-31', '50mg', 10900), ('mots-c', '10mg', 6900),
-  ('slu-pp-332', '250mcg', 7900), ('epithalon', '10mg', 4900), ('pinealon', '10mg', 5900), ('dsip', '5mg', 4900),
-  ('pt-141', '10mg', 5500), ('ghk-cu', '50mg', 5900), ('nad-plus', '500mg', 8900), ('glutathione', '600mg', 6900),
-  ('bpc-157-tb-500-blend', '10mg', 9900), ('bpc-157-tb-500-ghk-cu', '70mg', 15900),
-  ('bpc-157-tb-500-ghk-cu-kpv', '80mg', 18900)
+insert into catalog_variants (slug, variant_id, strength, price_cents, shown) values
+  ('semaglutide', '10mg', '10 mg', 11900, true),
+  ('tirzepatide', '10mg', '10 mg', 11900, true),
+  ('tirzepatide', '20mg', '20 mg', 14900, true),
+  ('retatrutide', '10mg', '10 mg', 13900, true),
+  ('retatrutide', '20mg', '20 mg', 16900, true),
+  ('cagrilintide', '10mg', '10 mg', 12900, true),
+  ('cagrisema', '10mg', '10 mg', 15900, true),
+  ('retatrutide-cagrilintide', '10mg', '10 mg', 17900, true),
+  ('cjc-1295-ipamorelin', '10mg', '10 mg', 8900, true),
+  ('sermorelin', '10mg', '10 mg', 5900, true),
+  ('tesamorelin', '10mg', '10 mg', 10900, true),
+  ('igf-1-lr3', '1mg', '1 mg', 8900, true),
+  ('bpc-157', '10mg', '10 mg', 7900, true),
+  ('tb-500', '10mg', '10 mg', 8900, true),
+  ('kpv', '10mg', '10 mg', 5500, true),
+  ('aod-9604', '10mg', '10 mg', 5900, true),
+  ('ss-31', '10mg', '10 mg', 7900, true),
+  ('ss-31', '50mg', '50 mg', 10900, true),
+  ('mots-c', '10mg', '10 mg', 6900, true),
+  ('slu-pp-332', '250mcg', '250 mcg', 7900, true),
+  ('epithalon', '10mg', '10 mg', 4900, true),
+  ('pinealon', '10mg', '10 mg', 5900, true),
+  ('dsip', '5mg', '5 mg', 4900, true),
+  ('pt-141', '10mg', '10 mg', 5500, true),
+  ('ghk-cu', '50mg', '50 mg', 5900, true),
+  ('nad-plus', '500mg', '500 mg', 8900, true),
+  ('glutathione', '600mg', '600 mg', 6900, true),
+  ('bpc-157-tb-500-blend', '10mg', '10 mg', 9900, true),
+  ('bpc-157-tb-500-ghk-cu', '70mg', '70 mg', 15900, true),
+  ('bpc-157-tb-500-ghk-cu-kpv', '80mg', '80 mg', 18900, true)
 on conflict do nothing;

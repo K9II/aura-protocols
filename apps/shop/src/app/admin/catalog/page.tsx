@@ -10,6 +10,10 @@ export const metadata = { title: "Catalog & lots", robots: { index: false } };
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 const STOCK: Record<AdminRow["stock"], [string, string]> = { in: ["c-in", "In stock"], low: ["c-low", "Low"], out: ["c-out", "Out of stock"] };
 
+function Store({ r }: { r: AdminRow }) {
+  if (r.archivedAt) return <span className="a-chip c-hidden">Archived</span>;
+  return r.shown ? <span className="a-chip c-shown">Shown</span> : <span className="a-chip c-hidden">Hidden</span>;
+}
 function Stock({ r }: { r: AdminRow }) { const [c, l] = STOCK[r.stock]; return <span className={`a-chip ${c}`}>{l}</span>; }
 function Selling({ r }: { r: AdminRow }) {
   if (r.selling) return <span className="a-lotref">{r.selling.lotNumber}<small>{r.selling.purityPct}% · {r.selling.method}</small></span>;
@@ -46,7 +50,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       <div className="a-ph"><div><h1>Catalog &amp; lots</h1><p>Prices, stock and certified lots. Changes show on the store within seconds.</p></div></div>
       <div className="a-only-desk">
         <Kpis items={[
-          { label: "Products shown", value: shownProducts, sub: `${hiddenProducts} hidden · ${all.length} strengths` },
+          { label: "Products shown", value: shownProducts, sub: `${hiddenProducts} hidden · ${counts.all} strengths` },
           { label: "Low stock", value: counts.low, sub: "at or under their low level" },
           { label: "Out of stock", value: counts.out, sub: "can't be added to cart" },
           { label: "Discrepancies", value: counts.discrepancies, sub: "received ≠ ordered" },
@@ -72,7 +76,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
                 <td className="num a-avail">{r.available}{r.stock === "low" && <small>low at {r.lowAt}</small>}{r.stock === "out" && r.held > 0 && <small>{r.held} held</small>}</td>
                 <td><Selling r={r} /></td>
                 <td><Next r={r} /></td>
-                <td>{r.shown ? <span className="a-chip c-shown">Shown</span> : <span className="a-chip c-hidden">Hidden</span>}</td>
+                <td><Store r={r} /></td>
               </tr>
             ))}</tbody>
           </table>
@@ -80,10 +84,10 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
             <Link key={`${r.slug}:${r.variantId}`} href={`/admin/catalog/${r.slug}`} className="a-pcust">
               <b>{r.name} · {r.strength}</b><Stock r={r} />
               <span className="em">{r.selling ? `${r.selling.lotNumber} · ${r.selling.purityPct}%` : r.lastSoldOut ? `${r.lastSoldOut} sold out` : "COA pending · no lot yet"}{r.next ? ` · ${r.next.status === "draft" ? "draft" : "next"} ${r.next.lotNumber}` : ""}</span>
-              <div className="meta"><span><b>{usd(r.priceCents)}</b></span><span><b>{r.available}</b> left{r.stock === "low" ? ` · low at ${r.lowAt}` : ""}</span>{!r.shown && <span>Hidden</span>}</div>
+              <div className="meta"><span><b>{usd(r.priceCents)}</b></span><span><b>{r.available}</b> left{r.stock === "low" ? ` · low at ${r.lowAt}` : ""}</span>{!r.shown && <span>{r.archivedAt ? "Archived" : "Hidden"}</span>}</div>
             </Link>
           ))}</div>
-          <div className="a-tfoot">Showing {rows.length} of {all.length} strengths · A–Z by class</div>
+          <div className="a-tfoot">Showing {rows.length} of {tab === "archived" ? counts.archived : counts.all} {tab === "archived" ? "archived " : ""}strengths · A–Z by class</div>
         </>
       )}
     </div>

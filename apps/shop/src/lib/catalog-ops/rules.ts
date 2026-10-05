@@ -1,6 +1,8 @@
 // Pure rules for admin Catalog & lots. No I/O.
 import { PURITY_FLOOR_PCT } from "@/lib/constants";
-import { stockState, type CatalogOps, type LotStockRow } from "@/lib/catalog-merge";
+import { byStrength, stockState, type CatalogOps, type LotStockRow } from "@/lib/catalog-merge";
+// Lives in catalog-merge (the merge sorts with it; importing rules there would be circular).
+export { strengthSortKey } from "@/lib/catalog-merge";
 import type { StockState } from "@/data/catalog-types";
 
 export const DEFAULT_LOW_AT = 20;
@@ -81,6 +83,21 @@ export function parseCorrection(i: { direction: string; vials: string; reason: s
   return { ok: true, value: { delta: i.direction === "add" ? n! : -n!, reason: reason!, note: note || null } };
 }
 
+// ---- strengths ----
+export const STRENGTH_UNITS = ["mg", "mcg", "IU"] as const;
+export type StrengthUnit = (typeof STRENGTH_UNITS)[number];
+// What customers see ("30 mg") and the key derived from it ("30mg", "5000iu").
+export function parseStrength(amount: string, unit: string):
+  { ok: true; value: { strength: string; variantId: string } } | { ok: false; error: string } {
+  const u = STRENGTH_UNITS.find((x) => x === unit);
+  if (!u) return { ok: false, error: "Pick mg, mcg or IU." };
+  const a = amount.trim();
+  const n = Number(a);
+  if (!/^\d+(\.\d{1,2})?$/.test(a) || !(n > 0) || n > 100000) return { ok: false, error: "An amount above 0, up to 2 decimals." };
+  const strength = `${String(n)} ${u}`;
+  return { ok: true, value: { strength, variantId: strength.replace(/\s+/g, "").toLowerCase() } };
+}
+
 export function parsePrice(s: string): { ok: true; value: number } | { ok: false; error: string } {
   const n = Number(s.trim().replace(/^\$/, ""));
   if (!Number.isFinite(n) || n <= 0 || n > 100000) return { ok: false, error: "A price above $0." };
@@ -108,11 +125,13 @@ export function byLiveThenNumber(a: AdminLotRow, b: AdminLotRow): number {
   return (a.live_at ?? "").localeCompare(b.live_at ?? "") || a.lot_number.localeCompare(b.lot_number);
 }
 export type AdminOps = Omit<CatalogOps, "lots"> & { lots: AdminLotRow[] };
-type ContentLite = { slug: string; name: string; chemicalClass: string; variants: Array<{ id: string; strength: string }> };
+type ContentLite = { slug: string; name: string; chemicalClass: string };
 export type LotRef = { lotNumber: string; purityPct: number; method: string; status: "draft" | "live" | "retired"; discrepancy: boolean; available: number; sellable: number };
+// shown = on the store (product shown AND strength shown AND not archived).
 export type AdminRow = {
   slug: string; name: string; chemicalClass: string; variantId: string; strength: string;
   priceCents: number; lowAt: number; sku: string | null; shown: boolean;
+  productShown: boolean; strengthShown: boolean; archivedAt: string | null;
   available: number; held: number; stock: StockState; selling: LotRef | null; next: LotRef | null; lastSoldOut: string | null;
   hasDraft: boolean; hasDiscrepancy: boolean;
 };
@@ -126,10 +145,8 @@ export function adminRows(content: ContentLite[], ops: AdminOps): AdminRow[] {
   const shown = new Map(ops.products.map((p) => [p.slug, p.shown]));
   const rows: AdminRow[] = [];
   for (const c of content) {
-    for (const v of c.variants) {
-      const vr = ops.variants.find((x) => x.slug === c.slug && x.variant_id === v.id);
-      if (!vr) continue;
-      const lots = ops.lots.filter((l) => l.slug === c.slug && l.variant_id === v.id);
+    for (const vr of ops.variants.filter((x) => x.slug === c.slug).sort(byStrength)) {
+      const lots = ops.lots.filter((l) => l.slug === c.slug && l.variant_id === vr.variant_id);
       const live = lots.filter((l) => l.status === "live").sort(byLiveThenNumber);
       const withVials = live.filter((l) => l.available > 0);
       const drafts = lots.filter((l) => l.status === "draft").sort((a, b) => a.lot_number.localeCompare(b.lot_number));
@@ -137,9 +154,11 @@ export function adminRows(content: ContentLite[], ops: AdminOps): AdminRow[] {
       const selling = withVials[0] ?? null;
       const nextLot = withVials[1] ?? drafts[0] ?? null;
       const soldOut = live.filter((l) => l.available <= 0);
+      const productShown = shown.get(c.slug) ?? false;
       rows.push({
-        slug: c.slug, name: c.name, chemicalClass: c.chemicalClass, variantId: v.id, strength: v.strength,
-        priceCents: vr.price_cents, lowAt: vr.low_at, sku: vr.threepl_sku, shown: shown.get(c.slug) ?? false,
+        slug: c.slug, name: c.name, chemicalClass: c.chemicalClass, variantId: vr.variant_id, strength: vr.strength,
+        priceCents: vr.price_cents, lowAt: vr.low_at, sku: vr.threepl_sku, shown: productShown && vr.shown && !vr.archived_at,
+        productShown, strengthShown: vr.shown, archivedAt: vr.archived_at,
         available, held: live.reduce((s, l) => s + l.held, 0), stock: stockState(available, vr.low_at),
         selling: selling ? ref(selling) : null, next: nextLot ? ref(nextLot) : null,
         lastSoldOut: soldOut.length ? soldOut[soldOut.length - 1].lot_number : null,
@@ -150,18 +169,22 @@ export function adminRows(content: ContentLite[], ops: AdminOps): AdminRow[] {
   return rows;
 }
 
-export const CATALOG_TABS = ["all", "low", "out", "hidden", "drafts", "discrepancies"] as const;
+export const CATALOG_TABS = ["all", "low", "out", "hidden", "drafts", "discrepancies", "archived"] as const;
 export type CatalogTab = (typeof CATALOG_TABS)[number];
-export const TAB_LABEL: Record<CatalogTab, string> = { all: "All", low: "Low", out: "Out of stock", hidden: "Hidden", drafts: "Draft lots", discrepancies: "Discrepancies" };
+export const TAB_LABEL: Record<CatalogTab, string> = { all: "All", low: "Low", out: "Out of stock", hidden: "Hidden", drafts: "Draft lots", discrepancies: "Discrepancies", archived: "Archived" };
 
+// Archived strengths appear only under Archived. Hidden = product or strength
+// hidden; Low / Out only count strengths on the store.
 export function rowsForTab(rows: AdminRow[], tab: CatalogTab): AdminRow[] {
+  if (tab === "archived") return rows.filter((r) => r.archivedAt);
+  const active = rows.filter((r) => !r.archivedAt);
   switch (tab) {
-    case "low": return rows.filter((r) => r.shown && r.stock === "low");
-    case "out": return rows.filter((r) => r.shown && r.stock === "out");
-    case "hidden": return rows.filter((r) => !r.shown);
-    case "drafts": return rows.filter((r) => r.hasDraft);
-    case "discrepancies": return rows.filter((r) => r.hasDiscrepancy);
-    default: return rows;
+    case "low": return active.filter((r) => r.shown && r.stock === "low");
+    case "out": return active.filter((r) => r.shown && r.stock === "out");
+    case "hidden": return active.filter((r) => !r.shown);
+    case "drafts": return active.filter((r) => r.hasDraft);
+    case "discrepancies": return active.filter((r) => r.hasDiscrepancy);
+    default: return active;
   }
 }
 export function tabCounts(rows: AdminRow[]): Record<CatalogTab, number> {
