@@ -257,9 +257,11 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     if (hold.reason === "sold_out") {
       catalogStockChanged();
       const rejected: Rejection[] = hold.short.map((s) => ({ slug: s.slug, variantId: s.variantId, reason: "sold_out" }));
+      // Names come from the priced lines (what the order stored), so a
+      // strength archived or hidden meanwhile still reads right.
       const named = hold.short.map((s) => {
-        const c = live.all.find((x) => x.slug === s.slug);
-        return { name: c?.name ?? s.slug, strength: c?.variants.find((v) => v.id === s.variantId)?.strength ?? s.variantId };
+        const it = priced.items.find((i) => i.compoundSlug === s.slug && i.variantId === s.variantId);
+        return { name: it?.compoundName ?? s.slug, strength: it?.strength ?? s.variantId };
       });
       return { error: soldOutMessage(named), rejected };
     }

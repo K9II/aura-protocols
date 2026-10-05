@@ -23,7 +23,7 @@ describe("catalog-ops.sql", () => {
 
   it("every function is server-only", () => {
     const fns = [...sql.matchAll(/create or replace function (\w+)\(/g)].map((m) => m[1]).filter((f) => f !== "settle_holds_on_order_status");
-    expect(fns.sort()).toEqual(["admin_correct_count", "admin_delete_variant", "admin_lot_live", "admin_retire_lot", "hold_vials", "lot_integrity", "order_hold_shortfall", "record_shipped_lots"]);
+    expect(fns.sort()).toEqual(["admin_correct_count", "admin_delete_variant", "admin_lot_live", "admin_retire_lot", "hold_vials", "lot_integrity", "order_hold_shortfall", "record_shipped_lots", "variant_history"]);
     for (const f of fns) expect(sql, f).toMatch(new RegExp(`revoke all on function ${f}\\([^)]*\\) from public, anon, authenticated;`));
   });
 
@@ -101,6 +101,13 @@ describe("catalog-ops.sql", () => {
     expect(fn).toContain("pg_advisory_xact_lock(hashtext('stock:' || p_slug || ':' || p_variant))");
     expect(fn).toMatch(/exists \(select 1 from lots where slug = p_slug and variant_id = p_variant\)\s+or exists \(select 1 from order_items where compound_slug = p_slug and variant_id = p_variant\) then\s+return 'has_history';/);
     expect(fn).toMatch(/'strength_deleted', json_build_object\('strength', v\.strength, 'price_cents', v\.price_cents\)/);
+  });
+
+  it("variant_history counts lots and distinct orders per strength in SQL", () => {
+    const fn = sql.slice(sql.indexOf("create or replace function variant_history("), sql.indexOf("revoke all on function variant_history("));
+    expect(fn).toContain("returns table (variant_id text, lots integer, orders integer)");
+    expect(fn).toContain("count(distinct i.order_id) from order_items i where i.compound_slug = v.slug and i.variant_id = v.variant_id");
+    expect(fn).toContain("from catalog_variants v where v.slug = p_slug");
   });
 
   it("hold_vials refuses a hidden product or a hidden / archived strength", () => {

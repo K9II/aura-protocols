@@ -124,15 +124,27 @@ describe("catalog-ops data", () => {
       await expect(addVariant("ss-31", add, "owner")).rejects.toThrow(/strength insert failed/);
     });
 
-    it("setVariantShown only touches non-archived rows and logs shown / hidden; no row → ok:false, no event", async () => {
+    it("setVariantShown only flips a non-archived row in the other state and logs shown / hidden", async () => {
       const upd = query({ data: [{ strength: "30 mg" }] }), ev = query({});
-      from = fromQueue({ catalog_variants: [upd, query({ data: [] })], catalog_events: [ev] });
+      from = fromQueue({ catalog_variants: [upd], catalog_events: [ev] });
       const { setVariantShown } = await import("@/lib/catalog-ops/data");
       expect(await setVariantShown("ss-31", "30mg", true, "owner")).toEqual({ ok: true });
       expect(callArgs(upd, "update")?.[0]).toMatchObject({ shown: true });
       expect(callArgs(upd, "is")).toEqual(["archived_at", null]);
+      expect(callArgs(upd, "neq")).toEqual(["shown", true]);
       expect(callArgs(ev, "insert")?.[0]).toMatchObject({ kind: "strength_shown", after: { strength: "30 mg" } });
-      expect(await setVariantShown("ss-31", "30mg", false, "owner")).toEqual({ ok: false });
+    });
+
+    it("setVariantShown is idempotent: already in that state → ok, no event; missing or archived → ok:false", async () => {
+      from = fromQueue({ catalog_variants: [
+        query({ data: [] }), query({ data: { strength: "30 mg", shown: true, archived_at: null } }),
+        query({ data: [] }), query({ data: { strength: "50 mg", shown: false, archived_at: "2026-10-04T00:00:00Z" } }),
+        query({ data: [] }), query({ data: null }),
+      ] });
+      const { setVariantShown } = await import("@/lib/catalog-ops/data");
+      expect(await setVariantShown("ss-31", "30mg", true, "owner")).toEqual({ ok: true });
+      expect(await setVariantShown("ss-31", "50mg", false, "owner")).toEqual({ ok: false });
+      expect(await setVariantShown("ss-31", "99mg", true, "owner")).toEqual({ ok: false });
     });
 
     it("archiveVariant hides and archives a non-archived row; restoreVariant brings an archived one back hidden", async () => {
@@ -164,16 +176,20 @@ describe("catalog-ops data", () => {
       await expect(deleteVariant("ss-31", "50mg", "owner")).rejects.toThrow(/admin_delete_variant failed/);
     });
 
-    it("variantHistory counts lots and distinct orders per strength in two queries", async () => {
-      const l = query({ data: [{ variant_id: "50mg" }, { variant_id: "50mg" }, { variant_id: "10mg" }] });
-      const o = query({ data: [{ variant_id: "50mg", order_id: "o1" }, { variant_id: "50mg", order_id: "o1" }, { variant_id: "50mg", order_id: "o2" }] });
-      from = fromQueue({ lots: [l], order_items: [o] });
+    it("variantHistory is one variant_history call (counted in SQL, no row cap)", async () => {
+      rpc.mockResolvedValueOnce({ data: [{ variant_id: "50mg", lots: 2, orders: 47 }, { variant_id: "10mg", lots: 1, orders: 0 }], error: null });
       const { variantHistory } = await import("@/lib/catalog-ops/data");
       const h = await variantHistory("ss-31");
-      expect(h.get("50mg")).toEqual({ lots: 2, orders: 2 });
+      expect(rpc).toHaveBeenCalledWith("variant_history", { p_slug: "ss-31" });
+      expect(h.get("50mg")).toEqual({ lots: 2, orders: 47 });
       expect(h.get("10mg")).toEqual({ lots: 1, orders: 0 });
       expect(h.get("30mg")).toBeUndefined();
-      expect(callArgs(o, "eq")).toEqual(["compound_slug", "ss-31"]);
+    });
+
+    it("variantHistory throws on an RPC error", async () => {
+      rpc.mockResolvedValueOnce({ data: null, error: { message: "down" } });
+      const { variantHistory } = await import("@/lib/catalog-ops/data");
+      await expect(variantHistory("ss-31")).rejects.toThrow(/variant_history failed/);
     });
   });
 });

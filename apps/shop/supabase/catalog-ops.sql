@@ -288,6 +288,19 @@ begin
 end $$;
 revoke all on function admin_delete_variant(text, text, uuid) from public, anon, authenticated;
 
+-- Per strength of a product: lots ever received and distinct orders that
+-- included it (admin product page: Delete enabled?, archived row counts).
+-- Counted in SQL so no row cap applies.
+create or replace function variant_history(p_slug text)
+returns table (variant_id text, lots integer, orders integer) language sql stable
+set search_path = public, pg_temp as $$
+  select v.variant_id,
+    (select count(*) from lots l where l.slug = v.slug and l.variant_id = v.variant_id)::int,
+    (select count(distinct i.order_id) from order_items i where i.compound_slug = v.slug and i.variant_id = v.variant_id)::int
+  from catalog_variants v where v.slug = p_slug
+$$;
+revoke all on function variant_history(text) from public, anon, authenticated;
+
 -- Records what actually shipped for one order line: p_entries =
 -- [{"lot_number": "...", "qty": n}, ...] (null or [] raises; repeated lot
 -- numbers are summed). Same lots and quantities as the sold holds → 'ok'.

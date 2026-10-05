@@ -17,6 +17,7 @@ vi.mock("@/lib/catalog-ops/data", () => ({
       { slug: "ss-31", variant_id: "50mg", strength: "50 mg", price_cents: 10900, low_at: 10, threepl_sku: null, shown: true, archived_at: null },
       { slug: "ss-31", variant_id: "30mg", strength: "30 mg", price_cents: 9900, low_at: 10, threepl_sku: "AP-SS31-30", shown: false, archived_at: null },
       { slug: "ss-31", variant_id: "5mg", strength: "5 mg", price_cents: 4900, low_at: 10, threepl_sku: null, shown: false, archived_at: "2026-10-04T09:02:00Z" },
+      { slug: "ss-31", variant_id: "2mg", strength: "2 mg", price_cents: 3900, low_at: 10, threepl_sku: null, shown: false, archived_at: "2026-10-03T09:02:00Z" },
     ],
     lots: [
       lot({ id: "a", lot_number: "SS10-2609-01", variant_id: "10mg", status: "live", live_at: "2026-09-24", sellable: 200, held: 3, sold: 159, available: 38 }),
@@ -25,6 +26,8 @@ vi.mock("@/lib/catalog-ops/data", () => ({
       // to exercise the lot_number tie-break (hold_vials order).
       lot({ id: "c", lot_number: "SS10-2608-09", variant_id: "10mg", status: "live", live_at: "2026-09-24", sellable: 50, held: 0, sold: 0, available: 50 }),
       draftLot,
+      lot({ id: "f", lot_number: "SS5-2608-01", variant_id: "5mg", status: "retired", live_at: "2026-08-01", sellable: 100, sold: 100, available: 0 }),
+      lot({ id: "g", lot_number: "SS2-2609-01", variant_id: "2mg", status: "draft", live_at: null, sellable: 50, available: 50 }),
       lot({ id: "d", lot_number: "SS10-2611-01", variant_id: "10mg", status: "draft", live_at: null, coa_path: null, sellable: 190, discrepancy_note: null }),
     ],
   }),
@@ -36,7 +39,7 @@ vi.mock("@/lib/catalog-ops/data", () => ({
     { id: "e6", kind: "strength_deleted", lotNumber: null, actorName: "Kearney", created_at: "2026-10-03T09:02:00Z", before: { strength: "20 mg", price_cents: 8900 }, after: null, reason: null, note: null, source: "manual", variant_id: "20mg", lot_id: null, actor_id: "owner" },
     { id: "e3", kind: "lot_mismatch", lotNumber: "SS10-2609-01", actorName: null, created_at: "2026-10-01T12:00:00Z", before: null, after: { order_number: "AP-1104", order_item_id: "oi1", shipped: [] }, reason: null, note: "moved", source: "3pl", variant_id: "10mg", lot_id: "a", actor_id: null },
   ],
-  variantHistory: async () => new Map([["10mg", { lots: 3, orders: 12 }], ["50mg", { lots: 1, orders: 0 }], ["5mg", { lots: 2, orders: 47 }]]),
+  variantHistory: async () => new Map([["10mg", { lots: 3, orders: 12 }], ["50mg", { lots: 1, orders: 0 }], ["5mg", { lots: 2, orders: 47 }], ["2mg", { lots: 1, orders: 0 }]]),
 }));
 import ProductPage from "@/app/admin/catalog/[slug]/page";
 
@@ -82,7 +85,7 @@ describe("/admin/catalog/[slug]", () => {
 
     it("header counts strengths on the store, hidden and archived", async () => {
       await page();
-      expect(screen.getByText(/2 strengths on the store · 1 hidden · 1 archived/)).toBeInTheDocument();
+      expect(screen.getByText(/2 strengths on the store · 1 hidden · 2 archived/)).toBeInTheDocument();
     });
 
     it("a hidden strength card is greyed, says Hidden, offers Show on store and the first-lot guidance", async () => {
@@ -101,7 +104,9 @@ describe("/admin/catalog/[slug]", () => {
       expect(screen.queryByRole("heading", { name: "5 mg" })).not.toBeInTheDocument();
       expect(screen.getByText("Archived strengths · not on the store")).toBeInTheDocument();
       expect(screen.getByText("archived Oct 4 · 2 lots · 47 orders · certificates stay in COA lookup")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Restore" })).toBeInTheDocument();
+      // only a strength whose lot went live keeps certificates in COA lookup
+      expect(screen.getByText("archived Oct 3 · 1 lot · 0 orders")).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "Restore" })).toHaveLength(2);
     });
 
     it("the ⋯ menu disables Delete with the reason when the strength has history", async () => {

@@ -198,10 +198,17 @@ async function updateVariant(slug: string, variantId: string, patch: Record<stri
   return (data as Array<{ strength: string }> | null)?.[0] ?? null;
 }
 
-// Not archived only.
+// Not archived only. Idempotent: already in that state → ok, no event.
+// ok:false only when the strength is missing or archived (stale).
 export async function setVariantShown(slug: string, variantId: string, shown: boolean, actorId: string): Promise<{ ok: boolean }> {
-  const row = await updateVariant(slug, variantId, { shown }, false, "strength visibility update");
-  if (!row) return { ok: false };
+  const { data, error } = await db().from("catalog_variants").update({ shown, updated_at: new Date().toISOString() })
+    .eq("slug", slug).eq("variant_id", variantId).is("archived_at", null).neq("shown", shown).select("strength");
+  if (error) fail("strength visibility update", error);
+  const row = (data as Array<{ strength: string }> | null)?.[0];
+  if (!row) {
+    const now = await variantRow(slug, variantId);
+    return { ok: !!now && !now.archived_at && now.shown === shown };
+  }
   await logEvent({ slug, variant_id: variantId, kind: shown ? "strength_shown" : "strength_hidden", actor_id: actorId, after: { strength: row.strength } });
   return { ok: true };
 }
@@ -231,23 +238,12 @@ export async function deleteVariant(slug: string, variantId: string, actorId: st
 }
 
 // Per strength: lots ever received and distinct orders that included it.
-// Two queries for the whole product (no N+1).
+// Counted in SQL (variant_history) — one call, no row cap.
 export async function variantHistory(slug: string): Promise<Map<string, { lots: number; orders: number }>> {
-  const [l, o] = await Promise.all([
-    db().from("lots").select("variant_id").eq("slug", slug),
-    db().from("order_items").select("variant_id, order_id").eq("compound_slug", slug),
-  ]);
-  if (l.error || o.error) fail("strength history read", l.error ?? o.error);
-  const out = new Map<string, { lots: number; orders: number }>();
-  const get = (id: string) => { let h = out.get(id); if (!h) { h = { lots: 0, orders: 0 }; out.set(id, h); } return h; };
-  for (const r of (l.data ?? []) as Array<{ variant_id: string }>) get(r.variant_id).lots += 1;
-  const seen = new Set<string>();
-  for (const r of (o.data ?? []) as Array<{ variant_id: string; order_id: string }>) {
-    if (seen.has(`${r.variant_id}:${r.order_id}`)) continue;
-    seen.add(`${r.variant_id}:${r.order_id}`);
-    get(r.variant_id).orders += 1;
-  }
-  return out;
+  const { data, error } = await db().rpc("variant_history", { p_slug: slug });
+  if (error) fail("variant_history", error);
+  return new Map(((data ?? []) as Array<{ variant_id: string; lots: number; orders: number }>)
+    .map((r) => [r.variant_id, { lots: Number(r.lots), orders: Number(r.orders) }]));
 }
 
 // ---------- certificates ----------

@@ -71,10 +71,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const rows = all.filter((r) => !r.archivedAt);
   const archived = all.filter((r) => r.archivedAt);
   const strengthOf = (variantId: string | null) => (variantId ? ops.variants.find((v) => v.variant_id === variantId)?.strength ?? variantId : "");
-  const onStore = rows.filter((r) => r.shown).length;
+  // Strength-level counts; the product switch shows the product's own visibility.
+  const shownCount = rows.filter((r) => r.strengthShown).length;
+  const hiddenCount = rows.length - shownCount;
   const sub = [
-    onStore ? `${plural(onStore, "strength")} on the store` : "",
-    rows.length - onStore ? `${rows.length - onStore} hidden` : "",
+    shownCount ? `${plural(shownCount, "strength")} ${shown ? "on the store" : "shown"}` : "",
+    hiddenCount ? `${hiddenCount} hidden` : "",
     archived.length ? `${archived.length} archived` : "",
   ].filter(Boolean).join(" · ") || "No strengths yet";
   const historyOf = (variantId: string) => history.get(variantId) ?? { lots: 0, orders: 0 };
@@ -194,7 +196,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 return (
                   <div key={r.variantId} className="row">
                     <b>{r.strength}</b>
-                    <span className="muted">archived {day(r.archivedAt!)} · {plural(h.lots, "lot")} · {plural(h.orders, "order")}{shown && h.lots > 0 ? " · certificates stay in COA lookup" : ""}</span>
+                    <span className="muted">archived {day(r.archivedAt!)} · {plural(h.lots, "lot")} · {plural(h.orders, "order")}{shown && ops.lots.some((l) => l.variant_id === r.variantId && l.live_at) ? " · certificates stay in COA lookup" : ""}</span>
                     <form action={restoreStrengthAction} style={{ marginLeft: "auto" }}><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={r.variantId} /><button type="submit" className="a-btn sm">Restore</button></form>
                   </div>
                 );

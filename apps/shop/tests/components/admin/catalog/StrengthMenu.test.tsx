@@ -51,4 +51,12 @@ describe("StrengthMenu", () => {
     expect(confirm).toHaveBeenLastCalledWith(expect.stringMatching(/^Delete 10 mg\?.*can't be undone/));
     confirm.mockRestore();
   });
+  it("closes on submit", () => {
+    render(<StrengthMenu {...props} />);
+    const btn = screen.getByRole("button", { name: "More for 10 mg" });
+    fireEvent.click(btn);
+    fireEvent.submit(screen.getByRole("button", { name: /Hide from store/ }).closest("form")!);
+    expect(btn).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: /Hide from store/ })).not.toBeInTheDocument();
+  });
 });
