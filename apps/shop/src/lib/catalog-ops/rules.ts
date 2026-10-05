@@ -11,9 +11,12 @@ export const COA_MAX_BYTES = 10 * 1024 * 1024;   // same as the coa bucket limit
 export const LOT_NUMBER_RE = /^[A-Z0-9][A-Z0-9-]{2,39}$/;
 export const SKU_RE = /^[A-Z0-9][A-Z0-9-]{1,39}$/;
 export const METHODS = ["HPLC", "HPLC+MS"] as const;
-export const COUNT_REASONS = ["damaged", "recount", "found", "other"] as const;
+export const COUNT_REASONS = ["damaged", "recount", "found", "owner_withdrawal", "other"] as const;
 export type CountReason = (typeof COUNT_REASONS)[number];
-export const COUNT_REASON_LABEL: Record<CountReason, string> = { damaged: "Damaged", recount: "Recount", found: "Found", other: "Other" };
+export const COUNT_REASON_LABEL: Record<CountReason, string> = { damaged: "Damaged", recount: "Recount", found: "Found", owner_withdrawal: "Owner withdrawal", other: "Other" };
+// Owner withdrawal = vials the owner takes out of stock (an owner's draw at cost
+// in the books). Remove only, and the note must say what they were for.
+export const NOTE_REQUIRED: readonly CountReason[] = ["owner_withdrawal", "other"];
 
 type Fail = { ok: false; fieldErrors: Record<string, string> };
 const intIn = (s: string, min: number, max: number) => { const n = Number(s.trim()); return Number.isInteger(n) && n >= min && n <= max ? n : null; };
@@ -79,6 +82,8 @@ export function parseCorrection(i: { direction: string; vials: string; reason: s
   if (!reason) e.reason = "Pick a reason.";
   const note = i.note.trim().slice(0, 300);
   if (reason === "other" && !note) e.note = "Other needs a note.";
+  if (reason === "owner_withdrawal" && !note) e.note = "Say what the vials are for.";
+  if (reason === "owner_withdrawal" && i.direction === "add") e.reason = "Owner withdrawal only removes vials.";
   if (Object.keys(e).length) return { ok: false, fieldErrors: e };
   return { ok: true, value: { delta: i.direction === "add" ? n! : -n!, reason: reason!, note: note || null } };
 }

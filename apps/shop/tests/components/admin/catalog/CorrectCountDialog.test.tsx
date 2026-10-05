@@ -15,4 +15,14 @@ describe("CorrectCountDialog", () => {
     expect(screen.getByText("35")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Remove 3 vials" })).toBeEnabled();
   });
+
+  it("Owner withdrawal forces Remove and makes the note required", () => {
+    render(<CorrectCountDialog lotId="l2" lotNumber="BPC-2610-03" left={10} held={0} sold={0} />);
+    fireEvent.click(screen.getByRole("button", { name: "Correct count" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add vials" }));
+    fireEvent.change(screen.getByLabelText("Reason"), { target: { value: "owner_withdrawal" } });
+    expect(screen.getByRole("button", { name: "Add vials" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Remove vials" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText(/Note/)).toBeRequired();
+  });
 });

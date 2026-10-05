@@ -66,6 +66,13 @@ describe("parseCorrection", () => {
     expect(bad.ok).toBe(false);
     if (!bad.ok) expect(Object.keys(bad.fieldErrors).sort()).toEqual(["note", "vials"]);
   });
+  it("Owner withdrawal removes only and needs a note", () => {
+    expect(parseCorrection({ direction: "remove", vials: "2", reason: "owner_withdrawal", note: "QC reference samples" }))
+      .toEqual({ ok: true, value: { delta: -2, reason: "owner_withdrawal", note: "QC reference samples" } });
+    const bad = parseCorrection({ direction: "add", vials: "2", reason: "owner_withdrawal", note: "" });
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) expect(Object.keys(bad.fieldErrors).sort()).toEqual(["note", "reason"]);
+  });
 });
 
 describe("parsePrice / parseLowAt / parseSku", () => {

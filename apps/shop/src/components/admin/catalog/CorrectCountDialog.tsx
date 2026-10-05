@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { correctCountAction } from "@/app/admin/catalog/actions";
-import { COUNT_REASONS, COUNT_REASON_LABEL } from "@/lib/catalog-ops/rules";
+import { COUNT_REASONS, COUNT_REASON_LABEL, NOTE_REQUIRED, type CountReason } from "@/lib/catalog-ops/rules";
 import { Icon } from "@/components/admin/ui";
 
 export default function CorrectCountDialog({ lotId, lotNumber, left, held, sold }: { lotId: string; lotNumber: string; left: number; held: number; sold: number }) {
@@ -9,6 +9,8 @@ export default function CorrectCountDialog({ lotId, lotNumber, left, held, sold 
   const [state, action, pending] = useActionState(correctCountAction, null);
   const [dir, setDir] = useState<"remove" | "add">("remove");
   const [vials, setVials] = useState("");
+  const [reason, setReason] = useState<CountReason>("damaged");
+  const withdrawal = reason === "owner_withdrawal";
   const [resetKey, setResetKey] = useState(0);
   useEffect(() => {
     if (state?.ok) {
@@ -16,6 +18,7 @@ export default function CorrectCountDialog({ lotId, lotNumber, left, held, sold 
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
       setDir("remove");
       setVials("");
+      setReason("damaged");
       setResetKey((k) => k + 1); // remounts the uncontrolled note field blank
     }
   }, [state]);
@@ -33,15 +36,15 @@ export default function CorrectCountDialog({ lotId, lotNumber, left, held, sold 
           <div className="a-modal-b">
             <div className="a-seg2" role="group" aria-label="Remove or add">
               <button type="button" className={dir === "remove" ? "on" : undefined} aria-pressed={dir === "remove"} onClick={() => setDir("remove")}>Remove vials</button>
-              <button type="button" className={dir === "add" ? "on" : undefined} aria-pressed={dir === "add"} onClick={() => setDir("add")}>Add vials</button>
+              <button type="button" className={dir === "add" ? "on" : undefined} aria-pressed={dir === "add"} disabled={withdrawal} onClick={() => setDir("add")}>Add vials</button>
             </div>
             <div className="a-row">
               <div className="a-fld"><label htmlFor={`cc-n-${lotId}`}>Vials</label><div className="a-input"><input id={`cc-n-${lotId}`} name="vials" inputMode="numeric" value={vials} onChange={(e) => setVials(e.target.value)} required /></div>{fe.vials && <div className="a-err" role="alert">{fe.vials}</div>}</div>
-              <div className="a-fld"><label htmlFor={`cc-r-${lotId}`}>Reason</label><div className="a-input"><select id={`cc-r-${lotId}`} name="reason" defaultValue="damaged" style={{ flex: 1, border: 0, background: "transparent", height: "100%", padding: "0 10px" }}>
+              <div className="a-fld"><label htmlFor={`cc-r-${lotId}`}>Reason</label><div className="a-input"><select id={`cc-r-${lotId}`} name="reason" value={reason} onChange={(e) => { const r = e.target.value as CountReason; setReason(r); if (r === "owner_withdrawal") setDir("remove"); }} style={{ flex: 1, border: 0, background: "transparent", height: "100%", padding: "0 10px" }}>
                 {COUNT_REASONS.map((r) => <option key={r} value={r}>{COUNT_REASON_LABEL[r]}</option>)}</select></div></div>
             </div>
-            <div className="a-fld"><label htmlFor={`cc-note-${lotId}`}>Note</label><div className="a-input"><input key={resetKey} id={`cc-note-${lotId}`} name="note" maxLength={300} /></div>
-              {fe.note ? <div className="a-err" role="alert">{fe.note}</div> : <div className="help">Reasons: Damaged, Recount, Found, Other (Other needs a note).</div>}</div>
+            <div className="a-fld"><label htmlFor={`cc-note-${lotId}`}>Note{NOTE_REQUIRED.includes(reason) && <span className="muted" style={{ fontWeight: 400 }}> · required</span>}</label><div className="a-input"><input key={resetKey} id={`cc-note-${lotId}`} name="note" maxLength={300} required={NOTE_REQUIRED.includes(reason)} /></div>
+              {fe.note ? <div className="a-err" role="alert">{fe.note}</div> : <div className="help">{withdrawal ? "Vials you take out of stock. Say what they're for — this list is your owner's-draw record for the books." : "Reasons: Damaged, Recount, Found, Owner withdrawal, Other (the last two need a note)."}</div>}</div>
             <div className="a-balance">Left <span className="from">{left}</span><Icon name="arrow" /><span className="to">{Math.max(0, after)}</span><span className="muted" style={{ marginLeft: "auto" }}>{held} held, {sold} sold stay as they are</span></div>
           </div>
           <div className="a-modal-f"><span className="muted a-only-desk" style={{ fontSize: 12 }}>Logged with your name</span>
