@@ -6,9 +6,10 @@ import { getCustomer } from "@/lib/dal";
 import { priceOrder, type PricedOrder, type Rejection } from "@/lib/pricing";
 import { shipAddressSchema } from "@/lib/ship-address";
 import {
-  attachCheckoutSession, createPendingOrder, listOpenOrdersForCustomer, willReleaseOnNewCheckout, saveShipAddress, saveStripeCoupon, saveStripeCustomerId, transitionOrder,
+  attachCheckoutSession, createPendingOrder, saveShipAddress, saveStripeCoupon, saveStripeCustomerId, transitionOrder,
 } from "@/lib/orders";
 import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } from "@/lib/commerce";
+import { closeOpenCheckouts } from "@/lib/checkout-close";
 import { siteUrl } from "@/lib/supabase/env";
 import { resolveAttribution } from "@/lib/partners/attribution";
 import { offerForCustomer } from "@/lib/account/offer-data";
@@ -111,20 +112,15 @@ export async function checkCodeAction(code: string): Promise<CodeCheckResult> {
 
 // A customer who goes back from Stripe (or closes the tab) leaves an order
 // awaiting payment for up to 23 h, holding any store credit it reserved.
-// Starting a new checkout closes those first: expire the Stripe page, cancel
-// the order, and the release_credit_on_cancel trigger hands the credit back.
-// An order with no Stripe page yet may belong to another tab that's still
-// starting, so it's only cancelled once it's 10 minutes old (willReleaseOnNewCheckout).
+// Starting a new checkout closes those first (lib/checkout-close.ts): expire
+// the Stripe page, cancel the order, and the release_credit_on_cancel trigger
+// hands the credit back. An order with no Stripe page yet may belong to another
+// tab that's still starting, so it's only cancelled once it's 10 minutes old.
 async function releaseAbandonedCheckouts(customerId: string, adapter: CommerceAdapter): Promise<void> {
-  for (const o of await listOpenOrdersForCustomer(customerId)) {
-    try {
-      if (!willReleaseOnNewCheckout(o)) continue;
-      if (o.stripe_session_id && (await adapter.expireCheckout(o.stripe_session_id)) === "complete") continue; // paid; the webhook records it
-      await transitionOrder(o.id, "awaiting_payment", "cancelled");
-    } catch (err) {
-      await alertOwner(`Couldn't close an earlier checkout (${o.order_number})`,
-        `Starting a new checkout for customer ${customerId}, order ${o.order_number} (${o.id}, session ${o.stripe_session_id ?? "none"}) could not be closed: ${String(err)}. Any store credit it holds stays held until it expires.`);
-    }
+  const { failed } = await closeOpenCheckouts(customerId, adapter, { all: false });
+  for (const f of failed) {
+    await alertOwner(`Couldn't close an earlier checkout (${f.orderNumber})`,
+      `Starting a new checkout for customer ${customerId}, order ${f.orderNumber} (${f.id}, session ${f.sessionId ?? "none"}) could not be closed: ${f.error}. Any store credit it holds stays held until it expires.`);
   }
 }
 
