@@ -491,8 +491,12 @@
 .adm .a-banner { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--specimen-bg); border: 1px solid #E2BDB5; color: #6E1D14; margin-bottom: 16px; }
 .adm .a-banner b { font-weight: 600; }
 .adm .a-banner form, .adm .a-banner .a-btn { margin-left: auto; }
-.adm dialog.a-modal { width: 500px; max-width: calc(100vw - 32px); padding: 0; background: var(--surface); border: 1px solid var(--line-strong); box-shadow: 0 28px 60px -24px rgba(0,0,0,.5); color: var(--ink); }
+.adm dialog.a-modal { margin: auto; width: 500px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); padding: 0; background: var(--surface); border: 1px solid var(--line-strong); box-shadow: 0 28px 60px -24px rgba(0,0,0,.5); color: var(--ink); }
 .adm dialog.a-modal::backdrop { background: rgba(28,26,21,.34); }
+/* Long forms scroll inside the body; the title bar and buttons stay put (short phones). */
+.adm dialog.a-modal[open] { display: flex; flex-direction: column; }
+.adm dialog.a-modal > form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.adm .a-modal-b { overflow-y: auto; min-height: 0; }
 .adm .a-modal-h { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
 .adm .a-modal-h h2 { font: 400 20px var(--serif); }
 .adm .a-modal-h .x { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
@@ -526,7 +530,7 @@
   .adm .a-agree div { border-left: 0; border-top: 1px solid var(--line); }
   .adm .a-agree div:first-child { border-top: 0; }
   .adm .a-facts2 { grid-template-columns: 110px minmax(0, 1fr); }
-  .adm dialog.a-modal { margin: auto 0 0; width: 100vw; max-width: 100vw; }
+  .adm dialog.a-modal { margin: auto 0 0; width: 100vw; max-width: 100vw; max-height: calc(100dvh - 24px); }
   .adm .a-modal-f .r { flex: 1; }
   .adm .a-modal-f .r .a-btn { flex: 1; justify-content: center; height: 38px; }
   .adm .a-banner { flex-wrap: wrap; }
