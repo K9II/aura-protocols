@@ -340,7 +340,7 @@ revoke all on function lot_integrity() from public, anon, authenticated;
 -- Certificates: public bucket, PDF only, 10 MB (COA_MAX_BYTES in lib/catalog-ops/rules.ts).
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
   values ('coa', 'coa', true, 10485760, array['application/pdf'])
-  on conflict (id) do nothing;
+  on conflict (id) do update set public = true, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
 -- Seed from today's code (2026-10-05): prices from data/catalog.ts, the six
 -- incretin & amylin analogs hidden. No lots — every strength starts Out of
