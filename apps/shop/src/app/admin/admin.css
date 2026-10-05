@@ -474,7 +474,7 @@
 .adm .a-idh .sub .dot { width: 3px; height: 3px; background: var(--faint); }
 .adm .a-idh .actions { margin-left: auto; display: flex; gap: 8px; }
 .adm .a-btn.danger-fill { background: var(--specimen); border-color: var(--specimen); color: #F8EEEC; }
-.adm .a-stack { display: grid; gap: 16px; align-content: start; }
+.adm .a-rail { display: grid; gap: 16px; align-content: start; }
 .adm .a-facts2 { display: grid; grid-template-columns: 128px 1fr; font-size: 12.5px; }
 .adm .a-facts2 dt, .adm .a-facts2 dd { padding: 7px 0; border-bottom: 1px solid var(--line); }
 .adm .a-facts2 dt { color: var(--muted); }

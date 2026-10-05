@@ -129,7 +129,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       ]} />
 
       <div className="a-grid-d">
-        <div className="a-stack">
+        <div className="a-rail">
           <div className="a-card">
             <div className="a-card-h"><h3>Orders</h3><span className="sub">{c.orders.length}</span></div>
             {c.orders.length === 0 ? <div className="a-card-b muted">No orders yet.</div> : (
@@ -169,7 +169,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           <Agreements c={c} />
         </div>
 
-        <div className="a-stack">
+        <div className="a-rail">
           <div className="a-card">
             <div className="a-card-h"><h3>Overview</h3></div>
             <div className="a-card-b" style={{ paddingTop: 6, paddingBottom: 6 }}>
