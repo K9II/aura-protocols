@@ -27,6 +27,7 @@ type CustomerRow = {
   ship_city: string | null; ship_state: string | null; ship_zip: string | null;
   created_at: string;
   email_verified_at: string | null; verify_required: boolean;
+  blocked_at: string | null;
 };
 
 export const verifySession = cache(async (): Promise<SessionUser | null> => {
@@ -36,24 +37,34 @@ export const verifySession = cache(async (): Promise<SessionUser | null> => {
   return { id: data.user.id, email: data.user.email, emailConfirmed: !!data.user.email_confirmed_at };
 });
 
-// Supabase "Confirm email" is OFF (sign-up signs in at once), so Supabase
-// marks every address confirmed; a verified address is our own
-// customers.email_verified_at (lib/account/verify.ts).
-export const getCustomer = cache(async (): Promise<Customer | null> => {
+// A blocked account (admin Customers → Block) is treated as signed out
+// everywhere: no page, action or checkout gets a customer. Supabase's ban
+// stops new sign-ins and token refreshes; this covers an access token that
+// is still live (up to an hour). The gate asks getAccountState to say "closed".
+export const getAccountState = cache(async (): Promise<{ customer: Customer | null; blocked: boolean }> => {
   const user = await verifySession();
-  if (!user) return null;
+  if (!user) return { customer: null, blocked: false };
   const { data } = await getSupabaseAdminClient().from("customers").select("*").eq("id", user.id).maybeSingle();
-  if (!data) return null;
+  if (!data) return { customer: null, blocked: false };
   const r = data as CustomerRow;
+  if (r.blocked_at) return { customer: null, blocked: true };
   const ship = r.ship_name && r.ship_line1 && r.ship_city && r.ship_state && r.ship_zip
     ? { name: r.ship_name, line1: r.ship_line1, line2: r.ship_line2, city: r.ship_city, state: r.ship_state as ShipAddress["state"], zip: r.ship_zip }
     : null;
   return {
-    ...user, fullName: r.full_name, organization: r.organization, isOwner: r.is_owner,
-    stripeCustomerId: r.stripe_customer_id, ship, createdAt: r.created_at,
-    emailConfirmed: !!r.email_verified_at, verifyRequired: r.verify_required,
+    blocked: false,
+    customer: {
+      ...user, fullName: r.full_name, organization: r.organization, isOwner: r.is_owner,
+      stripeCustomerId: r.stripe_customer_id, ship, createdAt: r.created_at,
+      emailConfirmed: !!r.email_verified_at, verifyRequired: r.verify_required,
+    },
   };
 });
+
+// Supabase "Confirm email" is OFF (sign-up signs in at once), so Supabase
+// marks every address confirmed; a verified address is our own
+// customers.email_verified_at (lib/account/verify.ts).
+export const getCustomer = cache(async (): Promise<Customer | null> => (await getAccountState()).customer);
 
 export function safeNext(next: string | null | undefined, fallback = "/account"): string {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
