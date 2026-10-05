@@ -9,6 +9,8 @@ const spendCredit = vi.fn();
 const recordTax = vi.fn();
 const sendOrAlert = vi.fn();
 const alertOwner = vi.fn();
+const orderHoldShortfall = vi.fn(), logOversold = vi.fn();
+vi.mock("@/lib/catalog-ops/data", () => ({ orderHoldShortfall, logOversold }));
 vi.mock("@/lib/orders", () => ({ getOrderById, saveTaxTransactionId }));
 vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/partners/ledger", () => ({ createCommission, markCommissionClearing, spendCredit }));
@@ -28,6 +30,36 @@ describe("afterOrderPaid", () => {
     vi.resetModules();
     for (const f of [getOrderById, saveTaxTransactionId, getPartnerById, createCommission, markCommissionClearing, spendCredit, recordTax, sendOrAlert, alertOwner]) f.mockReset();
     spendCredit.mockResolvedValue(true);
+    orderHoldShortfall.mockReset(); orderHoldShortfall.mockResolvedValue([]);
+    logOversold.mockReset();
+  });
+
+  it("alerts and logs when a paid order's vials aren't covered by holds", async () => {
+    getOrderById.mockResolvedValue(order());
+    orderHoldShortfall.mockResolvedValue([{ order_item_id: "i1", compound_slug: "mots-c", variant_id: "10mg", need: 4, covered: 0 }]);
+    const { afterOrderPaid } = await import("@/lib/order-paid");
+    await afterOrderPaid("o1");
+    expect(orderHoldShortfall).toHaveBeenCalledWith("o1");
+    expect(logOversold).toHaveBeenCalledWith("mots-c", "10mg", "AP-1001", 4, 0);
+    expect(alertOwner).toHaveBeenCalledWith("Oversold on AP-1001", expect.stringContaining("mots-c 10mg: 4 ordered, 0 held"));
+    expect(sendOrAlert).toHaveBeenCalledTimes(2);
+  });
+
+  it("names the alert and still sends both emails when the stock check throws", async () => {
+    getOrderById.mockResolvedValue(order());
+    orderHoldShortfall.mockRejectedValue(new Error("db down"));
+    const { afterOrderPaid } = await import("@/lib/order-paid");
+    await afterOrderPaid("o1");
+    expect(alertOwner).toHaveBeenCalledWith("Stock check failed for AP-1001", expect.stringContaining("db down"));
+    expect(sendOrAlert).toHaveBeenCalledTimes(2);
+  });
+
+  it("a fully held order raises no stock alert", async () => {
+    getOrderById.mockResolvedValue(order());
+    const { afterOrderPaid } = await import("@/lib/order-paid");
+    await afterOrderPaid("o1");
+    expect(logOversold).not.toHaveBeenCalled();
+    expect(alertOwner).not.toHaveBeenCalled();
   });
 
   it("emails the customer and the owner", async () => {

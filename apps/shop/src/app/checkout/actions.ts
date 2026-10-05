@@ -24,7 +24,9 @@ import { lookupDiscountCode } from "@/lib/discounts/redeem";
 import { CLAIM_MESSAGE, CODE_MESSAGES, outcomeMessage, type ClaimResult } from "@/lib/discounts/messages";
 import type { CodeTerms } from "@/lib/discounts/rules";
 import { hashIp } from "@/lib/gate";
-import { getLiveCatalog } from "@/lib/catalog-live";
+import { catalogStockChanged, getLiveCatalog } from "@/lib/catalog-live";
+import { holdVials, type HoldResult } from "@/lib/catalog-ops/data";
+import { soldOutMessage } from "@/lib/catalog-ops/rules";
 
 const OFFER_CHECK_FAILED = "We couldn't check your new-account discount — please try again.";
 
@@ -227,31 +229,58 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     discountCode: codeApplied ? { id: discountCode!.id, discountCents: result.codeDiscountCents } : null,
   });
 
+  // The customer still gets the message if the cancel itself fails; the
+  // owner is told, and the reconcile cron cancels the orphan later.
+  const cancelPending = async (why: string): Promise<void> => {
+    try {
+      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    } catch (err) {
+      console.error(`cancel order after ${why} failed:`, err);
+      await alertOwner(`Couldn't cancel ${order.orderNumber} after ${why}`,
+        `Order ${order.orderNumber} (${order.id}) could not be cancelled after ${why}: ${String(err)}. Held vials, code uses or credit stay held until the reconcile cron cancels the order.`);
+    }
+  };
+
+  // Vials are held the moment the order exists, oldest live lot first
+  // (hold_vials). Payment sells them; any cancel releases them
+  // (settle_holds_on_order_status). Never continue without a hold.
+  let hold: HoldResult;
+  try {
+    hold = await holdVials(order.id);
+  } catch (err) {
+    console.error("hold_vials failed:", err);
+    await cancelPending("a failed stock hold");
+    return { error: "We couldn't reserve your items — please try again." };
+  }
+  if (!hold.ok) {
+    await cancelPending("a stock shortfall");
+    if (hold.reason === "sold_out") {
+      catalogStockChanged();
+      const rejected: Rejection[] = hold.short.map((s) => ({ slug: s.slug, variantId: s.variantId, reason: "sold_out" }));
+      const named = hold.short.map((s) => {
+        const c = live.all.find((x) => x.slug === s.slug);
+        return { name: c?.name ?? s.slug, strength: c?.variants.find((v) => v.id === s.variantId)?.strength ?? s.variantId };
+      });
+      return { error: soldOutMessage(named), rejected };
+    }
+    return { error: "Something changed with your order — please try again." };
+  }
+  catalogStockChanged();
+
   // A use is held the moment the order exists; payment marks it used and any
   // cancel releases it (settle_code_on_order_status trigger). A claim that
   // can't be confirmed stops checkout — never silently full price.
   if (codeApplied) {
-    // The customer still gets the code message if the cancel itself fails;
-    // the owner is told, and the reconcile cron cancels the orphan later.
-    const cancelUnclaimed = async (): Promise<void> => {
-      try {
-        await transitionOrder(order.id, "awaiting_payment", "cancelled");
-      } catch (err) {
-        console.error("cancel order after failed code claim failed:", err);
-        await alertOwner(`Couldn't cancel ${order.orderNumber} after a discount-code claim failed`,
-          `Order ${order.orderNumber} (${order.id}) could not be cancelled after its discount-code claim failed: ${String(err)}. A discount-code use may be held until the reconcile cron cancels the order.`);
-      }
-    };
     let claim: ClaimResult;
     try {
       claim = await claimCode({ codeId: discountCode!.id, orderId: order.id, customerId: customer.id, discountCents: result.codeDiscountCents, cappedCents: result.cappedCents });
     } catch (err) {
       console.error("discount code claim failed:", err);
-      await cancelUnclaimed();
+      await cancelPending("a failed discount-code claim");
       return { error: CODE_MESSAGES.couldntCheck, codeError: CODE_MESSAGES.couldntCheck };
     }
     if (claim !== "ok") {
-      await cancelUnclaimed();
+      await cancelPending("a failed discount-code claim");
       return { error: CLAIM_MESSAGE[claim], codeError: CLAIM_MESSAGE[claim] };
     }
   }

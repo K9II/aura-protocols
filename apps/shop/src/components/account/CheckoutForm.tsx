@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/store/CartProvider";
 import { priceOrder, type Rejection } from "@/lib/pricing";
@@ -24,7 +25,8 @@ const REASON: Record<Rejection["reason"], string> = {
 export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents, newAccountOffer, capPct: pageCapPct }: {
   email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number; newAccountOffer: FirstOrderOffer; capPct: number;
 }) {
-  const { catalog, lines, code: cartCode, setCode: setCartCode } = useCart();
+  const { catalog, lines, remove, code: cartCode, setCode: setCartCode } = useCart();
+  const router = useRouter();
   // A code typed in the cart wins over a referral link's code (same priority as the server).
   const startCode = cartCode || initialCode;
   const [addr, setAddr] = useState({
@@ -94,7 +96,19 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
       if (r.url) { leaving = true; window.location.assign(r.url); return; }
       setError(r.error ?? "Something went wrong — please try again.");
       if (r.codeError) { setAppliedCode(null); setAppliedTerms(null); setCodeMsg({ ok: false, text: r.codeError }); }
-      setRejected(r.rejected ?? []);
+      const soldOut = (r.rejected ?? []).filter((x) => x.reason === "sold_out");
+      // Sold-out lines leave the cart (the server's message names them), so
+      // they aren't listed as blocking; anything else stays flagged below.
+      setRejected((r.rejected ?? []).filter((x) => x.reason !== "sold_out"));
+      if (soldOut.length) {
+        // Remove from the end so indexes stay valid.
+        lines.map((l, i) => ({ l, i })).reverse()
+          .filter(({ l }) => soldOut.some((s) => s.slug === l.slug && s.variantId === l.variantId))
+          .forEach(({ i }) => remove(i));
+        // The cart's catalog comes from the root layout and may be stale:
+        // re-render it so every line shows current stock.
+        router.refresh();
+      }
     } catch {
       setError("Something went wrong — please try again.");
     } finally {

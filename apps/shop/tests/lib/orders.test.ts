@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { query, fromQueue, callArgs } from "../helpers/supabase-mock";
 
 let from: ReturnType<typeof fromQueue>;
+const catalogStockChanged = vi.fn();
+vi.mock("@/lib/catalog-live", () => ({ catalogStockChanged }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
 
 const ship = { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX" as const, zip: "78701" };
@@ -82,6 +84,20 @@ describe("orders", () => {
     expect(await transitionOrder("o1", "paid", "shipped", { tracking_number: "9400" })).toBe(true);
     expect(callArgs(q, "update")?.[0]).toMatchObject({ status: "shipped", tracking_number: "9400", shipped_at: expect.any(String) });
     expect(q.calls.filter(([m]) => m === "eq").map(([, a]) => a)).toEqual([["id", "o1"], ["status", "paid"]]);
+  });
+
+  it("cancelling or refunding expires the live catalog (vials went back on the shelf)", async () => {
+    catalogStockChanged.mockReset();
+    from = fromQueue({ orders: [query({ data: [{ id: "o1" }] }), query({ data: [{ id: "o1" }] }), query({ data: [{ id: "o1" }] }), query({ data: [] })] });
+    const { transitionOrder } = await import("@/lib/orders");
+    await transitionOrder("o1", "awaiting_payment", "cancelled");
+    await transitionOrder("o1", "paid", "refunded");
+    expect(catalogStockChanged).toHaveBeenCalledTimes(2);
+    await transitionOrder("o1", "awaiting_payment", "paid");
+    expect(catalogStockChanged).toHaveBeenCalledTimes(2);
+    // A cancel that didn't move anything (already moved elsewhere) changes no stock.
+    await transitionOrder("o1", "awaiting_payment", "cancelled");
+    expect(catalogStockChanged).toHaveBeenCalledTimes(2);
   });
 
   it("transitionOrder returns false when another process already moved the order", async () => {
