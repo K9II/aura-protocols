@@ -21,7 +21,15 @@ describe("/admin/guide", () => {
     getDiscountCap.mockResolvedValue(30);
     render(await AdminGuidePage());
     expect(requireOwner).toHaveBeenCalled();
-    for (const t of ["Start here", "Discounts", "Orders", "Customers", "Catalog & lots", "Partners", "Payouts"]) expect(screen.getByRole("heading", { level: 2, name: t })).toBeInTheDocument();
+    for (const t of ["Start here", "Discounts", "Orders", "Customers", "Catalog & lots", "Email", "Partners", "Payouts"]) expect(screen.getByRole("heading", { level: 2, name: t })).toBeInTheDocument();
     expect(screen.getAllByText(/30%/).length).toBeGreaterThan(0);
+  });
+
+  it("has the Email chapter with figures from constants", async () => {
+    render(await AdminGuidePage());
+    expect(screen.getByRole("heading", { name: "Email" })).toBeInTheDocument();
+    expect(screen.getByText(/7 days/)).toBeInTheDocument();          // ATTRIBUTION_DAYS
+    expect(screen.getAllByText(/5%/).length).toBeGreaterThan(0);     // BOUNCE_LIMIT_PCT
+    expect(screen.getAllByText(/0.1%/).length).toBeGreaterThan(0);   // COMPLAINT_LIMIT_PCT
   });
 });
