@@ -83,6 +83,12 @@ describe("gateSignInAction", () => {
     expect(cookieDelete).not.toHaveBeenCalled();
   });
 
+  it("a banned account gets the closed message", async () => {
+    signInWithPassword.mockResolvedValue({ error: { code: "user_banned", message: "User is banned" } });
+    const { gateSignInAction } = await import("@/app/auth/gate-actions");
+    expect(await gateSignInAction({ email: "x@y.co", password: "pw", remember: true })).toEqual({ error: expect.stringMatching(/This account is closed/) });
+  });
+
   it("returns the generic error instead of throwing on a null input", async () => {
     const { gateSignInAction } = await import("@/app/auth/gate-actions");
     signInWithPassword.mockResolvedValue({ error: { message: "Invalid login credentials" } });
