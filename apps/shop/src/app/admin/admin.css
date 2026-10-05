@@ -309,3 +309,7 @@
 .adm .a-card-b .muted { color: var(--muted); }
 .adm .a-input input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .adm .a-input input[type=number]::-webkit-inner-spin-button, .adm .a-input input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+@media (max-width: 860px) {
+  .adm .a-savebar { flex-wrap: wrap; }
+  .adm .a-savebar .msg { flex-basis: 100%; }
+}

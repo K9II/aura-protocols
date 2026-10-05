@@ -157,6 +157,17 @@ describe("discount admin actions", () => {
     expect(data.insertCode).not.toHaveBeenCalled();
   });
 
+  it("free shipping ignores the product scope (a stale 'only' with no items doesn't block or leak)", async () => {
+    const { saveCodeAction } = await import("@/app/admin/discounts/actions");
+    await expect(saveCodeAction(null, fd({ ...spring, kind: "ship_only", value: "", scope: "only", scopeItems: "[]" }))).rejects.toThrow("REDIRECT");
+    expect(data.insertCode.mock.calls[0][1]).toMatchObject({
+      kind: "ship_only", value: 0, include_slugs: [], exclude_slugs: [], include_classes: [], exclude_classes: [],
+    });
+    data.insertCode.mockClear();
+    await expect(saveCodeAction(null, fd({ ...spring, kind: "ship_only", value: "", scope: "bogus", scopeItems: "not json" }))).rejects.toThrow("REDIRECT");
+    expect(data.insertCode.mock.calls[0][1]).toMatchObject({ include_slugs: [], exclude_slugs: [], include_classes: [], exclude_classes: [] });
+  });
+
   it("pause / resume / end move only from the expected state", async () => {
     data.setCodeState.mockResolvedValue(true);
     const { setCodeStateAction } = await import("@/app/admin/discounts/actions");

@@ -3,13 +3,14 @@
 // Create / edit / batch code form — port of mock screens 2 (single) and 3
 // (batch Code section). Posts to saveCodeAction (app/admin/discounts/actions.ts).
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useId, useMemo, useState } from "react";
 import { compounds, CHEMICAL_CLASSES } from "@/data/catalog";
 import { codeAvailableAction, saveCodeAction, type SaveState } from "@/app/admin/discounts/actions";
 import { generateBatchCodes, MAX_BATCH_SIZE, normalizePrefix, ruleSentence, type CodeKind, type CodeTerms, type DiscountCodeRow } from "@/lib/discounts/rules";
 import { typicalBaskets, worstCase } from "@/lib/discounts/preview";
 import { isoToZonedLocal, shortDate, zonedToIso } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
+import { FREE_SHIPPING_MIN_CENTS } from "@/lib/pricing";
 import { Chip, Icon } from "@/components/admin/ui";
 
 type Token = { type: "class" | "product"; value: string };
@@ -28,12 +29,33 @@ const MAX_USES = 1_000_000;
 const nameOf = (slug: string) => compounds.find((c) => c.slug === slug)?.name ?? slug;
 
 function Toggle({ on, set, label, help, kind }: { on: boolean; set: (b: boolean) => void; label: string; help?: string; kind: "switch" | "checkbox" }) {
+  const id = useId();
   return (
     <div className="a-toggle">
-      <button type="button" role={kind} aria-checked={on} aria-label={label} className={kind === "switch" ? `a-sw${on ? " on" : ""}` : `a-cb${on ? " on" : ""}`} onClick={() => set(!on)} />
-      <div><b>{label}</b>{help && <small>{help}</small>}</div>
+      <button type="button" role={kind} aria-checked={on} aria-labelledby={`${id}-l`} aria-describedby={help ? `${id}-h` : undefined}
+        className={kind === "switch" ? `a-sw${on ? " on" : ""}` : `a-cb${on ? " on" : ""}`} onClick={() => set(!on)} />
+      <div><b id={`${id}-l`}>{label}</b>{help && <small id={`${id}-h`}>{help}</small>}</div>
     </div>
   );
+}
+
+const dollars = (cents: number) => (cents % 100 === 0 ? `$${(cents / 100).toLocaleString("en-US")}` : usd(cents));
+
+// Mock screen 2: "Oct 5 – Oct 31, 2026 (27 days)". Inputs are Mountain datetime-local strings.
+function runsText(startsAt: string, endsAt: string): string {
+  const iso = (v: string) => { if (!v) return null; try { return zonedToIso(v); } catch { return null; } };
+  const s = iso(startsAt), e = iso(endsAt);
+  const year = (v: string) => v.slice(0, 4);
+  if (!e) return `${s ? shortDate(s) : "From now"} – no end`;
+  const from = s ? `${shortDate(s)}${year(startsAt) !== year(endsAt) ? `, ${year(startsAt)}` : ""}` : "Now";
+  const days = Math.round((Date.parse(e) - (s ? Date.parse(s) : Date.now())) / 86_400_000);
+  return `${from} – ${shortDate(e)}, ${year(endsAt)}${days > 0 ? ` (${days} day${days === 1 ? "" : "s"})` : ""}`;
+}
+
+// The summary sentence starts with the code; show it in mono as in the mock.
+function SummaryText({ label, text }: { label: string; text: string }) {
+  if (!text.startsWith(label)) return <>{text}</>;
+  return <><span className="a-code">{label}</span>{text.slice(label.length)}</>;
 }
 
 function futureStart(local: string): string | null {
@@ -91,8 +113,11 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
 
   useEffect(() => {
     if (mode !== "single" || existing || code.trim().length < 3) { setAvail(null); return; }
-    const t = setTimeout(() => { void codeAvailableAction(code).then(setAvail).catch(() => setAvail(null)); }, 400);
-    return () => clearTimeout(t);
+    let cancelled = false; // a slower, older response must not overwrite a newer one
+    const t = setTimeout(() => {
+      void codeAvailableAction(code).then((r) => { if (!cancelled) setAvail(r); }).catch(() => { if (!cancelled) setAvail(null); });
+    }, 400);
+    return () => { cancelled = true; clearTimeout(t); };
   }, [code, mode, existing]);
 
   const addToken = (raw: string) => {
@@ -100,12 +125,20 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
     const [type, v] = raw.split(":", 2) as [Token["type"], string];
     if (!tokens.some((t) => t.type === type && t.value === v)) setTokens([...tokens, { type, value: v }]);
   };
-  const err = (k: string) => fe[k] && <div className="a-err" role="alert">{fe[k]}</div>;
+  const errId = (k: string) => `d-err-${k}`;
+  const err = (k: string) => fe[k] && <div className="a-err" id={errId(k)} role="alert">{fe[k]}</div>;
+  // aria-invalid + aria-describedby (error first, then help) for an input.
+  const aria = (k: string, helpId?: string) => {
+    const ids = [fe[k] ? errId(k) : null, helpId ?? null].filter(Boolean).join(" ");
+    return { "aria-invalid": fe[k] ? true : undefined, "aria-describedby": ids || undefined } as const;
+  };
+  const hasFieldErrors = Object.keys(fe).length > 0;
+  const shipOnly = kind === "ship_only";
   const noteField = (
     <div className="a-fld">
       <label htmlFor="d-note">Internal note <span className="opt">· optional</span></label>
-      <div className="a-input"><input id="d-note" name="note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={MAX_NOTE_LEN} /></div>
-      <div className="help">Only you see this.</div>{err("note")}
+      <div className="a-input"><input id="d-note" name="note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={MAX_NOTE_LEN} {...aria("note", "d-note-help")} /></div>
+      <div className="help" id="d-note-help">Only you see this.</div>{err("note")}
     </div>
   );
 
@@ -114,8 +147,9 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
       <input type="hidden" name="mode" value={mode} />
       {existing && <input type="hidden" name="id" value={existing.id} />}
       <input type="hidden" name="kind" value={kind} />
-      <input type="hidden" name="scope" value={scope} />
-      <input type="hidden" name="scopeItems" value={JSON.stringify(tokens)} />
+      {/* Free shipping has no product scope: never post a stale "only" list. */}
+      <input type="hidden" name="scope" value={shipOnly ? "all" : scope} />
+      <input type="hidden" name="scopeItems" value={shipOnly ? "[]" : JSON.stringify(tokens)} />
       {stack && <input type="hidden" name="stackOnTop" value="on" />}
       {freeShip && <input type="hidden" name="freeShipping" value="on" />}
       {once && <input type="hidden" name="oncePerCustomer" value="on" />}
@@ -133,10 +167,10 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
             ) : batch ? (
               <>
                 <div className="a-row">
-                  <div className="a-fld"><label htmlFor="d-prefix">Prefix</label><div className="a-input mono"><input id="d-prefix" name="prefix" value={prefix} onChange={(e) => setPrefix(e.target.value.toUpperCase())} placeholder="VIP-OCT-" maxLength={12} autoComplete="off" required /></div>{err("prefix")}</div>
-                  <div className="a-fld"><label htmlFor="d-count">How many</label><div className="a-input"><input id="d-count" name="count" type="number" min={1} max={MAX_BATCH_SIZE} step={1} value={count} onChange={(e) => setCount(e.target.value)} required /></div><div className="help">Up to {MAX_BATCH_SIZE.toLocaleString("en-US")}.</div>{err("count")}</div>
+                  <div className="a-fld"><label htmlFor="d-prefix">Prefix</label><div className="a-input mono"><input id="d-prefix" name="prefix" value={prefix} onChange={(e) => setPrefix(e.target.value.toUpperCase())} placeholder="VIP-OCT-" maxLength={12} autoComplete="off" required {...aria("prefix")} /></div>{err("prefix")}</div>
+                  <div className="a-fld"><label htmlFor="d-count">How many</label><div className="a-input"><input id="d-count" name="count" type="number" min={1} max={MAX_BATCH_SIZE} step={1} value={count} onChange={(e) => setCount(e.target.value)} required {...aria("count", "d-count-help")} /></div><div className="help" id="d-count-help">Up to {MAX_BATCH_SIZE.toLocaleString("en-US")}.</div>{err("count")}</div>
                 </div>
-                <div className="a-fld"><label htmlFor="d-example">Example</label><div className="a-input mono dis"><input id="d-example" readOnly value={`${normalizePrefix(prefix) || "PREFIX-"}7KQ2M`} /></div><div className="help">5 random characters, no look-alikes (0/O, 1/I). Each code works once.</div></div>
+                <div className="a-fld"><label htmlFor="d-example">Example</label><div className="a-input mono dis"><input id="d-example" readOnly value={`${normalizePrefix(prefix) || "PREFIX-"}7KQ2M`} aria-describedby="d-example-help" /></div><div className="help" id="d-example-help">5 random characters, no look-alikes (0/O, 1/I). Each code works once.</div></div>
                 {noteField}
               </>
             ) : (
@@ -144,10 +178,10 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
                 <div className="a-fld">
                   <label htmlFor="d-code">Code</label>
                   <div className="a-input mono">
-                    <input id="d-code" name="code" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} readOnly={!!existing} maxLength={24} autoComplete="off" />
+                    <input id="d-code" name="code" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} readOnly={!!existing} maxLength={24} autoComplete="off" {...aria("code", "d-code-help")} />
                     {!existing && <button type="button" className="a-btn ghost sm" style={{ marginRight: 3 }} onClick={() => setCode(generateBatchCodes("", 1)[0])}>Generate</button>}
                   </div>
-                  <div className="help">{existing ? "A code's text can't change." : "Letters, numbers and dashes. Customers can type it in any case."}</div>{err("code")}
+                  <div className="help" id="d-code-help">{existing ? "A code's text can't change." : "Letters, numbers and dashes. Customers can type it in any case."}</div>{err("code")}
                 </div>
                 {noteField}
               </div>
@@ -158,7 +192,7 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
         <section className="a-fsec">
           <div className="a-fsec-h"><h3>Discount</h3></div>
           <div className="a-fsec-b">
-            <div className="a-seg" role="radiogroup" aria-label="Kind">
+            <div className="a-seg" role="radiogroup" aria-label="Kind" {...aria("kind")}>
               {KINDS.map((k) => (
                 <button type="button" key={k.id} role="radio" aria-checked={kind === k.id} className={kind === k.id ? "on" : undefined} onClick={() => setKind(k.id)} disabled={!!existing}>
                   <b>{k.label}</b><small>{k.hint}</small>
@@ -172,7 +206,7 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
                 <div className="a-input" style={{ width: 160 }}>
                   {kind === "order_amount" && <span className="affix l">$</span>}
                   <input id="d-value" name="value" type="number" value={value} onChange={(e) => setValue(e.target.value)}
-                    min={kind === "order_amount" ? 0.01 : 1} max={kind === "order_amount" ? MAX_ORDER_AMOUNT : 100} step={kind === "order_amount" ? 0.01 : 1} required />
+                    min={kind === "order_amount" ? 0.01 : 1} max={kind === "order_amount" ? MAX_ORDER_AMOUNT : 100} step={kind === "order_amount" ? 0.01 : 1} required {...aria("value")} />
                   {kind !== "order_amount" && <span className="affix">%</span>}
                 </div>
                 {err("value")}
@@ -187,16 +221,16 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
           <div className="a-fsec-h"><h3>Dates and limits</h3><span>Every code should end and have a limit</span></div>
           <div className="a-fsec-b">
             <div className="a-row">
-              <div className="a-fld"><label htmlFor="d-start">Starts</label><div className="a-input"><input id="d-start" type="datetime-local" name="startsAt" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} /></div><div className="help">Empty = now.</div>{err("startsAt")}</div>
-              <div className="a-fld"><label htmlFor="d-end">Ends</label><div className="a-input"><input id="d-end" type="datetime-local" name="endsAt" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} /></div><div className="help">Mountain time.</div>{err("endsAt")}</div>
+              <div className="a-fld"><label htmlFor="d-start">Starts</label><div className="a-input"><input id="d-start" type="datetime-local" name="startsAt" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} {...aria("startsAt", "d-start-help")} /></div><div className="help" id="d-start-help">Empty = now.</div>{err("startsAt")}</div>
+              <div className="a-fld"><label htmlFor="d-end">Ends</label><div className="a-input"><input id="d-end" type="datetime-local" name="endsAt" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} {...aria("endsAt", "d-end-help")} /></div><div className="help" id="d-end-help">Mountain time.</div>{err("endsAt")}</div>
             </div>
             <div className="a-row">
-              {!batch && <div className="a-fld"><label htmlFor="d-max">Total uses</label><div className="a-input" style={{ width: 140 }}><input id="d-max" name="maxUses" type="number" min={1} max={MAX_USES} step={1} value={maxUses} onChange={(e) => setMaxUses(e.target.value)} /></div><div className="help">1 makes it a one-time code. Empty = no limit.</div>{err("maxUses")}</div>}
-              <div className="a-fld"><label htmlFor="d-min">Minimum order</label><div className="a-input" style={{ width: 160 }}><span className="affix l">$</span><input id="d-min" name="minOrder" type="number" min={0} max={MAX_MIN_ORDER} step={0.01} value={minOrder} onChange={(e) => setMinOrder(e.target.value)} /></div><div className="help">Goods after item discounts.</div>{err("minOrder")}</div>
+              {!batch && <div className="a-fld"><label htmlFor="d-max">Total uses</label><div className="a-input" style={{ width: 140 }}><input id="d-max" name="maxUses" type="number" min={1} max={MAX_USES} step={1} value={maxUses} onChange={(e) => setMaxUses(e.target.value)} {...aria("maxUses", "d-max-help")} /></div><div className="help" id="d-max-help">1 makes it a one-time code. Empty = no limit.</div>{err("maxUses")}</div>}
+              <div className="a-fld"><label htmlFor="d-min">Minimum order</label><div className="a-input" style={{ width: 160 }}><span className="affix l">$</span><input id="d-min" name="minOrder" type="number" min={0} max={MAX_MIN_ORDER} step={0.01} value={minOrder} onChange={(e) => setMinOrder(e.target.value)} {...aria("minOrder", "d-min-help")} /></div><div className="help" id="d-min-help">Goods after item discounts.</div>{err("minOrder")}</div>
             </div>
             <Toggle kind="checkbox" on={once} set={setOnce} label={batch ? "Once per customer (across the batch)" : "Once per customer"} />
             {!batch && <Toggle kind="checkbox" on={lock} set={setLock} label="Lock to one email" help="Only that account can use it." />}
-            {!batch && lock && <div className="a-fld"><label htmlFor="d-email">Account email</label><div className="a-input"><input id="d-email" name="lockedEmail" type="email" maxLength={254} value={lockedEmail} onChange={(e) => setLockedEmail(e.target.value)} required /></div>{err("lockedEmail")}</div>}
+            {!batch && lock && <div className="a-fld"><label htmlFor="d-email">Account email</label><div className="a-input"><input id="d-email" name="lockedEmail" type="email" maxLength={254} value={lockedEmail} onChange={(e) => setLockedEmail(e.target.value)} required {...aria("lockedEmail")} /></div>{err("lockedEmail")}</div>}
           </div>
         </section>
 
@@ -204,7 +238,7 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
           <section className="a-fsec">
             <div className="a-fsec-h"><h3>What it applies to</h3></div>
             <div className="a-fsec-b">
-              <div className="a-seg2" role="radiogroup" aria-label="Applies to">
+              <div className="a-seg2" role="radiogroup" aria-label="Applies to" {...aria("scope")}>
                 {([["all", "All products"], ["only", "Only these"], ["except", "All except"]] as const).map(([k, l]) => (
                   <button type="button" key={k} role="radio" aria-checked={scope === k} className={scope === k ? "on" : undefined} onClick={() => setScope(k)}>{l}</button>
                 ))}
@@ -212,7 +246,7 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
               {err("scope")}
               {scope !== "all" && (
                 <div className="a-fld">
-                  <div className="a-tokens">
+                  <div className="a-tokens" role="group" aria-label="Products and classes" {...aria("scopeItems")}>
                     {tokens.map((t) => (
                       <span key={`${t.type}:${t.value}`} className="a-tok"><em>{t.type === "class" ? "Class" : "Product"}</em>{t.type === "class" ? t.value : nameOf(t.value)}
                         <button type="button" className="x" aria-label={`Remove ${t.type === "class" ? t.value : nameOf(t.value)}`} onClick={() => setTokens(tokens.filter((x) => x !== t))}>×</button></span>
@@ -232,7 +266,11 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
         )}
 
         <div className="a-savebar">
-          <div className="msg">{state?.error ? <span className="a-err" role="alert">{state.error}</span> : avail ? <><Icon name={avail.ok ? "check" : "warn"} />{avail.message}</> : null}</div>
+          <div className="msg">
+            {state?.error || hasFieldErrors ? (
+              <span className="a-err" role="alert">{[state?.error, hasFieldErrors ? "Fix the fields marked below." : null].filter(Boolean).join(" ")}</span>
+            ) : avail ? <><Icon name={avail.ok ? "check" : "warn"} />{avail.message}</> : null}
+          </div>
           <div className="r">
             <Link className="a-btn ghost" href="/admin/discounts">Cancel</Link>
             {!existing && <button className="a-btn" type="submit" name="intent" value="paused" disabled={pending}>Save paused</button>}
@@ -245,9 +283,9 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
         <div className="a-card">
           <div className="a-card-h"><h3>Summary</h3>{startsOn && <span className="r"><Chip tone="sched">Starts {startsOn}</Chip></span>}</div>
           <div className="a-card-b">
-            <p className="a-summary" data-testid="rule-summary">{valid ? ruleSentence(label, terms, nameOf) : "Set a value to see the rule."}</p>
+            <p className="a-summary" data-testid="rule-summary">{valid ? <SummaryText label={label} text={ruleSentence(label, terms, nameOf)} /> : "Set a value to see the rule."}</p>
             <dl className="a-facts">
-              <dt>Runs</dt><dd>{startsAt ? startsAt.replace("T", " ") : "From now"} – {endsAt ? endsAt.replace("T", " ") : "no end"}</dd>
+              <dt>Runs</dt><dd>{runsText(startsAt, endsAt)}</dd>
               <dt>Limit</dt><dd>{batch ? `${existing ? "One use per code" : `${count || 0} codes · one use each`}` : maxUses ? `${maxUses} uses` : "No limit"}{once ? " · once per customer" : ""}</dd>
               <dt>Cap</dt><dd>Store-wide {capPct}% still applies</dd>
             </dl>
@@ -258,11 +296,12 @@ export default function DiscountForm({ mode, capPct, existing }: { mode: "single
           <div className="a-card-b" data-testid="worst-case">
             {!worst ? <p className="muted">No listed product qualifies yet.</p> : (
               <table className="a-wc"><tbody>
-                <tr><td className="lbl">{worst.label}{worst.newAccount && <small><br />new account</small>}</td><td className="num">{usd(worst.listCents)}</td></tr>
-                {worst.packCents > 0 && <tr><td className="lbl">Pack price</td><td className="num">−{usd(worst.packCents)}</td></tr>}
+                <tr><td className="lbl">{worst.label}<br /><small>{worst.packQty > 1 ? `${worst.packQty}-pack` : "single"}{worst.newAccount ? " · new account" : ""}</small></td><td className="num">{usd(worst.listCents)}</td></tr>
+                {worst.packCents > 0 && <tr><td className="lbl">{worst.packQty}-pack price · {worst.packPct}%</td><td className="num">−{usd(worst.packCents)}</td></tr>}
                 {worst.autoCents > 0 && <tr><td className="lbl">New-account discount</td><td className="num">−{usd(worst.autoCents)}</td></tr>}
-                {worst.codeCents > 0 && <tr><td className="lbl">{label}{terms.stackOnTop ? " on top" : ""}</td><td className="num">−{usd(worst.codeCents)}</td></tr>}
+                {worst.codeCents > 0 && <tr><td className="lbl">{label} · {terms.kind === "order_amount" ? dollars(terms.value) : `${terms.value}%`}{terms.stackOnTop ? " on top" : ""}</td><td className="num">−{usd(worst.codeCents)}</td></tr>}
                 {worst.capped && <tr className="cap"><td className="lbl">Store-wide cap · {worst.uncappedOffPct}% → {capPct}%</td><td className="num">+{usd(worst.cappedCents)}</td></tr>}
+                <tr><td className="lbl">Shipping{worst.shippingCents === 0 ? (worst.paysCents >= FREE_SHIPPING_MIN_CENTS ? ` · free over ${dollars(FREE_SHIPPING_MIN_CENTS)} anyway` : " · free with this code") : ""}</td><td className="num">{usd(worst.shippingCents)}</td></tr>
                 <tr className="total"><td>Goods total · {worst.offPct}% off list</td><td className="num">{usd(worst.paysCents)}</td></tr>
               </tbody></table>
             )}

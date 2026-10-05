@@ -74,11 +74,15 @@ function parseRule(f: FormData, keepEndsAt: string | null): { input: CodeInput }
     const em = z.string().trim().toLowerCase().email().max(254).safeParse(str(f, "lockedEmail"));
     if (em.success) locked_email = em.data; else e.lockedEmail = "Enter the account's email.";
   }
-  const scope = str(f, "scope");
+  // Free shipping has no product scope: ignore whatever scope fields came in.
+  const shipOnly = kind === "ship_only";
+  const scope = shipOnly ? "all" : str(f, "scope");
   if (!["all", "only", "except"].includes(scope)) e.scope = "Pick which products.";
   let items: z.infer<typeof scopeItems> = [];
-  try { items = scopeItems.parse(JSON.parse(str(f, "scopeItems") || "[]")); } catch { e.scopeItems = "Couldn't read the product list."; }
-  if (scope === "only" && items.length === 0) e.scopeItems = "Add at least one product or class.";
+  if (!shipOnly) {
+    try { items = scopeItems.parse(JSON.parse(str(f, "scopeItems") || "[]")); } catch { e.scopeItems = "Couldn't read the product list."; }
+    if (scope === "only" && items.length === 0) e.scopeItems = "Add at least one product or class.";
+  }
   const pick = (t: "class" | "product") => items.filter((i) => i.type === t).map((i) => i.value);
   const include = scope === "only", exclude = scope === "except";
   if (Object.keys(e).length) return { fieldErrors: e };

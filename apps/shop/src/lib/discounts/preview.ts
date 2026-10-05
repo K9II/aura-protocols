@@ -50,8 +50,8 @@ export function typicalBaskets(terms: CodeTerms, list: Compound[], capPct: numbe
 }
 
 export type WorstCase = {
-  label: string; listCents: number; packCents: number; autoCents: number; codeCents: number; cappedCents: number;
-  paysCents: number; offPct: number; uncappedOffPct: number; capped: boolean; newAccount: boolean;
+  label: string; packQty: number; packPct: number; listCents: number; packCents: number; autoCents: number; codeCents: number; cappedCents: number;
+  paysCents: number; shippingCents: number; offPct: number; uncappedOffPct: number; capped: boolean; newAccount: boolean;
 };
 
 // The largest % off list this code can produce, over every eligible listed
@@ -65,9 +65,9 @@ export function worstCase(terms: CodeTerms, list: Compound[], capPct: number): W
     const off = pct(r);
     const noCode = applyDiscounts(basketOrder(c, p.qty), { auto, code: null, capPct });
     const cand: WorstCase = {
-      label: `${c.name} ${c.variants[0].strength} × ${p.qty}`, listCents: r.listCents,
+      label: `${c.name} ${c.variants[0].strength} × ${p.qty}`, packQty: p.qty, packPct: r.items[0].packPct, listCents: r.listCents,
       packCents: r.listCents - r.subtotalCents, autoCents: noCode.partnerDiscountCents,
-      codeCents: r.codeGrossCents, cappedCents: r.cappedCents, paysCents: pays, offPct: off,
+      codeCents: r.codeGrossCents, cappedCents: r.cappedCents, paysCents: pays, shippingCents: r.shippingCents, offPct: off,
       uncappedOffPct: Math.round(((r.listCents - pays + r.cappedCents) / r.listCents) * 100),
       capped: r.cappedCents > 0, newAccount: !!auto && r.newAccount,
     };
