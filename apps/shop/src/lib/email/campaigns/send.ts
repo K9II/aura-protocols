@@ -130,10 +130,17 @@ export async function sendCampaignBatch(id: string, deadlineMs: number): Promise
   out.remaining = counts.pending;
   if (counts.pending === 0) {
     if (counts.sent === 0 && counts.failed > 0) {
+      // Nothing delivered and nothing left pending: leaving it "sending"
+      // would keep it stuck there forever (pendingRecipients comes back
+      // empty every hour) — busy, blocking every other campaign, and
+      // re-alerting on every run. Stop it instead; the owner already got
+      // the alert above when this run happened to fail the last batch.
       await alertOwner(
-        `Campaign "${c?.name ?? id}": finished with 0 sent and ${counts.failed} failed — not marked sent`,
-        "Left as-is; nothing was delivered.",
+        `Campaign "${c?.name ?? id}": stopped — nothing was delivered (${counts.failed} failed)`,
+        failures.join("\n") || "Nothing was delivered.",
       );
+      await moveCampaign(id, "sending", "stopped", null);
+      out.stopped = true;
     } else {
       if (counts.failed > 0) {
         await alertOwner(`Campaign "${c?.name ?? id}" finished with ${counts.failed} failed`, `${counts.sent} sent, ${counts.failed} failed, ${counts.skipped} skipped.`);

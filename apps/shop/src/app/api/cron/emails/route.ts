@@ -12,7 +12,7 @@ import type { LiveCatalog } from "@/lib/catalog-merge";
 import type { ChemicalClass } from "@/data/catalog";
 import { offerForEmail } from "@/lib/account/offer-data";
 import { finishRun, getEmailSettings, startRun } from "@/lib/email/admin-data";
-import { campaignsToRun, startCampaign } from "@/lib/email/campaigns/data";
+import { campaignsToRun, startCampaign, type CampaignRow } from "@/lib/email/campaigns/data";
 import { sendCampaignBatch } from "@/lib/email/campaigns/send";
 import { checksFor } from "@/lib/email/campaigns/checks-server";
 import { isBlocked } from "@/lib/email/campaigns/checks";
@@ -127,13 +127,21 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   // Campaigns: the one that's sending, then scheduled ones that are due — one
-  // at a time, with whatever time is left. A campaign that throws (e.g. its
-  // send engine hits a config error) is alerted and skipped — it must not
-  // stop the next due campaign, let alone the welcome/cart sends above.
+  // at a time, with whatever time is left. Each campaign's whole turn
+  // (checks, start, send) runs under its own try/catch, so one campaign
+  // throwing (e.g. a config error, or checksFor itself failing) is recorded
+  // and never stops the checks for the next due campaign, let alone the
+  // welcome/cart sends above. Reported once, in the run's summary alert below.
   if (!truncated) {
+    let due: CampaignRow[] = [];
     try {
-      for (const c of await campaignsToRun(now)) {
-        if (Date.now() > deadline) { truncated = true; break; }
+      due = await campaignsToRun(now);
+    } catch (err) {
+      failed.push(`campaigns: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    for (const c of due) {
+      if (Date.now() > deadline) { truncated = true; break; }
+      try {
         if (c.status === "scheduled") {
           // Things may have changed since it was scheduled (code paused, lot sold out).
           // It stays scheduled and the owner is alerted every hour until it's fixed or unscheduled.
@@ -148,19 +156,12 @@ export async function GET(request: Request): Promise<Response> {
             continue; // stale: someone unscheduled or started it
           }
         }
-        try {
-          const r = await sendCampaignBatch(c.id, deadline);
-          campaign += r.sent;
-          if (r.remaining > 0 && !r.stopped) break; // out of time; it continues next run
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          failed.push(`campaign "${c.name}": ${message}`);
-          await alertOwner(`Email run: campaign "${c.name}" failed`, message);
-          continue;
-        }
+        const r = await sendCampaignBatch(c.id, deadline);
+        campaign += r.sent;
+        if (r.remaining > 0 && !r.stopped) break; // out of time; it continues next run
+      } catch (err) {
+        failed.push(`campaign "${c.name}": ${err instanceof Error ? err.message : String(err)}`);
       }
-    } catch (err) {
-      failed.push(`campaigns: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 

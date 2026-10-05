@@ -143,13 +143,33 @@ describe("sendCampaignBatch", () => {
     expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("2 failed"), expect.any(String));
   });
 
-  it("does not mark a campaign sent when everything failed", async () => {
+  it("stops a campaign when everything failed, instead of leaving it stuck sending", async () => {
     pendingRecipients.mockResolvedValueOnce([]);
     recipientCounts.mockResolvedValue({ pending: 0, sent: 0, skipped: 0, failed: 4 });
     const { sendCampaignBatch } = await import("@/lib/email/campaigns/send");
     const r = await sendCampaignBatch("k1", Date.now() + 60_000);
-    expect(moveCampaign).not.toHaveBeenCalled();
+    expect(moveCampaign).toHaveBeenCalledWith("k1", "sending", "stopped", null);
     expect(r.finished).toBe(false);
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("0 sent"), expect.any(String));
+    expect(r.stopped).toBe(true);
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining('stopped — nothing was delivered (4 failed)'), expect.any(String));
+  });
+
+  it("resets the failure streak after a success, so a mix of failures never trips the breaker", async () => {
+    const recipients = Array.from({ length: 9 }, (_, i) => ({ email: `u${i}@b.co`, attempts: 0 }));
+    pendingRecipients.mockResolvedValueOnce(recipients).mockResolvedValueOnce([]);
+    subscriberStatuses.mockResolvedValue(new Map(recipients.map((r) => [r.email, "confirmed"])));
+    const outcomes = [false, false, false, false, true, false, false, false, false]; // fail x4, succeed, fail x4
+    let i = 0;
+    sendTracked.mockImplementation(async () => {
+      const ok = outcomes[i++];
+      if (!ok) throw new Error("SES hiccup");
+      return "sent";
+    });
+    recipientCounts.mockResolvedValue({ pending: 0, sent: 1, skipped: 0, failed: 8 });
+    const { sendCampaignBatch } = await import("@/lib/email/campaigns/send");
+    const r = await sendCampaignBatch("k1", Date.now() + 60_000);
+    expect(sendTracked).toHaveBeenCalledTimes(9);
+    expect(r.finished).toBe(true);
+    expect(moveCampaign).toHaveBeenCalledWith("k1", "sending", "sent", null);
   });
 });

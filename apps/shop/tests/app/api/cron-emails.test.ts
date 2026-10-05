@@ -286,7 +286,7 @@ describe("GET /api/cron/emails", () => {
     expect(alertOwner.mock.calls[0][1]).toContain("email settings: db down");
   });
 
-  it("one campaign throwing doesn't stop the rest of the run: the owner is alerted, it's recorded in failures, and the next due campaign still sends", async () => {
+  it("one campaign throwing doesn't stop the rest of the run: it's recorded once, in the summary alert, and the next due campaign still sends", async () => {
     campaignsToRun.mockResolvedValue([
       { id: "k1", status: "sending", name: "Broken" },
       { id: "k2", status: "scheduled", name: "Good" },
@@ -300,6 +300,27 @@ describe("GET /api/cron/emails", () => {
     const body = await (await GET(auth())).json();
     expect(startCampaign).toHaveBeenCalledWith("k2", null, "scheduled");
     expect(body).toMatchObject({ campaign: 2, failed: 1 });
-    expect(alertOwner.mock.calls.some((c) => String(c[0]).includes("Broken") && String(c[1]).includes("SES down"))).toBe(true);
+    expect(alertOwner).toHaveBeenCalledTimes(1);
+    expect(alertOwner.mock.calls[0][1]).toContain('campaign "Broken": SES down');
+  });
+
+  it("checksFor throwing for one scheduled campaign doesn't stop the next due campaign from starting", async () => {
+    campaignsToRun.mockResolvedValue([
+      { id: "k1", status: "scheduled", name: "Bad" },
+      { id: "k2", status: "scheduled", name: "Good" },
+    ]);
+    checksFor.mockImplementation(async (c: { id: string }) => {
+      if (c.id === "k1") throw new Error("checks db down");
+      return [];
+    });
+    startCampaign.mockResolvedValue({ ok: true, recipients: 2 });
+    sendCampaignBatch.mockResolvedValue({ sent: 2, skipped: 0, failed: 0, remaining: 0, finished: true, stopped: false });
+    const { GET } = await import("@/app/api/cron/emails/route");
+    const body = await (await GET(auth())).json();
+    expect(startCampaign).toHaveBeenCalledTimes(1);
+    expect(startCampaign).toHaveBeenCalledWith("k2", null, "scheduled");
+    expect(body).toMatchObject({ campaign: 2, failed: 1 });
+    expect(alertOwner).toHaveBeenCalledTimes(1);
+    expect(alertOwner.mock.calls[0][1]).toContain('campaign "Bad": checks db down');
   });
 });
