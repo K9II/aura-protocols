@@ -275,6 +275,10 @@ begin
   if p_entries is null or json_typeof(p_entries) <> 'array' or json_array_length(p_entries) = 0 then
     raise exception 'record_shipped_lots: no shipped lots given for order item %', p_item;
   end if;
+  if exists (select 1 from json_to_recordset(p_entries) as r(lot_number text, qty integer)
+             where r.lot_number is null or r.qty is null or r.qty <= 0) then
+    raise exception 'record_shipped_lots: every entry needs a lot_number and a qty above zero (order item %)', p_item;
+  end if;
   select * into i from order_items where id = p_item for update;
   if not found then raise exception 'order item % not found', p_item; end if;
   select order_number into v_order from orders where id = i.order_id;

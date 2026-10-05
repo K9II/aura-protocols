@@ -48,6 +48,8 @@ describe("catalog-ops.sql", () => {
 
   it("record_shipped_lots refuses empty input and sums repeated lot numbers", () => {
     expect(shipped).toMatch(/if p_entries is null or json_typeof\(p_entries\) <> 'array' or json_array_length\(p_entries\) = 0 then\s+raise exception/);
+    expect(shipped).toMatch(/where r\.lot_number is null or r\.qty is null or r\.qty <= 0\) then\s+raise exception/);
+    expect(shipped.indexOf("r.qty <= 0")).toBeLessThan(shipped.indexOf("sum(qty)::int as qty"));
     expect(shipped).toMatch(/select lot_number, sum\(qty\)::int as qty\s+from json_to_recordset\(p_entries\)[^;]+group by lot_number\) x/);
   });
 
