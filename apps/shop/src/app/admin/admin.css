@@ -359,6 +359,14 @@
 
 /* Very narrow phones: keep the top bar on one line. */
 .adm .a-top-title, .adm .a-env, .adm .a-toplink { white-space: nowrap; }
+.adm .a-env-s { display: none; }
+/* Phone top bar (mock g3): short TEST tag, no View store. Placed after the
+   base .a-toplink rule so it wins. */
+@media (max-width: 860px) {
+  .adm .a-toplink { display: none; }
+  .adm .a-env-t { display: none; }
+  .adm .a-env-s { display: inline; }
+}
 @media (max-width: 360px) {
   .adm .a-top-title { font-size: 15px; }
   .adm .a-env { display: none; }

@@ -9,8 +9,8 @@ export default function StartHere() {
         <Task title="Find your way around">
           <Step>The menu on the left groups pages by job: <Ui>Sell</Ui>, <Ui>Stock</Ui>, <Ui>Reach</Ui> and <Ui>Partners</Ui>. Greyed items marked <Ui>Soon</Ui> aren&apos;t built yet.</Step>
           <Step>A number beside <Ui>Orders</Ui> is how many paid orders are waiting to ship. Beside <Ui>Partners</Ui>, it&apos;s how many applications are waiting.</Step>
-          <Step>Every page has a <Ui>How this works</Ui> link in the top bar that opens its chapter here.</Step>
-          <Step><Ui>View store</Ui> opens the shop in a new tab, as customers see it.</Step>
+          <Step>Every page has a <Ui>How this works</Ui> link in the top bar that opens its chapter here. On a phone it&apos;s the <Ui>?</Ui> button.</Step>
+          <Step><Ui>View store</Ui> opens the shop in a new tab, as customers see it. It&apos;s only in the computer layout; on a phone, open the store in another tab.</Step>
         </Task>
       }
       how={

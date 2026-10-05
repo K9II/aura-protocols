@@ -82,7 +82,7 @@ export default function AdminShell({ counts, testMode, ownerName, children }: {
                   <span className="q" aria-hidden>?</span><span className="a-help-t">How this works</span>
                 </Link>
               )}
-              {testMode && <span className="a-env">Test mode</span>}
+              {testMode && <span className="a-env"><span className="a-env-t">Test mode</span><span className="a-env-s" aria-hidden>Test</span></span>}
               <a className="a-toplink" href="/" target="_blank" rel="noopener noreferrer">View store <Icon name="ext" /></a>
             </div>
           </header>
