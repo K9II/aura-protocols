@@ -7,7 +7,7 @@ import VariantPicker from "@/components/store/VariantPicker";
 // Live fixture: every strength $79, in stock, with LOT. SS-31 is the product
 // that has two sizes (10 mg / 50 mg); its 50 mg sells from its own lot.
 const LOT_50 = { lot: "SS-2609-02", purityPct: 98.7, method: "HPLC" as const, testedOn: "2026-09-20", coaFile: "https://x/coa/SS-2609-02/1.pdf" };
-const compounds = liveFixture({ "ss-31:50mg": { priceUsd: 249, lot: LOT_50 } });
+const compounds = liveFixture({ "ss-31:50mg": { priceUsd: 249, lot: LOT_50, stock: "low" as const } });
 const bpc = compounds.find((c) => c.slug === "bpc-157")!;
 const ss31 = compounds.find((c) => c.slug === "ss-31")!;
 
@@ -48,6 +48,22 @@ describe("VariantPicker", () => {
     expect(screen.getByText(LOT_50.lot)).toBeInTheDocument();
     expect(screen.getByText("98.7%")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /view this lot's certificate/i })).toHaveAttribute("href", LOT_50.coaFile);
+  });
+
+  it("shows the selected strength's stock label and switches it with the strength", () => {
+    render(<CartProvider catalog={liveFixture()}><VariantPicker compound={ss31} /></CartProvider>);
+    expect(screen.getByText("In stock")).toBeInTheDocument();
+    expect(screen.queryByText("Low stock")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "50 mg" }));
+    expect(screen.getByText("Low stock")).toBeInTheDocument();
+    expect(screen.queryByText("In stock")).toBeNull();
+  });
+
+  it("does not show a stock label for a pending lot (the COA-pending copy covers it)", () => {
+    const pending = { ...bpc, variants: bpc.variants.map((v) => ({ ...v, stock: "out" as const, availableVials: 0, lot: { pending: true as const } })) };
+    render(<CartProvider catalog={liveFixture()}><VariantPicker compound={pending} /></CartProvider>);
+    expect(screen.queryByText("Out of stock")).toBeNull();
+    expect(screen.getByText(/certificate posted when lab results return/i)).toBeInTheDocument();
   });
 
   it("lists 2-, 5- and 10-packs with mg, $/mg, pack price and discount, and no single vial", () => {

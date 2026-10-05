@@ -9,6 +9,8 @@ import SpecBoxes from "@/components/store/SpecBoxes";
 
 const MAX_PACKS = 20;
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// Same wording CompoundCard uses ("Low stock" / "Out of stock"); customers never see the count.
+const STOCK_LABEL = { in: "In stock", low: "Low stock", out: "Out of stock" } as const;
 
 // Pack list: every pack shows its price, the material it holds and $/mg ($/IU
 // for an IU strength), so
@@ -47,6 +49,8 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
           </div>
         </>
       )}
+      {/* Pending-lot strengths are always "out" but keep the existing COA-pending copy above — don't duplicate it here. */}
+      {!pending && <p className={`s-stock s-stock--${variant.stock}`}>{STOCK_LABEL[variant.stock]}</p>}
       <div className="s-optlabel s-micro s-optlabel--split"><span>Choose pack</span><span>Pack price</span></div>
       <div className="s-packs">
         {packs.map((p) => (

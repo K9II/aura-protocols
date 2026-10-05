@@ -25,6 +25,8 @@ vi.mock("@/lib/catalog-ops/data", () => ({
       // itself, but a second live lot on 10 mg below shares live_at with "a"
       // to exercise the lot_number tie-break (hold_vials order).
       lot({ id: "c", lot_number: "SS10-2608-09", variant_id: "10mg", status: "live", live_at: "2026-09-24", sellable: 50, held: 0, sold: 0, available: 50 }),
+      // A sold-out lot: still status "live", just available 0 — it needs to stay retirable.
+      lot({ id: "h", lot_number: "SS10-2607-05", variant_id: "10mg", status: "live", live_at: "2026-07-01", sellable: 80, held: 0, sold: 80, available: 0 }),
       draftLot,
       lot({ id: "f", lot_number: "SS5-2608-01", variant_id: "5mg", status: "retired", live_at: "2026-08-01", sellable: 100, sold: 100, available: 0 }),
       lot({ id: "g", lot_number: "SS2-2609-01", variant_id: "2mg", status: "draft", live_at: null, sellable: 50, available: 50 }),
@@ -78,6 +80,15 @@ describe("/admin/catalog/[slug]", () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     const refs = screen.getAllByText(/^SS10-/).map((n) => n.textContent);
     expect(refs.indexOf("SS10-2608-09")).toBeLessThan(refs.indexOf("SS10-2609-01"));
+  });
+  it("a sold-out live lot keeps its ⋯ menu (Retire, Replace certificate); a retired lot has none", async () => {
+    // LotActions' ⋯ is a <summary>, which jsdom doesn't expose as role "button" — query by its aria-label instead.
+    const { container } = render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    const soldOutMenu = container.querySelector('[aria-label="More for SS10-2607-05"]');
+    expect(soldOutMenu).toBeInTheDocument();
+    expect(container.querySelector('[aria-label="More for SS5-2608-01"]')).not.toBeInTheDocument();
+    expect(soldOutMenu!.nextElementSibling).toHaveTextContent("Retire lot");
+    expect(soldOutMenu!.nextElementSibling).toHaveTextContent("Replace certificate");
   });
 
   describe("strengths (Screen 8)", () => {

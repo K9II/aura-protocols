@@ -114,6 +114,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   <td><div className="a-cnt"><span><small>Held</small>{l.held}</span><span><small>Sold</small>{l.sold}</span><span><small>Left</small>{l.available}</span></div></td>
                   <td><div className="a-acts">
                     {kind === "live" && <><CorrectCountDialog lotId={l.id} lotNumber={l.lot_number} left={l.available} held={l.held} sold={l.sold} /><LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={live.length === 1} /></>}
+                    {/* Sold-out (available 0) is still a live lot — it can still be retired. Retired lots get no menu. */}
+                    {kind === "old" && l.status === "live" && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={false} />}
                     {kind === "draft" && (() => {
                       const refusal = liveRefusal({ status: l.status, coaPath: l.coa_path, sellable: l.sellable });
                       return <>
