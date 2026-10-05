@@ -24,6 +24,9 @@ import { lookupDiscountCode } from "@/lib/discounts/redeem";
 import { CLAIM_MESSAGE, CODE_MESSAGES, outcomeMessage, type ClaimResult } from "@/lib/discounts/messages";
 import type { CodeTerms } from "@/lib/discounts/rules";
 import { hashIp } from "@/lib/gate";
+import { catalogStockChanged, getLiveCatalog } from "@/lib/catalog-live";
+import { holdVials, type HoldResult } from "@/lib/catalog-ops/data";
+import { soldOutMessage } from "@/lib/catalog-ops/rules";
 
 const OFFER_CHECK_FAILED = "We couldn't check your new-account discount — please try again.";
 
@@ -120,7 +123,7 @@ async function releaseAbandonedCheckouts(customerId: string, adapter: CommerceAd
   const { failed } = await closeOpenCheckouts(customerId, adapter, { all: false });
   for (const f of failed) {
     await alertOwner(`Couldn't close an earlier checkout (${f.orderNumber})`,
-      `Starting a new checkout for customer ${customerId}, order ${f.orderNumber} (${f.id}, session ${f.sessionId ?? "none"}) could not be closed: ${f.error}. Any store credit it holds stays held until it expires.`);
+      `Starting a new checkout for customer ${customerId}, order ${f.orderNumber} (${f.id}, session ${f.sessionId ?? "none"}) could not be closed: ${f.error}. Any vials, discount-code use or store credit it holds stay held until it expires or the reconcile cron cancels it.`);
   }
 }
 
@@ -133,7 +136,14 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   if (!parsed.success) return { error: "Please complete the shipping address and confirm research use." };
   const { lines, ship, partnerCode, useCredit } = parsed.data;
 
-  let priced: PricedOrder = priceOrder(lines);
+  let live;
+  try {
+    live = await getLiveCatalog();
+  } catch (err) {
+    console.error("live catalog read failed:", err);
+    return { error: "The store is briefly unavailable — please try again." };
+  }
+  let priced: PricedOrder = priceOrder(lines, live.shown);
   if (priced.rejected.length) return { error: "Some items can't be ordered right now — they've been flagged below.", rejected: priced.rejected };
   if (priced.items.length === 0) return { error: "Your cart is empty." };
 
@@ -219,31 +229,60 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     discountCode: codeApplied ? { id: discountCode!.id, discountCents: result.codeDiscountCents } : null,
   });
 
+  // The customer still gets the message if the cancel itself fails; the
+  // owner is told, and the reconcile cron cancels the orphan later.
+  const cancelPending = async (why: string): Promise<void> => {
+    try {
+      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    } catch (err) {
+      console.error(`cancel order after ${why} failed:`, err);
+      await alertOwner(`Couldn't cancel ${order.orderNumber} after ${why}`,
+        `Order ${order.orderNumber} (${order.id}) could not be cancelled after ${why}: ${String(err)}. Held vials, code uses or credit stay held until the reconcile cron cancels the order.`);
+    }
+  };
+
+  // Vials are held the moment the order exists, oldest live lot first
+  // (hold_vials). Payment sells them; any cancel releases them
+  // (settle_holds_on_order_status). Never continue without a hold.
+  let hold: HoldResult;
+  try {
+    hold = await holdVials(order.id);
+  } catch (err) {
+    console.error("hold_vials failed:", err);
+    await cancelPending("a failed stock hold");
+    return { error: "We couldn't reserve your items — please try again." };
+  }
+  if (!hold.ok) {
+    await cancelPending("a stock shortfall");
+    if (hold.reason === "sold_out") {
+      catalogStockChanged();
+      const rejected: Rejection[] = hold.short.map((s) => ({ slug: s.slug, variantId: s.variantId, reason: "sold_out" }));
+      // Names come from the priced lines (what the order stored), so a
+      // strength archived or hidden meanwhile still reads right.
+      const named = hold.short.map((s) => {
+        const it = priced.items.find((i) => i.compoundSlug === s.slug && i.variantId === s.variantId);
+        return { name: it?.compoundName ?? s.slug, strength: it?.strength ?? s.variantId };
+      });
+      return { error: soldOutMessage(named), rejected };
+    }
+    return { error: "Something changed with your order — please try again." };
+  }
+  catalogStockChanged();
+
   // A use is held the moment the order exists; payment marks it used and any
   // cancel releases it (settle_code_on_order_status trigger). A claim that
   // can't be confirmed stops checkout — never silently full price.
   if (codeApplied) {
-    // The customer still gets the code message if the cancel itself fails;
-    // the owner is told, and the reconcile cron cancels the orphan later.
-    const cancelUnclaimed = async (): Promise<void> => {
-      try {
-        await transitionOrder(order.id, "awaiting_payment", "cancelled");
-      } catch (err) {
-        console.error("cancel order after failed code claim failed:", err);
-        await alertOwner(`Couldn't cancel ${order.orderNumber} after a discount-code claim failed`,
-          `Order ${order.orderNumber} (${order.id}) could not be cancelled after its discount-code claim failed: ${String(err)}. A discount-code use may be held until the reconcile cron cancels the order.`);
-      }
-    };
     let claim: ClaimResult;
     try {
       claim = await claimCode({ codeId: discountCode!.id, orderId: order.id, customerId: customer.id, discountCents: result.codeDiscountCents, cappedCents: result.cappedCents });
     } catch (err) {
       console.error("discount code claim failed:", err);
-      await cancelUnclaimed();
+      await cancelPending("a failed discount-code claim");
       return { error: CODE_MESSAGES.couldntCheck, codeError: CODE_MESSAGES.couldntCheck };
     }
     if (claim !== "ok") {
-      await cancelUnclaimed();
+      await cancelPending("a failed discount-code claim");
       return { error: CLAIM_MESSAGE[claim], codeError: CLAIM_MESSAGE[claim] };
     }
   }
@@ -256,8 +295,16 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   // the release_credit_on_cancel trigger (partners.sql) returns the held
   // amount automatically — no extra app code needed.
   if (credit) {
-    if (!(await spendCredit(customer.id, credit.creditCents, order.id))) {
-      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    let spent: boolean;
+    try {
+      spent = await spendCredit(customer.id, credit.creditCents, order.id);
+    } catch (err) {
+      console.error("spend store credit failed:", err);
+      await cancelPending("a failed store-credit hold");
+      return { error: "We couldn't apply your store credit — please try again." };
+    }
+    if (!spent) {
+      await cancelPending("a store-credit balance change");
       return { error: "Your store credit balance changed — please review your order again." };
     }
     if (credit.creditCents === priced.totalBeforeTaxCents + credit.taxCents) {
@@ -302,7 +349,8 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
       ...(credit ? { credit: { creditCents: credit.creditCents, taxCents: credit.taxCents } } : {}),
     });
     if (result.kind === "unavailable") {
-      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+      // cancelPending never throws, so the catch below can't cancel a second time.
+      await cancelPending("Stripe was unavailable");
       return { error: result.message };
     }
     sessionId = result.sessionId;
@@ -323,7 +371,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
           `Checkout failed after Stripe created session ${sessionId} for order ${order.orderNumber} (${order.id}); expiring it also failed: ${String(expireErr)}. If the customer pays it, the order is already cancelled - refund or recreate it.`);
       }
     }
-    await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    await cancelPending("a failed payment start");
     return { error: "We couldn't start payment — please try again." };
   }
 }

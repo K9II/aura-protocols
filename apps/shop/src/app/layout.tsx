@@ -8,6 +8,7 @@ import SiteFooter from "@/components/store/SiteFooter";
 import CartDrawer from "@/components/store/CartDrawer";
 import AccountGate from "@/components/store/gate/AccountGate";
 import HideOnAdmin from "@/components/store/HideOnAdmin";
+import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const spaceGrotesk = Space_Grotesk({
@@ -65,16 +66,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Live catalog for the cart and footer. Empty while the DB can't be read
+  // (pages show "Unavailable"; the cart keeps stored lines until it's back).
+  const live = await getLiveCatalogOrNull();
+  const shown = live?.shown ?? [];
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable} ${jetbrains.variable}`}>
       <body className="min-h-screen flex flex-col bg-[#EDE9E0]">
-        <CartProvider>
+        <CartProvider catalog={shown}>
           <HideOnAdmin><SiteNav /></HideOnAdmin>
           <main className="flex-1">{children}</main>
-          <HideOnAdmin><SiteFooter /></HideOnAdmin>
+          <HideOnAdmin><SiteFooter catalog={shown} /></HideOnAdmin>
           <CartDrawer />
           <AccountGate />
         </CartProvider>

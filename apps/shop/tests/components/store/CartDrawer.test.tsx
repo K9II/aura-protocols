@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { liveFixture } from "../../helpers/live-catalog";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { CartProvider, useCart } from "@/components/store/CartProvider";
 import CartDrawer from "@/components/store/CartDrawer";
@@ -16,7 +17,7 @@ describe("CartDrawer", () => {
 
   it("locks body scroll while open and restores it on close", async () => {
     render(
-      <CartProvider>
+      <CartProvider catalog={liveFixture()}>
         <OpenButton />
         <CartDrawer />
       </CartProvider>,
@@ -33,7 +34,7 @@ describe("CartDrawer", () => {
 
   it("moves focus to the close button on open and restores it to the trigger on close", async () => {
     render(
-      <CartProvider>
+      <CartProvider catalog={liveFixture()}>
         <OpenButton />
         <CartDrawer />
       </CartProvider>,
@@ -51,7 +52,7 @@ describe("CartDrawer", () => {
 
   it("traps Tab focus within the dialog", async () => {
     render(
-      <CartProvider>
+      <CartProvider catalog={liveFixture()}>
         <OpenButton />
         <CartDrawer />
       </CartProvider>,

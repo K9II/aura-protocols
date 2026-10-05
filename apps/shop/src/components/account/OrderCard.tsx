@@ -18,7 +18,9 @@ export default function OrderCard({ order }: { order: OrderRow }) {
           {items.map((i) => (
             <li key={`${i.compound_slug}-${i.strength}-${i.pack_qty}`}>
               {i.compound_name} · {i.strength} · {i.pack_qty}-pack × {i.quantity} ·{" "}
-              <Link className="underline" href={`/coa?lot=${encodeURIComponent(i.lot_number)}`}>Lot {i.lot_number}</Link>
+              {i.lot_number.split(", ").filter(Boolean).map((lot, n) => (
+                <span key={lot}>{n > 0 && ", "}<Link className="underline" href={`/coa?lot=${encodeURIComponent(lot)}`}>Lot {lot}</Link></span>
+              ))}
             </li>
           ))}
         </ul>

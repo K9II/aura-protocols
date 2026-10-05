@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Compound } from "@/data/catalog";
+import { liveFixture } from "../helpers/live-catalog";
 
 const getCustomer = vi.fn();
 const createPendingOrder = vi.fn();
@@ -40,13 +41,20 @@ vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }), headers: async () => new Headers({ "x-forwarded-for": "1.2.3.4" }) }));
 
 const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
-vi.mock("@/data/catalog", () => ({
-  compounds: [{
-    slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
-    variants: [{ id: "5mg", strength: "5 mg", priceUsd: 49, stock: "in" }],
-    packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }], currentLot: tested,
-  }] satisfies Compound[],
-}));
+const liveList: Compound[] = [{
+  slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
+  variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", availableVials: 100, lot: tested }],
+  packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }],
+}];
+let liveCat: Compound[] = liveList;
+const holdVials = vi.fn(), catalogStockChanged = vi.fn();
+vi.mock("@/lib/catalog-ops/data", () => ({ holdVials }));
+vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog: async () => ({ all: liveCat, shown: liveCat, lots: [] }), catalogStockChanged }));
+beforeEach(() => {
+  liveCat = liveList;
+  holdVials.mockReset(); holdVials.mockResolvedValue({ ok: true });
+  catalogStockChanged.mockReset();
+});
 
 const customer = { id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false, stripeCustomerId: null, ship: null, createdAt: "2026-10-04T00:00:00Z" };
 const input = {
@@ -381,6 +389,133 @@ describe("startCheckoutAction", () => {
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     await startCheckoutAction({ ...input, partnerCode: "NOPE1" });
     expect(recordCodeFailure).toHaveBeenCalledWith("u1", "h:1.2.3.4");
+  });
+
+  it("holds the vials right after creating the pending order, then expires the catalog", async () => {
+    getCustomer.mockResolvedValue(customer);
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    const r = await startCheckoutAction(input);
+    expect(holdVials).toHaveBeenCalledWith("o1");
+    expect(holdVials.mock.invocationCallOrder[0]).toBeGreaterThan(createPendingOrder.mock.invocationCallOrder[0]);
+    expect(catalogStockChanged).toHaveBeenCalled();
+    expect(r.url).toBeDefined();
+  });
+
+  it("holds the vials before claiming a discount code", async () => {
+    getCustomer.mockResolvedValue(customer);
+    lookupDiscountCode.mockResolvedValue({ kind: "discount", id: "c1", code: "SPRING20", terms: ship20 });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, partnerCode: "SPRING20" });
+    expect(claimCode).toHaveBeenCalled();
+    expect(holdVials.mock.invocationCallOrder[0]).toBeLessThan(claimCode.mock.invocationCallOrder[0]);
+  });
+
+  it("a strength that sold out cancels the order, names it, and returns it as rejected (no Stripe page)", async () => {
+    getCustomer.mockResolvedValue(customer);
+    liveCat = liveFixture();
+    holdVials.mockResolvedValue({ ok: false, reason: "sold_out", short: [{ slug: "mots-c", variantId: "10mg" }] });
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    const r = await startCheckoutAction({ ...input, lines: [{ slug: "mots-c", variantId: "10mg", packQty: 2, quantity: 1 }] });
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+    expect(r).toEqual({
+      error: "MOTS-c 10 mg just sold out — we've removed it from your cart.",
+      rejected: [{ slug: "mots-c", variantId: "10mg", reason: "sold_out" }],
+    });
+    expect(catalogStockChanged).toHaveBeenCalled();
+    expect(claimCode).not.toHaveBeenCalled();
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("an inactive strength at hold time cancels the order and asks to retry", async () => {
+    getCustomer.mockResolvedValue(customer);
+    holdVials.mockResolvedValue({ ok: false, reason: "inactive" });
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    const r = await startCheckoutAction(input);
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+    expect(r).toEqual({ error: "Something changed with your order — please try again." });
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("a failed hold cancels the order and never continues unheld", async () => {
+    getCustomer.mockResolvedValue(customer);
+    holdVials.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    const r = await startCheckoutAction(input);
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+    expect(r.error).toBe("We couldn't reserve your items — please try again.");
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("a failed hold whose cancel also fails alerts the owner and still asks to retry", async () => {
+    getCustomer.mockResolvedValue(customer);
+    holdVials.mockRejectedValue(new Error("db down"));
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    const r = await startCheckoutAction(input);
+    expect(r.error).toBe("We couldn't reserve your items — please try again.");
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("prices from the live catalog, not code", async () => {
+    getCustomer.mockResolvedValue(customer);
+    liveCat = liveFixture();
+    createCheckout.mockResolvedValue(redirect);
+    // liveFixture prices every strength at $79; a 2-pack has a 5% pack discount
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, lines: [{ slug: "bpc-157", variantId: "10mg", packQty: 2, quantity: 1 }] });
+    expect(createPendingOrder.mock.calls[0][0].priced.items[0].unitPriceCents).toBe(15010);
+  });
+
+  it("store credit that can't be spent (spendCredit throws) cancels the order and never starts Stripe", async () => {
+    getCustomer.mockResolvedValue(customer);
+    creditBalance.mockResolvedValue(1000);
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    spendCredit.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, useCredit: true })).toEqual({ error: "We couldn't apply your store credit — please try again." });
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("a balance-changed cancel that fails alerts the owner and still tells the customer", async () => {
+    getCustomer.mockResolvedValue(customer);
+    creditBalance.mockResolvedValue(1000);
+    quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
+    spendCredit.mockResolvedValue(false);
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction({ ...input, useCredit: true })).toEqual({ error: "Your store credit balance changed — please review your order again." });
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+    expect(createCheckout).not.toHaveBeenCalled();
+  });
+
+  it("Stripe unavailable cancels the order exactly once, even when that cancel fails", async () => {
+    getCustomer.mockResolvedValue(customer);
+    createCheckout.mockResolvedValue({ kind: "unavailable", message: "Payments are paused." });
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction(input)).toEqual({ error: "Payments are paused." });
+    expect(transitionOrder.mock.calls.filter((c) => c[0] === "o1" && c[2] === "cancelled")).toHaveLength(1);
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+  });
+
+  it("a Stripe session failure whose cancel also fails alerts the owner and asks to retry", async () => {
+    getCustomer.mockResolvedValue(customer);
+    createCheckout.mockRejectedValue(new Error("stripe down"));
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect(await startCheckoutAction(input)).toEqual({ error: "We couldn't start payment — please try again." });
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
   });
 
   it("cancels the pending order if Stripe fails, and charges nothing", async () => {

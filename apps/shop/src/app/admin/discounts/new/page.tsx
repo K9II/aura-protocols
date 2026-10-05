@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireOwner } from "@/lib/dal";
 import { getDiscountCap } from "@/lib/discounts/data";
+import { getLiveCatalog } from "@/lib/catalog-live";
 import DiscountForm from "@/components/admin/discounts/DiscountForm";
 import { Crumbs } from "@/components/admin/ui";
 
@@ -10,7 +11,7 @@ export const metadata: Metadata = { title: "New code", robots: { index: false, f
 export default async function NewCodePage({ searchParams }: { searchParams: Promise<{ mode?: string | string[] }> }) {
   await requireOwner();
   const mode = (await searchParams).mode === "batch" ? "batch" : "single";
-  const capPct = await getDiscountCap();
+  const [capPct, live] = await Promise.all([getDiscountCap(), getLiveCatalog()]);
   return (
     <div className="a-page">
       <Crumbs items={[{ label: "Discounts", href: "/admin/discounts" }, { label: mode === "batch" ? "New batch" : "New code" }]} />
@@ -23,7 +24,7 @@ export default async function NewCodePage({ searchParams }: { searchParams: Prom
           </div>
         </div>
       </div>
-      <DiscountForm key={mode} mode={mode} capPct={capPct} />
+      <DiscountForm key={mode} mode={mode} capPct={capPct} catalog={live.all} />
     </div>
   );
 }

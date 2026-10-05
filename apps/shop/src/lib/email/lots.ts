@@ -1,18 +1,14 @@
-// Lots ready to announce: tested, certificate file posted, not announced yet.
-// Pure — the catalog and the set of announced lot numbers come in.
-import type { Compound } from "@/data/catalog";
-import { isPendingLot } from "@/lib/catalog";
+// Lots ready to announce: live, certificate file posted, its strength on the
+// store (not hidden or archived), not announced yet.
+// Pure — the live catalog's lots and the set of announced lot numbers come in.
+import type { PublicLot } from "@/data/catalog";
 import type { AlertLot } from "@/lib/emails-marketing";
 
-export function unannouncedLots(list: Compound[], announced: Set<string>): AlertLot[] {
-  const out: AlertLot[] = [];
-  for (const c of list) {
-    const l = c.currentLot;
-    if (isPendingLot(l) || !l.coaFile || announced.has(l.lot)) continue;
-    out.push({
-      compoundName: c.name, slug: c.slug, strengths: c.variants.map((v) => v.strength).join(", "),
+export function unannouncedLots(lots: PublicLot[], announced: Set<string>): AlertLot[] {
+  return lots
+    .filter((l) => l.status === "live" && l.onStore && l.coaFile && !announced.has(l.lot))
+    .map((l) => ({
+      compoundName: l.compoundName, slug: l.slug, strengths: l.strength,
       lot: l.lot, purityPct: l.purityPct, method: l.method, testedOn: l.testedOn, coaFile: l.coaFile,
-    });
-  }
-  return out;
+    }));
 }

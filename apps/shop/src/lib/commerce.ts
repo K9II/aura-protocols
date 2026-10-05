@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import type { PricedItem } from "@/lib/pricing";
 import type { ShipAddress } from "@/lib/ship-address";
+import { CHECKOUT_EXPIRY_HOURS } from "@/lib/constants";
 
 export type CheckoutRequest = {
   orderId: string;
@@ -129,7 +130,7 @@ const stripeAdapter: CommerceAdapter = {
         }],
       }),
       automatic_tax: { enabled: !credit },
-      expires_at: Math.floor(Date.now() / 1000) + 23 * 3600,
+      expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_EXPIRY_HOURS * 3600,
       success_url: `${req.siteUrl}/order/${req.orderNumber}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.siteUrl}/checkout`,
     }, { idempotencyKey: `checkout-session-${req.orderId}` });

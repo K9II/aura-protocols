@@ -5,6 +5,7 @@ import { createCommission, markCommissionClearing, spendCredit } from "@/lib/par
 import { getCommerceAdapter } from "@/lib/commerce";
 import { orderConfirmationEmail, ownerNewOrderEmail } from "@/lib/emails";
 import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
+import { logOversold, orderHoldShortfall } from "@/lib/catalog-ops/data";
 
 // Runs once, right after an order moves to paid (webhook, reconciler, or a
 // fully store-credit order). Each step below is independent and wrapped in
@@ -62,6 +63,28 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
     } catch (err) {
       await alertOwner(`Sales tax not recorded for ${order.order_number}`, String(err));
     }
+  }
+
+  // Paid but not fully held (it was paid after its holds were released): the
+  // order still ships — the customer paid — but stock is short. Tell the owner.
+  try {
+    const short = await orderHoldShortfall(order.id);
+    if (short.length) {
+      // The owner hears about the shortfall first; logging it in the catalog
+      // history comes after, so a failed log never hides the list.
+      await alertOwner(`Oversold on ${order.order_number}`,
+        `Order ${order.order_number} was paid without enough held vials:\n${short.map((s) => `${s.compound_slug} ${s.variant_id}: ${s.need} ordered, ${s.covered} held`).join("\n")}\nCheck stock in Catalog & lots and correct counts once you know what you can ship.`);
+    }
+    for (const s of short) {
+      try {
+        await logOversold(s.compound_slug, s.variant_id, order.order_number, s.need, s.covered);
+      } catch (err) {
+        console.error("oversold event log failed:", err);
+        await alertOwner(`Oversold event not logged for ${order.order_number}`, `${s.compound_slug} ${s.variant_id}: ${String(err)}`);
+      }
+    }
+  } catch (err) {
+    await alertOwner(`Stock check failed for ${order.order_number}`, String(err));
   }
 
   await sendOrAlert({ to: order.email, ...orderConfirmationEmail(order) }, `order ${order.order_number}`);

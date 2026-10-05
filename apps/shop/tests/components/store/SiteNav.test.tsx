@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { liveFixture } from "../../helpers/live-catalog";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { CartProvider, useCart } from "@/components/store/CartProvider";
 import SiteNav from "@/components/store/SiteNav";
@@ -18,12 +19,12 @@ describe("SiteNav", () => {
 
   it("renders nothing inside the admin command center", () => {
     pathname = "/admin/discounts";
-    const { container } = render(<CartProvider><SiteNav /></CartProvider>);
+    const { container } = render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
     expect(container).toBeEmptyDOMElement();
   });
 
   it("shows Shop, the store links and a live cart count", () => {
-    render(<CartProvider><SiteNav /><Adder /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><SiteNav /><Adder /></CartProvider>);
     const actions = screen.getByRole("navigation", { name: "Main" }).children[2] as HTMLElement;
     expect(within(actions).getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/products");
     expect(screen.getByRole("link", { name: "COA Lookup" })).toHaveAttribute("href", "/coa");
@@ -35,14 +36,14 @@ describe("SiteNav", () => {
   });
 
   it("highlights the Cart link once something is in the cart", () => {
-    render(<CartProvider><SiteNav /><Adder /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><SiteNav /><Adder /></CartProvider>);
     expect(screen.getByRole("button", { name: /cart \(0\)/i })).not.toHaveClass("s-nav-cart-full");
     fireEvent.click(screen.getByText("add"));
     expect(screen.getByRole("button", { name: /cart \(2\)/i })).toHaveClass("s-nav-cart-full");
   });
 
   it("puts the logo at the left edge, links in the middle, Shop and Cart on the right", () => {
-    render(<CartProvider><SiteNav /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
     const nav = screen.getByRole("navigation", { name: "Main" });
     const logo = screen.getByRole("link", { name: "Aura Protocols home" });
     expect(logo).toHaveAttribute("href", "/");
@@ -55,7 +56,7 @@ describe("SiteNav", () => {
   });
 
   it("places the sign-in control between Shop and Cart, and a phone Shop link in the links row", () => {
-    render(<CartProvider><SiteNav /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
     const actions = screen.getByRole("navigation", { name: "Main" }).children[2] as HTMLElement;
     const labels = [...actions.querySelectorAll("a, button")].map((el) => el.textContent);
     expect(labels).toEqual(["Shop", "Sign in", "Cart (0)"]);
@@ -64,7 +65,7 @@ describe("SiteNav", () => {
   });
 
   it("shows the banner: ISO/IEC 17025-accredited US lab, COA on every lot, fast domestic shipping, free-shipping threshold", () => {
-    render(<CartProvider><SiteNav /></CartProvider>);
+    render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
     const bar = document.querySelector(".s-topbar") as HTMLElement;
     expect(bar.textContent?.replace(/\s+/g, " ").trim()).toBe(
       `Tested by an ISO/IEC 17025-accredited US lab · COA on every lot · Fast domestic shipping · Free over $${FREE_SHIPPING_THRESHOLD_USD}`,

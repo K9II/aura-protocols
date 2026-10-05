@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import type { DiscountCodeRow } from "@/lib/discounts/rules";
+import { liveFixture } from "../../helpers/live-catalog";
+
+const catalog = liveFixture();
 
 const saveCodeAction = vi.fn();
 vi.mock("@/app/admin/discounts/actions", () => ({ saveCodeAction, codeAvailableAction: vi.fn().mockResolvedValue({ ok: true, message: "SPRING20 is available" }) }));
@@ -20,7 +23,7 @@ describe("DiscountForm", () => {
 
   it("writes the live summary from the fields", async () => {
     const { default: DiscountForm } = await import("@/components/admin/discounts/DiscountForm");
-    render(<DiscountForm mode="single" capPct={30} />);
+    render(<DiscountForm catalog={catalog} mode="single" capPct={30} />);
     fireEvent.change(screen.getByLabelText("Code"), { target: { value: "SPRING20" } });
     fireEvent.click(screen.getByRole("radio", { name: /Order %/ }));
     fireEvent.change(screen.getByLabelText("Percent off"), { target: { value: "20" } });
@@ -30,7 +33,7 @@ describe("DiscountForm", () => {
 
   it("shows the worst-case basket and warns when the cap trims it", async () => {
     const { default: DiscountForm } = await import("@/components/admin/discounts/DiscountForm");
-    render(<DiscountForm mode="single" capPct={30} />);
+    render(<DiscountForm catalog={catalog} mode="single" capPct={30} />);
     fireEvent.click(screen.getByRole("radio", { name: /Order %/ }));
     fireEvent.change(screen.getByLabelText("Percent off"), { target: { value: "20" } });
     fireEvent.click(screen.getByRole("switch", { name: /Apply on top/ }));
@@ -41,7 +44,7 @@ describe("DiscountForm", () => {
 
   it("batch mode swaps the code field for prefix and count", async () => {
     const { default: DiscountForm } = await import("@/components/admin/discounts/DiscountForm");
-    render(<DiscountForm mode="batch" capPct={30} />);
+    render(<DiscountForm catalog={catalog} mode="batch" capPct={30} />);
     expect(screen.queryByLabelText("Code")).toBeNull();
     expect(screen.getByLabelText("Prefix")).toBeInTheDocument();
     expect(screen.getByLabelText("How many")).toBeInTheDocument();
@@ -50,7 +53,7 @@ describe("DiscountForm", () => {
 
   it("free shipping posts scope all with no items, even after an empty 'Only these'", async () => {
     const { default: DiscountForm } = await import("@/components/admin/discounts/DiscountForm");
-    const { container } = render(<DiscountForm mode="single" capPct={30} />);
+    const { container } = render(<DiscountForm catalog={catalog} mode="single" capPct={30} />);
     fireEvent.click(screen.getByRole("radio", { name: "Only these" }));
     expect(hidden(container, "scope")!.value).toBe("only");
     fireEvent.click(screen.getByRole("radio", { name: /Free shipping/ }));
@@ -61,7 +64,7 @@ describe("DiscountForm", () => {
   it("says to fix the marked fields when the action returns field errors", async () => {
     saveCodeAction.mockResolvedValue({ fieldErrors: { value: "Use a whole percent from 1 to 100." } });
     const { default: DiscountForm } = await import("@/components/admin/discounts/DiscountForm");
-    const { container } = render(<DiscountForm mode="single" capPct={30} />);
+    const { container } = render(<DiscountForm catalog={catalog} mode="single" capPct={30} />);
     await act(async () => { fireEvent.submit(container.querySelector("form")!); });
     expect(await screen.findByText("Fix the fields marked below.")).toBeInTheDocument();
     expect(screen.getByLabelText("Percent off")).toHaveAttribute("aria-invalid", "true");
@@ -70,7 +73,7 @@ describe("DiscountForm", () => {
 
   it("prefills an edit: cents → dollars, UTC ISO → Mountain, id and kind as hidden fields", async () => {
     const { default: DiscountForm } = await import("@/components/admin/discounts/DiscountForm");
-    const { container } = render(<DiscountForm mode="single" capPct={30} existing={row()} />);
+    const { container } = render(<DiscountForm catalog={catalog} mode="single" capPct={30} existing={row()} />);
     expect(screen.getByLabelText("Amount off")).toHaveValue(10.5);
     expect(screen.getByLabelText("Minimum order")).toHaveValue(150);
     expect(screen.getByLabelText("Starts")).toHaveValue("2030-10-05T00:00");
@@ -85,7 +88,7 @@ describe("DiscountForm", () => {
 
   it("a batch edit omits max uses, the email lock and prefix/count", async () => {
     const { default: DiscountForm } = await import("@/components/admin/discounts/DiscountForm");
-    const { container } = render(<DiscountForm mode="batch" capPct={30} existing={row({ batch_id: "22222222-2222-4222-8222-222222222222", max_uses: 1 })} />);
+    const { container } = render(<DiscountForm catalog={catalog} mode="batch" capPct={30} existing={row({ batch_id: "22222222-2222-4222-8222-222222222222", max_uses: 1 })} />);
     expect(hidden(container, "mode")!.value).toBe("batch");
     expect(hidden(container, "id")).not.toBeNull();
     expect(container.querySelector('[name="maxUses"]')).toBeNull();

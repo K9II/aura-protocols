@@ -1,5 +1,5 @@
 // Every redirect the shop declares. RELATIVE IMPORTS ONLY (next.config.ts).
-import { compounds } from "../data/catalog";
+import { catalogContent } from "../data/catalog";
 
 export type Redirect = { source: string; destination: string; permanent: boolean };
 
@@ -20,7 +20,8 @@ export function buildRedirects({ blogPublished }: { blogPublished: boolean }): R
   for (const s of REMOVED_TO_HOME) out.push({ source: s, destination: "/", permanent: true });
   for (const [from, to] of Object.entries(SLUG_RENAMES)) out.push({ source: `/products/${from}`, destination: `/products/${to}`, permanent: true });
 
-  const oldSlugs = [...compounds.map((c) => c.slug), ...Object.keys(SLUG_RENAMES)];
+  // Every content product (a hidden product's old link lands on its 404, as before).
+  const oldSlugs = [...catalogContent.map((c) => c.slug), ...Object.keys(SLUG_RENAMES)];
   for (const v of GO_VENDOR_IDS) {
     for (const slug of oldSlugs) {
       out.push({ source: `/go/aura-${v}-${slug}`, destination: `/products/${SLUG_RENAMES[slug] ?? slug}`, permanent: true });

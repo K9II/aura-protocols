@@ -1,18 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { allCompounds } from "@/data/catalog";
+import { catalogContent } from "@/data/catalog";
 import { STRUCTURES, STRUCTURE_PANELS } from "@/data/catalog-structure";
 
 const PUBLIC = join(__dirname, "..", "..", "public");
 
 describe("3D structures", () => {
   it("every catalog product has at least one structure panel", () => {
-    for (const c of allCompounds) expect(STRUCTURE_PANELS[c.slug]?.length, c.slug).toBeGreaterThan(0);
+    for (const c of catalogContent) expect(STRUCTURE_PANELS[c.slug]?.length, c.slug).toBeGreaterThan(0);
   });
 
   it("blends get one panel per component; CJC-1295 / Ipamorelin gets both molecules", () => {
-    for (const c of allCompounds.filter((x) => x.components && x.components.length)) {
+    for (const c of catalogContent.filter((x) => x.components && x.components.length)) {
       expect(STRUCTURE_PANELS[c.slug], c.slug).toEqual(c.components);
     }
     expect(STRUCTURE_PANELS["cjc-1295-ipamorelin"]).toEqual(["cjc-1295-no-dac", "ipamorelin"]);

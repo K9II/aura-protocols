@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { compounds } from "@/data/catalog";
-import { isPendingLot } from "@/lib/catalog";
+import type { PublicLot } from "@/data/catalog";
 import CoaLookup, { type LotRow } from "@/components/store/CoaLookup";
+import Unavailable from "@/components/store/Unavailable";
+import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 
 export const metadata: Metadata = {
   title: "COA Lookup",
@@ -9,14 +10,20 @@ export const metadata: Metadata = {
   alternates: { canonical: "/coa" },
 };
 
-const rows: LotRow[] = compounds.flatMap((c) =>
-  isPendingLot(c.currentLot) ? [] : [{
-    lot: c.currentLot.lot, name: c.name, slug: c.slug, purityPct: c.currentLot.purityPct,
-    method: c.currentLot.method, testedOn: c.currentLot.testedOn, coaFile: c.currentLot.coaFile,
-  }],
-);
+const STATUS: Record<PublicLot["status"], string> = { live: "Current", sold_out: "Sold out", retired: "Retired" };
 
-export default function CoaPage() {
+// Every lot that was ever live, newest first.
+function coaRows(lots: PublicLot[]): LotRow[] {
+  return [...lots].sort((a, b) => b.liveAt.localeCompare(a.liveAt)).map((l) => ({
+    lot: l.lot, name: l.compoundName, slug: l.slug, strength: l.strength, purityPct: l.purityPct,
+    method: l.method, testedOn: l.testedOn, coaFile: l.coaFile, status: STATUS[l.status],
+  }));
+}
+
+export default async function CoaPage() {
+  const live = await getLiveCatalogOrNull();
+  if (!live) return <Unavailable />;
+  const rows = coaRows(live.lots);
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-16">

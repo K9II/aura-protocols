@@ -1,11 +1,12 @@
 import "server-only";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { canTransition, type OrderStatus } from "@/lib/order-status";
+import { catalogStockChanged } from "@/lib/catalog-live";
 import type { PricedOrder } from "@/lib/pricing";
 import type { ShipAddress } from "@/lib/ship-address";
 
 export type OrderItemRow = {
-  compound_slug: string; compound_name: string; variant_id: string; strength: string; pack_qty: number;
+  id: string; compound_slug: string; compound_name: string; variant_id: string; strength: string; pack_qty: number;
   quantity: number; unit_price_cents: number; line_total_cents: number; lot_number: string;
 };
 export type OrderRow = {
@@ -90,11 +91,20 @@ export async function transitionOrder(
     .update({ ...patch, status: to, ...(stamp ? { [stamp]: new Date().toISOString() } : {}) })
     .eq("id", id).eq("status", from).select("id");
   if (error) throw new Error(`transition failed: ${JSON.stringify(error)}`);
-  return Array.isArray(data) && data.length === 1;
+  const moved = Array.isArray(data) && data.length === 1;
+  // Cancels release held vials; a refund before shipping returns sold ones
+  // (settle_holds_on_order_status). Either way availability went up.
+  if (moved && (to === "cancelled" || to === "refunded")) catalogStockChanged();
+  return moved;
 }
 
 export async function getOrderById(id: string): Promise<OrderRow | null> {
   const { data } = await db().from("orders").select(ORDER_WITH_ITEMS).eq("id", id).maybeSingle();
+  return (data as OrderRow | null) ?? null;
+}
+
+export async function getOrderByNumber(orderNumber: string): Promise<OrderRow | null> {
+  const { data } = await db().from("orders").select(ORDER_WITH_ITEMS).eq("order_number", orderNumber).maybeSingle();
   return (data as OrderRow | null) ?? null;
 }
 

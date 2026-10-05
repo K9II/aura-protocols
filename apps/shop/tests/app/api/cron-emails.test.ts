@@ -8,7 +8,8 @@ vi.mock("@/lib/email/cart", () => ({ listAbandonedCheckouts }));
 vi.mock("@/lib/orders", () => ({ getOrderById }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
-vi.mock("@/data/catalog", () => ({ compounds: [] }));
+const getLiveCatalog = vi.fn();
+vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog }));
 vi.mock("@/lib/account/offer-data", () => ({ offerForEmail }));
 
 const auth = (s = "cron-s") => new Request("http://localhost/api/cron/emails", { headers: { authorization: `Bearer ${s}` } });
@@ -17,7 +18,8 @@ const H = 3600 * 1000, D = 24 * H;
 describe("GET /api/cron/emails", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, listAbandonedCheckouts, alertOwner, welcomeSendsFor, getOrderById, offerForEmail]) f.mockReset();
+    for (const f of [listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, listAbandonedCheckouts, alertOwner, welcomeSendsFor, getOrderById, offerForEmail, getLiveCatalog]) f.mockReset();
+    getLiveCatalog.mockResolvedValue({ all: [], shown: [], lots: [] });
     welcomeSendsFor.mockResolvedValue(new Map());
     getOrderById.mockResolvedValue({ status: "awaiting_payment" });
     offerForEmail.mockResolvedValue(null);
@@ -63,6 +65,41 @@ describe("GET /api/cron/emails", () => {
     const { GET } = await import("@/app/api/cron/emails/route");
     await GET(auth());
     expect(sendTracked.mock.calls[0][0]).toMatchObject({ email: "a@b.co", kind: "cart_1", ref: "o1" });
+  });
+
+  it("links the certificate of the lot selling now, else the last sold-out one, never a retired lot", async () => {
+    const pl = (lot: string, slug: string, status: string) => ({ lot, slug, status, coaFile: `https://b/coa/${lot}.pdf`, compoundName: slug, variantId: "10mg", strength: "10 mg", purityPct: 99, method: "HPLC", testedOn: "2026-09-01", liveAt: "2026-09-02T00:00:00Z", onStore: true });
+    getLiveCatalog.mockResolvedValue({ all: [], shown: [], lots: [
+      pl("BPC-OLD", "bpc-157", "sold_out"), pl("BPC-NOW", "bpc-157", "live"),
+      pl("TB-RET", "tb-500", "retired"), pl("TB-SOLD", "tb-500", "sold_out"),
+      pl("KPV-RET", "kpv", "retired"),
+    ] });
+    const item = (slug: string) => ({ compound_name: slug, strength: "10 mg", pack_qty: 2, quantity: 1, lot_number: "x", compound_slug: slug, variant_id: "10mg" });
+    listAbandonedCheckouts.mockResolvedValue([{ id: "o1", order_number: "AP-1042", email: "a@b.co", created_at: new Date(Date.now() - 13 * H).toISOString(), order_items: [item("bpc-157"), item("tb-500"), item("kpv")] }]);
+    sentKinds.mockResolvedValue(new Set(["cart_1:o1"]));
+    getSubscriber.mockResolvedValue(null);
+    const { GET } = await import("@/app/api/cron/emails/route");
+    await GET(auth());
+    const html: string = sendTracked.mock.calls[0][0].msg.html;
+    expect(sendTracked.mock.calls[0][0].kind).toBe("cart_2");
+    expect(html).toContain("https://b/coa/BPC-NOW.pdf");
+    expect(html).not.toContain("BPC-OLD");
+    expect(html).toContain("https://b/coa/TB-SOLD.pdf");
+    expect(html).not.toContain("RET.pdf");
+  });
+
+  it("links each strength's own certificate on a two-strength product", async () => {
+    const pl = (lot: string, variantId: string, status: string) => ({ lot, slug: "ss-31", status, coaFile: `https://b/coa/${lot}.pdf`, compoundName: "SS-31", variantId, strength: variantId.replace("mg", " mg"), purityPct: 99, method: "HPLC", testedOn: "2026-09-01", liveAt: "2026-09-02T00:00:00Z", onStore: true });
+    getLiveCatalog.mockResolvedValue({ all: [], shown: [], lots: [pl("SS-10-LIVE", "10mg", "live"), pl("SS-50-LIVE", "50mg", "live")] });
+    const item = (variantId: string) => ({ compound_name: "SS-31", strength: variantId.replace("mg", " mg"), pack_qty: 2, quantity: 1, lot_number: "x", compound_slug: "ss-31", variant_id: variantId });
+    listAbandonedCheckouts.mockResolvedValue([{ id: "o1", order_number: "AP-1042", email: "a@b.co", created_at: new Date(Date.now() - 13 * H).toISOString(), order_items: [item("50mg")] }]);
+    sentKinds.mockResolvedValue(new Set(["cart_1:o1"]));
+    getSubscriber.mockResolvedValue(null);
+    const { GET } = await import("@/app/api/cron/emails/route");
+    await GET(auth());
+    const html: string = sendTracked.mock.calls[0][0].msg.html;
+    expect(html).toContain("https://b/coa/SS-50-LIVE.pdf");
+    expect(html).not.toContain("SS-10-LIVE");
   });
 
   it("skips cart reminders for unsubscribed buyers", async () => {
@@ -133,6 +170,16 @@ describe("GET /api/cron/emails", () => {
     expect(await res.json()).toMatchObject({ welcome: 1, cart: 0, failed: 1 });
     expect(alertOwner).toHaveBeenCalledTimes(1);
     expect(alertOwner.mock.calls[0][1]).toContain("cart list:");
+  });
+
+  it("skips the cart list (but still sends welcome files) when the live catalog can't be read, with one alert", async () => {
+    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date(Date.now() - 2.5 * D).toISOString() }]);
+    getLiveCatalog.mockRejectedValue(new Error("catalog down"));
+    const { GET } = await import("@/app/api/cron/emails/route");
+    const res = await GET(auth());
+    expect(await res.json()).toMatchObject({ welcome: 1, cart: 0, failed: 1 });
+    expect(listAbandonedCheckouts).not.toHaveBeenCalled();
+    expect(alertOwner.mock.calls[0][1]).toContain("live catalog: catalog down");
   });
 
   it("stops before the 240s deadline and reports how many are left, without starting the cart loop", async () => {

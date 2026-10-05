@@ -7,6 +7,10 @@ export const BLOG_PUBLISHED = false;
 
 // Customer support mailbox — Kearney must confirm it receives mail before unpause.
 export const SUPPORT_EMAIL = "support@auraprotocols.com";
+
+// The purity the site promises (homepage "99% purity floor"). The receive-a-lot
+// dialog warns below it.
+export const PURITY_FLOOR_PCT = 99;
 // Shown at sign-in to a blocked account (admin Customers → Block).
 export const ACCOUNT_CLOSED_MESSAGE = `This account is closed. If you think this is a mistake, email ${SUPPORT_EMAIL} from the address on the account.`;
 
@@ -15,3 +19,6 @@ export const ACCOUNT_CLOSED_MESSAGE = `This account is closed. If you think this
 export const GOVERNING_STATE: string | null = null;
 // Business days from order to dispatch — set once Rapid Fulfillment confirms.
 export const DISPATCH_BUSINESS_DAYS: number | null = null;
+// A Stripe checkout page stays open this long; until then its vials, code use
+// and store credit stay held (lib/commerce.ts).
+export const CHECKOUT_EXPIRY_HOURS = 23;

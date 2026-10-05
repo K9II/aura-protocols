@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/store/CartProvider";
 import { priceOrder, type Rejection } from "@/lib/pricing";
@@ -17,14 +18,15 @@ import { FREE_SHIPPING_THRESHOLD_USD, formatUsd } from "@/lib/cart";
 const field = "w-full border border-[color:var(--ink)] bg-[color:var(--paper)] px-3.5 py-3 text-sm mb-4";
 const smallBtn: React.CSSProperties = { padding: "7px 13px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: "1px solid var(--ink)", background: "transparent", color: "var(--ink)" };
 const REASON: Record<Rejection["reason"], string> = {
-  unknown: "no longer listed", pending_lot: "certificate pending", out_of_stock: "out of stock",
+  unknown: "no longer listed", pending_lot: "certificate pending", out_of_stock: "out of stock", sold_out: "sold out",
   bad_pack: "pack size unavailable", bad_quantity: "quantity not allowed",
 };
 
 export default function CheckoutForm({ email, ship, initialCode, creditBalanceCents, newAccountOffer, capPct: pageCapPct }: {
   email: string; ship: ShipAddress | null; initialCode: string; creditBalanceCents: number; newAccountOffer: FirstOrderOffer; capPct: number;
 }) {
-  const { lines, code: cartCode, setCode: setCartCode } = useCart();
+  const { catalog, lines, removeStrengths, code: cartCode, setCode: setCartCode } = useCart();
+  const router = useRouter();
   // A code typed in the cart wins over a referral link's code (same priority as the server).
   const startCode = cartCode || initialCode;
   const [addr, setAddr] = useState({
@@ -42,7 +44,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const [rejected, setRejected] = useState<Rejection[]>([]);
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
-  const base = useMemo(() => priceOrder(lines), [lines]);
+  const base = useMemo(() => priceOrder(lines, catalog), [lines, catalog]);
   // The automatic percent: the new-account percent or a partner code's
   // percent, whichever is larger (they never stack). A discount code runs
   // through the same engine the server uses; the server re-prices every order.
@@ -94,7 +96,18 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
       if (r.url) { leaving = true; window.location.assign(r.url); return; }
       setError(r.error ?? "Something went wrong — please try again.");
       if (r.codeError) { setAppliedCode(null); setAppliedTerms(null); setCodeMsg({ ok: false, text: r.codeError }); }
-      setRejected(r.rejected ?? []);
+      const soldOut = (r.rejected ?? []).filter((x) => x.reason === "sold_out");
+      // Sold-out lines leave the cart (the server's message names them), so
+      // they aren't listed as blocking; anything else stays flagged below.
+      setRejected((r.rejected ?? []).filter((x) => x.reason !== "sold_out"));
+      if (soldOut.length) {
+        // Matched by strength against the cart as it is now (one state
+        // update), not by indexes captured when the form was submitted.
+        removeStrengths(soldOut);
+        // The cart's catalog comes from the root layout and may be stale:
+        // re-render it so every line shows current stock.
+        router.refresh();
+      }
     } catch {
       setError("Something went wrong — please try again.");
     } finally {
@@ -103,7 +116,8 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
     }
   }
 
-  if (lines.length === 0) return <p className="text-[color:var(--ink-soft)]">Your cart is empty.</p>;
+  // A sold-out line can empty the cart; keep its message on screen.
+  if (lines.length === 0) return <>{error && <p role="alert" className="mb-3 text-sm text-[color:var(--specimen)]">{error}</p>}<p className="text-[color:var(--ink-soft)]">Your cart is empty.</p></>;
   const allRejected = [...priced.rejected, ...rejected];
   // Free only because of the code, not the order-size threshold.
   const codeShipping = !!priced.freeShipping && priced.shippingCents === 0 && priced.subtotalCents - priced.partnerDiscountCents < FREE_SHIPPING_THRESHOLD_USD * 100;

@@ -594,6 +594,12 @@ main > .pharmacopoeia { overflow-x: clip; }
   .pharmacopoeia .s-specs > div { padding: 10px; }
   .pharmacopoeia .s-specs b { font-size: 18px; }
   .pharmacopoeia .s-specs b.s-mono { font-size: 13px; }
+  /* A 12-character lot number (e.g. SS10-2609-01) stays on one line on a phone. */
+  .pharmacopoeia .s-specs { grid-template-columns: minmax(0, .9fr) minmax(0, 1fr) minmax(0, 1.3fr); gap: 8px; }
+}
+@media (max-width: 360px) {
+  .pharmacopoeia .s-specs b { font-size: 15px; }
+  .pharmacopoeia .s-specs b.s-mono { font-size: 12px; }
 }
 .pharmacopoeia .s-certlink { display: inline-block; margin: 12px 0 22px; font-size: 13px; color: var(--specimen); border-bottom: 1px solid var(--specimen); }
 .pharmacopoeia .s-optlabel { margin: 20px 0 9px; color: var(--ink-soft); }
@@ -617,6 +623,11 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .pharmacopoeia .s-seg button em { font-style: normal; color: var(--specimen); margin-left: 4px; }
 .pharmacopoeia .s-seg button[aria-pressed="true"] em { color: #E8A79E; }
+/* Selected-strength stock label — same words/colours as CompoundCard's s-flag/s-pur */
+.pharmacopoeia .s-stock { margin: 10px 0 0; font-size: 13px; font-weight: 500; }
+.pharmacopoeia .s-stock--in { color: #2F6B3A; }
+.pharmacopoeia .s-stock--low { color: var(--specimen); }
+.pharmacopoeia .s-stock--out { color: var(--ink-soft); }
 .pharmacopoeia .s-atc { display: block; width: 100%; text-align: center; margin-top: 24px; background: var(--ink); color: var(--paper); padding: 15px; font: 14px Georgia, serif; letter-spacing: .06em; text-transform: uppercase; border: 0; cursor: pointer; transition: background .25s; }
 .pharmacopoeia .s-atc:hover:not(:disabled) { background: var(--specimen); }
 .pharmacopoeia .s-atc:disabled { background: #8a8475; cursor: not-allowed; }

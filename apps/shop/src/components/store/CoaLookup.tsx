@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 
 export type LotRow = {
-  lot: string; name: string; slug: string;
+  lot: string; name: string; slug: string; strength: string;
   purityPct: number; method: string; testedOn: string; coaFile: string;
+  status: string;   // "Current" | "Sold out" | "Retired"
 };
 
 export default function CoaLookup({ rows }: { rows: LotRow[] }) {
@@ -31,9 +32,9 @@ export default function CoaLookup({ rows }: { rows: LotRow[] }) {
       <div role="status" aria-live="polite">
         {searched && (hit ? (
           <div className="mt-8 border border-[color:var(--line)] p-6 max-w-xl">
-            <p className="s-micro text-[color:var(--ink-soft)]">Lot {hit.lot}</p>
+            <p className="s-micro text-[color:var(--ink-soft)]">Lot {hit.lot} · {hit.status}</p>
             <p className="p-serif text-3xl my-2"><Link href={`/products/${hit.slug}`}>{hit.name}</Link></p>
-            <p className="text-sm text-[color:var(--ink-soft)]">Purity {hit.purityPct}% · {hit.method} · tested {hit.testedOn}</p>
+            <p className="text-sm text-[color:var(--ink-soft)]">{hit.strength} · Purity {hit.purityPct}% · {hit.method} · tested {hit.testedOn}</p>
             {hit.coaFile ? (
               <a className="s-certlink" href={hit.coaFile} target="_blank" rel="noopener noreferrer">◇ Open certificate</a>
             ) : (

@@ -8,8 +8,11 @@ vi.mock("@/lib/email/data", () => ({ sendTracked, listConfirmedEmails }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
-vi.mock("@/data/catalog", () => ({
-  compounds: [{ slug: "bpc-157", name: "BPC-157", variants: [{ strength: "10 mg" }], currentLot: { lot: "AP-2611", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-11-28", coaFile: "/coa/AP-2611.pdf" } }],
+vi.mock("@/lib/catalog-live", () => ({
+  getLiveCatalog: async () => ({ all: [], shown: [], lots: [
+    { slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", status: "live", liveAt: "2026-11-29T00:00:00Z", onStore: true,
+      lot: "AP-2611", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-11-28", coaFile: "/coa/AP-2611.pdf" },
+  ] }),
 }));
 
 const AP2611 = { compoundName: "BPC-157", slug: "bpc-157", strengths: "10 mg", lot: "AP-2611", purityPct: 99.4, method: "HPLC+MS" as const, testedOn: "2026-11-28", coaFile: "/coa/AP-2611.pdf" };
