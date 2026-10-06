@@ -7,6 +7,10 @@ import { alertOwner } from "@/lib/notify";
 import { pruneLookups } from "@/lib/account/data";
 import { pruneCodeAttempts } from "@/lib/discounts/data";
 import { lotIntegrity } from "@/lib/catalog-ops/data";
+import { currentMs } from "@/lib/clock";
+import { logDisputeEvent, markReminded, openDisputes } from "@/lib/disputes/data";
+import { dueReminder, evidenceChip, reasonLabel } from "@/lib/disputes/rules";
+import { shortDate } from "@/lib/discounts/time";
 
 // Daily safety net (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`):
 // any Stripe session paid in the last 3 days whose order we never marked paid
@@ -78,6 +82,22 @@ export async function GET(request: Request): Promise<Response> {
     if (lines.length) await alertOwner("Reconcile: stock needs a look", lines.join("\n"));
   } catch (err) {
     failed.push(`lot integrity: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  // Chargeback deadlines: one alert DISPUTE_REMIND_DAYS before an unsubmitted
+  // deadline, each sent once (recorded on the dispute and in its activity).
+  try {
+    const nowMs = currentMs();
+    for (const d of await openDisputes()) {
+      const r = dueReminder(d, nowMs);
+      if (!r) continue;
+      const left = r.daysLeft === 0 ? "due today" : `${r.daysLeft} day${r.daysLeft === 1 ? "" : "s"} left`;
+      await alertOwner("Chargeback response due soon",
+        `${d.order.number} · ${reasonLabel(d.reason)} · ${left} (respond by ${shortDate(d.evidence_due_by!)}) · ${evidenceChip(d).text.toLowerCase()}. Open Disputes to review and submit the evidence.`);
+      await markReminded(d.id, r.marks);
+      await logDisputeEvent({ disputeId: d.id, action: "reminder", note: left, key: `reminder:${r.day}:${d.id}` });
+    }
+  } catch (err) {
+    failed.push(`dispute reminders: ${err instanceof Error ? err.message : String(err)}`);
   }
   if (fixedPaid.length) {
     await alertOwner("Reconciler fixed paid orders", `These paid orders were missing their webhook and have now been recorded: ${fixedPaid.join(", ")}`);
