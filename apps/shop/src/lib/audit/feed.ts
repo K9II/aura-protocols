@@ -23,7 +23,7 @@ export type ActivityItem = { key: string; at: string; area: ActivityArea; actorI
   | { source: "dispute"; e: DisputeEventRow; orderNumber: string | null }
   | { source: "alert"; e: { id: string; title: string; note: string | null } }
 );
-export type ActivityFilter = { area?: ActivityArea; actor?: string; before?: string };
+export type ActivityFilter = { area?: ActivityArea; actor?: string; before?: string; since?: string; until?: string };
 type Raw = ActivityItem extends infer T ? T extends ActivityItem ? Omit<T, "actorName"> : never : never;
 
 const db = () => getSupabaseAdminClient();
@@ -31,11 +31,13 @@ const fail = (what: string, error: unknown): never => { throw new Error(`${what}
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Applies the person and cursor filters to one source query.
-type Chain = { not(c: string, o: string, v: null): Chain; eq(c: string, v: string): Chain; lt(c: string, v: string): Chain; order(c: string, o: { ascending: boolean }): Chain; limit(n: number): Chain };
+type Chain = { not(c: string, o: string, v: null): Chain; eq(c: string, v: string): Chain; lt(c: string, v: string): Chain; gte(c: string, v: string): Chain; order(c: string, o: { ascending: boolean }): Chain; limit(n: number): Chain };
 function scoped<Q>(q: Q, actorCol: string, atCol: string, f: ActivityFilter): Q {
   let r = (q as unknown as Chain).not(actorCol, "is", null);
   if (f.actor) r = r.eq(actorCol, f.actor);
   if (f.before) r = r.lt(atCol, f.before);
+  if (f.since) r = r.gte(atCol, f.since);
+  if (f.until) r = r.lt(atCol, f.until);
   return r.order(atCol, { ascending: false }).limit(ACTIVITY_PAGE) as unknown as Q;
 }
 

@@ -9,7 +9,7 @@ export default function Activity() {
       tasks={<>
         <Task title="Find who did something">
           <Step>Open <Ui>Activity</Ui> in the menu. The newest actions are at the top.</Step>
-          <Step>Pick an area (for example <Ui>Orders</Ui> or <Ui>Discounts</Ui>) to narrow the list, or choose a name under <Ui>Person</Ui> and <Ui>Show</Ui>.</Step>
+          <Step>Pick an area (for example <Ui>Orders</Ui> or <Ui>Discounts</Ui>) to narrow the list. To look at one person or a stretch of days, choose a name under <Ui>Person</Ui> and dates under <Ui>From</Ui> and <Ui>To</Ui> (whole days, shop time; either can be left empty), then <Ui>Show</Ui>. <Ui>Clear</Ui> removes them.</Step>
           <Step><Ui>Open</Ui> goes to the order, customer, code or product the action was about. <Ui>Older</Ui> shows the next {ACTIVITY_PAGE}.</Step>
         </Task>
       </>}
