@@ -7,8 +7,10 @@ const headers = { "Cache-Control": "private, no-store" };
 // Tells AccountGate whether to show itself. Display only — checkout and every
 // account page still authorize through lib/dal.ts.
 export async function GET(): Promise<Response> {
-  const { customer, blocked } = await getAccountState();
+  const { customer, blocked, unfinished } = await getAccountState();
   if (blocked) return NextResponse.json({ state: "closed" }, { headers });
+  // Signed in with Google but never finished: the gate sends them to /finish-account.
+  if (unfinished) return NextResponse.json({ state: "finish" }, { headers });
   if (!customer) return NextResponse.json({ state: "anon" }, { headers });
   if (customer.verifyRequired && !customer.emailConfirmed) {
     const res = NextResponse.json({ state: "verify", email: customer.email }, { headers });

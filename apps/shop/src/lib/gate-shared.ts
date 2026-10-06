@@ -6,7 +6,7 @@ export const TERMS_VERSION = "2026-10-04";
 // visitor needs to get into an account, or pages landed on from an email.
 export const GATE_EXEMPT_PATHS = [
   "/terms", "/refund-policy", "/privacy", "/shipping", "/ruo",
-  "/sign-in", "/forgot-password", "/reset-password", "/verified", "/unsubscribed",
+  "/sign-in", "/forgot-password", "/reset-password", "/finish-account", "/verified", "/unsubscribed",
 ] as const;
 const GATE_EXEMPT_PREFIXES = ["/auth/"];
 

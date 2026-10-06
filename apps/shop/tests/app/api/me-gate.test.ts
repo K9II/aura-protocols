@@ -35,4 +35,12 @@ describe("GET /api/me/gate", () => {
     const { GET } = await import("@/app/api/me/gate/route");
     expect(await (await GET()).json()).toEqual({ state: "closed" });
   });
+
+  it("finish for a signed-in Google user with no customer record yet", async () => {
+    getAccountState.mockResolvedValue({ customer: null, blocked: false, unfinished: true });
+    const { GET } = await import("@/app/api/me/gate/route");
+    const res = await GET();
+    expect(await res.json()).toEqual({ state: "finish" });
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
+  });
 });
