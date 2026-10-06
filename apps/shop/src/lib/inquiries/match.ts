@@ -28,3 +28,11 @@ export function matchPlan(i: { recipients: string[]; subject: string }, domain: 
 }
 
 export const sameEmail = (a: string, b: string) => bare(a) === bare(b);
+
+// Why an email landed in Unmatched (shown under its subject).
+export function unmatchedReason(r: { to_address: string | null; subject: string }, domain: string): string {
+  const parts = [r.to_address && tokenFromAddress(r.to_address, domain) ? "Sent to an old or changed reply address" : "Sent to an address without a conversation"];
+  const ref = refFromSubject(r.subject);
+  if (ref) parts.push(`subject mentions Q-${ref} but the sender differs`);
+  return parts.join(" · ");
+}

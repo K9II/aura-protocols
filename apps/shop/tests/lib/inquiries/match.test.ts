@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { matchPlan, refFromSubject, replyAddress, sameEmail, tokenFromAddress } from "@/lib/inquiries/match";
+import { matchPlan, refFromSubject, replyAddress, sameEmail, tokenFromAddress, unmatchedReason } from "@/lib/inquiries/match";
 
 const D = "in.auraprotocols.com";
 const T = "0123456789abcdef0123456789abcdef";
@@ -24,5 +24,13 @@ describe("match", () => {
   it("compares emails case- and space-insensitively", () => {
     expect(sameEmail(" Dana.W@Example.com", "dana.w@example.com")).toBe(true);
     expect(sameEmail("a@x.com", "b@x.com")).toBe(false);
+  });
+});
+
+describe("unmatchedReason", () => {
+  it("explains why an email has no thread", () => {
+    expect(unmatchedReason({ to_address: `r-${T}@${D}`, subject: "Re: hi" }, D)).toBe("Sent to an old or changed reply address");
+    expect(unmatchedReason({ to_address: `r-${T}@${D}`, subject: "Re: x [Q-1049]" }, D)).toBe("Sent to an old or changed reply address · subject mentions Q-1049 but the sender differs");
+    expect(unmatchedReason({ to_address: `hello@${D}`, subject: "Hi" }, D)).toBe("Sent to an address without a conversation");
   });
 });
