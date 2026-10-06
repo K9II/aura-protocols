@@ -8,7 +8,7 @@ import { SESSION_ONLY_COOKIE, sessionCookieOptions } from "@/lib/supabase/sessio
 // 1) Refreshes the Supabase session on signed-in routes only (authorization
 //    stays in lib/dal.ts). 2) On any page, a valid ?ref=CODE sets the signed
 //    60-day referral cookie and counts the click after the response.
-const SESSION_PREFIXES = ["/account", "/checkout", "/order", "/admin", "/partners", "/reset-password"];
+const SESSION_PREFIXES = ["/account", "/checkout", "/order", "/admin", "/partners", "/reset-password", "/finish-account"];
 
 // Logged once per server process, not per request, if PARTNER_REF_SECRET is
 // missing — the cookie is simply skipped so no page ever crashes on it.

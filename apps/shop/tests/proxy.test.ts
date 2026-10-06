@@ -83,4 +83,13 @@ describe("proxy session refresh — Remember me off", () => {
     const cookie = res.headers.get("set-cookie") ?? "";
     expect(cookie).toMatch(/Max-Age=34560000/);
   });
+
+  it("refreshes the session on /finish-account", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://x.supabase.co";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon";
+    refreshOnGetUser = [{ name: "sb-access-token", value: "refreshed", options: { path: "/", sameSite: "lax", maxAge: 34560000 } }];
+    const { proxy } = await import("@/proxy");
+    const res = await proxy(new NextRequest("http://localhost/finish-account?next=%2F"), event() as never);
+    expect(res.headers.get("set-cookie") ?? "").toContain("sb-access-token=refreshed");
+  });
 });

@@ -54,11 +54,20 @@ export async function signInAction(_prev: AuthFormState, form: FormData): Promis
   redirect(safeNext(String(form.get("next") ?? "")));
 }
 
-export async function signOutAction(): Promise<void> {
+async function signOutAndGo(path: string): Promise<never> {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   (await cookies()).delete(SESSION_ONLY_COOKIE);
-  redirect("/");
+  redirect(path);
+}
+
+export async function signOutAction(): Promise<void> {
+  await signOutAndGo("/");
+}
+
+// "Not you?" on /finish-account: out of this Google account, back to sign-in.
+export async function signOutToSignInAction(): Promise<void> {
+  await signOutAndGo("/sign-in");
 }
 
 export async function requestPasswordResetAction(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {

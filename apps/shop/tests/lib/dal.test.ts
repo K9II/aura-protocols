@@ -49,7 +49,7 @@ describe("DAL", () => {
     // React's cache() may not memoize outside a request, so queue a read per call.
     from = fromQueue({ customers: [query({ data: blockedRow }), query({ data: blockedRow })] });
     const { getCustomer, getAccountState } = await import("@/lib/dal");
-    expect(await getAccountState()).toEqual({ customer: null, blocked: true });
+    expect(await getAccountState()).toEqual({ customer: null, blocked: true, unfinished: false });
     expect(await getCustomer()).toBeNull();
   });
 
@@ -57,13 +57,13 @@ describe("DAL", () => {
     getUser.mockResolvedValue({ data: { user: null }, error: { code: "user_banned", status: 403, message: "User is banned" } });
     const { verifySession, getAccountState } = await import("@/lib/dal");
     expect(await verifySession()).toBeNull();
-    expect(await getAccountState()).toEqual({ customer: null, blocked: true });
+    expect(await getAccountState()).toEqual({ customer: null, blocked: true, unfinished: false });
   });
 
   it("any other auth error is signed out, not blocked", async () => {
     getUser.mockResolvedValue({ data: { user: null }, error: { code: "session_not_found", status: 403, message: "x" } });
     const { getAccountState } = await import("@/lib/dal");
-    expect(await getAccountState()).toEqual({ customer: null, blocked: false });
+    expect(await getAccountState()).toEqual({ customer: null, blocked: false, unfinished: false });
   });
 
   it("requireCustomer redirects signed-out visitors to sign-in with a safe next path", async () => {
@@ -87,6 +87,20 @@ describe("DAL", () => {
     expect(safeNext(null)).toBe("/account");
   });
 
+  it("safeNext refuses control characters and backslashes that browsers turn into another origin", async () => {
+    const { safeNext } = await import("@/lib/dal");
+    for (const bad of ["/\t/evil.com", "/\n/evil.com", "/\r/evil.com", "/\\evil.com", "/a\\b", "//evil.com", "https://evil.com", "/\x00x", "/\x7Fx"]) {
+      expect(safeNext(bad), JSON.stringify(bad)).toBe("/account");
+    }
+  });
+
+  it("safeNext keeps the path, query and hash of a same-site path", async () => {
+    const { safeNext } = await import("@/lib/dal");
+    expect(safeNext("/products?cat=a&b=c#top")).toBe("/products?cat=a&b=c#top");
+    expect(safeNext("/products/x?y=1")).toBe("/products/x?y=1");
+    expect(safeNext("/")).toBe("/");
+  });
+
   it("requirePartner sends customers without a partner record to the application", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "u1", email: "j@lab.org", email_confirmed_at: "x" } }, error: null });
     from = fromQueue({ customers: [query({ data: row })] });
@@ -101,5 +115,58 @@ describe("DAL", () => {
     getPartnerForCustomer.mockResolvedValue({ id: "p1", status: "applied" });
     const { requireApprovedPartner } = await import("@/lib/dal");
     await expect(requireApprovedPartner()).rejects.toThrow("NOT_FOUND");
+  });
+
+  const googleUser = {
+    id: "g1", email: "dana@gmail.com", email_confirmed_at: "2026-10-05",
+    user_metadata: { full_name: "Dana Whitfield", name: "Dana W" }, app_metadata: { provider: "google", providers: ["google"] },
+  };
+
+  it("signed in with no customers row is unfinished (not anon, not a customer)", async () => {
+    getUser.mockResolvedValue({ data: { user: googleUser }, error: null });
+    from = fromQueue({ customers: [query({ data: null }), query({ data: null }), query({ data: null })] });
+    const { getAccountState, getCustomer, getUnfinishedUser } = await import("@/lib/dal");
+    expect(await getAccountState()).toEqual({ customer: null, blocked: false, unfinished: true });
+    expect(await getCustomer()).toBeNull();
+    expect(await getUnfinishedUser()).toEqual({ id: "g1", email: "dana@gmail.com", suggestedName: "Dana Whitfield", viaGoogle: true });
+  });
+
+  it("getUnfinishedUser falls back to the metadata name, and knows a non-Google user", async () => {
+    getUser.mockResolvedValue({ data: { user: { ...googleUser, user_metadata: { name: "  Dana W  " }, app_metadata: { provider: "email", providers: ["email"] } } }, error: null });
+    from = fromQueue({ customers: [query({ data: null })] });
+    const { getUnfinishedUser } = await import("@/lib/dal");
+    expect(await getUnfinishedUser()).toEqual({ id: "g1", email: "dana@gmail.com", suggestedName: "Dana W", viaGoogle: false });
+  });
+
+  it("getUnfinishedUser is null for a finished customer", async () => {
+    getUser.mockResolvedValue({ data: { user: googleUser }, error: null });
+    from = fromQueue({ customers: [query({ data: { ...row, id: "g1" } })] });
+    const { getUnfinishedUser } = await import("@/lib/dal");
+    expect(await getUnfinishedUser()).toBeNull();
+  });
+
+  it("a customers read error throws — never mistaken for an unfinished account", async () => {
+    getUser.mockResolvedValue({ data: { user: googleUser }, error: null });
+    from = fromQueue({ customers: [query({ error: { message: "db down" } })] });
+    const { getAccountState } = await import("@/lib/dal");
+    await expect(getAccountState()).rejects.toThrow(/customer read failed/);
+  });
+
+  it("requireCustomer sends an unfinished account to /finish-account", async () => {
+    getUser.mockResolvedValue({ data: { user: googleUser }, error: null });
+    from = fromQueue({ customers: [query({ data: null })] });
+    const { requireCustomer } = await import("@/lib/dal");
+    await expect(requireCustomer("/checkout")).rejects.toThrow("REDIRECT:/finish-account?next=%2Fcheckout");
+  });
+
+  it("customerStatus: none, ok or blocked; throws on a read error", async () => {
+    from = fromQueue({ customers: [
+      query({ data: null }), query({ data: row }), query({ data: { ...row, blocked_at: "2026-10-04T00:00:00Z" } }), query({ error: { message: "down" } }),
+    ] });
+    const { customerStatus } = await import("@/lib/dal");
+    expect(await customerStatus("u1")).toBe("none");
+    expect(await customerStatus("u1")).toBe("ok");
+    expect(await customerStatus("u1")).toBe("blocked");
+    await expect(customerStatus("u1")).rejects.toThrow(/customer read failed/);
   });
 });

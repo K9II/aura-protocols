@@ -1,5 +1,5 @@
 // One discount per line, never stacked: each line keeps its pack price or
-// takes the code's percent off list (partner code 10%, new-account 15%), whichever is lower for the customer.
+// takes the code's percent off list (partner code CODE_DISCOUNT_PCT, new-account NEW_ACCOUNT_PCT), whichever is lower for the customer.
 // Pure — used by checkout (server) and the checkout form preview (client).
 import { withCharges, type PricedOrder } from "@/lib/pricing";
 import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";

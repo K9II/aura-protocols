@@ -3,7 +3,7 @@
 import { useEffect, type RefObject } from "react";
 
 export const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Keeps Tab/Shift+Tab focus cycling inside `containerRef` while `active` is

@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Compound } from "@/data/catalog";
 import { liveFixture } from "../helpers/live-catalog";
+import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
+
+const NEW_ACCOUNT_CENTS = Math.round(4900 * NEW_ACCOUNT_PCT / 100); // the new-account percent of $49.00
 
 const getCustomer = vi.fn();
 const createPendingOrder = vi.fn();
@@ -145,7 +148,7 @@ describe("startCheckoutAction", () => {
     expect(createPendingOrder).not.toHaveBeenCalled();
   });
 
-  it("gives a new account's first order 15% off and records it", async () => {
+  it("gives a new account's first order the new-account percent off and records it", async () => {
     getCustomer.mockResolvedValue(customer);
     offerForCustomer.mockResolvedValue({ endsAt: "2026-10-18T23:59:59.999Z" });
     createCheckout.mockResolvedValue(redirect);
@@ -153,11 +156,11 @@ describe("startCheckoutAction", () => {
     await startCheckoutAction(input);
     const order = createPendingOrder.mock.calls[0][0];
     expect(order.newAccountDiscount).toBe(true);
-    expect(order.priced.partnerDiscountCents).toBe(735); // 15% of $49.00
-    expect(createCheckout.mock.calls[0][0]).toMatchObject({ partnerDiscountCents: 735, lineDiscountsCents: [735] });
+    expect(order.priced.partnerDiscountCents).toBe(NEW_ACCOUNT_CENTS);
+    expect(createCheckout.mock.calls[0][0]).toMatchObject({ partnerDiscountCents: NEW_ACCOUNT_CENTS, lineDiscountsCents: [NEW_ACCOUNT_CENTS] });
   });
 
-  it("uses the 15% over a typed partner code but still attributes the order to the partner", async () => {
+  it("uses the new-account percent over a typed partner code but still attributes the order to the partner", async () => {
     getCustomer.mockResolvedValue(customer);
     offerForCustomer.mockResolvedValue({ endsAt: "2026-10-18T23:59:59.999Z" });
     resolveAttribution.mockResolvedValue({ attribution: { partnerId: "p1", via: "code", code: "SMITHLAB" } });
@@ -166,7 +169,7 @@ describe("startCheckoutAction", () => {
     await startCheckoutAction({ ...input, partnerCode: "SMITHLAB" });
     const order = createPendingOrder.mock.calls[0][0];
     expect(order.partner).toEqual({ partnerId: "p1", attributedBy: "code" });
-    expect(order.priced.partnerDiscountCents).toBe(735);
+    expect(order.priced.partnerDiscountCents).toBe(NEW_ACCOUNT_CENTS);
     expect(order.newAccountDiscount).toBe(true);
   });
 

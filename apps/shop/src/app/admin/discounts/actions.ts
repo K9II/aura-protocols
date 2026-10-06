@@ -7,7 +7,7 @@ import { requireOwner } from "@/lib/dal";
 import {
   getCodeById, insertBatch, insertCode, isDiscountCodeTaken, resetUse, setCodeState, setDiscountCap, updateBatch, updateCode, type CodeInput,
 } from "@/lib/discounts/data";
-import { ADMIN_CODE_REASON, generateBatchCodes, MAX_BATCH_SIZE, normalizePrefix, validateAdminCode, type StoredStatus } from "@/lib/discounts/rules";
+import { ADMIN_CODE_REASON, CAP_MAX_PCT, CAP_MIN_PCT, generateBatchCodes, MAX_BATCH_SIZE, normalizePrefix, validateAdminCode, type StoredStatus } from "@/lib/discounts/rules";
 import { zonedToIso } from "@/lib/discounts/time";
 
 export type SaveState = { fieldErrors?: Record<string, string>; error?: string } | null;
@@ -193,7 +193,7 @@ export async function resetUseAction(f: FormData): Promise<void> {
 export async function setCapAction(_prev: { ok?: true; error?: string } | null, f: FormData): Promise<{ ok?: true; error?: string }> {
   const owner = await requireOwner();
   const cap = Number(str(f, "cap"));
-  if (!Number.isInteger(cap) || cap < 15 || cap > 60) return { error: "Use a whole percent from 15 to 60." };
+  if (!Number.isInteger(cap) || cap < CAP_MIN_PCT || cap > CAP_MAX_PCT) return { error: `Use a whole percent from ${CAP_MIN_PCT} to ${CAP_MAX_PCT}.` };
   await setDiscountCap(cap, owner.id);
   revalidatePath("/admin/discounts", "layout");
   return { ok: true };

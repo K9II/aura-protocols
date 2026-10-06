@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, act, fireEvent, waitFor } from "@testing-library/react";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
+
+const SAVE_RE = new RegExp(`New accounts save ${OFFER_PCT_TEXT}`);
 
 let pathname = "/";
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
@@ -9,6 +12,7 @@ const { gateSignInAction, gateSignUpAction, resendVerifyAction, signOutAction } 
 }));
 vi.mock("@/app/auth/gate-actions", () => ({ gateSignInAction, gateSignUpAction, resendVerifyAction }));
 vi.mock("@/app/auth/actions", () => ({ signOutAction }));
+vi.mock("@/app/auth/google-actions", () => ({ startGoogleAction: vi.fn() }));
 vi.mock("@/components/AuraLockup", () => ({ default: () => <span>Aura</span> }));
 
 const fetchMock = vi.fn();
@@ -41,15 +45,15 @@ describe("AccountGate", () => {
     await settle(1100);
     expect(document.querySelector(".ag.in")).not.toBeNull();
     expect(document.querySelector(".ag")).not.toHaveAttribute("inert");
-    expect(screen.getByRole("dialog", { name: /New accounts save 15%/ })).toHaveAttribute("aria-modal", "true");
+    expect(screen.getByRole("dialog", { name: SAVE_RE })).toHaveAttribute("aria-modal", "true");
     // Phone layout (jsdom has no matchMedia): step 1 focuses the card, not the email field,
     // so the keyboard doesn't pop up over the card on arrival.
-    expect(document.activeElement).toBe(screen.getByRole("dialog", { name: /New accounts save 15%/ }));
+    expect(document.activeElement).toBe(screen.getByRole("dialog", { name: SAVE_RE }));
     // Focus that escapes to the page is pulled back in on the next Tab.
     (document.activeElement as HTMLElement).blur();
     fireEvent.keyDown(document.body, { key: "Tab" });
     expect(document.querySelector(".ag")!.contains(document.activeElement)).toBe(true);
-    expect(screen.getByRole("heading", { name: /New accounts save 15%/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: SAVE_RE })).toBeInTheDocument();
   });
 
   it("never shows for a signed-in account", async () => {
@@ -120,7 +124,7 @@ describe("AccountGate", () => {
     const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
     render(<AccountGate />);
     await settle();
-    expect(screen.getByRole("heading", { name: /New accounts save 15%/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: SAVE_RE })).toBeInTheDocument();
   });
 
   it("branches a known email to sign-in and a new one to create-account", async () => {
@@ -270,6 +274,64 @@ describe("AccountGate", () => {
     expect(root).toHaveClass("kb");
     expect(root.style.getPropertyValue("--ag-vh")).toBe("420px");
     expect(root.style.getPropertyValue("--ag-vt")).toBe("30px");
+    vi.unstubAllGlobals();
+  });
+
+  it("step 1 offers Continue with Google above the email field, returning to this page", async () => {
+    pathname = "/products";
+    routes({ state: "anon" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await settle();
+    const google = screen.getByRole("button", { name: "Continue with Google" });
+    const email = screen.getByPlaceholderText("you@institution.org");
+    expect(google.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText("or use email")).toBeInTheDocument();
+    expect(document.querySelector<HTMLInputElement>('.ag form.g-signin-form input[name="next"]')!.value).toBe("/products");
+  });
+
+  it("the Google button keeps this page's query string", async () => {
+    pathname = "/products";
+    window.history.pushState({}, "", "/products?cat=peptides#list");
+    routes({ state: "anon" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await settle();
+    expect(document.querySelector<HTMLInputElement>('.ag form.g-signin-form input[name="next"]')!.value).toBe("/products?cat=peptides");
+    window.history.pushState({}, "", "/");
+  });
+
+  it("the /finish-account redirect keeps this page's query string", async () => {
+    pathname = "/products";
+    window.history.pushState({}, "", "/products?cat=peptides");
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, search: "?cat=peptides", assign });
+    routes({ state: "finish" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/finish-account?next=%2Fproducts%3Fcat%3Dpeptides"));
+    vi.unstubAllGlobals();
+    window.history.pushState({}, "", "/");
+  });
+
+  it("sends a signed-in visitor who hasn't finished their account to /finish-account", async () => {
+    pathname = "/products";
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, assign });
+    routes({ state: "finish" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/finish-account?next=%2Fproducts"));
+    vi.unstubAllGlobals();
+  });
+
+  it("desktop step 1 focuses the email field, not the Google form's hidden field", async () => {
+    vi.stubGlobal("matchMedia", (q: string) => ({ matches: q.includes("reduce") || q.includes("min-width"), addEventListener() {}, removeEventListener() {} }));
+    routes({ state: "anon" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await settle(50);
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByPlaceholderText("you@institution.org")));
     vi.unstubAllGlobals();
   });
 });

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { findViolations, visibleText } from "../../scripts/compliance-scan.mjs";
+import { OFFER_DAYS_TEXT, OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 const ctx = { site: "https://auraprotocols.com", unsubscribeUrl: "https://auraprotocols.com/api/unsubscribe?e=a%40b.co&s=x" };
 const offer = { endsAt: "2026-12-15T00:00:00.000Z" };
@@ -19,16 +20,16 @@ describe("marketing emails", () => {
     ]);
   });
 
-  it("shows the automatic 15% and its window in days (never a date) in Files 01 and 05 only, and drops it without an offer", async () => {
+  it("shows the automatic new-account percent and its window in days (never a date) in Files 01 and 05 only, and drops it without an offer", async () => {
     const { welcomeEmail } = await import("@/lib/emails-marketing");
-    expect(welcomeEmail(1, ctx, offer).html).toContain("FIRST ORDER · 15%");
+    expect(welcomeEmail(1, ctx, offer).html).toContain(`FIRST ORDER · ${OFFER_PCT_TEXT}`);
     expect(welcomeEmail(1, ctx, offer).html).toContain("Applied automatically");
     expect(welcomeEmail(1, ctx, offer).html).toContain("on a first order within 3 days of opening your account");
     expect(welcomeEmail(1, ctx, offer).html).not.toMatch(/Dec 15|no code needed/);
-    expect(welcomeEmail(5, ctx, offer).html).toContain("Your 15% applies automatically to a first order placed within 3 days of opening your account.");
-    expect(welcomeEmail(3, ctx, offer).html).not.toContain("15%");
-    expect(welcomeEmail(1, ctx, null).html).not.toContain("15%");
-    expect(welcomeEmail(5, ctx, null).html).not.toContain("15%");
+    expect(welcomeEmail(5, ctx, offer).html).toContain(`Your ${OFFER_PCT_TEXT} applies automatically to a first order placed within ${OFFER_DAYS_TEXT} of opening your account.`);
+    expect(welcomeEmail(3, ctx, offer).html).not.toContain(OFFER_PCT_TEXT);
+    expect(welcomeEmail(1, ctx, null).html).not.toContain(OFFER_PCT_TEXT);
+    expect(welcomeEmail(5, ctx, null).html).not.toContain(OFFER_PCT_TEXT);
     expect(welcomeEmail(1, ctx, offer).html).not.toMatch(/AURA-|10%/);
   });
 

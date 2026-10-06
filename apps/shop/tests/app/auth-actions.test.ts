@@ -86,4 +86,12 @@ describe("auth actions", () => {
     await expect(signOutAction()).rejects.toThrow("REDIRECT:/");
     expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
   });
+
+  it("\"Not you?\" signs out and goes back to sign-in", async () => {
+    auth.signOut.mockResolvedValue({ error: null });
+    const { signOutToSignInAction } = await import("@/app/auth/actions");
+    await expect(signOutToSignInAction()).rejects.toThrow("REDIRECT:/sign-in");
+    expect(auth.signOut).toHaveBeenCalled();
+    expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
+  });
 });

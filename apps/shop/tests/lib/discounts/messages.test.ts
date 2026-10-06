@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { CLAIM_MESSAGE, CODE_MESSAGES, outcomeMessage } from "@/lib/discounts/messages";
 import type { CodeTerms } from "@/lib/discounts/rules";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 const terms: CodeTerms = { kind: "order_pct", value: 20, stackOnTop: true, freeShipping: true, minOrderCents: 15000, includeSlugs: [], excludeSlugs: [], includeClasses: [], excludeClasses: [] };
 const base = { codeOutcome: "applied" as const, cappedCents: 0, codeDiscountCents: 3382, shortOfMinCents: 0, newAccount: false };
@@ -15,7 +16,7 @@ describe("outcomeMessage", () => {
   });
   it("bigger discount wins", () => {
     expect(outcomeMessage({ ...base, codeOutcome: "no_gain", newAccount: true }, "X", terms, 30))
-      .toEqual({ tone: "note", text: "Your new-account 15% is already larger than this code on these items, so we kept it." });
+      .toEqual({ tone: "note", text: `Your new-account ${OFFER_PCT_TEXT} is already larger than this code on these items, so we kept it.` });
     expect(outcomeMessage({ ...base, codeOutcome: "no_gain" }, "X", terms, 30))
       .toEqual({ tone: "note", text: "A larger discount already applies to these items, so this code isn't used." });
   });

@@ -38,6 +38,12 @@ describe("Guide chapters", () => {
     expect(container.textContent).toMatch(/over the 20% maximum, so checkout trims it and shows "capped at 20%"/);
   });
 
+  it("Customers explains that Google confirms an unconfirmed password account and removes its password", () => {
+    const { container } = render(<Customers />);
+    expect(container.textContent).toContain("If someone had made a password account with that email but never confirmed it, signing in with Google confirms it and removes the old password");
+    expect(container.textContent).toMatch(/Forgot password\?/);
+  });
+
   it("never quotes a partner commission rate", () => {
     const { container } = all();
     expect(container.textContent).not.toMatch(/commission[^.]*\d+%/i);

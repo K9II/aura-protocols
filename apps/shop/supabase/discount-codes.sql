@@ -81,7 +81,7 @@ alter table code_attempts enable row level security;
 
 create table if not exists shop_settings (
   id                boolean primary key default true check (id),
-  max_discount_pct  integer not null default 35 check (max_discount_pct between 15 and 60),  -- never below the new-account 15%
+  max_discount_pct  integer not null default 35 check (max_discount_pct between 15 and 60),  -- the app enforces CAP_MIN_PCT (= the new-account NEW_ACCOUNT_PCT, 25) as the floor
   updated_at        timestamptz not null default now()
 );
 alter table shop_settings enable row level security;

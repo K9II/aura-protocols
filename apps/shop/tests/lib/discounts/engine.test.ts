@@ -4,6 +4,7 @@ import { applyCodeDiscount } from "@/lib/partners/discounts";
 import { allocate, applyDiscounts, lineEligible } from "@/lib/discounts/engine";
 import type { CodeTerms } from "@/lib/discounts/rules";
 import type { Compound } from "@/data/catalog";
+import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
 
 const lot = { lot: "AP-1", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "" };
 const packs = [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }];
@@ -186,5 +187,27 @@ describe("review fixes", () => {
 
   it("allocate never gives a line more than its weight", () => {
     expect(allocate(1998, [999, 999, 1])).toEqual([998, 999, 1]);
+  });
+});
+
+describe("the live new-account percent (NEW_ACCOUNT_PCT) under the default store-wide cap (35)", () => {
+  const DEFAULT_CAP = 35;
+  const auto = { pct: NEW_ACCOUNT_PCT, newAccount: true };
+
+  it("is larger than every pack discount, so it wins on a 10-pack (larger-of, never both)", () => {
+    expect(Math.max(...packs.map((p) => p.pct))).toBeLessThan(NEW_ACCOUNT_PCT);
+    const r = applyDiscounts(order(["bpc-157", 10]), { auto, code: null, capPct: DEFAULT_CAP });
+    expect(r.lineDiscounts[0].source).toBe("auto");
+    expect(r.newAccount).toBe(true);
+    expect(r.subtotalCents - r.partnerDiscountCents).toBe(Math.round(79000 * (1 - NEW_ACCOUNT_PCT / 100)));
+    expect(r.cappedCents).toBe(0);
+  });
+
+  it("an on-top order code is trimmed by the cap to 35% of list", () => {
+    const r = applyDiscounts(order(["bpc-157", 10]), { auto, code: { ...spring, minOrderCents: null }, capPct: DEFAULT_CAP });
+    expect(r.codeOutcome).toBe("applied");
+    expect(r.subtotalCents - r.partnerDiscountCents).toBe(Math.round(79000 * (1 - DEFAULT_CAP / 100)));
+    expect(r.cappedCents).toBeGreaterThan(0);
+    expect(r.newAccount).toBe(true);
   });
 });

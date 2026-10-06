@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import type { ShipAddress } from "@/lib/ship-address";
@@ -21,6 +22,11 @@ export type Customer = SessionUser & {
   verifyRequired: boolean;
 };
 
+// unfinished: signed in (Google) but the account was never finished — no
+// customers row yet. They can't browse or buy until /finish-account.
+export type AccountState = { customer: Customer | null; blocked: boolean; unfinished: boolean };
+export type UnfinishedUser = { id: string; email: string; suggestedName: string; viaGoogle: boolean };
+
 type CustomerRow = {
   id: string; full_name: string; organization: string | null; is_owner: boolean; stripe_customer_id: string | null;
   ship_name: string | null; ship_line1: string | null; ship_line2: string | null;
@@ -30,15 +36,38 @@ type CustomerRow = {
   blocked_at: string | null;
 };
 
+type Profile = { name: string | null; viaGoogle: boolean };
+
+// The name Google gave us (full_name, else name) and whether this user has a Google identity.
+function profileOf(u: Pick<User, "user_metadata" | "app_metadata">): Profile {
+  const m = (u.user_metadata ?? {}) as Record<string, unknown>;
+  const raw = typeof m.full_name === "string" ? m.full_name : typeof m.name === "string" ? m.name : "";
+  const a = (u.app_metadata ?? {}) as Record<string, unknown>;
+  const providers: unknown[] = Array.isArray(a.providers) ? a.providers : typeof a.provider === "string" ? [a.provider] : [];
+  return { name: raw.trim().slice(0, 100) || null, viaGoogle: providers.includes("google") };
+}
+
 // Supabase refuses a banned user's still-live access token with "user_banned";
 // that's a blocked account, not a signed-out visitor.
-const readSession = cache(async (): Promise<{ user: SessionUser | null; banned: boolean }> => {
+const readSession = cache(async (): Promise<{ user: SessionUser | null; banned: boolean; profile: Profile | null }> => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser(); // verified with the auth server, not just the cookie
-  if (error) return { user: null, banned: (error as { code?: string }).code === "user_banned" };
-  if (!data.user?.email) return { user: null, banned: false };
-  return { user: { id: data.user.id, email: data.user.email, emailConfirmed: !!data.user.email_confirmed_at }, banned: false };
+  if (error) return { user: null, banned: (error as { code?: string }).code === "user_banned", profile: null };
+  if (!data.user?.email) return { user: null, banned: false, profile: null };
+  return {
+    user: { id: data.user.id, email: data.user.email, emailConfirmed: !!data.user.email_confirmed_at },
+    banned: false,
+    profile: profileOf(data.user),
+  };
 });
+
+// A read error must never look like "no customers row": that would send a
+// real customer to /finish-account. It throws instead (callers fail closed).
+async function readCustomerRow(id: string): Promise<CustomerRow | null> {
+  const { data, error } = await getSupabaseAdminClient().from("customers").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(`customer read failed: ${JSON.stringify(error)}`);
+  return (data as CustomerRow | null) ?? null;
+}
 
 export const verifySession = cache(async (): Promise<SessionUser | null> => (await readSession()).user);
 
@@ -46,18 +75,18 @@ export const verifySession = cache(async (): Promise<SessionUser | null> => (awa
 // everywhere: no page, action or checkout gets a customer. Supabase's ban
 // stops new sign-ins and token refreshes; this covers an access token that
 // is still live (up to an hour). The gate asks getAccountState to say "closed".
-export const getAccountState = cache(async (): Promise<{ customer: Customer | null; blocked: boolean }> => {
+export const getAccountState = cache(async (): Promise<AccountState> => {
   const { user, banned } = await readSession();
-  if (!user) return { customer: null, blocked: banned };
-  const { data } = await getSupabaseAdminClient().from("customers").select("*").eq("id", user.id).maybeSingle();
-  if (!data) return { customer: null, blocked: false };
-  const r = data as CustomerRow;
-  if (r.blocked_at) return { customer: null, blocked: true };
+  if (!user) return { customer: null, blocked: banned, unfinished: false };
+  const r = await readCustomerRow(user.id);
+  if (!r) return { customer: null, blocked: false, unfinished: true };
+  if (r.blocked_at) return { customer: null, blocked: true, unfinished: false };
   const ship = r.ship_name && r.ship_line1 && r.ship_city && r.ship_state && r.ship_zip
     ? { name: r.ship_name, line1: r.ship_line1, line2: r.ship_line2, city: r.ship_city, state: r.ship_state as ShipAddress["state"], zip: r.ship_zip }
     : null;
   return {
     blocked: false,
+    unfinished: false,
     customer: {
       ...user, fullName: r.full_name, organization: r.organization, isOwner: r.is_owner,
       stripeCustomerId: r.stripe_customer_id, ship, createdAt: r.created_at,
@@ -71,15 +100,39 @@ export const getAccountState = cache(async (): Promise<{ customer: Customer | nu
 // customers.email_verified_at (lib/account/verify.ts).
 export const getCustomer = cache(async (): Promise<Customer | null> => (await getAccountState()).customer);
 
+// /finish-account: who is finishing, and what Google told us about them.
+export const getUnfinishedUser = cache(async (): Promise<UnfinishedUser | null> => {
+  if (!(await getAccountState()).unfinished) return null;
+  const { user, profile } = await readSession();
+  if (!user || !profile) return null;
+  return { id: user.id, email: user.email, suggestedName: profile.name ?? "", viaGoogle: profile.viaGoogle };
+});
+
+// /auth/callback, right after a code exchange (the new session isn't readable yet).
+export async function customerStatus(userId: string): Promise<"none" | "ok" | "blocked"> {
+  const r = await readCustomerRow(userId);
+  if (!r) return "none";
+  return r.blocked_at ? "blocked" : "ok";
+}
+
+// Same-site paths only. Browsers strip tabs/newlines and read "\" as "/",
+// so "/\t/evil.com" would become "//evil.com" — any control character or
+// backslash is refused, and the path must still resolve to our own origin.
+const SAFE_BASE = "https://x.invalid";
 export function safeNext(next: string | null | undefined, fallback = "/account"): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
-  return next;
+  if (!next || !next.startsWith("/") || next.startsWith("//") || /[\x00-\x1F\x7F\\]/.test(next)) return fallback;
+  let u: URL;
+  try { u = new URL(next, SAFE_BASE); } catch { return fallback; }
+  if (u.origin !== SAFE_BASE) return fallback;
+  return u.pathname + u.search + u.hash;
 }
 
 export async function requireCustomer(nextPath: string): Promise<Customer> {
-  const customer = await getCustomer();
-  if (!customer) redirect(`/sign-in?next=${encodeURIComponent(safeNext(nextPath))}`);
-  return customer;
+  const { customer, unfinished } = await getAccountState();
+  if (customer) return customer;
+  const next = encodeURIComponent(safeNext(nextPath));
+  if (unfinished) redirect(`/finish-account?next=${next}`);
+  redirect(`/sign-in?next=${next}`);
 }
 
 export async function requireOwner(): Promise<Customer> {

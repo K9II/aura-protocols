@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
 
 const auth = { signUp: vi.fn(), signOut: vi.fn() };
-const deleteUser = vi.fn(), checkDeliverable = vi.fn(), signupsFromIpSince = vi.fn(), sendVerifyEmail = vi.fn(), recordOptIn = vi.fn(), alertOwner = vi.fn();
+const deleteUser = vi.fn(), checkDeliverable = vi.fn(), signupsFromIpSince = vi.fn(), sendVerifyEmail = vi.fn(), recordOptIn = vi.fn(), alertOwner = vi.fn(), listVerifiedOptIn = vi.fn();
 let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () => ({ auth }) }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t), auth: { admin: { deleteUser } } }) }));
@@ -12,16 +12,18 @@ vi.mock("@/lib/account/data", () => ({ signupsFromIpSince }));
 vi.mock("@/lib/account/verify", () => ({ sendVerifyEmail }));
 vi.mock("@/lib/email/data", () => ({ recordOptIn }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
+vi.mock("@/lib/account/welcome", () => ({ listVerifiedOptIn }));
 
 const base = { fullName: "Jane Rivera", email: "jane@lab.org", password: "correct horse battery", organization: null, optIn: false, ip: "1.2.3.4", userAgent: "UA", deviceFlagged: false, partnerRef: null };
 
 describe("createAccount", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [auth.signUp, auth.signOut, deleteUser, checkDeliverable, signupsFromIpSince, sendVerifyEmail, recordOptIn, alertOwner]) f.mockReset();
+    for (const f of [auth.signUp, auth.signOut, deleteUser, checkDeliverable, signupsFromIpSince, sendVerifyEmail, recordOptIn, alertOwner, listVerifiedOptIn]) f.mockReset();
     checkDeliverable.mockResolvedValue("ok"); signupsFromIpSince.mockResolvedValue(0);
     auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
     deleteUser.mockResolvedValue({ error: null }); auth.signOut.mockResolvedValue({ error: null });
+    listVerifiedOptIn.mockResolvedValue(true);
   });
 
   it("refuses an address that can't receive mail before creating anything", async () => {
@@ -128,5 +130,77 @@ describe("createAccount", () => {
     const { createAccount } = await import("@/lib/account/create");
     expect((await createAccount({ ...base, optIn: true })).ok).toBe(true);
     expect(alertOwner).toHaveBeenCalledTimes(2);
+  });
+});
+
+const g = { userId: "g1", email: "dana@gmail.com", fullName: "Dana Whitfield", organization: "Whitfield Lab", optIn: true, ip: "1.2.3.4", userAgent: "UA", partnerRef: "SMITHLAB", emailVerified: true };
+
+describe("finishGoogleAccount", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    for (const f of [auth.signUp, auth.signOut, deleteUser, checkDeliverable, signupsFromIpSince, sendVerifyEmail, recordOptIn, alertOwner, listVerifiedOptIn]) f.mockReset();
+    listVerifiedOptIn.mockResolvedValue(true);
+  });
+
+  it("writes the customer (verified by Google) and the same agreement record — no sign-up, no verify email", async () => {
+    const customers = query({}), agreements = query({});
+    from = fromQueue({ customers: [customers], account_agreements: [agreements] });
+    const { finishGoogleAccount } = await import("@/lib/account/create");
+    expect(await finishGoogleAccount(g)).toEqual({ ok: true });
+    expect(callArgs(customers, "insert")?.[0]).toEqual({
+      id: "g1", full_name: "Dana Whitfield", organization: "Whitfield Lab", verify_required: false, marketing_opt_in: true, email_verified_at: expect.any(String),
+    });
+    expect(callArgs(agreements, "insert")?.[0]).toMatchObject({ customer_id: "g1", age_21: true, ruo: true, dispute_policy: true, ip_hash: "h:1.2.3.4", user_agent: "UA" });
+    expect(auth.signUp).not.toHaveBeenCalled();
+    expect(checkDeliverable).not.toHaveBeenCalled();
+    expect(sendVerifyEmail).not.toHaveBeenCalled();
+    expect(recordOptIn).toHaveBeenCalledWith("dana@gmail.com", "SMITHLAB");
+    expect(listVerifiedOptIn).toHaveBeenCalledWith("dana@gmail.com");
+  });
+
+  it("no opt-in: nothing on the list", async () => {
+    from = fromQueue({ customers: [query({})], account_agreements: [query({})] });
+    const { finishGoogleAccount } = await import("@/lib/account/create");
+    await finishGoogleAccount({ ...g, optIn: false });
+    expect(recordOptIn).not.toHaveBeenCalled();
+    expect(listVerifiedOptIn).not.toHaveBeenCalled();
+  });
+
+  it("not a Google identity: refuses and writes nothing (non-Google unfinished users must sign up by email)", async () => {
+    const customers = query({}), agreements = query({});
+    from = fromQueue({ customers: [customers], account_agreements: [agreements] });
+    const { finishGoogleAccount } = await import("@/lib/account/create");
+    expect(await finishGoogleAccount({ ...g, emailVerified: false })).toEqual({ ok: false, error: "Please sign out and create your account with email." });
+    expect(callArgs(customers, "insert")).toBeUndefined();
+    expect(callArgs(agreements, "insert")).toBeUndefined();
+    expect(sendVerifyEmail).not.toHaveBeenCalled();
+    expect(recordOptIn).not.toHaveBeenCalled();
+  });
+
+  it("agreement not saved: removes the customer row (keeps the Google user) and fails", async () => {
+    const del = query({});
+    from = fromQueue({ customers: [query({}), del], account_agreements: [query({ error: { message: "down" } })] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { finishGoogleAccount } = await import("@/lib/account/create");
+    expect(await finishGoogleAccount(g)).toEqual({ ok: false, error: "We couldn't create your account — please try again." });
+    expect(callArgs(del, "delete")).toBeDefined();
+    expect(callArgs(del, "eq")).toEqual(["id", "g1"]);
+    expect(deleteUser).not.toHaveBeenCalled();
+    expect(recordOptIn).not.toHaveBeenCalled();
+  });
+
+  it("alerts the owner when the half-finished customer row can't be removed", async () => {
+    from = fromQueue({ customers: [query({}), query({ error: { message: "down" } })], account_agreements: [query({ error: { message: "down" } })] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { finishGoogleAccount } = await import("@/lib/account/create");
+    expect((await finishGoogleAccount(g)).ok).toBe(false);
+    expect(alertOwner).toHaveBeenCalledWith("Half-finished account not removed", expect.stringContaining("g1 dana@gmail.com"));
+  });
+
+  it("a duplicate customer row means it's already set up (double submit)", async () => {
+    from = fromQueue({ customers: [query({ error: { code: "23505", message: "duplicate key" } })] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { finishGoogleAccount } = await import("@/lib/account/create");
+    expect(await finishGoogleAccount(g)).toEqual({ ok: false, error: "This account is already set up — reload the page." });
   });
 });

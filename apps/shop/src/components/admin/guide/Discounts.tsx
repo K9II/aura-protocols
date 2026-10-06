@@ -1,6 +1,7 @@
 import { Chapter, Example, P, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
 import { EXAMPLE_CODE, EXAMPLE_CODE_PCT, vipExample } from "@/components/admin/guide/example";
 import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
+import { CAP_MAX_PCT, CAP_MIN_PCT } from "@/lib/discounts/rules";
 import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
@@ -64,6 +65,7 @@ export default function Discounts({ capPct }: { capPct: number }) {
       </>}
       watch={[
         <>Don&apos;t promise a customer more than {capPct}% off. The checkout will trim it.</>,
+        <>The maximum can be set from {CAP_MIN_PCT}% to {CAP_MAX_PCT}%. It can&apos;t go below the new-account {NEW_ACCOUNT_PCT}%, so the welcome offer is never trimmed.</>,
         <>Batch codes aren&apos;t tied to a person. If one must only work for one customer, make a single code and turn on <Ui>Lock to one email</Ui>.</>,
         <>A code that&apos;s been used can&apos;t be deleted, only ended.</>,
       ]}
