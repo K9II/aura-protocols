@@ -83,6 +83,13 @@ describe("disputes data", () => {
     expect(db.rpc).toHaveBeenCalledWith("admin_disputed_customers", { p_ids: [CUSTOMER_ID, "u2"] });
   });
 
+  it("Chargeback tag: a failure (e.g. before disputes.sql is applied) tags nobody instead of breaking Customers", async () => {
+    db.rpc.mockResolvedValue({ data: null, error: { message: 'function admin_disputed_customers does not exist' } });
+    const { customersWithDisputes } = await import("@/lib/disputes/data");
+    expect(await customersWithDisputes([CUSTOMER_ID])).toEqual(new Set());
+    expect(console.error).toHaveBeenCalledWith("disputed customers read failed:", expect.any(Error));
+  });
+
   it("resolving a warning reports whether this request did it", async () => {
     db.from = fromQueue({ early_fraud_warnings: [query({ data: [{ id: "w1" }] }), query({ data: [] })] });
     const { resolveWarning } = await import("@/lib/disputes/data");

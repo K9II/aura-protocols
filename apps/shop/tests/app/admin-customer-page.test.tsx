@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const { requireOwner, getCustomerDetail } = vi.hoisted(() => ({ requireOwner: vi.fn(async () => ({ id: "owner" })), getCustomerDetail: vi.fn() }));
+const { requireOwner, getCustomerDetail, customersWithDisputes } = vi.hoisted(() => ({ requireOwner: vi.fn(async () => ({ id: "owner" })), getCustomerDetail: vi.fn(), customersWithDisputes: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ requireOwner }));
 vi.mock("@/lib/customers/data", () => ({ getCustomerDetail }));
+vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes }));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
 vi.mock("@/app/admin/customers/actions", () => ({ adjustCreditAction: vi.fn(), blockAction: vi.fn(), unblockAction: vi.fn(), resendVerifyAdminAction: vi.fn() }));
 import CustomerPage from "@/app/admin/customers/[id]/page";
@@ -24,7 +25,7 @@ const detail = {
 };
 
 describe("/admin/customers/[id]", () => {
-  beforeEach(() => getCustomerDetail.mockResolvedValue(detail));
+  beforeEach(() => { getCustomerDetail.mockResolvedValue(detail); customersWithDisputes.mockResolvedValue(new Set()); });
 
   it("404s a bad id or a missing customer", async () => {
     await expect(CustomerPage({ params: Promise.resolve({ id: "nope" }) })).rejects.toThrow("NOT_FOUND");
@@ -50,5 +51,12 @@ describe("/admin/customers/[id]", () => {
     expect(screen.getByText(/two chargebacks/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Unblock" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Block" })).toBeNull();
+  });
+
+  it("tags the customer when any of their orders has a chargeback", async () => {
+    customersWithDisputes.mockResolvedValue(new Set([ID]));
+    render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(customersWithDisputes).toHaveBeenCalledWith([ID]);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Chargeback");
   });
 });

@@ -150,11 +150,18 @@ export async function disputeRateCounts(since: string): Promise<{ disputes: numb
 }
 
 // The Customers "Chargeback" tag (admin_disputed_customers, disputes.sql).
+// Cosmetic, like disputesNavCount: a failure (e.g. before disputes.sql is
+// applied) logs and tags nobody, rather than breaking the Customers pages.
 export async function customersWithDisputes(ids: string[]): Promise<Set<string>> {
   if (!ids.length) return new Set();
-  const { data, error } = await db().rpc("admin_disputed_customers", { p_ids: ids });
-  if (error) fail("disputed customers read", error);
-  return new Set(((data ?? []) as Array<{ customer_id: string }>).map((r) => r.customer_id));
+  try {
+    const { data, error } = await db().rpc("admin_disputed_customers", { p_ids: ids });
+    if (error) throw new Error(JSON.stringify(error));
+    return new Set(((data ?? []) as Array<{ customer_id: string }>).map((r) => r.customer_id));
+  } catch (err) {
+    console.error("disputed customers read failed:", err);
+    return new Set();
+  }
 }
 
 // ---------- one chargeback ----------

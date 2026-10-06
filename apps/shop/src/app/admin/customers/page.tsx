@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireOwner } from "@/lib/dal";
 import { customerStats, listCustomers, PAGE_SIZE, type CustomerListRow } from "@/lib/customers/data";
 import { TABS, TAB_LABEL, cleanSearch, parseTab, type CustomerTab } from "@/lib/customers/rules";
+import { customersWithDisputes } from "@/lib/disputes/data";
 import { shortDate } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
 import { Crumbs, Icon, Kpis, Tabs, money } from "@/components/admin/ui";
@@ -11,12 +12,14 @@ export const metadata: Metadata = { title: "Customers", robots: { index: false, 
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
-function Chips({ r }: { r: CustomerListRow }) {
+// cb: a dispute on any of their orders (derived, Disputes module).
+function Chips({ r, cb }: { r: CustomerListRow; cb: boolean }) {
   return (
     <span className="a-chips">
       {r.blocked ? <span className="a-chip blocked">Blocked</span> : r.verified ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}
       {r.isPartner && <span className="a-chip partner">Partner</span>}
       {r.isOwner && <span className="a-chip owner">Owner</span>}
+      {cb && <span className="a-chip cb">Chargeback</span>}
     </span>
   );
 }
@@ -30,6 +33,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
   const pageRaw = Number(first(sp.page));
   const page = Number.isFinite(pageRaw) && pageRaw >= 1 ? Math.trunc(pageRaw) : 1;
   const [{ rows, total }, s] = await Promise.all([listCustomers({ q, tab, page }), customerStats()]);
+  const disputed = await customersWithDisputes(rows.map((r) => r.id));
   const counts: Record<CustomerTab, number> = { all: s.total, ordered: s.ordered, none: s.total - s.ordered, unverified: s.unverified, blocked: s.blocked };
   const trend = s.new_prior_30d ? Math.round(((s.new_30d - s.new_prior_30d) / s.new_prior_30d) * 100) : null;
   const href = (o: { tab?: CustomerTab; page?: number }) => {
@@ -78,13 +82,13 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                 <td className="num">{r.paidOrders ? usd(r.spentCents) : <span className="muted">—</span>}</td>
                 <td>{r.lastOrderAt ? shortDate(r.lastOrderAt) : <span className="muted">—</span>}</td>
                 <td className="num">{r.creditCents ? usd(r.creditCents) : <span className="muted">—</span>}</td>
-                <td><Chips r={r} /></td>
+                <td><Chips r={r} cb={disputed.has(r.id)} /></td>
               </tr>
             ))}</tbody>
           </table>
           <div className="a-plist a-only-phone">{rows.map((r) => (
             <Link key={r.id} href={`/admin/customers/${r.id}`} className="a-pcust">
-              <b>{r.fullName}</b><Chips r={r} />
+              <b>{r.fullName}</b><Chips r={r} cb={disputed.has(r.id)} />
               <span className="em">{r.email}{r.organization ? ` · ${r.organization}` : ""}</span>
               <div className="meta"><span>Joined {shortDate(r.createdAt)}</span><span><b>{r.paidOrders}</b> order{r.paidOrders === 1 ? "" : "s"}</span>{r.paidOrders > 0 && <span><b>{usd(r.spentCents)}</b></span>}{r.creditCents > 0 && <span>credit <b>{usd(r.creditCents)}</b></span>}</div>
             </Link>
