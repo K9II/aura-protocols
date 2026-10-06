@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { query } from "../../helpers/supabase-mock";
 
 const db = vi.hoisted(() => ({ rpc: vi.fn(), from: null as null | ((t: string) => unknown) }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ rpc: db.rpc, from: (t: string) => db.from!(t) }) }));
