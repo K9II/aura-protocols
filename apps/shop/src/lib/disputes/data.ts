@@ -61,6 +61,14 @@ export async function resolveWarningsForCharge(chargeId: string): Promise<void> 
   if (error) fail("early fraud warning resolve", error);
 }
 
+// Whether a chargeback already exists on this charge (a warning arriving
+// after its dispute: close it immediately instead of leaving a refund button).
+export async function hasDisputeForCharge(chargeId: string): Promise<boolean> {
+  const { count, error } = await db().from("disputes").select("id", { count: "exact", head: true }).eq("charge_id", chargeId);
+  if (error) fail("dispute by charge read", error);
+  return (count ?? 0) > 0;
+}
+
 // ---------- lists ----------
 
 const ORDER_BRIEF = "order_number, status, email, customer_id, shipped_at, paid_at, total_cents, store_credit_cents, customers(full_name)";

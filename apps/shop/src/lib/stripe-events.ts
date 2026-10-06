@@ -11,7 +11,7 @@ import { usd } from "@/lib/html";
 import { shortDate } from "@/lib/discounts/time";
 import { closedNote, efwSuggestion, fraudTypeLabel, reasonLabel } from "@/lib/disputes/rules";
 import { disputeParams, eventAt, feeCents, idOf, warningParams } from "@/lib/disputes/stripe-map";
-import { logDisputeEvent, recordDispute, recordDisputeCard, recordFunds, recordWarning, resolveWarningsForCharge } from "@/lib/disputes/data";
+import { hasDisputeForCharge, logDisputeEvent, recordDispute, recordDisputeCard, recordFunds, recordWarning, resolveWarningsForCharge } from "@/lib/disputes/data";
 import { fetchChargeInfo } from "@/lib/disputes/stripe";
 
 function paymentIntentId(pi: string | { id: string } | null | undefined): string | null {
@@ -80,7 +80,10 @@ export async function afterOrderRefunded(order: OrderRow): Promise<void> {
 // after a partial failure never duplicates anything.
 async function disputedOrder(d: Stripe.Dispute): Promise<OrderRow | null> {
   const pi = paymentIntentId(d.payment_intent);
-  if (!pi) return null;
+  if (!pi) {
+    await alertOwner("Chargeback has no payment intent", `Dispute ${d.id} on charge ${idOf(d.charge) ?? "(none)"} (${usd(d.amount)}) has no payment_intent; it can't be matched to an order. Handle it in Stripe.`);
+    return null;
+  }
   const order = await getOrderByPaymentIntent(pi);
   if (!order) throw new Error(`dispute on ${pi}: no order matched yet`);
   return order;
@@ -126,10 +129,20 @@ async function onDisputeChanged(event: Stripe.Event, dispute: Stripe.Dispute): P
 async function onEarlyFraudWarning(event: Stripe.Event, w: Stripe.Radar.EarlyFraudWarning): Promise<void> {
   const charge = idOf(w.charge);
   const pi = paymentIntentId(w.payment_intent) ?? (charge ? (await fetchChargeInfo(charge)).paymentIntent : null);
-  if (!pi) return;
+  if (!pi) {
+    await alertOwner("Early fraud warning has no payment intent", `Warning ${w.id} on charge ${charge ?? "(none)"} has no payment intent; it can't be matched to an order. Handle it in Stripe.`);
+    return;
+  }
   const order = await getOrderByPaymentIntent(pi);
   if (!order) throw new Error(`early fraud warning on ${pi}: no order matched yet`);
   await recordWarning(warningParams(w, order.id));
+  // A chargeback already opened on this charge: the warning is moot, so
+  // close it the same way a later-arriving dispute would (never leaves a
+  // refund button up for something that's already a full chargeback).
+  if (charge && (await hasDisputeForCharge(charge))) {
+    await resolveWarningsForCharge(charge);
+    return;
+  }
   if (event.type !== "radar.early_fraud_warning.created") return;
   const s = efwSuggestion({ status: order.status, shippedAt: order.shipped_at });
   await alertOwner("Early fraud warning", `Order ${order.order_number} · ${fraudTypeLabel(w.fraud_type)} · ${usd(order.total_cents - order.store_credit_cents)} · ${s.alert}`);

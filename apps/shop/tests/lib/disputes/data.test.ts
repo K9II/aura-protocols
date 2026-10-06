@@ -101,6 +101,13 @@ describe("disputes data", () => {
     expect(callArgs(o, "not")).toEqual(["stripe_payment_intent", "is", null]);
   });
 
+  it("hasDisputeForCharge reports whether a chargeback already exists on a charge", async () => {
+    db.from = fromQueue({ disputes: [query({ count: 1 }), query({ count: 0 })] });
+    const { hasDisputeForCharge } = await import("@/lib/disputes/data");
+    expect(await hasDisputeForCharge("ch_1")).toBe(true);
+    expect(await hasDisputeForCharge("ch_2")).toBe(false);
+  });
+
   it("resolving a warning reports whether this request did it", async () => {
     db.from = fromQueue({ early_fraud_warnings: [query({ data: [{ id: "w1" }] }), query({ data: [] })] });
     const { resolveWarning } = await import("@/lib/disputes/data");

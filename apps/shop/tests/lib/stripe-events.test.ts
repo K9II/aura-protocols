@@ -16,6 +16,7 @@ const recordFunds = vi.fn();
 const logDisputeEvent = vi.fn();
 const recordWarning = vi.fn();
 const resolveWarningsForCharge = vi.fn();
+const hasDisputeForCharge = vi.fn();
 const fetchChargeInfo = vi.fn();
 vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/orders", () => ({ getOrderById, getOrderByPaymentIntent, transitionOrder }));
@@ -23,7 +24,7 @@ vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "o
 vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ reverseTax }) }));
 vi.mock("@/lib/partners/ledger", () => ({ reverseCommission, refundCredit }));
-vi.mock("@/lib/disputes/data", () => ({ recordDispute, recordDisputeCard, recordFunds, logDisputeEvent, recordWarning, resolveWarningsForCharge }));
+vi.mock("@/lib/disputes/data", () => ({ recordDispute, recordDisputeCard, recordFunds, logDisputeEvent, recordWarning, resolveWarningsForCharge, hasDisputeForCharge }));
 vi.mock("@/lib/disputes/stripe", () => ({ fetchChargeInfo }));
 
 const order = (status: string, over: Record<string, unknown> = {}) => ({ id: "o1", order_number: "AP-1001", customer_id: "u1", email: "j@lab.org", status, order_items: [], total_cents: 11850,
@@ -37,9 +38,10 @@ describe("handleStripeEvent", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of [getOrderById, getOrderByPaymentIntent, transitionOrder, sendOrAlert, alertOwner, afterOrderPaid, reverseCommission, refundCredit, reverseTax, getPartnerById,
-      recordDispute, recordDisputeCard, recordFunds, logDisputeEvent, recordWarning, resolveWarningsForCharge, fetchChargeInfo]) f.mockReset();
+      recordDispute, recordDisputeCard, recordFunds, logDisputeEvent, recordWarning, resolveWarningsForCharge, hasDisputeForCharge, fetchChargeInfo]) f.mockReset();
     transitionOrder.mockResolvedValue(true);
     recordDispute.mockResolvedValue("d1");
+    hasDisputeForCharge.mockResolvedValue(false);
     fetchChargeInfo.mockResolvedValue({ cardBrand: "visa", cardLast4: "4242", billingAddress: null, paymentIntent: "pi_1" });
   });
 
@@ -300,5 +302,33 @@ describe("handleStripeEvent", () => {
       .rejects.toThrow(/early fraud warning on pi_3: no order matched yet/);
     expect(fetchChargeInfo).toHaveBeenCalledWith("ch_3");
     expect(recordWarning).not.toHaveBeenCalled();
+  });
+
+  it("a dispute with no payment intent at all alerts the owner (a stable title) instead of silently dropping it", async () => {
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("charge.dispute.created", dispute({ payment_intent: null })));
+    expect(alertOwner).toHaveBeenCalledWith("Chargeback has no payment intent", expect.stringContaining("dp_1"));
+    expect(recordDispute).not.toHaveBeenCalled();
+    expect(getOrderByPaymentIntent).not.toHaveBeenCalled();
+  });
+
+  it("an early fraud warning with no payment intent (and no charge info to find one) alerts the owner instead of silently dropping it", async () => {
+    fetchChargeInfo.mockResolvedValue({ cardBrand: null, cardLast4: null, billingAddress: null, paymentIntent: null });
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("radar.early_fraud_warning.created", { id: "issfr_3", charge: "ch_4", fraud_type: "misc", actionable: true, created: 1790892725 }));
+    expect(alertOwner).toHaveBeenCalledWith("Early fraud warning has no payment intent", expect.stringContaining("issfr_3"));
+    expect(recordWarning).not.toHaveBeenCalled();
+  });
+
+  it("an early fraud warning arriving after its charge already has a dispute resolves it as disputed instead of leaving a refund button", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
+    hasDisputeForCharge.mockResolvedValue(true);
+    const w = { object: "radar.early_fraud_warning", id: "issfr_4", charge: "ch_5", payment_intent: "pi_4", fraud_type: "misc", actionable: true, created: 1790892725 };
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("radar.early_fraud_warning.created", w));
+    expect(recordWarning).toHaveBeenCalled();
+    expect(hasDisputeForCharge).toHaveBeenCalledWith("ch_5");
+    expect(resolveWarningsForCharge).toHaveBeenCalledWith("ch_5");
+    expect(alertOwner).not.toHaveBeenCalled();
   });
 });
