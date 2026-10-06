@@ -6,6 +6,15 @@ vi.mock("@/lib/email/admin-data", () => ({ AUTOMATION_LABEL: { welcome: "Welcome
 const base = { at: "2026-10-06T17:00:00Z", actorId: "u1", actorName: "Kearney Adams", href: null } as const;
 
 describe("ActivityLine", () => {
+  it("inquiry lines", async () => {
+    const { default: ActivityLine } = await import("@/components/admin/activity/ActivityLine");
+    const base2 = { key: "q", at: "2026-10-06T21:00:00Z", area: "inquiries" as const, actorId: "o1", actorName: "Kearney Adams", href: null, source: "inquiry" as const };
+    const { container, rerender } = render(<ActivityLine i={{ ...base2, e: { id: "e1", action: "replied", detail: null }, label: "Q-1047 · Dana Whitfield" }} />);
+    expect(container).toHaveTextContent("Kearney replied to Q-1047 · Dana Whitfield");
+    rerender(<ActivityLine i={{ ...base2, e: { id: "e2", action: "reply_saved", detail: "Finding a COA" }, label: null }} />);
+    expect(container).toHaveTextContent("Kearney saved the reply Finding a COA");
+  });
+
   it("words owner actions with who and what they were about", async () => {
     const { default: ActivityLine } = await import("@/components/admin/activity/ActivityLine");
     const text = (i: object) => render(<ActivityLine i={{ ...base, ...i } as never} />).container.textContent;

@@ -20,6 +20,7 @@ export type ActivityItem = { key: string; at: string; area: ActivityArea; actorI
   | { source: "catalog"; e: CatalogEvent; productName: string }
   | { source: "discount"; e: CodeEvent; codeLabel: string | null }
   | { source: "email"; e: EmailAdminEvent; campaignName: string | null }
+  | { source: "inquiry"; e: { id: string; action: string; detail: string | null }; label: string | null }
   | { source: "dispute"; e: DisputeEventRow; orderNumber: string | null }
   | { source: "alert"; e: { id: string; title: string; note: string | null } }
 );
@@ -107,6 +108,17 @@ async function emailEvents(f: ActivityFilter): Promise<Raw[]> {
   });
 }
 
+async function inquiryEvents(f: ActivityFilter): Promise<Raw[]> {
+  const { data, error } = await scoped(db().from("inquiry_events").select("id, action, detail, at, actor, inquiry_id, inquiries(ref, name)").neq("action", "opened"), "actor", "at", f);
+  if (error) fail("inquiry events read", error);
+  type R = { id: string; action: string; detail: string | null; at: string; actor: string; inquiry_id: string | null; inquiries: { ref: number; name: string } | null };
+  return ((data ?? []) as unknown as R[]).map((r): Raw => ({
+    source: "inquiry", key: `q-${r.id}`, at: r.at, area: "inquiries", actorId: r.actor,
+    href: r.inquiries ? `/admin/inquiries/Q-${r.inquiries.ref}` : r.action.startsWith("reply_") ? "/admin/inquiries/replies" : "/admin/inquiries?tab=unmatched",
+    e: { id: r.id, action: r.action, detail: r.detail }, label: r.inquiries ? `Q-${r.inquiries.ref} · ${r.inquiries.name}` : null,
+  }));
+}
+
 async function disputeEvents(f: ActivityFilter): Promise<Raw[]> {
   const { data, error } = await scoped(db().from("dispute_events").select("id, action, note, at, actor, dispute_id, disputes(orders(order_number))"), "actor", "at", f);
   if (error) fail("dispute events read", error);
@@ -136,6 +148,7 @@ export async function activityFeed(f: ActivityFilter, productName: (slug: string
     has("catalog") ? catalogEventsFeed(f, productName) : [],
     has("discounts") ? discountEvents(f) : [],
     has("email") ? emailEvents(f) : [],
+    has("inquiries") ? inquiryEvents(f) : [],
     has("disputes") ? disputeEvents(f) : [],
     has("alerts") ? alertsDone(f) : [],
   ]);
