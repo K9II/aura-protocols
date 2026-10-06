@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 
 vi.mock("@/app/auth/actions", () => ({ signUpAction: vi.fn(), signInAction: vi.fn() }));
 import SignUpForm from "@/components/account/SignUpForm";
@@ -18,5 +18,12 @@ describe("SignUpForm", () => {
     for (const n of ["age21", "ruo", "dispute"]) expect(container.querySelector(`input[name="${n}"]`)).toBeNull();
     expect(container.querySelector('input[name="next"]')).toHaveValue("/checkout");
     expect(screen.getByLabelText(/password/i)).toHaveAttribute("minlength", "10");
+  });
+
+  it("the password has a Show / Hide toggle", () => {
+    render(<SignUpForm next="/account" />);
+    const pw = screen.getByLabelText(/password/i);
+    fireEvent.click(screen.getByRole("button", { name: "Show" }));
+    expect(pw).toHaveAttribute("type", "text");
   });
 });
