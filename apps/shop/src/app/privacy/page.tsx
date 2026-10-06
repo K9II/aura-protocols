@@ -23,7 +23,7 @@ export default function PrivacyPage() {
             <li><b>Sign-in checks</b> &mdash; when you enter your email to sign in or create an account, we keep a one-way hash of your IP address for two days to limit repeated attempts, and we record whether email to your address bounces or is reported as spam.</li>
             <li><b>Orders</b> &mdash; shipping address, order contents and lot numbers, and the research-use confirmation you give with each order.</li>
             <li><b>Payments</b> &mdash; processed by Stripe. We receive the payment status and method type, never full card or bank numbers.</li>
-            <li><b>Inquiries</b> &mdash; what you send through our wholesale or affiliate forms.</li>
+            <li><b>Inquiries</b> &mdash; what you send through our contact or wholesale forms and the email replies in that conversation, including photos or PDFs you attach, plus a one-way hash of your IP address to limit repeated messages.</li>
             <li><b>Analytics</b> &mdash; anonymous, aggregated page-view data (Vercel Analytics).</li>
           </ul>
         ) },

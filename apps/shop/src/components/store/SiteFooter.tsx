@@ -1,7 +1,6 @@
 import Link from "next/link";
 import AuraLockup from "@/components/AuraLockup";
 import { classCounts } from "@/lib/catalog";
-import { SUPPORT_EMAIL } from "@/lib/constants";
 import type { Compound } from "@/data/catalog";
 
 export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
@@ -31,7 +30,7 @@ export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
             <li><Link href="/coa">COA Lookup</Link></li>
             <li><Link href="/wholesale">Wholesale</Link></li>
             <li><Link href="/affiliates">Affiliate Program</Link></li>
-            <li><a href={`mailto:${SUPPORT_EMAIL}`}>Contact</a></li>
+            <li><Link href="/contact">Contact</Link></li>
           </ul>
         </div>
         <div>
