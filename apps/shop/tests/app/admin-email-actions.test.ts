@@ -111,24 +111,28 @@ describe("admin email actions", () => {
     await expect(sendNowAction(null, fd({ id: K, from: "draft" }))).rejects.toThrow(/changed/);
   });
 
-  it("send now: a batch that throws (preflight/config/missing code) is caught, alerted, and reported plainly", async () => {
+  it("send now: a batch that throws (preflight/config/missing code) is caught, alerted, and the campaign already being 'sending' means the page would otherwise show the results view and lose the message — redirect with it in a query param instead", async () => {
     data.startCampaign.mockResolvedValue({ ok: true, recipients: 2310 });
     sendCampaignBatch.mockRejectedValue(new Error('Campaign "N": its discount code is missing — not sent.'));
     const { sendNowAction } = await import("@/app/admin/email/actions");
-    const r = await sendNowAction(null, fd({ id: K, from: "draft" }));
-    expect(r).toMatchObject({ error: expect.stringContaining("its discount code is missing") });
-    expect(r?.error).not.toMatch(/sent to \d/i); // never claims a send happened
+    await expect(sendNowAction(null, fd({ id: K, from: "draft" }))).rejects.toThrow(`REDIRECT:/admin/email/campaigns/${K}?sendError=`);
+    const [url] = redirect.mock.calls.at(-1)!;
+    const message = decodeURIComponent(url.slice(url.indexOf("sendError=") + "sendError=".length));
+    expect(message).toContain("its discount code is missing");
+    expect(message).not.toMatch(/sent to \d/i); // never claims a send happened
     expect(alertOwner).toHaveBeenCalledTimes(1);
     expect(alertOwner.mock.calls[0][0]).toContain("N");
     expect(alertOwner.mock.calls[0][1]).toContain("discount code is missing");
   });
 
-  it("send now: the failure breaker tripping mid-batch is not reported as success", async () => {
+  it("send now: the failure breaker tripping mid-batch is not reported as success — also redirected with the message, not lost to the results view", async () => {
     data.startCampaign.mockResolvedValue({ ok: true, recipients: 2310 });
     sendCampaignBatch.mockResolvedValue({ sent: 410, skipped: 0, failed: 5, remaining: 1895, finished: false, stopped: false });
     const { sendNowAction } = await import("@/app/admin/email/actions");
-    const r = await sendNowAction(null, fd({ id: K, from: "draft" }));
-    expect(r).toEqual({ error: "410 sent. 5 couldn't be sent; 1,895 still to go — the hourly run will try again." });
+    await expect(sendNowAction(null, fd({ id: K, from: "draft" }))).rejects.toThrow(`REDIRECT:/admin/email/campaigns/${K}?sendError=`);
+    const [url] = redirect.mock.calls.at(-1)!;
+    const message = decodeURIComponent(url.slice(url.indexOf("sendError=") + "sendError=".length));
+    expect(message).toBe("410 sent. 5 couldn't be sent; 1,895 still to go — the hourly run will try again.");
   });
 
   it("pause switch: ok, or a stale click throws", async () => {

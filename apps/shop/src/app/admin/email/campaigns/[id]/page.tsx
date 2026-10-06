@@ -20,13 +20,16 @@ export const metadata: Metadata = { title: "Campaign", robots: { index: false, f
 // Send now runs a batch inside the server action invoked from this page.
 export const maxDuration = 300;
 
-export default async function CampaignPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CampaignPage({ params, searchParams = Promise.resolve({}) }: { params: Promise<{ id: string }>; searchParams?: Promise<{ sendError?: string }> }) {
   await requireOwner();
   const id = z.string().uuid().safeParse((await params).id);
   if (!id.success) notFound();
   const c = await getCampaign(id.data);
   if (!c) notFound();
-  if (c.status === "sending" || c.status === "sent" || c.status === "stopped") return <CampaignResults c={c} />;
+  if (c.status === "sending" || c.status === "sent" || c.status === "stopped") {
+    const sendError = (await searchParams).sendError ?? null;
+    return <CampaignResults c={c} sendError={sendError} />;
+  }
 
   const [lots, counts, codes, events] = await Promise.all([
     c.kind === "new_lots" ? lotChoices(c.id) : Promise.resolve([]), audienceCounts(), promotionCodes(c.discount_code_id), listAdminEvents(c.id),

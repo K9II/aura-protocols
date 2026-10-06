@@ -101,6 +101,14 @@ export async function unscheduleAction(f: FormData): Promise<void> {
 // so it's left there on purpose — the hourly run picks the same campaign up
 // and tries again once the real problem (e.g. a deleted code) is fixed. The
 // owner is alerted either way and told plainly, never led to believe it sent.
+// Once startCampaign has moved the row to "sending", the next render of
+// /admin/email/campaigns/[id] shows CampaignResults instead of the editor —
+// revalidatePath (refresh) can make that swap happen before the owner ever
+// sees the error state a dialog would otherwise hold, unmounting it with the
+// message. Redirect with the message in a query param instead, so the
+// results view (which CampaignPage reads it for) can still show it.
+const sendErrorRedirect = (id: string, message: string): never => redirect(`/admin/email/campaigns/${id}?sendError=${encodeURIComponent(message)}`);
+
 export async function sendNowAction(_prev: EmailActionState, f: FormData): Promise<EmailActionState> {
   const owner = await requireOwner();
   const c = await target(f);
@@ -119,7 +127,7 @@ export async function sendNowAction(_prev: EmailActionState, f: FormData): Promi
     const message = err instanceof Error ? err.message : String(err);
     await alertOwner(`Campaign "${c.name}": send now failed to start`, message);
     refresh(c.id);
-    return { error: `Sending hit a problem: ${message}. Anything not yet sent goes out on the next hourly run once it's fixed, or press Stop.` };
+    return sendErrorRedirect(c.id, `Sending hit a problem: ${message}. Anything not yet sent goes out on the next hourly run once it's fixed, or press Stop.`);
   }
   refresh(c.id);
   const n = r.sent.toLocaleString("en-US");
@@ -127,7 +135,7 @@ export async function sendNowAction(_prev: EmailActionState, f: FormData): Promi
   if (!r.finished && !r.stopped && r.failed > 0) {
     // The failure breaker tripped (or the batch otherwise ended mid-run with
     // failures): a partial failure, shown as an error, never as success.
-    return { error: `${n} sent. ${r.failed.toLocaleString("en-US")} couldn't be sent; ${r.remaining.toLocaleString("en-US")} still to go — the hourly run will try again.` };
+    return sendErrorRedirect(c.id, `${n} sent. ${r.failed.toLocaleString("en-US")} couldn't be sent; ${r.remaining.toLocaleString("en-US")} still to go — the hourly run will try again.`);
   } else if (r.remaining) {
     ok = `${n} sent. The other ${r.remaining.toLocaleString("en-US")} go out on the next hourly run.`;
   } else {

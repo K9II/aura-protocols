@@ -37,4 +37,14 @@ describe("CampaignResults", () => {
     expect(screen.getByText("1,980 of 2,310 handled")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Stop sending/ })).toBeInTheDocument();
   });
+
+  it("a send-now error after the campaign already started shows here, not just in a dialog that's gone", async () => {
+    recipientCounts.mockResolvedValue({ pending: 1895, sent: 410, skipped: 0, failed: 5 });
+    sendStats.mockResolvedValue(new Map()); attribution.mockResolvedValue(new Map());
+    render(await CampaignResults({
+      c: { ...c, status: "sending", finished_at: null, recipients: 2310 } as never,
+      sendError: "410 sent. 5 couldn't be sent; 1,895 still to go — the hourly run will try again.",
+    }));
+    expect(screen.getByRole("alert")).toHaveTextContent("couldn't be sent");
+  });
 });

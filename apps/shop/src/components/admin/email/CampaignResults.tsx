@@ -31,7 +31,7 @@ function eventText(e: EmailAdminEvent): string {
   }
 }
 
-export default async function CampaignResults({ c }: { c: CampaignRow }) {
+export default async function CampaignResults({ c, sendError }: { c: CampaignRow; sendError?: string | null }) {
   const since = c.started_at ?? c.created_at;
   const [counts, stats, attr, events, code] = await Promise.all([
     recipientCounts(c.id), sendStats(since), attribution(since), listAdminEvents(c.id),
@@ -45,6 +45,7 @@ export default async function CampaignResults({ c }: { c: CampaignRow }) {
     <div className="a-page">
       {status === "sending" && <SendingRefresh />}
       <Crumbs items={[{ label: "Email", href: "/admin/email" }, { label: c.name }]} />
+      {sendError && <div className="a-callout warn" role="alert" style={{ marginBottom: 16 }}><Icon name="warn" /><span>{sendError}</span></div>}
       <div className="a-ph">
         <div><h1>{c.name} <span className={`a-chip ${CHIP[status]}`}>{CAMPAIGN_STATUS_LABEL[status]}</span></h1>
           <p>{KIND_LABEL[c.kind]} · {AUDIENCE_LABEL[c.audience]} · started {c.started_at ? dateTime(c.started_at) : "—"}{c.finished_at ? ` · ${status === "stopped" ? "stopped" : "finished"} ${dateTime(c.finished_at)}` : ""}</p></div>
