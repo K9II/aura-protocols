@@ -17,13 +17,13 @@ describe("SignUpForm", () => {
     expect(container.querySelector('input[name="emailOptIn"]')).toBeNull();
     for (const n of ["age21", "ruo", "dispute"]) expect(container.querySelector(`input[name="${n}"]`)).toBeNull();
     expect(container.querySelector('input[name="next"]')).toHaveValue("/checkout");
-    expect(screen.getByLabelText(/password/i)).toHaveAttribute("minlength", "10");
+    expect(screen.getByLabelText("Password")).toHaveAttribute("minlength", "10");
   });
 
   it("the password has a Show / Hide toggle", () => {
     render(<SignUpForm next="/account" />);
-    const pw = screen.getByLabelText(/password/i);
-    fireEvent.click(screen.getByRole("button", { name: "Show" }));
+    const pw = screen.getByLabelText("Password");
+    fireEvent.click(screen.getByRole("button", { name: "Show password" }));
     expect(pw).toHaveAttribute("type", "text");
   });
 });

@@ -14,7 +14,7 @@ export default function PasswordField({ id, name = "password", autoComplete, min
   return (
     <span className="relative block mb-4">
       <input id={id} name={name} type={show ? "text" : "password"} autoComplete={autoComplete} minLength={minLength} required className={`${FIELD} pr-16`} />
-      <button type="button" aria-controls={id} onClick={() => setShow((s) => !s)}
+      <button type="button" aria-controls={id} aria-pressed={show} aria-label={show ? "Hide password" : "Show password"} onClick={() => setShow((s) => !s)}
         className="s-micro absolute inset-y-0 right-0 px-3.5 bg-transparent border-0 cursor-pointer text-[color:var(--ink-soft)]">
         {show ? "Hide" : "Show"}
       </button>

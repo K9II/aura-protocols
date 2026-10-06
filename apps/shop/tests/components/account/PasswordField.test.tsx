@@ -9,12 +9,17 @@ describe("PasswordField", () => {
     expect(input).toHaveAttribute("type", "password");
     expect(input).toHaveAttribute("name", "password");
     expect(input).toBeRequired();
-    const toggle = screen.getByRole("button", { name: "Show" });
+    const toggle = screen.getByRole("button", { name: "Show password" });
     expect(toggle).toHaveAttribute("type", "button");
     expect(toggle).toHaveAttribute("aria-controls", "pw");
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(toggle).toHaveTextContent("Show");
     fireEvent.click(toggle);
     expect(input).toHaveAttribute("type", "text");
-    fireEvent.click(screen.getByRole("button", { name: "Hide" }));
+    const hide = screen.getByRole("button", { name: "Hide password" });
+    expect(hide).toHaveAttribute("aria-pressed", "true");
+    expect(hide).toHaveTextContent("Hide");
+    fireEvent.click(hide);
     expect(input).toHaveAttribute("type", "password");
   });
 
