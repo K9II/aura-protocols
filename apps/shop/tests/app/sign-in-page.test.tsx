@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
 
 const getAccountState = vi.fn();
 vi.mock("@/lib/dal", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/lib/dal")>()), getAccountState }));
@@ -28,6 +29,26 @@ describe("/sign-in", () => {
     expect(google.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(divider.compareDocumentPosition(forms) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByText("sign-up-form")).toBeInTheDocument();
+  });
+
+  it("layout B: Google + both forms one above the other in the left column, the offer panel on the right", async () => {
+    const { container } = render(await page({ next: "/checkout" }));
+    const grid = container.querySelector(".s-signin-grid")!;
+    expect(grid.children).toHaveLength(2);
+    const [col, offer] = [...grid.children];
+    expect(col).toHaveClass("s-signin-col");
+    expect(offer).toBe(screen.getByRole("complementary", { name: "Welcome offer" }));
+    expect(offer.querySelector(".s-offer-num")!.textContent).toBe(String(NEW_ACCOUNT_PCT));
+    expect(col).toContainElement(screen.getByRole("button", { name: "Continue with Google" }));
+    const forms = col.querySelector(".s-signin-forms")!;
+    expect(forms.textContent).toBe("sign-in-form /checkoutsign-up-form");
+    expect(screen.getAllByRole("complementary", { name: "Welcome offer" })).toHaveLength(1);
+  });
+
+  it("an error stays at the top, above the grid", async () => {
+    const { container } = render(await page({ error: "google" }));
+    const alert = screen.getByRole("alert");
+    expect(alert.compareDocumentPosition(container.querySelector(".s-signin-grid")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("explains a Google failure", async () => {

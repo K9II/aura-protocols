@@ -749,13 +749,31 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   .pharmacopoeia .s-finish-grid > .s-offer { order: -1; }
   .pharmacopoeia .s-offer--holiday { height: 560px; }
 }
+/* /sign-in (layout B): Google + sign-in + create-account on the left, the
+   offer panel on the right — sticky, as tall as the column up to 760px. */
+.pharmacopoeia .s-signin-alert { max-width: 1084px; margin: 0 auto 24px; }
+.pharmacopoeia .s-signin-grid { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 460px); gap: 64px; align-items: start; justify-content: center; }
+.pharmacopoeia .s-signin-col { min-width: 0; }
+.pharmacopoeia .s-signin-forms { display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+.pharmacopoeia .s-signin-grid > .s-offer { position: sticky; top: 24px; }
+.pharmacopoeia .s-signin-grid > .s-offer--holiday { height: min(100%, 760px); }
+@media (max-width: 899px) {
+  .pharmacopoeia .s-signin-alert { max-width: 560px; }
+  .pharmacopoeia .s-signin-grid { grid-template-columns: minmax(0, 560px); gap: 48px; }
+  .pharmacopoeia .s-signin-grid > .s-offer { order: -1; position: relative; top: auto; }
+  .pharmacopoeia .s-signin-grid > .s-offer--holiday { height: 560px; }
+}
 /* Never overflow-hidden here: the garland and holly reach outside the panel.
    Only .s-offer-snow clips. */
 .pharmacopoeia .s-offer { position: relative; display: flex; flex-direction: column; background: #141310; color: #F4F1EA; padding: 36px 38px; }
 .pharmacopoeia .s-offer--holiday { padding-bottom: 0; }
+/* Out of season there's no tree: centre the offer in whatever height the layout gives. */
+.pharmacopoeia .s-offer:not(.s-offer--holiday) { justify-content: center; }
 /* Phones: the 16px page gutter is less than the holly's reach, so the panel steps in. */
 @media (max-width: 640px) { .pharmacopoeia .s-offer--holiday { margin-left: 16px; margin-right: 16px; } }
 @media (max-width: 480px) { .pharmacopoeia .s-offer { padding: 30px 26px; } .pharmacopoeia .s-offer--holiday { padding-bottom: 0; } }
+/* 320px: "placed within 3 days." stays on one line (white-space: nowrap), so give it the room. */
+@media (max-width: 360px) { .pharmacopoeia .s-offer { padding-left: 18px; padding-right: 18px; } }
 .pharmacopoeia .s-offer-body { position: relative; text-align: center; }
 .pharmacopoeia .s-offer-eyebrow { color: #E0705F; font-size: 15px; letter-spacing: .18em; margin: 0 0 22px; }
 .pharmacopoeia .s-offer-big { display: flex; justify-content: center; align-items: flex-start; gap: 8px; line-height: 1; margin: 0; }
