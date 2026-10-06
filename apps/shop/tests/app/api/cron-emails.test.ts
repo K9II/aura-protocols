@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const listWelcomeCandidates = vi.fn(), sentKinds = vi.fn(), sendTracked = vi.fn(), getSubscriber = vi.fn(), welcomeSendsFor = vi.fn();
 const listAbandonedCheckouts = vi.fn(), alertOwner = vi.fn(), getOrderById = vi.fn();
 const offerForEmail = vi.fn();
-vi.mock("@/lib/email/data", () => ({ listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, welcomeSendsFor }));
+const markSkipped = vi.fn();
+vi.mock("@/lib/email/data", () => ({ listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, welcomeSendsFor, markSkipped }));
 vi.mock("@/lib/email/cart", () => ({ listAbandonedCheckouts }));
 vi.mock("@/lib/orders", () => ({ getOrderById }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
@@ -11,6 +12,14 @@ vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com
 const getLiveCatalog = vi.fn();
 vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog }));
 vi.mock("@/lib/account/offer-data", () => ({ offerForEmail }));
+const getEmailSettings = vi.fn(), startRun = vi.fn(), finishRun = vi.fn();
+vi.mock("@/lib/email/admin-data", () => ({ getEmailSettings, startRun, finishRun }));
+const campaignsToRun = vi.fn(), startCampaign = vi.fn();
+vi.mock("@/lib/email/campaigns/data", () => ({ campaignsToRun, startCampaign }));
+const sendCampaignBatch = vi.fn();
+vi.mock("@/lib/email/campaigns/send", () => ({ sendCampaignBatch }));
+const checksFor = vi.fn();
+vi.mock("@/lib/email/campaigns/checks-server", () => ({ checksFor }));
 
 const auth = (s = "cron-s") => new Request("http://localhost/api/cron/emails", { headers: { authorization: `Bearer ${s}` } });
 const H = 3600 * 1000, D = 24 * H;
@@ -18,13 +27,20 @@ const H = 3600 * 1000, D = 24 * H;
 describe("GET /api/cron/emails", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, listAbandonedCheckouts, alertOwner, welcomeSendsFor, getOrderById, offerForEmail, getLiveCatalog]) f.mockReset();
+    for (const f of [
+      listWelcomeCandidates, sentKinds, sendTracked, getSubscriber, listAbandonedCheckouts, alertOwner, welcomeSendsFor, getOrderById, offerForEmail, getLiveCatalog,
+      markSkipped, getEmailSettings, startRun, finishRun, campaignsToRun, startCampaign, sendCampaignBatch, checksFor,
+    ]) f.mockReset();
     getLiveCatalog.mockResolvedValue({ all: [], shown: [], lots: [] });
     welcomeSendsFor.mockResolvedValue(new Map());
     getOrderById.mockResolvedValue({ status: "awaiting_payment" });
     offerForEmail.mockResolvedValue(null);
     process.env.CRON_SECRET = "cron-s"; process.env.EMAIL_LINK_SECRET = "s"; process.env.MAILING_ADDRESS = "Aura Protocols LLC · 1 A St";
     listWelcomeCandidates.mockResolvedValue([]); listAbandonedCheckouts.mockResolvedValue([]); sendTracked.mockResolvedValue("sent");
+    getEmailSettings.mockResolvedValue({ welcomePaused: false, cartPaused: false });
+    startRun.mockResolvedValue("run1"); finishRun.mockResolvedValue(undefined);
+    campaignsToRun.mockResolvedValue([]); markSkipped.mockResolvedValue(true);
+    checksFor.mockResolvedValue([]);
   });
 
   it("401s without the cron secret", async () => {
@@ -202,5 +218,109 @@ describe("GET /api/cron/emails", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("records the run with its counts", async () => {
+    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date().toISOString() }]);
+    const { GET } = await import("@/app/api/cron/emails/route");
+    await GET(auth());
+    expect(startRun).toHaveBeenCalled();
+    expect(finishRun).toHaveBeenCalledWith("run1", { welcome: 1, cart: 0, cartSkipped: 0, campaign: 0, failures: [] });
+  });
+
+  it("a paused welcome series sends nothing", async () => {
+    getEmailSettings.mockResolvedValue({ welcomePaused: true, cartPaused: false });
+    listWelcomeCandidates.mockResolvedValue([{ email: "a@b.co", confirmed_at: new Date().toISOString() }]);
+    const { GET } = await import("@/app/api/cron/emails/route");
+    expect(await (await GET(auth())).json()).toMatchObject({ welcome: 0 });
+    expect(listWelcomeCandidates).not.toHaveBeenCalled();
+  });
+
+  it("paused cart reminders: a due reminder is marked skipped, not sent", async () => {
+    getEmailSettings.mockResolvedValue({ welcomePaused: false, cartPaused: true });
+    listAbandonedCheckouts.mockResolvedValue([{ id: "o1", order_number: "AP-1", email: "a@b.co", created_at: new Date(Date.now() - 2 * H).toISOString(), order_items: [] }]);
+    getSubscriber.mockResolvedValue(null); sentKinds.mockResolvedValue(new Set());
+    const { GET } = await import("@/app/api/cron/emails/route");
+    const body = await (await GET(auth())).json();
+    expect(markSkipped).toHaveBeenCalledWith("a@b.co", "cart_1", "o1");
+    expect(sendTracked).not.toHaveBeenCalled();
+    expect(body).toMatchObject({ cart: 0, cartSkipped: 1 });
+  });
+
+  it("starts a due scheduled campaign and sends a batch", async () => {
+    campaignsToRun.mockResolvedValue([{ id: "k1", status: "scheduled", name: "Oct" }]);
+    startCampaign.mockResolvedValue({ ok: true, recipients: 3 });
+    sendCampaignBatch.mockResolvedValue({ sent: 3, skipped: 0, failed: 0, remaining: 0, finished: true, stopped: false });
+    const { GET } = await import("@/app/api/cron/emails/route");
+    const body = await (await GET(auth())).json();
+    expect(startCampaign).toHaveBeenCalledWith("k1", null, "scheduled");
+    expect(sendCampaignBatch).toHaveBeenCalledWith("k1", expect.any(Number));
+    expect(body).toMatchObject({ campaign: 3 });
+  });
+
+  it("continues a sending campaign without starting it again", async () => {
+    campaignsToRun.mockResolvedValue([{ id: "k1", status: "sending", name: "Oct" }]);
+    sendCampaignBatch.mockResolvedValue({ sent: 5, skipped: 0, failed: 0, remaining: 10, finished: false, stopped: false });
+    const { GET } = await import("@/app/api/cron/emails/route");
+    await GET(auth());
+    expect(startCampaign).not.toHaveBeenCalled();
+  });
+
+  it("a scheduled campaign that now fails its checks isn't started, and the owner is alerted", async () => {
+    campaignsToRun.mockResolvedValue([{ id: "k3", status: "scheduled", name: "Oct promo" }]);
+    checksFor.mockResolvedValue([{ level: "block", field: "discountCodeId", text: "OCT10 is paused. Resume it in Discounts first." }]);
+    const { GET } = await import("@/app/api/cron/emails/route");
+    await GET(auth());
+    expect(startCampaign).not.toHaveBeenCalled();
+    expect(alertOwner.mock.calls[0][1]).toContain('campaign "Oct promo": checks failed — not sent (OCT10 is paused. Resume it in Discounts first.)');
+  });
+
+  it("a busy campaign waits for the next run; a failing settings read alerts and skips automations", async () => {
+    getEmailSettings.mockRejectedValue(new Error("db down"));
+    campaignsToRun.mockResolvedValue([{ id: "k2", status: "scheduled", name: "B" }]);
+    startCampaign.mockResolvedValue({ ok: false, reason: "busy" });
+    const { GET } = await import("@/app/api/cron/emails/route");
+    await GET(auth());
+    expect(listWelcomeCandidates).not.toHaveBeenCalled();
+    expect(sendCampaignBatch).not.toHaveBeenCalled();
+    expect(alertOwner.mock.calls[0][1]).toContain("email settings: db down");
+  });
+
+  it("one campaign throwing doesn't stop the rest of the run: it's recorded once, in the summary alert, and the next due campaign still sends", async () => {
+    campaignsToRun.mockResolvedValue([
+      { id: "k1", status: "sending", name: "Broken" },
+      { id: "k2", status: "scheduled", name: "Good" },
+    ]);
+    startCampaign.mockResolvedValue({ ok: true, recipients: 2 });
+    sendCampaignBatch.mockImplementation(async (id: string) => {
+      if (id === "k1") throw new Error("SES down");
+      return { sent: 2, skipped: 0, failed: 0, remaining: 0, finished: true, stopped: false };
+    });
+    const { GET } = await import("@/app/api/cron/emails/route");
+    const body = await (await GET(auth())).json();
+    expect(startCampaign).toHaveBeenCalledWith("k2", null, "scheduled");
+    expect(body).toMatchObject({ campaign: 2, failed: 1 });
+    expect(alertOwner).toHaveBeenCalledTimes(1);
+    expect(alertOwner.mock.calls[0][1]).toContain('campaign "Broken": SES down');
+  });
+
+  it("checksFor throwing for one scheduled campaign doesn't stop the next due campaign from starting", async () => {
+    campaignsToRun.mockResolvedValue([
+      { id: "k1", status: "scheduled", name: "Bad" },
+      { id: "k2", status: "scheduled", name: "Good" },
+    ]);
+    checksFor.mockImplementation(async (c: { id: string }) => {
+      if (c.id === "k1") throw new Error("checks db down");
+      return [];
+    });
+    startCampaign.mockResolvedValue({ ok: true, recipients: 2 });
+    sendCampaignBatch.mockResolvedValue({ sent: 2, skipped: 0, failed: 0, remaining: 0, finished: true, stopped: false });
+    const { GET } = await import("@/app/api/cron/emails/route");
+    const body = await (await GET(auth())).json();
+    expect(startCampaign).toHaveBeenCalledTimes(1);
+    expect(startCampaign).toHaveBeenCalledWith("k2", null, "scheduled");
+    expect(body).toMatchObject({ campaign: 2, failed: 1 });
+    expect(alertOwner).toHaveBeenCalledTimes(1);
+    expect(alertOwner.mock.calls[0][1]).toContain('campaign "Bad": checks db down');
   });
 });

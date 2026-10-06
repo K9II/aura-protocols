@@ -2,8 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { generateKeyPairSync, createSign } from "node:crypto";
 
 const accountIdByEmail = vi.fn(), flagVerifyRequired = vi.fn(), unsubscribe = vi.fn();
+const recordEmailEvent = vi.fn(), sourceForMessage = vi.fn();
 vi.mock("@/lib/account/data", () => ({ accountIdByEmail, flagVerifyRequired }));
 vi.mock("@/lib/email/data", () => ({ unsubscribe }));
+vi.mock("@/lib/email/admin-data", () => ({ recordEmailEvent, sourceForMessage }));
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const pem = publicKey.export({ type: "spki", format: "pem" }).toString();
@@ -20,7 +22,10 @@ function signed(msg: Record<string, string>, version: "1" | "2" = "2") {
 const note = (message: unknown, version: "1" | "2" = "2") => signed({ Type: "Notification", MessageId: "m1", TopicArn: "arn:aws:sns:us-east-1:1:ses", Timestamp: "2026-10-04T00:00:00Z", Message: JSON.stringify(message) }, version);
 
 describe("ses-events", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [accountIdByEmail, flagVerifyRequired, unsubscribe]) f.mockReset(); });
+  beforeEach(() => {
+    vi.resetModules(); for (const f of [accountIdByEmail, flagVerifyRequired, unsubscribe, recordEmailEvent, sourceForMessage]) f.mockReset();
+    sourceForMessage.mockResolvedValue(null);
+  });
 
   it("accepts a correctly signed message and refuses a tampered one or a foreign cert host", async () => {
     const { verifySnsMessage } = await import("@/lib/ses-events");
@@ -95,5 +100,25 @@ describe("ses-events", () => {
     const { handleSesEvent } = await import("@/lib/ses-events");
     await handleSesEvent({ eventType: "Complaint", complaint: { complainedRecipients: [{ emailAddress: "a@b.co" }] } });
     expect(unsubscribe).toHaveBeenCalledWith("a@b.co");
+  });
+
+  it("records a permanent bounce against the email it came from", async () => {
+    sourceForMessage.mockResolvedValue({ kind: "campaign", ref: "k1" });
+    const { handleSesEvent } = await import("@/lib/ses-events");
+    await handleSesEvent({ notificationType: "Bounce", mail: { messageId: "ses-9" }, bounce: { bounceType: "Permanent", bouncedRecipients: [{ emailAddress: "X@b.co" }] } });
+    expect(sourceForMessage).toHaveBeenCalledWith("ses-9");
+    expect(recordEmailEvent).toHaveBeenCalledWith({ type: "bounce", email: "x@b.co", sesMessageId: "ses-9", sourceKind: "campaign", sourceRef: "k1" });
+  });
+
+  it("records a complaint with an unknown source when the message isn't marketing mail", async () => {
+    const { handleSesEvent } = await import("@/lib/ses-events");
+    await handleSesEvent({ eventType: "Complaint", mail: { messageId: "ses-10" }, complaint: { complainedRecipients: [{ emailAddress: "y@b.co" }] } });
+    expect(recordEmailEvent).toHaveBeenCalledWith({ type: "complaint", email: "y@b.co", sesMessageId: "ses-10", sourceKind: null, sourceRef: null });
+  });
+
+  it("doesn't count a transient bounce", async () => {
+    const { handleSesEvent } = await import("@/lib/ses-events");
+    await handleSesEvent({ notificationType: "Bounce", bounce: { bounceType: "Transient", bouncedRecipients: [{ emailAddress: "x@b.co" }] } });
+    expect(recordEmailEvent).not.toHaveBeenCalled();
   });
 });

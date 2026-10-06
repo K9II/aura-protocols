@@ -33,3 +33,26 @@ describe("email links", () => {
     expect(hashToken(a.token)).toBe(a.hash);
   });
 });
+
+describe("unsubscribe tags", () => {
+  beforeEach(() => { process.env.EMAIL_LINK_SECRET = "s"; });
+  it("signs the tag with the email; old links without a tag still verify", async () => {
+    const { unsubscribeUrl, verifyUnsubscribe, unsubscribeSig } = await import("@/lib/email/links");
+    const url = new URL(unsubscribeUrl("https://auraprotocols.com", "A@b.co", "campaign.k1"));
+    expect(url.searchParams.get("e")).toBe("a@b.co");
+    expect(url.searchParams.get("c")).toBe("campaign.k1");
+    expect(verifyUnsubscribe("a@b.co", url.searchParams.get("s"), "campaign.k1")).toBe(true);
+    expect(verifyUnsubscribe("a@b.co", url.searchParams.get("s"), "welcome_1")).toBe(false);
+    expect(verifyUnsubscribe("a@b.co", unsubscribeSig("a@b.co"), null)).toBe(true);
+    expect(new URL(unsubscribeUrl("https://auraprotocols.com", "a@b.co")).searchParams.has("c")).toBe(false);
+  });
+  it("parses tags", async () => {
+    const { parseUnsubTag } = await import("@/lib/email/links");
+    expect(parseUnsubTag("welcome_3")).toEqual({ kind: "welcome_3", ref: null });
+    expect(parseUnsubTag("cart_2")).toEqual({ kind: "cart_2", ref: null });
+    expect(parseUnsubTag("campaign.0b6f1c2e-1111-4222-8333-944455556666")).toEqual({ kind: "campaign", ref: "0b6f1c2e-1111-4222-8333-944455556666" });
+    expect(parseUnsubTag("campaign.nope")).toBeNull();
+    expect(parseUnsubTag("drop table")).toBeNull();
+    expect(parseUnsubTag(null)).toBeNull();
+  });
+});

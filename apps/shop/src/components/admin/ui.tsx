@@ -32,11 +32,16 @@ const PATHS = {
   reset: <><path d="M3 3v4h4" /><path d="M3.5 7A5 5 0 1 1 4 11" /></>,
   book: <path d="M2.5 3h4a1.5 1.5 0 0 1 1.5 1.5V14a1.5 1.5 0 0 0-1.5-1.5h-4zM13.5 3h-4A1.5 1.5 0 0 0 8 4.5V14a1.5 1.5 0 0 1 1.5-1.5h4z" />,
   arrow: <path d="M3 8h10M9 4l4 4-4 4" />,
+  send: <><path d="M2 8 14 2l-4 12-2.5-4.5z" /><path d="M7.5 9.5 14 2" /></>,
+  clock: <><circle cx="8" cy="8" r="6" /><path d="M8 4.5V8l2.5 1.5" /></>,
+  down: <path d="m4 6 4 4 4-4" />,
+  flask: <path d="M6 2h4M7 2v4L3.5 13h9L9 6V2" />,
+  desktop: <><rect x="2" y="3" width="12" height="8" /><path d="M6 14h4M8 11v3" /></>,
 } as const;
 export type IconName = keyof typeof PATHS;
 
-export function Icon({ name }: { name: IconName }) {
-  return <svg className="a-i" viewBox="0 0 16 16" aria-hidden>{PATHS[name]}</svg>;
+export function Icon({ name, style }: { name: IconName; style?: React.CSSProperties }) {
+  return <svg className="a-i" viewBox="0 0 16 16" aria-hidden style={style}>{PATHS[name]}</svg>;
 }
 
 const CHIP_CLASS: Record<CodeStatus, string> = { active: "active", scheduled: "sched", paused: "paused", ended: "ended", used_up: "usedup" };

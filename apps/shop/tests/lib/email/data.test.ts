@@ -83,21 +83,27 @@ describe("hasPaidOrder", () => {
 describe("unsubscribe", () => {
   beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
 
-  it("updates an existing subscriber row in place", async () => {
+  it("unsubscribes an existing subscriber and reports the change", async () => {
     const update = query({ data: [{ email: "a@b.co" }] });
     from = fromQueue({ subscribers: [update] });
     const { unsubscribe } = await import("@/lib/email/data");
-    await unsubscribe("a@b.co");
+    expect(await unsubscribe("a@b.co")).toBe(true);
     expect(callArgs(update, "update")?.[0]).toMatchObject({ status: "unsubscribed" });
     expect(callArgs(update, "eq")).toEqual(["email", "a@b.co"]);
+    expect(callArgs(update, "neq")).toEqual(["status", "unsubscribed"]);
+  });
+
+  it("an address that's already unsubscribed is left alone (false)", async () => {
+    from = fromQueue({ subscribers: [query({ data: [] }), query({ data: { email: "a@b.co", status: "unsubscribed" } })] });
+    const { unsubscribe } = await import("@/lib/email/data");
+    expect(await unsubscribe("a@b.co")).toBe(false);
   });
 
   it("inserts a row for an address with no subscriber row (e.g. a cart-reminder-only email)", async () => {
-    const update = query({ data: [] });
     const insert = query({});
-    from = fromQueue({ subscribers: [update, insert] });
+    from = fromQueue({ subscribers: [query({ data: [] }), query({ data: null }), insert] });
     const { unsubscribe } = await import("@/lib/email/data");
-    await unsubscribe("new@b.co");
+    expect(await unsubscribe("new@b.co")).toBe(true);
     expect(callArgs(insert, "insert")?.[0]).toMatchObject({ email: "new@b.co", source: "unsubscribe", status: "unsubscribed" });
   });
 
@@ -108,7 +114,7 @@ describe("unsubscribe", () => {
   });
 
   it("throws on an insert error", async () => {
-    from = fromQueue({ subscribers: [query({ data: [] }), query({ error: { message: "down" } })] });
+    from = fromQueue({ subscribers: [query({ data: [] }), query({ data: null }), query({ error: { message: "down" } })] });
     const { unsubscribe } = await import("@/lib/email/data");
     await expect(unsubscribe("a@b.co")).rejects.toThrow();
   });
@@ -123,17 +129,19 @@ describe("unsubscribe", () => {
 
   it("retries the update once when the insert races with another writer (23505)", async () => {
     const update1 = query({ data: [] });
+    const read = query({ data: null });
     const insert = query({ error: { code: "23505" } });
-    const update2 = query({});
-    from = fromQueue({ subscribers: [update1, insert, update2] });
+    const update2 = query({ data: [{ email: "a@b.co" }] });
+    from = fromQueue({ subscribers: [update1, read, insert, update2] });
     const { unsubscribe } = await import("@/lib/email/data");
-    await unsubscribe("a@b.co");
+    expect(await unsubscribe("a@b.co")).toBe(true);
     expect(callArgs(update2, "update")?.[0]).toMatchObject({ status: "unsubscribed", confirm_token_hash: null });
   });
 
   it("throws if the retried update after an insert race also fails", async () => {
     from = fromQueue({ subscribers: [
       query({ data: [] }),
+      query({ data: null }),
       query({ error: { code: "23505" } }),
       query({ error: { message: "down" } }),
     ] });
