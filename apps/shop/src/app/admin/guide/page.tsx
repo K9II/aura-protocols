@@ -8,6 +8,7 @@ import Discounts from "@/components/admin/guide/Discounts";
 import Orders from "@/components/admin/guide/Orders";
 import Customers from "@/components/admin/guide/Customers";
 import Disputes from "@/components/admin/guide/Disputes";
+import Activity from "@/components/admin/guide/Activity";
 import Catalog from "@/components/admin/guide/Catalog";
 import Email from "@/components/admin/guide/Email";
 import Partners from "@/components/admin/guide/Partners";
@@ -36,6 +37,7 @@ export default async function AdminGuidePage() {
         <Email />
         <Partners />
         <Payouts />
+        <Activity />
       </article>
     </div>
   );

@@ -63,6 +63,9 @@ export default function AdminShell({ counts, testMode, ownerName, children }: {
         ))}
       </nav>
       <div className="a-nav-foot">
+        <Link href="/admin/activity" className={pathname === "/admin/activity" ? "on" : undefined} aria-current={pathname === "/admin/activity" ? "page" : undefined} onClick={() => setOpen(false)}>
+          <Icon name="clock" />Activity
+        </Link>
         <Link href={GUIDE_PATH} className={guideOn ? "on" : undefined} aria-current={guideOn ? "page" : undefined} onClick={() => setOpen(false)}>
           <Icon name="book" />Guide
         </Link>
