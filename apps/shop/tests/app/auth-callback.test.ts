@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const exchangeCodeForSession = vi.fn(), signOut = vi.fn(), customerStatus = vi.fn(), alertOwner = vi.fn(), secureGoogleLink = vi.fn();
+const exchangeCodeForSession = vi.fn(), signOut = vi.fn(), customerStatus = vi.fn(), alertOwner = vi.fn(), secureGoogleLink = vi.fn(), confirmGoogleEmail = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () => ({ auth: { exchangeCodeForSession, signOut } }) }));
 vi.mock("@/lib/dal", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/lib/dal")>()), customerStatus }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
-vi.mock("@/lib/account/google-link", () => ({ secureGoogleLink }));
+vi.mock("@/lib/account/google-link", () => ({ secureGoogleLink, confirmGoogleEmail }));
 
 const get = async (q: string, cookie?: string) => {
   const { GET } = await import("@/app/auth/callback/route");
@@ -18,7 +18,7 @@ const ok = (id = "u1", providers: string[] = ["google"]) =>
 describe("GET /auth/callback", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [exchangeCodeForSession, signOut, customerStatus, alertOwner, secureGoogleLink]) f.mockReset();
+    for (const f of [exchangeCodeForSession, signOut, customerStatus, alertOwner, secureGoogleLink, confirmGoogleEmail]) f.mockReset();
     signOut.mockResolvedValue({ error: null });
     secureGoogleLink.mockResolvedValue({ ok: true, changed: true });
   });
@@ -151,6 +151,33 @@ describe("GET /auth/callback", () => {
       customerStatus.mockResolvedValue("blocked");
       expect((await get("?flow=google&code=abc")).headers.get("location")).toBe("http://localhost/sign-in?error=closed");
       expect(secureGoogleLink).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Google-only sign-in on an existing customer (Supabase dropped an unconfirmed email login)", () => {
+    it("confirms the email, then continues", async () => {
+      exchangeCodeForSession.mockResolvedValue(ok("u1", ["google"]));
+      customerStatus.mockResolvedValue("ok");
+      expect((await get("?flow=google&code=abc&next=/products")).headers.get("location")).toBe("http://localhost/products");
+      expect(confirmGoogleEmail).toHaveBeenCalledWith("u1");
+      expect(secureGoogleLink).not.toHaveBeenCalled();
+    });
+
+    it("a failure is loud but the sign-in continues", async () => {
+      exchangeCodeForSession.mockResolvedValue(ok("u1", ["google"]));
+      customerStatus.mockResolvedValue("ok");
+      confirmGoogleEmail.mockRejectedValue(new Error("down"));
+      expect((await get("?flow=google&code=abc&next=/products")).headers.get("location")).toBe("http://localhost/products");
+      expect(alertOwner).toHaveBeenCalledWith("Google sign-in: email not marked confirmed", expect.stringContaining("down"));
+    });
+
+    it("new Google users (no customer yet) and email links don't call it", async () => {
+      exchangeCodeForSession.mockResolvedValue(ok("u1", ["google"]));
+      customerStatus.mockResolvedValue("none");
+      await get("?flow=google&code=abc");
+      customerStatus.mockResolvedValue("ok");
+      await get("?code=abc&next=/account");
+      expect(confirmGoogleEmail).not.toHaveBeenCalled();
     });
   });
 });

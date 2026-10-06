@@ -30,7 +30,7 @@ describe("secureGoogleLink (a Google sign-in on a user that also has a password)
     expect(id).toBe("u1");
     expect(typeof attrs.password).toBe("string");
     expect(attrs.password).toHaveLength(48);
-    expect(callArgs(upd, "update")?.[0]).toEqual({ email_verified_at: expect.any(String) });
+    expect(callArgs(upd, "update")?.[0]).toEqual({ email_verified_at: expect.any(String), verify_required: false });
     expect(callArgs(upd, "eq")).toEqual(["id", "u1"]);
     expect(callArgs(upd, "is")).toEqual(["email_verified_at", null]);
   });
@@ -68,5 +68,25 @@ describe("secureGoogleLink (a Google sign-in on a user that also has a password)
     const { secureGoogleLink } = await import("@/lib/account/google-link");
     expect(await secureGoogleLink("u1")).toEqual({ ok: true, changed: true });
     expect(alertOwner).toHaveBeenCalledWith("Google sign-in: email not marked confirmed", expect.stringContaining("u1"));
+  });
+});
+
+describe("confirmGoogleEmail (Google proved the address)", () => {
+  beforeEach(() => { vi.resetModules(); });
+
+  it("marks an unconfirmed customer confirmed and drops the verify step, only if still unconfirmed", async () => {
+    const upd = query({});
+    from = fromQueue({ customers: [upd] });
+    const { confirmGoogleEmail } = await import("@/lib/account/google-link");
+    await confirmGoogleEmail("u1");
+    expect(callArgs(upd, "update")?.[0]).toEqual({ email_verified_at: expect.any(String), verify_required: false });
+    expect(callArgs(upd, "eq")).toEqual(["id", "u1"]);
+    expect(callArgs(upd, "is")).toEqual(["email_verified_at", null]);
+  });
+
+  it("a DB error throws (the caller alerts)", async () => {
+    from = fromQueue({ customers: [query({ error: { message: "down" } })] });
+    const { confirmGoogleEmail } = await import("@/lib/account/google-link");
+    await expect(confirmGoogleEmail("u1")).rejects.toThrow(/confirm google email/);
   });
 });

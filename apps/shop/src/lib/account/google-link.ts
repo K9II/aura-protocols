@@ -15,6 +15,18 @@ export type GoogleLinkResult = { ok: true; changed: boolean } | { ok: false; err
 // - otherwise Google just proved the address: the old password is replaced
 //   with a random one nobody knows, then the address is marked confirmed.
 // Not ok = the password may still be live; the caller must sign the user out.
+// Google proved the address. Marks an existing customer confirmed (and no
+// longer needing a verify step) if it wasn't already. Supabase itself drops an
+// UNCONFIRMED email login when the same address signs in with Google, so the
+// user can arrive here with only a Google identity: secureGoogleLink then
+// isn't called, and this is what lets them check out. Throws on a DB error.
+export async function confirmGoogleEmail(userId: string): Promise<void> {
+  const { error } = await getSupabaseAdminClient().from("customers")
+    .update({ email_verified_at: new Date().toISOString(), verify_required: false })
+    .eq("id", userId).is("email_verified_at", null);
+  if (error) throw new Error(`confirm google email: ${JSON.stringify(error)}`);
+}
+
 export async function secureGoogleLink(userId: string): Promise<GoogleLinkResult> {
   const admin = getSupabaseAdminClient();
   const { data, error } = await admin.from("customers").select("id, email_verified_at").eq("id", userId).maybeSingle();
@@ -27,7 +39,7 @@ export async function secureGoogleLink(userId: string): Promise<GoogleLinkResult
   if (pErr) return { ok: false, error: `password reset: ${JSON.stringify(pErr)}` };
 
   if (row) {
-    const { error: vErr } = await admin.from("customers").update({ email_verified_at: new Date().toISOString() })
+    const { error: vErr } = await admin.from("customers").update({ email_verified_at: new Date().toISOString(), verify_required: false })
       .eq("id", userId).is("email_verified_at", null);
     // The password is already gone, so the sign-in is safe; the owner can confirm the address by hand.
     if (vErr) await alertOwner("Google sign-in: email not marked confirmed", `${userId}: ${JSON.stringify(vErr)}`);

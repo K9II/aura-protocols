@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { customerStatus, safeNext } from "@/lib/dal";
 import { alertOwner } from "@/lib/notify";
-import { secureGoogleLink } from "@/lib/account/google-link";
+import { confirmGoogleEmail, secureGoogleLink } from "@/lib/account/google-link";
 
 // @supabase/ssr sets this (PKCE) when a browser starts a Google sign-in.
 // A provider error without it is just someone hitting the URL — no alert.
@@ -76,6 +76,12 @@ export async function GET(request: Request): Promise<Response> {
       try { await supabase.auth.signOut({ scope: "local" }); } catch { /* the cookies are cleared below either way */ }
       return clearSessionCookies(request, go(failed));
     }
+  } else if (google && status === "ok") {
+    // Google-only now (Supabase drops an unconfirmed email login on a Google
+    // sign-in with the same address): Google proved it, so confirm it here.
+    // A failure only means a verify step remains — loud, but sign-in goes on.
+    try { await confirmGoogleEmail(data.user.id); }
+    catch (err) { await alertOwner("Google sign-in: email not marked confirmed", `${data.user.id}: ${String(err)}`); }
   }
   if (status === "none") return go(`/finish-account?next=${encodeURIComponent(next)}`);
   return go(next);
