@@ -5,10 +5,12 @@ vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () =
 vi.mock("@/lib/dal", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/lib/dal")>()), customerStatus }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 
-const get = async (q: string) => {
+const get = async (q: string, cookie?: string) => {
   const { GET } = await import("@/app/auth/callback/route");
-  return GET(new Request(`http://localhost/auth/callback${q}`));
+  return GET(new Request(`http://localhost/auth/callback${q}`, cookie ? { headers: { cookie } } : undefined));
 };
+// Set by @supabase/ssr when this browser started the Google sign-in (PKCE).
+const VERIFIER = "sb-abc-auth-token-code-verifier=base64-xyz";
 const ok = (id = "u1") => ({ data: { user: { id }, session: {} }, error: null });
 
 describe("GET /auth/callback", () => {
@@ -64,10 +66,16 @@ describe("GET /auth/callback", () => {
   it("Google failures go to sign-in with the Google message; a cancel isn't alerted, a provider error is", async () => {
     expect((await get("?flow=google&error=access_denied&error_description=cancelled")).headers.get("location")).toBe("http://localhost/sign-in?error=google");
     expect(alertOwner).not.toHaveBeenCalled();
-    expect((await get("?flow=google&error=server_error&error_description=Unable+to+exchange+external+code")).headers.get("location")).toBe("http://localhost/sign-in?error=google");
+    expect((await get("?flow=google&error=server_error&error_description=Unable+to+exchange+external+code", `a=1; ${VERIFIER}`)).headers.get("location")).toBe("http://localhost/sign-in?error=google");
     expect(alertOwner).toHaveBeenCalledWith("Google sign-in failed", expect.stringContaining("server_error"));
     exchangeCodeForSession.mockResolvedValue({ data: { user: null, session: null }, error: { message: "invalid flow state" } });
     expect((await get("?flow=google&code=abc")).headers.get("location")).toBe("http://localhost/sign-in?error=google");
+  });
+
+  it("a provider error without the PKCE verifier cookie (nobody started a sign-in here) isn't alerted", async () => {
+    expect((await get("?flow=google&error=server_error&error_description=x")).headers.get("location")).toBe("http://localhost/sign-in?error=google");
+    expect((await get("?flow=google&error=server_error", "sb-abc-auth-token=x; other-code-verifier=y")).headers.get("location")).toBe("http://localhost/sign-in?error=google");
+    expect(alertOwner).not.toHaveBeenCalled();
   });
 
   it("a failed customer check is loud and fails closed", async () => {

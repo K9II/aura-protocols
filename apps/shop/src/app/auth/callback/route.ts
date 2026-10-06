@@ -3,6 +3,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { customerStatus, safeNext } from "@/lib/dal";
 import { alertOwner } from "@/lib/notify";
 
+// @supabase/ssr sets this (PKCE) when a browser starts a Google sign-in.
+// A provider error without it is just someone hitting the URL — no alert.
+const VERIFIER_COOKIE = /(?:^|;)\s*[^=;\s]+-auth-token-code-verifier(?:\.\d+)?=/;
+function startedHere(request: Request): boolean {
+  return VERIFIER_COOKIE.test(request.headers.get("cookie") ?? "");
+}
+
 // Lands here with a one-time code: reset-password links, and "Continue with
 // Google" (flow=google, from app/auth/google-actions.ts). A signed-in user
 // with no customers row finishes their account first (/finish-account).
@@ -19,7 +26,7 @@ export async function GET(request: Request): Promise<Response> {
   if (!code) {
     const err = q.get("error");
     // access_denied = the visitor cancelled at Google; anything else is ours to fix.
-    if (google && err && err !== "access_denied") await alertOwner("Google sign-in failed", `${err}: ${q.get("error_description") ?? ""}`);
+    if (google && err && err !== "access_denied" && startedHere(request)) await alertOwner("Google sign-in failed", `${err}: ${q.get("error_description") ?? ""}`);
     return go(failed);
   }
 
