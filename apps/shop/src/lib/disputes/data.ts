@@ -194,10 +194,12 @@ async function customerRow(id: string): Promise<CustomerFacts> {
   return data as CustomerFacts;
 }
 
-async function authUser(id: string): Promise<{ email: string; lastSignInAt: string | null }> {
+// A deleted auth user shouldn't block the chargeback page from loading: fall
+// back to the order's own email (a real Supabase error still throws).
+async function authUser(id: string, fallbackEmail: string): Promise<{ email: string; lastSignInAt: string | null }> {
   const { data, error } = await db().auth.admin.getUserById(id);
-  if (error || !data?.user?.email) return fail("dispute customer email read", error ?? "no auth user");
-  return { email: data.user.email, lastSignInAt: data.user.last_sign_in_at ?? null };
+  if (error) return fail("dispute customer email read", error);
+  return { email: data?.user?.email ?? fallbackEmail, lastSignInAt: data?.user?.last_sign_in_at ?? null };
 }
 
 async function latestAgreement(customerId: string): Promise<Agreement | null> {
@@ -256,7 +258,7 @@ export async function getDisputeCase(id: string): Promise<DisputeCase | null> {
   if (!order) return fail("dispute order read", `order ${dispute.order_id} not found`);
   const items = order.order_items ?? [];
   const [customer, user, agreement, orders, events, picked] = await Promise.all([
-    customerRow(order.customer_id), authUser(order.customer_id), latestAgreement(order.customer_id),
+    customerRow(order.customer_id), authUser(order.customer_id, order.email), latestAgreement(order.customer_id),
     customerOrders(order.customer_id), disputeEvents(id), itemLots(items.map((i) => i.id)),
   ]);
   const lotNumbers = [...new Set([...[...picked.values()].flat().map((l) => l.lotNumber), ...items.map((i) => i.lot_number)])];

@@ -151,6 +151,23 @@ describe("disputes data", () => {
     expect(m.orderItemLots).toHaveBeenCalledWith(["i1", "i2"]);
   });
 
+  it("a deleted auth user falls back to the order's own email instead of failing the page", async () => {
+    m.getOrderById.mockResolvedValue(order);
+    m.orderItemLots.mockResolvedValue(new Map());
+    db.getUserById.mockResolvedValue({ data: { user: null }, error: null });
+    db.from = fromQueue({
+      disputes: [query({ data: disputeRow() }), query({ data: [] })],
+      customers: [query({ data: { full_name: "Dana Whitfield", created_at: "2026-09-15T01:02:00Z", is_owner: false, blocked_at: null } })],
+      account_agreements: [query({ data: null })],
+      orders: [query({ data: [] })],
+      dispute_events: [query({ data: [] })],
+      lots: [query({ data: [] })],
+    });
+    const { getDisputeCase } = await import("@/lib/disputes/data");
+    const c = (await getDisputeCase(DISPUTE_ID))!;
+    expect(c.facts.customer).toMatchObject({ email: order.email, lastSignInAt: null });
+  });
+
   it("a missing chargeback is null; a missing order is an error, not a blank page", async () => {
     db.from = fromQueue({ disputes: [query({ data: null }), query({ data: disputeRow() })] });
     m.getOrderById.mockResolvedValue(null);
