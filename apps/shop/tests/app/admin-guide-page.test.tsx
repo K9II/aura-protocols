@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import { INQUIRY_AUTO_CLOSE_DAYS } from "@/lib/inquiries/constants";
 
 const { requireOwner, getDiscountCap } = vi.hoisted(() => ({
   requireOwner: vi.fn(async () => ({ id: "o1", fullName: "Kearney Adams", isOwner: true })),
@@ -21,16 +22,23 @@ describe("/admin/guide", () => {
     getDiscountCap.mockResolvedValue(30);
     render(await AdminGuidePage());
     expect(requireOwner).toHaveBeenCalled();
-    for (const t of ["Start here", "Today", "Discounts", "Orders", "Customers", "Disputes", "Catalog & lots", "Email", "Partners", "Payouts"]) expect(screen.getByRole("heading", { level: 2, name: t })).toBeInTheDocument();
+    for (const t of ["Start here", "Today", "Discounts", "Orders", "Customers", "Disputes", "Catalog & lots", "Email", "Inquiries", "Partners", "Payouts"]) expect(screen.getByRole("heading", { level: 2, name: t })).toBeInTheDocument();
     expect(screen.getAllByText(/30%/).length).toBeGreaterThan(0);
   });
 
   it("has the Email chapter with figures from constants", async () => {
     render(await AdminGuidePage());
+    const email = within(screen.getByRole("region", { name: "Email" }));
     expect(screen.getByRole("heading", { name: "Email" })).toBeInTheDocument();
-    expect(screen.getByText(/7 days/)).toBeInTheDocument();          // ATTRIBUTION_DAYS
-    expect(screen.getAllByText(/5%/).length).toBeGreaterThan(0);     // BOUNCE_LIMIT_PCT
-    expect(screen.getAllByText(/0.1%/).length).toBeGreaterThan(0);   // COMPLAINT_LIMIT_PCT
+    expect(email.getByText(/7 days/)).toBeInTheDocument();          // ATTRIBUTION_DAYS (scoped: Activity's "7 days" button label also matches /7 days/)
+    expect(email.getAllByText(/5%/).length).toBeGreaterThan(0);     // BOUNCE_LIMIT_PCT
+    expect(email.getAllByText(/0.1%/).length).toBeGreaterThan(0);   // COMPLAINT_LIMIT_PCT
+  });
+
+  it("has the Inquiries chapter with figures from constants", async () => {
+    render(await AdminGuidePage());
+    expect(screen.getByRole("heading", { level: 2, name: "Inquiries" })).toBeInTheDocument();
+    expect(screen.getAllByText(new RegExp(`${INQUIRY_AUTO_CLOSE_DAYS} days`)).length).toBeGreaterThan(0); // INQUIRY_AUTO_CLOSE_DAYS
   });
 
   it("has the Today chapter with figures from constants", async () => {

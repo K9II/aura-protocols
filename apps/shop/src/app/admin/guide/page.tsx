@@ -11,6 +11,7 @@ import Disputes from "@/components/admin/guide/Disputes";
 import Activity from "@/components/admin/guide/Activity";
 import Catalog from "@/components/admin/guide/Catalog";
 import Email from "@/components/admin/guide/Email";
+import Inquiries from "@/components/admin/guide/Inquiries";
 import Partners from "@/components/admin/guide/Partners";
 import Payouts from "@/components/admin/guide/Payouts";
 
@@ -35,6 +36,7 @@ export default async function AdminGuidePage() {
         <Disputes />
         <Catalog />
         <Email />
+        <Inquiries />
         <Partners />
         <Payouts />
         <Activity />

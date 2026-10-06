@@ -3,9 +3,9 @@ import { CHAPTERS, SECTIONS, chapterForPath, chapterNumber, guideHref, sectionId
 
 describe("guide chapters", () => {
   it("has unique ids in the agreed order", () => {
-    expect(CHAPTERS.map((c) => c.id)).toEqual(["start", "today", "discounts", "orders", "customers", "disputes", "catalog", "email", "partners", "payouts", "activity"]);
+    expect(CHAPTERS.map((c) => c.id)).toEqual(["start", "today", "discounts", "orders", "customers", "disputes", "catalog", "email", "inquiries", "partners", "payouts", "activity"]);
     expect(chapterNumber("start")).toBe(1);
-    expect(chapterNumber("payouts")).toBe(10);
+    expect(chapterNumber("payouts")).toBe(11);
     expect(chapterForPath("/admin/activity")).toBe("activity");
   });
 
@@ -31,7 +31,12 @@ describe("guide chapters", () => {
   it("has no chapter for the Guide itself or look-alike paths", () => {
     expect(chapterForPath(GUIDE_PATH)).toBeNull();
     expect(chapterForPath("/admin/ordersx")).toBeNull();
-    expect(chapterForPath("/admin/inquiries")).toBeNull();
+  });
+
+  it("maps the Inquiries pages (list, thread, saved replies) to its chapter", () => {
+    expect(chapterForPath("/admin/inquiries")).toBe("inquiries");
+    expect(chapterForPath("/admin/inquiries/Q-1047")).toBe("inquiries");
+    expect(chapterForPath("/admin/inquiries/replies")).toBe("inquiries");
   });
 
   it("Today owns /admin and Past alerts only — never the whole admin", () => {

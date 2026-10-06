@@ -12,6 +12,7 @@ export const CHAPTERS = [
   { id: "disputes", title: "Disputes", group: "Sell", href: "/admin/disputes" },
   { id: "catalog", title: "Catalog & lots", group: "Stock", href: "/admin/catalog" },
   { id: "email", title: "Email", group: "Reach", href: "/admin/email" },
+  { id: "inquiries", title: "Inquiries", group: "Reach", href: "/admin/inquiries" },
   { id: "partners", title: "Partners", group: "Partners", href: "/admin/partners" },
   { id: "payouts", title: "Payouts", group: "Partners", href: "/admin/payouts" },
   { id: "activity", title: "Activity", group: null, href: "/admin/activity" },
