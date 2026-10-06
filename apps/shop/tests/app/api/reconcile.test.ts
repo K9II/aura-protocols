@@ -13,6 +13,7 @@ const lotIntegrity = vi.fn();
 const openDisputes = vi.fn();
 const markReminded = vi.fn();
 const logDisputeEvent = vi.fn();
+const autoCloseInquiries = vi.fn();
 vi.mock("@/lib/stripe", () => ({ getStripe: () => ({ checkout: { sessions: { list } } }) }));
 vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder, listOrphanedPendingOrders }));
 vi.mock("@/lib/stripe-events", () => ({ applyPaid }));
@@ -21,13 +22,14 @@ vi.mock("@/lib/account/data", () => ({ pruneLookups }));
 vi.mock("@/lib/discounts/data", () => ({ pruneCodeAttempts }));
 vi.mock("@/lib/catalog-ops/data", () => ({ lotIntegrity }));
 vi.mock("@/lib/disputes/data", () => ({ openDisputes, markReminded, logDisputeEvent }));
+vi.mock("@/lib/inquiries/data", () => ({ autoCloseInquiries }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => NOW }));
 
 const get = (auth?: string) => new Request("http://localhost/api/cron/reconcile", { headers: auth ? { authorization: auth } : {} });
 async function* pages(items: unknown[]) { for (const i of items) yield i; }
 
 describe("GET /api/cron/reconcile", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner, listOrphanedPendingOrders, pruneLookups, pruneCodeAttempts, lotIntegrity, openDisputes, markReminded, logDisputeEvent]) f.mockReset(); openDisputes.mockResolvedValue([]); listOrphanedPendingOrders.mockResolvedValue([]); pruneLookups.mockResolvedValue(undefined); pruneCodeAttempts.mockResolvedValue(undefined); lotIntegrity.mockResolvedValue({ negative: [], stale_holds: [] }); process.env.CRON_SECRET = "s3cret"; });
+  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner, listOrphanedPendingOrders, pruneLookups, pruneCodeAttempts, lotIntegrity, openDisputes, markReminded, logDisputeEvent, autoCloseInquiries]) f.mockReset(); openDisputes.mockResolvedValue([]); listOrphanedPendingOrders.mockResolvedValue([]); pruneLookups.mockResolvedValue(undefined); pruneCodeAttempts.mockResolvedValue(undefined); lotIntegrity.mockResolvedValue({ negative: [], stale_holds: [] }); autoCloseInquiries.mockResolvedValue(0); process.env.CRON_SECRET = "s3cret"; });
 
   it("requires the cron secret", async () => {
     const { GET } = await import("@/app/api/cron/reconcile/route");
@@ -46,7 +48,7 @@ describe("GET /api/cron/reconcile", () => {
     transitionOrder.mockResolvedValue(true);
     const { GET } = await import("@/app/api/cron/reconcile/route");
     const res = await GET(get("Bearer s3cret"));
-    expect(await res.json()).toEqual({ checked: 3, fixedPaid: ["AP-1"], cancelled: ["AP-2"], failed: [] });
+    expect(await res.json()).toEqual({ checked: 3, fixedPaid: ["AP-1"], cancelled: ["AP-2"], failed: [], inquiriesClosed: 0 });
     expect(transitionOrder).toHaveBeenCalledWith("o2", "awaiting_payment", "cancelled");
     expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("Reconciler"), expect.stringContaining("AP-1"));
   });
@@ -165,5 +167,22 @@ describe("GET /api/cron/reconcile", () => {
     const res = await GET(get("Bearer s3cret"));
     expect(res.status).toBe(200);
     expect((await res.json()).failed).toEqual(expect.arrayContaining([expect.stringMatching(/dispute reminders/)]));
+  });
+
+  it("closes inquiries waiting on the customer for 14 days", async () => {
+    list.mockReturnValue(pages([]));
+    autoCloseInquiries.mockResolvedValue(2);
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    const res = await GET(get("Bearer s3cret"));
+    expect(autoCloseInquiries).toHaveBeenCalledTimes(1);
+    expect((await res.json()).inquiriesClosed).toBe(2);
+  });
+
+  it("an auto-close failure is reported with the run's failures, the rest still runs", async () => {
+    list.mockReturnValue(pages([]));
+    autoCloseInquiries.mockRejectedValue(new Error("db down"));
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    await GET(get("Bearer s3cret"));
+    expect(alertOwner).toHaveBeenCalledWith("Reconcile had failures", expect.stringContaining("inquiry auto-close: db down"));
   });
 });

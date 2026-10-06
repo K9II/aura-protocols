@@ -11,6 +11,7 @@ import { currentMs } from "@/lib/clock";
 import { logDisputeEvent, markReminded, openDisputes } from "@/lib/disputes/data";
 import { dueReminder, evidenceChip, reasonLabel } from "@/lib/disputes/rules";
 import { shortDate } from "@/lib/discounts/time";
+import { autoCloseInquiries } from "@/lib/inquiries/data";
 
 // Daily safety net (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`):
 // any Stripe session paid in the last 3 days whose order we never marked paid
@@ -99,11 +100,19 @@ export async function GET(request: Request): Promise<Response> {
   } catch (err) {
     failed.push(`dispute reminders: ${err instanceof Error ? err.message : String(err)}`);
   }
+  // Inquiries waiting on the customer for INQUIRY_AUTO_CLOSE_DAYS close (a
+  // later reply re-opens them). Logged on each thread as "Closed automatically".
+  let inquiriesClosed = 0;
+  try {
+    inquiriesClosed = await autoCloseInquiries(currentMs());
+  } catch (err) {
+    failed.push(`inquiry auto-close: ${err instanceof Error ? err.message : String(err)}`);
+  }
   if (fixedPaid.length) {
     await alertOwner("Reconciler fixed paid orders", `These paid orders were missing their webhook and have now been recorded: ${fixedPaid.join(", ")}`);
   }
   if (failed.length) {
     await alertOwner("Reconcile had failures", `${failed.length} failed:\n${failed.join("\n")}`);
   }
-  return NextResponse.json({ checked, fixedPaid, cancelled, failed });
+  return NextResponse.json({ checked, fixedPaid, cancelled, failed, inquiriesClosed });
 }
