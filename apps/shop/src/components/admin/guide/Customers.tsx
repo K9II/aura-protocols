@@ -38,12 +38,14 @@ export default function Customers() {
           ["Store credit", <>Each change needs a reason and is logged with your name. The balance can never go below zero, and no single change can be over ${MAX_CREDIT_CENTS / 100}. Customers tick <Ui>Apply store credit</Ui> at checkout to use it.</>],
           ["Blocking", <>They&apos;re signed out on every device and can&apos;t sign back in; the site tells them the account is closed and to email support. Their open checkouts are cancelled and any held code or credit is released. Orders, agreements and credit are kept.</>],
           ["Agreement record", <>When they agreed to the terms, which version, and that they confirmed 21 or older, research use only and the dispute policy, with the device used. Use it as evidence if a customer disputes a charge.</>],
+          ["Google accounts", <>Customers can also use <Ui>Continue with Google</Ui>. Google has already confirmed their email, so they show as <Ui>Verified</Ui> straight away. The first time, they finish their account on a short page with the same agreement box, recorded the same way. If their Google address matches an existing account, Google simply signs them in to it.</>],
           ["New-account offer", <>The overview shows whether the automatic {NEW_ACCOUNT_PCT}% was used, is still open, or expired.</>],
         ]} />
       }
       watch={[
         <>Blocking cancels any checkout they have open. Check their orders first; don&apos;t block on a hunch.</>,
-        <>A blocked email can&apos;t be used to make a new account, so unblock rather than asking them to sign up again.</>,
+        <>A blocked email can&apos;t be used to make a new account (with Google either), so unblock rather than asking them to sign up again.</>,
+        <>Someone who chose <Ui>Continue with Google</Ui> but didn&apos;t finish the account isn&apos;t a customer yet: they aren&apos;t listed here and can&apos;t browse or order until they finish.</>,
         <>Credit you add is real money off a future order. Use <Ui>Seeding</Ui> for reviewer product so it&apos;s easy to total later.</>,
       ]}
     />
