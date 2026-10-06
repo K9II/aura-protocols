@@ -17,12 +17,16 @@ import { currentMs } from "@/lib/clock";
 // /contact and /wholesale. Open to everyone (locked-out people included), so:
 // a honeypot field, a per-IP limit, length caps. Signed in → the account's
 // name and email; signed out → linked to the account with that email, if any.
+// Name/organization/order number strip control characters (CR/LF header
+// injection, stray bytes) — they're one-line fields. The message keeps its
+// newlines; it's never used anywhere header injection could matter.
+const stripControl = (s: string) => s.replace(/[\x00-\x1f\x7f]/g, "");
 const schema = z.object({
   topic: z.enum(TOPICS),
-  name: z.string().trim().min(1).max(INQUIRY_NAME_MAX).optional(),
+  name: z.string().trim().transform(stripControl).pipe(z.string().min(1).max(INQUIRY_NAME_MAX)).optional(),
   email: z.string().trim().toLowerCase().email().max(254).optional(),
-  organization: z.string().trim().max(INQUIRY_ORG_MAX).optional(),
-  orderNumber: z.string().trim().max(INQUIRY_ORDER_MAX).regex(/^[A-Za-z0-9-]*$/).optional(),
+  organization: z.string().trim().transform(stripControl).pipe(z.string().max(INQUIRY_ORG_MAX)).optional(),
+  orderNumber: z.string().trim().transform(stripControl).pipe(z.string().max(INQUIRY_ORDER_MAX).regex(/^[A-Za-z0-9-]*$/)).optional(),
   message: z.string().trim().min(1).max(INQUIRY_MESSAGE_MAX),
   website: z.string().optional(), // honeypot: hidden from people
 });

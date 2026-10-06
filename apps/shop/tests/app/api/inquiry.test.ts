@@ -98,6 +98,17 @@ describe("POST /api/inquiry", () => {
     expect(m.alertOwner).toHaveBeenCalledWith("Inquiry owner notification not sent", expect.stringContaining("Q-1047"));
   });
 
+  it("strips control characters from name, organization and order number — message keeps its newlines", async () => {
+    const { POST } = await import("@/app/api/inquiry/route");
+    await POST(post({
+      topic: "wholesale", name: "Dr. Lab\r\nBcc: x@evil.example", email: "lab@example.edu",
+      organization: "Example\x07 University", orderNumber: "AP-1052", message: "Line one\nLine two",
+    }));
+    expect(m.createInquiry).toHaveBeenCalledWith(expect.objectContaining({
+      name: "Dr. LabBcc: x@evil.example", organization: "Example University", orderNumber: "AP-1052", message: "Line one\nLine two",
+    }));
+  });
+
   it("the wholesale form keeps working (topic wholesale, organization in the subject)", async () => {
     const { POST } = await import("@/app/api/inquiry/route");
     await POST(post({ topic: "wholesale", name: "Dr. Lab", email: "lab@example.edu", organization: "Example University", message: "Quarterly volume." }));
