@@ -154,6 +154,14 @@ export async function campaignsToRun(nowMs: number): Promise<CampaignRow[]> {
   return (data ?? []) as CampaignRow[];
 }
 
+// Today's Email section: the campaign sending right now, if any (at most one —
+// the campaigns_one_sending index).
+export async function sendingCampaign(): Promise<CampaignRow | null> {
+  const { data, error } = await db().from("campaigns").select("*").eq("status", "sending").maybeSingle();
+  if (error) fail("sending campaign read", error);
+  return (data as CampaignRow | null) ?? null;
+}
+
 // ---------- recipients ----------
 export async function pendingRecipients(id: string, afterEmail: string, limit: number): Promise<Array<{ email: string; attempts: number }>> {
   const { data, error } = await db().from("campaign_recipients").select("email, attempts")

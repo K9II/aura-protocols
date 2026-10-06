@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { findViolations } from "../../../../scripts/compliance-scan.mjs";
 import { SECTIONS } from "@/components/admin/guide/chapters";
 import StartHere from "@/components/admin/guide/StartHere";
+import Today from "@/components/admin/guide/Today";
 import Discounts from "@/components/admin/guide/Discounts";
 import Orders from "@/components/admin/guide/Orders";
 import Customers from "@/components/admin/guide/Customers";
@@ -10,12 +11,12 @@ import Catalog from "@/components/admin/guide/Catalog";
 import Partners from "@/components/admin/guide/Partners";
 import Payouts from "@/components/admin/guide/Payouts";
 
-const all = (capPct = 35) => render(<><StartHere /><Discounts capPct={capPct} /><Orders /><Customers /><Catalog /><Partners /><Payouts /></>);
+const all = (capPct = 35) => render(<><StartHere /><Today /><Discounts capPct={capPct} /><Orders /><Customers /><Catalog /><Partners /><Payouts /></>);
 
 describe("Guide chapters", () => {
   it("each chapter has its heading and all three sections, with anchors", () => {
     const { container } = all();
-    for (const id of ["start", "discounts", "orders", "customers", "catalog", "partners", "payouts"]) {
+    for (const id of ["start", "today", "discounts", "orders", "customers", "catalog", "partners", "payouts"]) {
       expect(container.querySelector(`section#${id}`)).not.toBeNull();
       for (const s of SECTIONS) expect(container.querySelector(`#${id}-${s.key} > h3`)?.textContent).toBe(s.title);
     }

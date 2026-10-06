@@ -63,10 +63,10 @@ export async function GET(request: Request): Promise<Response> {
         const failures = run.failures ?? [];
         const cashQueued = await emailPayoutResults(stuckDate, run);
         resumed.push({ runDate: stuckDate, partners: run.results.length, failures: failures.length, cashQueued });
-        if (failures.length) await alertOwner(`Payout run ${stuckDate} still has failures`, JSON.stringify(failures));
+        if (failures.length) await alertOwner("Payout run still has failures", `Run ${stuckDate}: ${JSON.stringify(failures)}`);
       } catch (err) {
         resumed.push({ runDate: stuckDate, error: err instanceof Error ? err.message : String(err) });
-        await alertOwner(`Resuming payout run ${stuckDate} failed`, String(err));
+        await alertOwner("Resuming a payout run failed", `Run ${stuckDate}: ${String(err)}`);
       }
     }
   } catch (err) {
@@ -91,11 +91,11 @@ export async function GET(request: Request): Promise<Response> {
     if (run.skipped) return NextResponse.json({ cleared, resumed, swept, payoutRun: { runDate, skipped: true } });
     const cashQueued = await emailPayoutResults(runDate, run);
     const todayFailures = run.failures ?? [];
-    if (todayFailures.length) await alertOwner(`Payout run ${runDate} had partner failures`, JSON.stringify(todayFailures));
+    if (todayFailures.length) await alertOwner("Payout run had partner failures", `Run ${runDate}: ${JSON.stringify(todayFailures)}`);
     return NextResponse.json({ cleared, resumed, swept, payoutRun: { runDate, partners: run.results.length, cashQueued } });
   } catch (err) {
     console.error("payout run failed:", err);
-    await alertOwner(`Payout run failed ${runDate}`, String(err));
+    await alertOwner("Payout run failed", `Run ${runDate}: ${String(err)}`);
     return NextResponse.json({ error: "payout run failed" }, { status: 500 });
   }
 }

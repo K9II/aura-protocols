@@ -166,7 +166,7 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   if (truncated) failed.push(`run truncated: ${remaining} remaining`);
-  if (failed.length) await alertOwner(`Email run: ${failed.length} failed`, failed.join("\n"));
+  if (failed.length) await alertOwner("Email run had failures", `${failed.length} failed:\n${failed.join("\n")}`);
   if (runId) {
     try { await finishRun(runId, { welcome, cart, cartSkipped, campaign, failures: failed }); }
     catch (err) { await alertOwner("Email run not recorded", err instanceof Error ? err.message : String(err)); }

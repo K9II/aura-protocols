@@ -100,7 +100,7 @@ describe("GET /api/cron/partners-daily", () => {
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.resumed).toEqual([{ runDate: "2026-09-15", partners: 0, failures: 1, cashQueued: 0 }]);
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("2026-09-15"), expect.stringContaining("boom"));
+    expect(alertOwner).toHaveBeenCalledWith("Payout run still has failures", expect.stringMatching(/^Run 2026-09-15: [\s\S]*boom/));
   });
 
   it("alerts the owner and still runs the other jobs when listing unfinished runs throws", async () => {

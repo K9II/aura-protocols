@@ -6,9 +6,11 @@ import { useState } from "react";
 import { Icon, type IconName } from "@/components/admin/ui";
 import { GUIDE_PATH, chapterForPath, guideHref } from "@/components/admin/guide/chapters";
 
-type Item = { href: string; label: string; icon: IconName; live: boolean; count?: "orders" | "partners" | "email" };
+// `also`: other pages that belong to an item. Today's "/admin" is not a prefix
+// for the whole admin, so it is current only on itself and Past alerts.
+type Item = { href: string; label: string; icon: IconName; live: boolean; count?: "orders" | "partners" | "email" | "today"; also?: string[] };
 const NAV: Array<{ group?: string; items: Item[] }> = [
-  { items: [{ href: "/admin", label: "Today", icon: "today", live: false }] },
+  { items: [{ href: "/admin", label: "Today", icon: "today", live: true, count: "today", also: ["/admin/alerts"] }] },
   { group: "Sell", items: [
     { href: "/admin/orders", label: "Orders", icon: "orders", live: true, count: "orders" },
     { href: "/admin/customers", label: "Customers", icon: "customers", live: true },
@@ -26,7 +28,7 @@ const NAV: Array<{ group?: string; items: Item[] }> = [
 ];
 
 export default function AdminShell({ counts, testMode, ownerName, children }: {
-  counts: { orders: number; partners: number; email: number }; testMode: boolean; ownerName: string; children: React.ReactNode;
+  counts: { orders: number; partners: number; email: number; today: number }; testMode: boolean; ownerName: string; children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
@@ -43,7 +45,9 @@ export default function AdminShell({ counts, testMode, ownerName, children }: {
           <div key={gi}>
             {g.group && <div className="a-nav-group">{g.group}</div>}
             {g.items.map((it) => {
-              const on = it.live && (pathname === it.href || pathname.startsWith(`${it.href}/`));
+              const on = it.live && (pathname === it.href
+                || (it.href !== "/admin" && pathname.startsWith(`${it.href}/`))
+                || (it.also ?? []).some((p) => pathname === p || pathname.startsWith(`${p}/`)));
               const n = it.count ? counts[it.count] : 0;
               return it.live ? (
                 <Link key={it.href} href={it.href} className={on ? "on" : undefined} aria-current={on ? "page" : undefined} onClick={() => setOpen(false)}>

@@ -110,4 +110,13 @@ describe("campaign data", () => {
     getLiveCatalog.mockRejectedValue(new Error("down"));
     expect(await emailNavCount()).toBe(0);
   });
+
+  it("sendingCampaign: the one campaign sending, or null", async () => {
+    const q = query({ data: { id: "k1", name: "October restock", status: "sending", recipients: 2198, started_at: "2026-10-06T15:00:00Z" } });
+    from = fromQueue({ campaigns: [q, query({ data: null })] });
+    const { sendingCampaign } = await import("@/lib/email/campaigns/data");
+    expect((await sendingCampaign())?.id).toBe("k1");
+    expect(callArgs(q, "eq")).toEqual(["status", "sending"]);
+    expect(await sendingCampaign()).toBeNull();
+  });
 });

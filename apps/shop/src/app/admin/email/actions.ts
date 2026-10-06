@@ -125,7 +125,7 @@ export async function sendNowAction(_prev: EmailActionState, f: FormData): Promi
     r = await sendCampaignBatch(c.id, Date.now() + SEND_TIME_BUDGET_MS);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    await alertOwner(`Campaign "${c.name}": send now failed to start`, message);
+    await alertOwner("Campaign send now failed to start", `"${c.name}" (${c.id}): ${message}`);
     refresh(c.id);
     return sendErrorRedirect(c.id, `Sending hit a problem: ${message}. Anything not yet sent goes out on the next hourly run once it's fixed, or press Stop.`);
   }

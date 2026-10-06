@@ -76,7 +76,7 @@ describe("GET /api/cron/reconcile", () => {
     expect(body.failed[0]).toEqual(expect.stringContaining("cs_1"));
     expect(body.failed[0]).toEqual(expect.stringContaining("boom"));
     expect(transitionOrder).toHaveBeenCalledWith("o2", "awaiting_payment", "cancelled");
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("1 session"), expect.stringContaining("cs_1"));
+    expect(alertOwner).toHaveBeenCalledWith("Reconcile had failures", expect.stringMatching(/^1 failed:[\s\S]*cs_1/));
   });
 
   it("alerts the owner and returns 500 if listing Stripe sessions itself fails", async () => {

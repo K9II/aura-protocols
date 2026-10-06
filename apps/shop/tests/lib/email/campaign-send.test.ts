@@ -41,7 +41,8 @@ describe("sendCampaignBatch", () => {
     expect(setRecipient).toHaveBeenCalledWith("k1", "a@b.co", { state: "pending", attempts: 1, last_error: "SES throttled" });
     expect(setRecipient).toHaveBeenCalledWith("k1", "c@d.co", { state: "failed", attempts: 3, last_error: "SES throttled" });
     expect(r).toMatchObject({ failed: 2, remaining: 1, finished: false });
-    expect(alertOwner.mock.calls[0][0]).toBe('Campaign "How we read a spectrum": 2 not sent');
+    expect(alertOwner.mock.calls[0][0]).toBe("Campaign emails not sent");
+    expect(alertOwner.mock.calls[0][1]).toContain('"How we read a spectrum": 2 not sent');
     expect(moveCampaign).not.toHaveBeenCalled();
   });
 
@@ -119,7 +120,8 @@ describe("sendCampaignBatch", () => {
     expect(r).toMatchObject({ sent: 0, failed: 5, remaining: 8, finished: false, stopped: false });
     expect(moveCampaign).not.toHaveBeenCalled();
     expect(alertOwner).toHaveBeenCalledTimes(1);
-    expect(alertOwner.mock.calls[0][0]).toContain("5 failures in a row");
+    expect(alertOwner.mock.calls[0][0]).toBe("Campaign stopped after repeated send failures");
+    expect(alertOwner.mock.calls[0][1]).toContain("5 failures in a row");
   });
 
   it("re-checks for a stop every 20 recipients within one batch, not only between batches", async () => {
@@ -140,7 +142,7 @@ describe("sendCampaignBatch", () => {
     const r = await sendCampaignBatch("k1", Date.now() + 60_000);
     expect(moveCampaign).toHaveBeenCalledWith("k1", "sending", "sent", null);
     expect(r.finished).toBe(true);
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("2 failed"), expect.any(String));
+    expect(alertOwner).toHaveBeenCalledWith("Campaign finished with failures", expect.stringContaining("2 failed"));
   });
 
   it("stops a campaign when everything failed, instead of leaving it stuck sending", async () => {
@@ -151,7 +153,7 @@ describe("sendCampaignBatch", () => {
     expect(moveCampaign).toHaveBeenCalledWith("k1", "sending", "stopped", null);
     expect(r.finished).toBe(false);
     expect(r.stopped).toBe(true);
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining('stopped — nothing was delivered (4 failed)'), expect.any(String));
+    expect(alertOwner).toHaveBeenCalledWith("Campaign stopped — nothing was delivered", expect.stringContaining("4 failed"));
   });
 
   it("resets the failure streak after a success, so a mix of failures never trips the breaker", async () => {

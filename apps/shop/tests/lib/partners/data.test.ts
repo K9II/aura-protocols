@@ -138,4 +138,10 @@ describe("partner data", () => {
     await expect(setPayoutMethod("p1", { kind: "zelle", handle: "a@b.co" })).rejects.toThrow();
     await expect(markW9Checked("p1")).rejects.toThrow();
   });
+
+  it("listPartners throws on a read error", async () => {
+    from = fromQueue({ partners: [query({ error: { message: "down" } })] });
+    const { listPartners } = await import("@/lib/partners/data");
+    await expect(listPartners("applied")).rejects.toThrow(/partners select failed/);
+  });
 });

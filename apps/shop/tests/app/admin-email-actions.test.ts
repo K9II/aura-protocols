@@ -121,7 +121,8 @@ describe("admin email actions", () => {
     expect(message).toContain("its discount code is missing");
     expect(message).not.toMatch(/sent to \d/i); // never claims a send happened
     expect(alertOwner).toHaveBeenCalledTimes(1);
-    expect(alertOwner.mock.calls[0][0]).toContain("N");
+    expect(alertOwner.mock.calls[0][0]).toBe("Campaign send now failed to start");
+    expect(alertOwner.mock.calls[0][1]).toContain('"N"');
     expect(alertOwner.mock.calls[0][1]).toContain("discount code is missing");
   });
 

@@ -132,6 +132,12 @@ describe("orders", () => {
     await expect(saveStripeCustomerId("u1", "cus_1")).rejects.toThrow();
     await expect(saveStripeCoupon("o1", "co_1")).rejects.toThrow();
   });
+
+  it("listOrdersForOwner throws on a read error (Today shows Couldn't load, not an empty list)", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "down" } })] });
+    const { listOrdersForOwner } = await import("@/lib/orders");
+    await expect(listOrdersForOwner("paid")).rejects.toThrow(/owner orders select failed/);
+  });
 });
 
 describe("store credit held by abandoned checkouts", () => {

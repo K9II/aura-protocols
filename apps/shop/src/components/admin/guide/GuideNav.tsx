@@ -44,7 +44,7 @@ export default function GuideNav() {
               )}
             </li>
           ))}
-          <li className="soon"><span className="n">·</span>Catalog, Email, Inquiries… added as each ships</li>
+          <li className="soon"><span className="n">·</span>Disputes, Inquiries… added as each ships</li>
         </ol>
       </nav>
       <label className="a-g-jump a-only-phone">

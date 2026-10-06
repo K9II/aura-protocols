@@ -58,7 +58,7 @@ describe("markShippedAction", () => {
     markCommissionClearing.mockRejectedValue(new Error("db down"));
     const { markShippedAction } = await import("@/app/admin/orders/actions");
     await markShippedAction(fd({ orderId: id, tracking: "9400111899223344556677", carrier: "usps" }));
-    expect(alertOwner).toHaveBeenCalledWith("Commission not cleared for AP-1001", expect.stringContaining("db down"));
+    expect(alertOwner).toHaveBeenCalledWith("Commission not cleared at shipping", expect.stringMatching(/^AP-1001: [\s\S]*db down/));
     expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "j@lab.org", subject: "Order AP-1001 has shipped" });
   });
 
@@ -114,7 +114,7 @@ describe("markShippedAction", () => {
     recordShipped.mockResolvedValue("alert");
     const { markShippedAction } = await import("@/app/admin/orders/actions");
     await markShippedAction(fd({ orderId: id, tracking: "778122104410", carrier: "fedex" }));
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("i1"));
+    expect(alertOwner).toHaveBeenCalledWith("Shipped lots don't match what was held", expect.stringMatching(/^AP-1001 · line i1/));
     expect(catalogStockChanged).not.toHaveBeenCalled();
     expect(sendOrAlert).toHaveBeenCalled();
   });
@@ -132,7 +132,7 @@ describe("markShippedAction", () => {
     recordShipped.mockImplementation(async (itemId: string) => { if (itemId === "i1") throw new Error("db down"); return "ok"; });
     const { markShippedAction } = await import("@/app/admin/orders/actions");
     await markShippedAction(fd({ orderId: id, tracking: "778122104410", carrier: "fedex" }));
-    expect(alertOwner).toHaveBeenCalledWith(`Shipped lots not recorded for AP-1001`, expect.stringContaining("i1"));
+    expect(alertOwner).toHaveBeenCalledWith("Shipped lots not recorded", expect.stringMatching(/^AP-1001 · line i1/));
     expect(recordShipped).toHaveBeenCalledWith("i2", [{ lotNumber: "BPC-2", qty: 4 }], "manual");
     expect(sendOrAlert).toHaveBeenCalled();
   });
@@ -146,7 +146,7 @@ describe("markShippedAction", () => {
     orderItemLots.mockRejectedValue(new Error("down"));
     const { markShippedAction } = await import("@/app/admin/orders/actions");
     await markShippedAction(fd({ orderId: id, tracking: "778122104410", carrier: "fedex" }));
-    expect(alertOwner).toHaveBeenCalledWith(`Shipped lots not recorded for AP-1001`, expect.any(String));
+    expect(alertOwner).toHaveBeenCalledWith("Shipped lots not recorded", expect.stringMatching(/^AP-1001: /));
     expect(sendOrAlert).toHaveBeenCalled();
   });
 

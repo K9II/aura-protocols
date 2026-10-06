@@ -87,7 +87,7 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
   // changed and still don't add up (not on every save).
   const countsChanged = !prev || prev.ordered_qty !== val.orderedQty || prev.counted_qty !== val.countedQty || prev.damaged_qty !== val.damagedQty;
   if (countsChanged && isDiscrepancy(val.orderedQty, val.countedQty, val.damagedQty)) {
-    await alertOwner(`Lot ${val.lotNumber} arrived short or damaged`,
+    await alertOwner("A lot arrived short or damaged",
       `${c.name} ${v.strength}, lot ${val.lotNumber}: ordered ${val.orderedQty}, counted ${val.countedQty}, damaged ${val.damagedQty}. Note: ${val.discrepancyNote}`);
   }
   if (str(f, "intent") === "live") {

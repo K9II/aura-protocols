@@ -109,7 +109,7 @@ describe("handleStripeEvent", () => {
     reverseTax.mockRejectedValue(new Error("stripe down"));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await expect(handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }))).resolves.toBeUndefined();
-    expect(alertOwner).toHaveBeenCalledWith("Tax transaction not reversed for AP-1001", expect.stringContaining("stripe down"));
+    expect(alertOwner).toHaveBeenCalledWith("Tax transaction not reversed", expect.stringMatching(/^AP-1001: [\s\S]*stripe down/));
   });
 
   it("a failed commission reversal alerts by name and still runs the credit and tax steps", async () => {
@@ -117,7 +117,7 @@ describe("handleStripeEvent", () => {
     reverseCommission.mockRejectedValue(new Error("db down"));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await expect(handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }))).resolves.toBeUndefined();
-    expect(alertOwner).toHaveBeenCalledWith("Commission not reversed for AP-1001", expect.stringContaining("db down"));
+    expect(alertOwner).toHaveBeenCalledWith("Commission not reversed", expect.stringMatching(/^AP-1001: [\s\S]*db down/));
     expect(refundCredit).toHaveBeenCalledWith("u1", 5000, "o1");
     expect(reverseTax).toHaveBeenCalledWith("tax_txn_1");
   });
@@ -171,7 +171,7 @@ describe("handleStripeEvent", () => {
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("checkout.session.completed", session()));
     expect(transitionOrder).not.toHaveBeenCalled();
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringMatching(/cancelled order/i), expect.stringContaining("AP-1001"));
+    expect(alertOwner).toHaveBeenCalledWith("Payment received for a closed order", expect.stringMatching(/AP-1001[\s\S]*is cancelled/));
   });
 
   it("throws for a dispute whose order isn't matched yet, so Stripe retries it", async () => {
