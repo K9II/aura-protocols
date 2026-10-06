@@ -2,6 +2,7 @@
 // build type-checks them). NOW = Wed Oct 7 2026, 9:42 am Mountain.
 import type { DisputeListRow, DisputeRow, OrderBrief, WarningListRow, WarningRow } from "@/lib/disputes/rules";
 import type { EvidenceFacts } from "@/lib/disputes/evidence";
+import type { DisputeCase } from "@/lib/disputes/data";
 
 export const NOW = Date.parse("2026-10-07T15:42:00Z");
 export const DISPUTE_ID = "0b6f1c2e-1111-4222-8333-944455556666";
@@ -67,3 +68,12 @@ export function facts(o: Partial<EvidenceFacts> = {}, order: Partial<EvidenceFac
 // The same order before it shipped.
 export const unshipped = (o: Partial<EvidenceFacts> = {}): EvidenceFacts =>
   facts(o, { status: "paid", carrier: null, tracking: null, shippedAt: null });
+
+// Task 6: a chargeback case (lib/disputes/data.ts getDisputeCase).
+export function disputeCase(d: Partial<DisputeRow> = {}, f: Partial<EvidenceFacts> = {}, order: Partial<EvidenceFacts["order"]> = {}): DisputeCase {
+  return {
+    dispute: disputeRow(d), facts: facts(f, order),
+    events: [{ id: "e1", action: "opened", note: "product_not_received", at: "2026-10-01T22:12:05Z", actorName: null }],
+    customer: { id: CUSTOMER_ID, name: "Dana Whitfield", isOwner: false, blockedAt: null, paidOrders: 2, openCheckouts: [] },
+  };
+}
