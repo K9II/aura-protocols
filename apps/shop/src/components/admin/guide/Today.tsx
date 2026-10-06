@@ -14,8 +14,8 @@ export default function Today() {
           <Step><Ui>Past alerts</Ui> lists the last {ALERTS_KEEP_DAYS} days, with your notes and who marked each one done.</Step>
         </Task>
         <Task title="Work through the to-do list">
-          <Step>Sections run most urgent first: <Ui>Alerts</Ui>, <Ui>Orders to ship</Ui>, <Ui>Stock</Ui>, <Ui>Lots</Ui>, <Ui>Email</Ui>, <Ui>Partners</Ui>, <Ui>Inquiries</Ui>. A section shows only when something needs doing, up to {TODO_LINES_MAX} lines; <Ui>and N more</Ui> opens the full list.</Step>
-          <Step>Each line has a button to where the job is done: <Ui>Pick list</Ui>, <Ui>Open lot</Ui>, <Ui>Announce</Ui>, <Ui>Review</Ui>. When nothing is left, the list says <Ui>All clear</Ui>.</Step>
+          <Step>Sections run most urgent first: <Ui>Alerts</Ui>, <Ui>Disputes</Ui>, <Ui>Orders to ship</Ui>, <Ui>Stock</Ui>, <Ui>Lots</Ui>, <Ui>Email</Ui>, <Ui>Partners</Ui>, <Ui>Inquiries</Ui>. A section shows only when something needs doing, up to {TODO_LINES_MAX} lines; <Ui>and N more</Ui> opens the full list.</Step>
+          <Step>Each line has a button to where the job is done: <Ui>Respond</Ui>, <Ui>Pick list</Ui>, <Ui>Open lot</Ui>, <Ui>Announce</Ui>, <Ui>Review</Ui>. When nothing is left, the list says <Ui>All clear</Ui>.</Step>
           <Step>New wholesale and affiliate inquiries show here until the Inquiries page ships. Reply by email, then choose <Ui>Mark seen</Ui>.</Step>
         </Task>
         <Task title="Read the numbers">
@@ -35,7 +35,7 @@ export default function Today() {
           ["Orders to ship", <>Paid orders, oldest first. One turns red when it has waited more than {SHIP_LATE_BUSINESS_DAYS} business days (weekends don&apos;t count).</>],
           ["Email", <>Shows when the hourly email run hasn&apos;t run for {RUN_STALE_HOURS} hours or had failures, when bounces reach {BOUNCE_LIMIT_PCT * RATE_TODO_SHARE}% (half of Amazon&apos;s {BOUNCE_LIMIT_PCT}% limit) or complaints reach {COMPLAINT_LIMIT_PCT * RATE_TODO_SHARE}% (half of {COMPLAINT_LIMIT_PCT}%), and while a campaign is sending.</>],
           ["Alert repeats", <>The same problem again adds to its open alert instead of making a new one: <Ui>×3</Ui> means it happened three times. The newest detail is on top. Every time is still emailed.</>],
-          ["Menu number", <>The number beside <Ui>Today</Ui> counts everything on the to-do list: open alerts, orders to ship, stock, lots, email, partners and new inquiries.</>],
+          ["Menu number", <>The number beside <Ui>Today</Ui> counts everything on the to-do list: open alerts, chargebacks and early fraud warnings, orders to ship, stock, lots, email, partners and new inquiries.</>],
         ]} />
       }
       watch={[

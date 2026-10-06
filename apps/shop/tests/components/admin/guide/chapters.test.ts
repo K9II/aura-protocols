@@ -3,9 +3,9 @@ import { CHAPTERS, SECTIONS, chapterForPath, chapterNumber, guideHref, sectionId
 
 describe("guide chapters", () => {
   it("has unique ids in the agreed order", () => {
-    expect(CHAPTERS.map((c) => c.id)).toEqual(["start", "today", "discounts", "orders", "customers", "catalog", "email", "partners", "payouts"]);
+    expect(CHAPTERS.map((c) => c.id)).toEqual(["start", "today", "discounts", "orders", "customers", "disputes", "catalog", "email", "partners", "payouts"]);
     expect(chapterNumber("start")).toBe(1);
-    expect(chapterNumber("payouts")).toBe(9);
+    expect(chapterNumber("payouts")).toBe(10);
   });
 
   it("Catalog & lots is a chapter under Stock and owns its pages", () => {
@@ -20,6 +20,8 @@ describe("guide chapters", () => {
     expect(chapterForPath("/admin/partners")).toBe("partners");
     expect(chapterForPath("/admin/payouts")).toBe("payouts");
     expect(chapterForPath("/admin/customers/abc")).toBe("customers");
+    expect(chapterForPath("/admin/disputes")).toBe("disputes");
+    expect(chapterForPath("/admin/disputes/0b6f1c2e-1111-4222-8333-944455556666")).toBe("disputes");
     expect(chapterForPath("/admin/catalog")).toBe("catalog");
     expect(chapterForPath("/admin/email")).toBe("email");
     expect(chapterForPath("/admin/email/campaigns/x")).toBe("email");
