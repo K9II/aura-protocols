@@ -49,7 +49,7 @@ export default function EvidenceForm(p: EvidenceFormProps) {
     ? <span className="msg err" role="alert"><Icon name="warn" />{state.error}</span>
     : state?.ok
       ? <span className="msg" role="status"><Icon name="check" />{state.ok} · the bank sees nothing until you submit</span>
-      : <span className="msg"><Icon name="info" />{p.savedText}</span>;
+      : <span className="msg idle"><Icon name="info" />{p.savedText}</span>;
 
   return (
     <form action={save} className="a-ev">
@@ -98,10 +98,10 @@ export default function EvidenceForm(p: EvidenceFormProps) {
       </div>
 
       {other.length > 0 && <div className="a-err" role="alert">{other.map(([k, v]) => <div key={k}>{v}</div>)}</div>}
-      <div className="a-savebar">
+      <div className="a-savebar ev">
         {msg}
         <div className="r">
-          <a className="a-btn" href={p.pdfHref}><Icon name="download" />Download PDF</a>
+          <a className="a-btn pdf" href={p.pdfHref}><Icon name="download" />Download PDF</a>
           <button type="submit" className="a-btn" disabled={saving || submitting} onClick={() => setLast("save")}>{saving ? "Saving…" : "Save draft"}</button>
           <button type="button" className="a-btn primary" disabled={saving || submitting} onClick={() => dialog.current?.showModal()}><Icon name="send" />Submit to Stripe…</button>
         </div>

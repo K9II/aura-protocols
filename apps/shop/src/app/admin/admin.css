@@ -1024,4 +1024,9 @@
   .adm .a-agr > div { grid-template-columns: 1fr; gap: 0; }
   .adm .a-ev .a-textarea.letter { min-height: 150px; }
   .adm .a-dsec-h { flex-wrap: wrap; }
+  /* Phone save bar = mock d6: Save draft + Submit only (the PDF card keeps its Download link; errors and "saved" still show). */
+  .adm .a-savebar.ev .msg.idle, .adm .a-savebar.ev .a-btn.pdf { display: none; }
+  .adm .a-savebar.ev .r { flex: 1; flex-wrap: nowrap; margin-left: 0; }
+  .adm .a-savebar.ev .r .a-btn { flex: 1; justify-content: center; }
 }
+.adm .a-hist td:first-child, .adm .a-hist td:nth-child(2) { white-space: nowrap; }

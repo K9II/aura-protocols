@@ -106,7 +106,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
           </table>
           </div>
         )}
-        <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-4">Refunds and disputes are handled in the Stripe dashboard; a full refund updates the order here automatically. Orders paid only in store credit are refunded from their details here.</p>
+        <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-4">Refunds are made in the Stripe dashboard; a full refund updates the order here automatically. Chargebacks and early fraud warnings are handled in <Link href="/admin/disputes" className="p-link">Disputes</Link>. Orders paid only in store credit are refunded from their details here.</p>
       </div>
     </div>
   );

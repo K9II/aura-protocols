@@ -122,7 +122,7 @@ export default async function DisputesPage() {
         <div className="a-dsec-h"><h2 id="d-history">History</h2></div>
         {history.length === 0 ? <div className="a-empty">Nothing here yet.</div> : (
           <div className="a-scrollx">
-            <table className="a-t">
+            <table className="a-t a-hist">
               <thead><tr><th>Order</th><th>Customer</th><th>Reason</th><th className="num">Amount</th><th>Outcome</th><th>Closed</th></tr></thead>
               <tbody>{history.map((h) => (
                 <tr key={h.key}>

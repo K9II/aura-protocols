@@ -20,7 +20,7 @@ export default function Disputes() {
         </Task>
         <Task title="Handle an early fraud warning">
           <Step>A card network&apos;s heads-up that a payment looks fraudulent, often days before a chargeback. It shows under <Ui>Early fraud warnings</Ui> and on <Ui>Today</Ui>.</Step>
-          <Step>Not shipped yet: choose <Ui>Cancel and refund…</Ui>. The order is cancelled, its vials go back to stock, the card is refunded and the customer is emailed.</Step>
+          <Step>Not shipped yet: choose <Ui>Cancel and refund…</Ui>. The order is cancelled, its vials go back to stock, the card is refunded and the customer is emailed. Stripe also adds that card to its block list, so it can&apos;t pay at the store again.</Step>
           <Step>Already shipped: choose <Ui>Watch</Ui>. There&apos;s no refund after shipping; if a chargeback follows, its evidence is ready.</Step>
         </Task>
         <Task title="Block a customer">

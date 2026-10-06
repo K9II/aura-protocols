@@ -100,7 +100,7 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
           {!respond && <a className="a-btn" href={pdfHref}><Icon name="download" />Download PDF</a>}
           {!c.customer.blockedAt && !c.customer.isOwner && (
             <BlockDialog customerId={c.customer.id} name={c.customer.name} openCheckouts={c.customer.openCheckouts} label="Block customer…"
-              defaultReason={`Chargeback on ${o.number} without contacting us first.`} note="The chargeback response is unaffected. You can unblock any time in Customers." />
+              defaultReason={`Chargeback on ${o.number} without contacting us first.`} note="Blocking doesn't change the chargeback response." />
           )}
         </div>
       </div>
