@@ -91,9 +91,8 @@ export function kicker(kind: CampaignKind, codeEndsAt: string | null): string {
 
 const HOUR = 3_600_000;
 export const nextHourMs = (nowMs: number): number => Math.floor(nowMs / HOUR) * HOUR + HOUR;
-// The current time, for pages (a Server Component can't call Date.now()
-// directly without tripping the react-hooks/purity lint rule).
-export const currentMs = (): number => Date.now();
+// Moved to lib/clock.ts (Today uses it too); re-exported so Email pages keep working.
+export { currentMs } from "@/lib/clock";
 
 export function scheduleError(iso: string, nowMs: number = Date.now()): string | null {
   const ms = Date.parse(iso);
