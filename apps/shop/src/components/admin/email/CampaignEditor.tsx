@@ -31,6 +31,16 @@ export default function CampaignEditor(p: Props) {
   const [tab, setTab] = useState<"edit" | "preview">("edit");
   const [saveState, save, saving] = useActionState(saveCampaignAction, null);
   const [testState, test, testing] = useActionState(sendTestAction, null);
+  // A successful save (an existing draft update) returns `ok` — without this,
+  // Send now / Schedule / Send test stay disabled until the page reloads.
+  // Adjusted during render (React's "store info from previous renders"
+  // pattern), not an effect, so it takes effect in the same commit the new
+  // saveState arrives in — see https://react.dev/learn/you-might-not-need-an-effect.
+  const [prevSaveState, setPrevSaveState] = useState(saveState);
+  if (saveState !== prevSaveState) {
+    setPrevSaveState(saveState);
+    if (saveState?.ok) setDirty(false);
+  }
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => { setF({ ...f, [k]: e.target.value }); setDirty(true); };
   const checks = saveState?.checks ?? p.checks;
   const fe = saveState?.fieldErrors ?? {};
@@ -135,7 +145,10 @@ export default function CampaignEditor(p: Props) {
           {(saveState?.ok || testState?.ok || testState?.error || saveState?.error) && <div className="a-flash" role="status">{testState?.error ?? saveState?.error ?? testState?.ok ?? saveState?.ok}</div>}
         </div>
       </form>
-      {c && <form action={test} id="test-form"><input type="hidden" name="id" value={c.id} /></form>}
+      {/* hidden: this form has no visible fields — it only exists so the
+          "Send test to me" button (form="test-form") can submit it. Without
+          `hidden` it still sits in `.a-ed`'s grid as an empty cell. */}
+      {c && <form action={test} id="test-form" hidden><input type="hidden" name="id" value={c.id} /></form>}
 
       <div className={`a-sticky${tab === "edit" ? " a-hide-phone" : ""}`}><EmailPreview input={preview} site={p.site} mailingAddress={p.mailingAddress} /></div>
 
@@ -143,7 +156,7 @@ export default function CampaignEditor(p: Props) {
         <div className="a-psticky a-only-phone">
           <button type="submit" form="test-form" className="a-btn" disabled={!savedClean || testing}><Icon name="mail" />Test to me</button>
           {canSend
-            ? <SendDialog id={`${c.id}-m`} from="draft" name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!canSend} triggerLabel="Send…" />
+            ? <SendDialog id={c.id} dialogKey={`${c.id}-m`} from="draft" name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!canSend} triggerLabel="Send…" />
             : <button type="button" className="a-btn primary" disabled><Icon name="send" />Send…</button>}
         </div>
       )}

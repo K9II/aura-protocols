@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 vi.mock("@/app/admin/email/actions", () => ({ saveCampaignAction: vi.fn(), sendTestAction: vi.fn(), scheduleAction: vi.fn(), sendNowAction: vi.fn() }));
 import CampaignEditor from "@/components/admin/email/CampaignEditor";
+import { saveCampaignAction } from "@/app/admin/email/actions";
 
 const base = {
   campaign: null, kind: "promotion" as const, lotChoices: [], codes: [{ id: "c1", label: "OCT10 · 10% off items · Oct 8 – Oct 12 · 500 uses" }],
@@ -45,5 +46,29 @@ describe("CampaignEditor", () => {
     fireEvent.change(screen.getByLabelText("Subject"), { target: { value: "New" } });
     expect(screen.getByRole("button", { name: /Send now/ })).toBeDisabled();
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+  });
+
+  it("a successful save resets 'dirty' — Send now / Schedule / Send test re-enable without a reload", async () => {
+    const campaign = { id: "k1", kind: "news", status: "draft", name: "N", subject: "S", preview_text: "", content: { headline: "H", body: "", buttonLabel: "", buttonPath: "" }, audience: "all", discount_code_id: null, lots_snapshot: [] };
+    vi.mocked(saveCampaignAction).mockResolvedValue({ ok: "Saved.", checks: [{ level: "ok", text: "Compliance scan passed: subject, headline, body and button." }] });
+    const { container } = render(<CampaignEditor {...base} kind="news" campaign={campaign as never} checks={[{ level: "ok", text: "Compliance scan passed: subject, headline, body and button." }]} />);
+    fireEvent.change(screen.getByLabelText("Subject"), { target: { value: "New" } });
+    expect(screen.getByRole("button", { name: /Send now/ })).toBeDisabled();
+    await act(async () => { fireEvent.submit(container.querySelector("#campaign-form")!); });
+    expect(screen.getByRole("button", { name: /Send now/ })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /Schedule/ })).toBeEnabled();
+    expect(screen.getByText("All changes saved")).toBeInTheDocument();
+  });
+
+  it("both the desktop and phone Send dialogs submit the real campaign id, never a suffixed one", () => {
+    const campaign = { id: "k1", kind: "news", status: "draft", name: "N", subject: "S", preview_text: "", content: { headline: "H", body: "", buttonLabel: "", buttonPath: "" }, audience: "all", discount_code_id: null, lots_snapshot: [] };
+    const { container } = render(<CampaignEditor {...base} kind="news" campaign={campaign as never} checks={[{ level: "ok", text: "Compliance scan passed: subject, headline, body and button." }]} />);
+    const dialogs = [...container.querySelectorAll('dialog[aria-labelledby^="send-"]')];
+    // desktop (.a-savebar) + phone (.a-psticky) Send dialogs, both present and enabled since the draft is saved and clean.
+    expect(dialogs.length).toBe(2);
+    const ids = dialogs.map((d) => d.querySelector<HTMLInputElement>('input[name="id"]')!.value);
+    expect(ids).toEqual(["k1", "k1"]);
+    // Distinct DOM ids (dialogKey), so the two don't collide on the page.
+    expect(new Set(dialogs.map((d) => d.getAttribute("aria-labelledby"))).size).toBe(2);
   });
 });

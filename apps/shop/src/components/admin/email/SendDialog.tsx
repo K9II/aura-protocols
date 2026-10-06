@@ -3,17 +3,23 @@ import { useActionState, useRef } from "react";
 import { sendNowAction } from "@/app/admin/email/actions";
 import { Icon } from "@/components/admin/ui";
 
-export default function SendDialog({ id, from, name, subject, audienceLabel, recipients, lastTest, disabled, triggerLabel = "Send now…" }: { id: string; from: "draft" | "scheduled"; name: string; subject: string; audienceLabel: string; recipients: number; lastTest: string | null; disabled: boolean; triggerLabel?: string }) {
+// `id` is the real campaign id — it's submitted in the hidden form field and
+// must stay a bare UUID (the server validates it). `dialogKey` is only for
+// DOM element ids (so a second instance of this dialog on the same page,
+// e.g. the phone action bar, doesn't collide with the desktop one) — never
+// suffix `id` itself to make a key, or the submitted id fails UUID validation.
+export default function SendDialog({ id, dialogKey, from, name, subject, audienceLabel, recipients, lastTest, disabled, triggerLabel = "Send now…" }: { id: string; dialogKey?: string; from: "draft" | "scheduled"; name: string; subject: string; audienceLabel: string; recipients: number; lastTest: string | null; disabled: boolean; triggerLabel?: string }) {
+  const key = dialogKey ?? id;
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState(sendNowAction, null);
   const n = recipients.toLocaleString("en-US");
   return (
     <>
       <button type="button" className="a-btn primary" disabled={disabled} onClick={() => ref.current?.showModal()}><Icon name="send" />{triggerLabel}</button>
-      <dialog ref={ref} className="a-modal" aria-labelledby={`send-${id}`}>
+      <dialog ref={ref} className="a-modal" aria-labelledby={`send-${key}`}>
         <form action={action}>
           <input type="hidden" name="id" value={id} /><input type="hidden" name="from" value={from} />
-          <div className="a-modal-h"><h2 id={`send-${id}`}>Send now?</h2><button type="button" className="x" aria-label="Close" onClick={() => ref.current?.close()}>×</button></div>
+          <div className="a-modal-h"><h2 id={`send-${key}`}>Send now?</h2><button type="button" className="x" aria-label="Close" onClick={() => ref.current?.close()}>×</button></div>
           <div className="a-modal-b">
             {state?.ok ? <div className="a-callout ok" role="status"><Icon name="check" /><span>{state.ok}</span></div> : <>
               <div className="a-confirm-big">{n} <small>{recipients === 1 ? "person" : "people"} will get this email</small></div>
