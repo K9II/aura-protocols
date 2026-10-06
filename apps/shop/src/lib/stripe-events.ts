@@ -8,6 +8,11 @@ import { getCommerceAdapter } from "@/lib/commerce";
 import { refundCredit, reverseCommission } from "@/lib/partners/ledger";
 import { getPartnerById } from "@/lib/partners/data";
 import { usd } from "@/lib/html";
+import { shortDate } from "@/lib/discounts/time";
+import { closedNote, efwSuggestion, fraudTypeLabel, reasonLabel } from "@/lib/disputes/rules";
+import { disputeParams, eventAt, feeCents, idOf, warningParams } from "@/lib/disputes/stripe-map";
+import { logDisputeEvent, recordDispute, recordDisputeCard, recordFunds, recordWarning, resolveWarningsForCharge } from "@/lib/disputes/data";
+import { fetchChargeInfo } from "@/lib/disputes/stripe";
 
 function paymentIntentId(pi: string | { id: string } | null | undefined): string | null {
   return typeof pi === "string" ? pi : pi?.id ?? null;
@@ -68,6 +73,68 @@ export async function afterOrderRefunded(order: OrderRow): Promise<void> {
   }
 }
 
+// ---------- chargebacks and early fraud warnings (spec 2026-10-05-admin-disputes-design.md) ----------
+// A dispute or warning can be delivered before the paid event: throwing makes
+// Stripe retry, and the webhook route alerts the owner now. Every write below
+// is idempotent (upsert by Stripe id, keyed activity entries), so a retry
+// after a partial failure never duplicates anything.
+async function disputedOrder(d: Stripe.Dispute): Promise<OrderRow | null> {
+  const pi = paymentIntentId(d.payment_intent);
+  if (!pi) return null;
+  const order = await getOrderByPaymentIntent(pi);
+  if (!order) throw new Error(`dispute on ${pi}: no order matched yet`);
+  return order;
+}
+
+async function onDisputeOpened(event: Stripe.Event, dispute: Stripe.Dispute): Promise<void> {
+  const order = await disputedOrder(dispute);
+  if (!order) return;
+  const id = await recordDispute(disputeParams(dispute, order.id, eventAt(event)));
+  await logDisputeEvent({ disputeId: id, action: "opened", note: dispute.reason, key: `opened:${dispute.id}` });
+  const charge = idOf(dispute.charge);
+  if (charge) {
+    await recordDisputeCard(id, await fetchChargeInfo(charge));
+    await resolveWarningsForCharge(charge);
+  }
+  const reversed = await reverseCommission(order.id, "chargeback");
+  if (reversed === "none" && order.partner_id && order.attributed_by) {
+    const partner = await getPartnerById(order.partner_id);
+    if (partner?.status === "approved") throw new Error(`dispute on ${order.order_number}: commission not recorded yet`);
+  }
+  const due = dispute.evidence_details?.due_by ? ` · respond by ${shortDate(new Date(dispute.evidence_details.due_by * 1000).toISOString())}` : "";
+  await alertOwner("Chargeback opened", `Order ${order.order_number} · ${reasonLabel(dispute.reason)} · ${usd(dispute.amount)}${due}. The evidence is ready in Disputes: review it, then submit it to Stripe before the deadline.`);
+}
+
+async function onDisputeChanged(event: Stripe.Event, dispute: Stripe.Dispute): Promise<void> {
+  const order = await disputedOrder(dispute);
+  if (!order) return;
+  const at = eventAt(event);
+  const id = await recordDispute(disputeParams(dispute, order.id, at));
+  if (event.type === "charge.dispute.funds_withdrawn") {
+    await recordFunds(id, "withdrawn", at);
+    await logDisputeEvent({ disputeId: id, action: "funds_withdrawn", note: `${usd(dispute.amount)} + ${usd(feeCents(dispute))} fee`, key: `funds_withdrawn:${dispute.id}` });
+  } else if (event.type === "charge.dispute.funds_reinstated") {
+    await recordFunds(id, "reinstated", at);
+    await logDisputeEvent({ disputeId: id, action: "funds_reinstated", note: usd(dispute.amount), key: `funds_reinstated:${dispute.id}` });
+  } else if (event.type === "charge.dispute.closed") {
+    const note = closedNote(dispute.status, dispute.amount);
+    await logDisputeEvent({ disputeId: id, action: "closed", note, key: `closed:${dispute.id}` });
+    await alertOwner("Chargeback decided", `Order ${order.order_number} · ${note}. See it in Disputes.`);
+  }
+}
+
+async function onEarlyFraudWarning(event: Stripe.Event, w: Stripe.Radar.EarlyFraudWarning): Promise<void> {
+  const charge = idOf(w.charge);
+  const pi = paymentIntentId(w.payment_intent) ?? (charge ? (await fetchChargeInfo(charge)).paymentIntent : null);
+  if (!pi) return;
+  const order = await getOrderByPaymentIntent(pi);
+  if (!order) throw new Error(`early fraud warning on ${pi}: no order matched yet`);
+  await recordWarning(warningParams(w, order.id));
+  if (event.type !== "radar.early_fraud_warning.created") return;
+  const s = efwSuggestion({ status: order.status, shippedAt: order.shipped_at });
+  await alertOwner("Early fraud warning", `Order ${order.order_number} · ${fraudTypeLabel(w.fraud_type)} · ${usd(order.total_cents - order.store_credit_cents)} · ${s.alert}`);
+}
+
 export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
   switch (event.type) {
     case "checkout.session.completed": {
@@ -125,23 +192,19 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       await afterOrderRefunded(order);
       return;
     }
-    case "charge.dispute.created": {
-      const dispute = event.data.object as Stripe.Dispute;
-      const pi = paymentIntentId(dispute.payment_intent);
-      if (!pi) return;
-      // Stripe can deliver a dispute before (or alongside) the paid event.
-      // Throwing makes Stripe retry, and the webhook route alerts the owner
-      // now; the retry reverses the commission and sends the alert below.
-      const order = await getOrderByPaymentIntent(pi);
-      if (!order) throw new Error(`dispute on ${pi}: no order matched yet`);
-      const reversed = await reverseCommission(order.id, "chargeback");
-      if (reversed === "none" && order.partner_id && order.attributed_by) {
-        const partner = await getPartnerById(order.partner_id);
-        if (partner?.status === "approved") throw new Error(`dispute on ${order.order_number}: commission not recorded yet`);
-      }
-      await alertOwner("Chargeback opened", `Order ${order.order_number} · reason: ${dispute.reason}. Respond in the Stripe dashboard with the order, tracking and agreement records.`);
+    case "charge.dispute.created":
+      await onDisputeOpened(event, event.data.object as Stripe.Dispute);
       return;
-    }
+    case "charge.dispute.updated":
+    case "charge.dispute.closed":
+    case "charge.dispute.funds_withdrawn":
+    case "charge.dispute.funds_reinstated":
+      await onDisputeChanged(event, event.data.object as Stripe.Dispute);
+      return;
+    case "radar.early_fraud_warning.created":
+    case "radar.early_fraud_warning.updated":
+      await onEarlyFraudWarning(event, event.data.object as Stripe.Radar.EarlyFraudWarning);
+      return;
     default:
       return;
   }
