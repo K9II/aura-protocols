@@ -140,7 +140,11 @@ export function coverLetter(f: EvidenceFacts): string {
 export const productDescription = (f: EvidenceFacts): string =>
   `Research chemicals for laboratory research use only, not for human or animal use: ${itemsText(f, true)}. Each lot has an independent certificate of analysis.`;
 
-export function activityLog(f: EvidenceFacts): string {
+// `lastSignIn: false` leaves the "Last sign-in" line out: it's a live value
+// (changes whenever the customer signs in again), so the PDF — which must
+// rebuild to the same bytes for the same dispute — never includes it. The
+// Stripe text field (access_activity_log) keeps it.
+export function activityLog(f: EvidenceFacts, opts: { lastSignIn?: boolean } = {}): string {
   const c = f.customer, a = f.agreement, o = f.order;
   const yes = (b: boolean) => (b ? "yes" : "no");
   const card = cardText(f);
@@ -149,7 +153,7 @@ export function activityLog(f: EvidenceFacts): string {
     a
       ? `Agreement accepted: ${utcStamp(a.agreedAt)} · terms version ${a.termsVersion} · 21 or older: ${yes(a.age21)} · research use only: ${yes(a.ruo)} · Refund & Dispute Policy, including contacting us before a dispute: ${yes(a.disputePolicy)} · IP fingerprint (salted SHA-256): ${fingerprint(a.ipHash)} · device: ${summarizeUserAgent(a.userAgent)}`
       : "Agreement accepted: no record on file",
-    c.lastSignInAt ? `Last sign-in: ${utcStamp(c.lastSignInAt)}` : null,
+    opts.lastSignIn !== false && c.lastSignInAt ? `Last sign-in: ${utcStamp(c.lastSignInAt)}` : null,
     `Order ${o.number} placed: ${utcStamp(o.createdAt)} · research use confirmed at checkout: ${utcStamp(o.ruoConfirmedAt)}`,
     o.paidAt ? `Order ${o.number} paid: ${utcStamp(o.paidAt)}${card ? ` · ${card}` : ""}` : null,
     o.shippedAt ? `Order ${o.number} shipped: ${utcStamp(o.shippedAt)}${o.tracking ? ` · ${carrierName(o.carrier)} ${o.tracking}` : ""}` : null,
@@ -251,7 +255,7 @@ export function evidenceSections(f: EvidenceFacts): PdfSection[] {
       ]
       : [`Not shipped yet. Ship to: ${addressText(o.ship)}`] },
     { title: o.shippedAt ? "Lots shipped" : "Lots held for this order", lines: lots.length ? lots : ["No lot recorded."] },
-    { title: "Account agreement", lines: activityLog(f).split("\n") },
+    { title: "Account agreement", lines: activityLog(f, { lastSignIn: false }).split("\n") },
     { title: "Policy excerpts", lines: [
       `Terms of Service and Refund & Dispute Policy${f.agreement ? `, version ${f.agreement.termsVersion}` : ""}: ${f.site}/terms and ${f.site}/refund-policy`,
       ...POLICY_EXCERPTS.map(quote),

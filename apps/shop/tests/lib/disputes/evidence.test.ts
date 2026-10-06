@@ -138,6 +138,16 @@ describe("dispute evidence", () => {
     expect(early[2].title).toBe("Lots held for this order");
   });
 
+  it("the PDF's Account agreement section leaves out Last sign-in (a live value) so the same records always rebuild the same bytes; the Stripe field keeps it", () => {
+    const e = buildEvidence(facts());
+    expect(e.access_activity_log).toContain("Last sign-in: 2026-09-21 15:58:00 UTC");
+    const s = evidenceSections(facts());
+    const agreement = s.find((x) => x.title === "Account agreement")!;
+    expect(agreement.lines.some((l) => l.startsWith("Last sign-in:"))).toBe(false);
+    // A sign-in between two saves must not change the PDF's bytes.
+    expect(evidenceSections(facts({ customer: { ...facts().customer, lastSignInAt: "2026-10-06T12:00:00Z" } }))).toEqual(s);
+  });
+
   it("lists the customer's own data (blanked before the compliance scan)", () => {
     expect(customerStrings(facts())).toEqual([
       "Dana Whitfield", "dana.w@example.com", "dana.w@example.com", "Dana Whitfield", "1420 Elm St", "Apt 3", "Boulder",
