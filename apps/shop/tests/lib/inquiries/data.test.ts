@@ -81,23 +81,53 @@ describe("inquiries data", () => {
     expect(await claimReply({ inquiryId: "i1", clientKey: "k", body: "x", authorId: "o1", fromEmail: "support@auraprotocols.com" })).toBe("duplicate");
   });
 
-  it("a bounce on one of our replies marks it and puts the thread back on Needs reply", async () => {
+  it("a bounce on one of our replies moves the thread and logs before flipping delivery", async () => {
+    const read = query({ data: [{ inquiry_id: "i1" }] });
     const upd = query({ data: [{ inquiry_id: "i1" }] });
     db.from = fromQueue({
-      inquiry_messages: [upd],
+      inquiry_messages: [read, upd],
       inquiries: [query({ data: { status: "waiting" } }), query({ data: [{ id: "i1" }] })],
       inquiry_events: [query({})],
     });
     const { markOutboundDelivery } = await import("@/lib/inquiries/data");
     expect(await markOutboundDelivery("0100abc", "bounced")).toBe("i1");
+    expect(callArgs(read, "select")).toEqual(["inquiry_id"]);
+    expect(callArgs(read, "in")).toEqual(["delivery", ["sent", "delivered"]]);
     expect(callArgs(upd, "update")).toEqual([{ delivery: "bounced" }]);
     expect(callArgs(upd, "in")).toEqual(["delivery", ["sent", "delivered"]]);
+  });
+
+  it("retry-safe: the move and log still run (and the inquiry id is still returned) when the delivery update doesn't find a row to flip", async () => {
+    const read = query({ data: [{ inquiry_id: "i1" }] });
+    const upd = query({ data: [] }); // e.g. a concurrent retry already flipped it
+    db.from = fromQueue({
+      inquiry_messages: [read, upd],
+      inquiries: [query({ data: { status: "waiting" } }), query({ data: [{ id: "i1" }] })],
+      inquiry_events: [query({})],
+    });
+    const { markOutboundDelivery } = await import("@/lib/inquiries/data");
+    expect(await markOutboundDelivery("0100abc", "bounced")).toBe("i1");
+  });
+
+  it("delivered: a single conditional update, no move/log", async () => {
+    const upd = query({ data: [{ inquiry_id: "i1" }] });
+    db.from = fromQueue({ inquiry_messages: [upd] });
+    const { markOutboundDelivery } = await import("@/lib/inquiries/data");
+    expect(await markOutboundDelivery("0100abc", "delivered")).toBe("i1");
+    expect(callArgs(upd, "update")).toEqual([{ delivery: "delivered" }]);
+    expect(callArgs(upd, "in")).toEqual(["delivery", ["sent"]]);
   });
 
   it("not one of ours → null, nothing else touched", async () => {
     db.from = fromQueue({ inquiry_messages: [query({ data: [] })] });
     const { markOutboundDelivery } = await import("@/lib/inquiries/data");
     expect(await markOutboundDelivery("other", "delivered")).toBeNull();
+  });
+
+  it("bounced, not found (already handled or never ours) → null, no move/log attempted", async () => {
+    db.from = fromQueue({ inquiry_messages: [query({ data: [] })] });
+    const { markOutboundDelivery } = await import("@/lib/inquiries/data");
+    expect(await markOutboundDelivery("other", "bounced")).toBeNull();
   });
 
   it("auto-close passes the 14-day cut-off", async () => {

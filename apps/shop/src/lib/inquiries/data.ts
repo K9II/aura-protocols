@@ -289,16 +289,30 @@ export async function closeUnmatched(id: string, v: { dismissedBy: string } | { 
 // Returns the inquiry id when the message was one of ours.
 export async function markOutboundDelivery(sesMessageId: string, kind: "delivered" | "bounced" | "complained"): Promise<string | null> {
   const from = kind === "delivered" ? ["sent"] : ["sent", "delivered"];
+  if (kind === "delivered") {
+    const { data, error } = await db().from("inquiry_messages").update({ delivery: kind })
+      .eq("ses_message_id", sesMessageId).eq("direction", "out").in("delivery", from).select("inquiry_id");
+    if (error) fail("delivery update", error);
+    return ((data ?? []) as Array<{ inquiry_id: string }>)[0]?.inquiry_id ?? null;
+  }
+  // bounced / complained: the thread move + log run BEFORE the delivery
+  // column flips, not after. Flipping first and moving/logging second meant
+  // a crash in between (SNS retries on our 500) would re-arrive to a row no
+  // longer matching delivery IN (sent, delivered) — found nothing, and
+  // silently never moved the thread or logged the bounce. Logging first
+  // risks a duplicate "Reply bounced" line on a genuine retry, never a lost
+  // one: a loud double beats a silent miss.
+  const { data: rows, error: rErr } = await db().from("inquiry_messages").select("inquiry_id")
+    .eq("ses_message_id", sesMessageId).eq("direction", "out").in("delivery", from);
+  if (rErr) fail("delivery read", rErr);
+  const row = ((rows ?? []) as Array<{ inquiry_id: string }>)[0];
+  if (!row) return null;
+  await applyInquiryEvent(row.inquiry_id, "bounced");
+  await logInquiryEvent({ inquiryId: row.inquiry_id, action: "bounced", detail: kind });
   const { data, error } = await db().from("inquiry_messages").update({ delivery: kind })
     .eq("ses_message_id", sesMessageId).eq("direction", "out").in("delivery", from).select("inquiry_id");
   if (error) fail("delivery update", error);
-  const row = ((data ?? []) as Array<{ inquiry_id: string }>)[0];
-  if (!row) return null;
-  if (kind !== "delivered") {
-    await applyInquiryEvent(row.inquiry_id, "bounced");
-    await logInquiryEvent({ inquiryId: row.inquiry_id, action: "bounced", detail: kind });
-  }
-  return row.inquiry_id;
+  return ((data ?? []) as Array<{ inquiry_id: string }>)[0]?.inquiry_id ?? row.inquiry_id;
 }
 
 // ---------- saved replies ----------
