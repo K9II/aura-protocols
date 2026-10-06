@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 vi.mock("@/app/auth/gate-actions", () => ({ gateSignInAction: vi.fn(), gateSignUpAction: vi.fn(), resendVerifyAction: vi.fn() }));
 vi.mock("@/app/auth/actions", () => ({ signOutAction: vi.fn() }));
+vi.mock("@/app/auth/google-actions", () => ({ startGoogleAction: vi.fn() }));
 vi.mock("@/components/AuraLockup", () => ({ default: () => null }));
 import GateSteps from "@/components/store/gate/GateSteps";
 

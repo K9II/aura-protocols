@@ -9,6 +9,7 @@ const { gateSignInAction, gateSignUpAction, resendVerifyAction, signOutAction } 
 }));
 vi.mock("@/app/auth/gate-actions", () => ({ gateSignInAction, gateSignUpAction, resendVerifyAction }));
 vi.mock("@/app/auth/actions", () => ({ signOutAction }));
+vi.mock("@/app/auth/google-actions", () => ({ startGoogleAction: vi.fn() }));
 vi.mock("@/components/AuraLockup", () => ({ default: () => <span>Aura</span> }));
 
 const fetchMock = vi.fn();
@@ -270,6 +271,40 @@ describe("AccountGate", () => {
     expect(root).toHaveClass("kb");
     expect(root.style.getPropertyValue("--ag-vh")).toBe("420px");
     expect(root.style.getPropertyValue("--ag-vt")).toBe("30px");
+    vi.unstubAllGlobals();
+  });
+
+  it("step 1 offers Continue with Google above the email field, returning to this page", async () => {
+    pathname = "/products";
+    routes({ state: "anon" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await settle();
+    const google = screen.getByRole("button", { name: "Continue with Google" });
+    const email = screen.getByPlaceholderText("you@institution.org");
+    expect(google.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText("or use email")).toBeInTheDocument();
+    expect(document.querySelector<HTMLInputElement>('.ag form.g-signin-form input[name="next"]')!.value).toBe("/products");
+  });
+
+  it("sends a signed-in visitor who hasn't finished their account to /finish-account", async () => {
+    pathname = "/products";
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, assign });
+    routes({ state: "finish" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/finish-account?next=%2Fproducts"));
+    vi.unstubAllGlobals();
+  });
+
+  it("desktop step 1 focuses the email field, not the Google form's hidden field", async () => {
+    vi.stubGlobal("matchMedia", (q: string) => ({ matches: q.includes("reduce") || q.includes("min-width"), addEventListener() {}, removeEventListener() {} }));
+    routes({ state: "anon" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await settle(50);
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByPlaceholderText("you@institution.org")));
     vi.unstubAllGlobals();
   });
 });

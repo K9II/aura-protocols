@@ -8,7 +8,7 @@ import { FOCUSABLE_SELECTOR, useFocusTrap } from "@/components/store/useFocusTra
 import GateCarousel from "./GateCarousel";
 import GateSteps, { TITLE_ID, type Step } from "./GateSteps";
 
-type Status = "unknown" | "anon" | "ok" | "verify" | "closed";
+type Status = "unknown" | "anon" | "ok" | "verify" | "closed" | "finish";
 type Phase = "off" | "mounted" | "in" | "rv";
 type Scenes = typeof import("./scenes.generated");
 
@@ -71,6 +71,11 @@ export default function AccountGate() {
         if (d.state === "ok") setStatus("ok");
         else if (d.state === "verify") { setEmail(d.email ?? ""); setStep("verify"); setStatus("verify"); }
         else if (d.state === "closed") { setStep("closed"); setStatus("closed"); }
+        else if (d.state === "finish") {
+          // Signed in with Google, account not finished: the gate stays up until the finish page loads.
+          setStatus("finish");
+          window.location.assign(`/finish-account?next=${encodeURIComponent(pathname)}`);
+        }
         else { setStep((s) => (s === "verify" || s === "closed" ? "1" : s)); setStatus("anon"); }
       })
       .catch(() => { if (!cancelled) setStatus("anon"); });
@@ -80,7 +85,7 @@ export default function AccountGate() {
   // While a re-check is in flight, a gate already on screen (or counting down) stays
   // as it is — no flicker; it closes if the answer is "ok". Nothing new opens on "unknown".
   const holding = status === "unknown" && phase !== "off";
-  const wanted = !exempt && (status === "anon" || status === "verify" || status === "closed" || holding);
+  const wanted = !exempt && (status === "anon" || status === "verify" || status === "closed" || status === "finish" || holding);
 
   // Entrance: mounted off-screen at once, enters at 3.5 s, form fades up after.
   useEffect(() => {
@@ -117,7 +122,7 @@ export default function AccountGate() {
     const phoneStart = !desktopRef.current && step === "1";
     const target =
       (phoneStart ? root.querySelector<HTMLElement>('[role="dialog"]') : null) ??
-      col.querySelector<HTMLElement>("input:not([readonly])") ??
+      col.querySelector<HTMLElement>('input:not([readonly]):not([type="hidden"])') ??
       col.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ??
       root.querySelector<HTMLElement>('[role="dialog"]') ??
       root;
