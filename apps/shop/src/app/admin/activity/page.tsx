@@ -55,18 +55,20 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
         <form className="a-act-who" action="/admin/activity">
           {area && <input type="hidden" name="area" value={area} />}
           {period && <input type="hidden" name="p" value={period} />}
-          {period === "dates" && <>
-            <label htmlFor="act-from">From</label>
-            <input id="act-from" type="date" name="from" defaultValue={from ?? ""} max={today} />
-            <label htmlFor="act-to">To</label>
-            <input id="act-to" type="date" name="to" defaultValue={to ?? ""} max={today} />
-          </>}
-          <label htmlFor="act-who">Person</label>
-          <select id="act-who" name="who" defaultValue={actor ?? ""}>
-            <option value="">Everyone</option>
-            {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <span className="a-act-go">
+          {period === "dates" && (
+            <span className="a-act-dates">
+              <label htmlFor="act-from">From</label>
+              <input id="act-from" type="date" name="from" defaultValue={from ?? ""} max={today} />
+              <label htmlFor="act-to">To</label>
+              <input id="act-to" type="date" name="to" defaultValue={to ?? ""} max={today} />
+            </span>
+          )}
+          <span className="a-act-person">
+            <label htmlFor="act-who">Person</label>
+            <select id="act-who" name="who" defaultValue={actor ?? ""}>
+              <option value="">Everyone</option>
+              {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
             <button type="submit" className="a-btn sm">Show</button>
             {filtered && <Link className="a-act-clear" href={area ? `/admin/activity?area=${area}` : "/admin/activity"}>Clear</Link>}
           </span>
