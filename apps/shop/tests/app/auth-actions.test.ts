@@ -91,7 +91,7 @@ describe("auth actions", () => {
     auth.signOut.mockResolvedValue({ error: null });
     const { signOutToSignInAction } = await import("@/app/auth/actions");
     await expect(signOutToSignInAction()).rejects.toThrow("REDIRECT:/sign-in");
-    expect(auth.signOut).toHaveBeenCalled();
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
     expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
   });
 });

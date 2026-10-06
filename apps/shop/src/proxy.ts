@@ -15,8 +15,10 @@ const SESSION_PREFIXES = ["/account", "/checkout", "/order", "/admin", "/partner
 let warnedMissingRefSecret = false;
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
+  const { pathname, searchParams, search } = request.nextUrl;
+  // Admin pages: tell requireOwner which page a signed-out owner asked for.
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) request.headers.set("x-admin-path", pathname + search);
   let response = NextResponse.next({ request });
-  const { pathname, searchParams } = request.nextUrl;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

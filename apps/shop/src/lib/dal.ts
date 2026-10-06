@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
@@ -135,10 +136,18 @@ export async function requireCustomer(nextPath: string): Promise<Customer> {
   redirect(`/sign-in?next=${next}`);
 }
 
+// Signed out → sign in and come back to the same admin page (proxy.ts passes
+// it as x-admin-path). Signed in but not the owner → 404, so the admin stays
+// invisible to customers.
+export const ADMIN_PATH_HEADER = "x-admin-path";
 export async function requireOwner(): Promise<Customer> {
   const customer = await getCustomer();
-  if (!customer || !customer.isOwner) notFound();
-  return customer;
+  if (customer?.isOwner) return customer;
+  if (!(await verifySession())) {
+    const path = (await headers()).get(ADMIN_PATH_HEADER);
+    redirect(`/sign-in?next=${encodeURIComponent(safeNext(path, "/admin"))}`);
+  }
+  notFound();
 }
 
 // Partner pages: signed-in customer with a partner record (any status);
