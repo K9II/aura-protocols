@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireOwner } from "@/lib/dal";
+import { recordAdminEvent } from "@/lib/audit/data";
 import { getOrderById, transitionOrder } from "@/lib/orders";
 import { CARRIERS, shippedEmail } from "@/lib/emails";
 import { alertOwner, sendOrAlert } from "@/lib/notify";
@@ -18,13 +19,14 @@ const schema = z.object({
 });
 
 export async function markShippedAction(form: FormData): Promise<void> {
-  await requireOwner();
+  const owner = await requireOwner();
   const parsed = schema.safeParse({ orderId: form.get("orderId"), tracking: form.get("tracking"), carrier: form.get("carrier") });
   if (!parsed.success) return;
   const { orderId, tracking, carrier } = parsed.data;
   const order = await getOrderById(orderId);
   if (!order || order.status !== "paid") return;
   if (await transitionOrder(orderId, "paid", "shipped", { tracking_number: tracking, carrier })) {
+    await recordAdminEvent({ area: "orders", action: "order_shipped", targetId: orderId, label: order.order_number, detail: `${carrier.toUpperCase()} ${tracking}`, actorId: owner.id });
     try {
       await markCommissionClearing(orderId, new Date().toISOString());
     } catch (err) {
@@ -62,12 +64,15 @@ export async function markShippedAction(form: FormData): Promise<void> {
 // Stripe refund to trigger the usual follow-ups. This refunds it here: the
 // credit goes back to the customer, the commission is reversed, tax undone.
 export async function refundCreditOrderAction(form: FormData): Promise<void> {
-  await requireOwner();
+  const owner = await requireOwner();
   const parsed = z.object({ orderId: z.string().uuid() }).safeParse({ orderId: form.get("orderId") });
   if (!parsed.success) return;
   const order = await getOrderById(parsed.data.orderId);
   if (!order || order.stripe_session_id || order.store_credit_cents !== order.total_cents) return;
   if (order.status !== "paid" && order.status !== "shipped") return;
-  if (await transitionOrder(order.id, order.status, "refunded")) await afterOrderRefunded(order);
+  if (await transitionOrder(order.id, order.status, "refunded")) {
+    await recordAdminEvent({ area: "orders", action: "order_refunded", targetId: order.id, label: order.order_number, detail: "store credit returned", actorId: owner.id });
+    await afterOrderRefunded(order);
+  }
   revalidatePath("/admin/orders");
 }

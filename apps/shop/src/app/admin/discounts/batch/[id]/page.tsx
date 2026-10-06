@@ -3,13 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireOwner } from "@/lib/dal";
-import { getBatch, getCodeById, listBatchCodes } from "@/lib/discounts/data";
+import { getBatch, getCodeById, listBatchCodes, listEvents } from "@/lib/discounts/data";
 import { describeRule, termsFromRow } from "@/lib/discounts/rules";
 import { batchStatus } from "@/lib/discounts/list";
 import { shortDate } from "@/lib/discounts/time";
 import { setCodeStateAction } from "@/app/admin/discounts/actions";
 import ConfirmSubmit from "@/components/admin/ConfirmSubmit";
 import CopyAll from "@/components/admin/discounts/CopyAll";
+import ActivityCard from "@/components/admin/discounts/ActivityCard";
 import { Crumbs, Icon, StatusChip } from "@/components/admin/ui";
 
 export const metadata: Metadata = { title: "Batch", robots: { index: false, follow: false } };
@@ -21,7 +22,7 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const sp = await searchParams;
-  const [batch, codes] = await Promise.all([getBatch(id), listBatchCodes(id)]);
+  const [batch, codes, events] = await Promise.all([getBatch(id), listBatchCodes(id), listEvents({ batchId: id })]);
   if (!batch || codes.length === 0) notFound();
   // Every code in a batch shares one rule and one stored status (edits and
   // pause/resume/end move them together) — read the rule from the first.
@@ -83,6 +84,7 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
           <div className="a-tfoot flush">{visible.length} of {show.length} shown<div className="r"><Link className="a-btn sm" href={`${base}?${new URLSearchParams({ ...(showKey ? { show: showKey } : {}), all: "1" })}`}>Show all</Link></div></div>
         )}
       </div>
+      <div style={{ marginTop: 12 }}><ActivityCard events={events} /></div>
     </div>
   );
 }

@@ -46,7 +46,7 @@ export async function setAutomationPaused(a: Automation, paused: boolean, actor:
 }
 
 // ---------- admin log ----------
-export type EmailAdminAction = "paused" | "resumed" | "created" | "scheduled" | "unscheduled" | "send_started" | "stopped" | "finished" | "test_sent" | "copied";
+export type EmailAdminAction = "paused" | "resumed" | "created" | "scheduled" | "unscheduled" | "send_started" | "stopped" | "finished" | "test_sent" | "copied" | "edited";
 export type EmailAdminEvent = { id: string; action: EmailAdminAction; target: string; actor: string | null; note: string | null; at: string; actorName: string | null };
 
 export async function logEmailAdminEvent(i: { action: EmailAdminAction; target: string; actor: string | null; note?: string | null }): Promise<void> {

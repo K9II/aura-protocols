@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const requireOwner = vi.fn();
+const audit = vi.hoisted(() => ({ logAdminEvent: vi.fn(), recordAdminEvent: vi.fn() }));
 const getOrderById = vi.fn();
 const transitionOrder = vi.fn();
 const sendOrAlert = vi.fn();
@@ -11,6 +12,7 @@ const orderItemLots = vi.fn();
 const recordShipped = vi.fn();
 const catalogStockChanged = vi.fn();
 vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/audit/data", () => audit);
 vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner }));
 vi.mock("@/lib/partners/ledger", () => ({ markCommissionClearing }));
@@ -25,7 +27,7 @@ const id = "11111111-1111-4111-8111-111111111111";
 describe("markShippedAction", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [requireOwner, getOrderById, transitionOrder, sendOrAlert, alertOwner, markCommissionClearing, orderItemLots, recordShipped, catalogStockChanged]) f.mockReset();
+    for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requireOwner, getOrderById, transitionOrder, sendOrAlert, alertOwner, markCommissionClearing, orderItemLots, recordShipped, catalogStockChanged]) f.mockReset();
     orderItemLots.mockResolvedValue(new Map());
   });
 
@@ -75,6 +77,7 @@ describe("markShippedAction", () => {
     expect(recordShipped).toHaveBeenCalledWith("i1", [{ lotNumber: "BPC-1", qty: 6 }, { lotNumber: "BPC-2", qty: 4 }], "manual");
     expect(alertOwner).not.toHaveBeenCalled();
     expect(sendOrAlert).toHaveBeenCalled();
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith({ area: "orders", action: "order_shipped", targetId: id, label: "AP-1001", detail: "FEDEX 778122104410", actorId: "owner" });
   });
 
   it("skips a line already recorded as shipped", async () => {
@@ -165,7 +168,7 @@ describe("refundCreditOrderAction", () => {
   const creditOrder = (status: string, over: Record<string, unknown> = {}) => ({
     id, order_number: "AP-1009", status, stripe_session_id: null, store_credit_cents: 6950, total_cents: 6950, ...over,
   });
-  beforeEach(() => { vi.resetModules(); for (const f of [requireOwner, getOrderById, transitionOrder, alertOwner, afterOrderRefunded]) f.mockReset(); });
+  beforeEach(() => { vi.resetModules(); for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requireOwner, getOrderById, transitionOrder, alertOwner, afterOrderRefunded]) f.mockReset(); });
 
   it("is owner-only", async () => {
     requireOwner.mockRejectedValue(new Error("NOT_FOUND"));

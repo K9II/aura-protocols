@@ -56,7 +56,8 @@ export async function signInAction(_prev: AuthFormState, form: FormData): Promis
 
 async function signOutAndGo(path: string): Promise<never> {
   const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
+  // This device only: signing out on a phone must not end the desktop session.
+  await supabase.auth.signOut({ scope: "local" });
   (await cookies()).delete(SESSION_ONLY_COOKIE);
   redirect(path);
 }

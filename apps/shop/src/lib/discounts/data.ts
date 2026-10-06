@@ -230,17 +230,18 @@ export async function resetUse(redemptionId: string, actor: string): Promise<boo
 }
 
 // ---------- activity ----------
-export type CodeEvent = { id: number; kind: string; detail: string | null; at: string; actor: string | null };
+export type CodeEvent = { id: number; kind: string; detail: string | null; at: string; actor: string | null; actorName: string | null };
 async function logEvent(e: { codeId?: string; batchId?: string; kind: string; detail?: string; actor: string }): Promise<void> {
   const { error } = await db().from("discount_code_events").insert({ code_id: e.codeId ?? null, batch_id: e.batchId ?? null, kind: e.kind, detail: e.detail ?? null, actor: e.actor });
   if (error) fail("discount event insert", error);
 }
 export async function listEvents(target: { codeId: string } | { batchId: string } | { settings: true }): Promise<CodeEvent[]> {
-  let q = db().from("discount_code_events").select("id, kind, detail, at, actor");
+  let q = db().from("discount_code_events").select("id, kind, detail, at, actor, customers(full_name)");
   q = "codeId" in target ? q.eq("code_id", target.codeId) : "batchId" in target ? q.eq("batch_id", target.batchId) : q.eq("kind", "cap_changed");
   const { data, error } = await q.order("at", { ascending: false }).limit(50);
   if (error) fail("discount events list", error);
-  return (data as CodeEvent[] | null) ?? [];
+  type Raw = Omit<CodeEvent, "actorName"> & { customers: { full_name: string } | null };
+  return ((data ?? []) as unknown as Raw[]).map(({ customers, ...e }) => ({ ...e, actorName: customers?.full_name.split(" ")[0] ?? null }));
 }
 
 // ---------- wrong-code limit ----------

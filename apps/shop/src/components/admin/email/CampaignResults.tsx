@@ -1,7 +1,8 @@
 import { recipientCounts, codeForCampaign, type CampaignRow } from "@/lib/email/campaigns/data";
 import { attribution, sendStats } from "@/lib/email/stats";
 import { statKey } from "@/lib/email/stat-keys";
-import { listAdminEvents, type EmailAdminEvent } from "@/lib/email/admin-data";
+import { listAdminEvents } from "@/lib/email/admin-data";
+import { emailEventText as eventText } from "@/lib/email/admin-event-text";
 import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, KIND_LABEL } from "@/lib/email/campaigns/rules";
 import { ATTRIBUTION_DAYS, MAX_SEND_ATTEMPTS } from "@/lib/email/constants";
 import { fmtPct, pct } from "@/lib/email/health";
@@ -15,21 +16,6 @@ import SendingRefresh from "@/components/admin/email/SendingRefresh";
 
 const n = (x: number) => x.toLocaleString("en-US");
 const CHIP = { sending: "sending", sent: "sent", stopped: "stopped" } as const;
-
-function eventText(e: EmailAdminEvent): string {
-  const who = e.actorName ? ` by ${e.actorName.split(" ")[0]}` : "";
-  switch (e.action) {
-    case "created": return `Draft created${who}`;
-    case "copied": return `Copied from another campaign${who}`;
-    case "test_sent": return `Test sent to ${e.note}`;
-    case "scheduled": return `Scheduled for ${e.note ? dateTime(e.note) : "—"}${who}`;
-    case "unscheduled": return `Unscheduled${who}`;
-    case "send_started": return `Sending started${e.actorName ? who : " by the hourly run"} · ${e.note}`;
-    case "stopped": return `Stopped${who}`;
-    case "finished": return "Finished";
-    default: return e.action;
-  }
-}
 
 export default async function CampaignResults({ c, sendError }: { c: CampaignRow; sendError?: string | null }) {
   const since = c.started_at ?? c.created_at;

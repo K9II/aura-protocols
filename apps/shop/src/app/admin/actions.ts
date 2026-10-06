@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireOwner } from "@/lib/dal";
+import { recordAdminEvent } from "@/lib/audit/data";
 import { currentMs } from "@/lib/clock";
 import { resolveAlert } from "@/lib/today/alerts";
 import { markInquiriesSeen } from "@/lib/today/data";
@@ -27,11 +28,12 @@ export async function resolveAlertAction(_prev: AlertActionState, f: FormData): 
 // Marks inquiries seen up to the newest one the page showed — not "now", so
 // one that arrived while the page was open stays new.
 export async function markInquiriesSeenAction(f: FormData): Promise<void> {
-  await requireOwner();
+  const owner = await requireOwner();
   const upTo = String(f.get("upTo") ?? "");
   const ms = Date.parse(upTo);
   // The stamp comes from the database clock; allow for drift against this server.
   if (!STAMP_RE.test(upTo) || !Number.isFinite(ms) || ms > currentMs() + 15 * 60_000) throw new Error("That list changed — reload the page.");
   await markInquiriesSeen(upTo);
+  await recordAdminEvent({ area: "today", action: "inquiries_seen", detail: `up to ${upTo}`, actorId: owner.id });
   revalidatePath("/admin");
 }

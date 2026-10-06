@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const requireOwner = vi.fn();
+const audit = vi.hoisted(() => ({ logAdminEvent: vi.fn(), recordAdminEvent: vi.fn() }));
 const getPartnerById = vi.fn();
 const setPartnerStatus = vi.fn();
 const partnerEmail = vi.fn();
 const forfeitUnpaid = vi.fn();
 const sendOrAlert = vi.fn();
 vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/audit/data", () => audit);
 vi.mock("@/lib/partners/data", () => ({ getPartnerById, setPartnerStatus, partnerEmail }));
 vi.mock("@/lib/partners/ledger", () => ({ forfeitUnpaid }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert }));
@@ -19,7 +21,7 @@ const id = "11111111-1111-4111-8111-111111111111";
 describe("partner admin actions", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [requireOwner, getPartnerById, setPartnerStatus, partnerEmail, forfeitUnpaid, sendOrAlert]) f.mockReset();
+    for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requireOwner, getPartnerById, setPartnerStatus, partnerEmail, forfeitUnpaid, sendOrAlert]) f.mockReset();
     requireOwner.mockResolvedValue({ id: "owner" });
     setPartnerStatus.mockResolvedValue(true);
     partnerEmail.mockResolvedValue("sam@smithlab.org");
@@ -38,6 +40,7 @@ describe("partner admin actions", () => {
     await setPartnerStatusAction(fd({ partnerId: id, to: "approved" }));
     expect(setPartnerStatus).toHaveBeenCalledWith(id, "applied", "approved");
     expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "sam@smithlab.org", subject: "Your Aura partner code SMITHLAB is active" });
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith({ area: "partners", action: "partner_approved", targetId: id, label: "SMITHLAB", actorId: "owner" });
   });
 
   it("suspending forfeits unpaid commission; declining sends a short email", async () => {

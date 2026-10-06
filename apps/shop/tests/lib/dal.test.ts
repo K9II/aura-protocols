@@ -7,6 +7,8 @@ let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () => ({ auth: { getUser } }) }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
 vi.mock("@/lib/partners/data", () => ({ getPartnerForCustomer }));
+const adminPath = vi.hoisted(() => ({ value: null as string | null }));
+vi.mock("next/headers", () => ({ headers: async () => ({ get: (k: string) => (k === "x-admin-path" ? adminPath.value : null) }) }));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => { throw new Error(`REDIRECT:${url}`); },
   notFound: () => { throw new Error("NOT_FOUND"); },
@@ -77,6 +79,18 @@ describe("DAL", () => {
     from = fromQueue({ customers: [query({ data: row })] });
     const { requireOwner } = await import("@/lib/dal");
     await expect(requireOwner()).rejects.toThrow("NOT_FOUND");
+  });
+
+  it("requireOwner sends a signed-out visitor to sign in and back to the same admin page", async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: null });
+    adminPath.value = "/admin/activity?area=orders";
+    const { requireOwner } = await import("@/lib/dal");
+    await expect(requireOwner()).rejects.toThrow("REDIRECT:/sign-in?next=%2Fadmin%2Factivity%3Farea%3Dorders");
+    adminPath.value = "//evil.example";
+    vi.resetModules();
+    const again = await import("@/lib/dal");
+    await expect(again.requireOwner()).rejects.toThrow("REDIRECT:/sign-in?next=%2Fadmin");
+    adminPath.value = null;
   });
 
   it("safeNext only allows same-site relative paths", async () => {

@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import { requireOwner } from "@/lib/dal";
-import { discountDashboard, getDiscountCap } from "@/lib/discounts/data";
+import { discountDashboard, getDiscountCap, listEvents } from "@/lib/discounts/data";
 import { usd } from "@/lib/html";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
 import CapForm from "@/components/admin/discounts/CapForm";
+import ActivityCard from "@/components/admin/discounts/ActivityCard";
 import { Crumbs, Icon } from "@/components/admin/ui";
 
 export const metadata: Metadata = { title: "Discount settings", robots: { index: false, follow: false } };
 
 export default async function DiscountSettingsPage() {
   await requireOwner();
-  const [cap, dash] = await Promise.all([getDiscountCap(), discountDashboard()]);
+  const [cap, dash, capEvents] = await Promise.all([getDiscountCap(), discountDashboard(), listEvents({ settings: true })]);
   const steps = [
     ["Item discounts", `Per item, the larger of pack, partner, new-account ${NEW_ACCOUNT_PCT}% or an item-% code`],
     ["Order code", "Replaces step 1 if better, or applies after it when set to apply on top"],
@@ -58,6 +59,7 @@ export default async function DiscountSettingsPage() {
       <Crumbs items={[{ label: "Discounts", href: "/admin/discounts" }, { label: "Settings" }]} />
       <div className="a-ph"><div><h1>Discount settings</h1><p>Apply to every order, whatever codes, packs or partner links are involved.</p></div></div>
       <CapForm cap={cap} aside={aside} after={after} />
+      <div style={{ marginTop: 12 }}><ActivityCard events={capEvents} title="Cap changes" /></div>
     </div>
   );
 }
