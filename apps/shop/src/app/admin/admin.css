@@ -90,6 +90,9 @@
 .adm .a-avatar { width: 26px; height: 26px; background: var(--ink); color: #EDE9E0; display: grid; place-items: center; font: 500 10.5px var(--mono); }
 .adm .a-side-foot .a-who { line-height: 1.25; } .adm .a-side-foot .a-who small { display: block; color: var(--muted); font-size: 11.5px; }
 .adm .a-side-foot .a-gear { margin-left: auto; color: var(--muted); }
+.adm .a-side-foot .a-signout { margin: 0 0 0 auto; }
+.adm .a-side-foot .a-signout button { border: 0; background: transparent; padding: 6px 0; color: var(--muted); font: inherit; font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.adm .a-side-foot .a-signout button:hover { color: var(--ink); }
 
 /* ---------- top bar extras ---------- */
 .adm .a-top-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }

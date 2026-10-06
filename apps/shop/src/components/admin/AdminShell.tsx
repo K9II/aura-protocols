@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Icon, type IconName } from "@/components/admin/ui";
 import { GUIDE_PATH, chapterForPath, guideHref } from "@/components/admin/guide/chapters";
+import { signOutToSignInAction } from "@/app/auth/actions";
 
 // `also`: other pages that belong to an item. Today's "/admin" is not a prefix
 // for the whole admin, so it is current only on itself and Past alerts.
@@ -69,6 +70,7 @@ export default function AdminShell({ counts, testMode, ownerName, children }: {
       <div className="a-side-foot">
         <div className="a-avatar" aria-hidden>{ownerName.slice(0, 2).toUpperCase()}</div>
         <div className="a-who">{ownerName}<small>Owner</small></div>
+        <form action={signOutToSignInAction} className="a-signout"><button type="submit">Sign out</button></form>
       </div>
     </aside>
   );

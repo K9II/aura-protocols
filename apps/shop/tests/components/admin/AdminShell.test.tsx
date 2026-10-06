@@ -3,8 +3,16 @@ import { render, screen } from "@testing-library/react";
 
 const nav = vi.hoisted(() => ({ path: "/admin/discounts/abc" }));
 vi.mock("next/navigation", () => ({ usePathname: () => nav.path }));
+vi.mock("@/app/auth/actions", () => ({ signOutToSignInAction: vi.fn() }));
 
 describe("AdminShell", () => {
+  it("has a Sign out button in the owner block", async () => {
+    nav.path = "/admin";
+    const { default: AdminShell } = await import("@/components/admin/AdminShell");
+    render(<AdminShell counts={{ orders: 0, partners: 0, email: 0, today: 0, disputes: 0 }} testMode ownerName="Kearney"><p /></AdminShell>);
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+  });
+
   it("marks the current section, shows counts, greys out modules not built yet", async () => {
     nav.path = "/admin/discounts/abc";
     const { default: AdminShell } = await import("@/components/admin/AdminShell");
