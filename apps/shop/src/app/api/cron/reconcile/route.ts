@@ -83,7 +83,7 @@ export async function GET(request: Request): Promise<Response> {
     await alertOwner("Reconciler fixed paid orders", `These paid orders were missing their webhook and have now been recorded: ${fixedPaid.join(", ")}`);
   }
   if (failed.length) {
-    await alertOwner(`Reconcile: ${failed.length} session${failed.length === 1 ? "" : "s"} failed`, failed.join("\n"));
+    await alertOwner("Reconcile had failures", `${failed.length} failed:\n${failed.join("\n")}`);
   }
   return NextResponse.json({ checked, fixedPaid, cancelled, failed });
 }

@@ -46,12 +46,12 @@ const schema = z.object({
 // Saves that only keep records tidy (saved address, coupon id, Stripe
 // customer id) must never cancel a checkout the customer can pay; a failure
 // is reported to the owner instead.
-async function bookkeep(what: string, save: () => Promise<void>): Promise<void> {
+async function bookkeep(what: string, save: () => Promise<void>, context?: string): Promise<void> {
   try {
     await save();
   } catch (err) {
     console.error(`${what} failed:`, err);
-    await alertOwner(`Checkout: ${what} failed`, String(err));
+    await alertOwner(`Checkout: ${what} failed`, `${context ? `${context}\n` : ""}${String(err)}`);
   }
 }
 
@@ -122,7 +122,7 @@ export async function checkCodeAction(code: string): Promise<CodeCheckResult> {
 async function releaseAbandonedCheckouts(customerId: string, adapter: CommerceAdapter): Promise<void> {
   const { failed } = await closeOpenCheckouts(customerId, adapter, { all: false });
   for (const f of failed) {
-    await alertOwner(`Couldn't close an earlier checkout (${f.orderNumber})`,
+    await alertOwner("Couldn't close an earlier checkout",
       `Starting a new checkout for customer ${customerId}, order ${f.orderNumber} (${f.id}, session ${f.sessionId ?? "none"}) could not be closed: ${f.error}. Any vials, discount-code use or store credit it holds stay held until it expires or the reconcile cron cancels it.`);
   }
 }
@@ -236,7 +236,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
       await transitionOrder(order.id, "awaiting_payment", "cancelled");
     } catch (err) {
       console.error(`cancel order after ${why} failed:`, err);
-      await alertOwner(`Couldn't cancel ${order.orderNumber} after ${why}`,
+      await alertOwner("Couldn't cancel an order after a failed checkout",
         `Order ${order.orderNumber} (${order.id}) could not be cancelled after ${why}: ${String(err)}. Held vials, code uses or credit stay held until the reconcile cron cancels the order.`);
     }
   };
@@ -356,8 +356,8 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     sessionId = result.sessionId;
     await attachCheckoutSession(order.id, result.sessionId);
     const couponId = result.couponId, stripeCustomerId = result.stripeCustomerId;
-    if (couponId) await bookkeep(`saving coupon ${couponId} on ${order.orderNumber}`, () => saveStripeCoupon(order.id, couponId));
-    if (!customer.stripeCustomerId) await bookkeep(`saving Stripe customer ${stripeCustomerId}`, () => saveStripeCustomerId(customer.id, stripeCustomerId));
+    if (couponId) await bookkeep("saving the Stripe coupon", () => saveStripeCoupon(order.id, couponId), `coupon ${couponId} on ${order.orderNumber}`);
+    if (!customer.stripeCustomerId) await bookkeep("saving the Stripe customer id", () => saveStripeCustomerId(customer.id, stripeCustomerId), `Stripe customer ${stripeCustomerId} for customer ${customer.id}`);
     return { url: result.url };
   } catch (err) {
     console.error("checkout start failed:", err);
@@ -367,7 +367,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
       try {
         await adapter.expireCheckout(sessionId);
       } catch (expireErr) {
-        await alertOwner(`Couldn't close the Stripe page for ${order.orderNumber}`,
+        await alertOwner("Couldn't close the Stripe page for a failed checkout",
           `Checkout failed after Stripe created session ${sessionId} for order ${order.orderNumber} (${order.id}); expiring it also failed: ${String(expireErr)}. If the customer pays it, the order is already cancelled - refund or recreate it.`);
       }
     }

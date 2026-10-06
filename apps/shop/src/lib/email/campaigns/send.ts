@@ -117,14 +117,14 @@ export async function sendCampaignBatch(id: string, deadlineMs: number): Promise
 
   if (tripped) {
     await alertOwner(
-      `Campaign "${c?.name ?? id}": stopped after ${CAMPAIGN_FAIL_STREAK} failures in a row`,
-      `${lastError}\n\n${failures.join("\n")}`,
+      "Campaign stopped after repeated send failures",
+      `"${c?.name ?? id}": ${CAMPAIGN_FAIL_STREAK} failures in a row — ${lastError}\n\n${failures.join("\n")}`,
     );
     out.remaining = (await recipientCounts(id)).pending; // still pending: the next run retries them
     return out;
   }
 
-  if (failures.length) await alertOwner(`Campaign "${c?.name ?? id}": ${failures.length} not sent`, failures.join("\n"));
+  if (failures.length) await alertOwner("Campaign emails not sent", `"${c?.name ?? id}": ${failures.length} not sent\n${failures.join("\n")}`);
   if (out.stopped) return out;
 
   const counts = await recipientCounts(id);
@@ -137,14 +137,14 @@ export async function sendCampaignBatch(id: string, deadlineMs: number): Promise
       // re-alerting on every run. Stop it instead; the owner already got
       // the alert above when this run happened to fail the last batch.
       await alertOwner(
-        `Campaign "${c?.name ?? id}": stopped — nothing was delivered (${counts.failed} failed)`,
-        failures.join("\n") || "Nothing was delivered.",
+        "Campaign stopped — nothing was delivered",
+        `"${c?.name ?? id}": ${counts.failed} failed\n${failures.join("\n") || "Nothing was delivered."}`,
       );
       await moveCampaign(id, "sending", "stopped", null);
       out.stopped = true;
     } else {
       if (counts.failed > 0) {
-        await alertOwner(`Campaign "${c?.name ?? id}" finished with ${counts.failed} failed`, `${counts.sent} sent, ${counts.failed} failed, ${counts.skipped} skipped.`);
+        await alertOwner("Campaign finished with failures", `"${c?.name ?? id}": ${counts.sent} sent, ${counts.failed} failed, ${counts.skipped} skipped.`);
       }
       await moveCampaign(id, "sending", "sent", null);
       out.finished = true;

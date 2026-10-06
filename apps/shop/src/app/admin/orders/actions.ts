@@ -28,7 +28,7 @@ export async function markShippedAction(form: FormData): Promise<void> {
     try {
       await markCommissionClearing(orderId, new Date().toISOString());
     } catch (err) {
-      await alertOwner(`Commission not cleared for ${order.order_number}`, String(err));
+      await alertOwner("Commission not cleared at shipping", `${order.order_number}: ${String(err)}`);
     }
     // Each line's held/sold lots become its shipped record. A line already
     // recorded (e.g. a retry) is left alone. One line's failure is reported
@@ -41,16 +41,16 @@ export async function markShippedAction(form: FormData): Promise<void> {
         try {
           const result = await recordShipped(itemId, l.allocated, "manual");
           if (result === "alert") {
-            await alertOwner(`Shipped lots don't match allocated for ${order.order_number}`, `Line ${itemId}: lots shipped don't match lots allocated`);
+            await alertOwner("Shipped lots don't match what was held", `${order.order_number} · line ${itemId}: lots shipped don't match lots held`);
           } else if (result === "moved") {
             catalogStockChanged();
           }
         } catch (err) {
-          await alertOwner(`Shipped lots not recorded for ${order.order_number}`, `Line ${itemId}: ${String(err)}`);
+          await alertOwner("Shipped lots not recorded", `${order.order_number} · line ${itemId}: ${String(err)}`);
         }
       }
     } catch (err) {
-      await alertOwner(`Shipped lots not recorded for ${order.order_number}`, String(err));
+      await alertOwner("Shipped lots not recorded", `${order.order_number}: ${String(err)}`);
     }
     const shipped = (await getOrderById(orderId)) ?? { ...order, tracking_number: tracking, carrier };
     await sendOrAlert({ to: shipped.email, ...shippedEmail(shipped) }, `shipped ${shipped.order_number}`);

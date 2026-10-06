@@ -27,7 +27,7 @@ export async function applyPaid(order: OrderRow, session: Stripe.Checkout.Sessio
   if (order.status === "cancelled" || order.status === "refunded") {
     // Money arrived for an order we already closed (e.g. its Stripe page
     // outlived a failed checkout). Nothing is shipped automatically.
-    await alertOwner(`Payment received for a ${order.status} order (${order.order_number})`,
+    await alertOwner("Payment received for a closed order",
       `Stripe session ${session.id} was paid but order ${order.order_number} (${order.id}) is ${order.status}. Refund it in Stripe, or reinstate and ship the order by hand.`);
     return false;
   }
@@ -47,13 +47,13 @@ export async function afterOrderRefunded(order: OrderRow): Promise<void> {
   try {
     await reverseCommission(order.id, "refund");
   } catch (err) {
-    await alertOwner(`Commission not reversed for ${order.order_number}`, String(err));
+    await alertOwner("Commission not reversed", `${order.order_number}: ${String(err)}`);
   }
   if (order.store_credit_cents > 0) {
     try {
       await refundCredit(order.customer_id, order.store_credit_cents, order.id);
     } catch (err) {
-      await alertOwner(`Store credit not refunded for ${order.order_number}`, String(err));
+      await alertOwner("Store credit not refunded", `${order.order_number}: ${String(err)}`);
     }
   }
   // Automatic-tax Checkout sessions (card path) reverse their own tax
@@ -63,7 +63,7 @@ export async function afterOrderRefunded(order: OrderRow): Promise<void> {
     try {
       await getCommerceAdapter().reverseTax(order.tax_transaction_id);
     } catch (err) {
-      await alertOwner(`Tax transaction not reversed for ${order.order_number}`, String(err));
+      await alertOwner("Tax transaction not reversed", `${order.order_number}: ${String(err)}`);
     }
   }
 }
@@ -110,7 +110,7 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       if (!order) throw new Error(`refund on ${pi}: no order matched yet`);
       if (!charge.refunded) {
         // Partial refunds leave the order (and the commission) as is.
-        await alertOwner(`Partial refund on ${order.order_number}`,
+        await alertOwner("Partial refund in Stripe",
           `${usd(charge.amount_refunded ?? 0)} of order ${order.order_number} was refunded in Stripe. The order stays ${order.status} and the partner commission (if any) is unchanged - adjust it by hand if needed.`);
         return;
       }
@@ -139,7 +139,7 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         const partner = await getPartnerById(order.partner_id);
         if (partner?.status === "approved") throw new Error(`dispute on ${order.order_number}: commission not recorded yet`);
       }
-      await alertOwner(`Chargeback opened on ${order.order_number}`, `Order ${order.order_number} · reason: ${dispute.reason}. Respond in the Stripe dashboard with the order, tracking and agreement records.`);
+      await alertOwner("Chargeback opened", `Order ${order.order_number} · reason: ${dispute.reason}. Respond in the Stripe dashboard with the order, tracking and agreement records.`);
       return;
     }
     default:

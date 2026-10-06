@@ -36,17 +36,17 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
         }
       }
     } catch (err) {
-      await alertOwner(`Commission not recorded for ${order.order_number}`, String(err));
+      await alertOwner("Commission not recorded", `${order.order_number}: ${String(err)}`);
     }
   }
 
   if (order.store_credit_cents > 0) {
     try {
       if (!(await spendCredit(order.customer_id, order.store_credit_cents, order.id))) {
-        await alertOwner(`Store credit not taken for ${order.order_number}`, `${order.store_credit_cents} cents of store credit could not be taken from ${order.customer_id}.`);
+        await alertOwner("Store credit not taken", `${order.order_number}: ${order.store_credit_cents} cents of store credit could not be taken from ${order.customer_id}.`);
       }
     } catch (err) {
-      await alertOwner(`Store credit not taken for ${order.order_number}`, String(err));
+      await alertOwner("Store credit not taken", `${order.order_number}: ${String(err)}`);
     }
   }
 
@@ -58,10 +58,10 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
       } else {
         // Stripe reports the reference was already used (a retried call),
         // but without the transaction id a later refund can't reverse it.
-        await alertOwner(`Sales tax not recorded for ${order.order_number}`, "tax recorded earlier; transaction id unknown — reversal will be manual");
+        await alertOwner("Sales tax not recorded", `${order.order_number}: tax recorded earlier; transaction id unknown — reversal will be manual`);
       }
     } catch (err) {
-      await alertOwner(`Sales tax not recorded for ${order.order_number}`, String(err));
+      await alertOwner("Sales tax not recorded", `${order.order_number}: ${String(err)}`);
     }
   }
 
@@ -72,7 +72,7 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
     if (short.length) {
       // The owner hears about the shortfall first; logging it in the catalog
       // history comes after, so a failed log never hides the list.
-      await alertOwner(`Oversold on ${order.order_number}`,
+      await alertOwner("Oversold: paid without enough held vials",
         `Order ${order.order_number} was paid without enough held vials:\n${short.map((s) => `${s.compound_slug} ${s.variant_id}: ${s.need} ordered, ${s.covered} held`).join("\n")}\nCheck stock in Catalog & lots and correct counts once you know what you can ship.`);
     }
     for (const s of short) {
@@ -80,11 +80,11 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
         await logOversold(s.compound_slug, s.variant_id, order.order_number, s.need, s.covered);
       } catch (err) {
         console.error("oversold event log failed:", err);
-        await alertOwner(`Oversold event not logged for ${order.order_number}`, `${s.compound_slug} ${s.variant_id}: ${String(err)}`);
+        await alertOwner("Oversold event not logged", `${order.order_number} · ${s.compound_slug} ${s.variant_id}: ${String(err)}`);
       }
     }
   } catch (err) {
-    await alertOwner(`Stock check failed for ${order.order_number}`, String(err));
+    await alertOwner("Stock check failed after payment", `${order.order_number}: ${String(err)}`);
   }
 
   await sendOrAlert({ to: order.email, ...orderConfirmationEmail(order) }, `order ${order.order_number}`);

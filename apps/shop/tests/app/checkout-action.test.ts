@@ -341,7 +341,7 @@ describe("startCheckoutAction", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect(await startCheckoutAction({ ...input, partnerCode: "SPRING20" })).toEqual({ error: "This code has reached its limit.", codeError: "This code has reached its limit." });
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+    expect(alertOwner).toHaveBeenCalledWith("Couldn't cancel an order after a failed checkout", expect.stringMatching(/AP-1001[\s\S]*o1/));
     expect(createCheckout).not.toHaveBeenCalled();
   });
 
@@ -353,7 +353,7 @@ describe("startCheckoutAction", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect((await startCheckoutAction({ ...input, partnerCode: "SPRING20" })).error).toMatch(/couldn't check that code/);
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringMatching(/o1[\s\S]*reconcile/));
+    expect(alertOwner).toHaveBeenCalledWith("Couldn't cancel an order after a failed checkout", expect.stringMatching(/AP-1001[\s\S]*o1[\s\S]*reconcile/));
   });
 
   it("a code that saves nothing is dropped silently: no claim, order goes ahead", async () => {
@@ -457,7 +457,7 @@ describe("startCheckoutAction", () => {
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     const r = await startCheckoutAction(input);
     expect(r.error).toBe("We couldn't reserve your items — please try again.");
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+    expect(alertOwner).toHaveBeenCalledWith("Couldn't cancel an order after a failed checkout", expect.stringMatching(/AP-1001[\s\S]*o1/));
     expect(createCheckout).not.toHaveBeenCalled();
   });
 
@@ -492,7 +492,7 @@ describe("startCheckoutAction", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect(await startCheckoutAction({ ...input, useCredit: true })).toEqual({ error: "Your store credit balance changed — please review your order again." });
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+    expect(alertOwner).toHaveBeenCalledWith("Couldn't cancel an order after a failed checkout", expect.stringMatching(/AP-1001[\s\S]*o1/));
     expect(createCheckout).not.toHaveBeenCalled();
   });
 
@@ -504,7 +504,7 @@ describe("startCheckoutAction", () => {
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect(await startCheckoutAction(input)).toEqual({ error: "Payments are paused." });
     expect(transitionOrder.mock.calls.filter((c) => c[0] === "o1" && c[2] === "cancelled")).toHaveLength(1);
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+    expect(alertOwner).toHaveBeenCalledWith("Couldn't cancel an order after a failed checkout", expect.stringMatching(/AP-1001[\s\S]*o1/));
   });
 
   it("a Stripe session failure whose cancel also fails alerts the owner and asks to retry", async () => {
@@ -515,7 +515,7 @@ describe("startCheckoutAction", () => {
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect(await startCheckoutAction(input)).toEqual({ error: "We couldn't start payment — please try again." });
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringContaining("AP-1001"), expect.stringContaining("o1"));
+    expect(alertOwner).toHaveBeenCalledWith("Couldn't cancel an order after a failed checkout", expect.stringMatching(/AP-1001[\s\S]*o1/));
   });
 
   it("cancels the pending order if Stripe fails, and charges nothing", async () => {

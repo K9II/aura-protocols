@@ -41,7 +41,7 @@ describe("afterOrderPaid", () => {
     await afterOrderPaid("o1");
     expect(orderHoldShortfall).toHaveBeenCalledWith("o1");
     expect(logOversold).toHaveBeenCalledWith("mots-c", "10mg", "AP-1001", 4, 0);
-    expect(alertOwner).toHaveBeenCalledWith("Oversold on AP-1001", expect.stringContaining("mots-c 10mg: 4 ordered, 0 held"));
+    expect(alertOwner).toHaveBeenCalledWith("Oversold: paid without enough held vials", expect.stringContaining("mots-c 10mg: 4 ordered, 0 held"));
     expect(alertOwner.mock.invocationCallOrder[0]).toBeLessThan(logOversold.mock.invocationCallOrder[0]);
     expect(sendOrAlert).toHaveBeenCalledTimes(2);
   });
@@ -56,10 +56,10 @@ describe("afterOrderPaid", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { afterOrderPaid } = await import("@/lib/order-paid");
     await afterOrderPaid("o1");
-    expect(alertOwner).toHaveBeenCalledWith("Oversold on AP-1001", expect.stringContaining("bpc-157 10mg: 2 ordered, 1 held"));
+    expect(alertOwner).toHaveBeenCalledWith("Oversold: paid without enough held vials", expect.stringContaining("bpc-157 10mg: 2 ordered, 1 held"));
     expect(logOversold).toHaveBeenCalledTimes(2);
-    expect(alertOwner).toHaveBeenCalledWith("Oversold event not logged for AP-1001", expect.stringContaining("mots-c 10mg"));
-    expect(alertOwner).not.toHaveBeenCalledWith("Stock check failed for AP-1001", expect.anything());
+    expect(alertOwner).toHaveBeenCalledWith("Oversold event not logged", expect.stringContaining("AP-1001 · mots-c 10mg"));
+    expect(alertOwner).not.toHaveBeenCalledWith("Stock check failed after payment", expect.anything());
   });
 
   it("names the alert and still sends both emails when the stock check throws", async () => {
@@ -67,7 +67,7 @@ describe("afterOrderPaid", () => {
     orderHoldShortfall.mockRejectedValue(new Error("db down"));
     const { afterOrderPaid } = await import("@/lib/order-paid");
     await afterOrderPaid("o1");
-    expect(alertOwner).toHaveBeenCalledWith("Stock check failed for AP-1001", expect.stringContaining("db down"));
+    expect(alertOwner).toHaveBeenCalledWith("Stock check failed after payment", expect.stringMatching(/^AP-1001: [\s\S]*db down/));
     expect(sendOrAlert).toHaveBeenCalledTimes(2);
   });
 
@@ -131,7 +131,7 @@ describe("afterOrderPaid", () => {
     getPartnerById.mockRejectedValue(new Error("db down"));
     const { afterOrderPaid } = await import("@/lib/order-paid");
     await afterOrderPaid("o1");
-    expect(alertOwner).toHaveBeenCalledWith("Commission not recorded for AP-1001", expect.stringContaining("db down"));
+    expect(alertOwner).toHaveBeenCalledWith("Commission not recorded", expect.stringMatching(/^AP-1001: [\s\S]*db down/));
     expect(sendOrAlert.mock.calls.map((c) => c[0].to)).toEqual(["j@lab.org", "owner@example.com"]);
   });
 
@@ -140,7 +140,7 @@ describe("afterOrderPaid", () => {
     spendCredit.mockRejectedValue(new Error("db down"));
     const { afterOrderPaid } = await import("@/lib/order-paid");
     await afterOrderPaid("o1");
-    expect(alertOwner).toHaveBeenCalledWith("Store credit not taken for AP-1001", expect.stringContaining("db down"));
+    expect(alertOwner).toHaveBeenCalledWith("Store credit not taken", expect.stringMatching(/^AP-1001: [\s\S]*db down/));
     expect(sendOrAlert.mock.calls.map((c) => c[0].to)).toEqual(["j@lab.org", "owner@example.com"]);
   });
 
@@ -149,7 +149,7 @@ describe("afterOrderPaid", () => {
     spendCredit.mockResolvedValue(false);
     const { afterOrderPaid } = await import("@/lib/order-paid");
     await afterOrderPaid("o1");
-    expect(alertOwner).toHaveBeenCalledWith("Store credit not taken for AP-1001", expect.stringContaining("18600"));
+    expect(alertOwner).toHaveBeenCalledWith("Store credit not taken", expect.stringMatching(/^AP-1001: 18600/));
   });
 
   it("records the pre-computed tax and names the alert when recordTax throws", async () => {
@@ -158,7 +158,7 @@ describe("afterOrderPaid", () => {
     const { afterOrderPaid } = await import("@/lib/order-paid");
     await afterOrderPaid("o1");
     expect(recordTax).toHaveBeenCalledWith("taxcalc_1", "AP-1001");
-    expect(alertOwner).toHaveBeenCalledWith("Sales tax not recorded for AP-1001", expect.stringContaining("stripe down"));
+    expect(alertOwner).toHaveBeenCalledWith("Sales tax not recorded", expect.stringMatching(/^AP-1001: [\s\S]*stripe down/));
     expect(sendOrAlert.mock.calls.map((c) => c[0].to)).toEqual(["j@lab.org", "owner@example.com"]);
   });
 
@@ -167,7 +167,7 @@ describe("afterOrderPaid", () => {
     recordTax.mockResolvedValue(null);
     const { afterOrderPaid } = await import("@/lib/order-paid");
     await afterOrderPaid("o1");
-    expect(alertOwner).toHaveBeenCalledWith("Sales tax not recorded for AP-1001", "tax recorded earlier; transaction id unknown — reversal will be manual");
+    expect(alertOwner).toHaveBeenCalledWith("Sales tax not recorded", "AP-1001: tax recorded earlier; transaction id unknown — reversal will be manual");
     expect(saveTaxTransactionId).not.toHaveBeenCalled();
   });
 

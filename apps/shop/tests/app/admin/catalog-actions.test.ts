@@ -29,7 +29,7 @@ describe("catalog actions", () => {
     const { receiveLotAction } = await import("@/app/admin/catalog/actions");
     const r = await receiveLotAction(null, fd({ ...receive, intent: "draft" }));
     expect(r).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
-    expect(alertOwner).toHaveBeenCalledWith("Lot BPC-2610-03 arrived short or damaged", expect.stringContaining("ordered 200, counted 196, damaged 2"));
+    expect(alertOwner).toHaveBeenCalledWith("A lot arrived short or damaged", expect.stringContaining("ordered 200, counted 196, damaged 2"));
     expect(catalogChangedByOwner).toHaveBeenCalled();
   });
 
@@ -92,7 +92,7 @@ describe("catalog actions", () => {
       data.updateDraftLot.mockResolvedValue({ ok: true });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
       await receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" }));
-      expect(alertOwner).toHaveBeenCalledWith("Lot BPC-2610-03 arrived short or damaged", expect.stringContaining("ordered 200, counted 196, damaged 2"));
+      expect(alertOwner).toHaveBeenCalledWith("A lot arrived short or damaged", expect.stringContaining("ordered 200, counted 196, damaged 2"));
     });
 
     it("re-saving a draft with the same discrepancy does not alert again", async () => {
@@ -119,7 +119,7 @@ describe("catalog actions", () => {
       data.updateDraftLot.mockResolvedValue({ ok: true });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
       await receiveLotAction(null, fd({ ...receive, counted: "190", lotId: VALID_UUID, intent: "draft" }));
-      expect(alertOwner).toHaveBeenCalledWith("Lot BPC-2610-03 arrived short or damaged", expect.stringContaining("ordered 200, counted 190, damaged 2"));
+      expect(alertOwner).toHaveBeenCalledWith("A lot arrived short or damaged", expect.stringContaining("ordered 200, counted 190, damaged 2"));
     });
 
     it("renaming a lot whose certificate was attached under the old number asks to attach it again", async () => {
