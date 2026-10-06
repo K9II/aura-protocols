@@ -23,4 +23,19 @@ describe("parseRawEmail", () => {
   it("falls back to the HTML part when there is no text part", () => {
     expect(bodyText({ text: "", html: "<p>Hi</p>" } as never)).toBe("Hi");
   });
+  it("drops a Message-ID that isn't a well-formed <...> value", async () => {
+    const raw = [
+      "From: Dana Whitfield <dana.w@example.com>",
+      "To: Aura Protocols <r-0123456789abcdef0123456789abcdef@in.auraprotocols.com>",
+      "Subject: Test",
+      "Message-ID: not-a-valid-id",
+      "MIME-Version: 1.0",
+      "Content-Type: text/plain; charset=\"UTF-8\"",
+      "",
+      "Hello",
+      "",
+    ].join("\r\n");
+    const p = await parseRawEmail(new TextEncoder().encode(raw));
+    expect(p.messageId).toBeNull();
+  });
 });

@@ -16,6 +16,12 @@ type Addr = { address?: string; name?: string; group?: Addr[] };
 const flat = (xs: Addr[] | undefined): string[] =>
   (xs ?? []).flatMap((a) => (a.group ? flat(a.group) : a.address ? [a.address.toLowerCase()] : []));
 
+// An RFC 5322 msg-id, loosely: "<...>" with no inner "<", ">" or whitespace.
+// Anything else (missing brackets, garbage) is stored as no id rather than a
+// value that would break In-Reply-To/References threading downstream.
+const MESSAGE_ID_RE = /^<[^<>\s]{1,250}>$/;
+const validMessageId = (id: string | null | undefined): string | null => (id && MESSAGE_ID_RE.test(id) ? id : null);
+
 export async function parseRawEmail(raw: Uint8Array): Promise<ParsedEmail> {
   const e = await PostalMime.parse(raw);
   const headers: Record<string, string> = {};
@@ -26,7 +32,7 @@ export async function parseRawEmail(raw: Uint8Array): Promise<ParsedEmail> {
     to: flat(e.to as Addr[] | undefined),
     cc: flat(e.cc as Addr[] | undefined),
     subject: e.subject ?? "",
-    messageId: e.messageId ?? null,
+    messageId: validMessageId(e.messageId),
     headers,
     text: e.text ?? "",
     html: e.html ?? "",
