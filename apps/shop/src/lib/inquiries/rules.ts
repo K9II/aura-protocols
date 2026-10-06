@@ -73,6 +73,13 @@ export function waitInfo(i: Pick<InquiryRow, "status" | "last_customer_at" | "cr
   return { since, text: waitText(since, nowMs), late: businessDaysSince(since, nowMs) >= INQUIRY_LATE_BUSINESS_DAYS };
 }
 
+// The list footer's "oldest waiting" figure — business days, distinct from
+// the per-row clock (waitText, calendar days/hours/minutes).
+export function businessDayText(sinceIso: string, nowMs: number): string {
+  const n = businessDaysSince(sinceIso, nowMs);
+  return `${n} business day${n === 1 ? "" : "s"}`;
+}
+
 export const refLabel = (ref: number) => `Q-${ref}`;
 export function parseRef(s: string | null | undefined): number | null {
   const m = /^\s*(?:q-?)?(\d{1,9})\s*$/i.exec(s ?? "");

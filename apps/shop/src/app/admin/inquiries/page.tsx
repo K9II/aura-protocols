@@ -4,7 +4,7 @@ import { requireOwner } from "@/lib/dal";
 import { currentMs } from "@/lib/clock";
 import { inquiryTabCounts, listInquiries, listUnmatched, type UnmatchedRow } from "@/lib/inquiries/data";
 import { INQUIRIES_PER_PAGE, INQUIRY_AUTO_CLOSE_DAYS } from "@/lib/inquiries/constants";
-import { STATUS_CHIP, TABS, TAB_LABEL, firstName, parseTab, refLabel, waitInfo, type InquiryRow, type Tab } from "@/lib/inquiries/rules";
+import { STATUS_CHIP, TABS, TAB_LABEL, businessDayText, firstName, parseTab, refLabel, waitInfo, type InquiryRow, type Tab } from "@/lib/inquiries/rules";
 import { TOPICS, TOPIC_LABEL, TOPIC_TAG, parseTopic, type Topic } from "@/lib/inquiries/topics";
 import { unmatchedReason } from "@/lib/inquiries/match";
 import { whenText } from "@/lib/today/time";
@@ -143,7 +143,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
             );
           })}</div>
           <div className="a-tfoot">
-            {tab === "open" ? `${counts.open} open${oldest ? ` · oldest waiting ${oldest.text}` : ""}` : `Showing ${(page - 1) * INQUIRIES_PER_PAGE + 1}–${Math.min(page * INQUIRIES_PER_PAGE, list.total)} of ${list.total.toLocaleString("en-US")}`}
+            {tab === "open" ? `${counts.open} open${oldest ? ` · oldest waiting ${businessDayText(oldest.since, nowMs)}` : ""}` : `Showing ${(page - 1) * INQUIRIES_PER_PAGE + 1}–${Math.min(page * INQUIRIES_PER_PAGE, list.total)} of ${list.total.toLocaleString("en-US")}`}
             <div className="r">
               {page > 1 && <Link className="a-btn sm" href={href({ page: page - 1 })}>Previous</Link>}
               {page < lastPage && <Link className="a-btn sm" href={href({ page: page + 1 })}>Next</Link>}

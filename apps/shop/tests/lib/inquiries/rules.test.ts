@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  STATUSES, nextStatus, parseTab, statusesForTab, waitInfo, waitText, refLabel, parseRef, cleanSearch,
+  STATUSES, nextStatus, parseTab, statusesForTab, waitInfo, waitText, businessDayText, refLabel, parseRef, cleanSearch,
   STATUS_CHIP, historyText, firstName, greetingName, type InquiryEventName, type Status,
 } from "@/lib/inquiries/rules";
 import { NOW, inquiry } from "../../helpers/inquiry-fixtures";
@@ -51,6 +51,10 @@ describe("waiting clock", () => {
   });
   it("closed threads have no clock", () => {
     expect(waitInfo(inquiry({ status: "closed", closed_at: "2026-10-01T00:00:00Z" }), NOW)).toBeNull();
+  });
+  it("businessDayText: the list footer's figure, distinct from the calendar waitText", () => {
+    expect(businessDayText("2026-10-03T22:12:00Z", NOW)).toBe("2 business days");
+    expect(businessDayText("2026-10-05T15:40:00Z", NOW)).toBe("1 business day");
   });
 });
 

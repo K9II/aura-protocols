@@ -6,6 +6,7 @@ import { requireOwner } from "@/lib/dal";
 import { currentMs } from "@/lib/clock";
 import { applyInquiryEvent, getThread, listSavedReplies, recordInquiryEvent, type ThreadMessage } from "@/lib/inquiries/data";
 import { getCustomerDetail } from "@/lib/customers/data";
+import { getOrderByNumber } from "@/lib/orders";
 import { STATUS_CHIP, firstName, historyText, parseRef, refLabel } from "@/lib/inquiries/rules";
 import { TOPICS, TOPIC_LABEL } from "@/lib/inquiries/topics";
 import { sameEmail } from "@/lib/inquiries/match";
@@ -23,6 +24,9 @@ export const metadata: Metadata = { title: "Inquiry", robots: { index: false, fo
 
 const initials = (s: string) => s.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "?";
 const isImage = (t: string) => t === "image/jpeg" || t === "image/png";
+// Photos per the Guide's own grouping (JPEG, PNG, HEIC — distinct from PDFs);
+// mixed kept files say "attachments", never "files".
+const isPhoto = (t: string) => t === "image/jpeg" || t === "image/png" || t === "image/heic" || t === "image/heif";
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
 const DELIVERY: Record<string, { cls: string; text: string; ok?: boolean }> = {
   sent: { cls: "", text: "Sent" }, delivered: { cls: "ok", text: "Delivered", ok: true },
@@ -87,13 +91,19 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
       events.unshift({ id: "opened-now", action: "opened", detail: null, at: new Date(nowMs).toISOString(), actorName: firstName(owner.fullName) });
     }
   }
-  const [customer, saved] = await Promise.all([i.customer_id ? getCustomerDetail(i.customer_id) : null, listSavedReplies()]);
+  const [customer, saved, order] = await Promise.all([
+    i.customer_id ? getCustomerDetail(i.customer_id) : null,
+    listSavedReplies(),
+    i.order_number ? getOrderByNumber(i.order_number) : null,
+  ]);
   const chip = STATUS_CHIP[status];
   const wholesale = i.topic === "wholesale";
   const firstMsg = t.messages[0];
   const paid = customer ? customer.orders.filter((o) => o.status === "paid" || o.status === "shipped") : [];
   const balance = customer ? customer.ledger.reduce((s, l) => s + l.amount_cents, 0) : 0;
-  const files = t.messages.reduce((s, m) => s + m.files.length, 0);
+  const allFiles = t.messages.flatMap((m) => m.files);
+  const files = allFiles.length;
+  const filesWord = allFiles.every((f) => isPhoto(f.content_type)) ? "photo" : "attachment";
 
   return (
     <div className="a-page">
@@ -159,8 +169,8 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
                 <button type="submit" className="a-btn sm">Change</button>
               </form>
               <dl className="a-facts2">
-                <dt>Order</dt><dd className="a-mono">{i.order_number ?? "—"}</dd>
-                <dt>Messages</dt><dd>{t.messages.length}{files ? ` · ${plural(files, "file")}` : ""}</dd>
+                <dt>Order</dt><dd className="a-mono">{i.order_number ? (order ? <Link href={`/admin/orders?status=all#${i.order_number}`}>{i.order_number}</Link> : i.order_number) : "—"}</dd>
+                <dt>Messages</dt><dd>{t.messages.length}{files ? ` · ${plural(files, filesWord)}` : ""}</dd>
                 {wholesale && i.organization && <><dt>Organization</dt><dd>{i.organization}</dd></>}
               </dl>
             </div>

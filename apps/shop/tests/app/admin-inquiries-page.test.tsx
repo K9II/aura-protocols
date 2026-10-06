@@ -43,6 +43,9 @@ describe("/admin/inquiries", () => {
     expect(within(rows[2]).getByText("Wholesale")).toBeInTheDocument();
     expect(within(rows[2]).getByText("New")).toBeInTheDocument();
     expect(m.listInquiries).toHaveBeenCalledWith({ tab: "open", topic: null, q: "", page: 1 });
+    // The footer's "oldest waiting" figure is business days, not the row's
+    // calendar-relative clock (that row shows "3 days" above).
+    expect(screen.getByText(/4 open · oldest waiting 2 business days/)).toBeInTheDocument();
   });
 
   it("passes topic, search and page through", async () => {

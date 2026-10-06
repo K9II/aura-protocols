@@ -4,10 +4,12 @@ import { NOW, inquiry } from "../helpers/inquiry-fixtures";
 
 const m = vi.hoisted(() => ({
   requireOwner: vi.fn(), getThread: vi.fn(), applyInquiryEvent: vi.fn(), recordInquiryEvent: vi.fn(), listSavedReplies: vi.fn(), getCustomerDetail: vi.fn(),
+  getOrderByNumber: vi.fn(),
 }));
 vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
 vi.mock("@/lib/inquiries/data", () => ({ getThread: m.getThread, applyInquiryEvent: m.applyInquiryEvent, recordInquiryEvent: m.recordInquiryEvent, listSavedReplies: m.listSavedReplies }));
 vi.mock("@/lib/customers/data", () => ({ getCustomerDetail: m.getCustomerDetail }));
+vi.mock("@/lib/orders", () => ({ getOrderByNumber: m.getOrderByNumber }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => NOW }));
 vi.mock("@/app/admin/inquiries/actions", () => ({ replyAction: vi.fn(), statusAction: vi.fn(), topicAction: vi.fn(), linkAction: vi.fn(), unlinkAction: vi.fn() }));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
@@ -21,6 +23,7 @@ describe("/admin/inquiries/[ref]", () => {
     for (const f of Object.values(m)) f.mockReset();
     m.requireOwner.mockResolvedValue({ id: "o1", fullName: "Kearney Adams" });
     m.listSavedReplies.mockResolvedValue([]);
+    m.getOrderByNumber.mockResolvedValue(null);
     m.getThread.mockResolvedValue({
       inquiry: { ...inquiry(), token: "t" },
       messages: [
@@ -50,6 +53,30 @@ describe("/admin/inquiries/[ref]", () => {
     expect(screen.getByText("No account for this email.")).toBeInTheDocument();
     expect(screen.getByText("Customer replied · 2 attachments")).toBeInTheDocument();
     expect(m.applyInquiryEvent).not.toHaveBeenCalled();
+    // Both kept files (box.png, IMG_4021.heic) are photo types — "photos", not "files".
+    expect(screen.getByText("2 photos", { exact: false })).toBeInTheDocument();
+    // The order number doesn't match a real order (getOrderByNumber → null): plain text, no link.
+    expect(screen.queryByRole("link", { name: "AP-1052" })).not.toBeInTheDocument();
+  });
+
+  it("the Order field links to the orders list when the order number matches a real order", async () => {
+    m.getOrderByNumber.mockResolvedValue({ id: "ord1", order_number: "AP-1052" });
+    render(await InquiryPage(params("Q-1047")));
+    expect(m.getOrderByNumber).toHaveBeenCalledWith("AP-1052");
+    expect(screen.getByRole("link", { name: "AP-1052" })).toHaveAttribute("href", "/admin/orders?status=all#AP-1052");
+  });
+
+  it("Messages says 'attachments' (not 'photos' or 'files') when the kept files are mixed", async () => {
+    m.getThread.mockResolvedValue({
+      inquiry: { ...inquiry(), token: "t" },
+      messages: [msg({ files: [
+        { id: "f1", filename: "box.png", content_type: "image/png", size_bytes: 10, url: "https://x/box.png" },
+        { id: "f2", filename: "coa.pdf", content_type: "application/pdf", size_bytes: 10, url: "https://x/coa.pdf" },
+      ] })],
+      events: [],
+    });
+    render(await InquiryPage(params("Q-1047")));
+    expect(screen.getByText("2 attachments", { exact: false })).toBeInTheDocument();
   });
 
   it("opening a new inquiry moves it to Needs reply and logs who opened it", async () => {
