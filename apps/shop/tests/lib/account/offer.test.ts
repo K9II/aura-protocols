@@ -3,7 +3,7 @@ import { NEW_ACCOUNT_DAYS, NEW_ACCOUNT_PCT, OFFER_DAYS_TEXT, OFFER_PCT_TEXT, dis
 import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
 
 describe("new-account offer", () => {
-  it("is 15%", () => { expect(NEW_ACCOUNT_PCT).toBe(15); });
+  it("is 25% (Kearney 2026-10-06; was 15)", () => { expect(NEW_ACCOUNT_PCT).toBe(25); });
 
   it("ends exactly NEW_ACCOUNT_DAYS days after sign-up", () => {
     expect(NEW_ACCOUNT_DAYS).toBe(3);
@@ -11,7 +11,7 @@ describe("new-account offer", () => {
   });
 
   it("builds every copy fragment from the two constants", () => {
-    expect(OFFER_PCT_TEXT).toBe("15%");
+    expect(OFFER_PCT_TEXT).toBe("25%");
     expect(OFFER_DAYS_TEXT).toBe("3 days");
   });
 
@@ -42,7 +42,7 @@ describe("discountPct: which percent wins between the new-account offer and a pa
     expect(discountPct(false, true)).toEqual({ pct: CODE_DISCOUNT_PCT, newAccount: false });
   });
 
-  it("is the new-account percent (today's 15% beats the code's 10%) when both apply", () => {
+  it("is the new-account percent (today's 25% beats the code's 10%) when both apply", () => {
     expect(discountPct(true, true)).toEqual({ pct: NEW_ACCOUNT_PCT, newAccount: true });
   });
 });

@@ -20,7 +20,7 @@ update customers c set email_verified_at = u.email_confirmed_at
   where u.id = c.id and c.email_verified_at is null and u.email_confirmed_at is not null
     and u.created_at < '2026-10-05';
 
--- The automatic new-account 15% (no code): which orders got it.
+-- The automatic new-account percent (NEW_ACCOUNT_PCT, no code): which orders got it.
 alter table orders add column if not exists new_account_discount boolean not null default false;
 
 -- Email-check rate limit for POST /api/gate/lookup: one row per lookup.

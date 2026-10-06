@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl } from "@/lib/emails";
 import type { OrderRow } from "@/lib/orders";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 const order = {
   order_number: "AP-1042", email: "j@lab.org", ship_name: "Jane <b>", ship_line1: "1 A St", ship_line2: null,
@@ -49,7 +50,7 @@ describe("emails", () => {
 
   it("labels a new-account discount in the order email", () => {
     const html = orderConfirmationEmail({ ...order, partner_discount_cents: 735, new_account_discount: true } as OrderRow).html;
-    expect(html).toContain("New-account 15%");
+    expect(html).toContain(`New-account ${OFFER_PCT_TEXT}`);
   });
 
   it("verify email links to the token URL and passes the scan", async () => {

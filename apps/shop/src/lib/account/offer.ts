@@ -1,12 +1,12 @@
-// The new-account offer: 15% off a first order placed within 3 days of
-// opening the account. Automatic — no code. Pure; safe on client and server.
+// The new-account offer: NEW_ACCOUNT_PCT off a first order placed within
+// NEW_ACCOUNT_DAYS of opening the account. Automatic — no code. Pure; safe on client and server.
 import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
 
-export const NEW_ACCOUNT_PCT = 15;
+export const NEW_ACCOUNT_PCT: number = 25; // Kearney 2026-10-06: was 15
 export const NEW_ACCOUNT_DAYS: number = 3; // Kearney 2026-10-04: was 14
 
 // Copy states the offer in days, never as a date (Kearney tunes the window).
-// Every "15%" / "3 days" shown anywhere is built from these two fragments.
+// Every offer percent / day count shown anywhere is built from these two fragments.
 export const OFFER_PCT_TEXT = `${NEW_ACCOUNT_PCT}%`;
 export const OFFER_DAYS_TEXT = `${NEW_ACCOUNT_DAYS} day${NEW_ACCOUNT_DAYS === 1 ? "" : "s"}`;
 

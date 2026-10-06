@@ -1,6 +1,7 @@
 // The one discount engine. Order of operations (shown in admin settings):
 //   1. item discounts — per item, the larger of pack price, the automatic
-//      percent (partner code 10% or new-account 15%) or an item-% code
+//      percent (partner code CODE_DISCOUNT_PCT or new-account NEW_ACCOUNT_PCT)
+//      or an item-% code
 //   2. order code — replaces step 1 on its items when that's cheaper, or with
 //      "on top" applies after it
 //   3. store-wide cap — total discount on goods ≤ capPct of list; never raises

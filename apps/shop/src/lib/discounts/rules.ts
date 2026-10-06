@@ -1,5 +1,12 @@
 // Discount-code rules: types, code text, batch generation, status and
 // plain-English descriptions. Pure — safe on client and server.
+import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
+
+// The owner-editable store-wide cap (shop_settings.max_discount_pct). Its
+// floor is the new-account percent, so the advertised welcome offer is never
+// trimmed by the cap. (The database check is looser, 15–60; this is stricter.)
+export const CAP_MIN_PCT = NEW_ACCOUNT_PCT;
+export const CAP_MAX_PCT = 60;
 
 export type CodeKind = "item_pct" | "order_pct" | "order_amount" | "ship_only";
 export type StoredStatus = "active" | "paused" | "ended";

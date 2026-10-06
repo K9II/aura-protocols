@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import type { Compound } from "@/data/catalog";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
 // The live catalog comes from the cart context (CartProvider's `catalog`).
@@ -171,10 +172,10 @@ describe("CheckoutForm", () => {
     }
   });
 
-  it("shows the automatic new-account 15% when the offer is live", async () => {
+  it("shows the automatic new-account percent when the offer is live", async () => {
     render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={{ endsAt: "2026-10-18T23:59:59.999Z" }} capPct={30} />);
-    expect(screen.getByText("New account: 15% off this first order, applied automatically.")).toBeInTheDocument();
-    expect(screen.getByText(/Includes new-account 15%/)).toBeInTheDocument();
+    expect(screen.getByText(`New account: ${OFFER_PCT_TEXT} off this first order, applied automatically.`)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`Includes new-account ${OFFER_PCT_TEXT}`))).toBeInTheDocument();
   });
   it("previews a discount code with free shipping and the message", async () => {
     checkCodeAction.mockResolvedValue({ ok: true, kind: "discount", code: "SPRING20", capPct: 30,

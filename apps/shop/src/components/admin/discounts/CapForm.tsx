@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState, type ReactNode } from "react";
 import { setCapAction } from "@/app/admin/discounts/actions";
+import { CAP_MAX_PCT, CAP_MIN_PCT } from "@/lib/discounts/rules";
 
 // Wraps the whole settings page body: the cap field + the server-rendered
 // aside sit inside the cap card, the rest of the page's sections render
@@ -26,10 +27,10 @@ export default function CapForm({ cap, aside, after }: { cap: number; aside: Rea
           <div className="a-fld">
             <label htmlFor="cap">Maximum discount</label>
             <div className="a-input" style={{ width: 120 }}>
-              <input id="cap" name="cap" type="number" min={15} max={60} step={1} inputMode="numeric" value={value} onChange={(e) => setValue(e.target.value)} />
+              <input id="cap" name="cap" type="number" min={CAP_MIN_PCT} max={CAP_MAX_PCT} step={1} inputMode="numeric" value={value} onChange={(e) => setValue(e.target.value)} />
               <span className="affix">%</span>
             </div>
-            <div className="help">Of list price, on goods.</div>
+            <div className="help">Of list price, on goods. {CAP_MIN_PCT}–{CAP_MAX_PCT}%: never below the new-account offer.</div>
             {showError && <div className="a-err" role="alert">{state!.error}</div>}
           </div>
           {aside}

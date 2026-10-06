@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 const listWelcomeCandidates = vi.fn(), sentKinds = vi.fn(), sendTracked = vi.fn(), getSubscriber = vi.fn(), welcomeSendsFor = vi.fn();
 const listAbandonedCheckouts = vi.fn(), alertOwner = vi.fn(), getOrderById = vi.fn();
@@ -62,7 +63,7 @@ describe("GET /api/cron/emails", () => {
     offerForEmail.mockResolvedValue({ endsAt: "2026-12-15T23:59:59.999Z" });
     const { GET } = await import("@/app/api/cron/emails/route");
     await GET(auth());
-    expect(sendTracked.mock.calls[0][0].msg.html).toContain("FIRST ORDER · 15%");
+    expect(sendTracked.mock.calls[0][0].msg.html).toContain(`FIRST ORDER · ${OFFER_PCT_TEXT}`);
     expect(offerForEmail).toHaveBeenCalledWith("a@b.co");
   });
 

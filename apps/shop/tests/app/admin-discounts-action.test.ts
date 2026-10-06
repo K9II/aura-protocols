@@ -195,8 +195,13 @@ describe("discount admin actions", () => {
     await expect(resetUseAction(fd({ redemptionId: "11111111-1111-4111-8111-111111111111" }))).resolves.toBeUndefined();
   });
 
-  it("the cap must be 15–60", async () => {
+  it("the cap must be from the new-account percent (so the advertised offer is never trimmed) to 60", async () => {
     const { setCapAction } = await import("@/app/admin/discounts/actions");
+    const { CAP_MIN_PCT, CAP_MAX_PCT } = await import("@/lib/discounts/rules");
+    const { NEW_ACCOUNT_PCT } = await import("@/lib/account/offer");
+    expect(CAP_MIN_PCT).toBe(NEW_ACCOUNT_PCT);
+    expect(CAP_MAX_PCT).toBe(60);
+    expect(await setCapAction(null, fd({ cap: String(CAP_MIN_PCT - 1) }))).toEqual({ error: `Use a whole percent from ${CAP_MIN_PCT} to 60.` });
     expect(await setCapAction(null, fd({ cap: "10" }))).toMatchObject({ error: expect.any(String) });
     expect(await setCapAction(null, fd({ cap: "90" }))).toMatchObject({ error: expect.any(String) });
     expect(await setCapAction(null, fd({ cap: "25" }))).toEqual({ ok: true });

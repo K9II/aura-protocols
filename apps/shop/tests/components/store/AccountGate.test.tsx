@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, act, fireEvent, waitFor } from "@testing-library/react";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
+
+const SAVE_RE = new RegExp(`New accounts save ${OFFER_PCT_TEXT}`);
 
 let pathname = "/";
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
@@ -42,15 +45,15 @@ describe("AccountGate", () => {
     await settle(1100);
     expect(document.querySelector(".ag.in")).not.toBeNull();
     expect(document.querySelector(".ag")).not.toHaveAttribute("inert");
-    expect(screen.getByRole("dialog", { name: /New accounts save 15%/ })).toHaveAttribute("aria-modal", "true");
+    expect(screen.getByRole("dialog", { name: SAVE_RE })).toHaveAttribute("aria-modal", "true");
     // Phone layout (jsdom has no matchMedia): step 1 focuses the card, not the email field,
     // so the keyboard doesn't pop up over the card on arrival.
-    expect(document.activeElement).toBe(screen.getByRole("dialog", { name: /New accounts save 15%/ }));
+    expect(document.activeElement).toBe(screen.getByRole("dialog", { name: SAVE_RE }));
     // Focus that escapes to the page is pulled back in on the next Tab.
     (document.activeElement as HTMLElement).blur();
     fireEvent.keyDown(document.body, { key: "Tab" });
     expect(document.querySelector(".ag")!.contains(document.activeElement)).toBe(true);
-    expect(screen.getByRole("heading", { name: /New accounts save 15%/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: SAVE_RE })).toBeInTheDocument();
   });
 
   it("never shows for a signed-in account", async () => {
@@ -121,7 +124,7 @@ describe("AccountGate", () => {
     const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
     render(<AccountGate />);
     await settle();
-    expect(screen.getByRole("heading", { name: /New accounts save 15%/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: SAVE_RE })).toBeInTheDocument();
   });
 
   it("branches a known email to sign-in and a new one to create-account", async () => {
