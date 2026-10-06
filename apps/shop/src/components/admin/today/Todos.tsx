@@ -6,6 +6,7 @@ import { Icon } from "@/components/admin/ui";
 import AlertDone from "@/components/admin/today/AlertDone";
 import { announceAction } from "@/app/admin/email/actions";
 import { markInquiriesSeenAction } from "@/app/admin/actions";
+import WarningAction from "@/components/admin/disputes/WarningAction";
 import type { Slot, TodoLine, TodoSection } from "@/lib/today/todos";
 
 function Title({ l }: { l: TodoLine }) {
@@ -17,6 +18,7 @@ function Action({ a }: { a: NonNullable<TodoLine["action"]> }) {
   if ("announce" in a) {
     return <form action={announceAction}><button type="submit" className="a-btn sm"><Icon name="send" />{a.label}</button></form>;
   }
+  if ("warning" in a) return <WarningAction w={a.warning} dialogKey={`today-${a.warning.id}`} />;
   return <Link className="a-btn sm" href={a.href}>{a.icon && <Icon name={a.icon} />}{a.label}</Link>;
 }
 

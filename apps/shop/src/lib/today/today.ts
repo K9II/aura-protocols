@@ -12,8 +12,9 @@ import { listPartners } from "@/lib/partners/data";
 import { listQueuedPayouts } from "@/lib/partners/ledger";
 import { listOpenAlerts } from "@/lib/today/alerts";
 import { newInquiries, salesSummary } from "@/lib/today/data";
+import { openDisputeTodos } from "@/lib/disputes/data";
 import {
-  alertsSection, emailSection, inquiriesSection, lotsSection, navCount, ordersSection, partnersSection, stockSection,
+  alertsSection, disputesSection, emailSection, inquiriesSection, lotsSection, navCount, ordersSection, partnersSection, stockSection,
   SLOT_INFO, SLOT_KEYS, type Slot, type SlotKey, type TodoSection,
 } from "@/lib/today/todos";
 import { numbersView, type NumbersView } from "@/lib/today/numbers";
@@ -27,6 +28,10 @@ const shown = (xs: Array<TodoSection | null>): TodoSection[] => xs.filter((x): x
 // data functions (which throw on a DB error).
 const LOADERS: Record<SlotKey, (nowMs: number) => Promise<TodoSection[]>> = {
   alerts: async (nowMs) => shown([alertsSection(await listOpenAlerts(), nowMs)]),
+  disputes: async (nowMs) => {
+    const { disputes, warnings } = await openDisputeTodos();
+    return shown([disputesSection(disputes, warnings, nowMs)]);
+  },
   orders: async (nowMs) => {
     const orders = await listOrdersForOwner("paid", { oldestFirst: true });
     return shown([ordersSection(orders.map((o) => ({

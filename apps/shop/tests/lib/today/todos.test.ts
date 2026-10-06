@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { clipDetail, firstLine, normalizeAlertTitle, sortAlerts, type OwnerAlert } from "@/lib/today/alert-rules";
 import {
-  alertsSection, emailSection, excerpt, inquiriesSection, lotsSection, navCount, ordersSection, partnersSection, stockSection,
+  alertsSection, disputesSection, emailSection, excerpt, inquiriesSection, lotsSection, navCount, ordersSection, partnersSection, stockSection,
   type InquiryPreview, type ShipOrder,
 } from "@/lib/today/todos";
 import type { AdminLotRow, AdminRow } from "@/lib/catalog-ops/rules";
+import { DISPUTE_ID, NOW as DNOW, WARNING_ID, listRow, warningRow } from "../../helpers/dispute-fixtures";
 
 const NOW = Date.parse("2026-10-06T15:42:00Z"); // Tue Oct 6, 9:42 am MDT
 const alert = (o: Partial<OwnerAlert> = {}): OwnerAlert => ({
@@ -171,5 +172,32 @@ describe("to-do sections", () => {
   it("the nav count adds up every section's count", () => {
     const sections = [alertsSection([alert({})], NOW), null, ordersSection([order(40, "2026-10-05T15:00:00Z"), order(41, "2026-10-05T16:00:00Z")], NOW)];
     expect(navCount(sections)).toBe(3);
+  });
+});
+
+describe("Today: disputes section", () => {
+  it("chargebacks by deadline and early warnings with their action; red first; submitted ones don't count", () => {
+    const s = disputesSection([
+      listRow({ id: "d2", evidence_due_by: "2026-10-24T23:59:59Z", reason: "fraudulent", amount_cents: 25800 }, { number: "AP-1036" }),
+      listRow({ draft_saved_at: "2026-10-06T15:31:00Z" }),
+      listRow({ id: "d3", evidence_submitted: true }, { number: "AP-1050" }),
+    ], [warningRow(), warningRow({ id: "w9", resolved_action: "watching", resolved_at: "2026-10-06T00:00:00Z" })], DNOW)!;
+    expect(s).toMatchObject({ key: "disputes", title: "Disputes", n: 3, tone: "red", link: { label: "Disputes", href: "/admin/disputes" } });
+    expect(s.lines.map((l) => l.mono)).toEqual(["AP-1031", "AP-1044", "AP-1036"]);
+    expect(s.lines[0]).toMatchObject({
+      title: "respond by Oct 9", detail: "Not received · $412.00 · draft saved", tone: "red", age: { text: "2 days", late: true },
+      href: `/admin/disputes/${DISPUTE_ID}`, action: { label: "Respond", href: `/admin/disputes/${DISPUTE_ID}` },
+    });
+    expect(s.lines[1]).toMatchObject({ title: "Early fraud warning", detail: "Not shipped yet · $184.50 · refund now to avoid a chargeback", tone: "red" });
+    expect(s.lines[1].action).toEqual({ label: "Cancel and refund…", warning: { id: WARNING_ID, orderNumber: "AP-1044", kind: "refund", chargedCents: 18450, creditCents: 0 } });
+    expect(s.lines[2]).toMatchObject({ title: "respond by Oct 24", detail: "Fraudulent · $258.00 · not started", tone: "mut", age: { text: "17 days", late: false } });
+    expect(disputesSection([], [], DNOW)).toBeNull();
+  });
+
+  it("a shipped order's warning suggests Watch (amber)", () => {
+    const s = disputesSection([], [warningRow({}, { status: "shipped", shippedAt: "2026-09-20T18:00:00Z", number: "AP-1029", totalCents: 9600 })], DNOW)!;
+    expect(s.lines[0]).toMatchObject({ tone: "amb", detail: "Shipped Sep 20 · $96.00 · no refund after shipping; watch for a chargeback" });
+    expect(s.lines[0].action).toMatchObject({ label: "Watch", warning: { kind: "watch" } });
+    expect(s.tone).toBe("amb");
   });
 });
