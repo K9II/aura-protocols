@@ -6,11 +6,12 @@ import { statKey, sumAttribution, sumKinds } from "@/lib/email/stat-keys";
 import { getEmailSettings, listRuns, AUTOMATION_LABEL } from "@/lib/email/admin-data";
 import { campaignCounts, listCampaigns, waitingLots, type CampaignTab } from "@/lib/email/campaigns/data";
 import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, currentMs, KIND_LABEL } from "@/lib/email/campaigns/rules";
-import { CAMPAIGNS_PER_PAGE, STATS_DAYS } from "@/lib/email/constants";
+import { ATTRIBUTION_DAYS, CAMPAIGNS_PER_PAGE, STATS_DAYS } from "@/lib/email/constants";
 import { WELCOME_DAYS, CART_HOURS } from "@/lib/email/schedule";
 import { shortDate, dateTime } from "@/lib/discounts/time";
 import { Crumbs, Icon, Tabs, money } from "@/components/admin/ui";
 import AutomationSwitch from "@/components/admin/email/AutomationSwitch";
+import AutomationRow from "@/components/admin/email/AutomationRow";
 import { HealthStrip, RunLine } from "@/components/admin/email/HealthStrip";
 import { announceAction } from "@/app/admin/email/actions";
 
@@ -76,7 +77,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
 
       {waiting.length > 0 && (
         <form action={announceAction} className="a-waiting">
-          <Icon name="catalog" />
+          <Icon name="flask" />
           <div><b>{waiting.length} lot{waiting.length === 1 ? "" : "s"} waiting to announce</b><div className="muted" style={{ fontSize: 12 }}>Certified, live and not emailed yet</div></div>
           <div className="lots">{waiting.map((l) => <span key={l.lot} className="a-lotpill">{l.compoundName} {l.strengths} · {l.lot}</span>)}</div>
           <button type="submit" className="a-btn"><Icon name="send" />Announce</button>
@@ -85,46 +86,46 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
 
       <div className="a-sec-h"><h3>Automations</h3><span>sent by the hourly run · numbers are {STATS_DAYS} days</span></div>
       <table className="a-t a-only-desk" style={{ marginBottom: 22 }}>
-        <thead><tr><th>Automation</th><th>Status</th><th className="num">Sent</th><th className="num">Bounced</th><th className="num">Unsubscribed</th><th className="num">Orders after</th><th className="num">Revenue after</th></tr></thead>
-        <tbody>
-          <tr>
-            <td className="a-auto-name"><b>{AUTOMATION_LABEL.welcome}</b><small>&quot;The Paperwork&quot; · {WELCOME_DAYS.length} files over {WELCOME_DAYS[WELCOME_DAYS.length - 1]} days</small></td>
-            <td><AutomationSwitch automation="welcome" label={AUTOMATION_LABEL.welcome} paused={settings.welcomePaused} /></td>
+        <thead><tr><th>Automation</th><th>Status</th><th className="num">Sent</th><th className="num">Bounced</th><th className="num">Unsubscribed</th><th className="num">Orders after</th><th className="num">Revenue after</th><th style={{ width: 36 }} /></tr></thead>
+        <AutomationRow
+          defaultExpanded
+          name={AUTOMATION_LABEL.welcome}
+          meta={<>&quot;The Paperwork&quot; · {WELCOME_DAYS.length} files over {WELCOME_DAYS[WELCOME_DAYS.length - 1]} days</>}
+          switchSlot={<AutomationSwitch automation="welcome" label={AUTOMATION_LABEL.welcome} paused={settings.welcomePaused} />}
+          cells={<>
             <td className="num">{n(welcome.sent)}</td><td className="num">{n(welcome.bounced)}</td><td className="num">{n(welcome.unsubscribed)}</td>
             <td className="num">{n(welcomeAttr.orders)}</td><td className="num">{money(welcomeAttr.revenueCents)}</td>
-          </tr>
-        </tbody>
-        <tbody className="a-steprows">
-          {WELCOME_DAYS.map((d, i) => {
+          </>}
+          steps={WELCOME_DAYS.map((d, i) => {
             const s = stats30.get(`welcome_${i + 1}`), a = attr30.get(`welcome_${i + 1}`);
             return (
               <tr key={d}><td>File 0{i + 1} · day {d}<span className="subj">&quot;{WELCOME_SUBJECTS[i]}&quot;</span></td><td />
                 <td className="num">{n(s?.sent ?? 0)}</td><td className="num">{n(s?.bounced ?? 0)}</td><td className="num">{n(s?.unsubscribed ?? 0)}</td>
-                <td className="num">{n(a?.orders ?? 0)}</td><td className="num">{money(a?.revenueCents ?? 0)}</td></tr>
+                <td className="num">{n(a?.orders ?? 0)}</td><td className="num">{money(a?.revenueCents ?? 0)}</td><td /></tr>
             );
           })}
-        </tbody>
-        <tbody>
-          <tr>
-            <td className="a-auto-name"><b>{AUTOMATION_LABEL.cart}</b><small>{CART_HOURS.length} reminders while the checkout is open ({CART_HOURS.join(", ")} h)</small></td>
-            <td><AutomationSwitch automation="cart" label={AUTOMATION_LABEL.cart} paused={settings.cartPaused} /></td>
+        />
+        <AutomationRow
+          defaultExpanded={false}
+          name={AUTOMATION_LABEL.cart}
+          meta={<>{CART_HOURS.length} reminders while the checkout is open ({CART_HOURS.join(", ")} h)</>}
+          switchSlot={<AutomationSwitch automation="cart" label={AUTOMATION_LABEL.cart} paused={settings.cartPaused} />}
+          cells={<>
             <td className="num">{n(carts.sent)}</td><td className="num">{n(carts.bounced)}</td><td className="num">{n(carts.unsubscribed)}</td>
             <td className="num">{n(cart.recovered)} <span className="muted">recovered</span></td><td className="num">{money(cart.revenueCents)}</td>
-          </tr>
-        </tbody>
-        <tbody className="a-steprows">
-          {CART_HOURS.map((h, i) => {
+          </>}
+          steps={CART_HOURS.map((h, i) => {
             const s = stats30.get(`cart_${i + 1}`);
-            return <tr key={h}><td>Reminder {i + 1} · {h} h</td><td /><td className="num">{n(s?.sent ?? 0)}</td><td className="num">{n(s?.bounced ?? 0)}</td><td className="num">{n(s?.unsubscribed ?? 0)}</td><td className="num muted">—</td><td className="num muted">—</td></tr>;
+            return <tr key={h}><td>Reminder {i + 1} · {h} h</td><td /><td className="num">{n(s?.sent ?? 0)}</td><td className="num">{n(s?.bounced ?? 0)}</td><td className="num">{n(s?.unsubscribed ?? 0)}</td><td className="num muted">—</td><td className="num muted">—</td><td /></tr>;
           })}
-        </tbody>
+        />
       </table>
       <div className="a-plist a-only-phone" style={{ marginBottom: 12 }}>
         <div className="a-pauto"><b>{AUTOMATION_LABEL.welcome}</b><AutomationSwitch automation="welcome" label={AUTOMATION_LABEL.welcome} paused={settings.welcomePaused} /><div className="meta"><span><b>{n(welcome.sent)}</b> sent</span><span><b>{n(welcomeAttr.orders)}</b> orders</span><span><b>{money(welcomeAttr.revenueCents)}</b></span></div></div>
         <div className="a-pauto"><b>{AUTOMATION_LABEL.cart}</b><AutomationSwitch automation="cart" label={AUTOMATION_LABEL.cart} paused={settings.cartPaused} /><div className="meta"><span><b>{n(carts.sent)}</b> sent</span><span><b>{n(cart.recovered)}</b> recovered</span><span><b>{money(cart.revenueCents)}</b></span></div></div>
       </div>
 
-      <div className="a-sec-h"><h3>Campaigns</h3><span>orders and revenue = paid within the 7 days after the email</span></div>
+      <div className="a-sec-h"><h3>Campaigns</h3><span>orders and revenue = paid within the {ATTRIBUTION_DAYS} days after the email</span></div>
       <div className="a-toolbar"><Tabs items={TABS.map(([t, label]) => ({ href: href({ tab: t, page: 1 }), label, n: counts[t], on: t === tab }))} /></div>
       {list.rows.length === 0 ? <div className="a-empty">No campaigns here yet. Use New campaign, or Announce when a lot goes live.</div> : (
         <>

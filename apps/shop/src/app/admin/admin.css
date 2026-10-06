@@ -175,6 +175,8 @@
 .adm .a-meter .a-bar i { display: block; height: 100%; background: var(--ink-soft); }
 .adm .a-meter .a-bar.full i { background: var(--ink); }
 .adm .a-rowmenu { color: var(--faint); width: 36px; } .adm .a-rowmenu svg { display: block; margin-left: auto; }
+.adm .a-rowmenu button { display: block; margin-left: auto; border: 0; background: transparent; padding: 4px; cursor: pointer; color: inherit; }
+.adm .a-rowmenu button svg { transition: transform .15s; }
 .adm .a-tfoot { display: flex; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-top: 0; background: var(--surface-2); color: var(--muted); font-size: 12px; }
 .adm .a-tfoot .r { margin-left: auto; display: flex; gap: 6px; }
 .adm .a-empty { border: 1px solid var(--line); background: var(--surface); padding: 32px; text-align: center; color: var(--muted); }
@@ -745,25 +747,32 @@
 .adm .a-ed { display: grid; grid-template-columns: minmax(0,1fr) 560px; gap: 20px; align-items: start; }
 @media (max-width: 1100px) { .adm .a-ed { grid-template-columns: 1fr; } }
 .adm .a-typeseg { display: grid; grid-template-columns: repeat(3,1fr); border: 1px solid var(--line-strong); }
-.adm .a-typeseg div { padding: 9px 12px; border-left: 1px solid var(--line-strong); background: #fff; }
-.adm .a-typeseg div:first-child { border-left: 0; }
-.adm .a-typeseg div b { display: block; font-weight: 600; }
-.adm .a-typeseg div small { color: var(--muted); font-size: 11.5px; display: block; margin-top: 2px; line-height: 1.3; }
-.adm .a-typeseg div.on { background: var(--ink); color: #F4F1EA; } .adm .a-typeseg div.on small { color: #BDB6A5; }
-.adm .a-typeseg div.lock { background: var(--surface-2); color: var(--faint); }
+/* Markup renders the choosable options as <Link> (an "a"), the selected one
+   and a locked one as "div" — match any child, not just "div". */
+.adm .a-typeseg > * { display: block; padding: 9px 12px; border-left: 1px solid var(--line-strong); background: #fff; text-decoration: none; color: inherit; }
+.adm .a-typeseg > *:first-child { border-left: 0; }
+.adm .a-typeseg > * b { display: block; font-weight: 600; }
+.adm .a-typeseg > * small { color: var(--muted); font-size: 11.5px; display: block; margin-top: 2px; line-height: 1.3; }
+.adm .a-typeseg > .on { background: var(--ink); color: #F4F1EA; } .adm .a-typeseg > .on small { color: #BDB6A5; }
+.adm .a-typeseg > .lock { background: var(--surface-2); color: var(--faint); }
+.adm .a-typeseg > a:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; position: relative; z-index: 1; }
 .adm .a-textarea.tall { min-height: 118px; }
 .adm .a-textarea .hit { background: var(--specimen-bg); border-bottom: 1.5px solid var(--specimen); color: #6E1D14; }
 .adm .a-lotpick { border: 1px solid var(--line-strong); background: #fff; }
 .adm .a-lotpick .lr { display: grid; grid-template-columns: 22px 1fr auto auto; gap: 10px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
 .adm .a-lotpick .lr:last-child { border-bottom: 0; }
-.adm .a-lotpick .lr .a-mono { font-size: 11.5px; }
+.adm .a-lotpick .lr .mono { font-size: 11.5px; }
 .adm .a-lotpick .lr small { color: var(--muted); }
 .adm .a-aud { display: grid; grid-template-columns: repeat(3,1fr); border: 1px solid var(--line-strong); }
-.adm .a-aud div { padding: 8px 12px; border-left: 1px solid var(--line-strong); background: #fff; }
-.adm .a-aud div:first-child { border-left: 0; }
-.adm .a-aud div b { display: block; font-weight: 600; }
-.adm .a-aud div span { font: 500 12px var(--mono); color: var(--muted); }
-.adm .a-aud div.on { background: var(--ink); color: #F4F1EA; } .adm .a-aud div.on span { color: #BDB6A5; }
+/* Markup renders each option as a <label> wrapping a visually-hidden radio
+   — match any child, not just "div", or ".on" (the selected audience) never
+   shows and the row never gets a focus ring when the hidden radio is tabbed to. */
+.adm .a-aud > * { display: block; padding: 8px 12px; border-left: 1px solid var(--line-strong); background: #fff; cursor: pointer; }
+.adm .a-aud > *:first-child { border-left: 0; }
+.adm .a-aud > * b { display: block; font-weight: 600; }
+.adm .a-aud > * span { font: 500 12px var(--mono); color: var(--muted); }
+.adm .a-aud > .on { background: var(--ink); color: #F4F1EA; } .adm .a-aud > .on span { color: #BDB6A5; }
+.adm .a-aud > *:focus-within { outline: 2px solid var(--ink); outline-offset: -2px; position: relative; z-index: 1; }
 .adm .a-checks { display: grid; gap: 6px; }
 .adm .a-checks .ck { display: grid; grid-template-columns: 16px 1fr; gap: 8px; font-size: 12.5px; padding: 7px 10px; border: 1px solid; }
 .adm .a-checks .ck svg { margin-top: 1px; }
@@ -804,9 +813,14 @@
 .adm .a-pauto b { font-weight: 600; }
 .adm .a-pauto .meta { grid-column: 1 / -1; display: flex; gap: 12px; color: var(--muted); font-size: 12px; }
 .adm .a-pauto .meta b { color: var(--ink); font: 500 11.5px var(--mono); }
-.adm .a-psticky { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 16px; background: var(--surface); border-top: 1px solid var(--line-strong); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* `.a-psticky`/`.a-pseg` carry `a-only-phone` in markup for the display:none
+   default; neither sets `display` here (that's only turned on inside the
+   max-width:860px block below) — otherwise, same specificity as
+   `.a-only-phone{display:none}` but later in the file, it would win on
+   every width and these phone-only bars would show on desktop too. */
+.adm .a-psticky { position: sticky; bottom: 0; padding: 10px 16px; background: var(--surface); border-top: 1px solid var(--line-strong); gap: 8px; }
 .adm .a-psticky .a-btn { justify-content: center; height: 38px; }
-.adm .a-pseg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line-strong); margin-bottom: 10px; }
+.adm .a-pseg { border: 1px solid var(--line-strong); margin-bottom: 10px; }
 .adm .a-pseg div, .adm .a-pseg button { text-align: center; padding: 7px; font-weight: 500; background: #fff; color: var(--ink-soft); border: 0; font: inherit; cursor: pointer; }
 .adm .a-pseg div + div, .adm .a-pseg button + button { border-left: 1px solid var(--line-strong); }
 .adm .a-pseg div.on, .adm .a-pseg button.on { background: var(--ink); color: #F4F1EA; }
@@ -819,4 +833,9 @@
   .adm .a-waiting .a-btn { margin-left: 0; width: 100%; justify-content: center; height: 34px; }
   .adm .a-typeseg, .adm .a-aud { grid-template-columns: 1fr; }
   .adm .a-hide-phone { display: none; }
+  .adm .a-psticky, .adm .a-pseg { display: grid; grid-template-columns: 1fr 1fr; }
+  /* One set of Test/Send buttons on phone (the sticky bar below) — scoped to
+     the Email editor (`.a-ed`) so other modules' save bars keep their own
+     mobile layout (see the generic `.a-savebar .r` rules above). */
+  .adm .a-ed .a-savebar .r { display: none; }
 }

@@ -34,11 +34,13 @@ const PATHS = {
   arrow: <path d="M3 8h10M9 4l4 4-4 4" />,
   send: <><path d="M2 8 14 2l-4 12-2.5-4.5z" /><path d="M7.5 9.5 14 2" /></>,
   clock: <><circle cx="8" cy="8" r="6" /><path d="M8 4.5V8l2.5 1.5" /></>,
+  down: <path d="m4 6 4 4 4-4" />,
+  flask: <path d="M6 2h4M7 2v4L3.5 13h9L9 6V2" />,
 } as const;
 export type IconName = keyof typeof PATHS;
 
-export function Icon({ name }: { name: IconName }) {
-  return <svg className="a-i" viewBox="0 0 16 16" aria-hidden>{PATHS[name]}</svg>;
+export function Icon({ name, style }: { name: IconName; style?: React.CSSProperties }) {
+  return <svg className="a-i" viewBox="0 0 16 16" aria-hidden style={style}>{PATHS[name]}</svg>;
 }
 
 const CHIP_CLASS: Record<CodeStatus, string> = { active: "active", scheduled: "sched", paused: "paused", ended: "ended", used_up: "usedup" };
