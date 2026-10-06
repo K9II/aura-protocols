@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireOwner } from "@/lib/dal";
-import { codeStatsById, discountDashboard, getCodeById, getDiscountCap, listEvents, listRedemptions, orderNumbersForRedemptions, REDEMPTIONS_LIMIT, type CodeEvent, type Redemption } from "@/lib/discounts/data";
+import { codeStatsById, discountDashboard, getCodeById, getDiscountCap, listEvents, listRedemptions, orderNumbersForRedemptions, REDEMPTIONS_LIMIT, type Redemption } from "@/lib/discounts/data";
 import { codeStatus, describeRule, termsFromRow, type DiscountCodeRow, type StoredStatus } from "@/lib/discounts/rules";
 import { dateTime, mountainDaysUntil, shortDate } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
@@ -12,18 +12,11 @@ import { catalogContent } from "@/data/catalog";
 import { setCodeStateAction, resetUseAction } from "@/app/admin/discounts/actions";
 import ConfirmSubmit from "@/components/admin/ConfirmSubmit";
 import CopyAll from "@/components/admin/discounts/CopyAll";
+import ActivityCard from "@/components/admin/discounts/ActivityCard";
 import { Chip, Crumbs, Icon, Kpis, StatusChip, money } from "@/components/admin/ui";
 
 export const metadata: Metadata = { title: "Discount code", robots: { index: false, follow: false } };
 
-const EVENT_TEXT: Record<string, string> = { created: "Created", edited: "Rule edited", paused: "Paused", resumed: "Resumed", ended: "Ended", use_reset: "Use reset" };
-
-// A reset event's detail is the redemption id; show the order it belonged to.
-function eventText(e: CodeEvent, orderOf: Map<string, string>): string {
-  if (e.kind === "use_reset") { const o = e.detail ? orderOf.get(e.detail) : undefined; return o ? `Use reset on ${o}` : "Use reset"; }
-  const label = EVENT_TEXT[e.kind] ?? e.kind;
-  return e.detail && e.detail !== label ? `${label} — ${e.detail}` : label;
-}
 const KIND_TEXT: Record<DiscountCodeRow["kind"], string> = { item_pct: "Item %", order_pct: "Order %", order_amount: "Order $", ship_only: "Free shipping" };
 const TABS = ["all", "used", "held", "released"] as const;
 
@@ -163,14 +156,7 @@ export default async function CodePage({ params, searchParams }: { params: Promi
             <div className="a-card-h"><h3>Rule</h3><span className="r"><Link href={`/admin/discounts/${id}/edit`}>Edit</Link></span></div>
             <div className="a-card-b"><dl className="a-facts flat">{ruleFacts(code).map(([k, v]) => <Fragment key={k}><dt>{k}</dt><dd>{v}</dd></Fragment>)}</dl></div>
           </div>
-          <div className="a-card">
-            <div className="a-card-h"><h3>Activity</h3></div>
-            <div className="a-card-b">
-              {events.length === 0 ? <p className="muted">Nothing yet.</p> : (
-                <ul className="a-log">{events.map((e) => <li key={e.id}><div>{eventText(e, orderOf)}<small>{dateTime(e.at)}</small></div></li>)}</ul>
-              )}
-            </div>
-          </div>
+          <ActivityCard events={events} orderOf={orderOf} />
         </aside>
       </div>
     </div>

@@ -53,6 +53,7 @@ export async function saveCampaignAction(_prev: EmailActionState, f: FormData): 
     redirect(`/admin/email/campaigns/${id}`);
   }
   await updateDraft(existing.id, p.value, lots);
+  await logEmailAdminEvent({ action: "edited", target: existing.id, actor: owner.id });
   refresh(existing.id);
   const saved = await getCampaign(existing.id);
   return { ok: "Saved.", checks: await checksFor(saved!, Date.now()), savedAt: new Date().toISOString() };
