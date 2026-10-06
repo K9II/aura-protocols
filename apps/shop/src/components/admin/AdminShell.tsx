@@ -9,7 +9,7 @@ import { signOutToSignInAction } from "@/app/auth/actions";
 
 // `also`: other pages that belong to an item. Today's "/admin" is not a prefix
 // for the whole admin, so it is current only on itself and Past alerts.
-type Item = { href: string; label: string; icon: IconName; live: boolean; count?: "orders" | "partners" | "email" | "today" | "disputes"; also?: string[] };
+type Item = { href: string; label: string; icon: IconName; live: boolean; count?: "orders" | "partners" | "email" | "today" | "disputes" | "inquiries"; also?: string[] };
 const NAV: Array<{ group?: string; items: Item[] }> = [
   { items: [{ href: "/admin", label: "Today", icon: "today", live: true, count: "today", also: ["/admin/alerts"] }] },
   { group: "Sell", items: [
@@ -21,7 +21,7 @@ const NAV: Array<{ group?: string; items: Item[] }> = [
   { group: "Stock", items: [{ href: "/admin/catalog", label: "Catalog & lots", icon: "catalog", live: true }] },
   { group: "Reach", items: [
     { href: "/admin/email", label: "Email", icon: "mail", live: true, count: "email" },
-    { href: "/admin/inquiries", label: "Inquiries", icon: "inbox", live: false },
+    { href: "/admin/inquiries", label: "Inquiries", icon: "inbox", live: true, count: "inquiries" },
   ] },
   { group: "Partners", items: [
     { href: "/admin/partners", label: "Partners", icon: "partners", live: true, count: "partners" },
@@ -30,7 +30,7 @@ const NAV: Array<{ group?: string; items: Item[] }> = [
 ];
 
 export default function AdminShell({ counts, testMode, ownerName, children }: {
-  counts: { orders: number; partners: number; email: number; today: number; disputes: number }; testMode: boolean; ownerName: string; children: React.ReactNode;
+  counts: { orders: number; partners: number; email: number; today: number; disputes: number; inquiries: number }; testMode: boolean; ownerName: string; children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
