@@ -2,12 +2,24 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { customerStatus, safeNext } from "@/lib/dal";
 import { alertOwner } from "@/lib/notify";
+import { secureGoogleLink } from "@/lib/account/google-link";
 
 // @supabase/ssr sets this (PKCE) when a browser starts a Google sign-in.
 // A provider error without it is just someone hitting the URL — no alert.
 const VERIFIER_COOKIE = /(?:^|;)\s*[^=;\s]+-auth-token-code-verifier(?:\.\d+)?=/;
 function startedHere(request: Request): boolean {
   return VERIFIER_COOKIE.test(request.headers.get("cookie") ?? "");
+}
+
+// Belt and braces when a session must not survive: expire every Supabase
+// session cookie (sb-<ref>-auth-token and its .0/.1 chunks) on the response.
+const SESSION_COOKIE = /-auth-token(?:\.\d+)?$/;
+function clearSessionCookies(request: Request, res: NextResponse): NextResponse {
+  for (const part of (request.headers.get("cookie") ?? "").split(";")) {
+    const name = part.split("=")[0].trim();
+    if (name && SESSION_COOKIE.test(name)) res.cookies.set(name, "", { path: "/", maxAge: 0 });
+  }
+  return res;
 }
 
 // Lands here with a one-time code: reset-password links, and "Continue with
@@ -47,6 +59,23 @@ export async function GET(request: Request): Promise<Response> {
     // Harmless if it fails: the DAL treats a blocked account as signed out anyway.
     try { await supabase.auth.signOut({ scope: "local" }); } catch { /* ignore */ }
     return go("/sign-in?error=closed");
+  }
+  // Google on a user that also has a password: Google just proved the
+  // address, so a password set by someone who never confirmed it must go
+  // (lib/account/google-link.ts). If that can't be done, no session.
+  if (google && (data.user.identities ?? []).some((i) => i.provider === "email")) {
+    let problem: string | null;
+    try {
+      const r = await secureGoogleLink(data.user.id);
+      problem = r.ok ? null : r.error;
+    } catch (err) {
+      problem = String(err);
+    }
+    if (problem !== null) {
+      await alertOwner("Google sign-in: old password not removed", `${data.user.id}: ${problem}`);
+      try { await supabase.auth.signOut({ scope: "local" }); } catch { /* the cookies are cleared below either way */ }
+      return clearSessionCookies(request, go(failed));
+    }
   }
   if (status === "none") return go(`/finish-account?next=${encodeURIComponent(next)}`);
   return go(next);
