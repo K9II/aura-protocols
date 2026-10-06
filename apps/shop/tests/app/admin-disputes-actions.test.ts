@@ -7,7 +7,7 @@ const m = vi.hoisted(() => ({
   requireOwner: vi.fn(), revalidatePath: vi.fn(),
   getDisputeCase: vi.fn(), saveDraft: vi.fn(), markSubmitted: vi.fn(), logDisputeEvent: vi.fn(), getWarning: vi.fn(), resolveWarning: vi.fn(),
   uploadEvidencePdf: vi.fn(), sendEvidence: vi.fn(), refundPaymentIntent: vi.fn(), buildEvidencePdf: vi.fn(),
-  getOrderById: vi.fn(), transitionOrder: vi.fn(), afterOrderRefunded: vi.fn(), sendOrAlert: vi.fn(),
+  getOrderById: vi.fn(), transitionOrder: vi.fn(), afterOrderRefunded: vi.fn(), sendOrAlert: vi.fn(), alertOwner: vi.fn(),
 }));
 vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
 vi.mock("next/cache", () => ({ revalidatePath: m.revalidatePath }));
@@ -23,7 +23,7 @@ vi.mock("@/lib/disputes/stripe", () => ({
 vi.mock("@/lib/disputes/pdf", () => ({ buildEvidencePdf: m.buildEvidencePdf }));
 vi.mock("@/lib/orders", () => ({ getOrderById: m.getOrderById, transitionOrder: m.transitionOrder }));
 vi.mock("@/lib/stripe-events", () => ({ afterOrderRefunded: m.afterOrderRefunded }));
-vi.mock("@/lib/notify", () => ({ sendOrAlert: m.sendOrAlert }));
+vi.mock("@/lib/notify", () => ({ sendOrAlert: m.sendOrAlert, alertOwner: m.alertOwner }));
 
 const PDF = new Uint8Array([1, 2, 3]);
 const SHA = createHash("sha256").update(PDF).digest("hex");
@@ -125,6 +125,29 @@ describe("admin Disputes actions", () => {
     expect(m.afterOrderRefunded).toHaveBeenCalledWith(expect.objectContaining({ id: "o2" }));
     expect(m.sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "r.alvarez@example.com", subject: "Order AP-1044 was cancelled and refunded" });
     expect(m.resolveWarning).toHaveBeenCalledWith(WARNING_ID, "refunded", "owner1");
+  });
+
+  it("transitionOrder losing the race to the charge.refunded webhook: the order is already refunded, so it just emails and resolves the warning (ok, not an error)", async () => {
+    const { refundEarlyWarningAction } = await import("@/app/admin/disputes/actions");
+    m.transitionOrder.mockResolvedValue(false);
+    m.getOrderById.mockResolvedValueOnce(paidOrder()).mockResolvedValueOnce(paidOrder({ status: "refunded" }));
+    expect(await refundEarlyWarningAction(null, fd({ id: WARNING_ID }))).toEqual({ ok: "AP-1044 was cancelled and refunded." });
+    expect(m.afterOrderRefunded).not.toHaveBeenCalled();
+    expect(m.sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "r.alvarez@example.com", subject: "Order AP-1044 was cancelled and refunded" });
+    expect(m.resolveWarning).toHaveBeenCalledWith(WARNING_ID, "refunded", "owner1");
+    expect(m.alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("transitionOrder failing and the order is neither refunded nor the race explanation: alerts the owner and errors instead of claiming success", async () => {
+    const { refundEarlyWarningAction } = await import("@/app/admin/disputes/actions");
+    m.transitionOrder.mockResolvedValue(false);
+    m.getOrderById.mockResolvedValueOnce(paidOrder()).mockResolvedValueOnce(paidOrder({ status: "shipped" }));
+    const r = await refundEarlyWarningAction(null, fd({ id: WARNING_ID }));
+    expect(r?.error).toMatch(/AP-1044 was refunded in Stripe but couldn't be updated here/);
+    expect(r?.ok).toBeUndefined();
+    expect(m.alertOwner).toHaveBeenCalledWith("Early fraud warning refund needs a look", expect.stringContaining("AP-1044"));
+    expect(m.sendOrAlert).not.toHaveBeenCalled();
+    expect(m.resolveWarning).not.toHaveBeenCalled();
   });
 
   it("refuses to refund once the order has shipped, and a Stripe error changes nothing", async () => {

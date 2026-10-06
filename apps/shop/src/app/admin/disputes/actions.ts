@@ -16,7 +16,7 @@ import { respondRefusal } from "@/lib/disputes/rules";
 import { getOrderById, transitionOrder } from "@/lib/orders";
 import { STATUS_LABEL } from "@/lib/order-status";
 import { afterOrderRefunded } from "@/lib/stripe-events";
-import { sendOrAlert } from "@/lib/notify";
+import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { orderRefundedEmail } from "@/lib/emails";
 
 export type DisputeActionState = { ok?: string; error?: string; fieldErrors?: Record<string, string> } | null;
@@ -99,14 +99,27 @@ export async function refundEarlyWarningAction(_prev: DisputeActionState, f: For
   } catch (err) {
     return { error: `Stripe didn't refund ${order.order_number}: ${stripeMessage(err)}. Nothing changed.` };
   }
+  let refundedOrder = order;
   if (await transitionOrder(order.id, "paid", "refunded")) {
     await afterOrderRefunded(order);
-    await sendOrAlert({ to: order.email, ...orderRefundedEmail(order) }, `early fraud warning refund ${order.order_number}`);
+  } else {
+    // The Stripe refund succeeded, but updating the order here failed: the
+    // charge.refunded webhook may have won the race (it refunds the order
+    // itself but never emails the customer), or the order shipped between
+    // the check above and the refund landing in Stripe.
+    const after = await getOrderById(order.id);
+    if (after?.status !== "refunded") {
+      await alertOwner("Early fraud warning refund needs a look",
+        `${order.order_number} was refunded in Stripe but is ${after?.status ?? "missing"} here, not refunded. Reconcile it by hand.`);
+      return { error: `${order.order_number} was refunded in Stripe but couldn't be updated here. The owner has been alerted — reconcile it by hand.` };
+    }
+    refundedOrder = after;
   }
+  await sendOrAlert({ to: refundedOrder.email, ...orderRefundedEmail(refundedOrder) }, `early fraud warning refund ${refundedOrder.order_number}`);
   await resolveWarning(w.id, "refunded", owner.id);
   refresh();
   revalidatePath("/admin/orders");
-  return { ok: `${order.order_number} was cancelled and refunded.` };
+  return { ok: `${refundedOrder.order_number} was cancelled and refunded.` };
 }
 
 // Watch a shipped order's warning (no refund after shipping), or close one
