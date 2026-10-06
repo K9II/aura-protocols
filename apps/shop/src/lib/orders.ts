@@ -128,7 +128,8 @@ export async function listOrdersForCustomer(customerId: string): Promise<OrderRo
 export async function listOrdersForOwner(status: OrderStatus | "all"): Promise<OrderRow[]> {
   let q = db().from("orders").select(ORDER_WITH_ITEMS).neq("status", "awaiting_payment");
   if (status !== "all") q = q.eq("status", status);
-  const { data } = await q.order("created_at", { ascending: false }).limit(200);
+  const { data, error } = await q.order("created_at", { ascending: false }).limit(200);
+  if (error) throw new Error(`owner orders select failed: ${JSON.stringify(error)}`);
   return (data as OrderRow[] | null) ?? [];
 }
 

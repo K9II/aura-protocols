@@ -124,7 +124,8 @@ export async function setPartnerStatus(id: string, from: PartnerStatus, to: Part
 }
 
 export async function listPartners(status: PartnerStatus): Promise<PartnerRow[]> {
-  const { data } = await db().from("partners").select(WITH_CUSTOMER).eq("status", status).order("created_at", { ascending: false }).limit(200);
+  const { data, error } = await db().from("partners").select(WITH_CUSTOMER).eq("status", status).order("created_at", { ascending: false }).limit(200);
+  if (error) throw new Error(`partners select failed: ${JSON.stringify(error)}`);
   return (data as PartnerRow[] | null) ?? [];
 }
 
