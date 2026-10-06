@@ -35,7 +35,7 @@ describe("/admin/disputes", () => {
     render(await DisputesPage());
     expect(screen.getByRole("heading", { level: 1, name: "Disputes" })).toBeInTheDocument();
     expect(screen.getByText("0.21%")).toBeInTheDocument();
-    expect(screen.getByText("3 of 1,412 charges · Stripe reviews at 0.75%")).toBeInTheDocument();
+    expect(screen.getByText("3 of 1,412 payments · Stripe reviews at 0.75%")).toBeInTheDocument();
     expect(screen.getByText("next due Oct 9")).toBeInTheDocument();
     expect(m.disputeRateCounts).toHaveBeenCalledWith("2026-07-09T15:42:00.000Z");
 

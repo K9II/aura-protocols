@@ -90,6 +90,17 @@ describe("disputes data", () => {
     expect(console.error).toHaveBeenCalledWith("disputed customers read failed:", expect.any(Error));
   });
 
+  it("the dispute rate excludes warning_* (inquiry) statuses from the numerator, and counts every Stripe payment (not card-only) for the denominator", async () => {
+    const d = query({ count: 4 }), o = query({ count: 900 });
+    db.from = fromQueue({ disputes: [d], orders: [o] });
+    const { disputeRateCounts } = await import("@/lib/disputes/data");
+    expect(await disputeRateCounts("2026-07-09T15:42:00.000Z")).toEqual({ disputes: 4, charges: 900 });
+    expect(callArgs(d, "gte")).toEqual(["opened_at", "2026-07-09T15:42:00.000Z"]);
+    expect(callArgs(d, "not")).toEqual(["status", "like", "warning_%"]);
+    expect(callArgs(o, "gte")).toEqual(["paid_at", "2026-07-09T15:42:00.000Z"]);
+    expect(callArgs(o, "not")).toEqual(["stripe_payment_intent", "is", null]);
+  });
+
   it("resolving a warning reports whether this request did it", async () => {
     db.from = fromQueue({ early_fraud_warnings: [query({ data: [{ id: "w1" }] }), query({ data: [] })] });
     const { resolveWarning } = await import("@/lib/disputes/data");

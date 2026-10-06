@@ -79,7 +79,7 @@ describe("dispute rules", () => {
       [warningRow(), warningRow({ id: "w2" }, { status: "shipped" }), warningRow({ id: "w3", resolved_action: "watching", resolved_at: "2026-10-01T00:00:00Z" })],
       { disputes: 3, charges: 1412 }, NOW);
     expect(s).toEqual({
-      rate: "0.21%", rateSub: "3 of 1,412 charges · Stripe reviews at 0.75%", gaugePct: 28,
+      rate: "0.21%", rateSub: "3 of 1,412 payments · Stripe reviews at 0.75%", gaugePct: 28,
       needs: 2, nextDue: "Oct 9", warnings: 2, notShipped: 1, won: 1, decided: 2, recoveredCents: 32900,
     });
     expect(disputeStats([], [], { disputes: 0, charges: 0 }, NOW)).toMatchObject({ rate: "—", gaugePct: 0, needs: 0, nextDue: null, decided: 0 });

@@ -133,19 +133,26 @@ export async function disputesNavCount(): Promise<number> {
   }
 }
 
+// Excludes warning_* statuses: those are Stripe inquiries (early-warning-style,
+// answered the same way but never a real chargeback), not chargebacks, so
+// they shouldn't count toward the dispute rate.
 async function countDisputesSince(since: string): Promise<number> {
-  const { count, error } = await db().from("disputes").select("id", { count: "exact", head: true }).gte("opened_at", since);
+  const { count, error } = await db().from("disputes").select("id", { count: "exact", head: true }).gte("opened_at", since).not("status", "like", "warning_%");
   if (error) fail("dispute rate disputes count", error);
   return count ?? 0;
 }
-async function countCardChargesSince(since: string): Promise<number> {
+// Orders paid through Stripe since `since`. The order data doesn't record
+// payment method type, so this counts every Stripe payment (card, wallet,
+// ACH) rather than card charges alone — the UI says "payments", not "card
+// charges", for the same reason.
+async function countPaymentsSince(since: string): Promise<number> {
   const { count, error } = await db().from("orders").select("id", { count: "exact", head: true }).gte("paid_at", since).not("stripe_payment_intent", "is", null);
-  if (error) fail("dispute rate charges count", error);
+  if (error) fail("dispute rate payments count", error);
   return count ?? 0;
 }
 // Disputes opened, and orders paid through Stripe, since `since`.
 export async function disputeRateCounts(since: string): Promise<{ disputes: number; charges: number }> {
-  const [disputes, charges] = await Promise.all([countDisputesSince(since), countCardChargesSince(since)]);
+  const [disputes, charges] = await Promise.all([countDisputesSince(since), countPaymentsSince(since)]);
   return { disputes, charges };
 }
 

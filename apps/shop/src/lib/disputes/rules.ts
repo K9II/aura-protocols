@@ -4,6 +4,7 @@ import { mountainDaysUntil, shortDate } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
 import type { OrderStatus } from "@/lib/order-status";
 import type { EvidenceDraft } from "@/lib/disputes/fields";
+import { plural } from "@/lib/disputes/format";
 import { CLOCK_DRIFT_MS, DISPUTE_DUE_SOON_DAYS, DISPUTE_RATE_REVIEW_PCT, DISPUTE_REMIND_DAYS, DISPUTE_WON_DAYS } from "@/lib/disputes/constants";
 
 const DAY = 86_400_000;
@@ -173,7 +174,9 @@ export function disputeStats(disputes: DisputeListRow[], warnings: WarningListRo
   const pct = counts.charges ? (counts.disputes / counts.charges) * 100 : null;
   return {
     rate: pct == null ? "—" : `${pct.toFixed(2)}%`,
-    rateSub: `${counts.disputes.toLocaleString("en-US")} of ${counts.charges.toLocaleString("en-US")} charge${counts.charges === 1 ? "" : "s"} · Stripe reviews at ${DISPUTE_RATE_REVIEW_PCT}%`,
+    // "payments", not "charges": the order data doesn't distinguish card from
+    // wallet/ACH, so the denominator is every Stripe payment, not card-only.
+    rateSub: `${counts.disputes.toLocaleString("en-US")} of ${plural(counts.charges, "payment")} · Stripe reviews at ${DISPUTE_RATE_REVIEW_PCT}%`,
     gaugePct: pct == null ? 0 : Math.min(100, Math.round((pct / DISPUTE_RATE_REVIEW_PCT) * 100)),
     needs: open.length, nextDue: next ? shortDate(next) : null,
     warnings: openWarnings.length, notShipped: openWarnings.filter((w) => w.order.status === "paid").length,
