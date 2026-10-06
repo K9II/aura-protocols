@@ -45,9 +45,11 @@ export async function replyAction(_prev: InquiryActionState, f: FormData): Promi
   const hit = replyViolation(body, [inq.name, inq.email]);
   if (hit) return { error: replyBlockedMessage(hit.phrase), phrase: hit.phrase };
 
+  // Read the thread's ids before claiming: if this throws, nothing is
+  // claimed, so there's no "sending" row left behind for a DB error here.
+  const ids = await threadMessageIds(inq.id);
   const claim = await claimReply({ inquiryId: inq.id, clientKey: key.data, body, authorId: owner.id, fromEmail: SUPPORT_EMAIL });
   if (claim === "duplicate") return { ok: "Already sent." };
-  const ids = await threadMessageIds(inq.id);
   let sent: { messageId: string; headerId: string };
   try {
     sent = await sendInquiryEmail({

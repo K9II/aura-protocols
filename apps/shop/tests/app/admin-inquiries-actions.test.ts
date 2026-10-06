@@ -79,6 +79,14 @@ describe("inquiry actions", () => {
     expect(d.sendInquiryEmail).not.toHaveBeenCalled();
   });
 
+  it("reads the thread's message ids before claiming — a DB error there leaves no hidden 'sending' row", async () => {
+    d.threadMessageIds.mockRejectedValue(new Error("db down"));
+    const { replyAction } = await import("@/app/admin/inquiries/actions");
+    await expect(replyAction(null, fd({ id: ID, clientKey: KEY, body: "x" }))).rejects.toThrow("db down");
+    expect(d.claimReply).not.toHaveBeenCalled();
+    expect(d.sendInquiryEmail).not.toHaveBeenCalled();
+  });
+
   it("an SES failure releases the claim and says nothing was recorded", async () => {
     d.sendInquiryEmail.mockRejectedValue(new Error("Throttling"));
     const { replyAction } = await import("@/app/admin/inquiries/actions");
