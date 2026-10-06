@@ -716,3 +716,17 @@ main > .pharmacopoeia { overflow-x: clip; }
 @media (max-width: 900px) { .pharmacopoeia .s-checkout { grid-template-columns: minmax(0, 1fr) !important; gap: 28px !important; } }
 
 @media (max-width: 760px) { .pharmacopoeia .s-calc-grid, .pharmacopoeia .s-partner-grid { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* Continue with Google (components/account/GoogleButton.tsx) — Google's
+   button branding; square corners like the rest of the store. Unscoped: used
+   on storefront pages (.pharmacopoeia) and inside the gate (.ag), whose
+   ".ag button { font: inherit }" the second selector outranks. */
+.g-signin-form { margin: 0; }
+button.g-signin, .ag button.g-signin { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 44px; padding: 0 12px; background: #FFFFFF; border: 1px solid #747775; border-radius: 0; color: #1F1F1F; font: 500 14px/20px Roboto, Arial, sans-serif; letter-spacing: .25px; cursor: pointer; transition: background-color .2s; }
+.ag button.g-signin { height: 46px; }
+button.g-signin:hover, .ag button.g-signin:hover { background: #F7F8F8; }
+button.g-signin:focus-visible { outline: 2px solid #1C1A15; outline-offset: 2px; }
+button.g-signin:disabled { opacity: .6; cursor: default; }
+.or-email { display: flex; align-items: center; gap: 14px; margin: 20px 0 30px; font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 10.5px; line-height: 1.4; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft, #4A4438); }
+.or-email::before, .or-email::after { content: ""; flex: 1; height: 1px; background: var(--line, #C9C2AE); }
+.ag .or-email { margin: 18px 0 16px; }
