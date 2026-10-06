@@ -115,9 +115,16 @@ export async function customerStatus(userId: string): Promise<"none" | "ok" | "b
   return r.blocked_at ? "blocked" : "ok";
 }
 
+// Same-site paths only. Browsers strip tabs/newlines and read "\" as "/",
+// so "/\t/evil.com" would become "//evil.com" — any control character or
+// backslash is refused, and the path must still resolve to our own origin.
+const SAFE_BASE = "https://x.invalid";
 export function safeNext(next: string | null | undefined, fallback = "/account"): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
-  return next;
+  if (!next || !next.startsWith("/") || next.startsWith("//") || /[\x00-\x1F\x7F\\]/.test(next)) return fallback;
+  let u: URL;
+  try { u = new URL(next, SAFE_BASE); } catch { return fallback; }
+  if (u.origin !== SAFE_BASE) return fallback;
+  return u.pathname + u.search + u.hash;
 }
 
 export async function requireCustomer(nextPath: string): Promise<Customer> {

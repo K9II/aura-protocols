@@ -87,6 +87,20 @@ describe("DAL", () => {
     expect(safeNext(null)).toBe("/account");
   });
 
+  it("safeNext refuses control characters and backslashes that browsers turn into another origin", async () => {
+    const { safeNext } = await import("@/lib/dal");
+    for (const bad of ["/\t/evil.com", "/\n/evil.com", "/\r/evil.com", "/\\evil.com", "/a\\b", "//evil.com", "https://evil.com", "/\x00x", "/\x7Fx"]) {
+      expect(safeNext(bad), JSON.stringify(bad)).toBe("/account");
+    }
+  });
+
+  it("safeNext keeps the path, query and hash of a same-site path", async () => {
+    const { safeNext } = await import("@/lib/dal");
+    expect(safeNext("/products?cat=a&b=c#top")).toBe("/products?cat=a&b=c#top");
+    expect(safeNext("/products/x?y=1")).toBe("/products/x?y=1");
+    expect(safeNext("/")).toBe("/");
+  });
+
   it("requirePartner sends customers without a partner record to the application", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "u1", email: "j@lab.org", email_confirmed_at: "x" } }, error: null });
     from = fromQueue({ customers: [query({ data: row })] });
