@@ -3,12 +3,12 @@ import { z } from "zod";
 import { hashIp } from "@/lib/gate";
 import { getAccountState } from "@/lib/dal";
 import { accountIdByEmail } from "@/lib/account/data";
-import { createInquiry, underInquiryLimit } from "@/lib/inquiries/data";
+import { ackCountToday, createInquiry, underInquiryLimit } from "@/lib/inquiries/data";
 import { newToken, sendInquiryEmail } from "@/lib/inquiries/send";
 import { ackEmail, ownerNotifyEmail } from "@/lib/inquiries/emails";
 import { TOPICS, inquirySubject } from "@/lib/inquiries/topics";
-import { firstName, refLabel } from "@/lib/inquiries/rules";
-import { INQUIRY_MESSAGE_MAX, INQUIRY_NAME_MAX, INQUIRY_ORDER_MAX, INQUIRY_ORG_MAX } from "@/lib/inquiries/constants";
+import { greetingName, refLabel } from "@/lib/inquiries/rules";
+import { INQUIRY_ACKS_PER_EMAIL_DAY, INQUIRY_MESSAGE_MAX, INQUIRY_NAME_MAX, INQUIRY_ORDER_MAX, INQUIRY_ORG_MAX } from "@/lib/inquiries/constants";
 import { sendEmail } from "@/lib/ses";
 import { alertOwner } from "@/lib/notify";
 import { siteUrl } from "@/lib/supabase/env";
@@ -77,10 +77,20 @@ export async function POST(request: Request): Promise<Response> {
   }
   const ref = refLabel(created.ref);
 
-  try {
-    await sendInquiryEmail({ to: email, ...ackEmail({ ref: created.ref, firstName: firstName(name), topic: i.topic }), token, ignore: [name, email] });
-  } catch (err) {
-    await alertOwner("Inquiry acknowledgement not sent", `${ref} · ${email}: ${String(err)}`);
+  // The form takes any address, so cap acknowledgements per recipient
+  // regardless of who's submitting — past the limit, the inquiry is still
+  // saved and the owner still notified below, just without the ack email.
+  // On a failed check, skip the ack rather than risk mailing a stranger.
+  const underAckLimit = await ackCountToday(email, currentMs()).then((n) => n < INQUIRY_ACKS_PER_EMAIL_DAY).catch((err) => {
+    console.error("inquiry ack-limit check failed (ack skipped):", err);
+    return false;
+  });
+  if (underAckLimit) {
+    try {
+      await sendInquiryEmail({ to: email, ...ackEmail({ ref: created.ref, firstName: greetingName(name), topic: i.topic }), token, ignore: [name, email] });
+    } catch (err) {
+      await alertOwner("Inquiry acknowledgement not sent", `${ref} · ${email}: ${String(err)}`);
+    }
   }
 
   const to = process.env.INQUIRY_NOTIFY_EMAIL;

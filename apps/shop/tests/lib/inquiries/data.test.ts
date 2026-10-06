@@ -30,6 +30,15 @@ describe("inquiries data", () => {
     expect(await underInquiryLimit("h", NOW)).toBe(true);
   });
 
+  it("ackCountToday: counts inquiries for that email in the last 24h", async () => {
+    const q = query({ count: 2 });
+    db.from = fromQueue({ inquiries: [q] });
+    const { ackCountToday } = await import("@/lib/inquiries/data");
+    expect(await ackCountToday("dana.w@example.com", NOW)).toBe(2);
+    expect(callArgs(q, "eq")).toEqual(["email", "dana.w@example.com"]);
+    expect(callArgs(q, "gte")).toEqual(["created_at", new Date(NOW - 86_400_000).toISOString()]);
+  });
+
   it("list: Open tab = new + needs_reply, longest waiting first, a Q-number searches by ref", async () => {
     const q = query({ data: [], count: 0 });
     db.from = fromQueue({ inquiries: [q] });

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   STATUSES, nextStatus, parseTab, statusesForTab, waitInfo, waitText, refLabel, parseRef, cleanSearch,
-  STATUS_CHIP, historyText, firstName, type InquiryEventName, type Status,
+  STATUS_CHIP, historyText, firstName, greetingName, type InquiryEventName, type Status,
 } from "@/lib/inquiries/rules";
 import { NOW, inquiry } from "../../helpers/inquiry-fixtures";
 
@@ -69,6 +69,14 @@ describe("refs, search, names", () => {
   it("first name for previews", () => {
     expect(firstName("Dana Whitfield")).toBe("Dana");
     expect(firstName("  ")).toBe("Customer");
+  });
+  it("greeting name: 'there' for anything outside letters/space/'/- or over 40 chars", () => {
+    expect(greetingName("Dana Whitfield")).toBe("Dana");
+    expect(greetingName("Mary-Jane O'Hara")).toBe("Mary-Jane");
+    expect(greetingName("Dana123")).toBe("there");
+    expect(greetingName("😀Dana")).toBe("there");
+    expect(greetingName("a".repeat(41))).toBe("there");
+    expect(greetingName("a".repeat(40))).toBe("a".repeat(40));
   });
 });
 

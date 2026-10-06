@@ -32,6 +32,16 @@ export async function createInquiry(i: {
   return { id: row!.id, ref: Number(row!.ref) };
 }
 
+// How many inquiries this (lower-cased) email has made in the last 24h —
+// the open form can send mail to any address, so this caps how many
+// acknowledgement emails one recipient gets regardless of who's asking.
+export async function ackCountToday(email: string, nowMs: number): Promise<number> {
+  const { count, error } = await db().from("inquiries").select("id", { count: "exact", head: true })
+    .eq("email", email).gte("created_at", new Date(nowMs - 86_400_000).toISOString());
+  if (error) fail("ack count", error);
+  return count ?? 0;
+}
+
 // Counted from the inquiries table itself (ip_hash), so it holds across instances.
 export async function underInquiryLimit(ipHash: string, nowMs: number): Promise<boolean> {
   for (const l of INQUIRY_RATE_LIMITS) {

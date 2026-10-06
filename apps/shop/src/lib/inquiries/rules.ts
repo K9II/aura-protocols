@@ -85,6 +85,11 @@ export const cleanSearch = (q: string): string => q.trim().replace(/[%_\\,()"*]/
 
 export const firstName = (name: string): string => name.trim().split(/\s+/)[0] || "Customer";
 
+// The ack email's "Hi {name}" greeting: a first name outside the name
+// charset (digits, emoji, …) or absurdly long becomes "Hi there" instead.
+const GREETING_NAME_RE = /^[A-Za-z' -]{1,40}$/;
+export const greetingName = (name: string): string => { const f = firstName(name); return GREETING_NAME_RE.test(f) ? f : "there"; };
+
 export type HistoryRow = { action: string; actorName: string | null; detail: string | null };
 export function historyText(e: HistoryRow): string {
   const by = e.actorName ? ` by ${e.actorName}` : "";

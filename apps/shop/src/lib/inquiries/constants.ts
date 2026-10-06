@@ -17,6 +17,11 @@ export const INQUIRY_RATE_LIMITS = [
   { windowMs: 60 * 60 * 1000, max: 5 },
   { windowMs: 24 * 60 * 60 * 1000, max: 20 },
 ] as const;
+// Per-recipient limit on acknowledgement emails: the form takes any address,
+// so without this, one requester could make SES repeatedly email a stranger.
+// Past this many in 24h for the same (lower-cased) email, the inquiry is
+// still saved and the owner still notified — only the ack is skipped.
+export const INQUIRY_ACKS_PER_EMAIL_DAY = 3;
 
 // Owner replies and saved replies.
 export const INQUIRY_REPLY_MAX = 10_000;

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const m = vi.hoisted(() => ({
-  getAccountState: vi.fn(), accountIdByEmail: vi.fn(), createInquiry: vi.fn(), underInquiryLimit: vi.fn(),
+  getAccountState: vi.fn(), accountIdByEmail: vi.fn(), createInquiry: vi.fn(), underInquiryLimit: vi.fn(), ackCountToday: vi.fn(),
   sendInquiryEmail: vi.fn(), sendEmail: vi.fn(), alertOwner: vi.fn(),
 }));
 vi.mock("@/lib/dal", () => ({ getAccountState: m.getAccountState }));
 vi.mock("@/lib/account/data", () => ({ accountIdByEmail: m.accountIdByEmail }));
-vi.mock("@/lib/inquiries/data", () => ({ createInquiry: m.createInquiry, underInquiryLimit: m.underInquiryLimit }));
+vi.mock("@/lib/inquiries/data", () => ({ createInquiry: m.createInquiry, underInquiryLimit: m.underInquiryLimit, ackCountToday: m.ackCountToday }));
 vi.mock("@/lib/inquiries/send", () => ({ sendInquiryEmail: m.sendInquiryEmail, newToken: () => "f".repeat(32) }));
 vi.mock("@/lib/ses", () => ({ sendEmail: m.sendEmail }));
 vi.mock("@/lib/notify", () => ({ alertOwner: m.alertOwner }));
@@ -23,6 +23,7 @@ describe("POST /api/inquiry", () => {
     m.getAccountState.mockResolvedValue({ customer: null, blocked: false, unfinished: false });
     m.accountIdByEmail.mockResolvedValue(null);
     m.underInquiryLimit.mockResolvedValue(true);
+    m.ackCountToday.mockResolvedValue(0);
     m.createInquiry.mockResolvedValue({ id: "i1", ref: 1047 });
     m.sendInquiryEmail.mockResolvedValue({ messageId: "s1", headerId: "<s1@x>" });
     m.sendEmail.mockResolvedValue({ messageId: "o1" });
@@ -107,6 +108,33 @@ describe("POST /api/inquiry", () => {
     expect(m.createInquiry).toHaveBeenCalledWith(expect.objectContaining({
       name: "Dr. LabBcc: x@evil.example", organization: "Example University", orderNumber: "AP-1052", message: "Line one\nLine two",
     }));
+  });
+
+  it("skips the acknowledgement at the per-email daily limit — still saves and notifies the owner", async () => {
+    m.ackCountToday.mockResolvedValue(3);
+    const { POST } = await import("@/app/api/inquiry/route");
+    const res = await POST(post(valid));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, ref: "Q-1047" });
+    expect(m.createInquiry).toHaveBeenCalled();
+    expect(m.sendInquiryEmail).not.toHaveBeenCalled();
+    expect(m.sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: "owner@example.com" }));
+  });
+
+  it("sends the acknowledgement under the per-email daily limit", async () => {
+    m.ackCountToday.mockResolvedValue(2);
+    const { POST } = await import("@/app/api/inquiry/route");
+    await POST(post(valid));
+    expect(m.sendInquiryEmail).toHaveBeenCalled();
+  });
+
+  it("greets 'Hi there' when the name isn't letters/space/'/- or is too long", async () => {
+    const { POST } = await import("@/app/api/inquiry/route");
+    await POST(post({ ...valid, name: "Dana123" }));
+    expect(m.sendInquiryEmail.mock.calls[0][0].html).toContain("Hi there");
+    m.sendInquiryEmail.mockClear();
+    await POST(post({ ...valid, name: "Dana Whitfield" }));
+    expect(m.sendInquiryEmail.mock.calls[0][0].html).toContain("Hi Dana");
   });
 
   it("the wholesale form keeps working (topic wholesale, organization in the subject)", async () => {
