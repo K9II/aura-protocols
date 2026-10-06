@@ -125,7 +125,7 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
           <div className="a-ev">
             <div style={{ marginBottom: 12 }}>{outcome}</div>
             <div className="a-fsec">
-              <div className="a-fsec-h"><h3>Cover letter</h3><span>{d.evidence_submitted ? "as submitted" : "not submitted"}</span></div>
+              <div className="a-fsec-h"><h3>Cover letter</h3><span>{d.evidence_submitted ? (d.submitted_at ? "as submitted" : "submitted outside the admin") : "not submitted"}</span></div>
               <div className="a-fsec-b"><div className="a-ta ro">{values.uncategorized_text}</div></div>
             </div>
           </div>

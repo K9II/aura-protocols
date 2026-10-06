@@ -74,6 +74,13 @@ describe("/admin/disputes/[id]", () => {
     expect(within(screen.getByRole("heading", { level: 1 }).parentElement!.parentElement!).getByRole("link", { name: "Download PDF" })).toBeInTheDocument();
   });
 
+  it("evidence_submitted with no submitted_at means it was submitted from the Stripe dashboard, not through this rebuilt letter", async () => {
+    m.getDisputeCase.mockResolvedValue(disputeCase({ status: "under_review", evidence_submitted: true, submitted_at: null }));
+    render(await DisputePage(props()));
+    expect(screen.getByText("submitted outside the admin")).toBeInTheDocument();
+    expect(screen.queryByText("as submitted")).toBeNull();
+  });
+
   it("no Block button for a blocked customer or an owner", async () => {
     const c = disputeCase();
     c.customer.blockedAt = "2026-10-02T00:00:00Z";
