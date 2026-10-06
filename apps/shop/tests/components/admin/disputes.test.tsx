@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { WARNING_ID } from "../../helpers/dispute-fixtures";
+const m = vi.hoisted(() => ({ submitDisputeAction: vi.fn(async () => null as unknown) }));
 vi.mock("@/app/admin/disputes/actions", () => ({
-  saveDisputeDraftAction: vi.fn(async () => null), submitDisputeAction: vi.fn(async () => null),
+  saveDisputeDraftAction: vi.fn(async () => null), submitDisputeAction: m.submitDisputeAction,
   refundEarlyWarningAction: vi.fn(async () => null), watchEarlyWarningAction: vi.fn(async () => undefined),
 }));
 import WarningAction from "@/components/admin/disputes/WarningAction";
@@ -33,6 +34,19 @@ describe("EvidenceForm", () => {
     expect(screen.getByText("Evidence PDF · 3 pages")).toBeInTheDocument();
     expect(screen.getByText(/can't be changed after it's submitted/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Submit evidence" }).closest("form")).toBe(container.querySelector("form"));
+  });
+
+  it("a Submit that comes back with fieldErrors closes the dialog so the highlighted field is visible", async () => {
+    m.submitDisputeAction.mockResolvedValueOnce({ fieldErrors: { customer_name: "Required." }, error: "Fix the highlighted fields first." });
+    render(<EvidenceForm id="d1" initial={{ ...initial, customer_name: "" }} letterFor="not received" scanOk agreement={[["Agreed", "September 14, 2026"]]}
+      policy="Agreed at sign-up." savedText="Not saved yet" pdfHref="/admin/disputes/d1/evidence.pdf"
+      summary={{ chargeback: "AP-1031 · not received · $412.00", shipping: "USPS · shipped Sep 22", pdfPages: 3 }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Submit to Stripe…" }));
+    const dialog = screen.getByRole("heading", { name: "Submit evidence to Stripe?" }).closest("dialog")!;
+    expect(dialog).toHaveAttribute("open");
+    fireEvent.click(screen.getByRole("button", { name: "Submit evidence" }));
+    await waitFor(() => expect(dialog).not.toHaveAttribute("open"));
+    expect(await screen.findByText("Required.")).toBeInTheDocument();
   });
 });
 

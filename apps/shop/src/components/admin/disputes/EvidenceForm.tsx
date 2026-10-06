@@ -4,7 +4,7 @@
 // Save draft submits it to saveDisputeDraftAction; the Submit dialog sits
 // inside the same form (it has no form of its own — never nest forms) and its
 // button submits it to submitDisputeAction with formAction.
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { saveDisputeDraftAction, submitDisputeAction } from "@/app/admin/disputes/actions";
 import { EDITABLE_FIELDS, FIELD_LABEL, FIELD_MAX, type EditableField, type EvidenceDraft } from "@/lib/disputes/fields";
 import { BANK_DECISION_DAYS } from "@/lib/disputes/constants";
@@ -30,6 +30,11 @@ export default function EvidenceForm(p: EvidenceFormProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const state = last === "submit" ? submitState : saveState;
   const fe = state?.fieldErrors ?? {};
+  // A field error on the fields behind the dialog is invisible while it's
+  // open: close it so the highlighted field shows.
+  useEffect(() => {
+    if (last === "submit" && submitState?.fieldErrors) dialog.current?.close();
+  }, [last, submitState]);
   const other = Object.entries(fe).filter(([k]) => !(EDITABLE_FIELDS as readonly string[]).includes(k));
   const set = (k: EditableField) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
   const err = (k: EditableField) => (fe[k] ? <div className="a-err" role="alert">{fe[k]}</div> : null);
