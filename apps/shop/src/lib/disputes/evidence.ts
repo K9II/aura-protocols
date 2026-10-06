@@ -219,9 +219,14 @@ export function fileFields(reason: string, shipped: boolean): FileField[] {
   return ["uncategorized_file"];
 }
 
+// An omitted field leaves whatever Stripe already has in place; an editable
+// field the owner cleared must be sent as "" so an earlier draft value
+// doesn't linger. The computed fields keep the old omit-if-empty behaviour.
 export function toStripeEvidence(e: EvidenceText, files: Partial<Record<FileField, string>>): Stripe.DisputeUpdateParams.Evidence {
   const out: Stripe.DisputeUpdateParams.Evidence = {};
-  for (const [k, v] of Object.entries(e) as Array<[keyof EvidenceText, string]>) if (v.trim()) out[k] = v;
+  for (const [k, v] of Object.entries(e) as Array<[keyof EvidenceText, string]>) {
+    if (v.trim() || (EDITABLE_FIELDS as readonly string[]).includes(k)) out[k] = v;
+  }
   for (const [k, v] of Object.entries(files) as Array<[FileField, string | undefined]>) if (v) out[k] = v;
   return out;
 }

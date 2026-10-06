@@ -104,10 +104,16 @@ describe("dispute evidence", () => {
     const out = toStripeEvidence({ ...e, shipping_date: "" }, { uncategorized_file: "file_a", shipping_documentation: "file_b" });
     expect(out.uncategorized_text).toBe(e.uncategorized_text);
     expect(out.access_activity_log).toBe(e.access_activity_log);
-    expect(out.shipping_date).toBeUndefined();
     expect(out).toMatchObject({ uncategorized_file: "file_a", shipping_documentation: "file_b" });
     expect(out.receipt).toBeUndefined();
     expect(out.customer_purchase_ip).toBeUndefined();
+  });
+
+  it("an editable field the owner cleared is sent as \"\" so an earlier draft value doesn't linger in Stripe; a computed field left empty by the records is still omitted", () => {
+    const out = toStripeEvidence({ ...buildEvidence(facts()), shipping_date: "" }, {});
+    expect(out.shipping_date).toBe("");
+    const noBilling = toStripeEvidence(buildEvidence(facts({ billingAddress: null })), {});
+    expect(noBilling.billing_address).toBeUndefined();
   });
 
   it("which file fields the PDF goes in, by reason", () => {
