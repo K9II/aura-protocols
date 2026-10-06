@@ -17,6 +17,7 @@ export type SesReceived = {
   receipt?: {
     recipients?: string[];
     spamVerdict?: { status?: string }; virusVerdict?: { status?: string };
+    spfVerdict?: { status?: string }; dkimVerdict?: { status?: string }; dmarcVerdict?: { status?: string };
     action?: { type?: string; bucketName?: string; objectKey?: string };
   };
 };
@@ -29,6 +30,13 @@ export async function handleInbound(n: SesReceived): Promise<InboundResult> {
   const key = n.receipt?.action?.objectKey;
   if (!sesId || !bucket || !key) throw new Error("inbound notification without a message id or S3 location");
   if (bucket !== process.env.INBOUND_MAIL_BUCKET) throw new Error(`inbound mail from unexpected bucket ${bucket}`);
+  // Not one of our stored emails (the bucket's lifecycle rule or a stray
+  // object) — not a transient error, so drop it rather than throw: throwing
+  // would have SNS retry forever on an object that will never become valid.
+  if (!key.startsWith("raw/")) {
+    console.error(`inbound ${sesId}: S3 key ${key} is outside raw/ — dropped`);
+    return "dropped";
+  }
   if (await seenSesMessage(sesId)) return "duplicate";
   if (n.receipt?.virusVerdict?.status === "FAIL") {
     console.error(`inbound ${sesId}: virus verdict FAIL — dropped`);
@@ -42,11 +50,15 @@ export async function handleInbound(n: SesReceived): Promise<InboundResult> {
   const files = sortAttachments(p.attachments);
 
   // The token in the reply address decides. Failing that, "[Q-1047]" in the
-  // subject — a weak match, accepted only from the inquiry's own address.
+  // subject — a weak match (the subject is attacker-controlled), accepted
+  // only from the inquiry's own address AND only when the sender is
+  // authenticated (SPF, DKIM or DMARC passed) — otherwise a spoofed From:
+  // could pull a stranger into someone else's conversation.
   const plan = matchPlan({ recipients: [...(n.receipt?.recipients ?? []), ...p.to, ...p.cc], subject: p.subject }, inboundDomain());
   let inquiry = plan.kind === "token" ? await getInquiry({ token: plan.token }) : null;
   const ref = refFromSubject(p.subject);
-  if (!inquiry && ref) {
+  const authenticated = n.receipt?.dmarcVerdict?.status === "PASS" || n.receipt?.spfVerdict?.status === "PASS" || n.receipt?.dkimVerdict?.status === "PASS";
+  if (!inquiry && ref && authenticated) {
     const byRef = await getInquiry({ ref });
     if (byRef && sameEmail(byRef.email, p.fromEmail)) inquiry = byRef;
   }

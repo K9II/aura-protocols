@@ -16,6 +16,7 @@ const note = (over: Record<string, unknown> = {}) => ({
   notificationType: "Received",
   mail: { messageId: "ses-1" },
   receipt: { recipients: [`r-${TOKEN}@in.auraprotocols.com`], spamVerdict: { status: "PASS" }, virusVerdict: { status: "PASS" },
+    spfVerdict: { status: "FAIL" }, dkimVerdict: { status: "FAIL" }, dmarcVerdict: { status: "PASS" },
     action: { type: "S3", bucketName: "aura-inbound-mail", objectKey: "raw/ses-1" } },
   ...over,
 });
@@ -83,10 +84,34 @@ describe("handleInbound", () => {
     expect(d.getInquiry).toHaveBeenCalledWith({ ref: 1047 });
   });
 
+  it("the [Q-n] subject fallback is refused without SPF, DKIM or DMARC passing (a spoofed sender) — Unmatched", async () => {
+    d.getInquiry.mockImplementation(async (by: Record<string, unknown>) => ("token" in by ? null : { ...inquiry(), token: "f".repeat(32) }));
+    const { handleInbound } = await import("@/lib/inquiries/inbound");
+    const n = note({ receipt: { ...note().receipt, spfVerdict: { status: "FAIL" }, dkimVerdict: { status: "FAIL" }, dmarcVerdict: { status: "FAIL" } } });
+    expect(await handleInbound(n)).toBe("unmatched");
+    expect(d.getInquiry).not.toHaveBeenCalledWith({ ref: 1047 });
+  });
+
+  it("the [Q-n] subject fallback is accepted on SPF pass alone (no DMARC record)", async () => {
+    d.getInquiry.mockImplementation(async (by: Record<string, unknown>) => ("token" in by ? null : { ...inquiry(), token: "f".repeat(32) }));
+    const { handleInbound } = await import("@/lib/inquiries/inbound");
+    const n = note({ receipt: { ...note().receipt, spfVerdict: { status: "PASS" }, dkimVerdict: { status: "FAIL" }, dmarcVerdict: { status: "FAIL" } } });
+    expect(await handleInbound(n)).toBe("recorded");
+    expect(d.getInquiry).toHaveBeenCalledWith({ ref: 1047 });
+  });
+
   it("spam verdict FAIL is stored flagged (the SQL never moves the status for it)", async () => {
     const { handleInbound } = await import("@/lib/inquiries/inbound");
     await handleInbound(note({ receipt: { ...note().receipt, spamVerdict: { status: "FAIL" } } }));
     expect(d.recordInbound.mock.calls[0][0].flags).toEqual(["spam"]);
+  });
+
+  it("drops an S3 key outside raw/ (not our mail — the lifecycle rule or a stray object, not retried)", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { handleInbound } = await import("@/lib/inquiries/inbound");
+    expect(await handleInbound(note({ receipt: { ...note().receipt, action: { type: "S3", bucketName: "aura-inbound-mail", objectKey: "other/ses-1" } } }))).toBe("dropped");
+    expect(d.getRawEmail).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 
   it("refuses a notification from another bucket (loud)", async () => {
