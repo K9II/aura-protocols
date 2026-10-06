@@ -49,7 +49,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
       </div>
       <div className="a-toolbar a-act-filters">
         <span className="a-seg2" role="group" aria-label="Period">
-          <Link href={href({ period: null })} className={!period ? "on" : undefined}>Any time</Link>
+          <Link href={href({ period: null })} className={!period ? "on" : undefined}>All dates</Link>
           {ACTIVITY_PERIODS.map((x) => <Link key={x} href={href({ period: x })} className={period === x ? "on" : undefined}>{PERIOD_LABEL[x]}</Link>)}
         </span>
         <form className="a-act-who" action="/admin/activity">
