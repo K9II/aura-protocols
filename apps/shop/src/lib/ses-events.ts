@@ -4,6 +4,7 @@ import { accountIdByEmail, flagVerifyRequired } from "@/lib/account/data";
 import { unsubscribe } from "@/lib/email/data";
 import { recordEmailEvent, sourceForMessage } from "@/lib/email/admin-data";
 import { normalizeEmail } from "@/lib/email/links";
+import { markOutboundDelivery } from "@/lib/inquiries/data";
 
 export type SnsMessage = Record<string, string | undefined>;
 type FetchCert = (url: string) => Promise<string>;
@@ -66,7 +67,8 @@ async function record(type: "bounce" | "complaint", email: string, messageId: st
 }
 
 // Identity notifications use notificationType; configuration-set event
-// publishing uses eventType — accept both.
+// publishing uses eventType — accept both. Inquiry replies (Part 7) also
+// get their delivery state from here.
 export async function handleSesEvent(e: SesEvent): Promise<void> {
   const type = e.notificationType ?? e.eventType;
   const messageId = e.mail?.messageId;
@@ -79,6 +81,7 @@ export async function handleSesEvent(e: SesEvent): Promise<void> {
       await unsubscribe(email);
       await record("bounce", email, messageId);
     }
+    if (messageId) await markOutboundDelivery(messageId, "bounced");
   } else if (type === "Complaint") {
     for (const r of e.complaint?.complainedRecipients ?? []) {
       if (!r.emailAddress) continue;
@@ -86,5 +89,8 @@ export async function handleSesEvent(e: SesEvent): Promise<void> {
       await unsubscribe(email);
       await record("complaint", email, messageId);
     }
+    if (messageId) await markOutboundDelivery(messageId, "complained");
+  } else if (type === "Delivery") {
+    if (messageId) await markOutboundDelivery(messageId, "delivered");
   }
 }
