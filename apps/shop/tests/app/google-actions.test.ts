@@ -25,6 +25,13 @@ describe("startGoogleAction", () => {
     expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
   });
 
+  it("keeps the query string of a safe next", async () => {
+    signInWithOAuth.mockResolvedValue({ data: { url: "https://accounts.google.com/o/oauth2/auth?x=1" }, error: null });
+    const { startGoogleAction } = await import("@/app/auth/google-actions");
+    await expect(startGoogleAction(fd("/products?cat=a"))).rejects.toThrow("REDIRECT:");
+    expect(signInWithOAuth.mock.calls[0][0].options.redirectTo).toBe("http://localhost:3100/auth/callback?flow=google&next=%2Fproducts%3Fcat%3Da");
+  });
+
   it("an unsafe next becomes /account", async () => {
     signInWithOAuth.mockResolvedValue({ data: { url: "https://accounts.google.com/x" }, error: null });
     const { startGoogleAction } = await import("@/app/auth/google-actions");

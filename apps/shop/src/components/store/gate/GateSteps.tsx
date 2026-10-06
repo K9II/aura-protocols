@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type CSSProperties, type FormEvent } from "react";
 import GoogleButton, { OrEmail } from "@/components/account/GoogleButton";
 import AuraLockup from "@/components/AuraLockup";
 import { gateSignInAction, gateSignUpAction, resendVerifyAction } from "@/app/auth/gate-actions";
@@ -74,8 +74,17 @@ export default function GateSteps({ variant, step, email, onStep, onEmail, onDon
   );
 }
 
+// This page's query string, read in the browser (no useSearchParams: that
+// would need a Suspense boundary around the root-layout gate). Re-read on
+// every render; the server render has none.
+const noSubscribe = () => () => {};
+function useSearch(): string {
+  return useSyncExternalStore(noSubscribe, () => window.location.search, () => "");
+}
+
 function EmailStep({ c, email, onEmail, onStep }: { c: (n: string) => string; email: string; onEmail: (e: string) => void; onStep: (s: Step) => void }) {
   const pathname = usePathname();
+  const search = useSearch();
   const [value, setValue] = useState(email);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,9 +110,9 @@ function EmailStep({ c, email, onEmail, onStep }: { c: (n: string) => string; em
     <div>
       <h1 id={TITLE_ID} className={`${c("h")} fi`} style={i(2)}>New accounts save <em>{OFFER_PCT_TEXT}</em></h1>
       <p className={`${c("sub")} fi`} style={i(3)}>Create a free account to browse the catalog. New accounts save {OFFER_PCT_TEXT} on a first order placed within {OFFER_DAYS_TEXT}.</p>
-      {/* Its own form, a sibling of the email form (never nested). Google brings them back to this page. */}
+      {/* Its own form, a sibling of the email form (never nested). Google brings them back to this page (path + query; safeNext on the server). */}
       <div className="fi" style={i(4)}>
-        <GoogleButton next={pathname || "/"} />
+        <GoogleButton next={(pathname || "/") + search} />
         <OrEmail />
       </div>
       <form noValidate className="fi" style={i(4)} onSubmit={submit}>

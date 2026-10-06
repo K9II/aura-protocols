@@ -74,7 +74,10 @@ export default function AccountGate() {
         else if (d.state === "finish") {
           // Signed in with Google, account not finished: the gate stays up until the finish page loads.
           setStatus("finish");
-          window.location.assign(`/finish-account?next=${encodeURIComponent(pathname)}`);
+          // Query string kept; the finish page runs next through safeNext.
+          let search = "";
+          try { search = window.location.search; } catch { search = ""; }
+          window.location.assign(`/finish-account?next=${encodeURIComponent(pathname + search)}`);
         }
         else { setStep((s) => (s === "verify" || s === "closed" ? "1" : s)); setStatus("anon"); }
       })

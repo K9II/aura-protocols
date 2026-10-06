@@ -287,6 +287,30 @@ describe("AccountGate", () => {
     expect(document.querySelector<HTMLInputElement>('.ag form.g-signin-form input[name="next"]')!.value).toBe("/products");
   });
 
+  it("the Google button keeps this page's query string", async () => {
+    pathname = "/products";
+    window.history.pushState({}, "", "/products?cat=peptides#list");
+    routes({ state: "anon" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await settle();
+    expect(document.querySelector<HTMLInputElement>('.ag form.g-signin-form input[name="next"]')!.value).toBe("/products?cat=peptides");
+    window.history.pushState({}, "", "/");
+  });
+
+  it("the /finish-account redirect keeps this page's query string", async () => {
+    pathname = "/products";
+    window.history.pushState({}, "", "/products?cat=peptides");
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, search: "?cat=peptides", assign });
+    routes({ state: "finish" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/finish-account?next=%2Fproducts%3Fcat%3Dpeptides"));
+    vi.unstubAllGlobals();
+    window.history.pushState({}, "", "/");
+  });
+
   it("sends a signed-in visitor who hasn't finished their account to /finish-account", async () => {
     pathname = "/products";
     const assign = vi.fn();
