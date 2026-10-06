@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getAccountState, getUnfinishedUser, safeNext } from "@/lib/dal";
-import { OFFER_DAYS_TEXT, OFFER_PCT_TEXT } from "@/lib/account/offer";
 import { signOutToSignInAction } from "@/app/auth/actions";
 import GoogleMark from "@/components/account/GoogleMark";
 import FinishAccountForm from "@/components/account/FinishAccountForm";
+import OfferPanel from "@/components/account/OfferPanel";
 
 export const metadata: Metadata = { title: "Finish your account", robots: { index: false, follow: false } };
 
@@ -36,17 +36,21 @@ export default async function FinishAccountPage({ searchParams }: { searchParams
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-16">
-        <div style={{ maxWidth: 520 }}>
-          <p className="s-micro text-[color:var(--specimen)] mb-2.5">One last step</p>
-          <h1 className="s-h1 mb-5" style={{ fontSize: 44 }}>Finish your <em>account.</em></h1>
-          <p className="text-[15px] text-[color:var(--ink-soft)] mb-5">New accounts save <b className="text-[color:var(--specimen)]">{OFFER_PCT_TEXT}</b> on a first order placed within {OFFER_DAYS_TEXT}.</p>
-          {/* "Not you?" is its own form, outside the finish form (never nested). */}
-          <div className="s-finish-who">
-            <GoogleMark />
-            <span className="s-finish-who-text">Signed in with Google as <b>{user.email}</b></span>
-            <form action={signOutToSignInAction}><button type="submit">Not you?</button></form>
+        {/* Form column | Ink offer panel (the panel matches the column's height;
+            on phones it sits above the form). */}
+        <div className="s-finish-grid">
+          <div className="s-finish-col">
+            <p className="s-micro text-[color:var(--specimen)] mb-2.5">One last step</p>
+            <h1 className="s-h1 mb-5" style={{ fontSize: 44 }}>Finish your <em>account.</em></h1>
+            {/* "Not you?" is its own form, outside the finish form (never nested). */}
+            <div className="s-finish-who">
+              <GoogleMark />
+              <span className="s-finish-who-text">Signed in with Google as <b>{user.email}</b></span>
+              <form action={signOutToSignInAction}><button type="submit">Not you?</button></form>
+            </div>
+            <FinishAccountForm next={next} suggestedName={user.suggestedName} />
           </div>
-          <FinishAccountForm next={next} suggestedName={user.suggestedName} />
+          <OfferPanel />
         </div>
       </div>
     </div>

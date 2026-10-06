@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { OFFER_DAYS_TEXT, OFFER_PCT_TEXT } from "@/lib/account/offer";
+import { NEW_ACCOUNT_PCT, OFFER_DAYS_TEXT } from "@/lib/account/offer";
 import { MARKETING_NOTICE } from "@/lib/gate-shared";
 
 const getAccountState = vi.fn(), getUnfinishedUser = vi.fn();
@@ -22,11 +22,20 @@ describe("/finish-account", () => {
     getAccountState.mockResolvedValue(unfinished); getUnfinishedUser.mockResolvedValue(dana);
   });
 
-  it("matches the mock: offer line, Google box with Not you?, name from Google, the same agreement and notice", async () => {
+  it("matches the mock: Ink offer panel beside the form, Google box with Not you?, name from Google, the same agreement and notice", async () => {
     const { container } = render(await page({ next: "/products" }));
     expect(screen.getByText("One last step")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Finish your account." })).toBeInTheDocument();
-    expect(container.textContent).toContain(`New accounts save ${OFFER_PCT_TEXT} on a first order placed within ${OFFER_DAYS_TEXT}.`);
+    // The Ink offer panel replaces the old one-line offer, beside the form column.
+    expect(container.textContent).not.toContain("New accounts save");
+    const offer = screen.getByRole("complementary", { name: "Welcome offer" });
+    expect(offer.querySelector(".s-offer-num")!.textContent).toBe(String(NEW_ACCOUNT_PCT));
+    expect(offer.textContent).toContain(`placed within ${OFFER_DAYS_TEXT}.`);
+    const grid = container.querySelector(".s-finish-grid")!;
+    expect(grid.children).toHaveLength(2);
+    expect(grid.children[0]).toHaveClass("s-finish-col");
+    expect(grid.children[0].querySelector("h1")).not.toBeNull();
+    expect(grid.children[1]).toBe(offer);
     expect(container.textContent).toContain("Signed in with Google as dana.whitfield@gmail.com");
     expect(screen.getByRole("button", { name: "Not you?" })).toBeInTheDocument();
     expect(screen.getByLabelText("Full name")).toHaveValue("Dana Whitfield");

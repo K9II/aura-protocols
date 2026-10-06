@@ -1,5 +1,6 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
-import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
+import { NEW_ACCOUNT_PCT, OFFER_DAYS_TEXT } from "@/lib/account/offer";
+import { HOLIDAY_WINDOW_TEXT } from "@/lib/holiday/season";
 import { CREDIT_CATEGORIES, CATEGORY_LABEL, MAX_CREDIT_CENTS } from "@/lib/customers/rules";
 
 const reasons = CREDIT_CATEGORIES.map((c) => CATEGORY_LABEL[c]).join(", ");
@@ -39,7 +40,7 @@ export default function Customers() {
           ["Blocking", <>They&apos;re signed out on every device and can&apos;t sign back in; the site tells them the account is closed and to email support. Their open checkouts are cancelled and any held code or credit is released. Orders, agreements and credit are kept.</>],
           ["Agreement record", <>When they agreed to the terms, which version, and that they confirmed 21 or older, research use only and the dispute policy, with the device used. Use it as evidence if a customer disputes a charge.</>],
           ["Google accounts", <>Customers can also use <Ui>Continue with Google</Ui>. Google has already confirmed their email, so they show as <Ui>Verified</Ui> straight away. The first time, they finish their account on a short page with the same agreement box, recorded the same way. If their Google address matches an existing account, Google simply signs them in to it. If someone had made a password account with that email but never confirmed it, signing in with Google confirms it and removes the old password — they can set a new one with <Ui>Forgot password?</Ui> on the sign-in page.</>],
-          ["New-account offer", <>The overview shows whether the automatic {NEW_ACCOUNT_PCT}% was used, is still open, or expired.</>],
+          ["New-account offer", <>{NEW_ACCOUNT_PCT}% off a first order placed within {OFFER_DAYS_TEXT}, applied automatically. Google sign-ups see it on a dark offer panel beside the finish page; from {HOLIDAY_WINDOW_TEXT} (shop time, every year) the panel adds a tree, snow and a garland. The overview shows whether the offer was used, is still open, or expired.</>],
         ]} />
       }
       watch={[
