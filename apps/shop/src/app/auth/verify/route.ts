@@ -1,8 +1,5 @@
 import { consumeVerifyToken } from "@/lib/account/verify";
-import { confirmOptIn, sendTracked } from "@/lib/email/data";
-import { welcomeEmail } from "@/lib/emails-marketing";
-import { unsubscribeUrl } from "@/lib/email/links";
-import { offerForEmail } from "@/lib/account/offer-data";
+import { listVerifiedOptIn } from "@/lib/account/welcome";
 import { siteUrl } from "@/lib/supabase/env";
 import { alertOwner } from "@/lib/notify";
 
@@ -22,28 +19,7 @@ export async function GET(request: Request): Promise<Response> {
   }
   if (!result) return to("/verified?state=invalid");
   if (result.already || !result.optIn) return to("/verified");
-
-  // Opted in at sign-up: a verified address completes the double opt-in.
-  // Only land on the "listed" state when this call actually confirmed it —
-  // false means there was nothing to confirm (unsubscribed since, or
-  // already confirmed), so no send is attempted either.
-  let listed: boolean;
-  try {
-    listed = await confirmOptIn(result.email);
-  } catch (err) {
-    // The row stays pending and nothing will retry this automatically —
-    // a different alert than a File 01 send failure, which the hourly run does retry.
-    await alertOwner("Opt-in not confirmed at verification", `${result.email}: ${String(err)} — still pending; confirm it manually`);
-    return to("/verified");
-  }
-  if (!listed) return to("/verified");
-
-  // File 01 goes out now (the hourly run retries it if this send fails).
-  try {
-    const site = siteUrl(), unsub = unsubscribeUrl(site, result.email, "welcome_1");
-    await sendTracked({ email: result.email, kind: "welcome_1", ref: null, msg: welcomeEmail(1, { site, unsubscribeUrl: unsub }, await offerForEmail(result.email)), unsubscribeUrl: unsub });
-  } catch (err) {
-    await alertOwner("Welcome File 01 failed at verification", `${result.email}: ${String(err)} — the hourly email run will retry.`);
-  }
-  return to("/verified?state=listed");
+  // Opted in at sign-up: a verified address completes the double opt-in and
+  // gets File 01. "listed" only when this call actually confirmed it.
+  return to((await listVerifiedOptIn(result.email)) ? "/verified?state=listed" : "/verified");
 }
