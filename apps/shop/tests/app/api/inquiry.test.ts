@@ -91,6 +91,13 @@ describe("POST /api/inquiry", () => {
     expect(m.alertOwner).toHaveBeenCalledWith("Inquiry acknowledgement not sent", expect.stringContaining("Q-1047"));
   });
 
+  it("still 200 when the owner notification fails — alertOwner (never throws), not just a console log", async () => {
+    m.sendEmail.mockRejectedValue(new Error("ses down"));
+    const { POST } = await import("@/app/api/inquiry/route");
+    expect((await POST(post(valid))).status).toBe(200);
+    expect(m.alertOwner).toHaveBeenCalledWith("Inquiry owner notification not sent", expect.stringContaining("Q-1047"));
+  });
+
   it("the wholesale form keeps working (topic wholesale, organization in the subject)", async () => {
     const { POST } = await import("@/app/api/inquiry/route");
     await POST(post({ topic: "wholesale", name: "Dr. Lab", email: "lab@example.edu", organization: "Example University", message: "Quarterly volume." }));

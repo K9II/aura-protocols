@@ -85,7 +85,7 @@ export async function POST(request: Request): Promise<Response> {
     try {
       await sendEmail({ to, ...ownerNotifyEmail({ ref: created.ref, topic: i.topic, name, email, organization, orderNumber, message: i.message, link: `${siteUrl()}/admin/inquiries/${ref}` }) });
     } catch (err) {
-      console.error("inquiry owner notification failed (inquiry saved):", err);
+      await alertOwner("Inquiry owner notification not sent", `${ref} · ${String(err)}`);
     }
   }
   return NextResponse.json({ ok: true, ref });
