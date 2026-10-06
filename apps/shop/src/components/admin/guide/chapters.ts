@@ -5,6 +5,7 @@ export const GUIDE_PATH = "/admin/guide";
 
 export const CHAPTERS = [
   { id: "start", title: "Start here", group: null, href: null },
+  { id: "today", title: "Today", group: null, href: "/admin" },
   { id: "discounts", title: "Discounts", group: "Sell", href: "/admin/discounts" },
   { id: "orders", title: "Orders", group: "Sell", href: "/admin/orders" },
   { id: "customers", title: "Customers", group: "Sell", href: "/admin/customers" },
@@ -28,8 +29,14 @@ export const guideHref = (chapter: ChapterId) => `${GUIDE_PATH}#${chapter}`;
 export const chapterNumber = (id: ChapterId) => CHAPTERS.findIndex((c) => c.id === id) + 1;
 export const chapterById = (id: ChapterId) => CHAPTERS.find((c) => c.id === id)!;
 
+// Today is the front door at /admin, so it owns only its own pages — as a
+// prefix, "/admin" would claim every admin page.
+const TODAY_PAGES = ["/admin", "/admin/alerts"];
+
 export function chapterForPath(pathname: string): ChapterId | null {
+  if (TODAY_PAGES.includes(pathname)) return "today";
   for (const c of CHAPTERS) {
+    if (c.id === "today") continue;
     if (c.href && (pathname === c.href || pathname.startsWith(`${c.href}/`))) return c.id;
   }
   return null;

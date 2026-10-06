@@ -3,9 +3,9 @@ import { CHAPTERS, SECTIONS, chapterForPath, chapterNumber, guideHref, sectionId
 
 describe("guide chapters", () => {
   it("has unique ids in the agreed order", () => {
-    expect(CHAPTERS.map((c) => c.id)).toEqual(["start", "discounts", "orders", "customers", "catalog", "email", "partners", "payouts"]);
+    expect(CHAPTERS.map((c) => c.id)).toEqual(["start", "today", "discounts", "orders", "customers", "catalog", "email", "partners", "payouts"]);
     expect(chapterNumber("start")).toBe(1);
-    expect(chapterNumber("payouts")).toBe(8);
+    expect(chapterNumber("payouts")).toBe(9);
   });
 
   it("Catalog & lots is a chapter under Stock and owns its pages", () => {
@@ -25,10 +25,18 @@ describe("guide chapters", () => {
     expect(chapterForPath("/admin/email/campaigns/x")).toBe("email");
   });
 
-  it("has no chapter for the Guide itself, Today, or look-alike paths", () => {
+  it("has no chapter for the Guide itself or look-alike paths", () => {
     expect(chapterForPath(GUIDE_PATH)).toBeNull();
-    expect(chapterForPath("/admin")).toBeNull();
     expect(chapterForPath("/admin/ordersx")).toBeNull();
+    expect(chapterForPath("/admin/inquiries")).toBeNull();
+  });
+
+  it("Today owns /admin and Past alerts only — never the whole admin", () => {
+    expect(CHAPTERS.find((c) => c.id === "today")).toEqual({ id: "today", title: "Today", group: null, href: "/admin" });
+    expect(chapterForPath("/admin")).toBe("today");
+    expect(chapterForPath("/admin/alerts")).toBe("today");
+    expect(chapterForPath("/admin/orders")).toBe("orders");
+    expect(chapterForPath("/admin/email/runs")).toBe("email");
   });
 
   it("builds anchors", () => {
