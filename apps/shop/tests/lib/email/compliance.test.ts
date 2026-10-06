@@ -14,4 +14,8 @@ describe("assertCompliant", () => {
   it("ignores markup and styles", () => {
     expect(() => assertCompliant("ok", '<style>.dose{}</style><p class="treatment">fine</p>')).not.toThrow();
   });
+
+  it("ignores the customer's own name and email (raw or HTML-escaped)", () => {
+    expect(() => assertCompliant("Hi Treat", "<p>Hi Treat O&#39;Dose — thanks</p>", ["Treat", "Treat O'Dose"])).not.toThrow();
+  });
 });
