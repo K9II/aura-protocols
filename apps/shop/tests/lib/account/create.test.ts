@@ -166,14 +166,15 @@ describe("finishGoogleAccount", () => {
     expect(listVerifiedOptIn).not.toHaveBeenCalled();
   });
 
-  it("not verified by Google: no email_verified_at, and the verify email goes out", async () => {
-    const customers = query({});
-    from = fromQueue({ customers: [customers], account_agreements: [query({})] });
+  it("not a Google identity: refuses and writes nothing (non-Google unfinished users must sign up by email)", async () => {
+    const customers = query({}), agreements = query({});
+    from = fromQueue({ customers: [customers], account_agreements: [agreements] });
     const { finishGoogleAccount } = await import("@/lib/account/create");
-    expect(await finishGoogleAccount({ ...g, emailVerified: false })).toEqual({ ok: true });
-    expect(callArgs(customers, "insert")?.[0]).not.toHaveProperty("email_verified_at");
-    expect(sendVerifyEmail).toHaveBeenCalledWith("g1", "dana@gmail.com");
-    expect(listVerifiedOptIn).not.toHaveBeenCalled();
+    expect(await finishGoogleAccount({ ...g, emailVerified: false })).toEqual({ ok: false, error: "Please sign out and create your account with email." });
+    expect(callArgs(customers, "insert")).toBeUndefined();
+    expect(callArgs(agreements, "insert")).toBeUndefined();
+    expect(sendVerifyEmail).not.toHaveBeenCalled();
+    expect(recordOptIn).not.toHaveBeenCalled();
   });
 
   it("agreement not saved: removes the customer row (keeps the Google user) and fails", async () => {

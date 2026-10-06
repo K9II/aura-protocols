@@ -8,7 +8,7 @@ import AgreementText from "@/components/account/AgreementText";
 
 const field = `${FIELD} mb-4`;
 
-export default function FinishAccountForm({ next, suggestedName, viaGoogle }: { next: string; suggestedName: string; viaGoogle: boolean }) {
+export default function FinishAccountForm({ next, suggestedName }: { next: string; suggestedName: string }) {
   const [state, action, pending] = useActionState<FinishState, FormData>(finishAccountAction, undefined);
   return (
     <form action={action}>
@@ -22,7 +22,7 @@ export default function FinishAccountForm({ next, suggestedName, viaGoogle }: { 
       {state?.error && <p role="alert" className="text-sm text-[color:var(--specimen)] mb-3">{state.error}</p>}
       <button type="submit" className="s-atc" disabled={pending}>Finish creating account →</button>
       <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-3">
-        {viaGoogle ? "Google has already confirmed your email, so you can order right away." : "We'll email a link to confirm your address before your first order."}
+        Google has already confirmed your email, so you can order right away.
       </p>
     </form>
   );

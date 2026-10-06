@@ -17,7 +17,9 @@ export type CreateAccountInput = {
 export type CreateAccountResult = { ok: true; customerId: string; verifyRequired: boolean } | { ok: false; error: string };
 
 // A Google user finishing their account (/finish-account). emailVerified:
-// Google verified the address (the user has a Google identity).
+// Google verified the address (the user has a Google identity). Without it
+// nothing is written: an auth user made straight through Supabase's public
+// sign-up API never passed createAccount's checks, so it must sign up by email.
 export type FinishAccountInput = {
   userId: string; email: string; fullName: string; organization: string | null; optIn: boolean;
   ip: string; userAgent: string | null; partnerRef: string | null; emailVerified: boolean;
@@ -28,6 +30,7 @@ const MAX_SIGNUPS_PER_IP_24H = 3;
 const EXISTS = "An account with this email already exists — sign in instead.";
 const FAILED = "We couldn't create your account — please try again.";
 const FINISHED = "This account is already set up — reload the page.";
+export const NOT_GOOGLE = "Please sign out and create your account with email.";
 
 type DbError = { code?: string; message: string };
 
@@ -112,9 +115,10 @@ export async function createAccount(input: CreateAccountInput): Promise<CreateAc
 // sign-up). Google verified the address, so no verify email and no
 // verify_required; checkout opens at once.
 export async function finishGoogleAccount(input: FinishAccountInput): Promise<FinishAccountResult> {
+  if (!input.emailVerified) return { ok: false, error: NOT_GOOGLE };
   const saved = await insertAccountRecords({
     id: input.userId, fullName: input.fullName, organization: input.organization, optIn: input.optIn,
-    verifyRequired: false, emailVerifiedAt: input.emailVerified ? new Date().toISOString() : null,
+    verifyRequired: false, emailVerifiedAt: new Date().toISOString(),
     ipHash: input.ip ? hashIp(input.ip) : null, userAgent: input.userAgent,
   });
   if (saved.customersError?.code === "23505") return { ok: false, error: FINISHED };
@@ -128,6 +132,6 @@ export async function finishGoogleAccount(input: FinishAccountInput): Promise<Fi
     }
     return { ok: false, error: FAILED };
   }
-  await afterCreated({ id: input.userId, email: input.email, optIn: input.optIn, partnerRef: input.partnerRef, emailVerified: input.emailVerified });
+  await afterCreated({ id: input.userId, email: input.email, optIn: input.optIn, partnerRef: input.partnerRef, emailVerified: true });
   return { ok: true };
 }

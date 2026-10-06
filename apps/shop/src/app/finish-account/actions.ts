@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ACCOUNT_CLOSED_MESSAGE } from "@/lib/constants";
 import { getAccountState, getUnfinishedUser, safeNext } from "@/lib/dal";
-import { finishGoogleAccount } from "@/lib/account/create";
+import { finishGoogleAccount, NOT_GOOGLE } from "@/lib/account/create";
 import { REF_COOKIE, readRef } from "@/lib/partners/ref-cookie";
 
 export type FinishState = { error?: string } | undefined;
@@ -29,6 +29,8 @@ export async function finishAccountAction(_prev: FinishState, form: FormData): P
   if (state.blocked) return { error: ACCOUNT_CLOSED_MESSAGE };
   const user = await getUnfinishedUser();
   if (!user) redirect(`/sign-in?next=${encodeURIComponent(next)}`);
+  // Only a Google identity finishes here; anything else signs up by email (createAccount's checks).
+  if (!user.viaGoogle) return { error: NOT_GOOGLE };
 
   const h = await headers();
   const jar = await cookies();

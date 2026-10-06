@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const getAccountState = vi.fn(), getUnfinishedUser = vi.fn(), finishGoogleAccount = vi.fn();
 vi.mock("@/lib/dal", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/lib/dal")>()), getAccountState, getUnfinishedUser }));
-vi.mock("@/lib/account/create", () => ({ finishGoogleAccount }));
+vi.mock("@/lib/account/create", () => ({ finishGoogleAccount, NOT_GOOGLE: "Please sign out and create your account with email." }));
 vi.mock("@/lib/partners/ref-cookie", () => ({ REF_COOKIE: "aura_ref", readRef: (v?: string) => (v === "signed-SMITHLAB" ? "SMITHLAB" : null) }));
 let cookieJar: Record<string, string> = {};
 vi.mock("next/headers", () => ({
@@ -49,6 +49,13 @@ describe("finishAccountAction", () => {
       userId: "g1", email: "dana@gmail.com", fullName: "Dana Whitfield", organization: "Whitfield Lab", optIn: true,
       ip: "1.2.3.4", userAgent: "UA", partnerRef: "SMITHLAB", emailVerified: true,
     });
+  });
+
+  it("a non-Google unfinished user can't finish here (no free account without our checks)", async () => {
+    getUnfinishedUser.mockResolvedValue({ ...dana, viaGoogle: false });
+    const { finishAccountAction } = await import("@/app/finish-account/actions");
+    expect(await finishAccountAction(undefined, fd(form))).toEqual({ error: "Please sign out and create your account with email." });
+    expect(finishGoogleAccount).not.toHaveBeenCalled();
   });
 
   it("an unsafe next goes home", async () => {

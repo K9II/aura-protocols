@@ -42,12 +42,16 @@ describe("/finish-account", () => {
     expect(container.querySelectorAll("form form")).toHaveLength(0);
   });
 
-  it("a non-Google unfinished user isn't told Google confirmed anything", async () => {
+  it("a non-Google unfinished user gets no finish form — only sign out and create the account with email", async () => {
     getUnfinishedUser.mockResolvedValue({ ...dana, viaGoogle: false });
     const { container } = render(await page({}));
     expect(container.textContent).toContain("Signed in as dana.whitfield@gmail.com");
     expect(container.textContent).not.toContain("Google");
-    expect(screen.getByText(/email a link to confirm your address/)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Full name")).toBeNull();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Finish creating account/ })).toBeNull();
+    expect(screen.getByText(/create your account with your email/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Sign out/ })).toBeInTheDocument();
   });
 
   it("finished → next; blocked → closed; signed out → sign-in", async () => {
