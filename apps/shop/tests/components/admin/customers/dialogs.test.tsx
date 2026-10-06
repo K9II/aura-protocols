@@ -30,4 +30,11 @@ describe("BlockDialog", () => {
     expect(screen.getByText(/AP-1095/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Reason/)).toBeRequired();
   });
+
+  it("on a chargeback: its own button label, a suggested reason and an extra note", () => {
+    render(<BlockDialog customerId="c1" name="Dana Whitfield" openCheckouts={[]} label="Block customer…" defaultReason="Chargeback on AP-1031 without contacting us first." note="The chargeback response is unaffected. You can unblock any time in Customers." />);
+    fireEvent.click(screen.getByRole("button", { name: "Block customer…" }));
+    expect(screen.getByLabelText(/Reason/)).toHaveValue("Chargeback on AP-1031 without contacting us first.");
+    expect(screen.getByText("The chargeback response is unaffected. You can unblock any time in Customers.")).toBeInTheDocument();
+  });
 });

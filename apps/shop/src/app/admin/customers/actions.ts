@@ -26,7 +26,8 @@ async function target(f: FormData) {
   if (!c) throw new Error(STALE);
   return c;
 }
-const refresh = (id: string) => { revalidatePath("/admin/customers"); revalidatePath(`/admin/customers/${id}`); };
+// Disputes too: its chargeback pages show Block customer and the Blocked tag.
+const refresh = (id: string) => { revalidatePath("/admin/customers"); revalidatePath(`/admin/customers/${id}`); revalidatePath("/admin/disputes", "layout"); };
 
 export async function adjustCreditAction(_prev: ActionState, f: FormData): Promise<ActionState> {
   const owner = await requireOwner();
