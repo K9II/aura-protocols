@@ -90,9 +90,17 @@ describe("dispute rules", () => {
       [listRow(), listRow({ id: "d3", status: "won", closed_at: "2026-09-30T16:02:00Z", amount_cents: 32900 }, { number: "AP-1012", customerName: "M. Okafor" }),
         listRow({ id: "d6", status: "under_review", updated_at: "2026-10-06T10:00:00Z" }, { number: "AP-1020" })],
       [warningRow({ resolved_action: "refunded", resolved_at: "2026-09-18T20:00:00Z" }, { number: "AP-1007", totalCents: 6950 })]);
-    expect(rows.map((r) => [r.orderNumber, r.chip.text, r.when])).toEqual([["AP-1020", "In review", "—"], ["AP-1012", "Won", "Sep 30"], ["AP-1007", "Refunded before shipping", "Sep 18"]]);
+    expect(rows.map((r) => [r.orderNumber, r.chip.text])).toEqual([["AP-1020", "In review"], ["AP-1012", "Won"], ["AP-1007", "Refunded before shipping"]]);
+    expect(rows.slice(0, 2).map((r) => r.when)).toEqual(["—", "Sep 30"]);
+    // A resolved warning shows when (shop time) and, once known, who chose it.
+    expect(rows[2].when).toMatch(/^Sep 18, 2:00\s?pm$/i);
     expect(rows[1]).toMatchObject({ href: "/admin/disputes/d3", reason: "Not received", amountCents: 32900, customer: "M. Okafor" });
     expect(rows[2]).toMatchObject({ href: null, reason: "Early warning", amountCents: 6950 });
+  });
+
+  it("history names who resolved a warning", () => {
+    const rows = historyRows([], [{ ...warningRow({ resolved_action: "watching", resolved_at: "2026-09-18T20:00:00Z" }, { number: "AP-1009" }), resolvedByName: "Kearney" }]);
+    expect(rows[0].when).toMatch(/ · by Kearney$/);
   });
 
   it("activity text", () => {

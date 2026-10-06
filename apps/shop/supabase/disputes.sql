@@ -120,3 +120,10 @@ revoke all on function record_dispute(text, uuid, text, text, integer, text, tex
 revoke all on function admin_disputed_customers(uuid[]) from public, anon, authenticated;
 grant execute on function record_dispute(text, uuid, text, text, integer, text, text, text, timestamptz, boolean, integer, timestamptz, timestamptz) to service_role;
 grant execute on function admin_disputed_customers(uuid[]) to service_role;
+
+-- Early fraud warning choices on the customer's Activity (Customers): who
+-- refunded / watched / closed which order's warning (reason = order number).
+alter table customer_events drop constraint if exists customer_events_kind_check;
+alter table customer_events add constraint customer_events_kind_check check (kind in (
+  'blocked', 'unblocked', 'credit_added', 'credit_removed', 'verify_resent',
+  'warning_refunded', 'warning_watched', 'warning_closed'));

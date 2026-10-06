@@ -35,6 +35,7 @@ export default function Disputes() {
           ["After submitting", <>The bank usually decides within {BANK_DECISION_DAYS[0]} to {BANK_DECISION_DAYS[1]} days. You get an alert with the outcome, and the chargeback moves to History.</>],
           ["Dispute rate", <>Chargebacks opened in the last {DISPUTE_RATE_DAYS} days, out of card payments in the same days. Card networks consider {DISPUTE_RATE_REVIEW_PCT}% excessive and Stripe reviews accounts at that level, so keep it well below.</>],
           ["Customers", <>A customer with a chargeback on any order shows a <Ui>Chargeback</Ui> tag in <Ui>Customers</Ui>.</>],
+          ["Who did what", <>Every choice is recorded with the person and the time. A chargeback&apos;s <Ui>Activity</Ui> card lists each draft, submission and decision. An early warning&apos;s <Ui>Cancel and refund…</Ui> or <Ui>Watch</Ui> shows in <Ui>History</Ui> with the time and who chose it, and as a line in the customer&apos;s <Ui>Activity</Ui> in <Ui>Customers</Ui>. The refund itself is also in the Stripe dashboard, on the payment.</>],
         ]} />
       }
       watch={[

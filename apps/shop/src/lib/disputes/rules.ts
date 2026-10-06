@@ -1,6 +1,6 @@
 // Disputes module rules (spec 2026-10-05-admin-disputes-design.md). Pure —
 // safe in client components (no scanner, no server imports).
-import { mountainDaysUntil, shortDate } from "@/lib/discounts/time";
+import { dateTime, mountainDaysUntil, shortDate } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
 import type { OrderStatus } from "@/lib/order-status";
 import type { EvidenceDraft } from "@/lib/disputes/fields";
@@ -33,7 +33,7 @@ export type WarningRow = {
   id: string; stripe_efw_id: string; order_id: string; charge_id: string; fraud_type: string; actionable: boolean;
   created_at: string; resolved_action: WarningAction | null; resolved_at: string | null; resolved_by: string | null;
 };
-export type WarningListRow = WarningRow & { order: OrderBrief };
+export type WarningListRow = WarningRow & { order: OrderBrief; resolvedByName?: string | null };
 export type DisputeAction = "opened" | "funds_withdrawn" | "funds_reinstated" | "draft_saved" | "submitted" | "reminder" | "closed";
 export type DisputeEventRow = { id: string; action: DisputeAction; note: string | null; at: string; actorName: string | null };
 
@@ -196,7 +196,8 @@ export function historyRows(disputes: DisputeListRow[], warnings: WarningListRow
     ...warnings.filter((w) => w.resolved_at && w.resolved_action).map((w): HistoryRow => ({
       key: w.id, href: null, orderNumber: w.order.number, customer: w.order.customerName, reason: "Early warning",
       amountCents: w.order.totalCents - w.order.creditCents, chip: { tone: "ended", text: WARNING_OUTCOME[w.resolved_action!] },
-      when: shortDate(w.resolved_at!), sort: w.resolved_at!,
+      // Who acted is the audit trail for the owner's choice (Stripe's own closes have no name).
+      when: `${dateTime(w.resolved_at!)}${w.resolvedByName ? ` · by ${w.resolvedByName}` : ""}`, sort: w.resolved_at!,
     })),
   ];
   return rows.sort((a, b) => b.sort.localeCompare(a.sort));

@@ -50,7 +50,8 @@ export type Agreement = { id: string; terms_version: string; age_21: boolean; ru
 export type Attestation = { id: string; terms_version: string; attested_at: string; age_21: boolean; ruo: boolean; dispute_policy: boolean; ip_hash: string | null; user_agent: string | null };
 export type LedgerRow = { id: string; amount_cents: number; reason: string; ref_id: string | null; note: string | null; created_at: string };
 export type CustomerEvent = { id: string; kind: EventKind; amount_cents: number | null; reason: string | null; note: string | null; actor_id: string | null; created_at: string; actorName: string | null };
-export type EventKind = "blocked" | "unblocked" | "credit_added" | "credit_removed" | "verify_resent";
+export type EventKind = "blocked" | "unblocked" | "credit_added" | "credit_removed" | "verify_resent"
+  | "warning_refunded" | "warning_watched" | "warning_closed"; // early fraud warnings (Disputes); reason = order number
 export type CustomerDetail = {
   id: string; email: string; fullName: string; organization: string | null; isOwner: boolean; createdAt: string;
   verifiedAt: string | null; verifySentAt: string | null; marketingOptIn: boolean; blockedAt: string | null; blockedReason: string | null;

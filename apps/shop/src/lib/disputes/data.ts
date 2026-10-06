@@ -83,7 +83,9 @@ const brief = (o: RawOrder | null): OrderBrief => (o
   }
   : fail("dispute order embed", "missing order"));
 const toDispute = ({ orders, ...r }: DisputeRow & { orders: RawOrder | null }): DisputeListRow => ({ ...r, order: brief(orders) });
-const toWarning = ({ orders, ...r }: WarningRow & { orders: RawOrder | null }): WarningListRow => ({ ...r, order: brief(orders) });
+type RawWarning = WarningRow & { orders: RawOrder | null; resolver?: { full_name: string } | null };
+const toWarning = ({ orders, resolver, ...r }: RawWarning): WarningListRow => ({ ...r, order: brief(orders), resolvedByName: resolver?.full_name.split(" ")[0] ?? null });
+const WARNING_SELECT = `*, orders(${ORDER_BRIEF}), resolver:customers!early_fraud_warnings_resolved_by_fkey(full_name)`;
 
 export async function listDisputes(): Promise<DisputeListRow[]> {
   const { data, error } = await db().from("disputes").select(`*, orders(${ORDER_BRIEF})`).order("created_at", { ascending: false }).limit(DISPUTES_LIST_MAX);
@@ -92,9 +94,9 @@ export async function listDisputes(): Promise<DisputeListRow[]> {
 }
 
 export async function listWarnings(): Promise<WarningListRow[]> {
-  const { data, error } = await db().from("early_fraud_warnings").select(`*, orders(${ORDER_BRIEF})`).order("created_at", { ascending: false }).limit(DISPUTES_LIST_MAX);
+  const { data, error } = await db().from("early_fraud_warnings").select(WARNING_SELECT).order("created_at", { ascending: false }).limit(DISPUTES_LIST_MAX);
   if (error) fail("early fraud warnings read", error);
-  return ((data ?? []) as unknown as Array<WarningRow & { orders: RawOrder | null }>).map(toWarning);
+  return ((data ?? []) as unknown as RawWarning[]).map(toWarning);
 }
 
 // Chargebacks still waiting for evidence, soonest deadline first (Today, reminders).

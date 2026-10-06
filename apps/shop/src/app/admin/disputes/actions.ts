@@ -18,12 +18,23 @@ import { STATUS_LABEL } from "@/lib/order-status";
 import { afterOrderRefunded } from "@/lib/stripe-events";
 import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { orderRefundedEmail } from "@/lib/emails";
+import { logCustomerEvent, type EventKind } from "@/lib/customers/data";
 
 export type DisputeActionState = { ok?: string; error?: string; fieldErrors?: Record<string, string> } | null;
 
 const STALE = "That chargeback changed or doesn't exist. Reload the page.";
 const STALE_WARNING = "That warning changed or doesn't exist. Reload the page.";
 const uuid = (v: FormDataEntryValue | null) => z.string().uuid().safeParse(v);
+
+// The audit line on the customer's page (Customers → Activity): who resolved
+// which order's warning. The money already moved, so a failed log alerts
+// the owner instead of failing the action.
+async function logWarningChoice(customerId: string | null, kind: EventKind, orderNumber: string, actorId: string): Promise<void> {
+  if (!customerId) return;
+  try { await logCustomerEvent({ customerId, kind, reason: orderNumber, actorId }); }
+  catch (err) { await alertOwner("Early fraud warning not logged on the customer", `${orderNumber} · ${kind}: ${String(err)}`); }
+  revalidatePath(`/admin/customers/${customerId}`);
+}
 
 function refresh(disputeId?: string) {
   revalidatePath("/admin/disputes");
@@ -116,7 +127,7 @@ export async function refundEarlyWarningAction(_prev: DisputeActionState, f: For
     refundedOrder = after;
   }
   await sendOrAlert({ to: refundedOrder.email, ...orderRefundedEmail(refundedOrder) }, `early fraud warning refund ${refundedOrder.order_number}`);
-  await resolveWarning(w.id, "refunded", owner.id);
+  if (await resolveWarning(w.id, "refunded", owner.id)) await logWarningChoice(refundedOrder.customer_id, "warning_refunded", refundedOrder.order_number, owner.id);
   refresh();
   revalidatePath("/admin/orders");
   return { ok: `${refundedOrder.order_number} was cancelled and refunded.` };
@@ -133,7 +144,8 @@ export async function watchEarlyWarningAction(f: FormData): Promise<void> {
   if (!w.resolved_at) {
     const order = await getOrderById(w.order_id);
     const done = !!order && (order.status === "refunded" || order.status === "cancelled");
-    await resolveWarning(w.id, done ? "closed" : "watching", owner.id);
+    const resolved = await resolveWarning(w.id, done ? "closed" : "watching", owner.id);
+    if (resolved && order) await logWarningChoice(order.customer_id, done ? "warning_closed" : "warning_watched", order.order_number, owner.id);
   }
   refresh();
 }
