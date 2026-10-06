@@ -171,16 +171,23 @@ export async function setRecipient(id: string, email: string, patch: { state: "s
   if (error) fail("recipient update", error);
 }
 
+// Own async function so a synchronous throw building the query (e.g. a
+// client that errors on construction) becomes a rejected promise instead of
+// escaping the array literal below — otherwise it can abort that literal
+// after waitingLots() already ran, leaving its promise with no handler
+// attached (an unhandled rejection) if it later rejects too.
+async function draftCount(): Promise<number> {
+  const { count, error } = await db().from("campaigns").select("id", { count: "exact", head: true }).eq("status", "draft");
+  if (error) throw new Error(JSON.stringify(error));
+  return count ?? 0;
+}
+
 // The Email nav badge: lots waiting to announce + drafts. Cosmetic — a read
 // failure logs and shows no badge rather than breaking every admin page.
 export async function emailNavCount(): Promise<number> {
   try {
-    const [lots, drafts] = await Promise.all([
-      waitingLots(),
-      db().from("campaigns").select("id", { count: "exact", head: true }).eq("status", "draft"),
-    ]);
-    if (drafts.error) throw new Error(JSON.stringify(drafts.error));
-    return lots.length + (drafts.count ?? 0);
+    const [lots, drafts] = await Promise.all([waitingLots(), draftCount()]);
+    return lots.length + drafts;
   } catch (err) {
     console.error("email nav count failed:", err);
     return 0;

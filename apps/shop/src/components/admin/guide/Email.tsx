@@ -47,6 +47,9 @@ export default function Email() {
         <>Make the discount code in <Ui>Discounts</Ui> before writing a promotion, and give it enough uses for the whole list.</>,
         <>A red hourly-run line means welcome files, cart reminders and scheduled campaigns aren&apos;t going out. Check the cron job in Vercel.</>,
         <>Only drafts can be edited. To change a scheduled campaign, choose <Ui>Unschedule</Ui> first.</>,
+        <>A campaign stuck <Ui>Sending</Ui> after an error keeps retrying on every hourly run and blocks every other campaign from sending. Open it and press <Ui>Stop sending…</Ui> to free the queue.</>,
+        <>Pausing or ending a promotion&apos;s code in <Ui>Discounts</Ui> while its campaign is sending does not stop the emails — people reached later get a code that no longer works. Stop the campaign first, then change the code.</>,
+        <><Ui>Stop sending…</Ui> takes effect within a few seconds, not instantly — a few more emails can go out after you press it.</>,
       ]}
     />
   );
