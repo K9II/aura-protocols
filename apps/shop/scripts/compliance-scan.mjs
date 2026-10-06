@@ -39,9 +39,18 @@ export function visibleText(html) {
     .trim();
 }
 
-export function findViolations(text) {
+// The scanner's own allowlist (legal boilerplate), applied before matching.
+// Exported so callers that locate the exact offending phrase (not just
+// whether a rule tripped) scan against the same text findViolations does —
+// otherwise they could point at an allowed occurrence instead of the real one.
+export function stripAllowed(text) {
   let t = text;
   for (const a of ALLOW) t = t.replace(a, " ");
+  return t;
+}
+
+export function findViolations(text) {
+  const t = stripAllowed(text);
   const out = [];
   for (const [rule, re] of RULES) {
     const m = t.match(re);

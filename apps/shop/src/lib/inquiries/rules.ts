@@ -79,8 +79,9 @@ export function parseRef(s: string | null | undefined): number | null {
   return m ? Number(m[1]) : null;
 }
 
-// PostgREST or-filters break on commas and parentheses; % and _ are wildcards.
-export const cleanSearch = (q: string): string => q.trim().replace(/[%_\\,()]/g, "").slice(0, 100);
+// PostgREST or-filters break on commas, parentheses and quotes; % and _ are
+// wildcards; * isn't meaningful to the ilike search, so it's stripped too.
+export const cleanSearch = (q: string): string => q.trim().replace(/[%_\\,()"*]/g, "").slice(0, 100);
 
 export const firstName = (name: string): string => name.trim().split(/\s+/)[0] || "Customer";
 

@@ -14,4 +14,8 @@ describe("replyViolation", () => {
     expect(replyViolation("Hi Ben, ask about the benefits", ["Ben"])).toEqual({ phrase: "benefits" });
     expect(replyViolation("Hi Pro, read our protocol", ["Pro"])).toEqual({ phrase: "protocol" });
   });
+  it("never names an occurrence inside the scanner's own allowed legal sentence", () => {
+    const text = "These products are not intended to diagnose, treat, cure, or prevent any disease. Our treatment info is below.";
+    expect(replyViolation(text, [])).toEqual({ phrase: "treatment" });
+  });
 });

@@ -64,6 +64,7 @@ describe("refs, search, names", () => {
   it("cleans search text for PostgREST or-filters", () => {
     expect(cleanSearch(" dana,(w)%_\\ ")).toBe("danaw");
     expect(cleanSearch("x".repeat(200))).toHaveLength(100);
+    expect(cleanSearch('"dana*whitfield"')).toBe("danawhitfield");
   });
   it("first name for previews", () => {
     expect(firstName("Dana Whitfield")).toBe("Dana");
