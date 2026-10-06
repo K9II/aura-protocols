@@ -68,7 +68,8 @@ export default function CampaignEditor(p: Props) {
         <button type="button" role="tab" aria-selected={tab === "edit"} className={tab === "edit" ? "on" : undefined} onClick={() => setTab("edit")}>Edit</button>
         <button type="button" role="tab" aria-selected={tab === "preview"} className={tab === "preview" ? "on" : undefined} onClick={() => setTab("preview")}>Preview</button>
       </div>
-      <form action={save} id="campaign-form" className={tab === "preview" ? "a-hide-phone" : undefined}>
+      <div className={tab === "preview" ? "a-hide-phone" : undefined}>
+      <form action={save} id="campaign-form">
         {c ? <input type="hidden" name="id" value={c.id} /> : <input type="hidden" name="kind" value={kind} />}
         <div className="a-fsec"><div className="a-fsec-h"><h3>Type</h3>{c && <span>fixed after the first save</span>}</div>
           <div className="a-fsec-b"><div className="a-typeseg">{CAMPAIGN_KINDS.map((k) => {
@@ -132,11 +133,14 @@ export default function CampaignEditor(p: Props) {
           <div className="a-fsec-b"><div className="a-checks">{checks.map((x, i) => (
             <div key={i} className={`ck ${x.level === "block" ? "bad" : x.level}`}><Icon name={x.level === "ok" ? "check" : x.level === "warn" ? "info" : "warn"} /><span>{x.text}</span></div>
           ))}</div></div></div>
+      </form>
 
+        {/* Outside the campaign form: the Schedule/Send dialogs carry forms of
+            their own, and forms can't nest. Save submits via form="campaign-form". */}
         <div className="a-savebar">
           <span className="msg" style={blocked && savedClean ? { color: "var(--specimen)" } : undefined}><Icon name={blocked && savedClean ? "warn" : "check"} />{status}</span>
           <div className="r">
-            <button type="submit" className="a-btn" disabled={saving}>{saving ? "Saving…" : "Save draft"}</button>
+            <button type="submit" form="campaign-form" className="a-btn" disabled={saving}>{saving ? "Saving…" : "Save draft"}</button>
             {c && <button type="submit" form="test-form" className="a-btn" disabled={!savedClean || testing}><Icon name="mail" />Send test to me</button>}
             {!c && <button type="button" className="a-btn" disabled><Icon name="mail" />Send test to me</button>}
             {c ? <ScheduleDialog id={c.id} defaultLocal={p.defaultScheduleLocal ?? ""} disabled={!canSend} /> : <button type="button" className="a-btn" disabled><Icon name="clock" />Schedule…</button>}
@@ -144,7 +148,7 @@ export default function CampaignEditor(p: Props) {
           </div>
           {(saveState?.ok || testState?.ok || testState?.error || saveState?.error) && <div className="a-flash" role="status">{testState?.error ?? saveState?.error ?? testState?.ok ?? saveState?.ok}</div>}
         </div>
-      </form>
+      </div>
       {/* hidden: this form has no visible fields — it only exists so the
           "Send test to me" button (form="test-form") can submit it. Without
           `hidden` it still sits in `.a-ed`'s grid as an empty cell. */}

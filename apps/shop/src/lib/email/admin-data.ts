@@ -62,7 +62,8 @@ export async function listAdminEvents(target: string): Promise<EmailAdminEvent[]
 
 // ---------- hourly runs ----------
 export async function startRun(): Promise<string> {
-  const { data, error } = await db().from("email_runs").insert({}).select("id").single();
+  // Both timestamps from the app clock, so a run never "finishes" before it starts.
+  const { data, error } = await db().from("email_runs").insert({ started_at: new Date().toISOString() }).select("id").single();
   if (error || !data) fail("email run start", error ?? "no row");
   return (data as { id: string }).id;
 }

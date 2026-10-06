@@ -746,6 +746,17 @@
 /* editor */
 .adm .a-ed { display: grid; grid-template-columns: minmax(0,1fr) 560px; gap: 20px; align-items: start; }
 @media (max-width: 1100px) { .adm .a-ed { grid-template-columns: 1fr; } }
+/* The editor uses bare <input>/<select class="a-input"> (not the wrapper div). */
+.adm .a-ed input.a-input, .adm .a-ed select.a-input { width: 100%; padding: 0 10px; font: inherit; outline: 0; }
+.adm .a-ed input.a-input:focus, .adm .a-ed select.a-input:focus, .adm .a-ed .a-textarea:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(163,43,31,.12); outline: 0; }
+/* Save bar: status line on its own row above the buttons (mock screen 2). */
+.adm .a-ed .a-savebar { flex-wrap: wrap; row-gap: 10px; }
+.adm .a-ed .a-savebar .msg { flex-basis: 100%; }
+/* Run history: the 7-column table scrolls sideways on a phone instead of widening the page. */
+.adm .a-runscroll { overflow-x: auto; border: 1px solid var(--line); }
+.adm .a-runscroll .a-t { border: 0; min-width: 640px; }
+.adm .a-runscroll td:first-child { white-space: nowrap; }
+.adm .a-seg2 button { display: inline-flex; align-items: center; gap: 6px; }
 .adm .a-typeseg { display: grid; grid-template-columns: repeat(3,1fr); border: 1px solid var(--line-strong); }
 /* Markup renders the choosable options as <Link> (an "a"), the selected one
    and a locked one as "div" — match any child, not just "div". */

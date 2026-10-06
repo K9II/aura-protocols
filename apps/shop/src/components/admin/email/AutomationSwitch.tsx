@@ -16,8 +16,8 @@ export default function AutomationSwitch({ automation, label, paused }: { automa
   const verb = paused ? `Turn ${label} back on` : `Pause ${label}`;
   return (
     <span className="a-swcell">
-      <span className={`a-chip ${paused ? "paused" : "on"}`}>{paused ? "Paused" : "On"}</span>
       <button type="button" className={`a-sw${paused ? "" : " on"}`} aria-label={verb} onClick={() => ref.current?.showModal()} />
+      <span className={`a-chip ${paused ? "paused" : "on"}`}>{paused ? "Paused" : "On"}</span>
       <dialog ref={ref} className="a-modal" aria-labelledby={`sw-${automation}`}>
         <form action={action}>
           <input type="hidden" name="automation" value={automation} />

@@ -15,7 +15,7 @@ export default async function EmailRunsPage() {
       <Crumbs items={[{ label: "Email", href: "/admin/email" }, { label: "Run history" }]} />
       <div className="a-ph"><div><h1>Hourly email run</h1><p>The last {RUNS_SHOWN} runs. Each one sends welcome files, cart reminders and campaigns that are due.</p></div></div>
       {runs.length === 0 ? <div className="a-empty">No runs recorded yet.</div> : (
-        <table className="a-t">
+        <div className="a-runscroll"><table className="a-t">
           <thead><tr><th>Started</th><th className="num">Welcome</th><th className="num">Cart</th><th className="num">Skipped</th><th className="num">Campaign</th><th className="num">Failures</th><th>Details</th></tr></thead>
           <tbody>{runs.map((r) => (
             <tr key={r.id}>
@@ -25,7 +25,7 @@ export default async function EmailRunsPage() {
               <td>{r.error_text ? <details><summary>Show</summary><pre className="a-pre">{r.error_text}</pre></details> : <span className="muted">—</span>}</td>
             </tr>
           ))}</tbody>
-        </table>
+        </table></div>
       )}
     </div>
   );
