@@ -30,7 +30,8 @@ export async function markInquiriesSeenAction(f: FormData): Promise<void> {
   await requireOwner();
   const upTo = String(f.get("upTo") ?? "");
   const ms = Date.parse(upTo);
-  if (!STAMP_RE.test(upTo) || !Number.isFinite(ms) || ms > currentMs() + 60_000) throw new Error("That list changed — reload the page.");
+  // The stamp comes from the database clock; allow for drift against this server.
+  if (!STAMP_RE.test(upTo) || !Number.isFinite(ms) || ms > currentMs() + 15 * 60_000) throw new Error("That list changed — reload the page.");
   await markInquiriesSeen(upTo);
   revalidatePath("/admin");
 }
