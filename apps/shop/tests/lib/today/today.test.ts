@@ -53,7 +53,7 @@ describe("today assembly", () => {
     expect(slots.map((s) => s.key)).toEqual(["alerts", "orders", "catalog", "email", "partners", "inquiries"]);
     expect(slots.map((s) => (s.sections ?? []).map((x) => `${x.key}:${x.n}`))).toEqual([["alerts:1"], ["orders:1"], ["stock:1", "lots:1"], [], ["partners:1"], []]);
     expect(slots.find((s) => s.key === "catalog")?.sections?.[1].lines[0].title).toBe("BPC-157 10 mg is missing its certificate");
-    expect(m.listOrdersForOwner).toHaveBeenCalledWith("paid");
+    expect(m.listOrdersForOwner).toHaveBeenCalledWith("paid", { oldestFirst: true });
     expect(m.listPartners).toHaveBeenCalledWith("applied");
     expect(m.listRuns).toHaveBeenCalledWith(1);
     expect(await todayNavCount()).toBe(5);

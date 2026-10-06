@@ -88,7 +88,6 @@ export default function Todos({ slots, reloadHref }: { slots: Slot[]; reloadHref
           <Icon name="check" />
           <div className="big">All <em>clear.</em></div>
           <div className="tdate">No alerts, nothing to ship, stock above its low marks, emails healthy.</div>
-          <div style={{ marginTop: 12 }}><Link className="a-ulink" href="/admin/alerts">Past alerts</Link></div>
         </div>
       )}
     </div>

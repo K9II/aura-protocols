@@ -125,10 +125,12 @@ export async function listOrdersForCustomer(customerId: string): Promise<OrderRo
   return (data as OrderRow[] | null) ?? [];
 }
 
-export async function listOrdersForOwner(status: OrderStatus | "all"): Promise<OrderRow[]> {
+// oldestFirst: Today's "Orders to ship" needs the longest-waiting orders, so
+// they never fall past the 200-row limit.
+export async function listOrdersForOwner(status: OrderStatus | "all", opts: { oldestFirst?: boolean } = {}): Promise<OrderRow[]> {
   let q = db().from("orders").select(ORDER_WITH_ITEMS).neq("status", "awaiting_payment");
   if (status !== "all") q = q.eq("status", status);
-  const { data, error } = await q.order("created_at", { ascending: false }).limit(200);
+  const { data, error } = await q.order("created_at", { ascending: !!opts.oldestFirst }).limit(200);
   if (error) throw new Error(`owner orders select failed: ${JSON.stringify(error)}`);
   return (data as OrderRow[] | null) ?? [];
 }

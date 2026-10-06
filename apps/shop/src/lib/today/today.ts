@@ -28,7 +28,7 @@ const shown = (xs: Array<TodoSection | null>): TodoSection[] => xs.filter((x): x
 const LOADERS: Record<SlotKey, (nowMs: number) => Promise<TodoSection[]>> = {
   alerts: async (nowMs) => shown([alertsSection(await listOpenAlerts(), nowMs)]),
   orders: async (nowMs) => {
-    const orders = await listOrdersForOwner("paid");
+    const orders = await listOrdersForOwner("paid", { oldestFirst: true });
     return shown([ordersSection(orders.map((o) => ({
       order_number: o.order_number, ship_name: o.ship_name, total_cents: o.total_cents, paid_at: o.paid_at, created_at: o.created_at,
       items: (o.order_items ?? []).reduce((s, i) => s + i.quantity, 0),

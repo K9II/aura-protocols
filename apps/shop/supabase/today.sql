@@ -42,7 +42,10 @@ begin
   on conflict (title) where resolved_at is null do update set
     count = a.count + 1,
     last_at = now(),
-    detail = case when left(a.detail, char_length(excluded.detail)) = excluded.detail then a.detail
+    detail = case when split_part(a.detail, E'
+
+— earlier —
+', 1) = excluded.detail then a.detail
                   else left(excluded.detail || E'\n\n— earlier —\n' || a.detail, 4000) end
   returning id into v_id;
   return v_id;

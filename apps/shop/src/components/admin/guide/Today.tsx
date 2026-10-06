@@ -30,7 +30,7 @@ export default function Today() {
         <Rules items={[
           ["Sales", <>Goods after discounts: what customers paid for the products after pack, partner, new-account and code discounts. It&apos;s the same figure Email and Discounts use and the one partners earn on. Paid and shipped orders count, on the day they were paid.</>],
           ["Charged, shipping, tax", <>The line under Sales, for checking against Stripe. <Ui>charged</Ui> is what cards and banks paid (store credit isn&apos;t in it); <Ui>shipping</Ui> includes shipping insurance.</>],
-          ["Refunds", <>A refunded order drops out of Sales. The <Ui>refunded</Ui> line shows refunds made in the period, at what the order charged.</>],
+          ["Refunds", <>A refunded order drops out of Sales. The <Ui>refunded</Ui> line shows refunds made in the period, at the order total.</>],
           ["Shop time", <>Days and hours are Mountain time, like discount dates and email schedules.</>],
           ["Orders to ship", <>Paid orders, oldest first. One turns red when it has waited more than {SHIP_LATE_BUSINESS_DAYS} business days (weekends don&apos;t count).</>],
           ["Email", <>Shows when the hourly email run hasn&apos;t run for {RUN_STALE_HOURS} hours or had failures, when bounces reach {BOUNCE_LIMIT_PCT * RATE_TODO_SHARE}% (half of Amazon&apos;s {BOUNCE_LIMIT_PCT}% limit) or complaints reach {COMPLAINT_LIMIT_PCT * RATE_TODO_SHARE}% (half of {COMPLAINT_LIMIT_PCT}%), and while a campaign is sending.</>],
