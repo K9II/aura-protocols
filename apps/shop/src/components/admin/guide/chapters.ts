@@ -9,6 +9,7 @@ export const CHAPTERS = [
   { id: "discounts", title: "Discounts", group: "Sell", href: "/admin/discounts" },
   { id: "orders", title: "Orders", group: "Sell", href: "/admin/orders" },
   { id: "customers", title: "Customers", group: "Sell", href: "/admin/customers" },
+  { id: "disputes", title: "Disputes", group: "Sell", href: "/admin/disputes" },
   { id: "catalog", title: "Catalog & lots", group: "Stock", href: "/admin/catalog" },
   { id: "email", title: "Email", group: "Reach", href: "/admin/email" },
   { id: "partners", title: "Partners", group: "Partners", href: "/admin/partners" },

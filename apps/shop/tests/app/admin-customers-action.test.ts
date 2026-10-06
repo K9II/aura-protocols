@@ -87,4 +87,11 @@ describe("customer admin actions", () => {
     expect(sendVerifyEmail).toHaveBeenCalledWith(ID, "e@lab.edu");
     expect(data.logCustomerEvent).toHaveBeenCalledWith({ customerId: ID, kind: "verify_resent", actorId: "owner" });
   });
+
+  it("blocking also refreshes the Disputes pages (Block customer lives on a chargeback too)", async () => {
+    const { blockAction } = await import("@/app/admin/customers/actions");
+    const { revalidatePath } = await import("next/cache");
+    await blockAction(null, fd({ customerId: ID, reason: "chargeback" }));
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/disputes", "layout");
+  });
 });

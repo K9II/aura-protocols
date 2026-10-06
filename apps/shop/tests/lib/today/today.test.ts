@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { listRow, warningRow } from "../../helpers/dispute-fixtures";
 
 const m = vi.hoisted(() => ({
   listOpenAlerts: vi.fn(), listOrdersForOwner: vi.fn(), fetchAdminOps: vi.fn(), waitingLots: vi.fn(), sendingCampaign: vi.fn(),
-  listRuns: vi.fn(), emailOverview: vi.fn(), listPartners: vi.fn(), listQueuedPayouts: vi.fn(), newInquiries: vi.fn(), salesSummary: vi.fn(),
+  listRuns: vi.fn(), emailOverview: vi.fn(), listPartners: vi.fn(), listQueuedPayouts: vi.fn(), newInquiries: vi.fn(), salesSummary: vi.fn(), openDisputeTodos: vi.fn(),
 }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T15:42:00Z") }));
 vi.mock("@/lib/today/alerts", () => ({ listOpenAlerts: m.listOpenAlerts }));
@@ -14,6 +15,7 @@ vi.mock("@/lib/email/stats", () => ({ emailOverview: m.emailOverview }));
 vi.mock("@/lib/partners/data", () => ({ listPartners: m.listPartners }));
 vi.mock("@/lib/partners/ledger", () => ({ listQueuedPayouts: m.listQueuedPayouts }));
 vi.mock("@/lib/today/data", () => ({ newInquiries: m.newInquiries, salesSummary: m.salesSummary }));
+vi.mock("@/lib/disputes/data", () => ({ openDisputeTodos: m.openDisputeTodos }));
 
 const sum = (o: Record<string, unknown> = {}) => ({
   salesCents: 0, orders: 0, chargedCents: 0, shippingCents: 0, taxCents: 0, refundedCents: 0, refundedOrders: 0,
@@ -45,13 +47,14 @@ describe("today assembly", () => {
     m.listPartners.mockResolvedValue([{ id: "p1", code: "NORTH", created_at: "2026-10-05T16:00:00Z", customers: { full_name: "Ann North", organization: null } }]);
     m.listQueuedPayouts.mockResolvedValue([]);
     m.newInquiries.mockResolvedValue({ count: 0, latest: [] });
+    m.openDisputeTodos.mockResolvedValue({ disputes: [], warnings: [] });
   });
 
   it("loads every section through the modules' own data functions; the nav count is the sum of their counts", async () => {
     const { loadTodos, todayNavCount } = await import("@/lib/today/today");
     const slots = await loadTodos();
-    expect(slots.map((s) => s.key)).toEqual(["alerts", "orders", "catalog", "email", "partners", "inquiries"]);
-    expect(slots.map((s) => (s.sections ?? []).map((x) => `${x.key}:${x.n}`))).toEqual([["alerts:1"], ["orders:1"], ["stock:1", "lots:1"], [], ["partners:1"], []]);
+    expect(slots.map((s) => s.key)).toEqual(["alerts", "disputes", "orders", "catalog", "email", "partners", "inquiries"]);
+    expect(slots.map((s) => (s.sections ?? []).map((x) => `${x.key}:${x.n}`))).toEqual([["alerts:1"], [], ["orders:1"], ["stock:1", "lots:1"], [], ["partners:1"], []]);
     expect(slots.find((s) => s.key === "catalog")?.sections?.[1].lines[0].title).toBe("BPC-157 10 mg is missing its certificate");
     expect(m.listOrdersForOwner).toHaveBeenCalledWith("paid", { oldestFirst: true });
     expect(m.listPartners).toHaveBeenCalledWith("applied");
@@ -88,5 +91,21 @@ describe("today assembly", () => {
     expect(r.ok && r.view.sales).toBe("$1,346.50");
     m.salesSummary.mockRejectedValue(new Error("function admin_sales_summary does not exist"));
     expect(await loadNumbers("7d")).toEqual({ ok: false });
+  });
+
+  it("Disputes loads in its own slot through lib/disputes/data and counts toward the badge", async () => {
+    m.openDisputeTodos.mockResolvedValue({ disputes: [listRow()], warnings: [warningRow()] });
+    const { loadTodos, todayNavCount } = await import("@/lib/today/today");
+    const slots = await loadTodos();
+    expect(slots.find((s) => s.key === "disputes")?.sections?.[0]).toMatchObject({ key: "disputes", n: 2 });
+    expect(await todayNavCount()).toBe(7);
+  });
+
+  it("Disputes failing (e.g. before disputes.sql is applied) shows on its own", async () => {
+    m.openDisputeTodos.mockRejectedValue(new Error('relation "disputes" does not exist'));
+    const { loadTodos } = await import("@/lib/today/today");
+    const slots = await loadTodos();
+    expect(slots.find((s) => s.key === "disputes")?.sections).toBeNull();
+    expect(slots.find((s) => s.key === "orders")?.sections?.[0].n).toBe(1);
   });
 });

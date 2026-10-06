@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireOwner } from "@/lib/dal";
 import { getCustomerDetail, type CustomerDetail, type CustomerEvent, type LedgerRow } from "@/lib/customers/data";
+import { customersWithDisputes } from "@/lib/disputes/data";
 import { CATEGORY_LABEL, fingerprint, offerState, summarizeUserAgent, type CreditCategory } from "@/lib/customers/rules";
 import { dateTime, shortDate } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
@@ -46,6 +47,9 @@ function eventText(e: CustomerEvent): React.ReactNode {
     case "credit_added": return <>{who} added <b>{usd(e.amount_cents ?? 0)}</b> store credit · {CATEGORY_LABEL[e.reason as CreditCategory] ?? e.reason}</>;
     case "credit_removed": return <>{who} removed <b>{usd(e.amount_cents ?? 0)}</b> store credit · {CATEGORY_LABEL[e.reason as CreditCategory] ?? e.reason}</>;
     case "verify_resent": return <>{who} resent the verification email</>;
+    case "warning_refunded": return <>{who} <b>cancelled and refunded</b> {e.reason} · early fraud warning</>;
+    case "warning_watched": return <>{who} chose <b>Watch</b> on {e.reason} · early fraud warning, already shipped</>;
+    case "warning_closed": return <>{who} closed the early fraud warning on {e.reason}</>;
   }
 }
 
@@ -85,6 +89,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   if (!z.string().uuid().safeParse(id).success) notFound();
   const c = await getCustomerDetail(id);
   if (!c) notFound();
+  const chargeback = (await customersWithDisputes([c.id])).has(c.id);
 
   const paid = c.orders.filter((o) => PAID.has(o.status));
   const spent = paid.reduce((s, o) => s + o.total_cents - o.store_credit_cents, 0);
@@ -108,7 +113,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       <div className="a-idh">
         <div className="av" aria-hidden>{initials(c.fullName)}</div>
         <div>
-          <h1>{c.fullName} {c.blockedAt ? <span className="a-chip blocked">Blocked</span> : c.verifiedAt ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}{c.isPartner && <span className="a-chip partner">Partner</span>}{c.isOwner && <span className="a-chip owner">Owner</span>}</h1>
+          <h1>{c.fullName} {c.blockedAt ? <span className="a-chip blocked">Blocked</span> : c.verifiedAt ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}{c.isPartner && <span className="a-chip partner">Partner</span>}{c.isOwner && <span className="a-chip owner">Owner</span>}{chargeback && <span className="a-chip cb">Chargeback</span>}</h1>
           <div className="sub">{c.email}{c.organization && <><span className="dot" />{c.organization}</>}<span className="dot" />Joined {fullDate(c.createdAt)}</div>
         </div>
         <div className="actions">

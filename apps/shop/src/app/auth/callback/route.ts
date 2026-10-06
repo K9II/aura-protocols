@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { customerStatus, safeNext } from "@/lib/dal";
 import { alertOwner } from "@/lib/notify";
 import { confirmGoogleEmail, secureGoogleLink } from "@/lib/account/google-link";
+import { siteUrl } from "@/lib/supabase/env";
 
 // @supabase/ssr sets this (PKCE) when a browser starts a Google sign-in.
 // A provider error without it is just someone hitting the URL — no alert.
@@ -28,7 +29,9 @@ function clearSessionCookies(request: Request, res: NextResponse): NextResponse 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const q = url.searchParams;
-  const go = (path: string) => NextResponse.redirect(new URL(path, url.origin));
+  // The site's own address, not request.url: behind a proxy or tunnel the
+  // server sees its internal host (e.g. localhost), which a phone can't reach.
+  const go = (path: string) => NextResponse.redirect(new URL(path, siteUrl()));
   const google = q.get("flow") === "google";
   const failed = google ? "/sign-in?error=google" : "/sign-in?error=link";
 
@@ -46,7 +49,10 @@ export async function GET(request: Request): Promise<Response> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if ((error as { code?: string } | null)?.code === "user_banned") return go("/sign-in?error=closed");
-  if (error || !data?.user) return go(failed);
+  if (error || !data?.user) {
+    console.error("auth callback: code exchange failed", google ? "google" : "link", error?.message ?? "no user");
+    return go(failed);
+  }
 
   let status: Awaited<ReturnType<typeof customerStatus>>;
   try {

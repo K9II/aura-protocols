@@ -5,16 +5,18 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Icon, type IconName } from "@/components/admin/ui";
 import { GUIDE_PATH, chapterForPath, guideHref } from "@/components/admin/guide/chapters";
+import { signOutToSignInAction } from "@/app/auth/actions";
 
 // `also`: other pages that belong to an item. Today's "/admin" is not a prefix
 // for the whole admin, so it is current only on itself and Past alerts.
-type Item = { href: string; label: string; icon: IconName; live: boolean; count?: "orders" | "partners" | "email" | "today"; also?: string[] };
+type Item = { href: string; label: string; icon: IconName; live: boolean; count?: "orders" | "partners" | "email" | "today" | "disputes"; also?: string[] };
 const NAV: Array<{ group?: string; items: Item[] }> = [
   { items: [{ href: "/admin", label: "Today", icon: "today", live: true, count: "today", also: ["/admin/alerts"] }] },
   { group: "Sell", items: [
     { href: "/admin/orders", label: "Orders", icon: "orders", live: true, count: "orders" },
     { href: "/admin/customers", label: "Customers", icon: "customers", live: true },
     { href: "/admin/discounts", label: "Discounts", icon: "discounts", live: true },
+    { href: "/admin/disputes", label: "Disputes", icon: "shield", live: true, count: "disputes" },
   ] },
   { group: "Stock", items: [{ href: "/admin/catalog", label: "Catalog & lots", icon: "catalog", live: true }] },
   { group: "Reach", items: [
@@ -28,7 +30,7 @@ const NAV: Array<{ group?: string; items: Item[] }> = [
 ];
 
 export default function AdminShell({ counts, testMode, ownerName, children }: {
-  counts: { orders: number; partners: number; email: number; today: number }; testMode: boolean; ownerName: string; children: React.ReactNode;
+  counts: { orders: number; partners: number; email: number; today: number; disputes: number }; testMode: boolean; ownerName: string; children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
@@ -68,6 +70,7 @@ export default function AdminShell({ counts, testMode, ownerName, children }: {
       <div className="a-side-foot">
         <div className="a-avatar" aria-hidden>{ownerName.slice(0, 2).toUpperCase()}</div>
         <div className="a-who">{ownerName}<small>Owner</small></div>
+        <form action={signOutToSignInAction} className="a-signout"><button type="submit">Sign out</button></form>
       </div>
     </aside>
   );

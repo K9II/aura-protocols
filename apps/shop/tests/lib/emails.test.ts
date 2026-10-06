@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl } from "@/lib/emails";
+import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl, orderRefundedEmail } from "@/lib/emails";
 import type { OrderRow } from "@/lib/orders";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
@@ -60,6 +60,14 @@ describe("emails", () => {
     expect(m.subject).toBe("Confirm your email");
     expect(m.html).toContain("https://auraprotocols.com/auth/verify?token=abc");
     expect(findViolations(`${m.subject} ${visibleText(m.html)}`)).toEqual([]);
+  });
+
+  it("cancelled-and-refunded email: the card amount, any store credit back, compliance-clean", () => {
+    const { subject, html } = orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 2000 } as OrderRow);
+    expect(subject).toBe("Order AP-1042 was cancelled and refunded");
+    expect(html).toContain("$164.50 back to your original payment method and $20.00 back to your store credit");
+    expect(orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 0 } as OrderRow).html).not.toContain("store credit");
+    expect(findViolations(html)).toEqual([]);
   });
 });
 

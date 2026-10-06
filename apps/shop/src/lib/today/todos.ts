@@ -13,10 +13,14 @@ import { usd } from "@/lib/html";
 import { EXCERPT_CHARS, RATE_TODO_SHARE, TODO_LINES_MAX } from "@/lib/today/constants";
 import { firstLine, type OwnerAlert } from "@/lib/today/alert-rules";
 import { dateLabel, paidText, shipAge, whenText } from "@/lib/today/time";
+import {
+  byDue, dueInfo, efwSuggestion, evidenceChip, needsResponse, reasonLabel, warningActionData,
+  type DisputeListRow, type WarningActionData, type WarningListRow,
+} from "@/lib/disputes/rules";
 
 export type LineTone = "red" | "amb" | "slate" | "mut";
 export type AlertLineData = OwnerAlert & { when: string };
-export type TodoAction = { label: string; href: string; icon?: IconName } | { label: string; announce: true };
+export type TodoAction = { label: string; href: string; icon?: IconName } | { label: string; announce: true } | { label: string; warning: WarningActionData };
 export type TodoLine = {
   key: string; icon: IconName; tone: LineTone;
   mono?: string;          // an order or lot number, shown first in mono
@@ -27,7 +31,7 @@ export type TodoLine = {
   action?: TodoAction;
   alert?: AlertLineData;  // alerts only: what the Done dialog shows
 };
-export type SectionKey = "alerts" | "orders" | "stock" | "lots" | "email" | "partners" | "inquiries";
+export type SectionKey = "alerts" | "disputes" | "orders" | "stock" | "lots" | "email" | "partners" | "inquiries";
 export type TodoSection = {
   key: SectionKey; title: string; icon: IconName;
   n: number;              // the header count; the nav count adds these up
@@ -40,10 +44,11 @@ export type TodoSection = {
 
 // Sections load in slots, most urgent first. Stock and Lots share one catalog
 // read, so they load — and fail — together as "Stock and lots".
-export const SLOT_KEYS = ["alerts", "orders", "catalog", "email", "partners", "inquiries"] as const;
+export const SLOT_KEYS = ["alerts", "disputes", "orders", "catalog", "email", "partners", "inquiries"] as const;
 export type SlotKey = (typeof SLOT_KEYS)[number];
 export const SLOT_INFO: Record<SlotKey, { title: string; icon: IconName }> = {
   alerts: { title: "Alerts", icon: "warn" },
+  disputes: { title: "Disputes", icon: "shield" },
   orders: { title: "Orders to ship", icon: "orders" },
   catalog: { title: "Stock and lots", icon: "catalog" },
   email: { title: "Email", icon: "mail" },
@@ -79,6 +84,34 @@ export function alertsSection(alerts: OwnerAlert[], nowMs: number): TodoSection 
     return { key: a.id, icon: "warn", tone: "red", title: a.title, detail: [firstLine(a.detail), when].filter(Boolean).join(" · "), alert: { ...a, when } };
   });
   return build({ key: "alerts", title: "Alerts", icon: "warn", n: open.length, link: { label: "Past alerts", href: "/admin/alerts" } }, lines);
+}
+
+// ---------- 1b. disputes (Part 6) ----------
+// Chargebacks waiting for evidence (soonest deadline first) and open early
+// fraud warnings with their suggested action; anything red comes first.
+export function disputesSection(disputes: DisputeListRow[], warnings: WarningListRow[], nowMs: number): TodoSection | null {
+  const open = disputes.filter(needsResponse).sort(byDue);
+  const openWarnings = warnings.filter((w) => !w.resolved_at);
+  const lines: TodoLine[] = [
+    ...open.map((d): TodoLine => {
+      const due = dueInfo(d.evidence_due_by, nowMs);
+      const href = `/admin/disputes/${d.id}`;
+      return {
+        key: d.id, icon: "clock", tone: due?.red ? "red" : "mut", mono: d.order.number, href,
+        title: due ? `respond by ${due.date}` : "respond", detail: `${reasonLabel(d.reason)} · ${usd(d.amount_cents)} · ${evidenceChip(d).text.toLowerCase()}`,
+        age: due ? { text: due.short, late: due.red } : undefined, action: { label: "Respond", href },
+      };
+    }),
+    ...openWarnings.map((w): TodoLine => {
+      const s = efwSuggestion(w.order);
+      return {
+        key: w.id, icon: "warn", tone: s.kind === "refund" ? "red" : "amb", mono: w.order.number, href: "/admin/disputes",
+        title: "Early fraud warning", detail: `${s.todo} · ${usd(w.order.totalCents - w.order.creditCents)} · ${s.hint}`,
+        action: { label: s.label, warning: warningActionData(w) },
+      };
+    }),
+  ].sort((a, b) => (a.tone === "red" ? 0 : 1) - (b.tone === "red" ? 0 : 1));
+  return build({ key: "disputes", title: "Disputes", icon: "shield", n: open.length + openWarnings.length, link: { label: "Disputes", href: "/admin/disputes" } }, lines);
 }
 
 // ---------- 2. orders to ship ----------

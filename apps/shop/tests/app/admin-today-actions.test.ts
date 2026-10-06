@@ -59,13 +59,13 @@ describe("admin Today actions", () => {
   it("Mark seen refuses a malformed or future time (loudly)", async () => {
     const { markInquiriesSeenAction } = await import("@/app/admin/actions");
     await expect(markInquiriesSeenAction(fd({ upTo: "yesterday" }))).rejects.toThrow(/reload the page/);
-    await expect(markInquiriesSeenAction(fd({ upTo: new Date(Date.now() + 86_400_000).toISOString() }))).rejects.toThrow(/reload the page/);
+    await expect(markInquiriesSeenAction(fd({ upTo: new Date(Date.parse("2026-10-06T15:42:00Z") + 86_400_000).toISOString() }))).rejects.toThrow(/reload the page/);
     expect(m.markInquiriesSeen).not.toHaveBeenCalled();
   });
 
   it("Mark seen accepts a database stamp a little ahead of this server's clock", async () => {
     const { markInquiriesSeenAction } = await import("@/app/admin/actions");
-    const ahead = new Date(Date.now() + 90_000).toISOString();
+    const ahead = new Date(Date.parse("2026-10-06T15:42:00Z") + 90_000).toISOString();
     await markInquiriesSeenAction(fd({ upTo: ahead }));
     expect(m.markInquiriesSeen).toHaveBeenCalledWith(ahead);
   });
