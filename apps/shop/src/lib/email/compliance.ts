@@ -8,7 +8,7 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export function blankOut(text: string, ignore: string[]): string {
   return [...ignore].filter((x) => x.trim()).sort((a, b) => b.length - a.length)
-    .reduce((t, x) => t.replace(new RegExp(escapeRe(x), "gi"), " "), text);
+    .reduce((t, x) => t.replace(new RegExp(`(?<![\\w@.-])${escapeRe(x)}(?![\\w@.-])`, "gi"), " "), text);
 }
 
 export function assertCompliant(subject: string, html: string, ignore: string[] = []): void {

@@ -1,5 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { assertCompliant } from "@/lib/email/compliance";
+import { assertCompliant, blankOut } from "@/lib/email/compliance";
+
+describe("blankOut", () => {
+  it("blanks whole tokens only — never eats into a longer word", () => {
+    expect(blankOut("benefits", ["Ben"])).toBe("benefits");
+    expect(blankOut("the protocol is clear", ["Pro"])).toBe("the protocol is clear");
+  });
+  it("still blanks the token when it stands alone", () => {
+    expect(blankOut("Ben said hi", ["Ben"])).toBe("  said hi");
+    expect(blankOut("Hi Treat, thanks", ["Treat"])).toBe("Hi  , thanks");
+  });
+});
 
 describe("assertCompliant", () => {
   it("passes clean copy", () => {
@@ -17,5 +28,14 @@ describe("assertCompliant", () => {
 
   it("ignores the customer's own name and email (raw or HTML-escaped)", () => {
     expect(() => assertCompliant("Hi Treat", "<p>Hi Treat O&#39;Dose — thanks</p>", ["Treat", "Treat O'Dose"])).not.toThrow();
+  });
+
+  it("a name that is a substring of a banned word never blanks the real word", () => {
+    expect(() => assertCompliant("Hi Ben", "<p>Hi Ben — ask about the benefits</p>", ["Ben"])).toThrow(/benefit/);
+    expect(() => assertCompliant("Hi Pro", "<p>Hi Pro — read our protocol</p>", ["Pro"])).toThrow(/protocol/);
+  });
+
+  it("a name that is itself a banned word is still blanked when standing alone", () => {
+    expect(() => assertCompliant("Hi Treat", "<p>Hi Treat — thanks for writing</p>", ["Treat"])).not.toThrow();
   });
 });

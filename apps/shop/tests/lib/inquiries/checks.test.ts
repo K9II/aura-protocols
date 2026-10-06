@@ -10,4 +10,8 @@ describe("replyViolation", () => {
     expect(replyViolation("Thanks, Dana — replacements ship tomorrow.", [])).toBeNull();
     expect(replyViolation("Hi Treat, thanks for writing.", ["Treat"])).toBeNull();
   });
+  it("a name that is a substring of a banned word never blanks the real word", () => {
+    expect(replyViolation("Hi Ben, ask about the benefits", ["Ben"])).toEqual({ phrase: "benefits" });
+    expect(replyViolation("Hi Pro, read our protocol", ["Pro"])).toEqual({ phrase: "protocol" });
+  });
 });
