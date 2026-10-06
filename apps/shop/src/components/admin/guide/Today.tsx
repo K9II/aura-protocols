@@ -1,6 +1,9 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
 import { ALERTS_KEEP_DAYS, RATE_TODO_SHARE, SHIP_LATE_BUSINESS_DAYS, TODO_LINES_MAX } from "@/lib/today/constants";
 import { BOUNCE_LIMIT_PCT, COMPLAINT_LIMIT_PCT, RUN_STALE_HOURS } from "@/lib/email/constants";
+import { INQUIRY_LATE_BUSINESS_DAYS } from "@/lib/inquiries/constants";
+
+const businessDays = (n: number) => `${n} business day${n === 1 ? "" : "s"}`;
 
 export default function Today() {
   return (
@@ -16,7 +19,7 @@ export default function Today() {
         <Task title="Work through the to-do list">
           <Step>Sections run most urgent first: <Ui>Alerts</Ui>, <Ui>Disputes</Ui>, <Ui>Orders to ship</Ui>, <Ui>Stock</Ui>, <Ui>Lots</Ui>, <Ui>Email</Ui>, <Ui>Partners</Ui>, <Ui>Inquiries</Ui>. A section shows only when something needs doing, up to {TODO_LINES_MAX} lines; <Ui>and N more</Ui> opens the full list.</Step>
           <Step>Each line has a button to where the job is done: <Ui>Respond</Ui>, <Ui>Pick list</Ui>, <Ui>Open lot</Ui>, <Ui>Announce</Ui>, <Ui>Review</Ui>. When nothing is left, the list says <Ui>All clear</Ui>.</Step>
-          <Step>Messages from the contact and wholesale forms that need a reply show under <Ui>Inquiries</Ui>, the longest-waiting first; red once the customer has waited a business day. <Ui>Reply</Ui> opens the conversation.</Step>
+          <Step>Messages from the contact and wholesale forms that need a reply show under <Ui>Inquiries</Ui>, the longest-waiting first; red once the customer has waited {businessDays(INQUIRY_LATE_BUSINESS_DAYS)}. <Ui>Reply</Ui> opens the conversation.</Step>
         </Task>
         <Task title="Read the numbers">
           <Step>Pick the period at the top of <Ui>Numbers</Ui>: today, the last week or the last month. Each figure is compared with the same stretch just before; today is compared with yesterday up to the same time.</Step>

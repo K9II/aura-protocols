@@ -39,7 +39,7 @@ export default function Inquiries() {
           ["Late", <>An open conversation turns red once the customer has waited {days(INQUIRY_LATE_BUSINESS_DAYS)} (Monday to Friday, shop time). Today lists the longest-waiting ones.</>],
           ["How replies come back", <>Each conversation has its own reply address, so the customer just replies to the email. What they quoted from earlier emails is cut off; the full email stays one click away.</>],
           ["Attachments", <>Photos (JPEG, PNG, HEIC) and PDFs are kept, up to {ATTACHMENTS_PER_EMAIL} per email and {mb(ATTACHMENT_MAX_BYTES)} each; anything else is listed as not kept. Your replies go out without attachments — link to a certificate on the COA page instead. The original emails are kept for {days(RAW_MAIL_KEEP_DAYS)}.</>],
-          ["Contact form", <>Anyone can use it, signed in or not, so people locked out of their account can still reach you. To limit spam, one address can send {hourly} messages an hour.</>],
+          ["Contact form", <>Anyone can use it, signed in or not, so people locked out of their account can still reach you. To limit spam, one IP address can send {hourly} messages an hour.</>],
           ["Who did what", <>Each conversation&apos;s <Ui>History</Ui> shows who opened, replied, closed or changed it; every owner action also appears in <Ui>Activity</Ui>.</>],
         ]} />
       }

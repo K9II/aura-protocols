@@ -39,6 +39,7 @@ describe("/admin/guide", () => {
     render(await AdminGuidePage());
     expect(screen.getByRole("heading", { level: 2, name: "Inquiries" })).toBeInTheDocument();
     expect(screen.getAllByText(new RegExp(`${INQUIRY_AUTO_CLOSE_DAYS} days`)).length).toBeGreaterThan(0); // INQUIRY_AUTO_CLOSE_DAYS
+    expect(screen.getByText(/one IP address can send/)).toBeInTheDocument();
   });
 
   it("has the Today chapter with figures from constants", async () => {
@@ -47,6 +48,7 @@ describe("/admin/guide", () => {
     expect(screen.getAllByText(/more than 2 business days/).length).toBeGreaterThan(0); // SHIP_LATE_BUSINESS_DAYS
     expect(screen.getAllByText(/the last 90 days/).length).toBeGreaterThan(0);          // ALERTS_KEEP_DAYS
     expect(screen.getAllByText(/2\.5%/).length).toBeGreaterThan(0);                     // BOUNCE_LIMIT_PCT × RATE_TODO_SHARE
+    expect(screen.getAllByText(/waited 1 business day/).length).toBeGreaterThan(0);     // INQUIRY_LATE_BUSINESS_DAYS
   });
 
   it("has the Disputes chapter with figures from constants", async () => {
