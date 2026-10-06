@@ -8,7 +8,7 @@ const m = vi.hoisted(() => ({ requireOwner: vi.fn(), loadTodos: vi.fn(), loadNum
 vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
 vi.mock("@/lib/today/today", () => ({ loadTodos: m.loadTodos, loadNumbers: m.loadNumbers }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T15:42:00Z") }));
-vi.mock("@/app/admin/actions", () => ({ resolveAlertAction: vi.fn(), markInquiriesSeenAction: vi.fn() }));
+vi.mock("@/app/admin/actions", () => ({ resolveAlertAction: vi.fn() }));
 vi.mock("@/app/admin/email/actions", () => ({ announceAction: vi.fn() }));
 vi.mock("@/app/admin/disputes/actions", () => ({ refundEarlyWarningAction: vi.fn(), watchEarlyWarningAction: vi.fn() }));
 import TodayPage from "@/app/admin/page";

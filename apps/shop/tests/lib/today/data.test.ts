@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
+import { query } from "../../helpers/supabase-mock";
 
 const db = vi.hoisted(() => ({ rpc: vi.fn(), from: null as null | ((t: string) => unknown) }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ rpc: db.rpc, from: (t: string) => db.from!(t) }) }));
@@ -29,35 +29,5 @@ describe("today data", () => {
     db.rpc.mockResolvedValue({ data: null, error: { message: "function admin_sales_summary does not exist" } });
     const { salesSummary } = await import("@/lib/today/data");
     await expect(salesSummary({ from: "a", to: "b" }, "day")).rejects.toThrow(/admin_sales_summary failed/);
-  });
-
-  it("new inquiries: since the seen mark, newest first, previews capped", async () => {
-    const settings = query({ data: { inquiries_seen_at: "2026-10-05T00:00:00Z" } });
-    const list = query({ data: [{ id: "i1" }], count: 4 });
-    db.from = fromQueue({ shop_settings: [settings], inquiries: [list] });
-    const { newInquiries } = await import("@/lib/today/data");
-    expect(await newInquiries()).toEqual({ count: 4, latest: [{ id: "i1" }] });
-    expect(callArgs(list, "gt")).toEqual(["created_at", "2026-10-05T00:00:00Z"]);
-    expect(callArgs(list, "order")).toEqual(["created_at", { ascending: false }]);
-    expect(callArgs(list, "limit")).toEqual([3]);
-  });
-
-  it("never marked seen: every inquiry is new; a read error throws", async () => {
-    const list = query({ data: [], count: 0 });
-    db.from = fromQueue({ shop_settings: [query({ data: { inquiries_seen_at: null } }), query({ error: { message: "down" } })], inquiries: [list] });
-    const { newInquiries } = await import("@/lib/today/data");
-    expect(await newInquiries()).toEqual({ count: 0, latest: [] });
-    expect(list.calls.some(([m]) => m === "gt")).toBe(false);
-    await expect(newInquiries()).rejects.toThrow(/inquiries seen read failed/);
-  });
-
-  it("mark seen stores the time it was given and never moves backwards", async () => {
-    const upd = query({});
-    db.from = fromQueue({ shop_settings: [upd] });
-    const { markInquiriesSeen } = await import("@/lib/today/data");
-    await markInquiriesSeen("2026-10-06T14:03:00.123456+00:00");
-    expect(callArgs(upd, "update")?.[0]).toEqual({ inquiries_seen_at: "2026-10-06T14:03:00.123456+00:00" });
-    expect(callArgs(upd, "eq")).toEqual(["id", true]);
-    expect(callArgs(upd, "or")).toEqual(["inquiries_seen_at.is.null,inquiries_seen_at.lt.2026-10-06T14:03:00.123456+00:00"]);
   });
 });

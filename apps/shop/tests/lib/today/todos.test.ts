@@ -2,9 +2,10 @@ import { describe, it, expect } from "vitest";
 import { clipDetail, firstLine, normalizeAlertTitle, sortAlerts, type OwnerAlert } from "@/lib/today/alert-rules";
 import {
   alertsSection, disputesSection, emailSection, excerpt, inquiriesSection, lotsSection, navCount, ordersSection, partnersSection, stockSection,
-  type InquiryPreview, type ShipOrder,
+  type ShipOrder,
 } from "@/lib/today/todos";
 import type { AdminLotRow, AdminRow } from "@/lib/catalog-ops/rules";
+import type { InquiryTodo } from "@/lib/inquiries/data";
 import { DISPUTE_ID, NOW as DNOW, WARNING_ID, listRow, warningRow } from "../../helpers/dispute-fixtures";
 
 const NOW = Date.parse("2026-10-06T15:42:00Z"); // Tue Oct 6, 9:42 am MDT
@@ -26,8 +27,9 @@ const lot = (o: Partial<AdminLotRow>): AdminLotRow => ({
 });
 const healthyRun = { started_at: "2026-10-06T15:28:00Z", finished_at: "2026-10-06T15:29:00Z", welcome_sent: 4, cart_sent: 2, cart_skipped: 0, campaign_sent: 0, failures: 0, error_text: null };
 const overview = { confirmed: 2310, pending: 96, unsubscribed: 141, sent_30d: 1460, sent_prior_30d: 1200, bounces_30d: 10, complaints_30d: 0 };
-const inq = (id: string, at: string, o: Partial<InquiryPreview> = {}): InquiryPreview => ({
-  id, kind: "wholesale", name: "Jo Park", organization: "Meridian Peptide Lab", message: "Do you offer COAs per vial for bulk orders?", created_at: at, ...o,
+const todo = (o: Partial<InquiryTodo> = {}): InquiryTodo => ({
+  ref: 1047, topic: "order", name: "Dana Whitfield", organization: null, status: "needs_reply", waiting_since: null,
+  last_preview: "Here you go — both vials and the box.", last_customer_at: "2026-10-03T22:12:00Z", created_at: "2026-10-03T20:48:00Z", file_count: 3, ...o,
 });
 
 describe("alert rules", () => {
@@ -154,19 +156,27 @@ describe("to-do sections", () => {
     expect(partnersSection([], [])).toBeNull();
   });
 
-  it("inquiries: the count of new ones, the newest previewed, Mark seen up to the newest shown", () => {
-    const s = inquiriesSection({ count: 5, latest: [
-      inq("i1", "2026-10-06T14:03:00Z"),
-      inq("i2", "2026-10-05T20:00:00Z", { kind: "affiliate", organization: null, name: "S. Bryant" }),
-      inq("i3", "2026-10-05T19:00:00Z"),
+  it("inquiries: what needs a reply, longest waiting first, Q-number first, red after a business day, Reply", () => {
+    const s = inquiriesSection({ count: 4, oldest: [
+      todo(),
+      todo({ ref: 1049, topic: "wholesale", status: "new", name: "P. Osei", organization: "Meridian Peptide Lab", last_preview: "Looking for 200+ vials monthly across four compounds.", last_customer_at: "2026-10-05T15:40:00Z", file_count: 0 }),
+      todo({ ref: 1044, topic: "product", name: "Marcus Lee", last_preview: "Is the BPC-157 lot on the COA page the one that ships now?", last_customer_at: "2026-10-06T13:02:00Z", file_count: 0 }),
     ] }, NOW)!;
-    expect(s.n).toBe(5);
-    expect(s.more).toBe(2);
-    expect(s.seenUpTo).toBe("2026-10-06T14:03:00Z");
-    expect(s.lines[0]).toMatchObject({ title: "Wholesale · Meridian Peptide Lab", detail: "\"Do you offer COAs per vial for bulk orders?\" · 8:03 am" });
-    expect(s.lines[1].title).toBe("Affiliate · S. Bryant");
+    expect(s.n).toBe(4);
+    expect(s.more).toBe(1);
+    expect(s.link).toEqual({ label: "Inquiries", href: "/admin/inquiries" });
+    expect(s.tone).toBe("red");
+    expect(s.lines[0]).toMatchObject({
+      mono: "Q-1047", title: "Order · Dana Whitfield", detail: "\"Here you go — both vials and the box.\" · 3 attachments",
+      tone: "red", age: { text: "3 days", late: true }, action: { label: "Reply", href: "/admin/inquiries/Q-1047" },
+    });
+    expect(s.lines[1]).toMatchObject({ title: "Wholesale · Meridian Peptide Lab", age: { text: "1 day", late: true } });
+    expect(s.lines[2]).toMatchObject({ title: "Product · Marcus Lee", tone: "mut", age: { text: "2 h", late: false } });
+    expect(inquiriesSection({ count: 0, oldest: [] }, NOW)).toBeNull();
+  });
+
+  it("excerpt cuts long text at the character cap with an ellipsis", () => {
     expect(excerpt("x".repeat(70))).toBe(`${"x".repeat(59)}…`);
-    expect(inquiriesSection({ count: 0, latest: [] }, NOW)).toBeNull();
   });
 
   it("the nav count adds up every section's count", () => {

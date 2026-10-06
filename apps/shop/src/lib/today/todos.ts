@@ -17,6 +17,9 @@ import {
   byDue, dueInfo, efwSuggestion, evidenceChip, needsResponse, reasonLabel, warningActionData,
   type DisputeListRow, type WarningActionData, type WarningListRow,
 } from "@/lib/disputes/rules";
+import type { InquiryTodo } from "@/lib/inquiries/data";
+import { refLabel, waitInfo } from "@/lib/inquiries/rules";
+import { TOPIC_TAG } from "@/lib/inquiries/topics";
 
 export type LineTone = "red" | "amb" | "slate" | "mut";
 export type AlertLineData = OwnerAlert & { when: string };
@@ -39,7 +42,6 @@ export type TodoSection = {
   link: { label: string; href: string } | null;
   lines: TodoLine[];      // at most TODO_LINES_MAX
   more: number;           // lines (inquiries: inquiries) not shown
-  seenUpTo?: string;      // inquiries: Mark seen up to this created_at
 };
 
 // Sections load in slots, most urgent first. Stock and Lots share one catalog
@@ -228,13 +230,20 @@ export function partnersSection(applied: AppliedPartner[], queued: QueuedPayout[
   return build({ key: "partners", title: "Partners", icon: "partners", n: applied.length + queued.length, link: null }, lines);
 }
 
-// ---------- 7. inquiries (until the Inquiries module, Part 7) ----------
-export type InquiryPreview = { id: string; kind: "wholesale" | "affiliate"; name: string; organization: string | null; message: string; created_at: string };
-const KIND: Record<InquiryPreview["kind"], string> = { wholesale: "Wholesale", affiliate: "Affiliate" };
-export function inquiriesSection(i: { count: number; latest: InquiryPreview[] }, nowMs: number): TodoSection | null {
-  const lines = i.latest.map((q): TodoLine => ({
-    key: q.id, icon: "inbox", tone: "mut", title: `${KIND[q.kind]} · ${q.organization || q.name}`,
-    detail: `"${excerpt(q.message)}" · ${whenText(q.created_at, nowMs)}`,
-  }));
-  return build({ key: "inquiries", title: "Inquiries", icon: "inbox", n: i.count, link: null, seenUpTo: i.latest[0]?.created_at }, lines, Math.max(0, i.count - lines.length));
+// ---------- 7. inquiries (Part 7) ----------
+// New + Needs reply, the longest-waiting first; red once the customer has
+// waited INQUIRY_LATE_BUSINESS_DAYS (the inbox's own rule, lib/inquiries/rules).
+export function inquiriesSection(i: { count: number; oldest: InquiryTodo[] }, nowMs: number): TodoSection | null {
+  const lines = i.oldest.map((q): TodoLine => {
+    const w = waitInfo(q, nowMs);
+    const href = `/admin/inquiries/${refLabel(q.ref)}`;
+    return {
+      key: String(q.ref), icon: "inbox", tone: w?.late ? "red" : "mut", mono: refLabel(q.ref), href,
+      title: `${TOPIC_TAG[q.topic]} · ${q.topic === "wholesale" && q.organization ? q.organization : q.name}`,
+      detail: [q.last_preview ? `"${excerpt(q.last_preview)}"` : "", q.file_count ? plural(q.file_count, "attachment") : ""].filter(Boolean).join(" · "),
+      age: w ? { text: w.text, late: w.late } : undefined,
+      action: { label: "Reply", href },
+    };
+  });
+  return build({ key: "inquiries", title: "Inquiries", icon: "inbox", n: i.count, link: { label: "Inquiries", href: "/admin/inquiries" } }, lines, Math.max(0, i.count - lines.length));
 }

@@ -3,7 +3,7 @@ import { listRow, warningRow } from "../../helpers/dispute-fixtures";
 
 const m = vi.hoisted(() => ({
   listOpenAlerts: vi.fn(), listOrdersForOwner: vi.fn(), fetchAdminOps: vi.fn(), waitingLots: vi.fn(), sendingCampaign: vi.fn(),
-  listRuns: vi.fn(), emailOverview: vi.fn(), listPartners: vi.fn(), listQueuedPayouts: vi.fn(), newInquiries: vi.fn(), salesSummary: vi.fn(), openDisputeTodos: vi.fn(),
+  listRuns: vi.fn(), emailOverview: vi.fn(), listPartners: vi.fn(), listQueuedPayouts: vi.fn(), openInquiryTodos: vi.fn(), salesSummary: vi.fn(), openDisputeTodos: vi.fn(),
 }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T15:42:00Z") }));
 vi.mock("@/lib/today/alerts", () => ({ listOpenAlerts: m.listOpenAlerts }));
@@ -14,7 +14,8 @@ vi.mock("@/lib/email/admin-data", () => ({ listRuns: m.listRuns }));
 vi.mock("@/lib/email/stats", () => ({ emailOverview: m.emailOverview }));
 vi.mock("@/lib/partners/data", () => ({ listPartners: m.listPartners }));
 vi.mock("@/lib/partners/ledger", () => ({ listQueuedPayouts: m.listQueuedPayouts }));
-vi.mock("@/lib/today/data", () => ({ newInquiries: m.newInquiries, salesSummary: m.salesSummary }));
+vi.mock("@/lib/inquiries/data", () => ({ openInquiryTodos: m.openInquiryTodos }));
+vi.mock("@/lib/today/data", () => ({ salesSummary: m.salesSummary }));
 vi.mock("@/lib/disputes/data", () => ({ openDisputeTodos: m.openDisputeTodos }));
 
 const sum = (o: Record<string, unknown> = {}) => ({
@@ -46,7 +47,7 @@ describe("today assembly", () => {
     m.sendingCampaign.mockResolvedValue(null);
     m.listPartners.mockResolvedValue([{ id: "p1", code: "NORTH", created_at: "2026-10-05T16:00:00Z", customers: { full_name: "Ann North", organization: null } }]);
     m.listQueuedPayouts.mockResolvedValue([]);
-    m.newInquiries.mockResolvedValue({ count: 0, latest: [] });
+    m.openInquiryTodos.mockResolvedValue({ count: 0, oldest: [] });
     m.openDisputeTodos.mockResolvedValue({ disputes: [], warnings: [] });
   });
 
