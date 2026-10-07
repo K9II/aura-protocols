@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-vi.mock("@/app/admin/inquiries/actions", () => ({ replyAction: vi.fn() }));
+vi.mock("@/app/admin/inquiries/actions", () => ({ replyAction: vi.fn(), saveDraftAction: vi.fn(), discardDraftAction: vi.fn() }));
 import ReplyBox from "@/components/admin/inquiries/ReplyBox";
 
 describe("ReplyBox", () => {

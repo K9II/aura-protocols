@@ -12,7 +12,10 @@ vi.mock("@/lib/inquiries/data", () => ({ getThread: m.getThread, applyInquiryEve
 vi.mock("@/lib/customers/data", () => ({ getCustomerDetail: m.getCustomerDetail }));
 vi.mock("@/lib/orders", () => ({ getOrderByNumber: m.getOrderByNumber }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => NOW }));
-vi.mock("@/app/admin/inquiries/actions", () => ({ replyAction: vi.fn(), statusAction: vi.fn(), topicAction: vi.fn(), linkAction: vi.fn(), unlinkAction: vi.fn() }));
+vi.mock("@/app/admin/inquiries/actions", () => ({
+  replyAction: vi.fn(), statusAction: vi.fn(), topicAction: vi.fn(), linkAction: vi.fn(), unlinkAction: vi.fn(),
+  saveDraftAction: vi.fn(), discardDraftAction: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
 import InquiryPage from "@/app/admin/inquiries/[ref]/page";
 
@@ -116,5 +119,32 @@ describe("/admin/inquiries/[ref]", () => {
     expect(screen.queryByRole("button", { name: "Re-open" })).toBeNull();
     expect(screen.queryByRole("combobox", { name: "Topic" })).toBeNull();
     expect(screen.queryByText("Link account", { exact: false })).toBeNull();
+  });
+
+  it("Assistant: the reply box drafts instead of sending", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff({ id: "o1" }));
+    render(await InquiryPage(params("Q-1047")));
+    expect(screen.getByText("Draft a reply to", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("Alvester reviews and sends", { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Save draft/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Send" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Send and close" })).toBeNull();
+    expect(screen.getByText("Checked for compliance when you save")).toBeInTheDocument();
+  });
+
+  it("Owner with a saved draft: a bar naming the drafter with Discard draft, the textarea pre-filled, Send buttons present", async () => {
+    m.getThread.mockResolvedValue({
+      inquiry: { ...inquiry(), token: "t", draft_body: "Thanks, Dana — shipping replacements.", draft_by: "asst1", draft_at: "2026-10-06T14:06:00Z" },
+      messages: [msg({ body_text: "Here you go." })],
+      events: [],
+      draftByName: "Assistant (Claude)",
+    });
+    render(await InquiryPage(params("Q-1047")));
+    expect(screen.getByText("Draft by Assistant (Claude)", { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Discard draft" })).toBeInTheDocument();
+    const box = screen.getByRole("textbox", { name: "Reply" }) as HTMLTextAreaElement;
+    expect(box.value).toBe("Thanks, Dana — shipping replacements.");
+    expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send and close" })).toBeInTheDocument();
   });
 });

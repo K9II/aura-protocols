@@ -81,6 +81,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
   const unmatched = tab === "unmatched" ? await listUnmatched() : null;
   const lastPage = list ? Math.max(1, Math.ceil(list.total / INQUIRIES_PER_PAGE)) : 1;
   const oldest = tab === "open" && list?.rows[0] ? waitInfo(list.rows[0], nowMs) : null;
+  const draftsOnPage = list ? list.rows.filter((r) => r.draft_body).length : 0;
 
   return (
     <div className="a-page">
@@ -129,7 +130,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
                   <td><span className="a-topic">{TOPIC_TAG[r.topic]}</span></td>
                   <td><Link href={link} style={{ color: "inherit", textDecoration: "none" }}><div className="a-prev">{preview(r)}</div></Link></td>
                   <td>{w ? <span className={`a-qwait${w.late ? " red" : ""}`}>{w.text}<small>{r.status === "waiting" ? "since our reply" : `since ${whenText(w.since, nowMs)}`}</small></span> : <span className="muted">—</span>}</td>
-                  <td><span className={`a-chip ${chip.tone}`}>{chip.text}</span></td>
+                  <td><span className="a-chips"><span className={`a-chip ${chip.tone}`}>{chip.text}</span>{r.draft_body && <span className="a-chip asst">Draft ready</span>}</span></td>
                 </tr>
               );
             })}</tbody>
@@ -141,12 +142,13 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
               <Link key={r.id} href={`/admin/inquiries/${refLabel(r.ref)}`} className="a-pq">
                 <b>{fromName(r)}</b>{w ? <span className={`a-qwait${w.late ? " red" : ""}`}>{w.text}</span> : <span />}
                 <div className="pv">{r.last_preview ?? ""}</div>
-                <div className="meta"><span className="a-topic">{TOPIC_TAG[r.topic]}</span><span className={`a-chip ${chip.tone}`}>{chip.text}</span><span className="a-qref">{refLabel(r.ref)}</span></div>
+                <div className="meta"><span className="a-topic">{TOPIC_TAG[r.topic]}</span><span className={`a-chip ${chip.tone}`}>{chip.text}</span>{r.draft_body && <span className="a-chip asst">Draft ready</span>}<span className="a-qref">{refLabel(r.ref)}</span></div>
               </Link>
             );
           })}</div>
           <div className="a-tfoot">
-            {tab === "open" ? `${counts.open} open${oldest ? ` · oldest waiting ${businessDayText(oldest.since, nowMs)}` : ""}` : `Showing ${(page - 1) * INQUIRIES_PER_PAGE + 1}–${Math.min(page * INQUIRIES_PER_PAGE, list.total)} of ${list.total.toLocaleString("en-US")}`}
+            {(tab === "open" ? `${counts.open} open${oldest ? ` · oldest waiting ${businessDayText(oldest.since, nowMs)}` : ""}` : `Showing ${(page - 1) * INQUIRIES_PER_PAGE + 1}–${Math.min(page * INQUIRIES_PER_PAGE, list.total)} of ${list.total.toLocaleString("en-US")}`)
+              + (draftsOnPage > 0 ? ` · ${draftsOnPage} draft${draftsOnPage === 1 ? "" : "s"} ready` : "")}
             <div className="r">
               {page > 1 && <Link className="a-btn sm" href={href({ page: page - 1 })}>Previous</Link>}
               {page < lastPage && <Link className="a-btn sm" href={href({ page: page + 1 })}>Next</Link>}

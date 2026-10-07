@@ -77,6 +77,7 @@ function Message({ m, name, inquiryEmail, wholesale, nowMs }: { m: ThreadMessage
 export default async function InquiryPage({ params }: { params: Promise<{ ref: string }> }) {
   const owner = await requirePermission("inquiries.view");
   const canReply = can(owner, "inquiries.reply");
+  const canDraft = can(owner, "inquiries.draft");
   const { ref: raw } = await params;
   const ref = parseRef(raw);
   if (!ref) notFound();
@@ -107,6 +108,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
   const allFiles = t.messages.flatMap((m) => m.files);
   const files = allFiles.length;
   const filesWord = allFiles.every((f) => isPhoto(f.content_type)) ? "photo" : "attachment";
+  const draft = i.draft_body ? { body: i.draft_body, byName: t.draftByName ?? "Someone", at: whenText(i.draft_at!, nowMs) } : null;
 
   return (
     <div className="a-page">
@@ -129,8 +131,11 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
       <div className="a-iq-grid">
         <div className="a-conv">
           {t.messages.map((m) => <Message key={m.id} m={m} name={wholesale && i.organization ? `${i.name} · ${i.organization}` : i.name} inquiryEmail={i.email} wholesale={wholesale} nowMs={nowMs} />)}
-          <ReplyBox key={t.messages.length} inquiryId={i.id} clientKey={randomUUID()} to={i.email} from={SUPPORT_EMAIL}
-            signature={REPLY_SIGNATURE} saved={saved.map((s) => ({ id: s.id, name: s.name, body: s.body }))} />
+          {(canReply || canDraft) && (
+            <ReplyBox key={t.messages.length} inquiryId={i.id} clientKey={randomUUID()} to={i.email} from={SUPPORT_EMAIL}
+              signature={REPLY_SIGNATURE} saved={saved.map((s) => ({ id: s.id, name: s.name, body: s.body }))}
+              mode={canReply ? "send" : "draft"} draft={draft} />
+          )}
         </div>
 
         <div className="a-rail">

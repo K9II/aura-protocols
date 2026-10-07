@@ -29,7 +29,8 @@ const healthyRun = { started_at: "2026-10-06T15:28:00Z", finished_at: "2026-10-0
 const overview = { confirmed: 2310, pending: 96, unsubscribed: 141, sent_30d: 1460, sent_prior_30d: 1200, bounces_30d: 10, complaints_30d: 0 };
 const todo = (o: Partial<InquiryTodo> = {}): InquiryTodo => ({
   ref: 1047, topic: "order", name: "Dana Whitfield", organization: null, status: "needs_reply", waiting_since: null,
-  last_preview: "Here you go — both vials and the box.", last_customer_at: "2026-10-03T22:12:00Z", created_at: "2026-10-03T20:48:00Z", file_count: 3, ...o,
+  last_preview: "Here you go — both vials and the box.", last_customer_at: "2026-10-03T22:12:00Z", created_at: "2026-10-03T20:48:00Z", file_count: 3,
+  draft_at: null, ...o,
 });
 
 describe("alert rules", () => {
@@ -173,6 +174,11 @@ describe("to-do sections", () => {
     expect(s.lines[1]).toMatchObject({ title: "Wholesale · Meridian Peptide Lab", age: { text: "1 day", late: true } });
     expect(s.lines[2]).toMatchObject({ title: "Product · Marcus Lee", tone: "mut", age: { text: "2 h", late: false } });
     expect(inquiriesSection({ count: 0, oldest: [] }, NOW)).toBeNull();
+  });
+
+  it("inquiries: a line whose inquiry has a draft shows 'Review draft' instead of 'Reply'", () => {
+    const s = inquiriesSection({ count: 1, oldest: [todo({ draft_at: "2026-10-06T14:06:00Z" })] }, NOW)!;
+    expect(s.lines[0].action).toEqual({ label: "Review draft", href: "/admin/inquiries/Q-1047" });
   });
 
   it("excerpt cuts long text at the character cap with an ellipsis", () => {

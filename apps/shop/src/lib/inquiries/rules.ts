@@ -20,6 +20,7 @@ export type InquiryRow = {
   subject: string; created_at: string; last_activity_at: string; last_customer_at: string | null;
   waiting_since: string | null; closed_at: string | null;
   last_preview: string | null; last_from: "customer" | "owner" | null; message_count: number; file_count: number;
+  draft_body: string | null; draft_by: string | null; draft_at: string | null;
 };
 
 // Every status change goes through this table (lib/inquiries/data.ts
@@ -104,7 +105,9 @@ export function historyText(e: HistoryRow): string {
     case "created": return e.detail === "wholesale" ? "Received from the wholesale form" : "Received from contact form";
     case "customer_replied": return `Customer replied${e.detail ? ` · ${e.detail}` : ""}`;
     case "opened": return `Opened${by}`;
-    case "replied": return `Replied${by}`;
+    case "replied": return `Replied${by}${e.detail ? ` · ${e.detail}` : ""}`;
+    case "draft_saved": return `Draft saved${by}`;
+    case "draft_discarded": return `Draft discarded${by}`;
     case "closed": return `Closed${by}`;
     case "reopened": return `Re-opened${by}`;
     case "auto_closed": return `Closed automatically after ${INQUIRY_AUTO_CLOSE_DAYS} days`;

@@ -68,6 +68,16 @@ describe("/admin/inquiries", () => {
     expect(m.listInquiries).not.toHaveBeenCalled();
   });
 
+  it("a draft on a row shows a Draft ready chip, and the footer counts drafts on this page", async () => {
+    m.listInquiries.mockResolvedValue({ total: 2, rows: [
+      inquiry({ customer_id: "c1", draft_body: "Thanks — shipping replacements." }),
+      inquiry({ id: "i2", ref: 1049, topic: "wholesale", status: "new", name: "P. Osei", organization: "Meridian Peptide Lab", email: "p.osei@meridianlab.org", customer_id: null, last_from: "customer", message_count: 1, last_preview: "Looking for 200+ vials monthly", last_customer_at: "2026-10-05T15:40:00Z" }),
+    ] });
+    render(await InquiriesPage(sp()));
+    expect(screen.getAllByText("Draft ready").length).toBeGreaterThan(0);
+    expect(screen.getByText(/1 draft ready/)).toBeInTheDocument();
+  });
+
   it("Assistant: no Dismiss or Attach on Unmatched", async () => {
     m.requirePermission.mockResolvedValue(assistantStaff());
     m.listUnmatched.mockResolvedValue({

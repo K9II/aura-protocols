@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
-import { NOW } from "../../helpers/inquiry-fixtures";
+import { NOW, inquiry } from "../../helpers/inquiry-fixtures";
 
 const db = vi.hoisted(() => ({ rpc: vi.fn(), from: null as null | ((t: string) => unknown), storage: { from: vi.fn() } }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ rpc: db.rpc, from: (t: string) => db.from!(t), storage: db.storage }) }));
@@ -152,6 +152,45 @@ describe("inquiries data", () => {
     const { inquiriesNavCount } = await import("@/lib/inquiries/data");
     expect(await inquiriesNavCount()).toBe(0);
     spy.mockRestore();
+  });
+
+  it("saveInquiryDraft: sets body, author and timestamp; throws on error", async () => {
+    const upd = query({ data: [{ id: "i1" }] });
+    db.from = fromQueue({ inquiries: [upd] });
+    const { saveInquiryDraft } = await import("@/lib/inquiries/data");
+    await saveInquiryDraft({ id: "i1", body: "Thanks —", actorId: "a1" });
+    expect(callArgs(upd, "update")).toEqual([{ draft_body: "Thanks —", draft_by: "a1", draft_at: new Date(NOW).toISOString() }]);
+    expect(callArgs(upd, "eq")).toEqual(["id", "i1"]);
+    db.from = fromQueue({ inquiries: [query({ error: { message: "down" } })] });
+    await expect(saveInquiryDraft({ id: "i1", body: "x", actorId: "a1" })).rejects.toThrow(/inquiry draft save/);
+  });
+
+  it("clearInquiryDraft: nulls draft_body, draft_by and draft_at; throws on error", async () => {
+    const upd = query({ data: [{ id: "i1" }] });
+    db.from = fromQueue({ inquiries: [upd] });
+    const { clearInquiryDraft } = await import("@/lib/inquiries/data");
+    await clearInquiryDraft("i1");
+    expect(callArgs(upd, "update")).toEqual([{ draft_body: null, draft_by: null, draft_at: null }]);
+    db.from = fromQueue({ inquiries: [query({ error: { message: "down" } })] });
+    await expect(clearInquiryDraft("i1")).rejects.toThrow(/inquiry draft clear/);
+  });
+
+  it("getThread: a draft's author is named in full (not trimmed to a first name) — one extra query", async () => {
+    const inqQ = query({ data: { ...inquiry({ id: "i1" }), token: "t", draft_body: "Thanks —", draft_by: "a1", draft_at: "2026-10-06T14:06:00Z" } });
+    const custQ = query({ data: { full_name: "Assistant (Claude)" } });
+    db.from = fromQueue({ inquiries: [inqQ], inquiry_messages: [query({ data: [] })], inquiry_events: [query({ data: [] })], customers: [custQ] });
+    const { getThread } = await import("@/lib/inquiries/data");
+    const t = await getThread(1047);
+    expect(t?.draftByName).toBe("Assistant (Claude)");
+    expect(callArgs(custQ, "eq")).toEqual(["id", "a1"]);
+  });
+
+  it("getThread: no draft → draftByName is null, no extra query", async () => {
+    const inqQ = query({ data: { ...inquiry({ id: "i1" }), token: "t" } });
+    db.from = fromQueue({ inquiries: [inqQ], inquiry_messages: [query({ data: [] })], inquiry_events: [query({ data: [] })] });
+    const { getThread } = await import("@/lib/inquiries/data");
+    const t = await getThread(1047);
+    expect(t?.draftByName).toBeNull();
   });
 
   it("recordInbound: the function's verdict, errors throw", async () => {
