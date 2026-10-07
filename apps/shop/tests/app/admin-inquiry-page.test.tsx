@@ -35,6 +35,13 @@ describe("/admin/inquiries/[ref]", () => {
     });
   });
 
+  it("signs replies as Alvester, never the owner's account name", async () => {
+    render(await InquiryPage(params("Q-1047")));
+    const box = screen.getByRole("textbox", { name: "Reply" }) as HTMLTextAreaElement;
+    expect(box.value).toContain("— Alvester, Aura Protocols");
+    expect(box.value).not.toMatch(/Kearney/);
+  });
+
   it("404s a bad ref or an unknown inquiry", async () => {
     await expect(InquiryPage(params("AP-1"))).rejects.toThrow("NOT_FOUND");
     m.getThread.mockResolvedValue(null);

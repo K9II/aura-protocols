@@ -9,6 +9,7 @@ import { getCustomerDetail } from "@/lib/customers/data";
 import { getOrderByNumber } from "@/lib/orders";
 import { STATUS_CHIP, firstName, historyText, parseRef, refLabel } from "@/lib/inquiries/rules";
 import { TOPICS, TOPIC_LABEL } from "@/lib/inquiries/topics";
+import { REPLY_SIGNATURE } from "@/lib/inquiries/constants";
 import { sameEmail } from "@/lib/inquiries/match";
 import { SUPPORT_EMAIL } from "@/lib/constants";
 import { STATUS_LABEL } from "@/lib/order-status";
@@ -127,7 +128,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
         <div className="a-conv">
           {t.messages.map((m) => <Message key={m.id} m={m} name={wholesale && i.organization ? `${i.name} · ${i.organization}` : i.name} inquiryEmail={i.email} wholesale={wholesale} nowMs={nowMs} />)}
           <ReplyBox key={t.messages.length} inquiryId={i.id} clientKey={randomUUID()} to={i.email} from={SUPPORT_EMAIL}
-            signature={`— ${firstName(owner.fullName)}, Aura Protocols`} saved={saved.map((s) => ({ id: s.id, name: s.name, body: s.body }))} />
+            signature={REPLY_SIGNATURE} saved={saved.map((s) => ({ id: s.id, name: s.name, body: s.body }))} />
         </div>
 
         <div className="a-rail">

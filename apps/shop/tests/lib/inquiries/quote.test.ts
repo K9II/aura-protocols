@@ -58,6 +58,15 @@ describe("cutQuoted", () => {
     expect(cutQuoted(input)).toEqual({ body, cut: true });
   });
 
+  it("drops the Outlook mobile footer (live check 2026-10-06)", () => {
+    const outlookAndroid = [
+      "Thx- Found it !", "", "Get Outlook for Android<https://aka.ms/AAb9ysg>", "________________________________",
+      "From: Aura Protocols <support@auraprotocols.com>", "Sent: Tuesday, 06 October 2026 17:04:25", "To: k9misc@gmail.com",
+      "Subject: Re: Order question [Q-1002]", "", "Earlier text",
+    ].join("\n");
+    expect(cutQuoted(outlookAndroid).body).toBe("Thx- Found it !");
+  });
+
   it("CRLF line endings", () => {
     expect(cutQuoted(APPLE.replace(/\n/g, "\r\n")).body).toBe("Perfect.");
   });

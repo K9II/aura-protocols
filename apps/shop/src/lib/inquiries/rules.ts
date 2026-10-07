@@ -77,7 +77,7 @@ export function waitInfo(i: Pick<InquiryRow, "status" | "last_customer_at" | "cr
 // the per-row clock (waitText, calendar days/hours/minutes).
 export function businessDayText(sinceIso: string, nowMs: number): string {
   const n = businessDaysSince(sinceIso, nowMs);
-  return `${n} business day${n === 1 ? "" : "s"}`;
+  return n === 0 ? "under a business day" : `${n} business day${n === 1 ? "" : "s"}`;
 }
 
 export const refLabel = (ref: number) => `Q-${ref}`;

@@ -55,6 +55,7 @@ describe("waiting clock", () => {
   it("businessDayText: the list footer's figure, distinct from the calendar waitText", () => {
     expect(businessDayText("2026-10-03T22:12:00Z", NOW)).toBe("2 business days");
     expect(businessDayText("2026-10-05T15:40:00Z", NOW)).toBe("1 business day");
+    expect(businessDayText(new Date(NOW - 60_000).toISOString(), NOW)).toBe("under a business day");
   });
 });
 

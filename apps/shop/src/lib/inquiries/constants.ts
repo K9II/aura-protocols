@@ -46,3 +46,7 @@ export const THREAD_REFS_MAX = 20;
 
 export const INQUIRIES_PER_PAGE = 50;
 export const PREVIEW_CHARS = 90;
+
+// Every owner reply is signed by the business persona, never the owner's
+// account name (owner rule 2026-10-06: always "Alvester").
+export const REPLY_SIGNATURE = "— Alvester, Aura Protocols";

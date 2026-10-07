@@ -10,7 +10,8 @@ const HEADER_FROM = /^\*?from:\*?\s/i;
 const HEADER_NEXT = /^\*?(sent|date|to|subject|cc):\*?\s/i;
 const SIG = /^--\s*$/;
 const QUOTED = /^>/;
-const SENT_FROM = /^sent from my\s.+$/i;
+// Phone-app footers ("Sent from my iPhone", "Get Outlook for Android<https://aka.ms/…>").
+const SENT_FROM = /^(sent from my\s.+|get outlook for (android|ios)\b.*|sent from (yahoo )?mail for (android|ios|iphone)\b.*|sent from outlook for (android|ios)\b.*)$/i;
 
 export function cutQuoted(input: string): { body: string; cut: boolean } {
   const text = input.replace(/\r\n?/g, "\n");
