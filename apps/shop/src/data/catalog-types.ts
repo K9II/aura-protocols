@@ -43,8 +43,7 @@ export type CatalogEntry<C extends string = string> = {
 export type LiveVariant = VariantContent & {
   shown: boolean;          // strength shown on the store (LiveCatalog.shown keeps only these)
   priceUsd: number;
-  stock: StockState;
-  availableVials: number;
+  stock: StockState;       // the only stock signal that leaves the server: never send counts to the browser
   lot: Lot | PendingLot;   // lot selling now; else the last live lot (sold out); else pending
 };
 

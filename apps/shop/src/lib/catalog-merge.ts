@@ -75,7 +75,7 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
       const lot: Lot | PendingLot = selling ? toLot(selling, coaUrl) : { pending: true };
       variants.push({
         id: row.variant_id, strength: row.strength, shown: row.shown,
-        priceUsd: row.price_cents / 100, stock: stockState(availableVials, row.low_at), availableVials, lot,
+        priceUsd: row.price_cents / 100, stock: stockState(availableVials, row.low_at), lot,
       });
     }
     if (!variants.length) continue;

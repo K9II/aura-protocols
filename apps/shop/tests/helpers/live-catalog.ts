@@ -11,7 +11,7 @@ export function liveFixture(over: Record<string, Partial<Compound["variants"][nu
     ...c,
     variants: SEED_STRENGTHS[c.slug].map((strength) => {
       const id = strengthId(strength);
-      return { id, strength, shown: true, priceUsd: 79, stock: "in" as const, availableVials: 100, lot: LOT, ...over[`${c.slug}:${id}`] };
+      return { id, strength, shown: true, priceUsd: 79, stock: "in" as const, lot: LOT, ...over[`${c.slug}:${id}`] };
     }),
   })) as Compound[];
 }

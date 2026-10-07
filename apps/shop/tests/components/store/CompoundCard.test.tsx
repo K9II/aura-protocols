@@ -8,7 +8,7 @@ const lot = { lot: "AP-0001", purityPct: 99.6, method: "HPLC" as const, testedOn
 const c: Compound = {
   slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {},
   form: "x", storage: "x", vialMl: 3,
-  variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", availableVials: 40, lot }, { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "in", availableVials: 40, lot }],
+  variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", lot }, { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "in", lot }],
   packDiscounts: [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }],
 };
 
@@ -28,13 +28,13 @@ describe("CompoundCard", () => {
   });
 
   it("shows COA pending instead of the tag and purity", () => {
-    render(<CompoundCard compound={{ ...c, variants: c.variants.map((v) => ({ ...v, stock: "out" as const, availableVials: 0, lot: { pending: true as const } })) }} />);
+    render(<CompoundCard compound={{ ...c, variants: c.variants.map((v) => ({ ...v, stock: "out" as const, lot: { pending: true as const } })) }} />);
     expect(screen.getByText("COA pending")).toBeInTheDocument();
     expect(screen.queryByText("◇ COA on file")).toBeNull();
   });
 
   it("takes the lot line from the first strength with a released lot", () => {
-    render(<CompoundCard compound={{ ...c, variants: [{ ...c.variants[0], stock: "out", availableVials: 0, lot: { pending: true } }, c.variants[1]] }} />);
+    render(<CompoundCard compound={{ ...c, variants: [{ ...c.variants[0], stock: "out", lot: { pending: true } }, c.variants[1]] }} />);
     expect(screen.getByText("99.6% · tested")).toBeInTheDocument();
   });
 
