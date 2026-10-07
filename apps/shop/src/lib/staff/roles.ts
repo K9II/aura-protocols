@@ -32,6 +32,11 @@ export type Staff = {
   permissions: ReadonlySet<Permission>;
 };
 
-export function can(staff: Pick<Staff, "status" | "permissions"> | null | undefined, p: Permission): boolean {
+// Generic (not Pick<Staff, ...>) so a test can pass `{ ...owner, role: "assistant", ... }`
+// without TS's excess-property check tripping on the extra `role` key.
+export function can<T extends { status: Staff["status"]; permissions: Staff["permissions"] }>(
+  staff: T | null | undefined,
+  p: Permission,
+): boolean {
   return !!staff && staff.status === "active" && staff.permissions.has(p);
 }

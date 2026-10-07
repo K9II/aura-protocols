@@ -7,6 +7,8 @@ let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () => ({ auth: { getUser } }) }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
 vi.mock("@/lib/partners/data", () => ({ getPartnerForCustomer }));
+const readStaffRow = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/staff/data", () => ({ readStaffRow }));
 const adminPath = vi.hoisted(() => ({ value: null as string | null }));
 vi.mock("next/headers", () => ({ headers: async () => ({ get: (k: string) => (k === "x-admin-path" ? adminPath.value : null) }) }));
 vi.mock("next/navigation", () => ({
@@ -182,5 +184,45 @@ describe("DAL", () => {
     expect(await customerStatus("u1")).toBe("ok");
     expect(await customerStatus("u1")).toBe("blocked");
     await expect(customerStatus("u1")).rejects.toThrow(/customer read failed/);
+  });
+});
+
+describe("staff", () => {
+  beforeEach(() => { vi.resetModules(); getUser.mockReset(); readStaffRow.mockReset(); adminPath.value = "/admin/orders"; });
+  const signedIn = () => { getUser.mockResolvedValue({ data: { user: { id: "u1", email: "j@lab.org" } }, error: null }); from = fromQueue({ customers: [query({ data: row }), query({ data: row })] }); };
+
+  it("requirePermission returns the staff member when the role has it", async () => {
+    signedIn(); readStaffRow.mockResolvedValue({ role: "owner", status: "active" });
+    const { requirePermission } = await import("@/lib/dal");
+    const s = await requirePermission("orders.ship");
+    expect(s).toMatchObject({ id: "u1", role: "owner", isAssistant: false, status: "active" });
+    expect(s.permissions.has("staff.manage")).toBe(true);
+  });
+  it("the Assistant gets 404 on an owner-only permission", async () => {
+    signedIn(); readStaffRow.mockResolvedValue({ role: "assistant", status: "active" });
+    const { requirePermission } = await import("@/lib/dal");
+    await expect(requirePermission("payouts.mark_paid")).rejects.toThrow("NOT_FOUND");
+    await expect(requirePermission("inquiries.draft")).resolves.toMatchObject({ isAssistant: true });
+  });
+  it("a disabled login and a non-staff customer get 404", async () => {
+    signedIn(); readStaffRow.mockResolvedValueOnce({ role: "owner", status: "disabled" }).mockResolvedValueOnce(null);
+    const { requirePermission } = await import("@/lib/dal");
+    await expect(requirePermission("orders.view")).rejects.toThrow("NOT_FOUND");
+    await expect(requirePermission("orders.view")).rejects.toThrow("NOT_FOUND");
+  });
+  it("signed out → sign in and come back", async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: null });
+    const { requirePermission } = await import("@/lib/dal");
+    await expect(requirePermission("orders.view")).rejects.toThrow("REDIRECT:/sign-in?next=%2Fadmin%2Forders");
+  });
+  it("a staff read error throws (never treated as no permission or as permission)", async () => {
+    signedIn(); readStaffRow.mockRejectedValue(new Error("staff read failed"));
+    const { requirePermission } = await import("@/lib/dal");
+    await expect(requirePermission("orders.view")).rejects.toThrow("staff read failed");
+  });
+  it("requireStaff lets any active login in", async () => {
+    signedIn(); readStaffRow.mockResolvedValue({ role: "assistant", status: "active" });
+    const { requireStaff } = await import("@/lib/dal");
+    await expect(requireStaff()).resolves.toMatchObject({ role: "assistant" });
   });
 });

@@ -7,6 +7,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import type { ShipAddress } from "@/lib/ship-address";
 import { getPartnerForCustomer, type PartnerRow } from "@/lib/partners/data";
+import { readStaffRow } from "@/lib/staff/data";
+import { rolePermissions, type Staff } from "@/lib/staff/roles";
+import type { Permission } from "@/lib/staff/permissions";
 
 // Data Access Layer (Next 16 auth guide): every account page, order action,
 // route handler and the owner page calls these next to the data. proxy.ts only
@@ -137,9 +140,43 @@ export async function requireCustomer(nextPath: string): Promise<Customer> {
 }
 
 // Signed out → sign in and come back to the same admin page (proxy.ts passes
-// it as x-admin-path). Signed in but not the owner → 404, so the admin stays
-// invisible to customers.
+// it as x-admin-path). Signed in but not staff, disabled, or missing the
+// permission → 404, so the admin stays invisible.
 export const ADMIN_PATH_HEADER = "x-admin-path";
+
+// The command center's one gatekeeper (spec 2026-10-06-admin-staff-logins-design.md).
+// A staff login = a customer account + an active staff row. Read fresh on
+// every request, so Disable takes effect on the next click. A read error throws.
+export const getStaff = cache(async (): Promise<Staff | null> => {
+  const customer = await getCustomer();
+  if (!customer) return null;
+  const row = await readStaffRow(customer.id);
+  if (!row || row.status !== "active") return null;
+  return {
+    id: customer.id, email: customer.email, fullName: customer.fullName,
+    role: row.role, status: row.status, isAssistant: row.role === "assistant",
+    permissions: rolePermissions(row.role),
+  };
+});
+
+async function denied(): Promise<never> {
+  if (!(await verifySession())) {
+    const path = (await headers()).get(ADMIN_PATH_HEADER);
+    redirect(`/sign-in?next=${encodeURIComponent(safeNext(path, "/admin"))}`);
+  }
+  notFound();
+}
+
+export async function requireStaff(): Promise<Staff> {
+  return (await getStaff()) ?? denied();
+}
+
+export async function requirePermission(p: Permission): Promise<Staff> {
+  const staff = await getStaff();
+  if (staff?.permissions.has(p)) return staff;
+  return denied();
+}
+
 export async function requireOwner(): Promise<Customer> {
   const customer = await getCustomer();
   if (customer?.isOwner) return customer;
