@@ -290,7 +290,19 @@ describe("partner ledger", () => {
     const { listPayoutHistory } = await import("@/lib/partners/ledger");
     expect(await listPayoutHistory(2)).toEqual({ rows: [{ id: "y1" }], total: 14 });
     expect(callArgs(q, "in")).toEqual(["status", ["paid", "credited"]]);
+    expect(q.calls.filter(([m]) => m === "order").map(([, a]) => a)).toEqual([
+      ["run_date", { ascending: false }], ["paid_at", { ascending: false }], ["id"],
+    ]);
     expect(callArgs(q, "range")).toEqual([50, 99]);
+  });
+
+  it("countPayoutHistory is a cheap head count of paid and credited payouts", async () => {
+    from = fromQueue({ payouts: [query({ count: 14 })] });
+    const { countPayoutHistory } = await import("@/lib/partners/ledger");
+    expect(await countPayoutHistory()).toBe(14);
+
+    from = fromQueue({ payouts: [query({ error: { message: "down" } })] });
+    await expect(countPayoutHistory()).rejects.toThrow(/payout history count/);
   });
 
   it("payableByPartner throws on a read error", async () => {

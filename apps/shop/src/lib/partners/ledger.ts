@@ -295,9 +295,16 @@ export const PAYOUT_PAGE_SIZE = 50;
 export async function listPayoutHistory(page: number): Promise<{ rows: PayoutRow[]; total: number }> {
   const start = (page - 1) * PAYOUT_PAGE_SIZE;
   const { data, error, count } = await db().from("payouts").select("*, partners(code, payout_method, payout_details_hint, customer_id)", { count: "exact" })
-    .in("status", ["paid", "credited"]).order("run_date", { ascending: false }).order("paid_at", { ascending: false }).range(start, start + PAYOUT_PAGE_SIZE - 1);
+    .in("status", ["paid", "credited"]).order("run_date", { ascending: false }).order("paid_at", { ascending: false }).order("id").range(start, start + PAYOUT_PAGE_SIZE - 1);
   if (error) throw dbError("payout history select", error);
   return { rows: (data as PayoutRow[] | null) ?? [], total: count ?? 0 };
+}
+
+// A cheap head count for the History count badge, shown on both Payouts tabs.
+export async function countPayoutHistory(): Promise<number> {
+  const { count, error } = await db().from("payouts").select("id", { count: "exact", head: true }).in("status", ["paid", "credited"]);
+  if (error) throw dbError("payout history count", error);
+  return count ?? 0;
 }
 
 export async function partnerLedger(partnerId: string): Promise<{
