@@ -20,7 +20,7 @@ describe("CampaignResults", () => {
     recipientCounts.mockResolvedValue({ pending: 0, sent: 2196, skipped: 0, failed: 2 });
     sendStats.mockResolvedValue(new Map([["campaign:k1", { sent: 2196, bounced: 9, complaints: 0, unsubscribed: 11 }]]));
     attribution.mockResolvedValue(new Map([["campaign:k1", { orders: 47, revenueCents: 1_890_500 }]]));
-    render(await CampaignResults({ c: c as never }));
+    render(await CampaignResults({ c: c as never, canCopy: true, canStop: true }));
     expect(screen.getAllByText("2,198").length).toBeGreaterThan(0);
     expect(screen.getAllByText("2 failed").length).toBeGreaterThan(0);
     expect(screen.getAllByText("47").length).toBeGreaterThan(0);
@@ -33,9 +33,18 @@ describe("CampaignResults", () => {
   it("sending: progress and Stop", async () => {
     recipientCounts.mockResolvedValue({ pending: 330, sent: 1977, skipped: 3, failed: 0 });
     sendStats.mockResolvedValue(new Map()); attribution.mockResolvedValue(new Map());
-    render(await CampaignResults({ c: { ...c, status: "sending", finished_at: null, recipients: 2310 } as never }));
+    render(await CampaignResults({ c: { ...c, status: "sending", finished_at: null, recipients: 2310 } as never, canCopy: true, canStop: true }));
     expect(screen.getByText("1,980 of 2,310 handled")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Stop sending/ })).toBeInTheDocument();
+  });
+
+  it("canCopy=false, canStop=false: neither action renders", async () => {
+    recipientCounts.mockResolvedValue({ pending: 330, sent: 1977, skipped: 3, failed: 0 });
+    sendStats.mockResolvedValue(new Map()); attribution.mockResolvedValue(new Map());
+    render(await CampaignResults({ c: { ...c, status: "sending", finished_at: null, recipients: 2310 } as never, canCopy: false, canStop: false }));
+    expect(screen.queryByRole("button", { name: /Stop sending/ })).toBeNull();
+    render(await CampaignResults({ c: c as never, canCopy: false, canStop: false }));
+    expect(screen.queryByRole("button", { name: /Copy as new draft/ })).toBeNull();
   });
 
   it("a send-now error after the campaign already started shows here, not just in a dialog that's gone", async () => {
@@ -44,6 +53,7 @@ describe("CampaignResults", () => {
     render(await CampaignResults({
       c: { ...c, status: "sending", finished_at: null, recipients: 2310 } as never,
       sendError: "410 sent. 5 couldn't be sent; 1,895 still to go — the hourly run will try again.",
+      canCopy: true, canStop: true,
     }));
     expect(screen.getByRole("alert")).toHaveTextContent("couldn't be sent");
   });

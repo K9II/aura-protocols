@@ -28,6 +28,9 @@ export default function ActivityLine({ i }: { i: ActivityItem }): React.ReactNod
         case "w9_opened": return <>{who} <b>opened</b> {label}&apos;s W-9</>;
         case "w9_checked": return <>{who} marked {label}&apos;s W-9 checked</>;
         case "inquiries_seen": return <>{who} marked inquiries seen</>;
+        case "staff_disabled": return <>{who} <b>disabled</b> {label ?? "a team login"}{d}</>;
+        case "staff_enabled": return <>{who} <b>enabled</b> {label ?? "a team login"}</>;
+        case "staff_signed_out": return <>{who} signed {label ?? "a team login"} out everywhere{d}</>;
       }
       return action;
     }
@@ -45,7 +48,9 @@ export default function ActivityLine({ i }: { i: ActivityItem }): React.ReactNod
       const { action, detail } = i.e;
       const on = i.label ? <> {i.label}</> : null;
       switch (action) {
-        case "replied": return <>{who} replied to{on}</>;
+        case "replied": return <>{who} replied to{on}{about(detail)}</>;
+        case "draft_saved": return <>{who} saved a reply draft on{on}</>;
+        case "draft_discarded": return <>{who} discarded the reply draft on{on}</>;
         case "closed": return <>{who} <b>closed</b>{on}</>;
         case "reopened": return <>{who} <b>re-opened</b>{on}</>;
         case "topic_changed": return <>{who} changed the topic of{on} to <b>{detail}</b></>;

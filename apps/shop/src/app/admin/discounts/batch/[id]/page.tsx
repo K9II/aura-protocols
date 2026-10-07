@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { getBatch, getCodeById, listBatchCodes, listEvents } from "@/lib/discounts/data";
 import { describeRule, termsFromRow } from "@/lib/discounts/rules";
 import { batchStatus } from "@/lib/discounts/list";
@@ -18,7 +19,7 @@ export const metadata: Metadata = { title: "Batch", robots: { index: false, foll
 const PAGE = 40;
 
 export default async function BatchPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string; show?: string; all?: string }> }) {
-  await requireOwner();
+  const staff = await requirePermission("discounts.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const sp = await searchParams;
@@ -47,10 +48,10 @@ export default async function BatchPage({ params, searchParams }: { params: Prom
       <div className="a-dh">
         <span className="bigcode">{batch.prefix}·····</span><StatusChip status={status} />
         <div className="actions">
-          <Link className="a-btn" href={`/admin/discounts/${first.id}/edit`}><Icon name="edit" />Edit rule</Link>
-          {stored === "active" && (status === "active" || status === "scheduled") && <form action={setCodeStateAction}>{hidden("paused")}<button className="a-btn" type="submit"><Icon name="pause" />Pause all</button></form>}
-          {stored === "paused" && status === "paused" && <form action={setCodeStateAction}>{hidden("active")}<button className="a-btn" type="submit"><Icon name="play" />Resume all</button></form>}
-          {stored !== "ended" && status !== "ended" && (
+          {can(staff, "discounts.edit") && <Link className="a-btn" href={`/admin/discounts/${first.id}/edit`}><Icon name="edit" />Edit rule</Link>}
+          {can(staff, "discounts.edit") && stored === "active" && (status === "active" || status === "scheduled") && <form action={setCodeStateAction}>{hidden("paused")}<button className="a-btn" type="submit"><Icon name="pause" />Pause all</button></form>}
+          {can(staff, "discounts.edit") && stored === "paused" && status === "paused" && <form action={setCodeStateAction}>{hidden("active")}<button className="a-btn" type="submit"><Icon name="play" />Resume all</button></form>}
+          {can(staff, "discounts.edit") && stored !== "ended" && status !== "ended" && (
             <form action={setCodeStateAction}>{hidden("ended")}<ConfirmSubmit className="a-btn danger" message="End every code in this batch? This can't be undone."><Icon name="stop" />End all</ConfirmSubmit></form>
           )}
         </div>

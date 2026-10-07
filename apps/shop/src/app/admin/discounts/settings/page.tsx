@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { discountDashboard, getDiscountCap, listEvents } from "@/lib/discounts/data";
 import { usd } from "@/lib/html";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
@@ -11,7 +11,7 @@ import { Crumbs, Icon } from "@/components/admin/ui";
 export const metadata: Metadata = { title: "Discount settings", robots: { index: false, follow: false } };
 
 export default async function DiscountSettingsPage() {
-  await requireOwner();
+  await requirePermission("discounts.settings");
   const [cap, dash, capEvents] = await Promise.all([getDiscountCap(), discountDashboard(), listEvents({ settings: true })]);
   const steps = [
     ["Item discounts", `Per item, the larger of pack, partner, new-account ${NEW_ACCOUNT_PCT}% or an item-% code`],

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ownerStaff } from "../helpers/staff";
 
-const requireOwner = vi.fn();
+const requirePermission = vi.fn();
 const audit = vi.hoisted(() => ({ logAdminEvent: vi.fn(), recordAdminEvent: vi.fn() }));
 const getPartnerById = vi.fn();
 const setPartnerStatus = vi.fn();
@@ -8,7 +9,7 @@ const partnerEmail = vi.fn();
 const forfeitUnpaid = vi.fn();
 const sendOrAlert = vi.fn();
 const revalidatePath = vi.fn();
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/audit/data", () => audit);
 vi.mock("@/lib/partners/data", () => ({ getPartnerById, setPartnerStatus, partnerEmail }));
 vi.mock("@/lib/partners/ledger", () => ({ forfeitUnpaid }));
@@ -22,14 +23,14 @@ const id = "11111111-1111-4111-8111-111111111111";
 describe("partner admin actions", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requireOwner, getPartnerById, setPartnerStatus, partnerEmail, forfeitUnpaid, sendOrAlert, revalidatePath]) f.mockReset();
-    requireOwner.mockResolvedValue({ id: "owner" });
+    for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requirePermission, getPartnerById, setPartnerStatus, partnerEmail, forfeitUnpaid, sendOrAlert, revalidatePath]) f.mockReset();
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     setPartnerStatus.mockResolvedValue(true);
     partnerEmail.mockResolvedValue("sam@smithlab.org");
   });
 
   it("is owner-only", async () => {
-    requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const { setPartnerStatusAction } = await import("@/app/admin/partners/actions");
     await expect(setPartnerStatusAction(fd({ partnerId: id, to: "approved" }))).rejects.toThrow("NOT_FOUND");
     expect(setPartnerStatus).not.toHaveBeenCalled();

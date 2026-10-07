@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
+import { readStaffRow } from "@/lib/staff/data";
 import { currentMs } from "@/lib/clock";
 import { getDisputeCase } from "@/lib/disputes/data";
 import { LETTER_FOR, buildEvidence, customerStrings, editable, evidenceSections, letterKind } from "@/lib/disputes/evidence";
@@ -27,11 +29,12 @@ type Tile = { l: string; v: string; d?: string; cls?: string; phone?: boolean };
 // Respond to a chargeback (mock screen 2), or read it once submitted or
 // decided (screen 4). Spec 2026-10-05-admin-disputes-design.md.
 export default async function DisputePage({ params }: { params: Promise<{ id: string }> }) {
-  await requireOwner();
+  const staff = await requirePermission("disputes.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const c = await getDisputeCase(id);
   if (!c) notFound();
+  const isTeam = !!(await readStaffRow(c.customer.id));
   const nowMs = currentMs();
   const d = c.dispute, f = c.facts, o = f.order;
   const built = buildEvidence(f);
@@ -98,7 +101,7 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
         <div><h1>Chargeback on {o.number} <span className={`a-chip ${chip.tone}`}>{chip.text}</span></h1><p>{sub}</p></div>
         <div className="actions">
           {!respond && <a className="a-btn" href={pdfHref}><Icon name="download" />Download PDF</a>}
-          {!c.customer.blockedAt && !c.customer.isOwner && (
+          {!c.customer.blockedAt && !c.customer.isOwner && !isTeam && can(staff, "customers.block") && (
             <BlockDialog customerId={c.customer.id} name={c.customer.name} openCheckouts={c.customer.openCheckouts} label="Block customer…"
               defaultReason={`Chargeback on ${o.number} without contacting us first.`} note="Blocking doesn't change the chargeback response." />
           )}
@@ -120,6 +123,7 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
             savedText={`${d.draft_saved_at ? `Draft saved to Stripe ${dateTime(d.draft_saved_at)}` : "Not saved yet"} · the bank sees nothing until you submit`}
             summary={{ chargeback: `${o.number} · ${reasonLabel(d.reason).toLowerCase()} · ${usd(d.amount_cents)}`, shipping: o.shippedAt ? `${carrierName(o.carrier)} · shipped ${shortDate(o.shippedAt)}` : "Not shipped", pdfPages: pdf.pages }}
             pdfHref={pdfHref}
+            canSubmit={can(staff, "disputes.submit")} canSave={can(staff, "disputes.draft")}
           />
         ) : (
           <div className="a-ev">

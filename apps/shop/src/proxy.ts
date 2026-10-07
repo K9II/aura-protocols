@@ -16,7 +16,7 @@ let warnedMissingRefSecret = false;
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const { pathname, searchParams, search } = request.nextUrl;
-  // Admin pages: tell requireOwner which page a signed-out owner asked for.
+  // Admin pages: tell requirePermission which page a signed-out owner asked for.
   if (pathname === "/admin" || pathname.startsWith("/admin/")) request.headers.set("x-admin-path", pathname + search);
   let response = NextResponse.next({ request });
 

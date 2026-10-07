@@ -12,7 +12,7 @@ import { INQUIRY_PREVIEWS } from "@/lib/today/constants";
 const db = () => getSupabaseAdminClient();
 const fail = (what: string, error: unknown): never => { throw new Error(`${what} failed: ${JSON.stringify(error)}`); };
 const nowIso = () => new Date(currentMs()).toISOString();
-const COLS = "id, ref, topic, status, name, email, organization, order_number, customer_id, subject, created_at, last_activity_at, last_customer_at, waiting_since, closed_at, last_preview, last_from, message_count, file_count";
+const COLS = "id, ref, topic, status, name, email, organization, order_number, customer_id, subject, created_at, last_activity_at, last_customer_at, waiting_since, closed_at, last_preview, last_from, message_count, file_count, draft_body, draft_by, draft_at";
 export const FILES_BUCKET = "inquiry-files";
 
 export type ThreadInquiry = InquiryRow & { token: string };
@@ -128,7 +128,7 @@ async function names(ids: Array<string | null>): Promise<Map<string, string>> {
   return out;
 }
 
-export async function getThread(ref: number): Promise<{ inquiry: ThreadInquiry; messages: ThreadMessage[]; events: ThreadEvent[] } | null> {
+export async function getThread(ref: number): Promise<{ inquiry: ThreadInquiry; messages: ThreadMessage[]; events: ThreadEvent[]; draftByName: string | null } | null> {
   const inquiry = await getInquiry({ ref });
   if (!inquiry) return null;
   const [{ data: ms, error: mErr }, { data: es, error: eErr }] = await Promise.all([
@@ -149,6 +149,15 @@ export async function getThread(ref: number): Promise<{ inquiry: ThreadInquiry; 
     if (error) fail("file links", error);
     for (const s of (data ?? []) as Array<{ path: string | null; signedUrl: string }>) if (s.path) urls.set(s.path, s.signedUrl);
   }
+  // The owner's draft bar names the drafter in full ("Assistant (Claude)"),
+  // unlike the first-name-only actorName above — one extra query, only when
+  // there's a draft to show.
+  let draftByName: string | null = null;
+  if (inquiry.draft_by) {
+    const { data, error } = await db().from("customers").select("full_name").eq("id", inquiry.draft_by).maybeSingle();
+    if (error) fail("draft author read", error);
+    draftByName = (data as { full_name: string } | null)?.full_name ?? "Someone";
+  }
   return {
     inquiry,
     messages: rawMs.map(({ author_id, inquiry_attachments, ...m }) => ({
@@ -156,7 +165,27 @@ export async function getThread(ref: number): Promise<{ inquiry: ThreadInquiry; 
       files: inquiry_attachments.map(({ storage_path, ...a }) => ({ ...a, url: urls.get(storage_path) ?? null })),
     })),
     events: rawEs.map(({ actor, ...e }) => ({ ...e, actorName: actor ? who.get(actor) ?? "Someone" : null })),
+    draftByName,
   };
+}
+
+// ---------- reply drafts (the Assistant saves, the owner reviews and sends) ----------
+export async function saveInquiryDraft(d: { id: string; body: string; actorId: string }): Promise<void> {
+  const { error } = await db().from("inquiries").update({ draft_body: d.body, draft_by: d.actorId, draft_at: nowIso() }).eq("id", d.id);
+  if (error) fail("inquiry draft save", error);
+}
+
+// Clears the draft, but only if there is one (draft_at not null) — so
+// discardDraftAction can tell whether it actually cleared anything. With
+// expectedDraftAt, also requires the current draft to be the exact one the
+// caller loaded (owner's ReplyBox): if the Assistant saved a newer draft in
+// the meantime, this leaves it alone and returns false.
+export async function clearInquiryDraft(id: string, expectedDraftAt?: string): Promise<boolean> {
+  let q = db().from("inquiries").update({ draft_body: null, draft_by: null, draft_at: null }).eq("id", id).not("draft_at", "is", null);
+  if (expectedDraftAt !== undefined) q = q.eq("draft_at", expectedDraftAt);
+  const { data, error } = await q.select("id");
+  if (error) fail("inquiry draft clear", error);
+  return ((data as unknown[] | null)?.length ?? 0) > 0;
 }
 
 // RFC Message-IDs in the thread, oldest first (In-Reply-To / References).
@@ -361,10 +390,10 @@ export async function autoCloseInquiries(nowMs: number): Promise<number> {
 }
 
 // ---------- Today and the nav ----------
-export type InquiryTodo = Pick<InquiryRow, "ref" | "topic" | "name" | "organization" | "last_preview" | "last_customer_at" | "created_at" | "file_count" | "status" | "waiting_since">;
+export type InquiryTodo = Pick<InquiryRow, "ref" | "topic" | "name" | "organization" | "last_preview" | "last_customer_at" | "created_at" | "file_count" | "status" | "waiting_since" | "draft_at">;
 export async function openInquiryTodos(): Promise<{ count: number; oldest: InquiryTodo[] }> {
   const { data, error, count } = await db().from("inquiries")
-    .select("ref, topic, name, organization, last_preview, last_customer_at, created_at, file_count, status, waiting_since", { count: "exact" })
+    .select("ref, topic, name, organization, last_preview, last_customer_at, created_at, file_count, status, waiting_since, draft_at", { count: "exact" })
     .in("status", ["new", "needs_reply"]).order("last_customer_at", { ascending: true, nullsFirst: false }).limit(INQUIRY_PREVIEWS);
   if (error) fail("open inquiries read", error);
   return { count: count ?? 0, oldest: (data ?? []) as InquiryTodo[] };

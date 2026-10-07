@@ -95,5 +95,8 @@ describe("history text", () => {
     expect(historyText({ action: "auto_closed", actorName: null, detail: null })).toBe("Closed automatically after 14 days");
     expect(historyText({ action: "topic_changed", actorName: "Kearney", detail: "Wholesale" })).toBe("Topic changed to Wholesale by Kearney");
     expect(historyText({ action: "bounced", actorName: null, detail: null })).toBe("Reply bounced");
+    expect(historyText({ action: "replied", actorName: "Alvester", detail: "drafted by Assistant" })).toBe("Replied by Alvester · drafted by Assistant");
+    expect(historyText({ action: "draft_saved", actorName: "Assistant", detail: null })).toBe("Draft saved by Assistant");
+    expect(historyText({ action: "draft_discarded", actorName: "Alvester", detail: null })).toBe("Draft discarded by Alvester");
   });
 });

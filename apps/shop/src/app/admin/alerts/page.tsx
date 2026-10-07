@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { currentMs } from "@/lib/clock";
 import { listPastAlerts } from "@/lib/today/alerts";
 import { firstLine } from "@/lib/today/alert-rules";
@@ -10,7 +10,7 @@ import { Crumbs } from "@/components/admin/ui";
 export const metadata: Metadata = { title: "Past alerts", robots: { index: false, follow: false } };
 
 export default async function PastAlertsPage() {
-  await requireOwner();
+  await requirePermission("today.view");
   const alerts = await listPastAlerts(currentMs());
   return (
     <div className="a-page">

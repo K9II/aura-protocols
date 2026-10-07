@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { emailOverview, sendStats, attribution, cartRecovery } from "@/lib/email/stats";
 import { statKey, sumAttribution, sumKinds } from "@/lib/email/stat-keys";
 import { getEmailSettings, listRuns, AUTOMATION_LABEL } from "@/lib/email/admin-data";
@@ -22,9 +23,13 @@ const TABS: Array<[CampaignTab, string]> = [["all", "All"], ["draft", "Drafts"],
 const STATUS_CHIP = { draft: "draft", scheduled: "sched", sending: "sending", sent: "sent", stopped: "stopped" } as const;
 const WELCOME_SUBJECTS = ["You asked for the paperwork.", "Three ways a fake COA gives itself away", "What 99% looks like", "Who checks the lab?", "What's not on our label"];
 const n = (x: number) => x.toLocaleString("en-US");
+function AutomationState({ staff, automation, label, paused }: { staff: Awaited<ReturnType<typeof requirePermission>>; automation: "welcome" | "cart"; label: string; paused: boolean }) {
+  if (can(staff, "email.pause")) return <AutomationSwitch automation={automation} label={label} paused={paused} />;
+  return <span className={`a-chip ${paused ? "paused" : "on"}`}>{paused ? "Paused" : "On"}</span>;
+}
 
 export default async function EmailPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[]; page?: string | string[] }> }) {
-  await requireOwner();
+  const staff = await requirePermission("email.view");
   const sp = await searchParams;
   const tabRaw = first(sp.tab);
   const tab: CampaignTab = TABS.some(([t]) => t === tabRaw) ? (tabRaw as CampaignTab) : "all";
@@ -69,13 +74,13 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
       <Crumbs items={[{ label: "Email" }]} />
       <div className="a-ph">
         <div><h1>Email</h1><p>What&apos;s going out, how it&apos;s landing, and the orders that followed. Campaigns go to confirmed subscribers only.</p></div>
-        <div className="actions"><Link className="a-btn primary" href="/admin/email/campaigns/new"><Icon name="plus" />New campaign</Link></div>
+        <div className="actions">{can(staff, "email.draft") && <Link className="a-btn primary" href="/admin/email/campaigns/new"><Icon name="plus" />New campaign</Link>}</div>
       </div>
 
       <HealthStrip o={overview} />
       <RunLine last={runs[0] ?? null} />
 
-      {waiting.length > 0 && (
+      {waiting.length > 0 && can(staff, "email.draft") && (
         <form action={announceAction} className="a-waiting">
           <Icon name="flask" />
           <div><b>{waiting.length} lot{waiting.length === 1 ? "" : "s"} waiting to announce</b><div className="muted" style={{ fontSize: 12 }}>Certified, live and not emailed yet</div></div>
@@ -91,7 +96,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
           defaultExpanded
           name={AUTOMATION_LABEL.welcome}
           meta={<>&quot;The Paperwork&quot; · {WELCOME_DAYS.length} files over {WELCOME_DAYS[WELCOME_DAYS.length - 1]} days</>}
-          switchSlot={<AutomationSwitch automation="welcome" label={AUTOMATION_LABEL.welcome} paused={settings.welcomePaused} />}
+          switchSlot={<AutomationState staff={staff} automation="welcome" label={AUTOMATION_LABEL.welcome} paused={settings.welcomePaused} />}
           cells={<>
             <td className="num">{n(welcome.sent)}</td><td className="num">{n(welcome.bounced)}</td><td className="num">{n(welcome.unsubscribed)}</td>
             <td className="num">{n(welcomeAttr.orders)}</td><td className="num">{money(welcomeAttr.revenueCents)}</td>
@@ -109,7 +114,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
           defaultExpanded={false}
           name={AUTOMATION_LABEL.cart}
           meta={<>{CART_HOURS.length} reminders while the checkout is open ({CART_HOURS.join(", ")} h)</>}
-          switchSlot={<AutomationSwitch automation="cart" label={AUTOMATION_LABEL.cart} paused={settings.cartPaused} />}
+          switchSlot={<AutomationState staff={staff} automation="cart" label={AUTOMATION_LABEL.cart} paused={settings.cartPaused} />}
           cells={<>
             <td className="num">{n(carts.sent)}</td><td className="num">{n(carts.bounced)}</td><td className="num">{n(carts.unsubscribed)}</td>
             <td className="num">{n(cart.recovered)} <span className="muted">recovered</span></td><td className="num">{money(cart.revenueCents)}</td>
@@ -121,8 +126,8 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
         />
       </table>
       <div className="a-plist a-only-phone" style={{ marginBottom: 12 }}>
-        <div className="a-pauto"><b>{AUTOMATION_LABEL.welcome}</b><AutomationSwitch automation="welcome" label={AUTOMATION_LABEL.welcome} paused={settings.welcomePaused} /><div className="meta"><span><b>{n(welcome.sent)}</b> sent</span><span><b>{n(welcomeAttr.orders)}</b> orders</span><span><b>{money(welcomeAttr.revenueCents)}</b></span></div></div>
-        <div className="a-pauto"><b>{AUTOMATION_LABEL.cart}</b><AutomationSwitch automation="cart" label={AUTOMATION_LABEL.cart} paused={settings.cartPaused} /><div className="meta"><span><b>{n(carts.sent)}</b> sent</span><span><b>{n(cart.recovered)}</b> recovered</span><span><b>{money(cart.revenueCents)}</b></span></div></div>
+        <div className="a-pauto"><b>{AUTOMATION_LABEL.welcome}</b><AutomationState staff={staff} automation="welcome" label={AUTOMATION_LABEL.welcome} paused={settings.welcomePaused} /><div className="meta"><span><b>{n(welcome.sent)}</b> sent</span><span><b>{n(welcomeAttr.orders)}</b> orders</span><span><b>{money(welcomeAttr.revenueCents)}</b></span></div></div>
+        <div className="a-pauto"><b>{AUTOMATION_LABEL.cart}</b><AutomationState staff={staff} automation="cart" label={AUTOMATION_LABEL.cart} paused={settings.cartPaused} /><div className="meta"><span><b>{n(carts.sent)}</b> sent</span><span><b>{n(cart.recovered)}</b> recovered</span><span><b>{money(cart.revenueCents)}</b></span></div></div>
       </div>
 
       <div className="a-sec-h"><h3>Campaigns</h3><span>orders and revenue = paid within the {ATTRIBUTION_DAYS} days after the email</span></div>

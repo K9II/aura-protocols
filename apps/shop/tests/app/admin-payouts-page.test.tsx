@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 const m = vi.hoisted(() => ({
-  requireOwner: vi.fn(async () => ({ id: "owner" })), getPayoutDetails: vi.fn(), listPartners: vi.fn(), listW9sAwaitingCheck: vi.fn(),
+  requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), getPayoutDetails: vi.fn(), listPartners: vi.fn(), listW9sAwaitingCheck: vi.fn(),
   latestRunSummary: vi.fn(), listQueuedPayouts: vi.fn(), listPayoutHistory: vi.fn(), countPayoutHistory: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({}) }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/partners/data", () => ({ getPayoutDetails: m.getPayoutDetails, listPartners: m.listPartners, listW9sAwaitingCheck: m.listW9sAwaitingCheck }));
 vi.mock("@/lib/partners/ledger", async (orig) => {
   const real = await orig<typeof import("@/lib/partners/ledger")>();
@@ -65,5 +65,17 @@ describe("/admin/payouts", () => {
     m.latestRunSummary.mockResolvedValue({ runDate: "2026-10-01", creditCents: 0, creditPartners: 0, finished: false, error: null });
     render(await PayoutsPage({ searchParams: Promise.resolve({}) }));
     expect(screen.getAllByRole("alert")[0]).toHaveTextContent(/didn't finish/);  // banner first; the changed-details warning is also an alert
+  });
+
+  it("Assistant: no Mark paid or W-9 forms; Owner only instead of the method; getPayoutDetails not called", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    m.listW9sAwaitingCheck.mockResolvedValue([{ id: "p1", code: "NORTHFIELD", w9_uploaded_at: "2026-09-01T00:00:00Z", cash_carry_cents: 0 }]);
+    m.getPayoutDetails.mockClear();
+    render(await PayoutsPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.queryByRole("button", { name: "Mark paid" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Open W-9" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Mark checked" })).toBeNull();
+    expect(screen.getAllByText("Owner only").length).toBeGreaterThan(0);
+    expect(m.getPayoutDetails).not.toHaveBeenCalled();
   });
 });

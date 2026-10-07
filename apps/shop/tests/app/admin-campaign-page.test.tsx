@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const { requireOwner, notFound, data, checksFor } = vi.hoisted(() => ({
-  requireOwner: vi.fn(async () => ({ id: "owner", email: "o@a.co" })),
+const { requirePermission, notFound, data, checksFor } = vi.hoisted(() => ({
+  requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff({ id: "owner", email: "o@a.co" })),
   notFound: vi.fn(() => { throw new Error("NOT_FOUND"); }),
   data: { getCampaign: vi.fn(), lotChoices: vi.fn(), codeForCampaign: vi.fn(), recipientCounts: vi.fn() },
   checksFor: vi.fn(async () => []),
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("next/navigation", () => ({ notFound }));
 vi.mock("@/lib/email/campaigns/data", () => data);
 vi.mock("@/lib/discounts/data", () => ({ listCodes: vi.fn(async () => []), codeStatsById: vi.fn(async () => new Map()) }));
@@ -43,5 +43,19 @@ describe("/admin/email/campaigns/[id]", () => {
     expect(screen.getByRole("button", { name: "Unschedule" })).toBeInTheDocument();
     expect(screen.getByText(/Scheduled for Oct 8/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Subject")).toBeNull();
+  });
+
+  it("Assistant: Save present; Send test, Schedule, Send now and Unschedule absent", async () => {
+    requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    render(await CampaignPage({ params: Promise.resolve({ id: K }) }));
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Send test to me/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Schedule/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Send now/ })).toBeNull();
+
+    requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    data.getCampaign.mockResolvedValueOnce({ ...row, status: "scheduled", scheduled_for: "2026-10-08T15:00:00Z" });
+    render(await CampaignPage({ params: Promise.resolve({ id: K }) }));
+    expect(screen.queryByRole("button", { name: "Unschedule" })).toBeNull();
   });
 });

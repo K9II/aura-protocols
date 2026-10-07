@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(async () => ({ id: "owner" })), getPartnerDetail: vi.fn(), getPayoutDetails: vi.fn(), notFound: vi.fn(() => { throw new Error("NEXT_NOT_FOUND"); }) }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), getPartnerDetail: vi.fn(), getPayoutDetails: vi.fn(), notFound: vi.fn(() => { throw new Error("NEXT_NOT_FOUND"); }) }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/partners/detail", () => ({ getPartnerDetail: m.getPartnerDetail, PARTNER_LINES_PAGE: 50 }));
 vi.mock("@/lib/partners/data", () => ({ getPayoutDetails: m.getPayoutDetails }));
 vi.mock("server-only", () => ({}));
@@ -66,5 +66,16 @@ describe("/admin/partners/[id]", () => {
     render(await PartnerPage({ params: Promise.resolve({ id }), searchParams: Promise.resolve({}) }));
     expect(screen.getByText("—")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "—" })).toBeNull();
+  });
+
+  it("Assistant: no Approve/Suspend, no Open W-9, Owner only instead of the method; getPayoutDetails not called", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    m.getPayoutDetails.mockClear();
+    render(await PartnerPage({ params: Promise.resolve({ id }), searchParams: Promise.resolve({}) }));
+    expect(screen.queryByRole("button", { name: "Suspend", hidden: true })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Open W-9" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Mark checked" })).toBeNull();
+    expect(screen.getByText("Hidden — owner only")).toBeInTheDocument();
+    expect(m.getPayoutDetails).not.toHaveBeenCalled();
   });
 });

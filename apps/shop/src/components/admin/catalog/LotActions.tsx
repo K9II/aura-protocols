@@ -5,7 +5,7 @@ import { replaceCertificateAction, retireAction } from "@/app/admin/catalog/acti
 import CoaUpload from "@/components/admin/catalog/CoaUpload";
 import ConfirmSubmit from "@/components/admin/ConfirmSubmit";
 
-export default function LotActions({ lotId, lotNumber, lastLive }: { lotId: string; lotNumber: string; lastLive: boolean }) {
+export default function LotActions({ lotId, lotNumber, lastLive, canPutLive }: { lotId: string; lotNumber: string; lastLive: boolean; canPutLive: boolean }) {
   const [replacing, setReplacing] = useState(false);
   const [path, setPath] = useState("");
   const [state, action, pending] = useActionState(replaceCertificateAction, null);
@@ -16,8 +16,8 @@ export default function LotActions({ lotId, lotNumber, lastLive }: { lotId: stri
     <details className="a-menu">
       <summary className="a-btn sm ghost" aria-label={`More for ${lotNumber}`}>⋯</summary>
       <div className="pop">
-        <form action={retireAction}><input type="hidden" name="lotId" value={lotId} />
-          <ConfirmSubmit className="" message={retireMsg}>Retire lot</ConfirmSubmit></form>
+        {canPutLive && <form action={retireAction}><input type="hidden" name="lotId" value={lotId} />
+          <ConfirmSubmit className="" message={retireMsg}>Retire lot</ConfirmSubmit></form>}
         <button type="button" onClick={() => setReplacing(true)}>Replace certificate</button>
         {replacing && (
           <form action={action} style={{ padding: 12, display: "grid", gap: 8 }}>

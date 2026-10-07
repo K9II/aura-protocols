@@ -9,7 +9,7 @@ HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); 
 
 describe("CorrectCountDialog", () => {
   it("previews left → left after the change", () => {
-    render(<CorrectCountDialog lotId="l1" lotNumber="SS10-2609-01" left={38} held={3} sold={159} />);
+    render(<CorrectCountDialog lotId="l1" lotNumber="SS10-2609-01" left={38} held={3} sold={159} canWithdraw />);
     fireEvent.click(screen.getByRole("button", { name: "Correct count" }));
     fireEvent.change(screen.getByLabelText("Vials"), { target: { value: "3" } });
     expect(screen.getByText("35")).toBeInTheDocument();
@@ -17,12 +17,19 @@ describe("CorrectCountDialog", () => {
   });
 
   it("Owner withdrawal forces Remove and makes the note required", () => {
-    render(<CorrectCountDialog lotId="l2" lotNumber="BPC-2610-03" left={10} held={0} sold={0} />);
+    render(<CorrectCountDialog lotId="l2" lotNumber="BPC-2610-03" left={10} held={0} sold={0} canWithdraw />);
     fireEvent.click(screen.getByRole("button", { name: "Correct count" }));
     fireEvent.click(screen.getByRole("button", { name: "Add vials" }));
     fireEvent.change(screen.getByLabelText("Reason"), { target: { value: "owner_withdrawal" } });
     expect(screen.getByRole("button", { name: "Add vials" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Remove vials" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByLabelText(/Note/)).toBeRequired();
+  });
+
+  it("drops the Owner withdrawal reason when canWithdraw is false", () => {
+    render(<CorrectCountDialog lotId="l3" lotNumber="BPC-2610-04" left={10} held={0} sold={0} canWithdraw={false} />);
+    fireEvent.click(screen.getByRole("button", { name: "Correct count" }));
+    const options = Array.from(screen.getByLabelText("Reason").querySelectorAll("option")).map((o) => o.textContent);
+    expect(options).not.toContain("Owner withdrawal");
   });
 });

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DISPUTE_ID, disputeCase } from "../helpers/dispute-fixtures";
+import { ownerStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(), getDisputeCase: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), getDisputeCase: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/disputes/data", () => ({ getDisputeCase: m.getDisputeCase }));
 
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
@@ -10,12 +11,12 @@ const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
 describe("evidence PDF download", () => {
   beforeEach(() => {
     vi.resetModules();
-    m.requireOwner.mockReset().mockResolvedValue({ id: "owner1" });
+    m.requirePermission.mockReset().mockResolvedValue(ownerStaff({ id: "owner1" }));
     m.getDisputeCase.mockReset().mockResolvedValue(disputeCase());
   });
 
   it("is owner-only", async () => {
-    m.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const { GET } = await import("@/app/admin/disputes/[id]/evidence.pdf/route");
     await expect(GET(new Request("http://x"), ctx(DISPUTE_ID))).rejects.toThrow("NOT_FOUND");
     expect(m.getDisputeCase).not.toHaveBeenCalled();

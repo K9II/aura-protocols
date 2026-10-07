@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { catalogContent } from "@/data/catalog";
 import {
   addVariant, archiveVariant, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot,
@@ -48,14 +49,14 @@ const LIVE_REFUSAL: Record<string, string> = {
 // Signed upload link for a certificate PDF; the browser uploads straight to
 // storage (server actions cap bodies at 1 MB), then submits the path.
 export async function coaUploadAction(lotNumber: string): Promise<{ path: string; token: string } | { error: string }> {
-  await requireOwner();
+  await requirePermission("lots.receive");
   const lot = String(lotNumber).trim().toUpperCase();
   if (!LOT_NUMBER_RE.test(lot)) return { error: "Enter the lot number first." };
   return createCoaUpload(lot);
 }
 
 export async function receiveLotAction(_prev: ActionState, f: FormData): Promise<ActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("lots.receive");
   const slug = str(f, "slug"), variantId = str(f, "variantId");
   const { c, v } = await variantOf(slug, variantId);
   const p = parseReceive(receiveInput(f), today());
@@ -102,7 +103,7 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
 }
 
 export async function putLiveAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("lots.put_live");
   const id = uuid(f, "lotId");
   const r = await putLotLive(id, owner.id);
   if (r !== "ok") throw new Error(LIVE_REFUSAL[r] ?? STALE);
@@ -111,7 +112,7 @@ export async function putLiveAction(f: FormData): Promise<void> {
 }
 
 export async function retireAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("lots.put_live");
   const id = uuid(f, "lotId");
   if ((await retireLot(id, owner.id)) !== "ok") throw new Error(STALE);
   const lot = await lotById(id);
@@ -119,10 +120,11 @@ export async function retireAction(f: FormData): Promise<void> {
 }
 
 export async function correctCountAction(_prev: ActionState, f: FormData): Promise<ActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("stock.correct");
   const id = uuid(f, "lotId");
   const p = parseCorrection({ direction: str(f, "direction"), vials: str(f, "vials"), reason: str(f, "reason"), note: str(f, "note") });
   if (!p.ok) return { fieldErrors: p.fieldErrors };
+  if (p.value.reason === "owner_withdrawal" && !can(owner, "stock.owner_withdrawal")) return { error: "Only the owner can record an owner withdrawal." };
   const r = await correctCount(id, p.value.delta, p.value.reason, p.value.note, owner.id);
   if (r === "below_committed") return { fieldErrors: { vials: "That's more than are left — held and sold vials can't be removed." } };
   if (r !== "ok") throw new Error(STALE);
@@ -133,7 +135,7 @@ export async function correctCountAction(_prev: ActionState, f: FormData): Promi
 }
 
 export async function replaceCertificateAction(_prev: ActionState, f: FormData): Promise<ActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("lots.receive");
   const id = uuid(f, "lotId");
   const lot = await lotById(id);
   if (!lot) throw new Error(STALE);
@@ -146,7 +148,7 @@ export async function replaceCertificateAction(_prev: ActionState, f: FormData):
 
 const FIELDS = { price: "price_cents", low: "low_at", sku: "threepl_sku" } as const;
 export async function setFieldAction(_prev: ActionState, f: FormData): Promise<ActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("catalog.edit");
   const slug = str(f, "slug"), variantId = str(f, "variantId");
   await variantOf(slug, variantId);
   const field = str(f, "field") as keyof typeof FIELDS;
@@ -161,7 +163,7 @@ export async function setFieldAction(_prev: ActionState, f: FormData): Promise<A
 }
 
 export async function setShownAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("catalog.edit");
   const slug = str(f, "slug");
   productOf(slug);
   if (!(await setShown(slug, str(f, "shown") === "true", owner.id))) throw new Error(PRODUCT_STALE);
@@ -170,7 +172,7 @@ export async function setShownAction(f: FormData): Promise<void> {
 
 // ---------- strengths ----------
 export async function addStrengthAction(_prev: ActionState, f: FormData): Promise<ActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("catalog.edit");
   const slug = str(f, "slug");
   productOf(slug);
   const e: Record<string, string> = {};
@@ -200,28 +202,28 @@ const strengthTarget = (f: FormData) => {
 };
 
 export async function setStrengthShownAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("catalog.edit");
   const { slug, variantId } = strengthTarget(f);
   if (!(await setVariantShown(slug, variantId, str(f, "shown") === "true", owner.id)).ok) throw new Error(PRODUCT_STALE);
   refresh(slug);
 }
 
 export async function archiveStrengthAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("catalog.edit");
   const { slug, variantId } = strengthTarget(f);
   if (!(await archiveVariant(slug, variantId, owner.id)).ok) throw new Error(PRODUCT_STALE);
   refresh(slug);
 }
 
 export async function restoreStrengthAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("catalog.edit");
   const { slug, variantId } = strengthTarget(f);
   if (!(await restoreVariant(slug, variantId, owner.id)).ok) throw new Error(PRODUCT_STALE);
   refresh(slug);
 }
 
 export async function deleteStrengthAction(_prev: ActionState, f: FormData): Promise<ActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("catalog.edit");
   const { slug, variantId } = strengthTarget(f);
   const r = await deleteVariant(slug, variantId, owner.id);
   if (r === "has_history") return { error: "This one has lots or orders, so archive it instead." };

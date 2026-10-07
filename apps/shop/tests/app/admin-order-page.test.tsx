@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(async () => ({ id: "owner" })), getOrderDetail: vi.fn(), customersWithDisputes: vi.fn(async () => new Set<string>()), notFound: vi.fn(() => { throw new Error("NEXT_NOT_FOUND"); }) }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), getOrderDetail: vi.fn(), customersWithDisputes: vi.fn(async () => new Set<string>()), notFound: vi.fn(() => { throw new Error("NEXT_NOT_FOUND"); }) }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/orders/detail", () => ({ getOrderDetail: m.getOrderDetail }));
 vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes: m.customersWithDisputes }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound }));
@@ -78,5 +78,14 @@ describe("/admin/orders/[number]", () => {
     render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
     expect(screen.getByText("Chargeback")).toBeInTheDocument();
     expect(m.customersWithDisputes).toHaveBeenCalledWith(["c1"]);
+  });
+
+  it("hides Ship and refund-to-credit for the Assistant", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    m.getOrderDetail.mockResolvedValue({ ...detail, order: { ...order, status: "paid", shipped_at: null, stripe_session_id: null, stripe_payment_intent: null, store_credit_cents: 41_439 } });
+    render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
+    expect(screen.queryByRole("button", { name: "Ship" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Refund to store credit", hidden: true })).toBeNull();
+    expect(screen.getByRole("link", { name: "Pick list" })).toBeInTheDocument();
   });
 });

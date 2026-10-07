@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { randomUUID } from "node:crypto";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { currentMs } from "@/lib/clock";
 import { applyInquiryEvent, getThread, listSavedReplies, recordInquiryEvent, type ThreadMessage } from "@/lib/inquiries/data";
 import { getCustomerDetail } from "@/lib/customers/data";
@@ -74,7 +75,9 @@ function Message({ m, name, inquiryEmail, wholesale, nowMs }: { m: ThreadMessage
 // One conversation (mock screens 2, 3 and 8). Opening a new one moves it to
 // Needs reply. Spec 2026-10-06-admin-inquiries-design.md.
 export default async function InquiryPage({ params }: { params: Promise<{ ref: string }> }) {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.view");
+  const canReply = can(owner, "inquiries.reply");
+  const canDraft = can(owner, "inquiries.draft");
   const { ref: raw } = await params;
   const ref = parseRef(raw);
   if (!ref) notFound();
@@ -105,6 +108,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
   const allFiles = t.messages.flatMap((m) => m.files);
   const files = allFiles.length;
   const filesWord = allFiles.every((f) => isPhoto(f.content_type)) ? "photo" : "attachment";
+  const draft = i.draft_body ? { body: i.draft_body, byName: t.draftByName ?? "Someone", at: whenText(i.draft_at!, nowMs), draftAt: i.draft_at! } : null;
 
   return (
     <div className="a-page">
@@ -115,20 +119,23 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
           <p><span className="a-qref">{refLabel(i.ref)}</span> · {firstMsg?.source === "form" ? `from the ${wholesale ? "wholesale" : "contact"} form` : "by email"} {whenText(i.created_at, nowMs)} · {plural(t.messages.length, "message")}</p>
         </div>
         <div className="actions">
-          <form action={statusAction}>
+          {canReply && <form action={statusAction}>
             <input type="hidden" name="id" value={i.id} />
             {status === "closed"
               ? <button type="submit" name="op" value="reopen" className="a-btn">Re-open</button>
               : <button type="submit" name="op" value="close" className="a-btn">Close</button>}
-          </form>
+          </form>}
         </div>
       </div>
 
       <div className="a-iq-grid">
         <div className="a-conv">
           {t.messages.map((m) => <Message key={m.id} m={m} name={wholesale && i.organization ? `${i.name} · ${i.organization}` : i.name} inquiryEmail={i.email} wholesale={wholesale} nowMs={nowMs} />)}
-          <ReplyBox key={t.messages.length} inquiryId={i.id} clientKey={randomUUID()} to={i.email} from={SUPPORT_EMAIL}
-            signature={REPLY_SIGNATURE} saved={saved.map((s) => ({ id: s.id, name: s.name, body: s.body }))} />
+          {(canReply || canDraft) && (
+            <ReplyBox key={`${t.messages.length}-${i.draft_at ?? ""}`} inquiryId={i.id} clientKey={randomUUID()} to={i.email} from={SUPPORT_EMAIL}
+              signature={REPLY_SIGNATURE} saved={saved.map((s) => ({ id: s.id, name: s.name, body: s.body }))}
+              mode={canReply ? "send" : "draft"} draft={draft} />
+          )}
         </div>
 
         <div className="a-rail">
@@ -153,10 +160,10 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
                     </div>
                   ))}
                   <dl className="a-facts2" style={{ marginTop: 8 }}><dt>Store credit</dt><dd>{usd(balance)}</dd></dl>
-                  <form action={unlinkAction} style={{ marginTop: 8 }}><input type="hidden" name="id" value={i.id} /><button type="submit" className="a-btn sm ghost">Unlink account</button></form>
+                  {canReply && <form action={unlinkAction} style={{ marginTop: 8 }}><input type="hidden" name="id" value={i.id} /><button type="submit" className="a-btn sm ghost">Unlink account</button></form>}
                 </>
               ) : (
-                <div className="a-nolink"><span>No account for this email.</span><LinkAccount inquiryId={i.id} /></div>
+                <div className="a-nolink"><span>No account for this email.</span>{canReply && <LinkAccount inquiryId={i.id} />}</div>
               )}
             </div>
           </div>
@@ -164,11 +171,13 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
           <div className="a-card">
             <div className="a-card-h"><h3>Details</h3></div>
             <div className="a-card-b" style={{ display: "grid", gap: 12 }}>
-              <form action={topicAction} className="a-iq-inline">
-                <input type="hidden" name="id" value={i.id} />
-                <select name="topic" defaultValue={i.topic} aria-label="Topic">{TOPICS.map((tp) => <option key={tp} value={tp}>{TOPIC_LABEL[tp]}</option>)}</select>
-                <button type="submit" className="a-btn sm">Change</button>
-              </form>
+              {canReply ? (
+                <form action={topicAction} className="a-iq-inline">
+                  <input type="hidden" name="id" value={i.id} />
+                  <select name="topic" defaultValue={i.topic} aria-label="Topic">{TOPICS.map((tp) => <option key={tp} value={tp}>{TOPIC_LABEL[tp]}</option>)}</select>
+                  <button type="submit" className="a-btn sm">Change</button>
+                </form>
+              ) : <dl className="a-facts2"><dt>Topic</dt><dd>{TOPIC_LABEL[i.topic]}</dd></dl>}
               <dl className="a-facts2">
                 <dt>Order</dt><dd className="a-mono">{i.order_number ? (order ? <Link href={`/admin/orders/${i.order_number}`}>{i.order_number}</Link> : i.order_number) : "—"}</dd>
                 <dt>Messages</dt><dd>{t.messages.length}{files ? ` · ${plural(files, filesWord)}` : ""}</dd>

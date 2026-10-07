@@ -1,17 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { NOW, inquiry } from "../helpers/inquiry-fixtures";
+import { ownerStaff, assistantStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({
-  requireOwner: vi.fn(), getThread: vi.fn(), applyInquiryEvent: vi.fn(), recordInquiryEvent: vi.fn(), listSavedReplies: vi.fn(), getCustomerDetail: vi.fn(),
+  requirePermission: vi.fn(), getThread: vi.fn(), applyInquiryEvent: vi.fn(), recordInquiryEvent: vi.fn(), listSavedReplies: vi.fn(), getCustomerDetail: vi.fn(),
   getOrderByNumber: vi.fn(),
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/inquiries/data", () => ({ getThread: m.getThread, applyInquiryEvent: m.applyInquiryEvent, recordInquiryEvent: m.recordInquiryEvent, listSavedReplies: m.listSavedReplies }));
 vi.mock("@/lib/customers/data", () => ({ getCustomerDetail: m.getCustomerDetail }));
 vi.mock("@/lib/orders", () => ({ getOrderByNumber: m.getOrderByNumber }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => NOW }));
-vi.mock("@/app/admin/inquiries/actions", () => ({ replyAction: vi.fn(), statusAction: vi.fn(), topicAction: vi.fn(), linkAction: vi.fn(), unlinkAction: vi.fn() }));
+vi.mock("@/app/admin/inquiries/actions", () => ({
+  replyAction: vi.fn(), statusAction: vi.fn(), topicAction: vi.fn(), linkAction: vi.fn(), unlinkAction: vi.fn(),
+  saveDraftAction: vi.fn(), discardDraftAction: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
 import InquiryPage from "@/app/admin/inquiries/[ref]/page";
 
@@ -21,7 +25,7 @@ const msg = (o: Record<string, unknown>) => ({ id: "m", direction: "in", source:
 describe("/admin/inquiries/[ref]", () => {
   beforeEach(() => {
     for (const f of Object.values(m)) f.mockReset();
-    m.requireOwner.mockResolvedValue({ id: "o1", fullName: "Kearney Adams" });
+    m.requirePermission.mockResolvedValue(ownerStaff({ id: "o1", fullName: "Kearney Adams" }));
     m.listSavedReplies.mockResolvedValue([]);
     m.getOrderByNumber.mockResolvedValue(null);
     m.getThread.mockResolvedValue({
@@ -106,5 +110,41 @@ describe("/admin/inquiries/[ref]", () => {
     expect(screen.getAllByText("AP-1052").length).toBeGreaterThan(0);
     expect(screen.getByText("$6.00")).toBeInTheDocument();
     expect(screen.getByText("Verified")).toBeInTheDocument();
+  });
+
+  it("Assistant: no Close, no Topic select, no Link account", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff({ id: "o1" }));
+    render(await InquiryPage(params("Q-1047")));
+    expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Re-open" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Topic" })).toBeNull();
+    expect(screen.queryByText("Link account", { exact: false })).toBeNull();
+  });
+
+  it("Assistant: the reply box drafts instead of sending", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff({ id: "o1" }));
+    render(await InquiryPage(params("Q-1047")));
+    expect(screen.getByText("Draft a reply to", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("Alvester reviews and sends", { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Save draft/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Send" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Send and close" })).toBeNull();
+    expect(screen.getByText("Checked for compliance when you save")).toBeInTheDocument();
+  });
+
+  it("Owner with a saved draft: a bar naming the drafter with Discard draft, the textarea pre-filled, Send buttons present", async () => {
+    m.getThread.mockResolvedValue({
+      inquiry: { ...inquiry(), token: "t", draft_body: "Thanks, Dana — shipping replacements.", draft_by: "asst1", draft_at: "2026-10-06T14:06:00Z" },
+      messages: [msg({ body_text: "Here you go." })],
+      events: [],
+      draftByName: "Assistant (Claude)",
+    });
+    render(await InquiryPage(params("Q-1047")));
+    expect(screen.getByText("Draft by Assistant (Claude)", { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Discard draft" })).toBeInTheDocument();
+    const box = screen.getByRole("textbox", { name: "Reply" }) as HTMLTextAreaElement;
+    expect(box.value).toBe("Thanks, Dana — shipping replacements.");
+    expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send and close" })).toBeInTheDocument();
   });
 });

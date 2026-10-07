@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { customerStats, listCustomers, PAGE_SIZE, type CustomerListRow } from "@/lib/customers/data";
 import { TABS, TAB_LABEL, cleanSearch, parseTab, type CustomerTab } from "@/lib/customers/rules";
 import { customersWithDisputes } from "@/lib/disputes/data";
@@ -25,7 +25,7 @@ function Chips({ r, cb }: { r: CustomerListRow; cb: boolean }) {
 }
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string | string[]; tab?: string | string[]; page?: string | string[] }> }) {
-  await requireOwner();
+  await requirePermission("customers.view");
   const sp = await searchParams;
   const tab = parseTab(first(sp.tab));
   const qRaw = first(sp.q) ?? "";

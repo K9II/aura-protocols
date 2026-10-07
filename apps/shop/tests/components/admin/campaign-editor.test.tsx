@@ -7,6 +7,7 @@ import { saveCampaignAction } from "@/app/admin/email/actions";
 const base = {
   campaign: null, kind: "promotion" as const, lotChoices: [], codes: [{ id: "c1", label: "OCT10 · 10% off items · Oct 8 – Oct 12 · 500 uses" }],
   audienceCounts: { all: 2310, ordered: 486, never_ordered: 1824 }, checks: [], site: "https://auraprotocols.com", mailingAddress: "Aura Protocols LLC · 1 A St", codeRender: {},
+  canSend: true,
 };
 
 describe("CampaignEditor", () => {
@@ -70,5 +71,14 @@ describe("CampaignEditor", () => {
     expect(ids).toEqual(["k1", "k1"]);
     // Distinct DOM ids (dialogKey), so the two don't collide on the page.
     expect(new Set(dialogs.map((d) => d.getAttribute("aria-labelledby"))).size).toBe(2);
+  });
+
+  it("canSend=false: no Send test, Schedule or Send now; Save draft stays", () => {
+    const campaign = { id: "k1", kind: "news", status: "draft", name: "N", subject: "S", preview_text: "", content: { headline: "H", body: "", buttonLabel: "", buttonPath: "" }, audience: "all", discount_code_id: null, lots_snapshot: [] };
+    render(<CampaignEditor {...base} kind="news" campaign={campaign as never} checks={[{ level: "ok", text: "Compliance scan passed: subject, headline, body and button." }]} canSend={false} />);
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Send test to me/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Schedule/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Send now/ })).toBeNull();
   });
 });

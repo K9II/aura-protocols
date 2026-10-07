@@ -16,6 +16,7 @@ type Props = {
   campaign: CampaignRow | null; kind: CampaignKind; lotChoices: AlertLot[]; codes: Array<{ id: string; label: string }>;
   codeRender: Record<string, RenderCode>; audienceCounts: Record<Audience, number>; checks: Check[];
   site: string; mailingAddress: string; lastTest?: string | null; defaultScheduleLocal?: string;
+  canSend: boolean; // email.send — Send test, Schedule and Send now; editing + Save draft stay either way
 };
 
 export default function CampaignEditor(p: Props) {
@@ -47,7 +48,7 @@ export default function CampaignEditor(p: Props) {
   const savedClean = !!c && !dirty && !saveState?.fieldErrors;
   // (not importing isBlocked: checks.ts pulls the compliance scanner, which mustn't ship to the browser)
   const blocked = checks.some((x) => x.level === "block");
-  const canSend = savedClean && !blocked;
+  const readyToSend = savedClean && !blocked;
   const allLots = useMemo(() => {
     const m = new Map(p.lotChoices.map((l) => [l.lot, l]));
     for (const l of c?.lots_snapshot ?? []) if (!m.has(l.lot)) m.set(l.lot, l);
@@ -141,10 +142,10 @@ export default function CampaignEditor(p: Props) {
           <span className="msg" style={blocked && savedClean ? { color: "var(--specimen)" } : undefined}><Icon name={blocked && savedClean ? "warn" : "check"} />{status}</span>
           <div className="r">
             <button type="submit" form="campaign-form" className="a-btn" disabled={saving}>{saving ? "Saving…" : "Save draft"}</button>
-            {c && <button type="submit" form="test-form" className="a-btn" disabled={!savedClean || testing}><Icon name="mail" />Send test to me</button>}
-            {!c && <button type="button" className="a-btn" disabled><Icon name="mail" />Send test to me</button>}
-            {c ? <ScheduleDialog id={c.id} defaultLocal={p.defaultScheduleLocal ?? ""} disabled={!canSend} /> : <button type="button" className="a-btn" disabled><Icon name="clock" />Schedule…</button>}
-            {c ? <SendDialog id={c.id} from="draft" name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!canSend} /> : <button type="button" className="a-btn primary" disabled><Icon name="send" />Send now…</button>}
+            {p.canSend && c && <button type="submit" form="test-form" className="a-btn" disabled={!savedClean || testing}><Icon name="mail" />Send test to me</button>}
+            {p.canSend && !c && <button type="button" className="a-btn" disabled><Icon name="mail" />Send test to me</button>}
+            {p.canSend && (c ? <ScheduleDialog id={c.id} updatedAt={c.updated_at} defaultLocal={p.defaultScheduleLocal ?? ""} disabled={!readyToSend} /> : <button type="button" className="a-btn" disabled><Icon name="clock" />Schedule…</button>)}
+            {p.canSend && (c ? <SendDialog id={c.id} from="draft" updatedAt={c.updated_at} name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!readyToSend} /> : <button type="button" className="a-btn primary" disabled><Icon name="send" />Send now…</button>)}
           </div>
           {(saveState?.ok || testState?.ok || testState?.error || saveState?.error) && <div className="a-flash" role="status">{testState?.error ?? saveState?.error ?? testState?.ok ?? saveState?.ok}</div>}
         </div>
@@ -152,15 +153,15 @@ export default function CampaignEditor(p: Props) {
       {/* hidden: this form has no visible fields — it only exists so the
           "Send test to me" button (form="test-form") can submit it. Without
           `hidden` it still sits in `.a-ed`'s grid as an empty cell. */}
-      {c && <form action={test} id="test-form" hidden><input type="hidden" name="id" value={c.id} /></form>}
+      {c && <form action={test} id="test-form" hidden><input type="hidden" name="id" value={c.id} /><input type="hidden" name="updatedAt" value={c.updated_at} /></form>}
 
       <div className={`a-sticky${tab === "edit" ? " a-hide-phone" : ""}`}><EmailPreview input={preview} site={p.site} mailingAddress={p.mailingAddress} /></div>
 
-      {c && (
+      {p.canSend && c && (
         <div className="a-psticky a-only-phone">
           <button type="submit" form="test-form" className="a-btn" disabled={!savedClean || testing}><Icon name="mail" />Test to me</button>
-          {canSend
-            ? <SendDialog id={c.id} dialogKey={`${c.id}-m`} from="draft" name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!canSend} triggerLabel="Send…" />
+          {readyToSend
+            ? <SendDialog id={c.id} dialogKey={`${c.id}-m`} from="draft" updatedAt={c.updated_at} name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!readyToSend} triggerLabel="Send…" />
             : <button type="button" className="a-btn primary" disabled><Icon name="send" />Send…</button>}
         </div>
       )}

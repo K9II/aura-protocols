@@ -20,6 +20,8 @@ export type EvidenceFormProps = {
   savedText: string;                   // "Draft saved to Stripe Oct 6, 9:31 am · …"
   summary: { chargeback: string; shipping: string; pdfPages: number };
   pdfHref: string;
+  canSubmit: boolean;                  // disputes.submit — show the Submit trigger/dialog
+  canSave: boolean;                    // disputes.draft — show Save draft
 };
 
 export default function EvidenceForm(p: EvidenceFormProps) {
@@ -36,12 +38,13 @@ export default function EvidenceForm(p: EvidenceFormProps) {
     if (last === "submit" && submitState?.fieldErrors) dialog.current?.close();
   }, [last, submitState]);
   const other = Object.entries(fe).filter(([k]) => !(EDITABLE_FIELDS as readonly string[]).includes(k));
+  const locked = !p.canSave && !p.canSubmit;
   const set = (k: EditableField) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
   const err = (k: EditableField) => (fe[k] ? <div className="a-err" role="alert">{fe[k]}</div> : null);
   const input = (k: EditableField, mono = false) => (
     <div className="a-fld">
       <label htmlFor={`ev-${k}`}>{FIELD_LABEL[k]}</label>
-      <input id={`ev-${k}`} name={k} className={`a-input${mono ? " mono" : ""}`} value={f[k]} maxLength={FIELD_MAX[k]} onChange={set(k)} />
+      <input id={`ev-${k}`} name={k} className={`a-input${mono ? " mono" : ""}`} value={f[k]} maxLength={FIELD_MAX[k]} onChange={set(k)} disabled={locked} />
       {err(k)}
     </div>
   );
@@ -57,7 +60,7 @@ export default function EvidenceForm(p: EvidenceFormProps) {
       <div className="a-fsec">
         <div className="a-fsec-h"><h3>Cover letter</h3><span>written for &quot;{p.letterFor}&quot; · goes to the bank</span></div>
         <div className="a-fsec-b"><div className="a-fld">
-          <textarea name="uncategorized_text" aria-label="Cover letter" className="a-textarea letter" value={f.uncategorized_text} maxLength={FIELD_MAX.uncategorized_text} onChange={set("uncategorized_text")} />
+          <textarea name="uncategorized_text" aria-label="Cover letter" className="a-textarea letter" value={f.uncategorized_text} maxLength={FIELD_MAX.uncategorized_text} onChange={set("uncategorized_text")} disabled={locked} />
           <div className="help">{p.scanOk ? "Compliance scan passed · edit freely; it is checked again when you save and submit." : "The compliance scan checks this when you save and submit."}</div>
           {err("uncategorized_text")}
         </div></div>
@@ -87,7 +90,7 @@ export default function EvidenceForm(p: EvidenceFormProps) {
         <div className="a-fsec-b">
           <div className="a-fld">
             <label htmlFor="ev-product_description">{FIELD_LABEL.product_description}</label>
-            <textarea id="ev-product_description" name="product_description" className="a-textarea" value={f.product_description} maxLength={FIELD_MAX.product_description} onChange={set("product_description")} />
+            <textarea id="ev-product_description" name="product_description" className="a-textarea" value={f.product_description} maxLength={FIELD_MAX.product_description} onChange={set("product_description")} disabled={locked} />
             {err("product_description")}
           </div>
           <div className="a-fld">
@@ -102,12 +105,12 @@ export default function EvidenceForm(p: EvidenceFormProps) {
         {msg}
         <div className="r">
           <a className="a-btn pdf" href={p.pdfHref}><Icon name="download" />Download PDF</a>
-          <button type="submit" className="a-btn" disabled={saving || submitting} onClick={() => setLast("save")}>{saving ? "Saving…" : "Save draft"}</button>
-          <button type="button" className="a-btn primary" disabled={saving || submitting} onClick={() => dialog.current?.showModal()}><Icon name="send" />Submit to Stripe…</button>
+          {p.canSave && <button type="submit" className="a-btn" disabled={saving || submitting} onClick={() => setLast("save")}>{saving ? "Saving…" : "Save draft"}</button>}
+          {p.canSubmit && <button type="button" className="a-btn primary" disabled={saving || submitting} onClick={() => dialog.current?.showModal()}><Icon name="send" />Submit to Stripe…</button>}
         </div>
       </div>
 
-      <dialog ref={dialog} className="a-modal" aria-labelledby={`submit-${p.id}`}>
+      {p.canSubmit && <dialog ref={dialog} className="a-modal" aria-labelledby={`submit-${p.id}`}>
         <div className="a-modal-h"><h2 id={`submit-${p.id}`}>Submit evidence to Stripe?</h2><button type="button" className="x" aria-label="Close" onClick={() => dialog.current?.close()}>×</button></div>
         <div className="a-modal-b">
           <dl className="a-dl">
@@ -123,7 +126,7 @@ export default function EvidenceForm(p: EvidenceFormProps) {
           <button type="button" className="a-btn" onClick={() => dialog.current?.close()}>Cancel</button>
           <button type="submit" className="a-btn primary" formAction={submit} disabled={submitting} onClick={() => setLast("submit")}><Icon name="send" />{submitting ? "Submitting…" : "Submit evidence"}</button>
         </div></div>
-      </dialog>
+      </dialog>}
     </form>
   );
 }

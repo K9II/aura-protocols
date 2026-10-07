@@ -88,6 +88,7 @@
 .adm .a-nav .soon .a-tag { margin-left: auto; font: 500 9px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
 .adm .a-side-foot { border-top: 1px solid var(--line); padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
 .adm .a-avatar { width: 26px; height: 26px; background: var(--ink); color: #EDE9E0; display: grid; place-items: center; font: 500 10.5px var(--mono); }
+.adm .a-avatar.asst { background: var(--slate-bg); color: var(--slate); border: 1px solid #B5C3D3; }
 .adm .a-side-foot .a-who { line-height: 1.25; } .adm .a-side-foot .a-who small { display: block; color: var(--muted); font-size: 11.5px; }
 .adm .a-side-foot .a-gear { margin-left: auto; color: var(--muted); }
 .adm .a-side-foot .a-signout { margin: 0 0 0 auto; }
@@ -98,6 +99,8 @@
 .adm .a-top-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .adm .a-env { font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ochre); background: var(--ochre-bg); border: 1px solid #DEC98F; padding: 3px 7px; display: flex; align-items: center; gap: 6px; }
 .adm .a-env::before { content: ""; width: 6px; height: 6px; background: var(--ochre); }
+.adm .a-env.asst { color: var(--slate); border-color: #B5C3D3; background: var(--slate-bg); }
+.adm .a-env.asst::before { background: var(--slate); }
 .adm .a-toplink { color: var(--ink-soft); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 5px; }
 
 /* ---------- page header ---------- */
@@ -1253,3 +1256,36 @@
   .adm .a-ord-foot { flex-wrap: wrap; gap: 6px; }
   .adm .a-ord-foot .r { margin-left: 0; flex-wrap: wrap; }
 }
+
+/* ---------- Team (mock 2026-10-06-admin-staff-mocks) ---------- */
+.adm .a-chip.asst { color: var(--slate); background: var(--slate-bg); border-color: #B5C3D3; }
+.adm .a-chip.disabled { color: var(--specimen); background: transparent; border-color: #E2BDB5; }
+.adm .a-team td { vertical-align: middle; }
+.adm .a-team-person { display: flex; align-items: center; gap: 10px; }
+.adm .a-team-person .sub { display: block; color: var(--muted); font-size: 12px; }
+.adm .a-perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.adm .a-perm-grid h4 { font: 500 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px; }
+.adm .a-perm-grid ul { list-style: none; margin: 0; padding: 0; }
+.adm .a-perm-grid li { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; font-size: 13px; line-height: 1.4; }
+.adm .a-perm-grid li .a-i { flex: none; margin-top: 2px; }
+.adm .a-perm-grid li.yes .a-i { color: var(--moss); }
+.adm .a-perm-grid li.no { color: var(--muted); }
+.adm .a-perm-grid li.no .a-i { color: var(--muted); }
+.adm .a-team-card { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.adm .a-team-card:last-child { border-bottom: 0; }
+.adm .a-team-card .row { display: flex; align-items: center; gap: 10px; }
+.adm .a-team-card .a-acts { justify-content: flex-start; }
+.adm .a-team-card .a-acts .a-btn { flex: 1; justify-content: center; }
+@media (max-width: 640px) {
+  .adm .a-perm-grid { grid-template-columns: 1fr; }
+  .adm .a-team-foot { display: none; }  /* mock Screen 7: the phone Team list has no footer */
+}
+
+/* ---------- Inquiry drafts (mock 2026-10-06-admin-staff-mocks, Screens 3-4) ---------- */
+.adm .a-reply.asst .a-reply-h { background: #F6F3EC; }
+.adm .a-reply-card { border: 1px solid var(--line-strong); }
+.adm .a-reply-card .a-reply { border: 0; }
+.adm .a-draft-bar { display: flex; align-items: center; gap: 10px; padding: 9px 14px; background: var(--slate-bg); border-bottom: 1px solid #B5C3D3; font-size: 12.5px; color: var(--slate); }
+.adm .a-draft-bar .a-avatar { width: 22px; height: 22px; font-size: 9.5px; }
+.adm .a-draft-bar .r { margin-left: auto; display: flex; gap: 12px; }
+.adm .a-linkbtn { background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }

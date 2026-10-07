@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { listRuns } from "@/lib/email/admin-data";
 import { RUNS_SHOWN } from "@/lib/email/constants";
 import { dateTime } from "@/lib/discounts/time";
@@ -8,7 +8,7 @@ import { Crumbs } from "@/components/admin/ui";
 export const metadata: Metadata = { title: "Email run history", robots: { index: false, follow: false } };
 
 export default async function EmailRunsPage() {
-  await requireOwner();
+  await requirePermission("email.view");
   const runs = await listRuns(RUNS_SHOWN);
   return (
     <div className="a-page">

@@ -3,7 +3,8 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { codeStatsById, discountDashboard, getCodeById, getDiscountCap, listEvents, listRedemptions, orderNumbersForRedemptions, REDEMPTIONS_LIMIT, type Redemption } from "@/lib/discounts/data";
 import { codeStatus, describeRule, termsFromRow, type DiscountCodeRow, type StoredStatus } from "@/lib/discounts/rules";
 import { dateTime, mountainDaysUntil, shortDate } from "@/lib/discounts/time";
@@ -65,7 +66,7 @@ function Move({ id, from, to }: { id: string; from: StoredStatus; to: StoredStat
 }
 
 export default async function CodePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
-  await requireOwner();
+  const staff = await requirePermission("discounts.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const code = await getCodeById(id);
@@ -93,11 +94,11 @@ export default async function CodePage({ params, searchParams }: { params: Promi
         <span className="bigcode">{code.code}</span><StatusChip status={status} />
         <div className="actions">
           <CopyAll codes={[code.code]} label="Copy" className="a-btn" />
-          <Link className="a-btn" href={`/admin/discounts/${id}/edit`}><Icon name="edit" />Edit</Link>
+          {can(staff, "discounts.edit") && <Link className="a-btn" href={`/admin/discounts/${id}/edit`}><Icon name="edit" />Edit</Link>}
           {/* Offer only moves that change something the owner can see. */}
-          {stored === "active" && (status === "active" || status === "scheduled") && <Move id={id} from={stored} to="paused" />}
-          {stored === "paused" && status === "paused" && <Move id={id} from={stored} to="active" />}
-          {stored !== "ended" && status !== "ended" && <Move id={id} from={stored} to="ended" />}
+          {can(staff, "discounts.edit") && stored === "active" && (status === "active" || status === "scheduled") && <Move id={id} from={stored} to="paused" />}
+          {can(staff, "discounts.edit") && stored === "paused" && status === "paused" && <Move id={id} from={stored} to="active" />}
+          {can(staff, "discounts.edit") && stored !== "ended" && status !== "ended" && <Move id={id} from={stored} to="ended" />}
         </div>
       </div>
       <div className="a-dsub">
@@ -135,7 +136,7 @@ export default async function CodePage({ params, searchParams }: { params: Promi
                     <td className="num">{r.orders ? usd(r.orders.subtotal_cents - r.orders.partner_discount_cents) : "—"}</td>
                     <td className="num">−{usd(r.discount_cents)}{r.capped_cents > 0 && <> <span className="a-chip refund nodot sm">capped</span></>}</td>
                     <td>{stateChip(r)}</td>
-                    <td className="num">{canReset(r) && <ResetUse id={r.id} />}</td>
+                    <td className="num">{canReset(r) && can(staff, "discounts.edit") && <ResetUse id={r.id} />}</td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -144,7 +145,7 @@ export default async function CodePage({ params, searchParams }: { params: Promi
                 <div key={r.id} className="a-pitem">
                   <span className="a-code">{r.orders?.order_number ?? "—"}</span>{stateChip(r)}
                   <span className="gives">{r.orders?.email ?? "—"} · −{usd(r.discount_cents)}{r.capped_cents > 0 ? " · capped" : ""}</span>
-                  <div className="meta">{dateTime(r.created_at)}{canReset(r) && <ResetUse id={r.id} style={{ marginLeft: "auto" }} />}</div>
+                  <div className="meta">{dateTime(r.created_at)}{canReset(r) && can(staff, "discounts.edit") && <ResetUse id={r.id} style={{ marginLeft: "auto" }} />}</div>
                 </div>
               ))}</div>
               {capped && <div className="a-tfoot a-only-phone">Showing the latest {REDEMPTIONS_LIMIT}</div>}
@@ -153,7 +154,7 @@ export default async function CodePage({ params, searchParams }: { params: Promi
         </div>
         <aside style={{ display: "grid", gap: 12 }}>
           <div className="a-card">
-            <div className="a-card-h"><h3>Rule</h3><span className="r"><Link href={`/admin/discounts/${id}/edit`}>Edit</Link></span></div>
+            <div className="a-card-h"><h3>Rule</h3>{can(staff, "discounts.edit") && <span className="r"><Link href={`/admin/discounts/${id}/edit`}>Edit</Link></span>}</div>
             <div className="a-card-b"><dl className="a-facts flat">{ruleFacts(code).map(([k, v]) => <Fragment key={k}><dt>{k}</dt><dd>{v}</dd></Fragment>)}</dl></div>
           </div>
           <ActivityCard events={events} orderOf={orderOf} />

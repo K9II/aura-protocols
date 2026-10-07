@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { NOW, inquiry } from "../helpers/inquiry-fixtures";
+import { ownerStaff, assistantStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(), listInquiries: vi.fn(), inquiryTabCounts: vi.fn(), listUnmatched: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), listInquiries: vi.fn(), inquiryTabCounts: vi.fn(), listUnmatched: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/inquiries/data", () => ({ listInquiries: m.listInquiries, inquiryTabCounts: m.inquiryTabCounts, listUnmatched: m.listUnmatched }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => NOW }));
 vi.mock("@/app/admin/inquiries/actions", () => ({ dismissUnmatchedAction: vi.fn(), attachUnmatchedAction: vi.fn() }));
@@ -14,7 +15,7 @@ const sp = (o: Record<string, string> = {}) => ({ searchParams: Promise.resolve(
 describe("/admin/inquiries", () => {
   beforeEach(() => {
     for (const f of Object.values(m)) f.mockReset();
-    m.requireOwner.mockResolvedValue({ id: "o1" });
+    m.requirePermission.mockResolvedValue(ownerStaff({ id: "o1" }));
     m.inquiryTabCounts.mockResolvedValue({ open: 4, waiting: 3, closed: 41, all: 48, unmatched: 2 });
     m.listInquiries.mockResolvedValue({ total: 2, rows: [
       inquiry({ customer_id: "c1" }),
@@ -23,7 +24,7 @@ describe("/admin/inquiries", () => {
   });
 
   it("is owner-only", async () => {
-    m.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     await expect(InquiriesPage(sp())).rejects.toThrow("NOT_FOUND");
   });
 
@@ -65,5 +66,26 @@ describe("/admin/inquiries", () => {
     expect(screen.getAllByRole("button", { name: "Attach to inquiry…" }).length).toBeGreaterThan(0);
     expect(screen.getByText("1 marked as spam by Amazon — show")).toBeInTheDocument();
     expect(m.listInquiries).not.toHaveBeenCalled();
+  });
+
+  it("a draft on a row shows a Draft ready chip, and the footer counts drafts on this page", async () => {
+    m.listInquiries.mockResolvedValue({ total: 2, rows: [
+      inquiry({ customer_id: "c1", draft_body: "Thanks — shipping replacements." }),
+      inquiry({ id: "i2", ref: 1049, topic: "wholesale", status: "new", name: "P. Osei", organization: "Meridian Peptide Lab", email: "p.osei@meridianlab.org", customer_id: null, last_from: "customer", message_count: 1, last_preview: "Looking for 200+ vials monthly", last_customer_at: "2026-10-05T15:40:00Z" }),
+    ] });
+    render(await InquiriesPage(sp()));
+    expect(screen.getAllByText("Draft ready").length).toBeGreaterThan(0);
+    expect(screen.getByText(/1 draft ready/)).toBeInTheDocument();
+  });
+
+  it("Assistant: no Dismiss or Attach on Unmatched", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff());
+    m.listUnmatched.mockResolvedValue({
+      open: [{ id: "u1", ses_message_id: "s1", from_email: "peter.osei@gmail.com", from_name: "Peter Osei", to_address: null, subject: "Re:", body_text: "x", full_text: null, raw_key: "raw/s1", spam: false, attachment_names: [], created_at: "2026-10-06T15:05:00Z" }],
+      spam: [],
+    });
+    render(await InquiriesPage(sp({ tab: "unmatched" })));
+    expect(screen.queryByRole("button", { name: "Dismiss" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Attach to inquiry…" })).toBeNull();
   });
 });

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import {
   createCampaign, getCampaign, lotChoices, moveCampaign, startCampaign, updateDraft, waitingLots, type CampaignRow,
 } from "@/lib/email/campaigns/data";
@@ -28,6 +28,13 @@ async function target(f: FormData): Promise<CampaignRow> {
   if (!id.success) throw new Error(STALE);
   const c = await getCampaign(id.data);
   if (!c) throw new Error(STALE);
+  // Send test / Schedule / Send now carry the campaign's updated_at from
+  // when their dialog opened (CampaignEditor), so a save that happened in
+  // another tab or after a stale reload refuses here instead of sending,
+  // scheduling or testing against content the owner never saw. Actions that
+  // don't submit this field (save, copy, stop, unschedule) skip the check.
+  const updatedAt = str(f, "updatedAt");
+  if (updatedAt && updatedAt !== c.updated_at) throw new Error(STALE);
   return c;
 }
 
@@ -38,7 +45,7 @@ function formFields(f: FormData): Record<string, string> {
 }
 
 export async function saveCampaignAction(_prev: EmailActionState, f: FormData): Promise<EmailActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("email.draft");
   const existing = f.get("id") ? await target(f) : null;
   if (existing && existing.status !== "draft") throw new Error(STALE);
   const kind = existing?.kind ?? parseKind(str(f, "kind"));
@@ -60,7 +67,7 @@ export async function saveCampaignAction(_prev: EmailActionState, f: FormData): 
 }
 
 export async function sendTestAction(_prev: EmailActionState, f: FormData): Promise<EmailActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("email.send");
   const c = await target(f);
   const code = await campaignCode(c);
   const { msg, unsub } = await renderFor(c, owner.email, code, { test: true });
@@ -71,7 +78,7 @@ export async function sendTestAction(_prev: EmailActionState, f: FormData): Prom
 }
 
 export async function scheduleAction(_prev: EmailActionState, f: FormData): Promise<EmailActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("email.send");
   const c = await target(f);
   if (c.status !== "draft") throw new Error(STALE);
   const local = str(f, "at");
@@ -86,7 +93,7 @@ export async function scheduleAction(_prev: EmailActionState, f: FormData): Prom
 }
 
 export async function unscheduleAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("email.send");
   const c = await target(f);
   await moveCampaign(c.id, "scheduled", "draft", owner.id);
   refresh(c.id);
@@ -111,7 +118,7 @@ export async function unscheduleAction(f: FormData): Promise<void> {
 const sendErrorRedirect = (id: string, message: string): never => redirect(`/admin/email/campaigns/${id}?sendError=${encodeURIComponent(message)}`);
 
 export async function sendNowAction(_prev: EmailActionState, f: FormData): Promise<EmailActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("email.send");
   const c = await target(f);
   const from = str(f, "from") === "scheduled" ? "scheduled" : "draft";
   const checks = await checksFor(c, Date.now());
@@ -149,14 +156,14 @@ export async function sendNowAction(_prev: EmailActionState, f: FormData): Promi
 // not the instant the owner clicks — never return copy here that promises
 // otherwise.
 export async function stopAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("email.send");
   const c = await target(f);
   await moveCampaign(c.id, "sending", "stopped", owner.id);
   refresh(c.id);
 }
 
 export async function copyAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("email.draft");
   const c = await target(f);
   const choices = c.kind === "new_lots" ? await lotChoices(null) : [];
   const keep = new Set(choices.map((l) => l.lot));
@@ -172,7 +179,7 @@ export async function copyAction(f: FormData): Promise<void> {
 }
 
 export async function announceAction(): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("email.draft");
   const lots = await waitingLots();
   if (!lots.length) redirect("/admin/email");
   const id = await createCampaign("new_lots", announceDraft(lots), lots, owner.id);
@@ -181,7 +188,7 @@ export async function announceAction(): Promise<void> {
 }
 
 export async function setAutomationAction(_prev: EmailActionState, f: FormData): Promise<EmailActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("email.pause");
   const a = str(f, "automation");
   if (a !== "welcome" && a !== "cart") throw new Error("Unknown automation.");
   const paused = str(f, "paused") === "1";

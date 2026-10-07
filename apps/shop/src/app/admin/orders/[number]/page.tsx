@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { getOrderDetail } from "@/lib/orders/detail";
 import { codeText, moneyLines } from "@/lib/orders/money";
 import { orderMarkers } from "@/lib/orders/tabs";
@@ -30,7 +31,7 @@ function Lots({ allocated, shipped }: { allocated: LotQty[]; shipped: LotQty[] }
 }
 
 export default async function OrderPage({ params }: { params: Promise<{ number: string }> }) {
-  await requireOwner();
+  const staff = await requirePermission("orders.view");
   const { number } = await params;
   if (!/^AP-\d{1,10}$/.test(number)) notFound();
   const d = await getOrderDetail(number);
@@ -53,8 +54,8 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
         <h1 className="bigcode">{o.order_number}</h1>
         <OrderStatusChip status={o.status} /><Markers list={orderMarkers(o, d.flags)} />
         <div className="actions">
-          {o.status === "paid" && <><Link className="a-btn" href={`/admin/orders/${o.order_number}/pick`}>Pick list</Link><ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary} /></>}
-          {creditOnly && <ConfirmDialog label="Refund to store credit" title={`Refund ${o.order_number} to store credit?`} confirmLabel={`Refund ${usd(o.store_credit_cents)}`} tone="danger" action={refundCreditOrderAction} fields={{ orderId: o.id }}>
+          {o.status === "paid" && <><Link className="a-btn" href={`/admin/orders/${o.order_number}/pick`}>Pick list</Link>{can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary} />}</>}
+          {creditOnly && can(staff, "orders.refund_credit") && <ConfirmDialog label="Refund to store credit" title={`Refund ${o.order_number} to store credit?`} confirmLabel={`Refund ${usd(o.store_credit_cents)}`} tone="danger" action={refundCreditOrderAction} fields={{ orderId: o.id }}>
             {usd(o.store_credit_cents)} goes back to {c.fullName}&apos;s store credit. Any partner commission is reversed and the tax is undone. This order never went through Stripe, so it can only be refunded here.
           </ConfirmDialog>}
           {stripeUrl && <a className="a-btn" href={stripeUrl} target="_blank" rel="noopener noreferrer"><Icon name="ext" />Open in Stripe</a>}

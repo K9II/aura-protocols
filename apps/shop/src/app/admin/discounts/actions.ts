@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import {
   getCodeById, insertBatch, insertCode, isDiscountCodeTaken, resetUse, setCodeState, setDiscountCap, updateBatch, updateCode, type CodeInput,
 } from "@/lib/discounts/data";
@@ -108,7 +108,7 @@ function omitBatchLockedFields(patch: Partial<CodeInput>): Partial<CodeInput> {
 }
 
 export async function saveCodeAction(_prev: SaveState, f: FormData): Promise<SaveState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("discounts.edit");
 
   // Edit wins over mode="batch": the batch-edit form (Task 17) submits
   // mode="batch" with id set and prefix/count hidden — it's never a new batch.
@@ -156,7 +156,7 @@ export async function saveCodeAction(_prev: SaveState, f: FormData): Promise<Sav
 }
 
 export async function codeAvailableAction(code: string): Promise<{ ok: boolean; message: string }> {
-  await requireOwner();
+  await requirePermission("discounts.edit");
   const check = validateAdminCode(String(code).slice(0, 40));
   if (!check.ok) return { ok: false, message: ADMIN_CODE_REASON[check.reason] };
   if (await isDiscountCodeTaken(check.code)) return { ok: false, message: ADMIN_CODE_REASON.taken };
@@ -171,7 +171,7 @@ const stateSchema = z.object({
 const STATE_STALE = "That code changed since the page loaded — reload and try again.";
 
 export async function setCodeStateAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("discounts.edit");
   const p = stateSchema.safeParse({ codeId: f.get("codeId") || undefined, batchId: f.get("batchId") || undefined, from: f.get("from"), to: f.get("to") });
   if (!p.success || !MOVES[p.data.from].includes(p.data.to) || (!p.data.codeId && !p.data.batchId)) throw new Error(STATE_STALE);
   const target = p.data.codeId ? { codeId: p.data.codeId } : { batchId: p.data.batchId! };
@@ -181,7 +181,7 @@ export async function setCodeStateAction(f: FormData): Promise<void> {
 }
 
 export async function resetUseAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("discounts.edit");
   const FAIL = "Only a used code on a refunded order can be reset.";
   const id = z.string().uuid().safeParse(f.get("redemptionId"));
   if (!id.success) throw new Error(FAIL);
@@ -191,7 +191,7 @@ export async function resetUseAction(f: FormData): Promise<void> {
 }
 
 export async function setCapAction(_prev: { ok?: true; error?: string } | null, f: FormData): Promise<{ ok?: true; error?: string }> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("discounts.settings");
   const cap = Number(str(f, "cap"));
   if (!Number.isInteger(cap) || cap < CAP_MIN_PCT || cap > CAP_MAX_PCT) return { error: `Use a whole percent from ${CAP_MIN_PCT} to ${CAP_MAX_PCT}.` };
   await setDiscountCap(cap, owner.id);

@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { zonedToIso } from "@/lib/discounts/time";
+import { ownerStaff } from "../helpers/staff";
 
-const requireOwner = vi.fn();
+const requirePermission = vi.fn();
 const data = {
   insertCode: vi.fn(), insertBatch: vi.fn(), isDiscountCodeTaken: vi.fn(), getCodeById: vi.fn(), updateCode: vi.fn(), updateBatch: vi.fn(),
   setCodeState: vi.fn(), resetUse: vi.fn(), setDiscountCap: vi.fn(), getBatch: vi.fn(),
 };
 const redirect = vi.fn((url: string) => { throw new Error(`REDIRECT ${url}`); });
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/discounts/data", () => data);
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect }));
@@ -21,14 +22,14 @@ const spring = { mode: "single", code: "spring20", note: "Spring email list", ki
 describe("discount admin actions", () => {
   beforeEach(() => {
     vi.resetModules();
-    requireOwner.mockReset(); requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockReset(); requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     for (const f of Object.values(data)) f.mockReset();
     data.isDiscountCodeTaken.mockResolvedValue(false);
     data.insertCode.mockResolvedValue({ id: "c1" });
   });
 
   it("is owner-only", async () => {
-    requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const { saveCodeAction } = await import("@/app/admin/discounts/actions");
     await expect(saveCodeAction(null, fd(spring))).rejects.toThrow("NOT_FOUND");
     expect(data.insertCode).not.toHaveBeenCalled();

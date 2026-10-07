@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 const m = vi.hoisted(() => ({
-  requireOwner: vi.fn(async () => ({ id: "owner" })), searchOrdersForOwner: vi.fn(), countOrderTabs: vi.fn(), orderFlags: vi.fn(),
+  requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), searchOrdersForOwner: vi.fn(), countOrderTabs: vi.fn(), orderFlags: vi.fn(),
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/orders", () => ({ searchOrdersForOwner: m.searchOrdersForOwner, countOrderTabs: m.countOrderTabs }));
 vi.mock("@/lib/disputes/data", () => ({ orderFlags: m.orderFlags }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T18:00:00Z") }));
@@ -26,7 +26,7 @@ describe("/admin/orders", () => {
   });
 
   it("is owner-only", async () => {
-    m.requireOwner.mockRejectedValueOnce(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValueOnce(new Error("NOT_FOUND"));
     await expect(OrdersPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("NOT_FOUND");
   });
 
@@ -81,5 +81,12 @@ describe("/admin/orders", () => {
     render(await OrdersPage({ searchParams: Promise.resolve({ tab: "all", page: "9" }) }));
     expect(screen.getByText("No rows on this page.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to page 1" })).toHaveAttribute("href", "/admin/orders?tab=all");
+  });
+
+  it("hides Ship for the Assistant but keeps Pick list", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    render(await OrdersPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.queryByRole("button", { name: /Ship/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Pick list" })[0]).toHaveAttribute("href", "/admin/orders/AP-1031/pick");
   });
 });

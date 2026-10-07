@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { CUSTOMER_ID, DISPUTE_ID, disputeCase } from "../helpers/dispute-fixtures";
+import { ownerStaff, assistantStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(), getDisputeCase: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), getDisputeCase: vi.fn(), readStaffRow: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/disputes/data", () => ({ getDisputeCase: m.getDisputeCase }));
+vi.mock("@/lib/staff/data", () => ({ readStaffRow: m.readStaffRow }));
 vi.mock("@/lib/disputes/pdf", () => ({ buildEvidencePdf: async () => ({ bytes: new Uint8Array(84 * 1024), pages: 3 }) }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-07T15:42:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
@@ -17,12 +19,13 @@ const props = (id = DISPUTE_ID) => ({ params: Promise.resolve({ id }) });
 describe("/admin/disputes/[id]", () => {
   beforeEach(() => {
     for (const f of Object.values(m)) f.mockReset();
-    m.requireOwner.mockResolvedValue({ id: "owner1" });
+    m.requirePermission.mockResolvedValue(ownerStaff({ id: "owner1" }));
     m.getDisputeCase.mockResolvedValue(disputeCase({ draft_saved_at: "2026-10-06T15:31:00Z", funds_withdrawn_at: "2026-10-01T22:12:05Z" }));
+    m.readStaffRow.mockResolvedValue(null);
   });
 
   it("is owner-only and 404s a bad id or a missing chargeback", async () => {
-    m.requireOwner.mockRejectedValueOnce(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValueOnce(new Error("NOT_FOUND"));
     await expect(DisputePage(props())).rejects.toThrow("NOT_FOUND");
     await expect(DisputePage(props("nope"))).rejects.toThrow("NOT_FOUND");
     m.getDisputeCase.mockResolvedValue(null);
@@ -88,5 +91,20 @@ describe("/admin/disputes/[id]", () => {
     render(await DisputePage(props()));
     expect(screen.queryByRole("button", { name: "Block customer…" })).toBeNull();
     expect(screen.getByText("Blocked")).toBeInTheDocument();
+  });
+
+  it("no Block button when the customer is a team login", async () => {
+    m.readStaffRow.mockResolvedValue({ role: "assistant", status: "active" });
+    render(await DisputePage(props()));
+    expect(m.readStaffRow).toHaveBeenCalledWith(CUSTOMER_ID);
+    expect(screen.queryByRole("button", { name: "Block customer…" })).toBeNull();
+  });
+
+  it("Assistant: Save draft present, Submit and Block absent", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff());
+    render(await DisputePage(props()));
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Submit to Stripe…" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Block customer…" })).toBeNull();
   });
 });

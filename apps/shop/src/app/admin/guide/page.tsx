@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireOwner } from "@/lib/dal";
+import { requireStaff } from "@/lib/dal";
 import { getDiscountCap } from "@/lib/discounts/data";
 import GuideNav from "@/components/admin/guide/GuideNav";
 import StartHere from "@/components/admin/guide/StartHere";
@@ -14,13 +14,14 @@ import Email from "@/components/admin/guide/Email";
 import Inquiries from "@/components/admin/guide/Inquiries";
 import Partners from "@/components/admin/guide/Partners";
 import Payouts from "@/components/admin/guide/Payouts";
+import Team from "@/components/admin/guide/Team";
 
 export const metadata: Metadata = { title: "Guide", robots: { index: false, follow: false } };
 
 // The owner's manual for the command center (spec 2026-10-04-admin-guide-design.md).
 // Every module ships with its chapter (components/admin/guide/chapters.ts).
 export default async function AdminGuidePage() {
-  await requireOwner();
+  await requireStaff();
   const capPct = await getDiscountCap();
   return (
     <div className="a-guide">
@@ -40,6 +41,7 @@ export default async function AdminGuidePage() {
         <Partners />
         <Payouts />
         <Activity />
+        <Team />
       </article>
     </div>
   );

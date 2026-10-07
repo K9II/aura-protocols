@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { getPartnerDetail, PARTNER_LINES_PAGE, type PartnerLine } from "@/lib/partners/detail";
 import { getPayoutDetails } from "@/lib/partners/data";
 import { AUDIENCE_SIZES, PARTNER_TYPES, PUBLISH_CHANNELS } from "@/lib/partners/codes";
@@ -31,7 +32,7 @@ function LineState({ l }: { l: PartnerLine }) {
 }
 
 export default async function PartnerPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ page?: string }> }) {
-  await requireOwner();
+  const staff = await requirePermission("partners.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const pageRaw = Number((await searchParams).page);
@@ -40,7 +41,8 @@ export default async function PartnerPage({ params, searchParams }: { params: Pr
   if (!d) notFound();
   const p = d.partner;
   const name = p.customers?.full_name ?? p.code;
-  const details = p.payout_method ? await getPayoutDetails(p.id) : null;
+  const canSeeMethod = can(staff, "partners.payout_details");
+  const details = canSeeMethod && p.payout_method ? await getPayoutDetails(p.id) : null;
   const next = nextTier(p.lifetime_cents);
   const lastPage = Math.max(1, Math.ceil(d.totalLines / PARTNER_LINES_PAGE));
   const typeLabel = PARTNER_TYPES.find((t) => t.id === p.partner_type)?.label ?? p.partner_type;
@@ -53,11 +55,11 @@ export default async function PartnerPage({ params, searchParams }: { params: Pr
       <div className="a-dh">
         <h1 style={{ font: "400 28px/1.1 var(--serif)", margin: 0 }}>{name}</h1><PartnerStatusChip status={p.status} />
         <div className="actions">
-          {p.status === "applied" && <ApproveDecline p={p} />}
-          {p.status === "approved" && <ConfirmDialog label="Suspend" title={`Suspend ${p.code}?`} confirmLabel="Suspend" tone="danger" action={setPartnerStatusAction} fields={{ partnerId: p.id, to: "suspended" }}>
+          {can(staff, "partners.manage") && p.status === "applied" && <ApproveDecline p={p} />}
+          {can(staff, "partners.manage") && p.status === "approved" && <ConfirmDialog label="Suspend" title={`Suspend ${p.code}?`} confirmLabel="Suspend" tone="danger" action={setPartnerStatusAction} fields={{ partnerId: p.id, to: "suspended" }}>
             Code and link stop working now. {usd(d.unpaidCents)} unpaid commission is forfeited. Store credit already issued stays spendable.
           </ConfirmDialog>}
-          {p.status === "suspended" && <ConfirmDialog label="Reinstate" title={`Reinstate ${p.code}?`} confirmLabel="Reinstate" action={setPartnerStatusAction} fields={{ partnerId: p.id, to: "approved" }}>
+          {can(staff, "partners.manage") && p.status === "suspended" && <ConfirmDialog label="Reinstate" title={`Reinstate ${p.code}?`} confirmLabel="Reinstate" action={setPartnerStatusAction} fields={{ partnerId: p.id, to: "approved" }}>
             Code and link start working again. Commission forfeited at suspension does not come back.
           </ConfirmDialog>}
         </div>
@@ -117,7 +119,7 @@ export default async function PartnerPage({ params, searchParams }: { params: Pr
             <div className="a-card-h"><h3>Payout</h3></div>
             <div className="a-card-b"><dl className="a-kv">
               <dt>Preference</dt><dd><PayoutPref p={p} /></dd>
-              <dt>Method</dt><dd>{p.payout_details_hint ?? <span className="muted">None on file</span>}</dd>
+              <dt>Method</dt><dd>{canSeeMethod ? p.payout_details_hint ?? <span className="muted">None on file</span> : <span className="muted">Hidden — owner only</span>}</dd>
               <dt>Carried</dt><dd>{usd(p.cash_carry_cents)}</dd>
             </dl>
             {details && <details style={{ marginTop: 8, fontSize: 12.5 }}><summary className="a-ulink">Show full details</summary>
@@ -127,7 +129,7 @@ export default async function PartnerPage({ params, searchParams }: { params: Pr
             <div className="a-card-h"><h3>W-9</h3><div className="r"><W9Chip p={p} /></div></div>
             <div className="a-card-b" style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12.5, flexWrap: "wrap" }}>
               <span className="muted">{p.w9_uploaded_at ? `Uploaded ${shortDate(p.w9_uploaded_at)}` : "Not uploaded"}{p.w9_checked_at ? ` · checked ${shortDate(p.w9_checked_at)}` : ""}</span>
-              {p.w9_path && <span className="a-acts" style={{ marginLeft: "auto" }}>
+              {p.w9_path && can(staff, "w9.open") && <span className="a-acts" style={{ marginLeft: "auto" }}>
                 <form action={openW9Action}><input type="hidden" name="partnerId" value={p.id} /><button type="submit" className="a-btn sm">Open W-9</button></form>
                 {!p.w9_checked_at && <form action={markW9CheckedAction}><input type="hidden" name="partnerId" value={p.id} /><button type="submit" className="a-btn sm primary">Mark checked</button></form>}
               </span>}

@@ -242,7 +242,7 @@ export function inquiriesSection(i: { count: number; oldest: InquiryTodo[] }, no
       title: `${TOPIC_TAG[q.topic]} · ${q.topic === "wholesale" && q.organization ? q.organization : q.name}`,
       detail: [q.last_preview ? `"${excerpt(q.last_preview)}"` : "", q.file_count ? plural(q.file_count, "attachment") : ""].filter(Boolean).join(" · "),
       age: w ? { text: w.text, late: w.late } : undefined,
-      action: { label: "Reply", href },
+      action: { label: q.draft_at ? "Review draft" : "Reply", href },
     };
   });
   return build({ key: "inquiries", title: "Inquiries", icon: "inbox", n: i.count, link: { label: "Inquiries", href: "/admin/inquiries" } }, lines, Math.max(0, i.count - lines.length));

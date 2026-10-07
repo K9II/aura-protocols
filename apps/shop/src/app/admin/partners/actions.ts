@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { recordAdminEvent, type AdminAction } from "@/lib/audit/data";
 import { getPartnerById, partnerEmail, setPartnerStatus, type PartnerStatus } from "@/lib/partners/data";
 import { forfeitUnpaid } from "@/lib/partners/ledger";
@@ -14,7 +14,7 @@ const schema = z.object({ partnerId: z.string().uuid(), to: z.enum(["approved", 
 const ALLOWED: Record<PartnerStatus, PartnerStatus[]> = { applied: ["approved", "declined"], approved: ["suspended"], suspended: ["approved"], declined: [] };
 
 export async function setPartnerStatusAction(form: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("partners.manage");
   const parsed = schema.safeParse({ partnerId: form.get("partnerId"), to: form.get("to") });
   if (!parsed.success) return;
   const { partnerId, to } = parsed.data;

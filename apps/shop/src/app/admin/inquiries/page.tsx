@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { currentMs } from "@/lib/clock";
 import { inquiryTabCounts, listInquiries, listUnmatched, type UnmatchedRow } from "@/lib/inquiries/data";
 import { INQUIRIES_PER_PAGE, INQUIRY_AUTO_CLOSE_DAYS } from "@/lib/inquiries/constants";
@@ -21,7 +22,7 @@ function preview(r: InquiryRow): React.ReactNode {
   return <>{who && <span className="who">{who}</span>}{r.last_preview ?? ""}</>;
 }
 
-function Unmatched({ open, spam, domain, nowMs }: { open: UnmatchedRow[]; spam: UnmatchedRow[]; domain: string; nowMs: number }) {
+function Unmatched({ open, spam, domain, nowMs, canReply }: { open: UnmatchedRow[]; spam: UnmatchedRow[]; domain: string; nowMs: number; canReply: boolean }) {
   const row = (u: UnmatchedRow, i: number) => (
     <tr key={u.id}>
       <td className="a-from"><b>{u.from_name || u.from_email}</b><span className="em2">{u.from_email}</span></td>
@@ -29,8 +30,10 @@ function Unmatched({ open, spam, domain, nowMs }: { open: UnmatchedRow[]; spam: 
         <div className="muted" style={{ fontSize: 12 }}>{unmatchedReason(u, domain)}</div></td>
       <td className="muted">{whenText(u.created_at, nowMs)}</td>
       <td className="num" style={{ whiteSpace: "nowrap" }}>
-        <form action={dismissUnmatchedAction} style={{ display: "inline" }}><input type="hidden" name="id" value={u.id} /><button type="submit" className="a-btn sm">Dismiss</button></form>{" "}
-        <AttachDialog id={u.id} from={u.from_email} primary={i === 0} />
+        {canReply && <>
+          <form action={dismissUnmatchedAction} style={{ display: "inline" }}><input type="hidden" name="id" value={u.id} /><button type="submit" className="a-btn sm">Dismiss</button></form>{" "}
+          <AttachDialog id={u.id} from={u.from_email} primary={i === 0} />
+        </>}
       </td>
     </tr>
   );
@@ -54,7 +57,7 @@ function Unmatched({ open, spam, domain, nowMs }: { open: UnmatchedRow[]; spam: 
 
 // The inbox (mock screens 1 and 4). Spec 2026-10-06-admin-inquiries-design.md.
 export default async function InquiriesPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[]; topic?: string | string[]; q?: string | string[]; page?: string | string[] }> }) {
-  await requireOwner();
+  const staff = await requirePermission("inquiries.view");
   const sp = await searchParams;
   const tab = parseTab(first(sp.tab));
   const topic = parseTopic(first(sp.topic));
@@ -78,6 +81,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
   const unmatched = tab === "unmatched" ? await listUnmatched() : null;
   const lastPage = list ? Math.max(1, Math.ceil(list.total / INQUIRIES_PER_PAGE)) : 1;
   const oldest = tab === "open" && list?.rows[0] ? waitInfo(list.rows[0], nowMs) : null;
+  const draftsOnPage = list ? list.rows.filter((r) => r.draft_body).length : 0;
 
   return (
     <div className="a-page">
@@ -107,7 +111,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
         )}
       </div>
 
-      {unmatched && <Unmatched open={unmatched.open} spam={unmatched.spam} domain={process.env.INBOUND_MAIL_DOMAIN ?? "in.auraprotocols.com"} nowMs={nowMs} />}
+      {unmatched && <Unmatched open={unmatched.open} spam={unmatched.spam} domain={process.env.INBOUND_MAIL_DOMAIN ?? "in.auraprotocols.com"} nowMs={nowMs} canReply={can(staff, "inquiries.reply")} />}
 
       {list && (list.rows.length === 0 ? <div className="a-empty">{qRaw || topic ? "Nothing matches." : tab === "open" ? "Nothing waiting for a reply." : "Nothing here yet."}</div> : (
         <>
@@ -126,7 +130,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
                   <td><span className="a-topic">{TOPIC_TAG[r.topic]}</span></td>
                   <td><Link href={link} style={{ color: "inherit", textDecoration: "none" }}><div className="a-prev">{preview(r)}</div></Link></td>
                   <td>{w ? <span className={`a-qwait${w.late ? " red" : ""}`}>{w.text}<small>{r.status === "waiting" ? "since our reply" : `since ${whenText(w.since, nowMs)}`}</small></span> : <span className="muted">—</span>}</td>
-                  <td><span className={`a-chip ${chip.tone}`}>{chip.text}</span></td>
+                  <td><span className="a-chips"><span className={`a-chip ${chip.tone}`}>{chip.text}</span>{r.draft_body && <span className="a-chip asst">Draft ready</span>}</span></td>
                 </tr>
               );
             })}</tbody>
@@ -138,12 +142,13 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
               <Link key={r.id} href={`/admin/inquiries/${refLabel(r.ref)}`} className="a-pq">
                 <b>{fromName(r)}</b>{w ? <span className={`a-qwait${w.late ? " red" : ""}`}>{w.text}</span> : <span />}
                 <div className="pv">{r.last_preview ?? ""}</div>
-                <div className="meta"><span className="a-topic">{TOPIC_TAG[r.topic]}</span><span className={`a-chip ${chip.tone}`}>{chip.text}</span><span className="a-qref">{refLabel(r.ref)}</span></div>
+                <div className="meta"><span className="a-topic">{TOPIC_TAG[r.topic]}</span><span className={`a-chip ${chip.tone}`}>{chip.text}</span>{r.draft_body && <span className="a-chip asst">Draft ready</span>}<span className="a-qref">{refLabel(r.ref)}</span></div>
               </Link>
             );
           })}</div>
           <div className="a-tfoot">
-            {tab === "open" ? `${counts.open} open${oldest ? ` · oldest waiting ${businessDayText(oldest.since, nowMs)}` : ""}` : `Showing ${(page - 1) * INQUIRIES_PER_PAGE + 1}–${Math.min(page * INQUIRIES_PER_PAGE, list.total)} of ${list.total.toLocaleString("en-US")}`}
+            {(tab === "open" ? `${counts.open} open${oldest ? ` · oldest waiting ${businessDayText(oldest.since, nowMs)}` : ""}` : `Showing ${(page - 1) * INQUIRIES_PER_PAGE + 1}–${Math.min(page * INQUIRIES_PER_PAGE, list.total)} of ${list.total.toLocaleString("en-US")}`)
+              + (draftsOnPage > 0 ? ` · ${draftsOnPage} draft${draftsOnPage === 1 ? "" : "s"} ready` : "")}
             <div className="r">
               {page > 1 && <Link className="a-btn sm" href={href({ page: page - 1 })}>Previous</Link>}
               {page < lastPage && <Link className="a-btn sm" href={href({ page: page + 1 })}>Next</Link>}

@@ -15,7 +15,7 @@ export default function Activity() {
       </>}
       how={
         <Rules items={[
-          ["What's recorded", <>Orders shipped and refunded; customer blocks, store credit and verification emails; discount codes, batches and the cap; lots, counts, prices and strengths; email campaigns, drafts and automations; dispute evidence and early-warning choices; partner approvals and payouts; every time a W-9 is opened; alerts marked done.</>],
+          ["What's recorded", <>Orders shipped and refunded; customer blocks, store credit and verification emails; discount codes, batches and the cap; lots, counts, prices and strengths; email campaigns, drafts and automations; dispute evidence and early-warning choices; partner approvals and payouts; every time a W-9 is opened; alerts marked done; team sign-outs, disables and enables.</>],
           ["Where it comes from", <>Each module keeps its own log, which also shows on its page. Activity reads all of them together. Nothing here can be edited or deleted from the admin.</>],
           ["W-9s", <>A W-9 holds a tax ID. Opening one is recorded first; if that record can&apos;t be saved, the W-9 doesn&apos;t open.</>],
           ["Times", <>Shown in shop time (Mountain).</>],

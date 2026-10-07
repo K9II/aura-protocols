@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { catalogContent } from "@/data/catalog";
 import { fetchAdminOps } from "@/lib/catalog-ops/data";
 import { adminRows, CATALOG_TABS, rowsForTab, searchRows, TAB_LABEL, tabCounts, type AdminRow, type CatalogTab } from "@/lib/catalog-ops/rules";
@@ -30,7 +30,7 @@ function Next({ r }: { r: AdminRow }) {
 }
 
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ q?: string | string[]; tab?: string | string[] }> }) {
-  await requireOwner();
+  await requirePermission("catalog.view");
   const sp = await searchParams;
   const tab = (CATALOG_TABS as readonly string[]).includes(first(sp.tab) ?? "") ? (first(sp.tab) as CatalogTab) : "all";
   const q = (first(sp.q) ?? "").slice(0, 60);

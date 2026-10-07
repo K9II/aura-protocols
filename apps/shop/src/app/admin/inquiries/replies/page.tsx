@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { listSavedReplies } from "@/lib/inquiries/data";
 import { shortDate } from "@/lib/discounts/time";
 import { Crumbs } from "@/components/admin/ui";
@@ -11,10 +12,11 @@ export const metadata: Metadata = { title: "Saved replies", robots: { index: fal
 
 // Mock screen 5.
 export default async function SavedRepliesPage() {
-  await requireOwner();
+  const staff = await requirePermission("inquiries.view");
+  const canEdit = can(staff, "inquiries.saved_replies");
   const replies = await listSavedReplies();
   const updated = (r: (typeof replies)[number]) => `${shortDate(r.updated_at)}${r.updatedByName ? ` · ${r.updatedByName}` : ""}`;
-  const actions = (r: (typeof replies)[number]) => (
+  const actions = (r: (typeof replies)[number]) => canEdit && (
     <span style={{ display: "inline-flex", gap: 6 }}>
       <SavedReplyDialog reply={{ id: r.id, name: r.name, body: r.body }} />
       <form action={deleteReplyAction}><input type="hidden" name="id" value={r.id} />
@@ -26,7 +28,7 @@ export default async function SavedRepliesPage() {
       <Crumbs items={[{ label: "Inquiries", href: "/admin/inquiries" }, { label: "Saved replies" }]} />
       <div className="a-ph">
         <div><h1>Saved replies</h1><p>Text you can insert into a reply with one click, then edit before sending. Each one is checked for compliance when you save it.</p></div>
-        <div className="actions"><SavedReplyDialog /></div>
+        <div className="actions">{canEdit && <SavedReplyDialog />}</div>
       </div>
       {replies.length === 0 ? <div className="a-empty">No saved replies yet.</div> : (
         <>

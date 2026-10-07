@@ -16,6 +16,7 @@ export const CHAPTERS = [
   { id: "partners", title: "Partners", group: "Partners", href: "/admin/partners" },
   { id: "payouts", title: "Payouts", group: "Partners", href: "/admin/payouts" },
   { id: "activity", title: "Activity", group: null, href: "/admin/activity" },
+  { id: "team", title: "Team & the Assistant", group: null, href: "/admin/team" },
 ] as const;
 export type ChapterId = (typeof CHAPTERS)[number]["id"];
 

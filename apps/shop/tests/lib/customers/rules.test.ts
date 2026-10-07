@@ -30,9 +30,13 @@ describe("customer rules", () => {
   });
 
   it("never blocks an owner or yourself", () => {
-    expect(blockRefusal({ id: "a", isOwner: true }, "me")).toMatch(/owner/);
-    expect(blockRefusal({ id: "me", isOwner: false }, "me")).toMatch(/yourself/);
-    expect(blockRefusal({ id: "a", isOwner: false }, "me")).toBeNull();
+    expect(blockRefusal({ id: "a", isOwner: true, isStaff: false }, "me")).toMatch(/owner/);
+    expect(blockRefusal({ id: "me", isOwner: false, isStaff: false }, "me")).toMatch(/yourself/);
+    expect(blockRefusal({ id: "a", isOwner: false, isStaff: false }, "me")).toBeNull();
+  });
+
+  it("never blocks a team login — disable it on the Team page instead", () => {
+    expect(blockRefusal({ id: "a", isOwner: false, isStaff: true }, "me")).toBe("A team login can't be blocked — disable it on the Team page first.");
   });
 
   it("summarises a user agent and shortens the IP hash", () => {

@@ -4,12 +4,13 @@ import { alertOwner } from "@/lib/notify";
 
 // Who did what, when, for owner actions without a log of their own
 // (Orders, Partners, Payouts, Today). Table: admin_events (supabase/audit.sql).
-export type AdminArea = "orders" | "partners" | "payouts" | "today";
+export type AdminArea = "orders" | "partners" | "payouts" | "today" | "staff";
 export type AdminAction =
   | "order_shipped" | "order_refunded"
   | "partner_approved" | "partner_declined" | "partner_suspended" | "partner_reinstated"
   | "payout_paid" | "w9_opened" | "w9_checked"
-  | "inquiries_seen";
+  | "inquiries_seen"
+  | "staff_disabled" | "staff_enabled" | "staff_signed_out";
 export type AdminEventInput = { area: AdminArea; action: AdminAction; targetId?: string | null; label?: string | null; detail?: string | null; actorId: string };
 
 const db = () => getSupabaseAdminClient();

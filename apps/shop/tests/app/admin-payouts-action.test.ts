@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ownerStaff } from "../helpers/staff";
 
-const requireOwner = vi.fn();
+const requirePermission = vi.fn();
 const audit = vi.hoisted(() => ({ logAdminEvent: vi.fn(), recordAdminEvent: vi.fn() }));
 const markPayoutPaid = vi.fn();
 const partnerEmail = vi.fn();
@@ -9,7 +10,7 @@ const getPartnerById = vi.fn();
 const w9SignedUrl = vi.fn();
 const sendOrAlert = vi.fn();
 const revalidatePath = vi.fn();
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/audit/data", () => audit);
 vi.mock("@/lib/partners/ledger", () => ({ markPayoutPaid }));
 vi.mock("@/lib/partners/data", () => ({ partnerEmail, markW9Checked, getPartnerById, w9SignedUrl }));
@@ -21,7 +22,7 @@ function fd(v: Record<string, string>) { const f = new FormData(); for (const [k
 const id = "22222222-2222-4222-8222-222222222222";
 
 describe("payout admin actions", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requireOwner, markPayoutPaid, partnerEmail, markW9Checked, getPartnerById, w9SignedUrl, sendOrAlert, revalidatePath]) f.mockReset(); requireOwner.mockResolvedValue({ id: "owner" }); });
+  beforeEach(() => { vi.resetModules(); for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requirePermission, markPayoutPaid, partnerEmail, markW9Checked, getPartnerById, w9SignedUrl, sendOrAlert, revalidatePath]) f.mockReset(); requirePermission.mockResolvedValue(ownerStaff({ id: "owner" })); });
 
   it("marks a queued payout paid with its reference and emails the partner", async () => {
     markPayoutPaid.mockResolvedValue({ id, cash_cents: 21240, reference: "ACH-4471", partners: { customer_id: "u2", code: "BENCHNOTES" } });
@@ -38,7 +39,7 @@ describe("payout admin actions", () => {
     const { markPayoutPaidAction } = await import("@/app/admin/payouts/actions");
     await markPayoutPaidAction(fd({ payoutId: id, reference: "" }));
     expect(markPayoutPaid).not.toHaveBeenCalled();
-    requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     await expect(markPayoutPaidAction(fd({ payoutId: id, reference: "x1" }))).rejects.toThrow("NOT_FOUND");
   });
 

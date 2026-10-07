@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { catalogContent } from "@/data/catalog";
 import { catalogEvents, fetchAdminOps, variantHistory } from "@/lib/catalog-ops/data";
 import { adminRows, byLiveThenNumber, isDiscrepancy, liveRefusal, type AdminLotRow } from "@/lib/catalog-ops/rules";
@@ -30,7 +31,7 @@ function status(l: AdminLotRow): [string, string] {
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-  await requireOwner();
+  const staff = await requirePermission("catalog.view");
   const { slug } = await params;
   const c = catalogContent.find((x) => x.slug === slug);
   if (!c) notFound();
@@ -56,7 +57,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="a-vh">
         <div><h1>{c.name}</h1><div className="sub">{c.chemicalClass}<span className="dot" />{c.form} · {c.vialMl} mL vial<span className="dot" />{sub}</div></div>
         <div className="actions">
-          <ShownSwitch slug={slug} name={c.name} shown={shown} />
+          {can(staff, "catalog.edit") && <ShownSwitch slug={slug} name={c.name} shown={shown} />}
           <a className="a-btn" href={`/products/${slug}`} target="_blank" rel="noopener noreferrer"><Icon name="ext" />View on store</a>
         </div>
       </div>
@@ -82,17 +83,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     <small>{l.received_by_name ? `${l.received_by_name} · ` : ""}{day(l.received_at)}{l.adjust_qty ? ` · corrected ${l.adjust_qty > 0 ? "+" : ""}${l.adjust_qty}` : ""}</small></td>
                   <td><div className="a-cnt"><span><small>Held</small>{l.held}</span><span><small>Sold</small>{l.sold}</span><span><small>Left</small>{l.available}</span></div></td>
                   <td><div className="a-acts">
-                    {kind === "live" && <><CorrectCountDialog lotId={l.id} lotNumber={l.lot_number} left={l.available} held={l.held} sold={l.sold} /><LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={live.length === 1} /></>}
+                    {kind === "live" && <>{can(staff, "stock.correct") && <CorrectCountDialog lotId={l.id} lotNumber={l.lot_number} left={l.available} held={l.held} sold={l.sold} canWithdraw={can(staff, "stock.owner_withdrawal")} />}{can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={live.length === 1} canPutLive={can(staff, "lots.put_live")} />}</>}
                     {/* Sold-out (available 0) is still a live lot — it can still be retired. Retired lots get no menu. */}
-                    {kind === "old" && l.status === "live" && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={false} />}
+                    {kind === "old" && l.status === "live" && can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={false} canPutLive={can(staff, "lots.put_live")} />}
                     {kind === "draft" && (() => {
                       const refusal = liveRefusal({ status: l.status, coaPath: l.coa_path, sellable: l.sellable });
                       return <>
-                        <div>
+                        {can(staff, "lots.put_live") && <div>
                           <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn sm primary" disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
                           {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}
-                        </div>
-                        <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, purity: String(l.purity_pct), method: l.method, testedOn: l.tested_on, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", coaPath: l.coa_path ?? "" }} />
+                        </div>}
+                        {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, purity: String(l.purity_pct), method: l.method, testedOn: l.tested_on, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", coaPath: l.coa_path ?? "" }} />}
                       </>;
                     })()}
                   </div></td>
@@ -109,15 +110,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <div className="a-st-h">
                   <h2>{r.strength}</h2><span className={`a-chip ${sc}`}>{sl}</span>
                   <div className="facts">
-                    <div><span className="l"><span className="a-only-desk">Price / vial</span><span className="a-only-phone">Price</span></span><InlineField slug={slug} variantId={r.variantId} field="price" label="Price per vial" display={usd(r.priceCents)} initial={(r.priceCents / 100).toFixed(2)} /></div>
-                    <div><span className="l">Low at</span><InlineField slug={slug} variantId={r.variantId} field="low" label="Low stock level" display={String(r.lowAt)} initial={String(r.lowAt)} /></div>
-                    <div className="a-only-desk"><span className="l">3PL SKU</span><InlineField slug={slug} variantId={r.variantId} field="sku" label="3PL SKU" display={r.sku ?? "—"} initial={r.sku ?? ""} /></div>
+                    <div><span className="l"><span className="a-only-desk">Price / vial</span><span className="a-only-phone">Price</span></span>{can(staff, "catalog.edit") ? <InlineField slug={slug} variantId={r.variantId} field="price" label="Price per vial" display={usd(r.priceCents)} initial={(r.priceCents / 100).toFixed(2)} /> : <span>{usd(r.priceCents)}</span>}</div>
+                    <div><span className="l">Low at</span>{can(staff, "catalog.edit") ? <InlineField slug={slug} variantId={r.variantId} field="low" label="Low stock level" display={String(r.lowAt)} initial={String(r.lowAt)} /> : <span>{String(r.lowAt)}</span>}</div>
+                    <div className="a-only-desk"><span className="l">3PL SKU</span>{can(staff, "catalog.edit") ? <InlineField slug={slug} variantId={r.variantId} field="sku" label="3PL SKU" display={r.sku ?? "—"} initial={r.sku ?? ""} /> : <span>{r.sku ?? "—"}</span>}</div>
                     <div><span className="l"><span className="a-only-desk">Available</span><span className="a-only-phone">Left</span></span><span className="a-inl">{r.available}</span></div>
                   </div>
                   <div className="r">
-                    {!r.strengthShown && <form action={setStrengthShownAction}><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={r.variantId} /><input type="hidden" name="shown" value="true" /><button type="submit" className="a-btn sm">Show on store</button></form>}
-                    <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} />
-                    <StrengthMenu slug={slug} variantId={r.variantId} strength={r.strength} shown={r.strengthShown} canDelete={h.lots === 0 && h.orders === 0} />
+                    {!r.strengthShown && can(staff, "catalog.edit") && <form action={setStrengthShownAction}><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={r.variantId} /><input type="hidden" name="shown" value="true" /><button type="submit" className="a-btn sm">Show on store</button></form>}
+                    {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} />}
+                    {can(staff, "catalog.edit") && <StrengthMenu slug={slug} variantId={r.variantId} strength={r.strength} shown={r.strengthShown} canDelete={h.lots === 0 && h.orders === 0} />}
                   </div>
                 </div>
                 {lots.length === 0 ? (r.strengthShown && <div className="a-card-b muted">No lots yet — this strength shows Out of stock with &ldquo;COA pending&rdquo; until a lot goes live.</div>) : (
@@ -139,7 +140,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                         <div key={l.id} className="a-plot">
                           <div className="top"><b className="a-mono">{l.lot_number}</b>{l.status === "draft" && disc && <span className="a-chip c-disc">Discrepancy</span>}<span className={`a-chip ${cls}`}>{label}</span></div>
                           <div className="meta">{l.status === "draft" ? `Ordered ${l.ordered_qty} · counted ${l.counted_qty} · damaged ${l.damaged_qty} · ${l.sellable} sellable` : `${l.purity_pct}% · ${l.method} · ${l.held} held · ${l.sold} sold · ${l.available} left`}</div>
-                          {l.status === "draft" && (() => {
+                          {l.status === "draft" && can(staff, "lots.put_live") && (() => {
                             const refusal = liveRefusal({ status: l.status, coaPath: l.coa_path, sellable: l.sellable });
                             return <>
                               <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn primary" style={{ width: "100%", justifyContent: "center", height: 34, marginTop: 8 }} disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
@@ -158,7 +159,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             );
           })}
-          <AddStrengthDialog slug={slug} title={c.name} />
+          {can(staff, "catalog.edit") && <AddStrengthDialog slug={slug} title={c.name} />}
           {archived.length > 0 && (
             <div className="a-arch">
               <div className="h">Archived strengths · not on the store</div>
@@ -168,7 +169,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   <div key={r.variantId} className="row">
                     <b>{r.strength}</b>
                     <span className="muted">archived {day(r.archivedAt!)} · {plural(h.lots, "lot")} · {plural(h.orders, "order")}{shown && ops.lots.some((l) => l.variant_id === r.variantId && l.live_at) ? " · certificates stay in COA lookup" : ""}</span>
-                    <form action={restoreStrengthAction} style={{ marginLeft: "auto" }}><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={r.variantId} /><button type="submit" className="a-btn sm">Restore</button></form>
+                    {can(staff, "catalog.edit") && <form action={restoreStrengthAction} style={{ marginLeft: "auto" }}><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={r.variantId} /><button type="submit" className="a-btn sm">Restore</button></form>}
                   </div>
                 );
               })}

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ownerStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(), resolveAlert: vi.fn(), revalidatePath: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), resolveAlert: vi.fn(), revalidatePath: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("next/cache", () => ({ revalidatePath: m.revalidatePath }));
 vi.mock("@/lib/today/alerts", () => ({ resolveAlert: m.resolveAlert }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T15:42:00Z") }));
@@ -13,11 +14,11 @@ describe("admin Today actions", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of Object.values(m)) f.mockReset();
-    m.requireOwner.mockResolvedValue({ id: "owner1" });
+    m.requirePermission.mockResolvedValue(ownerStaff({ id: "owner1" }));
   });
 
   it("Done is owner-only", async () => {
-    m.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const a = await import("@/app/admin/actions");
     await expect(a.resolveAlertAction(null, fd({ id: A }))).rejects.toThrow("NOT_FOUND");
     expect(m.resolveAlert).not.toHaveBeenCalled();

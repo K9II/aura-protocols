@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { codeStatsById, discountDashboard, getDiscountCap, listBatches, listCodes } from "@/lib/discounts/data";
 import { buildListRows, type ListRow } from "@/lib/discounts/list";
 import type { CodeStatus } from "@/lib/discounts/rules";
@@ -37,7 +38,7 @@ function endLine(r: ListRow): string {
 }
 
 export default async function DiscountsPage({ searchParams }: { searchParams: Promise<{ status?: string | string[]; q?: string | string[]; page?: string | string[] }> }) {
-  await requireOwner();
+  const staff = await requirePermission("discounts.view");
   const sp = await searchParams;
   const statusRaw = first(sp.status);
   const filter = (FILTERS.find(([k]) => k === statusRaw)?.[0] ?? "all") as CodeStatus | "all";
@@ -66,9 +67,9 @@ export default async function DiscountsPage({ searchParams }: { searchParams: Pr
       <div className="a-ph">
         <div><h1>Discounts</h1><p>Codes customers type at checkout. Pack, new-account and partner discounts apply automatically and aren&apos;t listed here.</p></div>
         <div className="actions">
-          <Link className="a-btn a-only-desk" href="/admin/discounts/settings"><Icon name="gear" />Settings</Link>
-          <Link className="a-btn a-only-desk" href="/admin/discounts/new?mode=batch"><Icon name="layers" />Generate batch</Link>
-          <Link className="a-btn primary" href="/admin/discounts/new"><Icon name="plus" />Create code</Link>
+          {can(staff, "discounts.settings") && <Link className="a-btn a-only-desk" href="/admin/discounts/settings"><Icon name="gear" />Settings</Link>}
+          {can(staff, "discounts.edit") && <Link className="a-btn a-only-desk" href="/admin/discounts/new?mode=batch"><Icon name="layers" />Generate batch</Link>}
+          {can(staff, "discounts.edit") && <Link className="a-btn primary" href="/admin/discounts/new"><Icon name="plus" />Create code</Link>}
         </div>
       </div>
 
@@ -91,7 +92,7 @@ export default async function DiscountsPage({ searchParams }: { searchParams: Pr
       </div>
 
       {shown.length === 0 ? (
-        <div className="a-empty">{all.length === 0 ? <>No codes yet. <Link href="/admin/discounts/new">Create the first one</Link>.</> : "Nothing matches."}</div>
+        <div className="a-empty">{all.length === 0 ? (can(staff, "discounts.edit") ? <>No codes yet. <Link href="/admin/discounts/new">Create the first one</Link>.</> : "No codes yet.") : "Nothing matches."}</div>
       ) : (
         <>
           <table className="a-t a-only-desk">

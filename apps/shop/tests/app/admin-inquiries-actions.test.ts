@@ -1,24 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { inquiry } from "../helpers/inquiry-fixtures";
+import { ownerStaff } from "../helpers/staff";
 
-const OWNER = { id: "00000000-0000-4000-8000-0000000000aa", fullName: "Kearney Adams" };
+const OWNER = ownerStaff({ id: "00000000-0000-4000-8000-0000000000aa", fullName: "Kearney Adams" });
 const ID = "11111111-1111-4111-8111-111111111111";
 const KEY = "22222222-2222-4222-8222-222222222222";
 const d = vi.hoisted(() => ({
-  requireOwner: vi.fn(), getInquiry: vi.fn(), claimReply: vi.fn(), finishReply: vi.fn(), releaseReply: vi.fn(), threadMessageIds: vi.fn(),
+  requirePermission: vi.fn(), getInquiry: vi.fn(), claimReply: vi.fn(), finishReply: vi.fn(), releaseReply: vi.fn(), threadMessageIds: vi.fn(),
   applyInquiryEvent: vi.fn(), logInquiryEvent: vi.fn(), recordInquiryEvent: vi.fn(), setTopic: vi.fn(), setCustomer: vi.fn(),
   getUnmatched: vi.fn(), closeUnmatched: vi.fn(), recordInbound: vi.fn(), saveSavedReply: vi.fn(), deleteSavedReply: vi.fn(),
+  saveInquiryDraft: vi.fn(), clearInquiryDraft: vi.fn(), getCustomerBasics: vi.fn(),
   sendInquiryEmail: vi.fn(), accountIdByEmail: vi.fn(), alertOwner: vi.fn(), revalidatePath: vi.fn(),
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner: d.requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission: d.requirePermission }));
 vi.mock("@/lib/inquiries/data", () => ({
   getInquiry: d.getInquiry, claimReply: d.claimReply, finishReply: d.finishReply, releaseReply: d.releaseReply, threadMessageIds: d.threadMessageIds,
   applyInquiryEvent: d.applyInquiryEvent, logInquiryEvent: d.logInquiryEvent, recordInquiryEvent: d.recordInquiryEvent, setTopic: d.setTopic,
   setCustomer: d.setCustomer, getUnmatched: d.getUnmatched, closeUnmatched: d.closeUnmatched, recordInbound: d.recordInbound,
-  saveSavedReply: d.saveSavedReply, deleteSavedReply: d.deleteSavedReply,
+  saveSavedReply: d.saveSavedReply, deleteSavedReply: d.deleteSavedReply, saveInquiryDraft: d.saveInquiryDraft, clearInquiryDraft: d.clearInquiryDraft,
 }));
 vi.mock("@/lib/inquiries/send", () => ({ sendInquiryEmail: d.sendInquiryEmail }));
 vi.mock("@/lib/account/data", () => ({ accountIdByEmail: d.accountIdByEmail }));
+vi.mock("@/lib/customers/data", () => ({ getCustomerBasics: d.getCustomerBasics }));
 vi.mock("@/lib/notify", () => ({ alertOwner: d.alertOwner }));
 vi.mock("next/cache", () => ({ revalidatePath: d.revalidatePath }));
 
@@ -29,7 +32,7 @@ describe("inquiry actions", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of Object.values(d)) f.mockReset();
-    d.requireOwner.mockResolvedValue(OWNER);
+    d.requirePermission.mockResolvedValue(OWNER);
     d.getInquiry.mockResolvedValue(thread);
     d.claimReply.mockResolvedValue("m1");
     d.threadMessageIds.mockResolvedValue(["<CAF@gmail>"]);
@@ -38,7 +41,7 @@ describe("inquiry actions", () => {
   });
 
   it("is owner-only", async () => {
-    d.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    d.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const { replyAction } = await import("@/app/admin/inquiries/actions");
     await expect(replyAction(null, fd({ id: ID, clientKey: KEY, body: "hi" }))).rejects.toThrow("NOT_FOUND");
   });
@@ -153,5 +156,60 @@ describe("inquiry actions", () => {
     d.saveSavedReply.mockResolvedValue("ok");
     expect(await saveReplyAction(null, fd({ name: "Hello", body: "Thanks for writing." }))).toEqual({ ok: "Saved." });
     expect(d.logInquiryEvent).toHaveBeenCalledWith({ inquiryId: null, action: "reply_saved", actorId: OWNER.id, detail: "Hello" });
+  });
+
+  it("a reply always clears any draft, and credits the drafter by first name when it wasn't the sender", async () => {
+    d.getInquiry.mockResolvedValue({ ...thread, draft_by: "asst1" });
+    d.getCustomerBasics.mockResolvedValue({ id: "asst1", fullName: "Assistant (Claude)" });
+    const { replyAction } = await import("@/app/admin/inquiries/actions");
+    expect(await replyAction(null, fd({ id: ID, clientKey: KEY, body: "Replacements ship tomorrow.", mode: "send" }))).toEqual({ ok: "Sent." });
+    expect(d.clearInquiryDraft).toHaveBeenCalledWith(ID);
+    expect(d.getCustomerBasics).toHaveBeenCalledWith("asst1");
+    expect(d.recordInquiryEvent).toHaveBeenCalledWith({ inquiryId: ID, action: "replied", actorId: OWNER.id, detail: "drafted by Assistant" });
+  });
+
+  it("no draft on the thread: nothing to credit, no extra lookup", async () => {
+    const { replyAction } = await import("@/app/admin/inquiries/actions");
+    await replyAction(null, fd({ id: ID, clientKey: KEY, body: "x" }));
+    expect(d.clearInquiryDraft).toHaveBeenCalledWith(ID);
+    expect(d.getCustomerBasics).not.toHaveBeenCalled();
+  });
+
+  it("a reply carrying the loaded draftAt clears only that exact draft — a newer one the Assistant just saved stays", async () => {
+    d.getInquiry.mockResolvedValue({ ...thread, draft_by: "asst1" });
+    const { replyAction } = await import("@/app/admin/inquiries/actions");
+    await replyAction(null, fd({ id: ID, clientKey: KEY, body: "x", draftAt: "2026-10-06T14:06:00.000Z" }));
+    expect(d.clearInquiryDraft).toHaveBeenCalledWith(ID, "2026-10-06T14:06:00.000Z");
+  });
+
+  it("saveDraftAction: requires inquiries.draft, guards empty/compliance, saves and logs", async () => {
+    const { saveDraftAction } = await import("@/app/admin/inquiries/actions");
+    expect(await saveDraftAction(null, fd({ id: ID, body: "  " }))).toEqual({ error: "Write a draft first." });
+    expect(d.requirePermission).toHaveBeenCalledWith("inquiries.draft");
+    expect(await saveDraftAction(null, fd({ id: ID, body: "Most people reconstitute with 2 ml" })))
+      .toEqual({ error: expect.stringMatching(/^Not saved\. Remove "reconstitute" before sending/), phrase: "reconstitute" });
+    expect(d.saveInquiryDraft).not.toHaveBeenCalled();
+    expect(await saveDraftAction(null, fd({ id: ID, body: "Thanks, Dana — shipping replacements." })))
+      .toEqual({ ok: "Draft saved — Alvester will review and send it." });
+    expect(d.saveInquiryDraft).toHaveBeenCalledWith({ id: ID, body: "Thanks, Dana — shipping replacements.", actorId: OWNER.id });
+    expect(d.recordInquiryEvent).toHaveBeenCalledWith({ inquiryId: ID, action: "draft_saved", actorId: OWNER.id });
+  });
+
+  it("discardDraftAction: requires inquiries.draft, clears and logs; a stale id throws", async () => {
+    d.clearInquiryDraft.mockResolvedValue(true);
+    const { discardDraftAction } = await import("@/app/admin/inquiries/actions");
+    await discardDraftAction(fd({ id: ID }));
+    expect(d.requirePermission).toHaveBeenCalledWith("inquiries.draft");
+    expect(d.clearInquiryDraft).toHaveBeenCalledWith(ID);
+    expect(d.logInquiryEvent).toHaveBeenCalledWith({ inquiryId: ID, action: "draft_discarded", actorId: OWNER.id });
+    await expect(discardDraftAction(fd({ id: "not-a-uuid" }))).rejects.toThrow(/Reload the page/);
+  });
+
+  it("discardDraftAction: nothing was actually there to clear (already sent, or never existed) — no log", async () => {
+    d.clearInquiryDraft.mockResolvedValue(false);
+    const { discardDraftAction } = await import("@/app/admin/inquiries/actions");
+    await discardDraftAction(fd({ id: ID }));
+    expect(d.clearInquiryDraft).toHaveBeenCalledWith(ID);
+    expect(d.logInquiryEvent).not.toHaveBeenCalled();
   });
 });
