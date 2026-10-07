@@ -2,7 +2,9 @@
 // (assistant@auraprotocols.com). Idempotent: safe to run again any time;
 // it finds the existing auth user and staff row rather than duplicating
 // them, and resets the Supabase password to match the saved password file
-// if the two ever drift apart.
+// if the two ever drift apart. It never re-enables a staff row Alvester
+// disabled on /admin/team — it checks that BEFORE touching the password,
+// and exits non-zero without writing anything.
 //
 // This is a staff login, not a buyer: it gets no account_agreements row
 // (that table records a customer's sign-up agreement to the storefront
@@ -66,9 +68,25 @@ async function main() {
   if (!url || !serviceRoleKey) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not found in apps/shop/.env.local");
   const admin = createClient(url, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
+  let user = await findUserByEmail(admin, ASSISTANT_EMAIL);
+
+  // Check the existing staff row BEFORE touching the password: if Alvester
+  // disabled it on /admin/team, re-running this script must never flip it
+  // back to active, and must stop before it even resets the password.
+  let existingStaff = null;
+  if (user) {
+    const { data, error } = await admin.from("staff").select("status").eq("customer_id", user.id).maybeSingle();
+    if (error) throw new Error(`staff read failed: ${JSON.stringify(error)}`);
+    existingStaff = data;
+  }
+  if (existingStaff?.status === "disabled") {
+    console.error("assistant is DISABLED — enable it on /admin/team");
+    process.exitCode = 1;
+    return;
+  }
+
   const password = loadOrCreatePassword();
 
-  let user = await findUserByEmail(admin, ASSISTANT_EMAIL);
   if (!user) {
     const { data, error } = await admin.auth.admin.createUser({
       email: ASSISTANT_EMAIL, password, email_confirm: true, user_metadata: { full_name: ASSISTANT_NAME },
@@ -88,14 +106,18 @@ async function main() {
   );
   if (custErr) throw new Error(`customers upsert failed: ${JSON.stringify(custErr)}`);
 
-  const { data: ownerRow, error: ownerErr } = await admin.from("staff").select("customer_id").eq("role", "owner").eq("status", "active").limit(1).maybeSingle();
-  if (ownerErr) throw new Error(`owner read failed: ${JSON.stringify(ownerErr)}`);
+  // Insert the staff row only when none exists yet. An existing row's
+  // status/added_by are never touched here — only /admin/team's Disable
+  // and Enable change those.
+  if (!existingStaff) {
+    const { data: ownerRow, error: ownerErr } = await admin.from("staff").select("customer_id").eq("role", "owner").eq("status", "active").limit(1).maybeSingle();
+    if (ownerErr) throw new Error(`owner read failed: ${JSON.stringify(ownerErr)}`);
 
-  const { error: staffErr } = await admin.from("staff").upsert(
-    { customer_id: user.id, role: "assistant", status: "active", added_by: ownerRow?.customer_id ?? null },
-    { onConflict: "customer_id" },
-  );
-  if (staffErr) throw new Error(`staff upsert failed: ${JSON.stringify(staffErr)}`);
+    const { error: staffErr } = await admin.from("staff").insert(
+      { customer_id: user.id, role: "assistant", status: "active", added_by: ownerRow?.customer_id ?? null },
+    );
+    if (staffErr) throw new Error(`staff insert failed: ${JSON.stringify(staffErr)}`);
+  }
 
   console.log(`ok assistant ${user.id}`);
 }

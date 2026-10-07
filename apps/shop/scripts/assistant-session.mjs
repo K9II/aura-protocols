@@ -13,6 +13,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const PASSWORD_FILE = join(homedir(), ".aura", "assistant.json");
+const ASSISTANT_EMAIL = "assistant@auraprotocols.com";
 
 // KEY=value lines, same as the old helper — not a full dotenv parser.
 function readEnvLocal() {
@@ -33,6 +34,7 @@ async function main() {
 
   if (!existsSync(PASSWORD_FILE)) throw new Error(`${PASSWORD_FILE} not found — run create-assistant.mjs first`);
   const { email, password } = JSON.parse(readFileSync(PASSWORD_FILE, "utf8"));
+  if (email !== ASSISTANT_EMAIL) throw new Error(`${PASSWORD_FILE} has email "${email}", not "${ASSISTANT_EMAIL}" — refusing to sign in as anyone else`);
 
   const env = readEnvLocal();
   const url = env.NEXT_PUBLIC_SUPABASE_URL;
@@ -51,8 +53,12 @@ async function main() {
   if (error) throw new Error(`sign-in failed: ${JSON.stringify(error)}`);
 
   const origin = new URL(originArg);
-  const cookies = [...jar.entries()].map(([name, value]) => ({
-    name, value, domain: origin.hostname, path: "/", expires: -1, httpOnly: true, secure: origin.protocol === "https:", sameSite: "Lax",
+  // Cookie shape matches the known-good helper (sign-in-as.cjs): httpOnly
+  // false (Playwright's storageState needs to see these like a browser tab
+  // would with Supabase's client-side cookies), and a cookie Supabase ever
+  // set to "" (cleared) is dropped rather than written back.
+  const cookies = [...jar.entries()].filter(([, value]) => value).map(([name, value]) => ({
+    name, value, domain: origin.hostname, path: "/", expires: -1, httpOnly: false, secure: origin.protocol === "https:", sameSite: "Lax",
   }));
   writeFileSync(outPath, JSON.stringify({ cookies, origins: [] }, null, 2));
   console.log(`ok ${cookies.length} cookies -> ${outPath}`);
