@@ -9,7 +9,7 @@ vi.mock("@/lib/notify", () => ({ alertOwner: vi.fn() }));
 describe("orderFlags", () => {
   beforeEach(() => vi.resetModules());
 
-  it("returns orders with any dispute and orders with an open warning", async () => {
+  it("returns orders with an open dispute and orders with an open warning", async () => {
     const d = query({ data: [{ order_id: "o1" }] });
     const w = query({ data: [{ order_id: "o2" }] });
     from = fromQueue({ disputes: [d], early_fraud_warnings: [w] });
@@ -17,6 +17,7 @@ describe("orderFlags", () => {
     const f = await orderFlags(["o1", "o2", "o3"]);
     expect([...f.disputes]).toEqual(["o1"]);
     expect([...f.warnings]).toEqual(["o2"]);
+    expect(callArgs(d, "is")).toEqual(["closed_at", null]);
     expect(callArgs(w, "is")).toEqual(["resolved_at", null]);
   });
 

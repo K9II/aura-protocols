@@ -63,6 +63,7 @@ export async function markShippedAction(_prev: ShipState, form: FormData): Promi
   await sendOrAlert({ to: shipped.email, ...shippedEmail(shipped) }, `shipped ${shipped.order_number}`);
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${order.order_number}`);
+  revalidatePath("/admin/partners/[id]", "page");
   return { ok: true };
 }
 
@@ -82,4 +83,5 @@ export async function refundCreditOrderAction(form: FormData): Promise<void> {
   }
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${order.order_number}`);
+  revalidatePath("/admin/partners/[id]", "page");
 }

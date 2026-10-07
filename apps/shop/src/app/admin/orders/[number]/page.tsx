@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireOwner } from "@/lib/dal";
 import { getOrderDetail } from "@/lib/orders/detail";
-import { moneyLines } from "@/lib/orders/money";
+import { codeText, moneyLines } from "@/lib/orders/money";
 import { orderMarkers } from "@/lib/orders/tabs";
+import { customersWithDisputes } from "@/lib/disputes/data";
 import { lotsMatch, type LotQty } from "@/lib/catalog-ops/rules";
 import { dateTime } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
@@ -17,10 +18,6 @@ import { Markers, OrderStatusChip } from "@/components/admin/orders/bits";
 export const metadata: Metadata = { title: "Order", robots: { index: false, follow: false } };
 
 const signed = (cents: number) => (cents < 0 ? `−${usd(-cents)}` : usd(cents));
-const codeText = (c: { kind: string; value: number; stack_on_top: boolean; free_shipping: boolean }) => {
-  const what = c.kind === "order_pct" ? `${c.value}% order` : c.kind === "item_pct" ? `${c.value}% items` : c.kind === "order_amount" ? `${usd(c.value)} off` : "free shipping";
-  return `${what}${c.stack_on_top ? ", on top" : ""}${c.free_shipping ? " + free shipping" : ""}`;
-};
 function Lots({ allocated, shipped }: { allocated: LotQty[]; shipped: LotQty[] }) {
   if (!allocated.length && !shipped.length) return null;
   return (
@@ -44,9 +41,10 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const live = (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live");
   const stripeUrl = o.stripe_payment_intent ? `https://dashboard.stripe.com/${live ? "" : "test/"}payments/${o.stripe_payment_intent}` : null;
   const creditOnly = !o.stripe_session_id && o.store_credit_cents === o.total_cents && (o.status === "paid" || o.status === "shipped");
-  const lines = moneyLines(o, { code: d.code?.code ?? null, partnerCode: d.partner?.code ?? null });
+  const lines = moneyLines(o, { code: d.code, partnerCode: d.partner?.code ?? null });
   const charged = o.total_cents - o.store_credit_cents;
   const summary = `${o.ship_name} · ${o.ship_city}, ${o.ship_state} · ${vials} vial${vials === 1 ? "" : "s"}`;
+  const disputedCustomers = await customersWithDisputes([c.id]);
 
   return (
     <div className="a-page">
@@ -117,7 +115,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
               <div className="muted" style={{ fontSize: 12.5 }}>{c.email}</div>
               <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", fontSize: 12.5 }}>
                 <span>{c.paidOrders} order{c.paidOrders === 1 ? "" : "s"} · {usd(c.spentCents)}</span>
-                <span className="a-chips" style={{ marginLeft: "auto" }}>{c.blocked ? <span className="a-chip blocked">Blocked</span> : c.verified ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}{d.flags.dispute && <span className="a-chip cb">Chargeback</span>}</span>
+                <span className="a-chips" style={{ marginLeft: "auto" }}>{c.blocked ? <span className="a-chip blocked">Blocked</span> : c.verified ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}{disputedCustomers.has(c.id) && <span className="a-chip cb">Chargeback</span>}</span>
               </div>
             </div>
           </div>

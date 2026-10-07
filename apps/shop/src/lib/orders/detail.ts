@@ -60,7 +60,7 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
       paidOrders: paidRows.length, spentCents: paidRows.reduce((s, r) => s + r.total_cents, 0),
     },
     code: codeRow, partner: partnerRow, commission: com,
-    flags: { dispute: ds.length > 0, warning: ws.some((w) => !w.resolved_at) },
+    flags: { dispute: ds.some((d) => !d.closed_at), warning: ws.some((w) => !w.resolved_at) },
     timeline: buildOrderTimeline({
       order,
       adminEvents: ev.map((e) => ({ action: e.action, at: e.at, detail: e.detail, actorName: e.actor?.full_name ?? null })),

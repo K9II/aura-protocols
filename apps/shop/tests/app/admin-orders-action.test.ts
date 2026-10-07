@@ -188,6 +188,7 @@ describe("markShippedAction", () => {
     expect(await markShippedAction(null, fd({ orderId: id, tracking: "9400111899223344556677", carrier: "usps" }))).toEqual({ ok: true });
     expect(revalidatePath).toHaveBeenCalledWith("/admin/orders");
     expect(revalidatePath).toHaveBeenCalledWith("/admin/orders/AP-1001");
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/partners/[id]", "page");
   });
 });
 
@@ -214,6 +215,7 @@ describe("refundCreditOrderAction", () => {
     expect(afterOrderRefunded).toHaveBeenCalledWith(expect.objectContaining({ id, order_number: "AP-1009" }));
     expect(revalidatePath).toHaveBeenCalledWith("/admin/orders");
     expect(revalidatePath).toHaveBeenCalledWith("/admin/orders/AP-1009");
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/partners/[id]", "page");
   });
 
   it("refuses orders Stripe charged (those are refunded in Stripe) and unpaid ones", async () => {

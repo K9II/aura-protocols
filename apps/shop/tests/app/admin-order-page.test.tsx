@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(async () => ({ id: "owner" })), getOrderDetail: vi.fn(), notFound: vi.fn(() => { throw new Error("NEXT_NOT_FOUND"); }) }));
+const m = vi.hoisted(() => ({ requireOwner: vi.fn(async () => ({ id: "owner" })), getOrderDetail: vi.fn(), customersWithDisputes: vi.fn(async () => new Set<string>()), notFound: vi.fn(() => { throw new Error("NEXT_NOT_FOUND"); }) }));
 vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
 vi.mock("@/lib/orders/detail", () => ({ getOrderDetail: m.getOrderDetail }));
+vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes: m.customersWithDisputes }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound }));
 vi.mock("@/app/admin/orders/actions", () => ({ refundCreditOrderAction: vi.fn() }));
 vi.mock("@/components/admin/orders/ShipDialog", () => ({ default: () => <button>Ship</button> }));
@@ -27,7 +28,7 @@ const detail = {
 };
 
 describe("/admin/orders/[number]", () => {
-  beforeEach(() => { m.getOrderDetail.mockResolvedValue(detail); delete process.env.STRIPE_SECRET_KEY; });
+  beforeEach(() => { m.getOrderDetail.mockResolvedValue(detail); m.customersWithDisputes.mockResolvedValue(new Set<string>()); delete process.env.STRIPE_SECRET_KEY; });
 
   it("rejects a malformed number without a query", async () => {
     await expect(OrderPage({ params: Promise.resolve({ number: "../x" }) })).rejects.toThrow("NEXT_NOT_FOUND");
@@ -67,5 +68,15 @@ describe("/admin/orders/[number]", () => {
     render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
     expect(screen.getAllByRole("button", { name: "Refund to store credit", hidden: true }).length).toBeGreaterThan(0);
     expect(screen.queryByRole("link", { name: /Open in Stripe/ })).toBeNull();
+  });
+
+  it("shows Chargeback on the customer card only when the customer (not just this order) has a dispute", async () => {
+    render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
+    expect(screen.queryByText("Chargeback")).toBeNull();
+
+    m.customersWithDisputes.mockResolvedValue(new Set(["c1"]));
+    render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
+    expect(screen.getByText("Chargeback")).toBeInTheDocument();
+    expect(m.customersWithDisputes).toHaveBeenCalledWith(["c1"]);
   });
 });

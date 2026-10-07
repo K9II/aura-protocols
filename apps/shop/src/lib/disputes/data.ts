@@ -188,7 +188,7 @@ export async function orderFlags(orderIds: string[]): Promise<{ disputes: Set<st
   if (!orderIds.length) return none;
   try {
     const [d, w] = await Promise.all([
-      db().from("disputes").select("order_id").in("order_id", orderIds),
+      db().from("disputes").select("order_id").in("order_id", orderIds).is("closed_at", null),
       db().from("early_fraud_warnings").select("order_id").in("order_id", orderIds).is("resolved_at", null),
     ]);
     if (d.error) throw new Error(JSON.stringify(d.error));
