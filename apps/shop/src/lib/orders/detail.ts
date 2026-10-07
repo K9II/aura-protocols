@@ -10,8 +10,9 @@ import type { RefundFlags } from "@/lib/refunds/rules";
 export type OrderDetail = {
   order: OrderRow;
   lots: Map<string, ItemLots>;
-  // paidOrders/spentCents are sales only; noChargeOrders counts paid/shipped no-charge orders.
-  customer: { id: string; fullName: string; email: string; verified: boolean; blocked: boolean; paidOrders: number; spentCents: number; noChargeOrders: number };
+  // paidOrders/spentCents are paid/shipped sales; noChargeOrders counts paid/shipped
+  // no-charge orders; refundedOrders counts refunded sales.
+  customer: { id: string; fullName: string; email: string; verified: boolean; blocked: boolean; paidOrders: number; spentCents: number; noChargeOrders: number; refundedOrders: number };
   noCharge: { reason: NoChargeReason; note: string | null; createdBy: string | null; replaces: string | null } | null;
   code: { id: string; code: string; kind: string; value: number; stack_on_top: boolean; free_shipping: boolean } | null;
   partner: { id: string; code: string } | null;
@@ -60,7 +61,7 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
   const [lots, cust, paid, code, partner, commission, events, disputes, warnings, inquiries, creator, original, refunder] = await Promise.all([
     orderItemLots(items.map((i) => i.id)),
     db().from("customers").select("id, full_name, email_verified_at, blocked_at").eq("id", order.customer_id).maybeSingle(),
-    db().from("orders").select("total_cents, kind").eq("customer_id", order.customer_id).in("status", ["paid", "shipped"]),
+    db().from("orders").select("total_cents, kind, status").eq("customer_id", order.customer_id).in("status", ["paid", "shipped", "refunded"]),
     order.discount_code_id
       ? db().from("discount_codes").select("id, code, kind, value, stack_on_top, free_shipping").eq("id", order.discount_code_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
@@ -75,8 +76,10 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
     order.refunded_by ? db().from("customers").select("full_name").eq("id", order.refunded_by).maybeSingle() : none,
   ]);
   const c = must<{ id: string; full_name: string; email_verified_at: string | null; blocked_at: string | null } | null>("customer", cust);
-  const paidRows = must<Array<{ total_cents: number; kind?: "sale" | "no_charge" }> | null>("customer orders", paid) ?? [];
+  const custRows = must<Array<{ total_cents: number; kind?: "sale" | "no_charge"; status?: string }> | null>("customer orders", paid) ?? [];
+  const paidRows = custRows.filter((r) => r.status !== "refunded");
   const sales = paidRows.filter((r) => r.kind !== "no_charge");
+  const refundedSales = custRows.filter((r) => r.status === "refunded" && r.kind !== "no_charge").length;
   const creatorRow = must<{ full_name: string } | null>("created by", creator);
   const originalRow = must<{ order_number: string } | null>("original order", original);
   const refunderRow = must<{ full_name: string } | null>("refunded by", refunder);
@@ -94,7 +97,7 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
     customer: {
       id: order.customer_id, fullName: c?.full_name ?? order.ship_name, email: order.email,
       verified: !!c?.email_verified_at, blocked: !!c?.blocked_at,
-      paidOrders: sales.length, spentCents: sales.reduce((s, r) => s + r.total_cents, 0), noChargeOrders: paidRows.length - sales.length,
+      paidOrders: sales.length, spentCents: sales.reduce((s, r) => s + r.total_cents, 0), noChargeOrders: paidRows.length - sales.length, refundedOrders: refundedSales,
     },
     noCharge: isNc
       ? { reason: order.no_charge_reason!, note: order.no_charge_note, createdBy: creatorRow?.full_name ?? null, replaces: originalRow?.order_number ?? null }

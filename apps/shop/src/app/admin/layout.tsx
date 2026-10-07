@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { stripeLive } from "@/lib/stripe-dashboard";
 import { Instrument_Sans } from "next/font/google";
 import "./admin.css";
 import AdminShell, { type Views } from "@/components/admin/AdminShell";
@@ -35,7 +36,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     views.disputes ? disputesNavCount() : Promise.resolve(0),
     views.inquiries ? inquiriesNavCount() : Promise.resolve(0),
   ]);
-  const testMode = !(process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live");
+  const testMode = !stripeLive();
   const who = { name: staff.isAssistant ? staff.fullName : staff.fullName.split(" ")[0] || "Owner", role: ROLE_LABEL[staff.role], assistant: staff.isAssistant };
   return (
     <div className={instrument.variable}>

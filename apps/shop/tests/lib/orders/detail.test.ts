@@ -18,7 +18,7 @@ const order = {
 function tables(over: Partial<Record<string, ReturnType<typeof query>>> = {}) {
   return {
     customers: [over.customers ?? query({ data: { id: "c1", full_name: "Priya Raman", email_verified_at: "2026-09-01T00:00:00Z", blocked_at: null } })],
-    orders: [over.orders ?? query({ data: [{ total_cents: 41_439 }, { total_cents: 20_000 }] })],
+    orders: [over.orders ?? query({ data: [{ total_cents: 41_439, status: "shipped" }, { total_cents: 20_000, status: "paid" }, { total_cents: 9_000, status: "refunded", kind: "sale" }, { total_cents: 0, status: "refunded", kind: "no_charge" }] })],
     discount_codes: [over.discount_codes ?? query({ data: { id: "dc1", code: "SPRING20", kind: "order_pct", value: 5, stack_on_top: true, free_shipping: false } })],
     partners: [over.partners ?? query({ data: { id: "p1", code: "QUINN10" } })],
     commissions: [over.commissions ?? query({ data: { amount_cents: 5_707, rate_pct: 15, state: "clearing", created_at: "2026-09-30T20:51:01Z", clears_at: "2026-10-16T21:02:00Z", voided_at: null } })],
@@ -67,14 +67,14 @@ describe("getOrderDetail", () => {
     from = fromQueue(t);
     const { getOrderDetail } = await import("@/lib/orders/detail");
     const d = (await getOrderDetail("AP-1029"))!;
-    expect(d.customer).toEqual({ id: "c1", fullName: "Priya Raman", email: "praman@example.org", verified: true, blocked: false, paidOrders: 2, spentCents: 61_439, noChargeOrders: 0 });
+    expect(d.customer).toEqual({ id: "c1", fullName: "Priya Raman", email: "praman@example.org", verified: true, blocked: false, paidOrders: 2, spentCents: 61_439, noChargeOrders: 0, refundedOrders: 1 });
     expect(d.noCharge).toBeNull();
     expect(d.code?.code).toBe("SPRING20");
     expect(d.partner).toEqual({ id: "p1", code: "QUINN10" });
     expect(d.commission?.state).toBe("clearing");
     expect(d.flags).toEqual({ dispute: false, warning: false, lostDispute: false });
     expect(d.timeline[0]).toMatchObject({ key: "shipped", who: "Alvester Adams" });
-    expect(callArgs(ordersQuery, "in")).toEqual(["status", ["paid", "shipped"]]);
+    expect(callArgs(ordersQuery, "in")).toEqual(["status", ["paid", "shipped", "refunded"]]);
     expect(callArgs(inquiriesQuery, "eq")).toEqual(["order_number", "AP-1029"]);
     expect(orderItemLots).toHaveBeenCalledWith(["i1"]);
   });

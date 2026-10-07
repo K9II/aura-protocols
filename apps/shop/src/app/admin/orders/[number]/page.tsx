@@ -14,6 +14,7 @@ import { cancelNoChargeOrderAction } from "@/app/admin/orders/actions";
 import { REASON_LABEL } from "@/lib/no-charge/rules";
 import { refundOffer, REFUND_REASON_LABEL, splitRefund, type RefundReason } from "@/lib/refunds/rules";
 import { paymentLabel } from "@/lib/refunds/stripe";
+import { stripePaymentUrl } from "@/lib/stripe-dashboard";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import ShipDialog from "@/components/admin/orders/ShipDialog";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
@@ -46,25 +47,26 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const { order: o, customer: c } = d;
   const items = o.order_items ?? [];
   const vials = items.reduce((s, i) => s + i.pack_qty * i.quantity, 0);
-  const live = (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live");
-  const stripeUrl = o.stripe_payment_intent ? `https://dashboard.stripe.com/${live ? "" : "test/"}payments/${o.stripe_payment_intent}` : null;
+  const stripeUrl = o.stripe_payment_intent ? stripePaymentUrl(o.stripe_payment_intent) : null;
   const nc = o.kind === "no_charge" ? d.noCharge : null;
   const charged = o.total_cents - o.store_credit_cents;
   const summary = `${o.ship_name} · ${o.ship_city}, ${o.ship_state} · ${vials} vial${vials === 1 ? "" : "s"}`;
-  const disputedCustomers = await customersWithDisputes([c.id]);
-
   // Refunds (mock 2026-10-07-admin-refunds r1–r3, r5): owner only; orders
   // with an open chargeback or fraud warning are refunded from Disputes; a lost
   // chargeback is never refunded.
   const canRefund = can(staff, "orders.refund");
   const offer = nc ? { mode: null } : refundOffer(o, d.flags);
   const refundMode = canRefund ? offer.mode : null;
-  // The card label: for the dialog, and for where a refund made here went (r4).
-  const refundedToCard = o.status === "refunded" && !!o.refund_reason && o.refund_destination === "card";
-  const label = (refundMode || refundedToCard) && o.stripe_payment_intent ? await paymentLabel(o.stripe_payment_intent) : null;
+  // The card label for the dialog is read from Stripe only when a refund is
+  // offered; a refund made here saved its label (r4), so no read after.
+  const [disputedCustomers, dialogLabel] = await Promise.all([
+    customersWithDisputes([c.id]),
+    refundMode && o.stripe_payment_intent ? paymentLabel(o.stripe_payment_intent) : Promise.resolve(null),
+  ]);
+  const label = o.status === "refunded" ? o.refund_payment_label : dialogLabel;
   const lines = moneyLines(o, { code: d.code, partnerCode: d.partner?.code ?? null, paymentLabel: label });
   const parts = o.status === "refunded" ? refundParts(o, label) : null;
-  const refundUrl = o.stripe_refund_id ? `https://dashboard.stripe.com/${live ? "" : "test/"}refunds/${o.stripe_refund_id}` : null;
+  const refundUrl = o.stripe_refund_id ? stripeUrl : null;
   const backInStock = o.status === "refunded" && !o.shipped_at;
   const firstName = c.fullName.trim().split(/\s+/)[0] || c.fullName;
   const replaceHref = `/admin/orders/new?customer=${c.id}&reason=replacement&replaces=${o.order_number}`;
@@ -171,7 +173,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
               <b><Link href={`/admin/customers/${c.id}`} className="a-plain">{c.fullName}</Link></b>
               <div className="muted" style={{ fontSize: 12.5 }}>{c.email}</div>
               <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", fontSize: 12.5 }}>
-                <span>{c.paidOrders} order{c.paidOrders === 1 ? "" : "s"} · {usd(c.spentCents)}{c.noChargeOrders > 0 && ` · ${c.noChargeOrders} no-charge`}</span>
+                <span>{c.paidOrders} order{c.paidOrders === 1 ? "" : "s"} · {usd(c.spentCents)}{c.refundedOrders > 0 && ` · ${c.refundedOrders} refunded`}{c.noChargeOrders > 0 && ` · ${c.noChargeOrders} no-charge`}</span>
                 <span className="a-chips" style={{ marginLeft: "auto" }}>{c.blocked ? <span className="a-chip blocked">Blocked</span> : c.verified ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}{disputedCustomers.has(c.id) && <span className="a-chip cb">Chargeback</span>}</span>
               </div>
             </div>
