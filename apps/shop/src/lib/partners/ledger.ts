@@ -282,10 +282,22 @@ export function payoutRunWarning(run: Pick<RunSummary, "runDate" | "finished" | 
 }
 
 export async function payableByPartner(): Promise<Record<string, number>> {
-  const { data } = await db().from("commissions").select("partner_id, amount_cents").eq("state", "payable");
+  const { data, error } = await db().from("commissions").select("partner_id, amount_cents").eq("state", "payable");
+  if (error) throw dbError("payable select", error);
   const out: Record<string, number> = {};
   for (const r of (data as { partner_id: string; amount_cents: number }[] | null) ?? []) out[r.partner_id] = (out[r.partner_id] ?? 0) + r.amount_cents;
   return out;
+}
+
+export const PAYOUT_PAGE_SIZE = 50;
+
+// Payouts history (owner Payouts → History): paid cash and credited runs.
+export async function listPayoutHistory(page: number): Promise<{ rows: PayoutRow[]; total: number }> {
+  const start = (page - 1) * PAYOUT_PAGE_SIZE;
+  const { data, error, count } = await db().from("payouts").select("*, partners(code, payout_method, payout_details_hint, customer_id)", { count: "exact" })
+    .in("status", ["paid", "credited"]).order("run_date", { ascending: false }).order("paid_at", { ascending: false }).range(start, start + PAYOUT_PAGE_SIZE - 1);
+  if (error) throw dbError("payout history select", error);
+  return { rows: (data as PayoutRow[] | null) ?? [], total: count ?? 0 };
 }
 
 export async function partnerLedger(partnerId: string): Promise<{

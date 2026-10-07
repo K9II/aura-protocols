@@ -283,4 +283,19 @@ describe("partner ledger", () => {
     const { payableByPartner } = await import("@/lib/partners/ledger");
     expect(await payableByPartner()).toEqual({ p1: 5410, p2: 212 });
   });
+
+  it("listPayoutHistory pages paid and credited payouts newest first", async () => {
+    const q = query({ data: [{ id: "y1" }], count: 14 });
+    from = fromQueue({ payouts: [q] });
+    const { listPayoutHistory } = await import("@/lib/partners/ledger");
+    expect(await listPayoutHistory(2)).toEqual({ rows: [{ id: "y1" }], total: 14 });
+    expect(callArgs(q, "in")).toEqual(["status", ["paid", "credited"]]);
+    expect(callArgs(q, "range")).toEqual([50, 99]);
+  });
+
+  it("payableByPartner throws on a read error", async () => {
+    from = fromQueue({ commissions: [query({ error: { message: "x" } })] });
+    const { payableByPartner } = await import("@/lib/partners/ledger");
+    await expect(payableByPartner()).rejects.toThrow(/payable select failed/);
+  });
 });
