@@ -3,6 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import { INQUIRY_AUTO_CLOSE_DAYS } from "@/lib/inquiries/constants";
 import { PERMISSION_LABEL } from "@/lib/staff/permissions";
 import { NEVER_FOR_ASSISTANT } from "@/lib/staff/roles";
+import { NO_CHARGE_MAX_VIALS } from "@/lib/no-charge/rules";
 
 const { requireStaff, getDiscountCap } = vi.hoisted(() => ({
   requireStaff: vi.fn(async () => ({ id: "o1", fullName: "Kearney Adams", isOwner: true })),
@@ -75,5 +76,17 @@ describe("/admin/guide", () => {
     expect(screen.getAllByText(/consider 0\.75% excessive/).length).toBeGreaterThan(0);    // DISPUTE_RATE_REVIEW_PCT
     expect(screen.getAllByText(/within 60 to 75 days/).length).toBeGreaterThan(0);          // BANK_DECISION_DAYS
     expect(screen.getAllByText(/\$15\.00/).length).toBeGreaterThan(0);                       // DISPUTE_FEE_CENTS
+  });
+
+  it("the Orders chapter explains no-charge orders, with the vial cap from the constant", async () => {
+    const { container } = render(await AdminGuidePage());
+    const ch = container.querySelector("#orders") as HTMLElement;
+    expect(within(ch).getByText("Send vials at no charge")).toBeInTheDocument();
+    for (const ui of ["New no-charge order", "Seeding", "Replacement", "Sample", "Other", "Create order", "No charge", "Cancel order"]) {
+      expect(within(ch).getAllByText(ui, { selector: ".a-ui" }).length).toBeGreaterThan(0);
+    }
+    expect(within(ch).getByText("No-charge orders")).toBeInTheDocument();
+    expect(ch).toHaveTextContent(/doesn.t use the customer.s first-order offer/);
+    expect(ch).toHaveTextContent(`${NO_CHARGE_MAX_VIALS} vials per item`);
   });
 });

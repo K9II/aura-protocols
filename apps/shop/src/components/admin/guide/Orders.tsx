@@ -1,6 +1,7 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
 import { CLEARING_DAYS } from "@/lib/partners/tiers";
 import { SHIP_LATE_BUSINESS_DAYS } from "@/lib/today/constants";
+import { NO_CHARGE_MAX_VIALS } from "@/lib/no-charge/rules";
 
 export default function Orders() {
   return (
@@ -22,6 +23,12 @@ export default function Orders() {
           <Step>For orders paid by card, wallet or bank, refund in the Stripe dashboard (the order page has <Ui>Open in Stripe</Ui>). A full refund marks the order <Ui>Refunded</Ui> here, reverses the partner commission and returns any store credit the customer used.</Step>
           <Step>For an order paid entirely in store credit, open its page and choose <Ui>Refund to store credit</Ui>. It never went through Stripe, so it can&apos;t be refunded there.</Step>
         </Task>
+        <Task title="Send vials at no charge">
+          <Step>Go to <Ui>Orders</Ui> and choose <Ui>New no-charge order</Ui>. Find the customer by name or email — they need an account, so their 21+ and research-use agreement is on record.</Step>
+          <Step>Pick <Ui>Seeding</Ui>, <Ui>Replacement</Ui>, <Ui>Sample</Ui> or <Ui>Other</Ui>. A replacement asks for the original order and a note saying what happened; <Ui>Other</Ui> needs a note too.</Step>
+          <Step>Add the items and how many vials of each, check the address, and choose whether to email the customer that it&apos;s on its way (no prices in that email).</Step>
+          <Step>Choose <Ui>Create order</Ui>. The vials are taken from stock at once and the order appears in <Ui>To ship</Ui> with a <Ui>No charge</Ui> tag. Pick, pack and ship it as usual; the tracking email follows.</Step>
+        </Task>
         <Task title="Answer a chargeback">
           <Step>You&apos;ll get an alert when one opens. Open <Ui>Disputes</Ui>: the evidence is already assembled from the order, its tracking and the customer&apos;s sign-up agreement. Review it and submit it to Stripe there.</Step>
         </Task>
@@ -35,12 +42,16 @@ export default function Orders() {
           ["Shipped", <>Tracking entered and the customer emailed. From here an order can only be refunded.</>],
           ["Cancelled", <>An unfinished checkout that was closed. No money moved.</>],
           ["Refunded", <>Fully refunded. The commission is reversed and any store credit used is returned.</>],
+          ["No-charge orders", <>Every price is $0; the retail value is kept on the order for the record. It isn&apos;t a sale: Today, Discounts, Email results and Customers leave it out. No partner commission, and it doesn&apos;t use the customer&apos;s first-order offer. A cancelled one reads <Ui>Cancelled (no charge)</Ui>.</>],
         ]} />
       }
       watch={[
         <>Only choose <Ui>Mark shipped</Ui> with a real tracking number: the customer is emailed straight away and it can&apos;t be undone.</>,
         <>A partial refund in Stripe leaves the order and the partner&apos;s commission as they were. You&apos;ll get an alert email; adjust the commission by hand if needed.</>,
         <>Don&apos;t refund the same order in two places. Card orders: Stripe, or <Ui>Cancel and refund</Ui> on an early fraud warning in Disputes. Store-credit-only orders: here only.</>,
+        <><Ui>Cancel order</Ui> on a no-charge order works only before it ships; it puts the vials back in stock and emails no one.</>,
+        <>Hidden strengths can be sent at no charge (tagged <Ui>Hidden</Ui> in the list); archived ones can&apos;t.</>,
+        <>A no-charge order takes at most {NO_CHARGE_MAX_VIALS} vials per item — a guard against typos. Need more? Add a second order.</>,
         <>The <Ui>Dispute</Ui> and <Ui>Warning</Ui> tags on a row mean a chargeback or an early fraud warning — check Disputes before shipping a <Ui>Warning</Ui> order.</>,
       ]}
     />
