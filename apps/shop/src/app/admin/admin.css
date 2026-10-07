@@ -88,6 +88,7 @@
 .adm .a-nav .soon .a-tag { margin-left: auto; font: 500 9px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
 .adm .a-side-foot { border-top: 1px solid var(--line); padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
 .adm .a-avatar { width: 26px; height: 26px; background: var(--ink); color: #EDE9E0; display: grid; place-items: center; font: 500 10.5px var(--mono); }
+.adm .a-avatar.asst { background: var(--slate-bg); color: var(--slate); border: 1px solid #B5C3D3; }
 .adm .a-side-foot .a-who { line-height: 1.25; } .adm .a-side-foot .a-who small { display: block; color: var(--muted); font-size: 11.5px; }
 .adm .a-side-foot .a-gear { margin-left: auto; color: var(--muted); }
 .adm .a-side-foot .a-signout { margin: 0 0 0 auto; }
@@ -98,6 +99,8 @@
 .adm .a-top-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .adm .a-env { font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ochre); background: var(--ochre-bg); border: 1px solid #DEC98F; padding: 3px 7px; display: flex; align-items: center; gap: 6px; }
 .adm .a-env::before { content: ""; width: 6px; height: 6px; background: var(--ochre); }
+.adm .a-env.asst { color: var(--slate); border-color: #B5C3D3; background: var(--slate-bg); }
+.adm .a-env.asst::before { background: var(--slate); }
 .adm .a-toplink { color: var(--ink-soft); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 5px; }
 
 /* ---------- page header ---------- */
