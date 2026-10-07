@@ -52,8 +52,8 @@ export default function Orders() {
       }
       watch={[
         <>Only choose <Ui>Mark shipped</Ui> with a real tracking number: the customer is emailed straight away and it can&apos;t be undone.</>,
-        <>An order with an open chargeback or an early fraud warning is refunded from <Ui>Disputes</Ui>, not here — the order page points you there.</>,
-        <>A refund made in the Stripe dashboard still marks the order <Ui>Refunded</Ui> here, but there&apos;s no reason or note on record (the money line says &ldquo;in Stripe&rdquo;). Refund here instead.</>,
+        <>An order with an open chargeback or an early fraud warning is refunded from <Ui>Disputes</Ui>, not here — the order page points you there. An order whose chargeback was lost is never refunded: the bank already returned the money.</>,
+        <>A refund made in the Stripe dashboard still marks the order <Ui>Refunded</Ui> here, but there&apos;s no reason or note on record (the money line says &ldquo;in Stripe&rdquo; and the timeline <Ui>Refunded in Stripe</Ui>). Refund here instead.</>,
         <>Partial refunds aren&apos;t supported here. A partial refund made in Stripe leaves the order and the partner&apos;s commission as they were; you&apos;ll get an alert email — adjust the commission by hand if needed.</>,
         <><Ui>Cancel order</Ui> on a no-charge order works only before it ships; it puts the vials back in stock and emails no one.</>,
         <>If a no-charge order&apos;s timeline shows <Ui>Email failed</Ui>, the &ldquo;on its way&rdquo; email didn&apos;t go (you also get an alert) — let the customer know yourself. If <Ui>Create order</Ui> says <Ui>Nothing was sent</Ui>, no order went to To ship; just try again.</>,

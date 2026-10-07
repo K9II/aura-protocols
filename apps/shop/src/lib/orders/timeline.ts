@@ -78,8 +78,12 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
       detail: [o.refund_note ? `“${o.refund_note}”` : null, stock].filter(Boolean).join(" · "),
     });
   } else if (o.refunded_at) {
+    // No stamp: refunded in the Stripe dashboard (spec), or here with the
+    // details not saved (the event says who).
     const e = ev("order_refunded");
-    out.push({ key: "refunded", at: o.refunded_at, tone: "red", title: "Refunded", detail: e ? e.detail ?? undefined : "in Stripe", who: e?.actorName ?? null });
+    out.push(e
+      ? { key: "refunded", at: o.refunded_at, tone: "red", title: "Refunded", detail: e.detail ?? undefined, who: e.actorName }
+      : { key: "refunded", at: o.refunded_at, tone: "red", title: "Refunded in Stripe", who: null });
   }
   for (const d of s.disputes) {
     out.push({ key: `dispute-${d.id}`, at: d.opened_at, tone: "red", title: `Chargeback opened · ${words(d.reason)} · ${usd(d.amount_cents)}`, href: `/admin/disputes/${d.id}`, hrefLabel: "Open dispute" });

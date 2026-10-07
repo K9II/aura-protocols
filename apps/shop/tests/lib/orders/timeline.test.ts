@@ -26,7 +26,7 @@ describe("buildOrderTimeline", () => {
     });
     const keys = t.map((e) => e.key);
     expect(keys).toEqual(["commission-void", "refunded", "warning-w1-resolved", "dispute-d1-closed", "inquiry-1046", "dispute-d1", "warning-w1", "commission", "paid", "placed"]);
-    expect(t.find((e) => e.key === "refunded")).toMatchObject({ tone: "red", detail: "in Stripe" });
+    expect(t.find((e) => e.key === "refunded")).toMatchObject({ tone: "red", title: "Refunded in Stripe" });
     expect(t.find((e) => e.key === "dispute-d1")).toMatchObject({ href: "/admin/disputes/d1", tone: "red" });
     expect(t.find((e) => e.key === "inquiry-1046")).toMatchObject({ href: "/admin/inquiries/Q-1046", hrefLabel: "Q-1046" });
     expect(t.find((e) => e.key === "warning-w1-resolved")?.who).toBe("Alvester");
@@ -62,7 +62,7 @@ describe("buildOrderTimeline", () => {
 
   it("shows a refund done here with who did it", () => {
     const t = buildOrderTimeline({ ...empty, order: { ...order, refunded_at: "2026-10-05T16:00:00Z" }, adminEvents: [{ action: "order_refunded", at: "2026-10-05T16:00:00Z", actorName: "Alvester", detail: "store credit returned" }] });
-    expect(t.find((e) => e.key === "refunded")).toMatchObject({ who: "Alvester", detail: "store credit returned" });
+    expect(t.find((e) => e.key === "refunded")).toMatchObject({ title: "Refunded", who: "Alvester", detail: "store credit returned" });
   });
 
   it("a no-charge order starts with Created — no charge (who, note, vials held) and the On its way soon email", () => {

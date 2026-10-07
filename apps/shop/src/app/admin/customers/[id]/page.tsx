@@ -39,6 +39,7 @@ function ledgerText(l: LedgerRow, events: CustomerEvent[], orderNo: Map<string, 
   if (l.reason === "order_spend") return <>Spent on {ord ?? "an order"}</>;
   if (l.reason === "order_cancel") return <>Returned — {ord ?? "order"} cancelled</>;
   if (l.reason === "order_refund") return <>Refund to credit — {ord ?? "order"}</>;
+  if (l.reason === "refund_to_credit") return <>Refund (card part) to credit — {ord ?? "order"}</>;
   if (l.reason === "payout") return <>Partner payout</>;
   return l.reason;
 }
