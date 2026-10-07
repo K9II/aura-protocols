@@ -13,6 +13,12 @@ describe("ActivityLine", () => {
     expect(container).toHaveTextContent("Kearney replied to Q-1047 · Dana Whitfield");
     rerender(<ActivityLine i={{ ...base2, e: { id: "e2", action: "reply_saved", detail: "Finding a COA" }, label: null }} />);
     expect(container).toHaveTextContent("Kearney saved the reply Finding a COA");
+    rerender(<ActivityLine i={{ ...base2, e: { id: "e3", action: "draft_saved", detail: null }, label: "Q-1002 · k9 Test" }} />);
+    expect(container).toHaveTextContent("Kearney saved a reply draft on Q-1002 · k9 Test");
+    rerender(<ActivityLine i={{ ...base2, e: { id: "e4", action: "draft_discarded", detail: null }, label: "Q-1002 · k9 Test" }} />);
+    expect(container).toHaveTextContent("Kearney discarded the reply draft on Q-1002 · k9 Test");
+    rerender(<ActivityLine i={{ ...base2, e: { id: "e5", action: "replied", detail: "drafted by Assistant" }, label: "Q-1002 · k9 Test" }} />);
+    expect(container).toHaveTextContent("Kearney replied to Q-1002 · k9 Test · drafted by Assistant");
   });
 
   it("words owner actions with who and what they were about", async () => {
