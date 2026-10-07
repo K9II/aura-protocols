@@ -34,6 +34,12 @@ describe("/admin/customers/[id]", () => {
     await expect(CustomerPage({ params: Promise.resolve({ id: ID }) })).rejects.toThrow("NOT_FOUND");
   });
 
+  it("shows the customer's research verification", async () => {
+    getCustomerDetail.mockResolvedValueOnce({ ...detail, research: { field: "pharmacology", org: "Novak Lab", verifiedAt: "2026-10-07T15:00:00Z" } });
+    render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(screen.getByText(/Research: Pharmacology · Novak Lab · verified/)).toBeInTheDocument();
+  });
+
   it("renders totals from paid orders only, the agreement record, ledger and actions", async () => {
     render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
     expect(screen.getByRole("heading", { level: 1, name: /Elena Novak/ })).toBeInTheDocument();
