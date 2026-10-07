@@ -18,10 +18,10 @@ describe("no-charge.sql", () => {
     expect(sql).toMatch(/no_charge_reason in \('seeding', 'replacement', 'sample', 'other'\)/);
     expect(sql).toMatch(/orders_no_charge_zero/); // money must be zero on a no-charge order
   });
-  it("hold_vials skips the shown checks only for no-charge orders", () => {
+  it("hold_vials: a no-charge order may take a hidden strength of a shown product, never a hidden product", () => {
     const f = fn("hold_vials");
     expect(f).toMatch(/v_kind/);
-    expect(f).toMatch(/v_kind = 'sale' and \(p\.shown is not true or v\.shown is not true\)/);
+    expect(f).toMatch(/p\.shown is not true or \(v_kind = 'sale' and v\.shown is not true\) or v\.archived_at is not null or v\.slug is null/);
     expect(f).toMatch(/v\.archived_at is not null/);
   });
   it("order-counting functions only count sales", () => {

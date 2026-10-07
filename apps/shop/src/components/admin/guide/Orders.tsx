@@ -50,7 +50,7 @@ export default function Orders() {
         <>A partial refund in Stripe leaves the order and the partner&apos;s commission as they were. You&apos;ll get an alert email; adjust the commission by hand if needed.</>,
         <>Don&apos;t refund the same order in two places. Card orders: Stripe, or <Ui>Cancel and refund</Ui> on an early fraud warning in Disputes. Store-credit-only orders: here only.</>,
         <><Ui>Cancel order</Ui> on a no-charge order works only before it ships; it puts the vials back in stock and emails no one.</>,
-        <>Hidden strengths can be sent at no charge (tagged <Ui>Hidden</Ui> in the list); archived ones can&apos;t.</>,
+        <>Hidden strengths of shown products can be sent at no charge (tagged <Ui>Hidden</Ui> in the list); hidden products and archived strengths can&apos;t.</>,
         <>A no-charge order takes at most {NO_CHARGE_MAX_VIALS} vials per item — a guard against typos. Need more? Add a second order.</>,
         <>The <Ui>Dispute</Ui> and <Ui>Warning</Ui> tags on a row mean a chargeback or an early fraud warning — check Disputes before shipping a <Ui>Warning</Ui> order.</>,
       ]}

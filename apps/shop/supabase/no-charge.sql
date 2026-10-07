@@ -33,8 +33,9 @@ alter table admin_events add constraint admin_events_action_check check (action 
 -- only where noted (each original carries a "superseded by no-charge.sql" line).
 
 -- hold_vials (latest: catalog-ops.sql). A no-charge order may send a hidden
--- strength (samples before launch); archived or unknown strengths are still
--- refused. Everything else is unchanged.
+-- strength of a shown product (samples before launch); hidden products (e.g.
+-- the incretin/amylin analogs pending processor approval), archived and
+-- unknown strengths are still refused. Everything else is unchanged.
 create or replace function hold_vials(p_order uuid) returns json language plpgsql
 set search_path = public, pg_temp as $$
 declare
@@ -53,7 +54,7 @@ begin
   if exists (select 1 from order_items i
              left join catalog_products p on p.slug = i.compound_slug
              left join catalog_variants v on v.slug = i.compound_slug and v.variant_id = i.variant_id
-             where i.order_id = p_order and ((v_kind = 'sale' and (p.shown is not true or v.shown is not true)) or v.archived_at is not null or v.slug is null)) then
+             where i.order_id = p_order and (p.shown is not true or (v_kind = 'sale' and v.shown is not true) or v.archived_at is not null or v.slug is null)) then
     return json_build_object('ok', false, 'reason', 'inactive');
   end if;
   for lk in select distinct compound_slug || ':' || variant_id as k

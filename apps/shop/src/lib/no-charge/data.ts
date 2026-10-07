@@ -57,9 +57,10 @@ export async function recipient(id: string): Promise<Recipient | null> {
 }
 
 // ---------- stock ----------
-// Every strength with live vials, shown or hidden (samples can go out before
-// a strength is on the store); archived strengths and products without
-// content are left out. Same live-lot rule as hold_vials.
+// Every strength of a shown product with live vials, the strength shown or
+// hidden (samples can go out before a strength is on the store). Hidden
+// products, archived strengths and products without content are left out —
+// the same rule and live-lot count as hold_vials.
 export async function stockOptions(): Promise<StockOption[]> {
   const ops = await fetchAdminOps();
   const names = new Map(catalogContent.map((c) => [c.slug, c.name]));
@@ -73,12 +74,12 @@ export async function stockOptions(): Promise<StockOption[]> {
   const out: StockOption[] = [];
   for (const v of ops.variants) {
     const name = names.get(v.slug);
-    if (v.archived_at || !name) continue;
+    if (v.archived_at || !name || productShown.get(v.slug) !== true) continue;
     const n = available.get(`${v.slug}:${v.variant_id}`) ?? 0;
     if (n <= 0) continue;
     out.push({
       slug: v.slug, variantId: v.variant_id, name, strength: v.strength, priceCents: v.price_cents, available: n,
-      hidden: !(productShown.get(v.slug) === true && v.shown),
+      hidden: !v.shown,
     });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name) || a.strength.localeCompare(b.strength, undefined, { numeric: true }));

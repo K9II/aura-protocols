@@ -24,7 +24,7 @@ const input = { customerId: "c1", email: "dana.w@example.com", ship, lines, reta
 describe("no-charge data", () => {
   beforeEach(() => { vi.resetModules(); rpc.mockReset(); getUserById.mockReset(); fetchAdminOps.mockReset(); });
 
-  it("stockOptions sums live lots, ignores draft/retired, drops archived and unknown products, flags hidden", async () => {
+  it("stockOptions sums live lots, ignores draft/retired, drops archived, unknown and hidden products, flags hidden strengths", async () => {
     fetchAdminOps.mockResolvedValue({
       products: [{ slug: "bpc-157", shown: true }, { slug: "mots-c", shown: false }, { slug: "tb-500", shown: true }, { slug: "ghost", shown: true }],
       variants: [
@@ -40,13 +40,13 @@ describe("no-charge data", () => {
         lot({ id: "l5", slug: "mots-c", variant_id: "40mg", available: 6 }),
         lot({ id: "l6", slug: "tb-500", variant_id: "10mg", available: 10 }),
         lot({ id: "l7", slug: "ghost", variant_id: "5mg", available: 10 }),
-        lot({ id: "l8", variant_id: "20mg", status: "draft", available: 3 }),
+        lot({ id: "l8", variant_id: "20mg", available: 3 }),
       ],
     });
     const { stockOptions } = await import("@/lib/no-charge/data");
     expect(await stockOptions()).toEqual([
       { slug: "bpc-157", variantId: "10mg", name: "BPC-157", strength: "10 mg", priceCents: 4800, available: 84, hidden: false },
-      { slug: "mots-c", variantId: "40mg", name: "MOTS-c", strength: "40 mg", priceCents: 9600, available: 6, hidden: true },
+      { slug: "bpc-157", variantId: "20mg", name: "BPC-157", strength: "20 mg", priceCents: 4800, available: 3, hidden: true },
     ]);
   });
 
