@@ -99,7 +99,7 @@ export default async function TeamPage() {
           );
         })}</tbody>
       </table>
-      <div className="a-tfoot">{team.length} people<div className="r" style={{ color: "var(--muted)" }}>Adding staff comes with the first hire</div></div>
+      <div className="a-tfoot a-team-foot">{team.length} people<div className="r" style={{ color: "var(--muted)" }}>Adding staff comes with the first hire</div></div>
 
       <div className="a-plist a-only-phone">{team.map((m, i) => {
         const isSelf = m.id === me.id;
