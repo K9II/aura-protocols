@@ -36,4 +36,8 @@ describe("roles", () => {
     expect(ROLES.map((r) => r.id)).toEqual(["owner", "assistant"]);
     expect(ROLES.every((r) => r.label.length > 0)).toBe(true);
   });
+  it("fails closed: a role that isn't owner or assistant gets nothing (never the Assistant's set by accident)", () => {
+    expect(rolePermissions("contractor" as unknown as Parameters<typeof rolePermissions>[0]).size).toBe(0);
+    expect(rolePermissions("" as unknown as Parameters<typeof rolePermissions>[0]).size).toBe(0);
+  });
 });

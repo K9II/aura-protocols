@@ -23,7 +23,11 @@ const ASSISTANT: readonly Permission[] = [
 
 export function rolePermissions(role: RoleId): ReadonlySet<Permission> {
   if (role === "owner") return new Set(PERMISSIONS);
-  return new Set(ASSISTANT.filter((p) => !NEVER_FOR_ASSISTANT.has(p)));
+  if (role === "assistant") return new Set(ASSISTANT.filter((p) => !NEVER_FOR_ASSISTANT.has(p)));
+  // Fail closed: a role that isn't one of the two above (a corrupted or
+  // future DB value TS can't see at runtime) gets nothing, never the
+  // Assistant's permissions by accident.
+  return new Set();
 }
 
 export type Staff = {
