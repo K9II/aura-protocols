@@ -12,7 +12,7 @@ export const ROLE_LABEL: Record<RoleId, string> = { owner: "Owner", assistant: "
 // Never granted to the Assistant, whatever the list below says (tests enforce it).
 export const NEVER_FOR_ASSISTANT: ReadonlySet<Permission> = new Set<Permission>([
   "staff.manage", "w9.open", "partners.payout_details", "payouts.mark_paid", "credit.adjust",
-  "customers.block", "orders.refund_credit", "disputes.submit", "disputes.warnings", "stock.owner_withdrawal",
+  "customers.block", "orders.refund", "disputes.submit", "disputes.warnings", "stock.owner_withdrawal",
   "orders.no_charge",
 ]);
 

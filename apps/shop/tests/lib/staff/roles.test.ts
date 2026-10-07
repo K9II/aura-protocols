@@ -22,9 +22,14 @@ describe("roles", () => {
   });
   it("the never list covers money, people and secrets", () => {
     expect([...NEVER_FOR_ASSISTANT].sort()).toEqual([
-      "credit.adjust", "customers.block", "disputes.submit", "disputes.warnings", "orders.no_charge", "orders.refund_credit",
+      "credit.adjust", "customers.block", "disputes.submit", "disputes.warnings", "orders.no_charge", "orders.refund",
       "partners.payout_details", "payouts.mark_paid", "staff.manage", "stock.owner_withdrawal", "w9.open",
     ]);
+  });
+  it("only the owner refunds orders", () => {
+    expect(rolePermissions("owner").has("orders.refund")).toBe(true);
+    expect(rolePermissions("assistant").has("orders.refund")).toBe(false);
+    expect((PERMISSIONS as readonly string[]).includes("orders.refund" + "_credit")).toBe(false);
   });
   it("only the owner creates no-charge orders", () => {
     expect(rolePermissions("owner").has("orders.no_charge")).toBe(true);

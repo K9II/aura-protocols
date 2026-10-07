@@ -60,7 +60,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
             The {vials} vial{vials === 1 ? "" : "s"} go{vials === 1 ? "es" : ""} back to stock. Nothing is emailed.
           </ConfirmDialog>}
           {o.status === "paid" && <><Link className="a-btn" href={`/admin/orders/${o.order_number}/pick`}>Pick list</Link>{can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary} />}</>}
-          {creditOnly && can(staff, "orders.refund_credit") && <ConfirmDialog label="Refund to store credit" title={`Refund ${o.order_number} to store credit?`} confirmLabel={`Refund ${usd(o.store_credit_cents)}`} tone="danger" action={refundCreditOrderAction} fields={{ orderId: o.id }}>
+          {creditOnly && can(staff, "orders.refund") && <ConfirmDialog label="Refund to store credit" title={`Refund ${o.order_number} to store credit?`} confirmLabel={`Refund ${usd(o.store_credit_cents)}`} tone="danger" action={refundCreditOrderAction} fields={{ orderId: o.id }}>
             {usd(o.store_credit_cents)} goes back to {c.fullName}&apos;s store credit. Any partner commission is reversed and the tax is undone. This order never went through Stripe, so it can only be refunded here.
           </ConfirmDialog>}
           {stripeUrl && <a className="a-btn" href={stripeUrl} target="_blank" rel="noopener noreferrer"><Icon name="ext" />Open in Stripe</a>}

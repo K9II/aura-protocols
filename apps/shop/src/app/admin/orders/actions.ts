@@ -77,7 +77,7 @@ export async function markShippedAction(_prev: ShipState, form: FormData): Promi
 // Stripe refund to trigger the usual follow-ups. This refunds it here: the
 // credit goes back to the customer, the commission is reversed, tax undone.
 export async function refundCreditOrderAction(form: FormData): Promise<void> {
-  const owner = await requirePermission("orders.refund_credit");
+  const owner = await requirePermission("orders.refund");
   const parsed = z.object({ orderId: z.string().uuid() }).safeParse({ orderId: form.get("orderId") });
   if (!parsed.success) return;
   const order = await getOrderById(parsed.data.orderId);
