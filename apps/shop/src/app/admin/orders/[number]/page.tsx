@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
 import { getOrderDetail } from "@/lib/orders/detail";
-import { codeText, moneyLines } from "@/lib/orders/money";
+import { codeText, moneyLines, refundParts } from "@/lib/orders/money";
 import { orderMarkers } from "@/lib/orders/tabs";
 import { customersWithDisputes } from "@/lib/disputes/data";
 import { lotsMatch, type LotQty } from "@/lib/catalog-ops/rules";
@@ -12,7 +12,7 @@ import { dateTime } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
 import { cancelNoChargeOrderAction } from "@/app/admin/orders/actions";
 import { REASON_LABEL } from "@/lib/no-charge/rules";
-import { refundOffer, splitRefund } from "@/lib/refunds/rules";
+import { refundOffer, REFUND_REASON_LABEL, splitRefund, type RefundReason } from "@/lib/refunds/rules";
 import { paymentLabel } from "@/lib/refunds/stripe";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import ShipDialog from "@/components/admin/orders/ShipDialog";
@@ -24,10 +24,12 @@ import OrderMore, { type MoreItem } from "@/components/admin/orders/OrderMore";
 export const metadata: Metadata = { title: "Order", robots: { index: false, follow: false } };
 
 const signed = (cents: number) => (cents < 0 ? `−${usd(-cents)}` : usd(cents));
-function Lots({ allocated, shipped }: { allocated: LotQty[]; shipped: LotQty[] }) {
-  if (!allocated.length && !shipped.length) return null;
+const shortId = (id: string) => (id.length > 14 ? `${id.slice(0, 7)}…${id.slice(-3)}` : id);
+function Lots({ allocated, shipped, returned }: { allocated: LotQty[]; shipped: LotQty[]; returned: LotQty[] }) {
+  if (!allocated.length && !shipped.length && !returned.length) return null;
   return (
     <div className="lots">
+      {returned.length > 0 && !allocated.length && !shipped.length && <>Returned {returned.map((l) => <span key={`r${l.lotNumber}`} className="a-lotpill">{l.qty} × {l.lotNumber}</span>)}</>}
       {allocated.length > 0 && <>{shipped.length ? "Held" : "Pick"} {allocated.map((l) => <span key={`a${l.lotNumber}`} className="a-lotpill">{l.qty} × {l.lotNumber}</span>)}</>}
       {shipped.length > 0 && <>Shipped {shipped.map((l) => <span key={`s${l.lotNumber}`} className="a-lotpill">{l.qty} × {l.lotNumber}</span>)}
         {lotsMatch(allocated, shipped) ? <span className="a-chip ver sm">Matches</span> : <span className="a-chip amber sm">Shipped a different lot</span>}</>}
@@ -47,7 +49,6 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const live = (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live");
   const stripeUrl = o.stripe_payment_intent ? `https://dashboard.stripe.com/${live ? "" : "test/"}payments/${o.stripe_payment_intent}` : null;
   const nc = o.kind === "no_charge" ? d.noCharge : null;
-  const lines = moneyLines(o, { code: d.code, partnerCode: d.partner?.code ?? null });
   const charged = o.total_cents - o.store_credit_cents;
   const summary = `${o.ship_name} · ${o.ship_city}, ${o.ship_state} · ${vials} vial${vials === 1 ? "" : "s"}`;
   const disputedCustomers = await customersWithDisputes([c.id]);
@@ -57,7 +58,13 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const canRefund = can(staff, "orders.refund");
   const offer = nc ? { mode: null } : refundOffer(o, d.flags);
   const refundMode = canRefund ? offer.mode : null;
-  const label = refundMode && o.stripe_payment_intent ? await paymentLabel(o.stripe_payment_intent) : null;
+  // The card label: for the dialog, and for where a refund made here went (r4).
+  const refundedToCard = o.status === "refunded" && !!o.refund_reason && o.refund_destination === "card";
+  const label = (refundMode || refundedToCard) && o.stripe_payment_intent ? await paymentLabel(o.stripe_payment_intent) : null;
+  const lines = moneyLines(o, { code: d.code, partnerCode: d.partner?.code ?? null, paymentLabel: label });
+  const parts = o.status === "refunded" ? refundParts(o, label) : null;
+  const refundUrl = o.stripe_refund_id ? `https://dashboard.stripe.com/${live ? "" : "test/"}refunds/${o.stripe_refund_id}` : null;
+  const backInStock = o.status === "refunded" && !o.shipped_at;
   const firstName = c.fullName.trim().split(/\s+/)[0] || c.fullName;
   const replaceHref = `/admin/orders/new?customer=${c.id}&reason=replacement&replaces=${o.order_number}`;
   const refundDialogId = `refund-${o.id}`;
@@ -102,7 +109,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
       <div className="a-og">
         <div>
           <div className="a-card">
-            <div className="a-card-h"><h3>Items</h3><span className="sub">{items.length} line{items.length === 1 ? "" : "s"} · {vials} vial{vials === 1 ? "" : "s"}</span></div>
+            <div className="a-card-h"><h3>Items</h3><span className="sub">{items.length} line{items.length === 1 ? "" : "s"} · {vials} vial{vials === 1 ? "" : "s"}{backInStock && " · back in stock"}</span></div>
             <table className="a-it">
               <thead><tr><th>Item</th><th className="num a-only-desk">{nc ? "Retail" : "Unit"}</th><th className="num a-only-desk">Qty</th><th className="num">{nc ? "Charged" : "Line"}</th></tr></thead>
               <tbody>{items.map((i) => {
@@ -110,8 +117,8 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
                 return (
                   <tr key={i.id}>
                     <td><b>{i.compound_name} · {i.strength}</b> <span className="muted">· {i.pack_qty === 1 ? "single vial" : `pack of ${i.pack_qty}`}</span>
-                      <Lots allocated={l?.allocated ?? []} shipped={l?.shipped ?? []} />
-                      {!l?.allocated.length && !l?.shipped.length && <div className="lots">Lot <span className="a-lotpill">{i.lot_number}</span></div>}</td>
+                      <Lots allocated={l?.allocated ?? []} shipped={l?.shipped ?? []} returned={l?.returned ?? []} />
+                      {!l?.allocated.length && !l?.shipped.length && !l?.returned?.length && <div className="lots">Lot <span className="a-lotpill">{i.lot_number}</span></div>}</td>
                     <td className="num a-only-desk">{usd(nc ? i.retail_unit_cents ?? 0 : i.unit_price_cents)}</td>
                     <td className="num a-only-desk">{i.quantity}</td>
                     <td className="num">{usd(i.line_total_cents)}</td>
@@ -172,6 +179,18 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
               {o.tracking_number && <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--line)" }}>{(o.carrier ?? "").toUpperCase()} · <span className="a-mono">{o.tracking_number}</span></div>}
             </div>
           </div>
+          {parts && o.refund_reason && (
+            <div className="a-card">
+              <div className="a-card-h"><h3>Refund</h3></div>
+              <div className="a-card-b"><dl className="a-kv">
+                <dt>Amount</dt><dd>{usd(o.total_cents)}</dd>
+                <dt>To</dt><dd>{parts.map((p) => `${p.where} ${usd(p.cents)}`).join(" · ")}</dd>
+                <dt>Reason</dt><dd>{REFUND_REASON_LABEL[o.refund_reason as RefundReason] ?? o.refund_reason}</dd>
+                <dt>By</dt><dd>{d.refundedBy ?? "—"}{o.refunded_at && <> · {dateTime(o.refunded_at)}</>}</dd>
+                {refundUrl && <><dt>Stripe</dt><dd><a className="a-ulink a-mono" href={refundUrl} target="_blank" rel="noopener noreferrer">{shortId(o.stripe_refund_id!)}</a></dd></>}
+              </dl></div>
+            </div>
+          )}
           {nc && (
             <div className="a-card">
               <div className="a-card-h"><h3>No charge</h3></div>

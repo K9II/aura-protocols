@@ -86,6 +86,25 @@ describe("getOrderDetail", () => {
     await expect(getOrderDetail("AP-1029")).rejects.toThrow(/order disputes read failed/);
   });
 
+  it("reads who refunded the order", async () => {
+    getOrderByNumber.mockResolvedValue({ ...order, status: "refunded", refunded_at: "2026-10-02T16:41:00Z", refunded_by: "owner1", refund_reason: "goodwill", refund_note: null });
+    const refunder = query({ data: { full_name: "Alvester" } });
+    const t = tables();
+    from = fromQueue({ ...t, customers: [...t.customers, refunder] });
+    const { getOrderDetail } = await import("@/lib/orders/detail");
+    const d = (await getOrderDetail("AP-1029"))!;
+    expect(d.refundedBy).toBe("Alvester");
+    expect(callArgs(refunder, "eq")).toEqual(["id", "owner1"]);
+    expect(d.timeline.find((e) => e.key === "refunded")).toMatchObject({ title: "Refunded — exception", who: "Alvester", detail: "vials stayed out" });
+  });
+
+  it("refundedBy is null when nobody stamped the refund", async () => {
+    getOrderByNumber.mockResolvedValue(order);
+    from = fromQueue(tables());
+    const { getOrderDetail } = await import("@/lib/orders/detail");
+    expect((await getOrderDetail("AP-1029"))!.refundedBy).toBeNull();
+  });
+
   it("counts sales and no-charge orders apart and reads who created a no-charge order and what it replaces", async () => {
     getOrderByNumber.mockResolvedValue({
       ...order, order_number: "AP-1061", status: "paid", partner_id: null, discount_code_id: null, shipped_at: null, stripe_payment_intent: null, total_cents: 0,

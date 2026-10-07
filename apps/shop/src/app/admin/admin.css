@@ -1375,6 +1375,9 @@
 .adm .a-err-banner { display: flex; gap: 10px; padding: 10px 12px; border: 1px solid #E2BDB5; background: var(--specimen-bg); color: #6E1D14; font-size: 12.5px; }
 .adm .a-err-banner svg { margin-top: 1px; flex: none; }
 .adm .a-refund-note { margin-bottom: 14px; }
+.adm .a-money .ml.refund { border-bottom: 0; font-weight: 600; color: var(--specimen); }
+.adm .a-money .ml.refund small { font-weight: 400; }
+.adm .a-money .ml.refund span:last-child { font-size: 14px; }
 .adm .a-refund-note + .a-refund-note { margin-top: -4px; }
 /* ⋯ More menu: .a-menu (position: relative) + this list. */
 .adm .a-menu .a-mlist { position: absolute; right: 0; top: 34px; width: 240px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--line-strong); box-shadow: 0 18px 40px -20px rgba(0,0,0,.45); z-index: 5; }

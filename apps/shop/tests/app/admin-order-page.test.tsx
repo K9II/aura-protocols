@@ -158,6 +158,38 @@ describe("/admin/orders/[number]", () => {
       expect(within(d).getByRole("button", { name: "Refund $414.39 to store credit" })).toBeInTheDocument();
     });
 
+    it("r4: a refunded order — Refunded money line, Refund card, returned lots, back in stock", async () => {
+      process.env.STRIPE_SECRET_KEY = "sk_live_x";
+      const refunded = { ...paid, status: "refunded", refunded_at: "2026-10-02T16:41:00Z", refund_reason: "customer_cancelled", refund_destination: "card", refund_note: "Ordered the wrong strength", refunded_by: "owner", stripe_refund_id: "re_3Q8xAbCdEfGhkT2" };
+      m.getOrderDetail.mockResolvedValue({ ...detail, order: refunded, refundedBy: "Alvester", lots: new Map([["i1", { allocated: [], shipped: [], returned: [{ lotNumber: "BPC-2609-A", qty: 5 }] }]]) });
+      const { container } = render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
+      expect(m.paymentLabel).toHaveBeenCalledWith("pi_123");
+      expect(screen.queryByRole("button", { name: "Cancel and refund" })).toBeNull();
+      const money = screen.getByRole("heading", { name: "Money" }).closest(".a-card") as HTMLElement;
+      const last = money.querySelector(".ml.refund") as HTMLElement;
+      expect(last).toHaveTextContent("Refunded$374.39 to Visa ••4242 · $40.00 to store credit−$414.39");
+      const card = screen.getByRole("heading", { name: "Refund" }).closest(".a-card") as HTMLElement;
+      expect(card).toHaveTextContent("Amount$414.39");
+      expect(card).toHaveTextContent("ToVisa ••4242 $374.39 · store credit $40.00");
+      expect(card).toHaveTextContent("ReasonCustomer asked to cancel");
+      expect(card).toHaveTextContent("ByAlvester · Oct 2, 10:41 am");
+      expect(within(card).getByRole("link", { name: "re_3Q8x…kT2" })).toHaveAttribute("href", "https://dashboard.stripe.com/refunds/re_3Q8xAbCdEfGhkT2");
+      const items = screen.getByRole("heading", { name: "Items" }).closest(".a-card") as HTMLElement;
+      expect(items).toHaveTextContent("1 line · 5 vials · back in stock");
+      expect(items.querySelector(".lots")).toHaveTextContent("Returned 5 × BPC-2609-A");
+      expect(container.querySelectorAll(".a-callout")).toHaveLength(0);
+    });
+
+    it("r4: a Stripe-dashboard refund — Refunded in Stripe, no Refund card, no Stripe read", async () => {
+      m.getOrderDetail.mockResolvedValue({ ...detail, order: { ...order, status: "refunded", refunded_at: "2026-10-05T16:00:00Z", refund_reason: null, refund_destination: null }, refundedBy: null });
+      render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
+      expect(m.paymentLabel).not.toHaveBeenCalled();
+      const money = screen.getByRole("heading", { name: "Money" }).closest(".a-card") as HTMLElement;
+      expect(money.querySelector(".ml.refund")).toHaveTextContent("Refundedin Stripe−$414.39");
+      expect(screen.queryByRole("heading", { name: "Refund" })).toBeNull();
+      expect(screen.getByRole("heading", { name: "Items" }).closest(".a-card")).not.toHaveTextContent("back in stock");
+    });
+
     it("r5: an open fraud warning — no refund controls, the Disputes callout", async () => {
       m.getOrderDetail.mockResolvedValue({ ...detail, order: paid, flags: { dispute: false, warning: true }, openDisputeId: null });
       const { container } = render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
