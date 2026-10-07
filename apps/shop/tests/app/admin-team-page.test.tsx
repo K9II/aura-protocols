@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ownerStaff } from "../helpers/staff";
-import { PERMISSIONS, PERMISSION_LABEL } from "@/lib/staff/permissions";
-import { rolePermissions } from "@/lib/staff/roles";
+import { CAN_GROUPS, CANT_GROUPS } from "@/lib/staff/assistant-card";
 
 const { requirePermission, listTeam, inquiryDraftsBy, activityFeed } = vi.hoisted(() => ({
   requirePermission: vi.fn(), listTeam: vi.fn(), inquiryDraftsBy: vi.fn(), activityFeed: vi.fn(),
@@ -55,14 +54,20 @@ describe("/admin/team", () => {
     expect(screen.queryByRole("button", { name: "Disable" })).toBeNull();
   });
 
-  it("'What the Assistant can do' lists every permission the role has under Can, and every other one under Can't", async () => {
+  it("'What the Assistant can do' shows the mock's grouped Can/Can't lines", async () => {
     render(await TeamPage());
-    const assistantPerms = rolePermissions("assistant");
-    for (const p of PERMISSIONS) {
-      const label = PERMISSION_LABEL[p];
-      const li = screen.getByText(label).closest("li");
-      expect(li, label).not.toBeNull();
-      expect(li).toHaveClass(assistantPerms.has(p) ? "yes" : "no");
-    }
+    for (const g of CAN_GROUPS) expect(screen.getByText(g.text).closest("li"), g.text).toHaveClass("yes");
+    for (const g of CANT_GROUPS) expect(screen.getByText(g.text).closest("li"), g.text).toHaveClass("no");
+  });
+
+  it("only the Assistant row gets the kill-switch actions — a non-assistant, non-self row (if there ever were one) gets none", async () => {
+    const OTHER_OWNER_ID = "4e1e2d4c-5b6a-4789-8abc-def012345679";
+    listTeam.mockResolvedValue([...team(), { id: OTHER_OWNER_ID, name: "Second Owner", email: "second@auraprotocols.com", role: "owner" as const, status: "active" as const, lastSignInAt: null, signIn: "Google" as const, disabledAt: null, disabledReason: null }]);
+    render(await TeamPage());
+    expect(screen.getAllByText("Second Owner").length).toBeGreaterThan(0);
+    // Still only the Assistant's pair, rendered once for desktop and once
+    // for phone — the extra owner row adds no more.
+    expect(screen.getAllByRole("button", { name: "Sign out everywhere" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Disable" })).toHaveLength(2);
   });
 });

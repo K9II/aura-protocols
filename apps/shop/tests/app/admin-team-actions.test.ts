@@ -4,9 +4,11 @@ import { ownerStaff } from "../helpers/staff";
 const requirePermission = vi.fn();
 const data = { setStaffStatus: vi.fn(), endSessions: vi.fn(), getTeamMember: vi.fn() };
 const audit = { recordAdminEvent: vi.fn() };
+const notify = { alertOwner: vi.fn() };
 vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/staff/data", () => data);
 vi.mock("@/lib/audit/data", () => audit);
+vi.mock("@/lib/notify", () => notify);
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const OWNER_ID = "0b6f1c2e-1111-4222-8333-944455556666";
@@ -17,7 +19,7 @@ describe("team actions", () => {
   beforeEach(() => {
     vi.resetModules();
     requirePermission.mockReset(); requirePermission.mockResolvedValue(ownerStaff({ id: OWNER_ID }));
-    for (const f of [...Object.values(data), ...Object.values(audit)]) f.mockReset();
+    for (const f of [...Object.values(data), ...Object.values(audit), ...Object.values(notify)]) f.mockReset();
     data.getTeamMember.mockResolvedValue({ id: ID, name: "Assistant (Claude)" });
   });
 
@@ -45,6 +47,15 @@ describe("team actions", () => {
     const { disableStaffAction } = await import("@/app/admin/team/actions");
     await disableStaffAction(fd({ id: ID, reason: "  " }));
     expect(data.setStaffStatus).toHaveBeenCalledWith({ target: ID, status: "disabled", actorId: OWNER_ID, reason: null });
+  });
+
+  it("disable: the event is recorded even if ending sessions then fails — and the failure alerts Alvester and still throws", async () => {
+    data.setStaffStatus.mockResolvedValue("ok");
+    data.endSessions.mockRejectedValue(new Error("auth api down"));
+    const { disableStaffAction } = await import("@/app/admin/team/actions");
+    await expect(disableStaffAction(fd({ id: ID, reason: "" }))).rejects.toThrow("auth api down");
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith({ area: "staff", action: "staff_disabled", targetId: ID, label: "Assistant (Claude)", detail: null, actorId: OWNER_ID });
+    expect(notify.alertOwner).toHaveBeenCalledWith("Team sign-out failed", "Assistant (Claude): auth api down");
   });
 
   it("disable: self/last_owner throw a plain sentence and log nothing", async () => {
@@ -83,6 +94,14 @@ describe("team actions", () => {
     await signOutStaffAction(fd({ id: ID }));
     expect(data.endSessions).toHaveBeenCalledWith(ID);
     expect(audit.recordAdminEvent).toHaveBeenCalledWith({ area: "staff", action: "staff_signed_out", targetId: ID, label: "Assistant (Claude)", detail: "2 sessions", actorId: OWNER_ID });
+  });
+
+  it("sign out everywhere: a failure to end sessions alerts Alvester and still throws", async () => {
+    data.endSessions.mockRejectedValue(new Error("auth api down"));
+    const { signOutStaffAction } = await import("@/app/admin/team/actions");
+    await expect(signOutStaffAction(fd({ id: ID }))).rejects.toThrow("auth api down");
+    expect(notify.alertOwner).toHaveBeenCalledWith("Team sign-out failed", "Assistant (Claude): auth api down");
+    expect(audit.recordAdminEvent).not.toHaveBeenCalled();
   });
 
   it("a bad id throws (stale page)", async () => {

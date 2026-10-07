@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/dal";
 import { listTeam, inquiryDraftsBy, type TeamMember } from "@/lib/staff/data";
-import { PERMISSIONS, PERMISSION_LABEL } from "@/lib/staff/permissions";
-import { rolePermissions, ROLE_LABEL, type RoleId } from "@/lib/staff/roles";
+import { ROLE_LABEL, type RoleId } from "@/lib/staff/roles";
+import { CAN_GROUPS, CANT_GROUPS } from "@/lib/staff/assistant-card";
 import { activityFeed, ACTIVITY_PAGE } from "@/lib/audit/feed";
+import { periodRange } from "@/lib/audit/range";
 import { currentMs } from "@/lib/clock";
+import { isoToZonedLocal } from "@/lib/discounts/time";
 import { whenText } from "@/lib/today/time";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
@@ -13,17 +15,21 @@ import { disableStaffAction, enableStaffAction, signOutStaffAction } from "@/app
 
 export const metadata: Metadata = { title: "Team", robots: { index: false, follow: false } };
 
-const DAY_MS = 86_400_000;
 const initials = (name: string, role: RoleId) => (role === "assistant" ? "AI" : name.slice(0, 2).toUpperCase());
 
 // Kill-switch controls for one row — Sign out everywhere / Disable when
-// active, Enable when disabled. Identical content renders twice (desktop
+// active, Enable when disabled. Only the Assistant row gets these (mock
+// Screen 1 — a second Owner, were there ever one, isn't shown a way to
+// disable another Owner here). Identical content renders twice (desktop
 // table + phone cards); ConfirmDialog's useId keeps each dialog unique.
+// Disable/Sign-out's title and body are the mock's verbatim wording
+// ("the Assistant" / "Claude") — the mock has no Enable dialog, so that one
+// uses the member's own name instead of guessing at future verbatim copy.
 function RowActions({ m }: { m: TeamMember }) {
   if (m.status === "disabled") {
     return (
-      <ConfirmDialog label="Enable" title="Enable the Assistant?" confirmLabel="Enable" action={enableStaffAction} fields={{ id: m.id }} small>
-        Claude can sign in to the command center again.
+      <ConfirmDialog label="Enable" title={`Enable ${m.name}?`} confirmLabel="Enable" action={enableStaffAction} fields={{ id: m.id }} small>
+        {m.name} can sign in to the command center again.
       </ConfirmDialog>
     );
   }
@@ -47,14 +53,13 @@ export default async function TeamPage() {
   const me = await requirePermission("staff.manage");
   const nowMs = currentMs();
   const team = await listTeam();
-  const since = new Date(nowMs - 7 * DAY_MS).toISOString();
-  const counts = await Promise.all(team.map((m) => activityFeed({ actor: m.id, since }, () => "").then((r) => r.items.length)));
+  // Same rolling window as Activity's own "7d" quick filter, so the count
+  // here and what the link opens to always agree.
+  const today = isoToZonedLocal(new Date(nowMs).toISOString()).slice(0, 10);
+  const { since, until } = periodRange("7d", today);
+  const counts = await Promise.all(team.map((m) => activityFeed({ actor: m.id, since, until }, () => "").then((r) => r.items.length)));
   const assistant = team.find((m) => m.role === "assistant");
   const drafts = assistant ? await inquiryDraftsBy(assistant.id) : 0;
-
-  const assistantPerms = rolePermissions("assistant");
-  const canDo = PERMISSIONS.filter((p) => assistantPerms.has(p));
-  const cant = PERMISSIONS.filter((p) => !assistantPerms.has(p));
 
   return (
     <div className="a-page">
@@ -89,7 +94,7 @@ export default async function TeamPage() {
                 <Link className="a-ulink" href={`/admin/activity?who=${m.id}&p=7d`}>{countLabel} action{n === 1 ? "" : "s"}</Link>
                 {m.role === "assistant" && drafts > 0 && <span className="muted"> · {drafts} draft{drafts === 1 ? "" : "s"} waiting</span>}
               </td>
-              <td>{isSelf ? <span className="muted">You</span> : <div className="a-acts"><RowActions m={m} /></div>}</td>
+              <td>{isSelf ? <span className="muted">You</span> : m.role === "assistant" ? <div className="a-acts"><RowActions m={m} /></div> : null}</td>
             </tr>
           );
         })}</tbody>
@@ -108,20 +113,20 @@ export default async function TeamPage() {
                 <b style={{ fontWeight: 600 }}>{m.name}</b>
                 <div style={{ color: "var(--muted)", fontSize: 12 }}>{ROLE_LABEL[m.role]} · {m.lastSignInAt ? whenText(m.lastSignInAt, nowMs) : "Never"}</div>
               </div>
-              {isSelf ? <span style={{ color: "var(--muted)", fontSize: 12 }}>You</span> : (
-                <span className={`a-chip ${m.status === "active" ? "active" : "disabled"}`}>{m.status === "active" ? "Active" : "Disabled"}</span>
-              )}
+              {/* The mock's phone card shows Active/Disabled for every row,
+                  including Alvester's own — "You" is a desktop-only label
+                  (the action cell there, which the phone card has no
+                  equivalent of). */}
+              <span className={`a-chip ${m.status === "active" ? "active" : "disabled"}`}>{m.status === "active" ? "Active" : "Disabled"}</span>
             </div>
             {m.disabledReason && <div style={{ color: "var(--muted)", fontSize: 12.5, marginTop: 6 }}>{m.disabledReason}</div>}
             {!isSelf && (
-              <>
-                <div style={{ fontSize: 12.5, margin: "10px 0" }}>
-                  <Link className="a-ulink" href={`/admin/activity?who=${m.id}&p=7d`}>{countLabel} action{n === 1 ? "" : "s"} this week</Link>
-                  {m.role === "assistant" && drafts > 0 && ` · ${drafts} draft${drafts === 1 ? "" : "s"} waiting`}
-                </div>
-                <div className="a-acts"><RowActions m={m} /></div>
-              </>
+              <div style={{ fontSize: 12.5, margin: "10px 0" }}>
+                <Link className="a-ulink" href={`/admin/activity?who=${m.id}&p=7d`}>{countLabel} action{n === 1 ? "" : "s"} this week</Link>
+                {m.role === "assistant" && drafts > 0 && ` · ${drafts} draft${drafts === 1 ? "" : "s"} waiting`}
+              </div>
             )}
+            {m.role === "assistant" && <div className="a-acts"><RowActions m={m} /></div>}
           </div>
         );
       })}</div>
@@ -132,11 +137,11 @@ export default async function TeamPage() {
           <div className="a-perm-grid">
             <div>
               <h4>Can</h4>
-              <ul>{canDo.map((p) => <li key={p} className="yes"><Icon name="check" />{PERMISSION_LABEL[p]}</li>)}</ul>
+              <ul>{CAN_GROUPS.map((g) => <li key={g.text} className="yes"><Icon name="check" />{g.text}</li>)}</ul>
             </div>
             <div>
               <h4>Can&apos;t</h4>
-              <ul>{cant.map((p) => <li key={p} className="no"><Icon name="lock" />{PERMISSION_LABEL[p]}</li>)}</ul>
+              <ul>{CANT_GROUPS.map((g) => <li key={g.text} className="no"><Icon name="lock" />{g.text}</li>)}</ul>
             </div>
           </div>
           <div className="a-callout info" style={{ marginTop: 14 }}>
