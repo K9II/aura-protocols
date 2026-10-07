@@ -1246,3 +1246,10 @@
   .adm .a-og { grid-template-columns: minmax(0, 1fr); }
   .adm .a-dh .actions { margin-left: 0; width: 100%; }
 }
+.adm .a-plain { color: inherit; text-decoration: none; }
+.adm .a-openlink { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+@media (max-width: 860px) {
+  .adm .a-ord-bar .a-tabs { flex-wrap: wrap; overflow-x: visible; row-gap: 4px; }
+  .adm .a-ord-foot { flex-wrap: wrap; gap: 6px; }
+  .adm .a-ord-foot .r { margin-left: 0; flex-wrap: wrap; }
+}

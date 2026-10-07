@@ -50,7 +50,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       <Crumbs items={[{ label: "Orders" }]} />
       <div className="a-ph"><div><h1>Orders</h1><p>Every paid order. Ship from here or from the order&apos;s page — the customer gets the tracking email automatically.</p></div></div>
 
-      <div className="a-toolbar">
+      <div className="a-toolbar a-ord-bar">
         <Tabs items={ORDER_TABS.map((t) => ({ href: href({ tab: t, page: 1, q: "" }), label: ORDER_TAB_LABEL[t], n: counts[t], on: t === tab && !q }))} />
         <form className="a-search" action="/admin/orders" role="search" style={{ width: 280 }}>
           {tab !== "to_ship" && <input type="hidden" name="tab" value={tab} />}
@@ -103,12 +103,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
               </div>
             );
           })}</div>
-          <div className="a-tfoot">
+          <div className="a-tfoot a-ord-foot">
             {shipping
               ? <>{total} to ship{oldestAge !== null && ` · oldest waiting ${oldestAge} business day${oldestAge === 1 ? "" : "s"}`}</>
-              : <>{`${(page - 1) * ORDER_PAGE_SIZE + 1}–${Math.min(page * ORDER_PAGE_SIZE, total)} of ${total.toLocaleString("en-US")}`} · newest first · refunds are made in Stripe and update here automatically · chargebacks are in <Link className="a-ulink" href="/admin/disputes">Disputes</Link></>}
+              : <>{`${(page - 1) * ORDER_PAGE_SIZE + 1}–${Math.min(page * ORDER_PAGE_SIZE, total)} of ${total.toLocaleString("en-US")}`} · newest first · Refunds are made in Stripe and update here automatically · chargebacks are in <Link className="a-ulink" href="/admin/disputes">Disputes</Link></>}
             <div className="r">
-              {shipping && <span className="muted">refunds are made in Stripe and update here automatically · chargebacks are in <Link className="a-ulink" href="/admin/disputes">Disputes</Link></span>}
+              {shipping && <span className="muted">Refunds are made in Stripe and update here automatically · chargebacks are in <Link className="a-ulink" href="/admin/disputes">Disputes</Link></span>}
               {page > 1 && <Link className="a-btn sm" href={href({ page: page - 1 })}>Previous</Link>}
               {page < lastPage && <Link className="a-btn sm" href={href({ page: page + 1 })}>Next</Link>}
             </div>

@@ -109,9 +109,9 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
 
         <div>
           <div className="a-card">
-            <div className="a-card-h"><h3>Customer</h3><div className="r"><Link href={`/admin/customers/${c.id}`}>Open <Icon name="arrow" /></Link></div></div>
+            <div className="a-card-h"><h3>Customer</h3><div className="r"><Link className="a-openlink" href={`/admin/customers/${c.id}`}>Open <Icon name="arrow" /></Link></div></div>
             <div className="a-card-b">
-              <b><Link href={`/admin/customers/${c.id}`} className="a-nolink">{c.fullName}</Link></b>
+              <b><Link href={`/admin/customers/${c.id}`} className="a-plain">{c.fullName}</Link></b>
               <div className="muted" style={{ fontSize: 12.5 }}>{c.email}</div>
               <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", fontSize: 12.5 }}>
                 <span>{c.paidOrders} order{c.paidOrders === 1 ? "" : "s"} · {usd(c.spentCents)}</span>

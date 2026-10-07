@@ -49,7 +49,7 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
           </table>
           <div className="a-plist a-only-phone">{partners.map((p) => (
             <div key={p.id} className="a-pord">
-              <Link className="a-nolink" href={`/admin/partners/${p.id}`}><b>{name(p)}</b></Link><span className="a-mono">{p.code}</span>
+              <Link className="a-plain" href={`/admin/partners/${p.id}`}><b>{name(p)}</b></Link><span className="a-mono">{p.code}</span>
               <span className="nm">{typeLabel(p.partner_type)} · {sizeLabel(p.application.audienceSize)}</span>
               <div className="row2"><ApproveDecline p={p} small /></div>
             </div>
