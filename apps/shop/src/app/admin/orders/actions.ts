@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
 import { recordAdminEvent } from "@/lib/audit/data";
@@ -9,8 +10,13 @@ import { CARRIERS, shippedEmail } from "@/lib/emails";
 import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { markCommissionClearing } from "@/lib/partners/ledger";
 import { afterOrderRefunded } from "@/lib/stripe-events";
-import { orderItemLots, recordShipped } from "@/lib/catalog-ops/data";
+import { holdVials, orderItemLots, recordShipped, type HoldResult } from "@/lib/catalog-ops/data";
 import { catalogStockChanged } from "@/lib/catalog-live";
+import { afterOrderPaid } from "@/lib/order-paid";
+import { shipAddressSchema } from "@/lib/ship-address";
+import { usd } from "@/lib/html";
+import { createNoChargeOrder, orderIdByNumber, recipient, stockOptions } from "@/lib/no-charge/data";
+import { buildLines, parseNoCharge, REASON_LABEL, summary, type NoChargeErrors } from "@/lib/no-charge/rules";
 
 const schema = z.object({
   orderId: z.string().uuid(),
@@ -84,4 +90,113 @@ export async function refundCreditOrderAction(form: FormData): Promise<void> {
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${order.order_number}`);
   revalidatePath("/admin/partners/[id]", "page");
+}
+
+// ---------- no-charge orders (seeding, replacement, sample) ----------
+// The New no-charge order form's state (useActionState). On success the
+// action redirects to the new order instead of returning.
+export type NoChargeState = { errors?: NoChargeErrors & { form?: string } } | null;
+
+const CANT_RECEIVE = "That customer can't receive orders. Pick someone else.";
+const NOT_RESERVED = "Stock couldn't be reserved. Nothing was created — try again.";
+
+function joinNames(names: string[]): string {
+  return names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+// Creates the order, holds its vials (oldest live lot first, all or
+// nothing), moves it to paid and runs the no-charge paid steps. Money
+// fields are all 0, so it never counts as a sale.
+export async function createNoChargeOrderAction(_prev: NoChargeState, form: FormData): Promise<NoChargeState> {
+  const owner = await requirePermission("orders.no_charge");
+  const customerId = z.string().uuid().safeParse(form.get("customer"));
+  if (!customerId.success) return { errors: { form: CANT_RECEIVE } };
+  const who = await recipient(customerId.data);
+  if (!who || who.blocked || !who.agreedAt) return { errors: { form: CANT_RECEIVE } };
+
+  const stock = await stockOptions();
+  const parsed = parseNoCharge((k) => form.getAll(k).map(String), stock);
+  if (!parsed.ok) return { errors: parsed.errors };
+  const input = parsed.value;
+
+  let replacesOrderId: string | null = null;
+  if (input.replaces) {
+    replacesOrderId = await orderIdByNumber(input.replaces, who.id);
+    if (!replacesOrderId) return { errors: { replaces: "That order isn't this customer's." } };
+  }
+
+  const ship = shipAddressSchema.safeParse({
+    name: form.get("ship_name") ?? "", line1: form.get("ship_line1") ?? "", line2: form.get("ship_line2") ?? null,
+    city: form.get("ship_city") ?? "", state: form.get("ship_state") ?? "", zip: form.get("ship_zip") ?? "",
+  });
+  if (!ship.success) return { errors: { form: "Please complete the shipping address." } };
+
+  const lines = buildLines(input.lines, stock);
+  const { retailCents } = summary(lines);
+  const order = await createNoChargeOrder({
+    customerId: who.id, email: who.email, ship: ship.data, lines, retailCents,
+    reason: input.reason, note: input.note, replacesOrderId, actorId: owner.id, agreedAt: who.agreedAt,
+  });
+
+  // Nothing held (hold_vials is all or nothing) — cancelling just closes the row.
+  const cancel = async () => {
+    try {
+      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    } catch (err) {
+      await alertOwner("No-charge order not cancelled", `${order.orderNumber}: ${String(err)}`);
+    }
+  };
+  let hold: HoldResult;
+  try {
+    hold = await holdVials(order.id);
+  } catch (err) {
+    console.error("hold_vials failed:", err);
+    await cancel();
+    return { errors: { form: NOT_RESERVED } };
+  }
+  if (!hold.ok) {
+    await cancel();
+    if (hold.reason === "sold_out") {
+      const names = hold.short.map((s) => {
+        const l = lines.find((x) => x.compoundSlug === s.slug && x.variantId === s.variantId);
+        return l ? `${l.compoundName} ${l.strength}` : `${s.slug} ${s.variantId}`;
+      });
+      return { errors: { lines: `Not enough ${joinNames(names)} left — someone just bought it. Lower the count.` } };
+    }
+    return { errors: { form: NOT_RESERVED } };
+  }
+  if (!(await transitionOrder(order.id, "awaiting_payment", "paid"))) {
+    await cancel();
+    return { errors: { form: NOT_RESERVED } };
+  }
+  catalogStockChanged();
+  try {
+    await afterOrderPaid(order.id, { notify: input.email });
+  } catch (err) {
+    await alertOwner("No-charge order follow-up failed", `${order.orderNumber}: ${String(err)}`);
+  }
+  await recordAdminEvent({
+    area: "orders", action: "no_charge_created", targetId: order.id, label: order.orderNumber,
+    detail: `${REASON_LABEL[input.reason]} · ${usd(retailCents)} retail · email: ${input.email ? "yes" : "no"}`, actorId: owner.id,
+  });
+  revalidatePath("/admin/orders");
+  redirect(`/admin/orders/${order.orderNumber}`);
+}
+
+// Cancel = paid → refunded; the settle trigger returns the sold vials to
+// stock. No money moved, so no refund steps and no email.
+export async function cancelNoChargeOrderAction(form: FormData): Promise<void> {
+  const owner = await requirePermission("orders.no_charge");
+  const STALE = "This order can't be cancelled any more — reload the page.";
+  const orderId = z.string().uuid().safeParse(form.get("orderId"));
+  if (!orderId.success) throw new Error(STALE);
+  const order = await getOrderById(orderId.data);
+  if (!order || order.kind !== "no_charge") throw new Error(STALE);
+  if (order.status === "shipped") throw new Error("This order has shipped — it can't be cancelled.");
+  if (order.status !== "paid") throw new Error(STALE);
+  if (!(await transitionOrder(order.id, "paid", "refunded"))) throw new Error(STALE);
+  catalogStockChanged();
+  await recordAdminEvent({ area: "orders", action: "no_charge_cancelled", targetId: order.id, label: order.order_number, detail: null, actorId: owner.id });
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${order.order_number}`);
 }

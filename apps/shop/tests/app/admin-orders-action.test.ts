@@ -13,6 +13,10 @@ const orderItemLots = vi.fn();
 const recordShipped = vi.fn();
 const catalogStockChanged = vi.fn();
 const revalidatePath = vi.fn();
+const holdVials = vi.fn();
+const nc = vi.hoisted(() => ({ recipient: vi.fn(), stockOptions: vi.fn(), createNoChargeOrder: vi.fn(), orderIdByNumber: vi.fn() }));
+const afterOrderPaid = vi.fn();
+const redirect = vi.fn((url: string) => { throw new Error(`REDIRECT ${url}`); });
 vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/audit/data", () => audit);
 vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder }));
@@ -20,7 +24,10 @@ vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner }));
 vi.mock("@/lib/partners/ledger", () => ({ markCommissionClearing }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("@/lib/stripe-events", () => ({ afterOrderRefunded }));
-vi.mock("@/lib/catalog-ops/data", () => ({ orderItemLots, recordShipped }));
+vi.mock("@/lib/catalog-ops/data", () => ({ orderItemLots, recordShipped, holdVials }));
+vi.mock("@/lib/no-charge/data", () => nc);
+vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
+vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("@/lib/catalog-live", () => ({ catalogStockChanged }));
 
 function fd(v: Record<string, string>) { const f = new FormData(); for (const [k, x] of Object.entries(v)) f.set(k, x); return f; }
@@ -229,5 +236,194 @@ describe("refundCreditOrderAction", () => {
     }
     expect(transitionOrder).not.toHaveBeenCalled();
     expect(afterOrderRefunded).not.toHaveBeenCalled();
+  });
+});
+
+describe("createNoChargeOrderAction", () => {
+  const cust = "22222222-2222-4222-8222-222222222222";
+  const ship = { name: "Dr. Mara Lin", line1: "1 Lab Way", line2: null, city: "Austin", state: "TX" as const, zip: "78701" };
+  const who = { id: cust, name: "Mara Lin", email: "mara@lab.org", verified: true, blocked: false, agreedAt: "2026-10-01T00:00:00Z", ship };
+  const stock = [
+    { slug: "bpc-157", variantId: "10mg", name: "BPC-157", strength: "10 mg", priceCents: 4800, available: 84, hidden: false },
+    { slug: "mots-c", variantId: "40mg", name: "MOTS-c", strength: "40 mg", priceCents: 9600, available: 3, hidden: true },
+  ];
+  const form = (over: Record<string, string | string[]> = {}) => {
+    const v: Record<string, string | string[]> = {
+      customer: cust, reason: "replacement", replaces: "AP-1040", note: "Vial cracked in transit", email: "on",
+      line: ["bpc-157:10mg:2", "mots-c:40mg:1"],
+      ship_name: ship.name, ship_line1: ship.line1, ship_line2: "", ship_city: ship.city, ship_state: "tx", ship_zip: ship.zip, ...over,
+    };
+    const f = new FormData();
+    for (const [k, x] of Object.entries(v)) for (const y of Array.isArray(x) ? x : [x]) f.append(k, y);
+    return f;
+  };
+
+  beforeEach(() => {
+    vi.resetModules();
+    for (const f of [audit.recordAdminEvent, requirePermission, transitionOrder, alertOwner, catalogStockChanged, revalidatePath, holdVials, afterOrderPaid, redirect, nc.recipient, nc.stockOptions, nc.createNoChargeOrder, nc.orderIdByNumber]) f.mockReset();
+    redirect.mockImplementation((url: string) => { throw new Error(`REDIRECT ${url}`); });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
+    nc.recipient.mockResolvedValue(who);
+    nc.stockOptions.mockResolvedValue(stock);
+    nc.orderIdByNumber.mockResolvedValue("orig-id");
+    nc.createNoChargeOrder.mockResolvedValue({ id: "o9", orderNumber: "AP-1061" });
+    holdVials.mockResolvedValue({ ok: true });
+    transitionOrder.mockResolvedValue(true);
+    afterOrderPaid.mockResolvedValue(undefined);
+  });
+
+  it("requires orders.no_charge", async () => {
+    requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(createNoChargeOrderAction(null, form())).rejects.toThrow("NOT_FOUND");
+    expect(requirePermission).toHaveBeenCalledWith("orders.no_charge");
+    expect(nc.createNoChargeOrder).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["unknown", null],
+    ["blocked", { ...who, blocked: true }],
+    ["never agreed", { ...who, agreedAt: null }],
+  ])("refuses a recipient who can't receive orders (%s)", async (_label, r) => {
+    nc.recipient.mockResolvedValue(r);
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { form: "That customer can't receive orders. Pick someone else." } });
+    expect(nc.createNoChargeOrder).not.toHaveBeenCalled();
+  });
+
+  it("refuses a malformed customer id without reading anything", async () => {
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form({ customer: "nope" }))).toEqual({ errors: { form: "That customer can't receive orders. Pick someone else." } });
+    expect(nc.recipient).not.toHaveBeenCalled();
+  });
+
+  it("returns the parse errors and inserts nothing", async () => {
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    const r = await createNoChargeOrderAction(null, form({ reason: "", line: [] }));
+    expect(r).toEqual({ errors: { reason: "Pick a reason.", lines: "Add at least one item." } });
+    expect(nc.createNoChargeOrder).not.toHaveBeenCalled();
+  });
+
+  it("refuses a replacement for an order that isn't this customer's", async () => {
+    nc.orderIdByNumber.mockResolvedValue(null);
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { replaces: "That order isn't this customer's." } });
+    expect(nc.orderIdByNumber).toHaveBeenCalledWith("AP-1040", cust);
+    expect(nc.createNoChargeOrder).not.toHaveBeenCalled();
+  });
+
+  it("refuses an incomplete address", async () => {
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form({ ship_zip: "7870" }))).toEqual({ errors: { form: "Please complete the shipping address." } });
+    expect(nc.createNoChargeOrder).not.toHaveBeenCalled();
+  });
+
+  it("creates, holds, marks paid, runs the paid steps, logs and opens the order", async () => {
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(createNoChargeOrderAction(null, form())).rejects.toThrow("REDIRECT /admin/orders/AP-1061");
+    expect(nc.createNoChargeOrder).toHaveBeenCalledWith({
+      customerId: cust, email: "mara@lab.org", ship: { ...ship, state: "TX" },
+      lines: [
+        { compoundSlug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", packQty: 1, quantity: 2, unitPriceCents: 0, lineTotalCents: 0, retailUnitCents: 4800 },
+        { compoundSlug: "mots-c", compoundName: "MOTS-c", variantId: "40mg", strength: "40 mg", packQty: 1, quantity: 1, unitPriceCents: 0, lineTotalCents: 0, retailUnitCents: 9600 },
+      ],
+      retailCents: 19200, reason: "replacement", note: "Vial cracked in transit", replacesOrderId: "orig-id", actorId: "owner", agreedAt: "2026-10-01T00:00:00Z",
+    });
+    expect(holdVials).toHaveBeenCalledWith("o9");
+    expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "paid");
+    expect(afterOrderPaid).toHaveBeenCalledWith("o9", { notify: true });
+    expect(catalogStockChanged).toHaveBeenCalled();
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith({ area: "orders", action: "no_charge_created", targetId: "o9", label: "AP-1061", detail: "Replacement · $192.00 retail · email: yes", actorId: "owner" });
+    expect(holdVials.mock.invocationCallOrder[0]).toBeLessThan(transitionOrder.mock.invocationCallOrder[0]);
+    expect(transitionOrder.mock.invocationCallOrder[0]).toBeLessThan(afterOrderPaid.mock.invocationCallOrder[0]);
+  });
+
+  it("no email box → notify false, recorded as email: no; non-replacement ignores replaces", async () => {
+    const f = form({ reason: "seeding", note: "", replaces: "" });
+    f.delete("email");
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(createNoChargeOrderAction(null, f)).rejects.toThrow("REDIRECT");
+    expect(nc.orderIdByNumber).not.toHaveBeenCalled();
+    expect(nc.createNoChargeOrder).toHaveBeenCalledWith(expect.objectContaining({ reason: "seeding", note: null, replacesOrderId: null }));
+    expect(afterOrderPaid).toHaveBeenCalledWith("o9", { notify: false });
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "Seeding · $192.00 retail · email: no" }));
+  });
+
+  it("sold out while creating → cancels and names the short item", async () => {
+    holdVials.mockResolvedValue({ ok: false, reason: "sold_out", short: [{ slug: "mots-c", variantId: "40mg" }] });
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { lines: "Not enough MOTS-c 40 mg left — someone just bought it. Lower the count." } });
+    expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "cancelled");
+    expect(transitionOrder).not.toHaveBeenCalledWith("o9", "awaiting_payment", "paid");
+    expect(afterOrderPaid).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("a hold that throws → cancels, nothing created", async () => {
+    holdVials.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { form: "Stock couldn't be reserved. Nothing was created — try again." } });
+    expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "cancelled");
+    expect(afterOrderPaid).not.toHaveBeenCalled();
+  });
+
+  it("paid steps failing alerts the owner and still opens the order", async () => {
+    afterOrderPaid.mockRejectedValue(new Error("email down"));
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(createNoChargeOrderAction(null, form())).rejects.toThrow("REDIRECT /admin/orders/AP-1061");
+    expect(alertOwner).toHaveBeenCalledWith("No-charge order follow-up failed", expect.stringMatching(/^AP-1061: [\s\S]*email down/));
+    expect(audit.recordAdminEvent).toHaveBeenCalled();
+  });
+});
+
+describe("cancelNoChargeOrderAction", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    for (const f of [audit.recordAdminEvent, requirePermission, getOrderById, transitionOrder, sendOrAlert, catalogStockChanged, afterOrderRefunded, revalidatePath]) f.mockReset();
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
+    transitionOrder.mockResolvedValue(true);
+  });
+  const nco = (over: Record<string, unknown> = {}) => ({ id, order_number: "AP-1061", kind: "no_charge", status: "paid", ...over });
+
+  it("requires orders.no_charge", async () => {
+    requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
+    const { cancelNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(cancelNoChargeOrderAction(fd({ orderId: id }))).rejects.toThrow("NOT_FOUND");
+    expect(requirePermission).toHaveBeenCalledWith("orders.no_charge");
+    expect(transitionOrder).not.toHaveBeenCalled();
+  });
+
+  it("moves a paid no-charge order to refunded (stock returns), logs it, sends no email", async () => {
+    getOrderById.mockResolvedValue(nco());
+    const { cancelNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await cancelNoChargeOrderAction(fd({ orderId: id }));
+    expect(transitionOrder).toHaveBeenCalledWith(id, "paid", "refunded");
+    expect(catalogStockChanged).toHaveBeenCalled();
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ area: "orders", action: "no_charge_cancelled", targetId: id, label: "AP-1061", actorId: "owner" }));
+    expect(sendOrAlert).not.toHaveBeenCalled();
+    expect(afterOrderRefunded).not.toHaveBeenCalled();
+  });
+
+  it("refuses a shipped one", async () => {
+    getOrderById.mockResolvedValue(nco({ status: "shipped" }));
+    const { cancelNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(cancelNoChargeOrderAction(fd({ orderId: id }))).rejects.toThrow("This order has shipped — it can't be cancelled.");
+    expect(transitionOrder).not.toHaveBeenCalled();
+  });
+
+  it.each([["a sale", nco({ kind: "sale" })], ["missing", null], ["already cancelled", nco({ status: "refunded" })]])("throws on a stale order (%s)", async (_l, o) => {
+    getOrderById.mockResolvedValue(o);
+    const { cancelNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(cancelNoChargeOrderAction(fd({ orderId: id }))).rejects.toThrow();
+    expect(transitionOrder).not.toHaveBeenCalled();
+  });
+
+  it("throws when the order moved meanwhile", async () => {
+    getOrderById.mockResolvedValue(nco());
+    transitionOrder.mockResolvedValue(false);
+    const { cancelNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(cancelNoChargeOrderAction(fd({ orderId: id }))).rejects.toThrow();
+    expect(audit.recordAdminEvent).not.toHaveBeenCalled();
   });
 });
