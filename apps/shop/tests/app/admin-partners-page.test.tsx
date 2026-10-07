@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(async () => ({ id: "owner" })), countPartners: vi.fn(), listPartners: vi.fn(), payableByPartner: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), countPartners: vi.fn(), listPartners: vi.fn(), payableByPartner: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/partners/data", () => ({ countPartners: m.countPartners, listPartners: m.listPartners }));
 vi.mock("@/lib/partners/ledger", () => ({ payableByPartner: m.payableByPartner }));
 vi.mock("@/app/admin/partners/actions", () => ({ setPartnerStatusAction: vi.fn() }));
@@ -18,7 +18,7 @@ describe("/admin/partners", () => {
   });
 
   it("is owner-only", async () => {
-    m.requireOwner.mockRejectedValueOnce(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValueOnce(new Error("NOT_FOUND"));
     await expect(PartnersPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("NOT_FOUND");
   });
 

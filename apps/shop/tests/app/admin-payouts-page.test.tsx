@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 const m = vi.hoisted(() => ({
-  requireOwner: vi.fn(async () => ({ id: "owner" })), getPayoutDetails: vi.fn(), listPartners: vi.fn(), listW9sAwaitingCheck: vi.fn(),
+  requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), getPayoutDetails: vi.fn(), listPartners: vi.fn(), listW9sAwaitingCheck: vi.fn(),
   latestRunSummary: vi.fn(), listQueuedPayouts: vi.fn(), listPayoutHistory: vi.fn(), countPayoutHistory: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({}) }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/partners/data", () => ({ getPayoutDetails: m.getPayoutDetails, listPartners: m.listPartners, listW9sAwaitingCheck: m.listW9sAwaitingCheck }));
 vi.mock("@/lib/partners/ledger", async (orig) => {
   const real = await orig<typeof import("@/lib/partners/ledger")>();

@@ -3,9 +3,10 @@ import { render, screen, within } from "@testing-library/react";
 import { alertsSection, lotsSection, ordersSection, SLOT_INFO, SLOT_KEYS, type Slot, type SlotKey, type TodoSection } from "@/lib/today/todos";
 import { numbersView } from "@/lib/today/numbers";
 import { periodRanges } from "@/lib/today/periods";
+import { ownerStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(), loadTodos: vi.fn(), loadNumbers: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), loadTodos: vi.fn(), loadNumbers: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/today/today", () => ({ loadTodos: m.loadTodos, loadNumbers: m.loadNumbers }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T15:42:00Z") }));
 vi.mock("@/app/admin/actions", () => ({ resolveAlertAction: vi.fn() }));
@@ -27,12 +28,12 @@ const props = (p?: string) => ({ searchParams: Promise.resolve(p ? { p } : {}) }
 describe("/admin (Today)", () => {
   beforeEach(() => {
     for (const f of Object.values(m)) f.mockReset();
-    m.requireOwner.mockResolvedValue({ id: "owner1" });
+    m.requirePermission.mockResolvedValue(ownerStaff({ id: "owner1" }));
     m.loadNumbers.mockResolvedValue({ ok: true, view });
   });
 
   it("is owner-only", async () => {
-    m.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     await expect(TodayPage(props())).rejects.toThrow("NOT_FOUND");
   });
 

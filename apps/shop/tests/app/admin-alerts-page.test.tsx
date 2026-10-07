@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
+import { ownerStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(), listPastAlerts: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), listPastAlerts: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/today/alerts", () => ({ listPastAlerts: m.listPastAlerts }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T15:42:00Z") }));
 import PastAlertsPage from "@/app/admin/alerts/page";
@@ -10,10 +11,10 @@ import PastAlertsPage from "@/app/admin/alerts/page";
 const a = (o: Record<string, unknown>) => ({ id: "a1", title: "T", detail: "", count: 1, first_at: "2026-10-06T13:00:00Z", last_at: "2026-10-06T15:00:00Z", resolved_at: null, resolved_by_name: null, note: null, ...o });
 
 describe("/admin/alerts", () => {
-  beforeEach(() => { m.requireOwner.mockReset().mockResolvedValue({ id: "owner1" }); m.listPastAlerts.mockReset(); });
+  beforeEach(() => { m.requirePermission.mockReset().mockResolvedValue(ownerStaff({ id: "owner1" })); m.listPastAlerts.mockReset(); });
 
   it("is owner-only", async () => {
-    m.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     await expect(PastAlertsPage()).rejects.toThrow("NOT_FOUND");
   });
 

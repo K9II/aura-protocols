@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { NOW, inquiry } from "../helpers/inquiry-fixtures";
+import { ownerStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({
-  requireOwner: vi.fn(), getThread: vi.fn(), applyInquiryEvent: vi.fn(), recordInquiryEvent: vi.fn(), listSavedReplies: vi.fn(), getCustomerDetail: vi.fn(),
+  requirePermission: vi.fn(), getThread: vi.fn(), applyInquiryEvent: vi.fn(), recordInquiryEvent: vi.fn(), listSavedReplies: vi.fn(), getCustomerDetail: vi.fn(),
   getOrderByNumber: vi.fn(),
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/inquiries/data", () => ({ getThread: m.getThread, applyInquiryEvent: m.applyInquiryEvent, recordInquiryEvent: m.recordInquiryEvent, listSavedReplies: m.listSavedReplies }));
 vi.mock("@/lib/customers/data", () => ({ getCustomerDetail: m.getCustomerDetail }));
 vi.mock("@/lib/orders", () => ({ getOrderByNumber: m.getOrderByNumber }));
@@ -21,7 +22,7 @@ const msg = (o: Record<string, unknown>) => ({ id: "m", direction: "in", source:
 describe("/admin/inquiries/[ref]", () => {
   beforeEach(() => {
     for (const f of Object.values(m)) f.mockReset();
-    m.requireOwner.mockResolvedValue({ id: "o1", fullName: "Kearney Adams" });
+    m.requirePermission.mockResolvedValue(ownerStaff({ id: "o1", fullName: "Kearney Adams" }));
     m.listSavedReplies.mockResolvedValue([]);
     m.getOrderByNumber.mockResolvedValue(null);
     m.getThread.mockResolvedValue({

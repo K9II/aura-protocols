@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ownerStaff } from "../helpers/staff";
 
-const requireOwner = vi.fn();
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+const requirePermission = vi.fn();
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 const redirect = vi.fn((url: string) => { throw new Error(`REDIRECT:${url}`); });
 vi.mock("next/navigation", () => ({ redirect }));
@@ -32,8 +33,8 @@ const form = { name: "N", subject: "S", previewText: "", headline: "H", body: "F
 describe("admin email actions", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [...Object.values(data), sendCampaignBatch, renderFor, campaignCode, audienceCounts, sendTracked, setAutomationPaused, logEmailAdminEvent, requireOwner, alertOwner]) f.mockReset();
-    requireOwner.mockResolvedValue({ id: "owner1", email: "owner@auraprotocols.com" });
+    for (const f of [...Object.values(data), sendCampaignBatch, renderFor, campaignCode, audienceCounts, sendTracked, setAutomationPaused, logEmailAdminEvent, requirePermission, alertOwner]) f.mockReset();
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner1", email: "owner@auraprotocols.com" }));
     data.getCampaign.mockResolvedValue(draft);
     data.lotChoices.mockResolvedValue([]);
     audienceCounts.mockResolvedValue({ all: 2310, ordered: 486, never_ordered: 1824 });
@@ -42,7 +43,7 @@ describe("admin email actions", () => {
   });
 
   it("every action is owner-only", async () => {
-    requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const a = await import("@/app/admin/email/actions");
     await expect(a.saveCampaignAction(null, fd({ ...form, kind: "news" }))).rejects.toThrow("NOT_FOUND");
     await expect(a.sendNowAction(null, fd({ id: K, from: "draft" }))).rejects.toThrow("NOT_FOUND");
@@ -158,7 +159,7 @@ describe("admin email actions", () => {
     const { stopAction } = await import("@/app/admin/email/actions");
     await stopAction(fd({ id: K }));
     expect(data.moveCampaign).toHaveBeenCalledWith(K, "sending", "stopped", "owner1");
-    requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     await expect(stopAction(fd({ id: K }))).rejects.toThrow("NOT_FOUND");
   });
 });

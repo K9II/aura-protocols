@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-vi.mock("@/lib/dal", () => ({ requireOwner: async () => ({ id: "owner" }) }));
+import { ownerStaff } from "../../helpers/staff";
+vi.mock("@/lib/dal", () => ({ requirePermission: async () => ownerStaff() }));
 vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(), replaceCertificateAction: vi.fn(),
   addStrengthAction: vi.fn(), setStrengthShownAction: vi.fn(), archiveStrengthAction: vi.fn(), restoreStrengthAction: vi.fn(), deleteStrengthAction: vi.fn() }));
 // catalog-live.ts also imports fetchCatalogOps from catalog-ops/data at module

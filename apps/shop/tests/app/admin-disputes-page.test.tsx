@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { DISPUTE_ID, listRow, warningRow } from "../helpers/dispute-fixtures";
+import { ownerStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(), listDisputes: vi.fn(), listWarnings: vi.fn(), disputeRateCounts: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), listDisputes: vi.fn(), listWarnings: vi.fn(), disputeRateCounts: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/disputes/data", () => ({ listDisputes: m.listDisputes, listWarnings: m.listWarnings, disputeRateCounts: m.disputeRateCounts }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-07T15:42:00Z") }));
 vi.mock("@/app/admin/disputes/actions", () => ({ refundEarlyWarningAction: vi.fn(), watchEarlyWarningAction: vi.fn() }));
@@ -12,7 +13,7 @@ import DisputesPage from "@/app/admin/disputes/page";
 describe("/admin/disputes", () => {
   beforeEach(() => {
     for (const f of Object.values(m)) f.mockReset();
-    m.requireOwner.mockResolvedValue({ id: "owner1" });
+    m.requirePermission.mockResolvedValue(ownerStaff({ id: "owner1" }));
     m.disputeRateCounts.mockResolvedValue({ disputes: 3, charges: 1412 });
     m.listDisputes.mockResolvedValue([
       listRow({ draft_saved_at: "2026-10-06T15:31:00Z" }),
@@ -27,7 +28,7 @@ describe("/admin/disputes", () => {
   });
 
   it("is owner-only", async () => {
-    m.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     await expect(DisputesPage()).rejects.toThrow("NOT_FOUND");
   });
 

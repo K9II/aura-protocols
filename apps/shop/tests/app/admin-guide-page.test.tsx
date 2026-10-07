@@ -2,26 +2,26 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { INQUIRY_AUTO_CLOSE_DAYS } from "@/lib/inquiries/constants";
 
-const { requireOwner, getDiscountCap } = vi.hoisted(() => ({
-  requireOwner: vi.fn(async () => ({ id: "o1", fullName: "Kearney Adams", isOwner: true })),
+const { requireStaff, getDiscountCap } = vi.hoisted(() => ({
+  requireStaff: vi.fn(async () => ({ id: "o1", fullName: "Kearney Adams", isOwner: true })),
   getDiscountCap: vi.fn(async () => 35),
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/dal", () => ({ requireStaff }));
 vi.mock("@/lib/discounts/data", () => ({ getDiscountCap }));
 import AdminGuidePage from "@/app/admin/guide/page";
 
 describe("/admin/guide", () => {
-  beforeEach(() => { requireOwner.mockClear(); getDiscountCap.mockResolvedValue(35); });
+  beforeEach(() => { requireStaff.mockClear(); getDiscountCap.mockResolvedValue(35); });
 
   it("is owner-only", async () => {
-    requireOwner.mockRejectedValueOnce(new Error("NEXT_NOT_FOUND"));
+    requireStaff.mockRejectedValueOnce(new Error("NEXT_NOT_FOUND"));
     await expect(AdminGuidePage()).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
   it("renders every chapter with the live cap", async () => {
     getDiscountCap.mockResolvedValue(30);
     render(await AdminGuidePage());
-    expect(requireOwner).toHaveBeenCalled();
+    expect(requireStaff).toHaveBeenCalled();
     for (const t of ["Start here", "Today", "Discounts", "Orders", "Customers", "Disputes", "Catalog & lots", "Email", "Inquiries", "Partners", "Payouts"]) expect(screen.getByRole("heading", { level: 2, name: t })).toBeInTheDocument();
     expect(screen.getAllByText(/30%/).length).toBeGreaterThan(0);
   });

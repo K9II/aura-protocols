@@ -1,16 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { inquiry } from "../helpers/inquiry-fixtures";
+import { ownerStaff } from "../helpers/staff";
 
-const OWNER = { id: "00000000-0000-4000-8000-0000000000aa", fullName: "Kearney Adams" };
+const OWNER = ownerStaff({ id: "00000000-0000-4000-8000-0000000000aa", fullName: "Kearney Adams" });
 const ID = "11111111-1111-4111-8111-111111111111";
 const KEY = "22222222-2222-4222-8222-222222222222";
 const d = vi.hoisted(() => ({
-  requireOwner: vi.fn(), getInquiry: vi.fn(), claimReply: vi.fn(), finishReply: vi.fn(), releaseReply: vi.fn(), threadMessageIds: vi.fn(),
+  requirePermission: vi.fn(), getInquiry: vi.fn(), claimReply: vi.fn(), finishReply: vi.fn(), releaseReply: vi.fn(), threadMessageIds: vi.fn(),
   applyInquiryEvent: vi.fn(), logInquiryEvent: vi.fn(), recordInquiryEvent: vi.fn(), setTopic: vi.fn(), setCustomer: vi.fn(),
   getUnmatched: vi.fn(), closeUnmatched: vi.fn(), recordInbound: vi.fn(), saveSavedReply: vi.fn(), deleteSavedReply: vi.fn(),
   sendInquiryEmail: vi.fn(), accountIdByEmail: vi.fn(), alertOwner: vi.fn(), revalidatePath: vi.fn(),
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner: d.requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission: d.requirePermission }));
 vi.mock("@/lib/inquiries/data", () => ({
   getInquiry: d.getInquiry, claimReply: d.claimReply, finishReply: d.finishReply, releaseReply: d.releaseReply, threadMessageIds: d.threadMessageIds,
   applyInquiryEvent: d.applyInquiryEvent, logInquiryEvent: d.logInquiryEvent, recordInquiryEvent: d.recordInquiryEvent, setTopic: d.setTopic,
@@ -29,7 +30,7 @@ describe("inquiry actions", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of Object.values(d)) f.mockReset();
-    d.requireOwner.mockResolvedValue(OWNER);
+    d.requirePermission.mockResolvedValue(OWNER);
     d.getInquiry.mockResolvedValue(thread);
     d.claimReply.mockResolvedValue("m1");
     d.threadMessageIds.mockResolvedValue(["<CAF@gmail>"]);
@@ -38,7 +39,7 @@ describe("inquiry actions", () => {
   });
 
   it("is owner-only", async () => {
-    d.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    d.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const { replyAction } = await import("@/app/admin/inquiries/actions");
     await expect(replyAction(null, fd({ id: ID, clientKey: KEY, body: "hi" }))).rejects.toThrow("NOT_FOUND");
   });

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-vi.mock("@/lib/dal", () => ({ requireOwner: async () => ({ id: "owner" }) }));
+import { ownerStaff } from "../../helpers/staff";
+vi.mock("@/lib/dal", () => ({ requirePermission: async () => ownerStaff() }));
 const ops = {
   products: [{ slug: "bpc-157", shown: true }, { slug: "retatrutide", shown: false }],
   variants: [{ slug: "bpc-157", variant_id: "10mg", strength: "10 mg", price_cents: 7900, low_at: 20, threepl_sku: null, shown: true, archived_at: null },

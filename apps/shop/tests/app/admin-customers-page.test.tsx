@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const { requireOwner, listCustomers, customerStats, customersWithDisputes } = vi.hoisted(() => ({
-  requireOwner: vi.fn(async () => ({ id: "owner" })), listCustomers: vi.fn(), customerStats: vi.fn(), customersWithDisputes: vi.fn(),
+const { requirePermission, listCustomers, customerStats, customersWithDisputes } = vi.hoisted(() => ({
+  requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), listCustomers: vi.fn(), customerStats: vi.fn(), customersWithDisputes: vi.fn(),
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/customers/data", () => ({ listCustomers, customerStats, PAGE_SIZE: 50 }));
 vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes }));
 import CustomersPage from "@/app/admin/customers/page";
@@ -16,7 +16,7 @@ describe("/admin/customers", () => {
   beforeEach(() => { listCustomers.mockResolvedValue({ rows: [row], total: 1 }); customerStats.mockResolvedValue(stats); customersWithDisputes.mockResolvedValue(new Set()); });
 
   it("is owner-only", async () => {
-    requireOwner.mockRejectedValueOnce(new Error("NOT_FOUND"));
+    requirePermission.mockRejectedValueOnce(new Error("NOT_FOUND"));
     await expect(CustomersPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("NOT_FOUND");
   });
 

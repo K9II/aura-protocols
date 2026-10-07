@@ -5,13 +5,13 @@ import { render, screen } from "@testing-library/react";
 // vi.fn()s they close over must be too (same pattern as
 // tests/app/admin-customers-page.test.tsx) — a plain top-level const here
 // throws "Cannot access ... before initialization".
-const { requireOwner, stats, admin, camp } = vi.hoisted(() => ({
-  requireOwner: vi.fn(async () => ({ id: "owner" })),
+const { requirePermission, stats, admin, camp } = vi.hoisted(() => ({
+  requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()),
   stats: { emailOverview: vi.fn(), sendStats: vi.fn(), attribution: vi.fn(), cartRecovery: vi.fn() },
   admin: { getEmailSettings: vi.fn(), listRuns: vi.fn() },
   camp: { listCampaigns: vi.fn(), campaignCounts: vi.fn(), waitingLots: vi.fn() },
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/email/stats", () => stats);
 vi.mock("@/lib/email/admin-data", () => ({ ...admin, AUTOMATION_LABEL: { welcome: "Welcome series", cart: "Cart reminders" } }));
 vi.mock("@/lib/email/campaigns/data", () => camp);
@@ -32,7 +32,7 @@ describe("/admin/email", () => {
   });
 
   it("is owner-only", async () => {
-    requireOwner.mockRejectedValueOnce(new Error("NOT_FOUND"));
+    requirePermission.mockRejectedValueOnce(new Error("NOT_FOUND"));
     await expect(EmailPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("NOT_FOUND");
   });
 

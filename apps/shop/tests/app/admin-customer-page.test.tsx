@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const { requireOwner, getCustomerDetail, customersWithDisputes } = vi.hoisted(() => ({ requireOwner: vi.fn(async () => ({ id: "owner" })), getCustomerDetail: vi.fn(), customersWithDisputes: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+const { requirePermission, getCustomerDetail, customersWithDisputes } = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), getCustomerDetail: vi.fn(), customersWithDisputes: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/customers/data", () => ({ getCustomerDetail }));
 vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes }));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));

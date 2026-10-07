@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { NOW, inquiry } from "../helpers/inquiry-fixtures";
+import { ownerStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requireOwner: vi.fn(), listInquiries: vi.fn(), inquiryTabCounts: vi.fn(), listUnmatched: vi.fn() }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), listInquiries: vi.fn(), inquiryTabCounts: vi.fn(), listUnmatched: vi.fn() }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/inquiries/data", () => ({ listInquiries: m.listInquiries, inquiryTabCounts: m.inquiryTabCounts, listUnmatched: m.listUnmatched }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => NOW }));
 vi.mock("@/app/admin/inquiries/actions", () => ({ dismissUnmatchedAction: vi.fn(), attachUnmatchedAction: vi.fn() }));
@@ -14,7 +15,7 @@ const sp = (o: Record<string, string> = {}) => ({ searchParams: Promise.resolve(
 describe("/admin/inquiries", () => {
   beforeEach(() => {
     for (const f of Object.values(m)) f.mockReset();
-    m.requireOwner.mockResolvedValue({ id: "o1" });
+    m.requirePermission.mockResolvedValue(ownerStaff({ id: "o1" }));
     m.inquiryTabCounts.mockResolvedValue({ open: 4, waiting: 3, closed: 41, all: 48, unmatched: 2 });
     m.listInquiries.mockResolvedValue({ total: 2, rows: [
       inquiry({ customer_id: "c1" }),
@@ -23,7 +24,7 @@ describe("/admin/inquiries", () => {
   });
 
   it("is owner-only", async () => {
-    m.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     await expect(InquiriesPage(sp())).rejects.toThrow("NOT_FOUND");
   });
 

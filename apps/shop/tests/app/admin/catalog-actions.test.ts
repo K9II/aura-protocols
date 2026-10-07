@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ownerStaff } from "../../helpers/staff";
 
-const requireOwner = vi.fn(async () => ({ id: "owner", fullName: "Kearney Adams" }));
+const requirePermission = vi.fn(async () => ownerStaff({ id: "owner", fullName: "Kearney Adams" }));
 const data = {
   receiveLot: vi.fn(), updateDraftLot: vi.fn(), putLotLive: vi.fn(), correctCount: vi.fn(), retireLot: vi.fn(),
   replaceCertificate: vi.fn(), setVariantField: vi.fn(), setShown: vi.fn(), createCoaUpload: vi.fn(), coaUploaded: vi.fn(), lotById: vi.fn(),
   variantRow: vi.fn(), addVariant: vi.fn(), setVariantShown: vi.fn(), archiveVariant: vi.fn(), restoreVariant: vi.fn(), deleteVariant: vi.fn(),
 };
 const catalogChangedByOwner = vi.fn(), alertOwner = vi.fn();
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/catalog-ops/data", () => data);
 vi.mock("@/lib/catalog-live", () => ({ catalogChangedByOwner }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
@@ -377,7 +378,7 @@ describe("catalog actions", () => {
     ];
 
     it.each(cases)("%s", async (_name, run) => {
-      requireOwner.mockRejectedValueOnce(new Error("NOT_FOUND"));
+      requirePermission.mockRejectedValueOnce(new Error("NOT_FOUND"));
       const m = await import("@/app/admin/catalog/actions");
       await expect(run(m)).rejects.toThrow("NOT_FOUND");
       Object.values(data).forEach((f) => expect(f).not.toHaveBeenCalled());

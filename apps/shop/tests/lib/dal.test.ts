@@ -76,25 +76,6 @@ describe("DAL", () => {
     await expect(requireCustomer("/checkout")).rejects.toThrow("REDIRECT:/sign-in?next=%2Fcheckout");
   });
 
-  it("requireOwner 404s for non-owners", async () => {
-    getUser.mockResolvedValue({ data: { user: { id: "u1", email: "j@lab.org", email_confirmed_at: null } }, error: null });
-    from = fromQueue({ customers: [query({ data: row })] });
-    const { requireOwner } = await import("@/lib/dal");
-    await expect(requireOwner()).rejects.toThrow("NOT_FOUND");
-  });
-
-  it("requireOwner sends a signed-out visitor to sign in and back to the same admin page", async () => {
-    getUser.mockResolvedValue({ data: { user: null }, error: null });
-    adminPath.value = "/admin/activity?area=orders";
-    const { requireOwner } = await import("@/lib/dal");
-    await expect(requireOwner()).rejects.toThrow("REDIRECT:/sign-in?next=%2Fadmin%2Factivity%3Farea%3Dorders");
-    adminPath.value = "//evil.example";
-    vi.resetModules();
-    const again = await import("@/lib/dal");
-    await expect(again.requireOwner()).rejects.toThrow("REDIRECT:/sign-in?next=%2Fadmin");
-    adminPath.value = null;
-  });
-
   it("safeNext only allows same-site relative paths", async () => {
     const { safeNext } = await import("@/lib/dal");
     expect(safeNext("/checkout")).toBe("/checkout");

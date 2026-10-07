@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const requireOwner = vi.fn();
+import { ownerStaff } from "../helpers/staff";
+const requirePermission = vi.fn();
 const audit = vi.hoisted(() => ({ logAdminEvent: vi.fn(), recordAdminEvent: vi.fn() }));
 const getOrderById = vi.fn();
 const transitionOrder = vi.fn();
@@ -12,7 +13,7 @@ const orderItemLots = vi.fn();
 const recordShipped = vi.fn();
 const catalogStockChanged = vi.fn();
 const revalidatePath = vi.fn();
-vi.mock("@/lib/dal", () => ({ requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/audit/data", () => audit);
 vi.mock("@/lib/orders", () => ({ getOrderById, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner }));
@@ -28,32 +29,33 @@ const id = "11111111-1111-4111-8111-111111111111";
 describe("markShippedAction", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requireOwner, getOrderById, transitionOrder, sendOrAlert, alertOwner, markCommissionClearing, orderItemLots, recordShipped, catalogStockChanged, revalidatePath]) f.mockReset();
+    for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requirePermission, getOrderById, transitionOrder, sendOrAlert, alertOwner, markCommissionClearing, orderItemLots, recordShipped, catalogStockChanged, revalidatePath]) f.mockReset();
     orderItemLots.mockResolvedValue(new Map());
   });
 
   it("is owner-only", async () => {
-    requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const { markShippedAction } = await import("@/app/admin/orders/actions");
     await expect(markShippedAction(null, fd({ orderId: id, tracking: "9400111899223344556677", carrier: "usps" }))).rejects.toThrow("NOT_FOUND");
     expect(transitionOrder).not.toHaveBeenCalled();
   });
 
   it("marks a paid order shipped with tracking and emails the customer", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
     getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", ...ship })
       .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "9400111899223344556677", carrier: "usps", ...ship });
     transitionOrder.mockResolvedValue(true);
     const { markShippedAction } = await import("@/app/admin/orders/actions");
     await markShippedAction(null, fd({ orderId: id, tracking: " 9400 1118 9922 3344 5566 77 ", carrier: "usps" }));
+    expect(requirePermission).toHaveBeenCalledWith("orders.ship");
     expect(transitionOrder).toHaveBeenCalledWith(id, "paid", "shipped", { tracking_number: "9400111899223344556677", carrier: "usps" });
     expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "j@lab.org", subject: "Order AP-1001 has shipped" });
     expect(markCommissionClearing).toHaveBeenCalledWith(id, expect.any(String));
   });
 
   it("still ships and emails the customer when clearing the commission fails", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
     getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", ...ship })
       .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "9400111899223344556677", carrier: "usps", ...ship });
@@ -66,7 +68,7 @@ describe("markShippedAction", () => {
   });
 
   it("marking shipped records each line's allocated lots as shipped (manual)", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
     getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
       .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
@@ -82,7 +84,7 @@ describe("markShippedAction", () => {
   });
 
   it("skips a line already recorded as shipped", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
     getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
       .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
@@ -94,7 +96,7 @@ describe("markShippedAction", () => {
   });
 
   it("'moved' expires the live catalog", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
     getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
       .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
@@ -109,7 +111,7 @@ describe("markShippedAction", () => {
   });
 
   it("'alert' notifies the owner by order and line, but the shipment still stands", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
     getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
       .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
@@ -124,7 +126,7 @@ describe("markShippedAction", () => {
   });
 
   it("a thrown recordShipped for one line alerts the owner by line, but other lines and the shipment still go through", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
     getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }, { id: "i2" }], ...ship })
       .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
@@ -142,7 +144,7 @@ describe("markShippedAction", () => {
   });
 
   it("a failed shipped-lot record alerts the owner but the shipment stands", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
     getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", order_items: [{ id: "i1" }], ...ship })
       .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "778122104410", carrier: "fedex", ...ship });
@@ -155,7 +157,7 @@ describe("markShippedAction", () => {
   });
 
   it("ignores bad input and non-paid orders", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const { markShippedAction } = await import("@/app/admin/orders/actions");
     await markShippedAction(null, fd({ orderId: id, tracking: "x", carrier: "usps" }));
     getOrderById.mockResolvedValue({ id, status: "cancelled" });
@@ -165,21 +167,21 @@ describe("markShippedAction", () => {
   });
 
   it("reports a bad tracking number to the dialog instead of ignoring it", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const { markShippedAction } = await import("@/app/admin/orders/actions");
     expect(await markShippedAction(null, fd({ orderId: id, tracking: "1Z-99", carrier: "ups" }))).toEqual({ error: "Use 8–40 letters and numbers.", field: "tracking" });
     expect(transitionOrder).not.toHaveBeenCalled();
   });
 
   it("reports an order that is no longer waiting to ship", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     getOrderById.mockResolvedValue({ id, status: "shipped", order_number: "AP-1001" });
     const { markShippedAction } = await import("@/app/admin/orders/actions");
     expect(await markShippedAction(null, fd({ orderId: id, tracking: "9400111899223344556677", carrier: "usps" }))).toEqual({ error: "This order is no longer waiting to ship." });
   });
 
   it("returns ok and revalidates the list and the order page", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const ship = { ship_name: "J. Rivera", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
     getOrderById.mockResolvedValueOnce({ id, status: "paid", email: "j@lab.org", order_number: "AP-1001", ...ship })
       .mockResolvedValueOnce({ id, status: "shipped", email: "j@lab.org", order_number: "AP-1001", tracking_number: "9400111899223344556677", carrier: "usps", ...ship });
@@ -196,17 +198,17 @@ describe("refundCreditOrderAction", () => {
   const creditOrder = (status: string, over: Record<string, unknown> = {}) => ({
     id, order_number: "AP-1009", status, stripe_session_id: null, store_credit_cents: 6950, total_cents: 6950, ...over,
   });
-  beforeEach(() => { vi.resetModules(); for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requireOwner, getOrderById, transitionOrder, alertOwner, afterOrderRefunded, revalidatePath]) f.mockReset(); });
+  beforeEach(() => { vi.resetModules(); for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requirePermission, getOrderById, transitionOrder, alertOwner, afterOrderRefunded, revalidatePath]) f.mockReset(); });
 
   it("is owner-only", async () => {
-    requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const { refundCreditOrderAction } = await import("@/app/admin/orders/actions");
     await expect(refundCreditOrderAction(fd({ orderId: id }))).rejects.toThrow("NOT_FOUND");
     expect(transitionOrder).not.toHaveBeenCalled();
   });
 
   it("refunds a paid or shipped order paid fully in store credit, then runs the refund follow-ups", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     getOrderById.mockResolvedValue(creditOrder("shipped"));
     transitionOrder.mockResolvedValue(true);
     const { refundCreditOrderAction } = await import("@/app/admin/orders/actions");
@@ -219,7 +221,7 @@ describe("refundCreditOrderAction", () => {
   });
 
   it("refuses orders Stripe charged (those are refunded in Stripe) and unpaid ones", async () => {
-    requireOwner.mockResolvedValue({ id: "owner" });
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     const { refundCreditOrderAction } = await import("@/app/admin/orders/actions");
     for (const o of [creditOrder("paid", { stripe_session_id: "cs_1" }), creditOrder("paid", { store_credit_cents: 5000 }), creditOrder("cancelled")]) {
       getOrderById.mockResolvedValue(o);

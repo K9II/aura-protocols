@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createHash } from "node:crypto";
 import { DISPUTE_ID, NOW, WARNING_ID, disputeCase, facts } from "../helpers/dispute-fixtures";
+import { ownerStaff } from "../helpers/staff";
 import { buildEvidence, editable } from "@/lib/disputes/evidence";
 
 const m = vi.hoisted(() => ({
-  requireOwner: vi.fn(), revalidatePath: vi.fn(),
+  requirePermission: vi.fn(), revalidatePath: vi.fn(),
   getDisputeCase: vi.fn(), saveDraft: vi.fn(), markSubmitted: vi.fn(), logDisputeEvent: vi.fn(), getWarning: vi.fn(), resolveWarning: vi.fn(),
   uploadEvidencePdf: vi.fn(), sendEvidence: vi.fn(), refundPaymentIntent: vi.fn(), buildEvidencePdf: vi.fn(),
   getOrderById: vi.fn(), transitionOrder: vi.fn(), afterOrderRefunded: vi.fn(), sendOrAlert: vi.fn(), alertOwner: vi.fn(),
 }));
-vi.mock("@/lib/dal", () => ({ requireOwner: m.requireOwner }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("next/cache", () => ({ revalidatePath: m.revalidatePath }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-07T15:42:00Z") }));
 vi.mock("@/lib/disputes/data", () => ({
@@ -36,7 +37,7 @@ describe("admin Disputes actions", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of Object.values(m)) f.mockReset();
-    m.requireOwner.mockResolvedValue({ id: "owner1" });
+    m.requirePermission.mockResolvedValue(ownerStaff({ id: "owner1" }));
     m.getDisputeCase.mockResolvedValue(disputeCase());
     m.buildEvidencePdf.mockResolvedValue({ bytes: PDF, pages: 1 });
     m.uploadEvidencePdf.mockResolvedValueOnce("file_a").mockResolvedValueOnce("file_b");
@@ -47,7 +48,7 @@ describe("admin Disputes actions", () => {
   });
 
   it("every action is owner-only", async () => {
-    m.requireOwner.mockRejectedValue(new Error("NOT_FOUND"));
+    m.requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     const a = await import("@/app/admin/disputes/actions");
     await expect(a.saveDisputeDraftAction(null, form())).rejects.toThrow("NOT_FOUND");
     await expect(a.submitDisputeAction(null, form())).rejects.toThrow("NOT_FOUND");
