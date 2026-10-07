@@ -144,8 +144,8 @@ export default function CampaignEditor(p: Props) {
             <button type="submit" form="campaign-form" className="a-btn" disabled={saving}>{saving ? "Saving…" : "Save draft"}</button>
             {p.canSend && c && <button type="submit" form="test-form" className="a-btn" disabled={!savedClean || testing}><Icon name="mail" />Send test to me</button>}
             {p.canSend && !c && <button type="button" className="a-btn" disabled><Icon name="mail" />Send test to me</button>}
-            {p.canSend && (c ? <ScheduleDialog id={c.id} defaultLocal={p.defaultScheduleLocal ?? ""} disabled={!readyToSend} /> : <button type="button" className="a-btn" disabled><Icon name="clock" />Schedule…</button>)}
-            {p.canSend && (c ? <SendDialog id={c.id} from="draft" name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!readyToSend} /> : <button type="button" className="a-btn primary" disabled><Icon name="send" />Send now…</button>)}
+            {p.canSend && (c ? <ScheduleDialog id={c.id} updatedAt={c.updated_at} defaultLocal={p.defaultScheduleLocal ?? ""} disabled={!readyToSend} /> : <button type="button" className="a-btn" disabled><Icon name="clock" />Schedule…</button>)}
+            {p.canSend && (c ? <SendDialog id={c.id} from="draft" updatedAt={c.updated_at} name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!readyToSend} /> : <button type="button" className="a-btn primary" disabled><Icon name="send" />Send now…</button>)}
           </div>
           {(saveState?.ok || testState?.ok || testState?.error || saveState?.error) && <div className="a-flash" role="status">{testState?.error ?? saveState?.error ?? testState?.ok ?? saveState?.ok}</div>}
         </div>
@@ -153,7 +153,7 @@ export default function CampaignEditor(p: Props) {
       {/* hidden: this form has no visible fields — it only exists so the
           "Send test to me" button (form="test-form") can submit it. Without
           `hidden` it still sits in `.a-ed`'s grid as an empty cell. */}
-      {c && <form action={test} id="test-form" hidden><input type="hidden" name="id" value={c.id} /></form>}
+      {c && <form action={test} id="test-form" hidden><input type="hidden" name="id" value={c.id} /><input type="hidden" name="updatedAt" value={c.updated_at} /></form>}
 
       <div className={`a-sticky${tab === "edit" ? " a-hide-phone" : ""}`}><EmailPreview input={preview} site={p.site} mailingAddress={p.mailingAddress} /></div>
 
@@ -161,7 +161,7 @@ export default function CampaignEditor(p: Props) {
         <div className="a-psticky a-only-phone">
           <button type="submit" form="test-form" className="a-btn" disabled={!savedClean || testing}><Icon name="mail" />Test to me</button>
           {readyToSend
-            ? <SendDialog id={c.id} dialogKey={`${c.id}-m`} from="draft" name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!readyToSend} triggerLabel="Send…" />
+            ? <SendDialog id={c.id} dialogKey={`${c.id}-m`} from="draft" updatedAt={c.updated_at} name={f.name} subject={f.subject} audienceLabel={AUDIENCE_LABEL[f.audience]} recipients={p.audienceCounts[f.audience]} lastTest={p.lastTest ?? null} disabled={!readyToSend} triggerLabel="Send…" />
             : <button type="button" className="a-btn primary" disabled><Icon name="send" />Send…</button>}
         </div>
       )}

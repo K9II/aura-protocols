@@ -26,7 +26,7 @@ import { isoToZonedLocal } from "@/lib/discounts/time";
 const soonLocal = () => isoToZonedLocal(new Date(Math.ceil((Date.now() + 2 * 86_400_000) / 3_600_000) * 3_600_000).toISOString());
 
 const K = "0b6f1c2e-1111-4222-8333-944455556666";
-const draft = { id: K, kind: "news", status: "draft", name: "N", subject: "S", preview_text: "", content: { headline: "H", body: "Fine.", buttonLabel: "", buttonPath: "" }, audience: "all", discount_code_id: null, lots_snapshot: [] };
+const draft = { id: K, kind: "news", status: "draft", name: "N", subject: "S", preview_text: "", content: { headline: "H", body: "Fine.", buttonLabel: "", buttonPath: "" }, audience: "all", discount_code_id: null, lots_snapshot: [], updated_at: "2026-10-06T12:00:00.000Z" };
 const fd = (o: Record<string, string | string[]>) => { const f = new FormData(); for (const [k, v] of Object.entries(o)) (Array.isArray(v) ? v : [v]).forEach((x) => f.append(k, x)); return f; };
 const form = { name: "N", subject: "S", previewText: "", headline: "H", body: "Fine.", buttonLabel: "", buttonPath: "", audience: "all" };
 
@@ -76,9 +76,19 @@ describe("admin email actions", () => {
     expect(data.updateDraft).toHaveBeenCalledWith(K, expect.objectContaining({ lots: ["AP-1"] }), [lot]);
   });
 
+  it("test send, schedule and send now all refuse a stale updatedAt without acting", async () => {
+    const { sendTestAction, scheduleAction, sendNowAction } = await import("@/app/admin/email/actions");
+    await expect(sendTestAction(null, fd({ id: K, updatedAt: "2020-01-01T00:00:00.000Z" }))).rejects.toThrow(/changed/);
+    expect(sendTracked).not.toHaveBeenCalled();
+    await expect(scheduleAction(null, fd({ id: K, at: soonLocal(), updatedAt: "2020-01-01T00:00:00.000Z" }))).rejects.toThrow(/changed/);
+    expect(data.moveCampaign).not.toHaveBeenCalled();
+    await expect(sendNowAction(null, fd({ id: K, from: "draft", updatedAt: "2020-01-01T00:00:00.000Z" }))).rejects.toThrow(/changed/);
+    expect(data.startCampaign).not.toHaveBeenCalled();
+  });
+
   it("test send goes to the signed-in owner only, prefixed [Test], and is logged", async () => {
     const { sendTestAction } = await import("@/app/admin/email/actions");
-    expect(await sendTestAction(null, fd({ id: K }))).toEqual({ ok: "Test sent to owner@auraprotocols.com." });
+    expect(await sendTestAction(null, fd({ id: K, updatedAt: draft.updated_at }))).toEqual({ ok: "Test sent to owner@auraprotocols.com." });
     expect(renderFor).toHaveBeenCalledWith(draft, "owner@auraprotocols.com", null, { test: true });
     expect(sendTracked.mock.calls[0][0]).toMatchObject({ email: "owner@auraprotocols.com", kind: "campaign" });
     expect(sendTracked.mock.calls[0][0].ref).toMatch(new RegExp(`^test-${K}-`));

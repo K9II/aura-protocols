@@ -28,6 +28,13 @@ async function target(f: FormData): Promise<CampaignRow> {
   if (!id.success) throw new Error(STALE);
   const c = await getCampaign(id.data);
   if (!c) throw new Error(STALE);
+  // Send test / Schedule / Send now carry the campaign's updated_at from
+  // when their dialog opened (CampaignEditor), so a save that happened in
+  // another tab or after a stale reload refuses here instead of sending,
+  // scheduling or testing against content the owner never saw. Actions that
+  // don't submit this field (save, copy, stop, unschedule) skip the check.
+  const updatedAt = str(f, "updatedAt");
+  if (updatedAt && updatedAt !== c.updated_at) throw new Error(STALE);
   return c;
 }
 
