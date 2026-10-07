@@ -19,7 +19,7 @@ export default function WholesalePage() {
           Volume pricing, lot reservation, and certificates for every lot you receive. Tell us which
           compounds and roughly what quantity you need, and we&apos;ll reply with pricing and lead times.
         </p>
-        <InquiryForm kind="wholesale" orgLabel="Organization / institution" messageLabel="Compounds and quantities" />
+        <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds and quantities" />
       </div>
     </div>
   );

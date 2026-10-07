@@ -3,12 +3,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import GuideNav from "@/components/admin/guide/GuideNav";
 
 describe("GuideNav", () => {
-  it("lists every chapter as an anchor and the coming-soon line", () => {
+  it("lists every chapter as an anchor", () => {
     render(<GuideNav />);
     const nav = screen.getByRole("navigation", { name: "Guide contents" });
     expect(nav.querySelector('a[href="#discounts"]')).toHaveTextContent("Discounts");
     expect(nav.querySelector('a[href="#payouts"]')).toHaveTextContent("Payouts");
-    expect(nav).toHaveTextContent(/added as each ships/);
+    expect(nav.querySelector('a[href="#inquiries"]')).toHaveTextContent("Inquiries");
   });
 
   it("opens the first chapter's sections by default", () => {

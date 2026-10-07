@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Icon } from "@/components/admin/ui";
 import AlertDone from "@/components/admin/today/AlertDone";
 import { announceAction } from "@/app/admin/email/actions";
-import { markInquiriesSeenAction } from "@/app/admin/actions";
 import WarningAction from "@/components/admin/disputes/WarningAction";
 import type { Slot, TodoLine, TodoSection } from "@/lib/today/todos";
 
@@ -48,12 +47,6 @@ function Section({ s }: { s: TodoSection }) {
         <h2 id={`t-${s.key}`}>{s.title}</h2>
         <span className={`n${s.tone ? ` ${s.tone}` : ""}`}>{s.n}</span>
         {s.link && <Link className="r" href={s.link.href}>{s.link.label}</Link>}
-        {s.seenUpTo && (
-          <form action={markInquiriesSeenAction} className="r">
-            <input type="hidden" name="upTo" value={s.seenUpTo} />
-            <button type="submit" className="a-btn sm">Mark seen</button>
-          </form>
-        )}
       </div>
       {s.lines.map((l) => <Line key={l.key} l={l} />)}
       {s.more > 0 && (s.link

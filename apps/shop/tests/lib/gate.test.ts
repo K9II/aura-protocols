@@ -26,7 +26,7 @@ describe("gate", () => {
   });
 
   it("exempts legal pages, account entry pages and email landings", () => {
-    for (const p of ["/terms", "/refund-policy", "/privacy", "/shipping", "/ruo", "/sign-in", "/forgot-password", "/reset-password", "/verified", "/unsubscribed", "/auth/verify", "/auth/callback", "/finish-account"]) {
+    for (const p of ["/terms", "/refund-policy", "/privacy", "/shipping", "/ruo", "/contact", "/sign-in", "/forgot-password", "/reset-password", "/verified", "/unsubscribed", "/auth/verify", "/auth/callback", "/finish-account"]) {
       expect(isGateExempt(p), p).toBe(true);
     }
     for (const p of ["/", "/products", "/products/bpc-157", "/coa", "/cart"]) expect(isGateExempt(p), p).toBe(false);

@@ -3,9 +3,10 @@
 export const TERMS_VERSION = "2026-10-04";
 
 // No gate on the legal pages the sign-up agreement links to, the pages a
-// visitor needs to get into an account, or pages landed on from an email.
+// visitor needs to get into an account or to reach us, or pages landed on
+// from an email.
 export const GATE_EXEMPT_PATHS = [
-  "/terms", "/refund-policy", "/privacy", "/shipping", "/ruo",
+  "/terms", "/refund-policy", "/privacy", "/shipping", "/ruo", "/contact",
   "/sign-in", "/forgot-password", "/reset-password", "/finish-account", "/verified", "/unsubscribed",
 ] as const;
 const GATE_EXEMPT_PREFIXES = ["/auth/"];

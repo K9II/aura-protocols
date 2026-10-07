@@ -1,7 +1,7 @@
 // Every number Today uses. Pure.
 export const SHIP_LATE_BUSINESS_DAYS = 2;  // a paid order waiting longer than this (Mon–Fri, Mountain) is late
 export const TODO_LINES_MAX = 5;           // lines per to-do section before "and N more"
-export const INQUIRY_PREVIEWS = 3;         // newest new inquiries previewed on Today
+export const INQUIRY_PREVIEWS = 3;         // longest-waiting open inquiries listed on Today
 export const ALERTS_KEEP_DAYS = 90;        // Past alerts shows this many days (open ones always)
 export const ALERTS_LIST_MAX = 500;
 export const RATE_TODO_SHARE = 0.5;        // bounce/complaint rate becomes a to-do at this share of Amazon's limit

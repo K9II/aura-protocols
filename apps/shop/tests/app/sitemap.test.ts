@@ -13,7 +13,7 @@ describe("sitemap", () => {
 
   it("lists the storefront pages", async () => {
     const p = await paths();
-    for (const x of ["/", "/products", "/coa", "/wholesale", "/affiliates", "/partner-agreement", "/about", "/quality-standards", "/terms", "/privacy", "/shipping", "/refund-policy", "/ruo"]) {
+    for (const x of ["/", "/products", "/coa", "/wholesale", "/contact", "/affiliates", "/partner-agreement", "/about", "/quality-standards", "/terms", "/privacy", "/shipping", "/refund-policy", "/ruo"]) {
       expect(p).toContain(x);
     }
   });

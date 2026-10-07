@@ -3,9 +3,11 @@ import { generateKeyPairSync, createSign } from "node:crypto";
 
 const accountIdByEmail = vi.fn(), flagVerifyRequired = vi.fn(), unsubscribe = vi.fn();
 const recordEmailEvent = vi.fn(), sourceForMessage = vi.fn();
+const markOutboundDelivery = vi.fn();
 vi.mock("@/lib/account/data", () => ({ accountIdByEmail, flagVerifyRequired }));
 vi.mock("@/lib/email/data", () => ({ unsubscribe }));
 vi.mock("@/lib/email/admin-data", () => ({ recordEmailEvent, sourceForMessage }));
+vi.mock("@/lib/inquiries/data", () => ({ markOutboundDelivery }));
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const pem = publicKey.export({ type: "spki", format: "pem" }).toString();
@@ -23,8 +25,9 @@ const note = (message: unknown, version: "1" | "2" = "2") => signed({ Type: "Not
 
 describe("ses-events", () => {
   beforeEach(() => {
-    vi.resetModules(); for (const f of [accountIdByEmail, flagVerifyRequired, unsubscribe, recordEmailEvent, sourceForMessage]) f.mockReset();
+    vi.resetModules(); for (const f of [accountIdByEmail, flagVerifyRequired, unsubscribe, recordEmailEvent, sourceForMessage, markOutboundDelivery]) f.mockReset();
     sourceForMessage.mockResolvedValue(null);
+    markOutboundDelivery.mockResolvedValue(null);
   });
 
   it("accepts a correctly signed message and refuses a tampered one or a foreign cert host", async () => {
@@ -120,5 +123,25 @@ describe("ses-events", () => {
     const { handleSesEvent } = await import("@/lib/ses-events");
     await handleSesEvent({ notificationType: "Bounce", bounce: { bounceType: "Transient", bouncedRecipients: [{ emailAddress: "x@b.co" }] } });
     expect(recordEmailEvent).not.toHaveBeenCalled();
+  });
+
+  it("a Delivery notification marks our inquiry reply delivered", async () => {
+    const { handleSesEvent } = await import("@/lib/ses-events");
+    await handleSesEvent({ notificationType: "Delivery", mail: { messageId: "0100abc" } });
+    expect(markOutboundDelivery).toHaveBeenCalledWith("0100abc", "delivered");
+  });
+
+  it("a permanent bounce or a complaint also marks the inquiry reply", async () => {
+    const { handleSesEvent } = await import("@/lib/ses-events");
+    await handleSesEvent({ notificationType: "Bounce", mail: { messageId: "m1" }, bounce: { bounceType: "Permanent", bouncedRecipients: [{ emailAddress: "a@b.c" }] } });
+    await handleSesEvent({ notificationType: "Complaint", mail: { messageId: "m2" }, complaint: { complainedRecipients: [{ emailAddress: "a@b.c" }] } });
+    expect(markOutboundDelivery).toHaveBeenCalledWith("m1", "bounced");
+    expect(markOutboundDelivery).toHaveBeenCalledWith("m2", "complained");
+  });
+
+  it("a transient bounce changes nothing", async () => {
+    const { handleSesEvent } = await import("@/lib/ses-events");
+    await handleSesEvent({ notificationType: "Bounce", mail: { messageId: "m3" }, bounce: { bounceType: "Transient", bouncedRecipients: [] } });
+    expect(markOutboundDelivery).not.toHaveBeenCalled();
   });
 });

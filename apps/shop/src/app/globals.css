@@ -821,3 +821,17 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .pharmacopoeia .s-offer .s-offer-snow i, .pharmacopoeia .s-offer .s-offer-glow, .pharmacopoeia .s-offer .s-offer-lights, .pharmacopoeia .s-offer .s-offer-starglow { animation: none; }
 }
+
+/* contact (/contact) — mock 2026-10-06-admin-inquiries-mocks screen 6 */
+.pharmacopoeia .s-contact { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 56px; }
+@media (max-width: 900px) { .pharmacopoeia .s-contact { grid-template-columns: minmax(0, 1fr); gap: 32px; } }
+.pharmacopoeia .s-contact-aside { border-left: 1px solid var(--line); padding-left: 28px; display: grid; gap: 22px; align-content: start; font-size: 14px; color: var(--ink-soft); }
+@media (max-width: 900px) { .pharmacopoeia .s-contact-aside { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: 24px; } }
+.pharmacopoeia .s-contact-who { border: 1px solid var(--line); padding: 10px 14px; margin-bottom: 18px; font-size: 14px; }
+.pharmacopoeia .s-topics { display: flex; flex-wrap: wrap; gap: 8px; }
+.pharmacopoeia .s-topics label { border: 1px solid var(--line); padding: 8px 12px; font-size: 13px; cursor: pointer; }
+.pharmacopoeia .s-topics label.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.pharmacopoeia .s-topics input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.pharmacopoeia .s-topics label:focus-within { outline: 2px solid var(--specimen); outline-offset: 2px; }
+.pharmacopoeia .s-contact-sent { border: 1px solid var(--line); border-left: 3px solid #2E6A3E; padding: 16px 18px; max-width: 36rem; }
+.pharmacopoeia .s-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }

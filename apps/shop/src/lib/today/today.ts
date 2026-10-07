@@ -11,7 +11,8 @@ import { emailOverview } from "@/lib/email/stats";
 import { listPartners } from "@/lib/partners/data";
 import { listQueuedPayouts } from "@/lib/partners/ledger";
 import { listOpenAlerts } from "@/lib/today/alerts";
-import { newInquiries, salesSummary } from "@/lib/today/data";
+import { salesSummary } from "@/lib/today/data";
+import { openInquiryTodos } from "@/lib/inquiries/data";
 import { openDisputeTodos } from "@/lib/disputes/data";
 import {
   alertsSection, disputesSection, emailSection, inquiriesSection, lotsSection, navCount, ordersSection, partnersSection, stockSection,
@@ -54,7 +55,7 @@ const LOADERS: Record<SlotKey, (nowMs: number) => Promise<TodoSection[]>> = {
     const [applied, queued] = await Promise.all([listPartners("applied"), listQueuedPayouts()]);
     return shown([partnersSection(applied, queued)]);
   },
-  inquiries: async (nowMs) => shown([inquiriesSection(await newInquiries(), nowMs)]),
+  inquiries: async (nowMs) => shown([inquiriesSection(await openInquiryTodos(), nowMs)]),
 };
 
 // Every section loads on its own (allSettled): a failure is logged and shows

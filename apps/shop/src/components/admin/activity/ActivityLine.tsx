@@ -41,6 +41,23 @@ export default function ActivityLine({ i }: { i: ActivityItem }): React.ReactNod
       }
       return <>{emailEventText({ ...e, actorName: who })}{about(i.campaignName)}</>;
     }
+    case "inquiry": {
+      const { action, detail } = i.e;
+      const on = i.label ? <> {i.label}</> : null;
+      switch (action) {
+        case "replied": return <>{who} replied to{on}</>;
+        case "closed": return <>{who} <b>closed</b>{on}</>;
+        case "reopened": return <>{who} <b>re-opened</b>{on}</>;
+        case "topic_changed": return <>{who} changed the topic of{on} to <b>{detail}</b></>;
+        case "linked": return <>{who} linked{on} to the account {detail}</>;
+        case "unlinked": return <>{who} unlinked the account from{on}</>;
+        case "unmatched_attached": return <>{who} attached an unmatched email to{on}</>;
+        case "unmatched_dismissed": return <>{who} dismissed an unmatched email{about(detail)}</>;
+        case "reply_saved": return <>{who} saved the reply <b>{detail}</b></>;
+        case "reply_deleted": return <>{who} deleted the reply <b>{detail}</b></>;
+      }
+      return <>{who} · {action}{on}</>;
+    }
     case "dispute": return <>{disputeEventText({ ...i.e, actorName: who }).text}{about(i.orderNumber)}</>;
     case "alert": return <>{who} marked alert <b>{i.e.title}</b> done{about(i.e.note ? `“${i.e.note}”` : null)}</>;
   }
