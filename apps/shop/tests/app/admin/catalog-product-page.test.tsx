@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { ownerStaff } from "../../helpers/staff";
-vi.mock("@/lib/dal", () => ({ requirePermission: async () => ownerStaff() }));
+import { ownerStaff, assistantStaff } from "../../helpers/staff";
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../../helpers/staff")).ownerStaff()) }));
+vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(), replaceCertificateAction: vi.fn(),
   addStrengthAction: vi.fn(), setStrengthShownAction: vi.fn(), archiveStrengthAction: vi.fn(), restoreStrengthAction: vi.fn(), deleteStrengthAction: vi.fn() }));
 // catalog-live.ts also imports fetchCatalogOps from catalog-ops/data at module
@@ -156,5 +157,16 @@ describe("/admin/catalog/[slug]", () => {
       expect(screen.getByText(/Kearney archived/)).toHaveTextContent("Kearney archived 5 mg");
       expect(screen.getByText(/Kearney deleted/)).toHaveTextContent("Kearney deleted 20 mg");
     });
+  });
+
+  it("Assistant: no Receive lot, Add strength, Correct count or Put live; price shows as text", async () => {
+    m.requirePermission.mockResolvedValueOnce(assistantStaff());
+    render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    expect(screen.queryByRole("button", { name: /Receive/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add a strength" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Correct count" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Put live" })).not.toBeInTheDocument();
+    expect(screen.getByText("$79.00")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit Price per vial" })).not.toBeInTheDocument();
   });
 });

@@ -17,7 +17,7 @@ import SendingRefresh from "@/components/admin/email/SendingRefresh";
 const n = (x: number) => x.toLocaleString("en-US");
 const CHIP = { sending: "sending", sent: "sent", stopped: "stopped" } as const;
 
-export default async function CampaignResults({ c, sendError }: { c: CampaignRow; sendError?: string | null }) {
+export default async function CampaignResults({ c, sendError, canCopy, canStop }: { c: CampaignRow; sendError?: string | null; canCopy: boolean; canStop: boolean }) {
   const since = c.started_at ?? c.created_at;
   const [counts, stats, attr, events, code] = await Promise.all([
     recipientCounts(c.id), sendStats(since), attribution(since), listAdminEvents(c.id),
@@ -36,8 +36,8 @@ export default async function CampaignResults({ c, sendError }: { c: CampaignRow
         <div><h1>{c.name} <span className={`a-chip ${CHIP[status]}`}>{CAMPAIGN_STATUS_LABEL[status]}</span></h1>
           <p>{KIND_LABEL[c.kind]} · {AUDIENCE_LABEL[c.audience]} · started {c.started_at ? dateTime(c.started_at) : "—"}{c.finished_at ? ` · ${status === "stopped" ? "stopped" : "finished"} ${dateTime(c.finished_at)}` : ""}</p></div>
         <div className="actions">
-          {status === "sending" && <StopDialog id={c.id} done={counts.sent} total={c.recipients} />}
-          {status !== "sending" && <form action={copyAction}><input type="hidden" name="id" value={c.id} /><button type="submit" className="a-btn"><Icon name="copy" />Copy as new draft</button></form>}
+          {status === "sending" && canStop && <StopDialog id={c.id} done={counts.sent} total={c.recipients} />}
+          {status !== "sending" && canCopy && <form action={copyAction}><input type="hidden" name="id" value={c.id} /><button type="submit" className="a-btn"><Icon name="copy" />Copy as new draft</button></form>}
         </div>
       </div>
 

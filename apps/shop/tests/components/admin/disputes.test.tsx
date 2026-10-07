@@ -23,7 +23,7 @@ describe("EvidenceForm", () => {
   it("one form: Save draft submits it; Submit opens the confirm dialog inside the same form (no nested form)", () => {
     const { container } = render(<EvidenceForm id="d1" initial={initial} letterFor="not received" scanOk agreement={[["Agreed", "September 14, 2026"]]}
       policy="Agreed at sign-up." savedText="Not saved yet · the bank sees nothing until you submit" pdfHref="/admin/disputes/d1/evidence.pdf"
-      summary={{ chargeback: "AP-1031 · not received · $412.00", shipping: "USPS · shipped Sep 22", pdfPages: 3 }} />);
+      summary={{ chargeback: "AP-1031 · not received · $412.00", shipping: "USPS · shipped Sep 22", pdfPages: 3 }} canSave canSubmit />);
     expect(container.querySelectorAll("form")).toHaveLength(1);
     expect(container.querySelector("form form")).toBeNull();
     expect(screen.getByRole("button", { name: "Save draft" })).toHaveAttribute("type", "submit");
@@ -40,7 +40,7 @@ describe("EvidenceForm", () => {
     m.submitDisputeAction.mockResolvedValueOnce({ fieldErrors: { customer_name: "Required." }, error: "Fix the highlighted fields first." });
     render(<EvidenceForm id="d1" initial={{ ...initial, customer_name: "" }} letterFor="not received" scanOk agreement={[["Agreed", "September 14, 2026"]]}
       policy="Agreed at sign-up." savedText="Not saved yet" pdfHref="/admin/disputes/d1/evidence.pdf"
-      summary={{ chargeback: "AP-1031 · not received · $412.00", shipping: "USPS · shipped Sep 22", pdfPages: 3 }} />);
+      summary={{ chargeback: "AP-1031 · not received · $412.00", shipping: "USPS · shipped Sep 22", pdfPages: 3 }} canSave canSubmit />);
     fireEvent.click(screen.getByRole("button", { name: "Submit to Stripe…" }));
     const dialog = screen.getByRole("heading", { name: "Submit evidence to Stripe?" }).closest("dialog")!;
     expect(dialog).toHaveAttribute("open");

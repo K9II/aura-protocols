@@ -55,4 +55,12 @@ describe("/admin/email", () => {
     render(await EmailPage({ searchParams: Promise.resolve({}) }));
     expect(screen.getByRole("alert")).toHaveTextContent("Email numbers couldn't load");
   });
+
+  it("Assistant: no pause switch button, chip still shows the state", async () => {
+    requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    render(await EmailPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.queryByRole("button", { name: /Pause|back on/ })).toBeNull();
+    expect(screen.getAllByText("Paused").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("On").length).toBeGreaterThan(0);
+  });
 });

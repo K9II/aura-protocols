@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { currentMs } from "@/lib/clock";
 import { disputeRateCounts, listDisputes, listWarnings } from "@/lib/disputes/data";
 import { DISPUTE_FEE_CENTS, DISPUTE_RATE_DAYS } from "@/lib/disputes/constants";
@@ -23,7 +24,7 @@ const charged = (w: WarningListRow) => w.order.totalCents - w.order.creditCents;
 // Chargebacks that need a response, early fraud warnings, and history (mock
 // screen 1; phone = screen 6). Spec 2026-10-05-admin-disputes-design.md.
 export default async function DisputesPage() {
-  await requirePermission("disputes.view");
+  const staff = await requirePermission("disputes.view");
   const nowMs = currentMs();
   const [disputes, warnings, counts] = await Promise.all([
     listDisputes(), listWarnings(), disputeRateCounts(new Date(nowMs - DISPUTE_RATE_DAYS * DAY).toISOString()),
@@ -98,7 +99,7 @@ export default async function DisputesPage() {
                   <td className="num">{usd(charged(w))}</td>
                   <td><span className={`a-chip ${st.cls}`}>{st.text}</span></td>
                   <td>{whenText(w.created_at, nowMs)}</td>
-                  <td><div className="act"><WarningAction w={warningActionData(w)} /></div></td>
+                  <td><div className="act">{can(staff, "disputes.warnings") && <WarningAction w={warningActionData(w)} />}</div></td>
                 </tr>
               );
             })}</tbody>
@@ -110,7 +111,7 @@ export default async function DisputesPage() {
                 <b><span className="a-mono">{w.order.number}</span> · {w.order.customerName}</b>
                 <span className={`a-chip ${st.cls}`}>{w.order.status === "paid" ? "Not shipped" : st.text}</span>
                 <div className="gives">{usd(charged(w))} · {whenText(w.created_at, nowMs)}</div>
-                <div className="meta"><WarningAction w={warningActionData(w)} dialogKey={`${w.id}-phone`} /></div>
+                <div className="meta">{can(staff, "disputes.warnings") && <WarningAction w={warningActionData(w)} dialogKey={`${w.id}-phone`} />}</div>
               </div>
             );
           })}</div>

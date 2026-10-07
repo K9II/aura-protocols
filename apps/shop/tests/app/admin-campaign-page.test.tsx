@@ -44,4 +44,18 @@ describe("/admin/email/campaigns/[id]", () => {
     expect(screen.getByText(/Scheduled for Oct 8/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Subject")).toBeNull();
   });
+
+  it("Assistant: Save present; Send test, Schedule, Send now and Unschedule absent", async () => {
+    requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    render(await CampaignPage({ params: Promise.resolve({ id: K }) }));
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Send test to me/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Schedule/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Send now/ })).toBeNull();
+
+    requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    data.getCampaign.mockResolvedValueOnce({ ...row, status: "scheduled", scheduled_for: "2026-10-08T15:00:00Z" });
+    render(await CampaignPage({ params: Promise.resolve({ id: K }) }));
+    expect(screen.queryByRole("button", { name: "Unschedule" })).toBeNull();
+  });
 });

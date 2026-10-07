@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { DISPUTE_ID, listRow, warningRow } from "../helpers/dispute-fixtures";
-import { ownerStaff } from "../helpers/staff";
+import { ownerStaff, assistantStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({ requirePermission: vi.fn(), listDisputes: vi.fn(), listWarnings: vi.fn(), disputeRateCounts: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
@@ -60,6 +60,14 @@ describe("/admin/disputes", () => {
     expect(within(history).getByRole("link", { name: "AP-1012" })).toHaveAttribute("href", "/admin/disputes/d3");
     expect(within(history).getByText("Won")).toBeInTheDocument();
     expect(within(history).getByText("Refunded before shipping")).toBeInTheDocument();
+  });
+
+  it("Assistant: no early-warning actions", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff());
+    render(await DisputesPage());
+    const efw = screen.getByRole("region", { name: "Early fraud warnings" });
+    expect(within(efw).queryByRole("button", { name: "Cancel and refund…" })).toBeNull();
+    expect(within(efw).queryByRole("button", { name: "Watch" })).toBeNull();
   });
 
   it("says so when there's nothing", async () => {

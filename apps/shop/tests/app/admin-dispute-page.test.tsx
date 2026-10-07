@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { CUSTOMER_ID, DISPUTE_ID, disputeCase } from "../helpers/dispute-fixtures";
-import { ownerStaff } from "../helpers/staff";
+import { ownerStaff, assistantStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({ requirePermission: vi.fn(), getDisputeCase: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
@@ -89,5 +89,13 @@ describe("/admin/disputes/[id]", () => {
     render(await DisputePage(props()));
     expect(screen.queryByRole("button", { name: "Block customer…" })).toBeNull();
     expect(screen.getByText("Blocked")).toBeInTheDocument();
+  });
+
+  it("Assistant: Save draft present, Submit and Block absent", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff());
+    render(await DisputePage(props()));
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Submit to Stripe…" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Block customer…" })).toBeNull();
   });
 });

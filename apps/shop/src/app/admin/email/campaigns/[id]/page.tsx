@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { getCampaign, lotChoices } from "@/lib/email/campaigns/data";
 import { audienceCounts } from "@/lib/email/stats";
 import { listAdminEvents } from "@/lib/email/admin-data";
@@ -21,14 +22,14 @@ export const metadata: Metadata = { title: "Campaign", robots: { index: false, f
 export const maxDuration = 300;
 
 export default async function CampaignPage({ params, searchParams = Promise.resolve({}) }: { params: Promise<{ id: string }>; searchParams?: Promise<{ sendError?: string }> }) {
-  await requirePermission("email.view");
+  const staff = await requirePermission("email.view");
   const id = z.string().uuid().safeParse((await params).id);
   if (!id.success) notFound();
   const c = await getCampaign(id.data);
   if (!c) notFound();
   if (c.status === "sending" || c.status === "sent" || c.status === "stopped") {
     const sendError = (await searchParams).sendError ?? null;
-    return <CampaignResults c={c} sendError={sendError} />;
+    return <CampaignResults c={c} sendError={sendError} canCopy={can(staff, "email.draft")} canStop={can(staff, "email.send")} />;
   }
 
   const [lots, counts, codes, events] = await Promise.all([
@@ -50,7 +51,7 @@ export default async function CampaignPage({ params, searchParams = Promise.reso
       <div className="a-page" style={{ maxWidth: 1200 }}>
         {head}
         <div className="a-callout info" style={{ marginBottom: 16 }}><Icon name="clock" /><span>Scheduled for {dateTime(c.scheduled_for!)} (Mountain). The hourly email run sends it then. To change anything, unschedule it first.</span>
-          <form action={unscheduleAction} style={{ marginLeft: "auto" }}><input type="hidden" name="id" value={c.id} /><button type="submit" className="a-btn sm">Unschedule</button></form></div>
+          {can(staff, "email.send") && <form action={unscheduleAction} style={{ marginLeft: "auto" }}><input type="hidden" name="id" value={c.id} /><button type="submit" className="a-btn sm">Unschedule</button></form>}</div>
         {checks.some((x) => x.level !== "ok") && <div className="a-checks" style={{ marginBottom: 16 }}>{checks.filter((x) => x.level !== "ok").map((x, i) => <div key={i} className={`ck ${x.level === "block" ? "bad" : x.level}`}><Icon name="warn" /><span>{x.text}</span></div>)}</div>}
         <EmailPreview input={{ kind: c.kind, subject: c.subject, previewText: c.preview_text, content: c.content, lots: c.lots_snapshot, code: c.discount_code_id ? codes.render[c.discount_code_id] ?? null : null }} site={site} mailingAddress={mailingAddress} />
       </div>
@@ -62,7 +63,7 @@ export default async function CampaignPage({ params, searchParams = Promise.reso
       {head}
       <CampaignEditor campaign={c} kind={c.kind} lotChoices={lots} codes={codes.options} codeRender={codes.render} audienceCounts={counts} checks={checks}
         site={site} mailingAddress={mailingAddress} lastTest={lastTest ? `${dateTime(lastTest.at)} to ${lastTest.note}` : null}
-        defaultScheduleLocal={isoToZonedLocal(new Date(nextHourMs(currentMs())).toISOString())} />
+        defaultScheduleLocal={isoToZonedLocal(new Date(nextHourMs(currentMs())).toISOString())} canSend={can(staff, "email.send")} />
     </div>
   );
 }

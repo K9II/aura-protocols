@@ -82,4 +82,11 @@ describe("/admin/orders", () => {
     expect(screen.getByText("No rows on this page.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to page 1" })).toHaveAttribute("href", "/admin/orders?tab=all");
   });
+
+  it("hides Ship for the Assistant but keeps Pick list", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    render(await OrdersPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.queryByRole("button", { name: /Ship/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Pick list" })[0]).toHaveAttribute("href", "/admin/orders/AP-1031/pick");
+  });
 });

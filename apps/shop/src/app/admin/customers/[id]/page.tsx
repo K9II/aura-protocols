@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { getCustomerDetail, type CustomerDetail, type CustomerEvent, type LedgerRow } from "@/lib/customers/data";
 import { customersWithDisputes } from "@/lib/disputes/data";
 import { CATEGORY_LABEL, fingerprint, offerState, summarizeUserAgent, type CreditCategory } from "@/lib/customers/rules";
@@ -71,7 +72,7 @@ function Agreements({ c }: { c: CustomerDetail }) {
 }
 
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission("customers.view");
+  const staff = await requirePermission("customers.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const c = await getCustomerDetail(id);
@@ -94,7 +95,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       {c.blockedAt && (
         <div className="a-banner" role="status">
           <Icon name="lock" /><span><b>Blocked {shortDate(c.blockedAt)}{c.blockedBy ? ` by ${c.blockedBy}` : ""}.</b> {c.blockedReason}</span>
-          <form action={unblockAction}><input type="hidden" name="customerId" value={c.id} /><ConfirmSubmit className="a-btn sm" message="Unblock this account? They can sign in again. Cancelled checkouts stay cancelled.">Unblock</ConfirmSubmit></form>
+          {can(staff, "customers.block") && <form action={unblockAction}><input type="hidden" name="customerId" value={c.id} /><ConfirmSubmit className="a-btn sm" message="Unblock this account? They can sign in again. Cancelled checkouts stay cancelled.">Unblock</ConfirmSubmit></form>}
         </div>
       )}
       <div className="a-idh">
@@ -104,9 +105,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           <div className="sub">{c.email}{c.organization && <><span className="dot" />{c.organization}</>}<span className="dot" />Joined {fullDate(c.createdAt)}</div>
         </div>
         <div className="actions">
-          {!c.verifiedAt && !c.blockedAt && <ResendVerify customerId={c.id} />}
-          <CreditDialog customerId={c.id} balanceCents={balance} />
-          {!c.blockedAt && !c.isOwner && <BlockDialog customerId={c.id} name={c.fullName} openCheckouts={open.map((o) => ({ number: o.order_number, totalCents: o.total_cents }))} />}
+          {!c.verifiedAt && !c.blockedAt && can(staff, "customers.resend_verify") && <ResendVerify customerId={c.id} />}
+          {can(staff, "credit.adjust") && <CreditDialog customerId={c.id} balanceCents={balance} />}
+          {!c.blockedAt && !c.isOwner && can(staff, "customers.block") && <BlockDialog customerId={c.id} name={c.fullName} openCheckouts={open.map((o) => ({ number: o.order_number, totalCents: o.total_cents }))} />}
         </div>
       </div>
       {!c.verifiedAt && !c.blockedAt && (

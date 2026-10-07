@@ -59,4 +59,13 @@ describe("/admin/customers/[id]", () => {
     expect(customersWithDisputes).toHaveBeenCalledWith([ID]);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Chargeback");
   });
+
+  it("hides Adjust credit, Block and Resend verification for the Assistant", async () => {
+    requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    getCustomerDetail.mockResolvedValueOnce({ ...detail, verifiedAt: null });
+    render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(screen.queryByRole("button", { name: "Adjust credit" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Block" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Resend verification" })).toBeNull();
+  });
 });

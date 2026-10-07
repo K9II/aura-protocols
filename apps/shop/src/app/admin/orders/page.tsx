@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { countOrderTabs, searchOrdersForOwner, type OrderRow } from "@/lib/orders";
 import { ORDER_PAGE_SIZE, ORDER_TABS, ORDER_TAB_LABEL, cleanOrderSearch, itemsSummary, orderMarkers, parseOrderTab, type OrderTab } from "@/lib/orders/tabs";
 import { orderFlags } from "@/lib/disputes/data";
@@ -19,7 +20,7 @@ const vials = (o: OrderRow) => (o.order_items ?? []).reduce((s, i) => s + i.pack
 const EMPTY: Record<OrderTab, string> = { to_ship: "Nothing to ship.", processing: "No payments clearing.", shipped: "Nothing shipped yet.", closed: "No refunded or cancelled orders.", all: "No orders yet." };
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[]; status?: string | string[]; q?: string | string[]; page?: string | string[] }> }) {
-  await requirePermission("orders.view");
+  const staff = await requirePermission("orders.view");
   const sp = await searchParams;
   const tab = parseOrderTab(first(sp.tab), first(sp.status));
   const qRaw = first(sp.q) ?? "";
@@ -82,7 +83,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   <td><OrderStatusChip status={o.status} /></td>
                   <td>{o.status === "paid" && <div className="a-acts">
                     <Link className="a-ulink" href={`/admin/orders/${o.order_number}/pick`}>Pick list</Link>
-                    <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary(o)} small />
+                    {can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary(o)} small />}
                   </div>}</td>
                 </tr>
               );
@@ -98,7 +99,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                 <div className="row2">
                   {shipping && age ? <span className={`a-wait${age.late ? " red" : ""}`}>{age.text}</span> : <OrderStatusChip status={o.status} />}
                   <span>{vials(o)} vial{vials(o) === 1 ? "" : "s"}</span>
-                  {o.status === "paid" && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary(o)} small />}
+                  {o.status === "paid" && can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary(o)} small />}
                 </div>
               </div>
             );

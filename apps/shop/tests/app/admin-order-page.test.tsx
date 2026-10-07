@@ -79,4 +79,13 @@ describe("/admin/orders/[number]", () => {
     expect(screen.getByText("Chargeback")).toBeInTheDocument();
     expect(m.customersWithDisputes).toHaveBeenCalledWith(["c1"]);
   });
+
+  it("hides Ship and refund-to-credit for the Assistant", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    m.getOrderDetail.mockResolvedValue({ ...detail, order: { ...order, status: "paid", shipped_at: null, stripe_session_id: null, stripe_payment_intent: null, store_credit_cents: 41_439 } });
+    render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
+    expect(screen.queryByRole("button", { name: "Ship" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Refund to store credit", hidden: true })).toBeNull();
+    expect(screen.getByRole("link", { name: "Pick list" })).toBeInTheDocument();
+  });
 });
