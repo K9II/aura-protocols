@@ -165,12 +165,25 @@ describe("inquiries data", () => {
     await expect(saveInquiryDraft({ id: "i1", body: "x", actorId: "a1" })).rejects.toThrow(/inquiry draft save/);
   });
 
-  it("clearInquiryDraft: nulls draft_body, draft_by and draft_at; throws on error", async () => {
+  it("clearInquiryDraft: nulls draft_body, draft_by and draft_at, only where a draft exists; reports whether one was cleared; throws on error", async () => {
     const upd = query({ data: [{ id: "i1" }] });
     db.from = fromQueue({ inquiries: [upd] });
     const { clearInquiryDraft } = await import("@/lib/inquiries/data");
-    await clearInquiryDraft("i1");
+    expect(await clearInquiryDraft("i1")).toBe(true);
     expect(callArgs(upd, "update")).toEqual([{ draft_body: null, draft_by: null, draft_at: null }]);
+    expect(callArgs(upd, "not")).toEqual(["draft_at", "is", null]);
+
+    // Nothing matched (no draft to clear, or the race-guard below) → false.
+    db.from = fromQueue({ inquiries: [query({ data: [] })] });
+    expect(await clearInquiryDraft("i1")).toBe(false);
+
+    // An expected draft_at adds an extra .eq — used by replyAction so a
+    // newer draft the Assistant saved after the page loaded stays put.
+    const upd2 = query({ data: [{ id: "i1" }] });
+    db.from = fromQueue({ inquiries: [upd2] });
+    await clearInquiryDraft("i1", "2026-10-06T14:06:00Z");
+    expect(upd2.calls.filter(([m]) => m === "eq").map(([, args]) => args)).toEqual([["id", "i1"], ["draft_at", "2026-10-06T14:06:00Z"]]);
+
     db.from = fromQueue({ inquiries: [query({ error: { message: "down" } })] });
     await expect(clearInquiryDraft("i1")).rejects.toThrow(/inquiry draft clear/);
   });

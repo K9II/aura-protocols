@@ -175,9 +175,17 @@ export async function saveInquiryDraft(d: { id: string; body: string; actorId: s
   if (error) fail("inquiry draft save", error);
 }
 
-export async function clearInquiryDraft(id: string): Promise<void> {
-  const { error } = await db().from("inquiries").update({ draft_body: null, draft_by: null, draft_at: null }).eq("id", id);
+// Clears the draft, but only if there is one (draft_at not null) — so
+// discardDraftAction can tell whether it actually cleared anything. With
+// expectedDraftAt, also requires the current draft to be the exact one the
+// caller loaded (owner's ReplyBox): if the Assistant saved a newer draft in
+// the meantime, this leaves it alone and returns false.
+export async function clearInquiryDraft(id: string, expectedDraftAt?: string): Promise<boolean> {
+  let q = db().from("inquiries").update({ draft_body: null, draft_by: null, draft_at: null }).eq("id", id).not("draft_at", "is", null);
+  if (expectedDraftAt !== undefined) q = q.eq("draft_at", expectedDraftAt);
+  const { data, error } = await q.select("id");
   if (error) fail("inquiry draft clear", error);
+  return ((data as unknown[] | null)?.length ?? 0) > 0;
 }
 
 // RFC Message-IDs in the thread, oldest first (In-Reply-To / References).

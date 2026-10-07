@@ -16,4 +16,17 @@ describe("ReplyBox", () => {
     expect(screen.getByRole("button", { name: "Send" })).toHaveAttribute("value", "send");
     expect(screen.getByRole("button", { name: "Send and close" })).toHaveAttribute("value", "close");
   });
+
+  it("carries the loaded draft's draftAt as a hidden field, so a reply clears only that exact draft", () => {
+    const { container } = render(<ReplyBox inquiryId="i1" clientKey="k" to="dana@example.com" from="support@auraprotocols.com" signature="— Kearney, Aura Protocols"
+      saved={[]} draft={{ body: "Thanks —", byName: "Assistant (Claude)", at: "today 7:06 am", draftAt: "2026-10-06T14:06:00.000Z" }} />);
+    const hidden = container.querySelector('input[name="draftAt"]') as HTMLInputElement;
+    expect(hidden).not.toBeNull();
+    expect(hidden.value).toBe("2026-10-06T14:06:00.000Z");
+  });
+
+  it("no hidden draftAt field when there's no draft to protect", () => {
+    const { container } = render(<ReplyBox inquiryId="i1" clientKey="k" to="dana@example.com" from="support@auraprotocols.com" signature="— Kearney, Aura Protocols" saved={[]} />);
+    expect(container.querySelector('input[name="draftAt"]')).toBeNull();
+  });
 });

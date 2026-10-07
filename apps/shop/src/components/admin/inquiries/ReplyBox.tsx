@@ -8,7 +8,7 @@ import { discardDraftAction, replyAction, saveDraftAction } from "@/app/admin/in
 import { INQUIRY_REPLY_MAX } from "@/lib/inquiries/constants";
 import { Icon } from "@/components/admin/ui";
 
-type Draft = { body: string; byName: string; at: string };
+type Draft = { body: string; byName: string; at: string; draftAt: string };
 type Props = {
   inquiryId: string; clientKey: string; to: string; from: string; signature: string; saved: Array<{ id: string; name: string; body: string }>;
   // "send": the owner's box (mock Screen 2/4). "draft": the Assistant's box,
@@ -38,6 +38,7 @@ export default function ReplyBox({ inquiryId, clientKey, to, from, signature, sa
     <form action={drafting ? draftAction : sendAction} className={`a-reply${drafting ? " asst" : ""}`}>
       <input type="hidden" name="id" value={inquiryId} />
       {!drafting && <input type="hidden" name="clientKey" value={clientKey} />}
+      {!drafting && draft && <input type="hidden" name="draftAt" value={draft.draftAt} />}
       <div className="a-reply-h">
         {drafting ? <span>Draft a reply to <b>{to}</b> · Alvester reviews and sends</span> : <span>Reply to <b>{to}</b> · from {from}</span>}
         <div className="r">

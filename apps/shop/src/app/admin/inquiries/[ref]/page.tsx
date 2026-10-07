@@ -108,7 +108,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
   const allFiles = t.messages.flatMap((m) => m.files);
   const files = allFiles.length;
   const filesWord = allFiles.every((f) => isPhoto(f.content_type)) ? "photo" : "attachment";
-  const draft = i.draft_body ? { body: i.draft_body, byName: t.draftByName ?? "Someone", at: whenText(i.draft_at!, nowMs) } : null;
+  const draft = i.draft_body ? { body: i.draft_body, byName: t.draftByName ?? "Someone", at: whenText(i.draft_at!, nowMs), draftAt: i.draft_at! } : null;
 
   return (
     <div className="a-page">
@@ -132,7 +132,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
         <div className="a-conv">
           {t.messages.map((m) => <Message key={m.id} m={m} name={wholesale && i.organization ? `${i.name} · ${i.organization}` : i.name} inquiryEmail={i.email} wholesale={wholesale} nowMs={nowMs} />)}
           {(canReply || canDraft) && (
-            <ReplyBox key={t.messages.length} inquiryId={i.id} clientKey={randomUUID()} to={i.email} from={SUPPORT_EMAIL}
+            <ReplyBox key={`${t.messages.length}-${i.draft_at ?? ""}`} inquiryId={i.id} clientKey={randomUUID()} to={i.email} from={SUPPORT_EMAIL}
               signature={REPLY_SIGNATURE} saved={saved.map((s) => ({ id: s.id, name: s.name, body: s.body }))}
               mode={canReply ? "send" : "draft"} draft={draft} />
           )}

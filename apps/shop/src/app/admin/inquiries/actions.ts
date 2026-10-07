@@ -64,7 +64,12 @@ export async function replyAction(_prev: InquiryActionState, f: FormData): Promi
   try {
     await finishReply(claim, sent.messageId, sent.headerId);
     await applyInquiryEvent(inq.id, close ? "owner_replied_close" : "owner_replied", { actorId: owner.id });
-    await clearInquiryDraft(inq.id);
+    // Clear the draft only if it's the one the owner's ReplyBox actually
+    // loaded (its hidden draftAt field) — a draft the Assistant saved after
+    // the page loaded is a different draft_at and stays put.
+    const loadedDraftAt = f.get("draftAt");
+    if (typeof loadedDraftAt === "string" && loadedDraftAt) await clearInquiryDraft(inq.id, loadedDraftAt);
+    else await clearInquiryDraft(inq.id);
   } catch (err) {
     await alertOwner("Inquiry reply sent but not recorded", `${refLabel(inq.ref)} · SES ${sent.messageId}: ${String(err)}`);
     throw err;
@@ -196,8 +201,8 @@ export async function discardDraftAction(f: FormData): Promise<void> {
   const owner = await requirePermission("inquiries.draft");
   const id = uuid(f.get("id"));
   if (!id.success) throw new Error(STALE);
-  await clearInquiryDraft(id.data);
-  await logInquiryEvent({ inquiryId: id.data, action: "draft_discarded", actorId: owner.id });
+  const cleared = await clearInquiryDraft(id.data);
+  if (cleared) await logInquiryEvent({ inquiryId: id.data, action: "draft_discarded", actorId: owner.id });
   const inq = await getInquiry({ id: id.data });
   refresh(inq?.ref);
 }

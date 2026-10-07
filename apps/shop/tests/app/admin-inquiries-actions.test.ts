@@ -175,6 +175,13 @@ describe("inquiry actions", () => {
     expect(d.getCustomerBasics).not.toHaveBeenCalled();
   });
 
+  it("a reply carrying the loaded draftAt clears only that exact draft — a newer one the Assistant just saved stays", async () => {
+    d.getInquiry.mockResolvedValue({ ...thread, draft_by: "asst1" });
+    const { replyAction } = await import("@/app/admin/inquiries/actions");
+    await replyAction(null, fd({ id: ID, clientKey: KEY, body: "x", draftAt: "2026-10-06T14:06:00.000Z" }));
+    expect(d.clearInquiryDraft).toHaveBeenCalledWith(ID, "2026-10-06T14:06:00.000Z");
+  });
+
   it("saveDraftAction: requires inquiries.draft, guards empty/compliance, saves and logs", async () => {
     const { saveDraftAction } = await import("@/app/admin/inquiries/actions");
     expect(await saveDraftAction(null, fd({ id: ID, body: "  " }))).toEqual({ error: "Write a draft first." });
@@ -189,11 +196,20 @@ describe("inquiry actions", () => {
   });
 
   it("discardDraftAction: requires inquiries.draft, clears and logs; a stale id throws", async () => {
+    d.clearInquiryDraft.mockResolvedValue(true);
     const { discardDraftAction } = await import("@/app/admin/inquiries/actions");
     await discardDraftAction(fd({ id: ID }));
     expect(d.requirePermission).toHaveBeenCalledWith("inquiries.draft");
     expect(d.clearInquiryDraft).toHaveBeenCalledWith(ID);
     expect(d.logInquiryEvent).toHaveBeenCalledWith({ inquiryId: ID, action: "draft_discarded", actorId: OWNER.id });
     await expect(discardDraftAction(fd({ id: "not-a-uuid" }))).rejects.toThrow(/Reload the page/);
+  });
+
+  it("discardDraftAction: nothing was actually there to clear (already sent, or never existed) — no log", async () => {
+    d.clearInquiryDraft.mockResolvedValue(false);
+    const { discardDraftAction } = await import("@/app/admin/inquiries/actions");
+    await discardDraftAction(fd({ id: ID }));
+    expect(d.clearInquiryDraft).toHaveBeenCalledWith(ID);
+    expect(d.logInquiryEvent).not.toHaveBeenCalled();
   });
 });
