@@ -181,6 +181,26 @@ export async function customersWithDisputes(ids: string[]): Promise<Set<string>>
   }
 }
 
+// Marker chips on the owner Orders list. Cosmetic, like customersWithDisputes:
+// a failed read logs and tags nothing rather than breaking the list.
+export async function orderFlags(orderIds: string[]): Promise<{ disputes: Set<string>; warnings: Set<string> }> {
+  const none = { disputes: new Set<string>(), warnings: new Set<string>() };
+  if (!orderIds.length) return none;
+  try {
+    const [d, w] = await Promise.all([
+      db().from("disputes").select("order_id").in("order_id", orderIds),
+      db().from("early_fraud_warnings").select("order_id").in("order_id", orderIds).is("resolved_at", null),
+    ]);
+    if (d.error) throw new Error(JSON.stringify(d.error));
+    if (w.error) throw new Error(JSON.stringify(w.error));
+    const ids = (rows: unknown) => new Set(((rows ?? []) as Array<{ order_id: string }>).map((r) => r.order_id));
+    return { disputes: ids(d.data), warnings: ids(w.data) };
+  } catch (err) {
+    console.error("order flags read failed:", err);
+    return none;
+  }
+}
+
 // ---------- one chargeback ----------
 
 export async function getDisputeRow(id: string): Promise<DisputeRow | null> {
