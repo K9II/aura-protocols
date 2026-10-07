@@ -9,6 +9,8 @@ export const REFUND_REASON_LABEL: Record<RefundReason, string> = {
   customer_cancelled: "Customer asked to cancel", damaged: "Damaged in transit", not_received: "Not received",
   wrong_item: "Wrong item", goodwill: "Goodwill", other: "Other",
 };
+export const CARD_CONFIRM_TEXT = "I understand the refund policy: once an order ships the sale is final and claims are settled by replacement only — no cash refunds. Sending this money back to the card goes against that policy.";
+export const CARD_CONFIRM_ERROR = "Tick the box to confirm a cash refund after shipping.";
 export const REFUND_NOTE_MAX = 300;
 export type RefundDestination = "card" | "store_credit";
 export type RefundMode = "cancel" | "exception";
@@ -36,7 +38,7 @@ export function splitRefund(o: OrderMoney, destination: RefundDestination) {
 }
 
 export type RefundInput = { reason: RefundReason; note: string | null; destination: RefundDestination };
-export type RefundErrors = Partial<Record<"reason" | "note" | "destination" | "confirm", string>>;
+export type RefundErrors = Partial<Record<"reason" | "note" | "destination" | "confirm" | "card_confirm", string>>;
 
 // hasCard: the order has a Stripe payment. Before shipping the destination is
 // always the original payment (card if any, else store credit).
@@ -55,6 +57,9 @@ export function parseRefund(get: (k: string) => string | null, mode: RefundMode,
     else if (d === "card" && !hasCard) errors.destination = "This order has no card payment — refund it to store credit.";
     else destination = d;
     if (get("confirm") !== "on") errors.confirm = "Tick the box to confirm the exception.";
+    // Cash back after shipping goes against the published policy (claims are
+    // settled by replacement only) — a second, explicit acknowledgement.
+    if (d === "card" && hasCard && get("card_confirm") !== "on") errors.card_confirm = CARD_CONFIRM_ERROR;
   }
   if (Object.keys(errors).length) return { ok: false, errors };
   return { ok: true, value: { reason: reason!, note, destination } };

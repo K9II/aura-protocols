@@ -127,6 +127,23 @@ describe("RefundDialog — shipped exception (r3)", () => {
     expect(screen.getByRole("button", { name: "Refund $268.00 to Visa ••1881", hidden: true })).toBeInTheDocument();
   });
 
+  it("a card refund after shipping adds a required cash-refund policy box", async () => {
+    const { container } = render(<RefundDialog {...exception} />);
+    const d = dialog(container);
+    expect(within(d).getAllByRole("checkbox", { hidden: true })).toHaveLength(1);
+    fireEvent.click(within(d).getByRole("radio", { name: /Visa ••1881/, hidden: true }));
+    const box = within(d).getByRole("checkbox", { name: /no cash refunds/, hidden: true });
+    expect(box).toBeRequired();
+    expect(box).toHaveAttribute("name", "card_confirm");
+    fireEvent.click(box);
+    expect(data(container).get("card_confirm")).toBe("on");
+    m.action.mockResolvedValue({ errors: { card_confirm: "Tick the box to confirm a cash refund after shipping." } });
+    await act(async () => { fireEvent.submit(container.querySelector("form")!); });
+    expect(screen.getByText("Tick the box to confirm a cash refund after shipping.")).toBeInTheDocument();
+    fireEvent.click(within(d).getByRole("radio", { name: /Store credit/, hidden: true }));
+    expect(within(d).getAllByRole("checkbox", { hidden: true })).toHaveLength(1);
+  });
+
   it("disables the card option with no card payment", () => {
     render(<RefundDialog {...exception} paymentLabel={null} />);
     const card = screen.getByRole("radio", { name: /Card/, hidden: true });

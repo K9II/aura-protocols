@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { REFUND_REASONS, REFUND_REASON_LABEL, refundOffer, splitRefund, parseRefund, REFUND_NOTE_MAX, stripeNoAnswer } from "@/lib/refunds/rules";
+import { REFUND_REASONS, REFUND_REASON_LABEL, refundOffer, splitRefund, parseRefund, REFUND_NOTE_MAX, stripeNoAnswer, CARD_CONFIRM_ERROR } from "@/lib/refunds/rules";
 
 const base = { status: "paid" as const, kind: "sale" as const, total_cents: 22800, store_credit_cents: 4000, stripe_payment_intent: "pi_1" };
 const get = (v: Record<string, string>) => (k: string) => v[k] ?? null;
@@ -38,6 +38,13 @@ describe("refund rules", () => {
       .toEqual({ ok: true, value: { reason: "goodwill", note: "held 3 weeks", destination: "store_credit" } });
     expect(parseRefund(get({ reason: "goodwill", destination: "card", note: "x", confirm: "on" }), "exception", false)).toMatchObject({ ok: false, errors: { destination: "This order has no card payment — refund it to store credit." } });
     expect(parseRefund(get({ reason: "other", note: "x".repeat(REFUND_NOTE_MAX + 1), destination: "store_credit", confirm: "on" }), "exception", true)).toMatchObject({ ok: false, errors: { note: `Keep it under ${REFUND_NOTE_MAX} characters.` } });
+  });
+  it("cash back to the card after shipping needs a second, policy box", () => {
+    const card = { reason: "goodwill", destination: "card", note: "held 3 weeks", confirm: "on" };
+    expect(parseRefund(get(card), "exception", true)).toEqual({ ok: false, errors: { card_confirm: CARD_CONFIRM_ERROR } });
+    expect(parseRefund(get({ ...card, card_confirm: "on" }), "exception", true)).toEqual({ ok: true, value: { reason: "goodwill", note: "held 3 weeks", destination: "card" } });
+    expect(parseRefund(get({ reason: "goodwill", destination: "store_credit", note: "x", confirm: "on" }), "exception", true)).toMatchObject({ ok: true });
+    expect(parseRefund(get({ reason: "customer_cancelled" }), "cancel", true)).toMatchObject({ ok: true });
   });
   it("a credit-only order always refunds to store credit", () => {
     expect(parseRefund(get({ reason: "customer_cancelled" }), "cancel", false)).toEqual({ ok: true, value: { reason: "customer_cancelled", note: null, destination: "store_credit" } });

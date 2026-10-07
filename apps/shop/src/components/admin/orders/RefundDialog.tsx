@@ -9,7 +9,7 @@
 import { startTransition, useActionState, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { refundOrderAction, type RefundState } from "@/app/admin/orders/actions";
-import { REFUND_NOTE_MAX, REFUND_REASONS, REFUND_REASON_LABEL, type RefundDestination, type RefundMode } from "@/lib/refunds/rules";
+import { CARD_CONFIRM_TEXT, REFUND_NOTE_MAX, REFUND_REASONS, REFUND_REASON_LABEL, type RefundDestination, type RefundMode } from "@/lib/refunds/rules";
 import { usd } from "@/lib/html";
 import { Icon } from "@/components/admin/ui";
 
@@ -60,6 +60,7 @@ export default function RefundDialog(p: RefundDialogProps) {
   const [reason, setReason] = useState<string>(cancel ? "customer_cancelled" : "");
   const [note, setNote] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [cashConfirmed, setCashConfirmed] = useState(false);
   const err = state?.errors ?? {};
   const split = p.splits[dest];
   const close = () => ref.current?.close();
@@ -138,6 +139,12 @@ export default function RefundDialog(p: RefundDialogProps) {
                       <label className="a-chkline"><input type="checkbox" name="confirm" required checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} /><span>I&apos;m making an exception to the refund policy for this order.</span></label>
                       {err.confirm && <div className="a-err" role="alert">{err.confirm}</div>}
                     </div>
+                    {dest === "card" && (
+                      <div>
+                        <label className="a-chkline"><input type="checkbox" name="card_confirm" required checked={cashConfirmed} onChange={(e) => setCashConfirmed(e.target.checked)} /><span>{CARD_CONFIRM_TEXT}</span></label>
+                        {err.card_confirm && <div className="a-err" role="alert">{err.card_confirm}</div>}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
