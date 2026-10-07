@@ -8,19 +8,20 @@ const markW9Checked = vi.fn();
 const getPartnerById = vi.fn();
 const w9SignedUrl = vi.fn();
 const sendOrAlert = vi.fn();
+const revalidatePath = vi.fn();
 vi.mock("@/lib/dal", () => ({ requireOwner }));
 vi.mock("@/lib/audit/data", () => audit);
 vi.mock("@/lib/partners/ledger", () => ({ markPayoutPaid }));
 vi.mock("@/lib/partners/data", () => ({ partnerEmail, markW9Checked, getPartnerById, w9SignedUrl }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect: (u: string) => { throw new Error(`REDIRECT:${u}`); } }));
 
 function fd(v: Record<string, string>) { const f = new FormData(); for (const [k, x] of Object.entries(v)) f.set(k, x); return f; }
 const id = "22222222-2222-4222-8222-222222222222";
 
 describe("payout admin actions", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requireOwner, markPayoutPaid, partnerEmail, markW9Checked, getPartnerById, w9SignedUrl, sendOrAlert]) f.mockReset(); requireOwner.mockResolvedValue({ id: "owner" }); });
+  beforeEach(() => { vi.resetModules(); for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requireOwner, markPayoutPaid, partnerEmail, markW9Checked, getPartnerById, w9SignedUrl, sendOrAlert, revalidatePath]) f.mockReset(); requireOwner.mockResolvedValue({ id: "owner" }); });
 
   it("marks a queued payout paid with its reference and emails the partner", async () => {
     markPayoutPaid.mockResolvedValue({ id, cash_cents: 21240, reference: "ACH-4471", partners: { customer_id: "u2", code: "BENCHNOTES" } });
@@ -30,6 +31,7 @@ describe("payout admin actions", () => {
     expect(markPayoutPaid).toHaveBeenCalledWith(id, "ACH-4471");
     expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "bn@example.com", subject: "Aura payout sent — $212.40" });
     expect(audit.recordAdminEvent).toHaveBeenCalledWith({ area: "payouts", action: "payout_paid", targetId: id, label: "BENCHNOTES", detail: "$212.40 · ref ACH-4471", actorId: "owner" });
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/partners/[id]", "page");
   });
 
   it("requires a reference and the owner", async () => {

@@ -18,46 +18,52 @@ const schema = z.object({
   carrier: z.enum(CARRIERS),
 });
 
-export async function markShippedAction(form: FormData): Promise<void> {
+// The Ship dialog's state (useActionState).
+export type ShipState = { ok: true } | { error: string; field?: "tracking" } | null;
+
+export async function markShippedAction(_prev: ShipState, form: FormData): Promise<ShipState> {
   const owner = await requireOwner();
   const parsed = schema.safeParse({ orderId: form.get("orderId"), tracking: form.get("tracking"), carrier: form.get("carrier") });
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    return parsed.error.issues.some((i) => i.path[0] === "tracking") ? { error: "Use 8–40 letters and numbers.", field: "tracking" } : { error: "Choose a carrier and try again." };
+  }
   const { orderId, tracking, carrier } = parsed.data;
   const order = await getOrderById(orderId);
-  if (!order || order.status !== "paid") return;
-  if (await transitionOrder(orderId, "paid", "shipped", { tracking_number: tracking, carrier })) {
-    await recordAdminEvent({ area: "orders", action: "order_shipped", targetId: orderId, label: order.order_number, detail: `${carrier.toUpperCase()} ${tracking}`, actorId: owner.id });
-    try {
-      await markCommissionClearing(orderId, new Date().toISOString());
-    } catch (err) {
-      await alertOwner("Commission not cleared at shipping", `${order.order_number}: ${String(err)}`);
-    }
-    // Each line's held/sold lots become its shipped record. A line already
-    // recorded (e.g. a retry) is left alone. One line's failure is reported
-    // by name and doesn't stop the others — a loud per-line alert, not a
-    // silently half-recorded shipment.
-    try {
-      const lots = await orderItemLots((order.order_items ?? []).map((i) => i.id));
-      for (const [itemId, l] of lots) {
-        if (!l.allocated.length || l.shipped.length) continue;
-        try {
-          const result = await recordShipped(itemId, l.allocated, "manual");
-          if (result === "alert") {
-            await alertOwner("Shipped lots don't match what was held", `${order.order_number} · line ${itemId}: lots shipped don't match lots held`);
-          } else if (result === "moved") {
-            catalogStockChanged();
-          }
-        } catch (err) {
-          await alertOwner("Shipped lots not recorded", `${order.order_number} · line ${itemId}: ${String(err)}`);
-        }
-      }
-    } catch (err) {
-      await alertOwner("Shipped lots not recorded", `${order.order_number}: ${String(err)}`);
-    }
-    const shipped = (await getOrderById(orderId)) ?? { ...order, tracking_number: tracking, carrier };
-    await sendOrAlert({ to: shipped.email, ...shippedEmail(shipped) }, `shipped ${shipped.order_number}`);
+  if (!order || order.status !== "paid") return { error: "This order is no longer waiting to ship." };
+  if (!(await transitionOrder(orderId, "paid", "shipped", { tracking_number: tracking, carrier }))) return { error: "This order is no longer waiting to ship." };
+  await recordAdminEvent({ area: "orders", action: "order_shipped", targetId: orderId, label: order.order_number, detail: `${carrier.toUpperCase()} ${tracking}`, actorId: owner.id });
+  try {
+    await markCommissionClearing(orderId, new Date().toISOString());
+  } catch (err) {
+    await alertOwner("Commission not cleared at shipping", `${order.order_number}: ${String(err)}`);
   }
+  // Each line's held/sold lots become its shipped record. A line already
+  // recorded (e.g. a retry) is left alone. One line's failure is reported
+  // by name and doesn't stop the others — a loud per-line alert, not a
+  // silently half-recorded shipment.
+  try {
+    const lots = await orderItemLots((order.order_items ?? []).map((i) => i.id));
+    for (const [itemId, l] of lots) {
+      if (!l.allocated.length || l.shipped.length) continue;
+      try {
+        const result = await recordShipped(itemId, l.allocated, "manual");
+        if (result === "alert") {
+          await alertOwner("Shipped lots don't match what was held", `${order.order_number} · line ${itemId}: lots shipped don't match lots held`);
+        } else if (result === "moved") {
+          catalogStockChanged();
+        }
+      } catch (err) {
+        await alertOwner("Shipped lots not recorded", `${order.order_number} · line ${itemId}: ${String(err)}`);
+      }
+    }
+  } catch (err) {
+    await alertOwner("Shipped lots not recorded", `${order.order_number}: ${String(err)}`);
+  }
+  const shipped = (await getOrderById(orderId)) ?? { ...order, tracking_number: tracking, carrier };
+  await sendOrAlert({ to: shipped.email, ...shippedEmail(shipped) }, `shipped ${shipped.order_number}`);
   revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${order.order_number}`);
+  return { ok: true };
 }
 
 // An order paid entirely in store credit never reached Stripe, so there is no
@@ -75,4 +81,5 @@ export async function refundCreditOrderAction(form: FormData): Promise<void> {
     await afterOrderRefunded(order);
   }
   revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${order.order_number}`);
 }

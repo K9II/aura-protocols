@@ -16,6 +16,15 @@ const td: React.CSSProperties = { padding: "14px 18px 14px 0", verticalAlign: "t
 const nowrap: React.CSSProperties = { ...td, whiteSpace: "nowrap" };
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 // Owner shorthand, e.g. "Paid · Oct 15" (the customer-facing labels are longer).
+// TEMPORARY (Batch B / Task 6): markShippedAction is now a useActionState
+// action ((prev, form) => ShipState) for the Task 7/8 Ship dialog. This page
+// is rewritten in Task 8 (Batch C) to use that dialog; until then, adapt the
+// plain <form action> here to the new signature.
+async function ship(form: FormData) {
+  "use server";
+  await markShippedAction(null, form);
+}
+
 function statusLine(o: OrderRow): string {
   const at = o.status === "shipped" ? o.shipped_at : o.status === "paid" ? o.paid_at : o.status === "refunded" ? o.refunded_at : o.status === "cancelled" ? o.cancelled_at : null;
   const word = o.status.charAt(0).toUpperCase() + o.status.slice(1);
@@ -92,7 +101,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                     {o.status === "paid" && (
                       <>
                         <p style={{ marginBottom: 6 }}><Link href={`/admin/orders/${o.order_number}/pick`} className="p-link text-xs">Pick list</Link></p>
-                        <form action={markShippedAction} style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
+                        <form action={ship} style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
                           <input type="hidden" name="orderId" value={o.id} />
                           <select name="carrier" aria-label="Carrier" defaultValue="usps" style={{ border: "1px solid var(--ink)", background: "var(--paper)", padding: "8px", font: "13px Georgia,serif" }}>
                             {CARRIERS.map((c) => <option key={c} value={c}>{c.toUpperCase()}</option>)}

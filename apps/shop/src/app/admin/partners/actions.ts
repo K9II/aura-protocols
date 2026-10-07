@@ -30,4 +30,5 @@ export async function setPartnerStatusAction(form: FormData): Promise<void> {
   }
   if (email && to === "declined") await sendOrAlert({ to: email, ...partnerDeclinedEmail() }, `partner declined ${partner.code}`);
   revalidatePath("/admin/partners");
+  revalidatePath(`/admin/partners/${partnerId}`);
 }
