@@ -18,6 +18,7 @@ import ResendVerify from "@/components/admin/customers/ResendVerify";
 import ConfirmSubmit from "@/components/admin/ConfirmSubmit";
 import { customerEventText as eventText } from "@/components/admin/customers/eventText";
 import { Crumbs, Icon, Kpis } from "@/components/admin/ui";
+import { Markers, OrderStatusChip } from "@/components/admin/orders/bits";
 
 export const metadata: Metadata = { title: "Customer", robots: { index: false, follow: false } };
 
@@ -81,7 +82,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   const chargeback = (await customersWithDisputes([c.id])).has(c.id);
   const isTeam = !!(await readStaffRow(c.id));
 
-  const paid = c.orders.filter((o) => PAID.has(o.status));
+  // Sales only; no-charge orders are counted apart and never in Spent/Average.
+  const paid = c.orders.filter((o) => PAID.has(o.status) && o.kind !== "no_charge");
+  const noCharge = c.orders.filter((o) => PAID.has(o.status) && o.kind === "no_charge").length;
   const spent = paid.reduce((s, o) => s + o.total_cents - o.store_credit_cents, 0);
   const balance = c.ledger.reduce((s, l) => s + l.amount_cents, 0);
   const open = c.orders.filter((o) => o.status === "awaiting_payment");
@@ -117,7 +120,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       )}
 
       <Kpis items={[
-        { label: "Paid orders", value: paid.length, sub: cancelled ? `${cancelled} cancelled checkout${cancelled === 1 ? "" : "s"}` : undefined },
+        { label: "Paid orders", value: paid.length, sub: [noCharge ? `${noCharge} no-charge` : null, cancelled ? `${cancelled} cancelled checkout${cancelled === 1 ? "" : "s"}` : null].filter(Boolean).join(" · ") || undefined },
         { label: "Spent", value: usd(spent), sub: "after store credit" },
         { label: "Average order", value: paid.length ? usd(Math.round(spent / paid.length)) : "—", sub: "per paid order" },
         { label: "Store credit", value: usd(balance), sub: c.blockedAt ? "kept while blocked" : "spendable now" },
@@ -132,9 +135,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                 <thead><tr><th>Order</th><th>Date</th><th>Status</th><th className="num a-only-desk">Items</th><th className="num">Total</th><th className="num a-only-desk">Credit used</th></tr></thead>
                 <tbody>{c.orders.map((o) => (
                   <tr key={o.id}>
-                    <td><Link className="a-ord" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link></td>
+                    <td><Link className="a-ord" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link>{o.kind === "no_charge" && <Markers list={["no_charge"]} />}</td>
                     <td>{shortDate(o.created_at)}</td>
-                    <td><span className={`a-chip o-${o.status}`}>{STATUS_TEXT[o.status] ?? o.status}</span></td>
+                    <td>{o.kind === "no_charge" && o.status === "refunded" ? <OrderStatusChip status={o.status} kind={o.kind} /> : <span className={`a-chip o-${o.status}`}>{STATUS_TEXT[o.status] ?? o.status}</span>}</td>
                     <td className="num a-only-desk">{o.order_items.reduce((s, i) => s + i.quantity, 0)}</td>
                     <td className={`num${PAID.has(o.status) ? "" : " muted"}`}>{usd(o.total_cents)}</td>
                     <td className="num a-only-desk">{o.store_credit_cents ? usd(o.store_credit_cents) : <span className="muted">—</span>}</td>

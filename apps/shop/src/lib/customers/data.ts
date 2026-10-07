@@ -45,7 +45,7 @@ export async function customerStats(): Promise<CustomerStats> {
 }
 
 // ---------- detail ----------
-export type DetailOrder = { id: string; order_number: string; status: OrderStatus; created_at: string; total_cents: number; store_credit_cents: number; new_account_discount: boolean; partner_id: string | null; attributed_by: "code" | "link" | null; order_items: { quantity: number }[] };
+export type DetailOrder = { id: string; order_number: string; status: OrderStatus; kind: "sale" | "no_charge"; created_at: string; total_cents: number; store_credit_cents: number; new_account_discount: boolean; partner_id: string | null; attributed_by: "code" | "link" | null; order_items: { quantity: number }[] };
 export type Agreement = { id: string; terms_version: string; age_21: boolean; ruo: boolean; dispute_policy: boolean; ip_hash: string | null; user_agent: string | null; agreed_at: string };
 export type Attestation = { id: string; terms_version: string; attested_at: string; age_21: boolean; ruo: boolean; dispute_policy: boolean; ip_hash: string | null; user_agent: string | null };
 export type LedgerRow = { id: string; amount_cents: number; reason: string; ref_id: string | null; note: string | null; created_at: string };
@@ -70,7 +70,7 @@ export async function getCustomerDetail(id: string): Promise<CustomerDetail | nu
   if (ue || !u?.user?.email) fail("customer email read", ue ?? "no auth user");
   const email = u!.user!.email!;
   const [orders, agreements, attestations, ledger, events, partner] = await Promise.all([
-    db().from("orders").select("id, order_number, status, created_at, total_cents, store_credit_cents, new_account_discount, partner_id, attributed_by, order_items(quantity)").eq("customer_id", id).order("created_at", { ascending: false }),
+    db().from("orders").select("id, order_number, status, kind, created_at, total_cents, store_credit_cents, new_account_discount, partner_id, attributed_by, order_items(quantity)").eq("customer_id", id).order("created_at", { ascending: false }),
     db().from("account_agreements").select("*").eq("customer_id", id).order("agreed_at", { ascending: false }),
     db().from("gate_attestations").select("*").eq("email", email.toLowerCase()).order("attested_at", { ascending: false }),
     db().from("store_credit_ledger").select("id, amount_cents, reason, ref_id, note, created_at").eq("customer_id", id).order("created_at", { ascending: false }),

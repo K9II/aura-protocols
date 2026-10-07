@@ -24,3 +24,9 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   cancelled: "Cancelled",
   refunded: "Refunded",
 };
+
+// A cancelled no-charge order is a paid → refunded transition with no money
+// moved, so it reads "Cancelled (no charge)", never "Refunded".
+export function statusLabelFor(o: { status: OrderStatus; kind?: "sale" | "no_charge" | null }): string {
+  return o.kind === "no_charge" && o.status === "refunded" ? "Cancelled (no charge)" : STATUS_LABEL[o.status];
+}

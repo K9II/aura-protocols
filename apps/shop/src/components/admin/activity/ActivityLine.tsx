@@ -20,6 +20,9 @@ export default function ActivityLine({ i }: { i: ActivityItem }): React.ReactNod
       switch (action) {
         case "order_shipped": return <>{who} marked <b>{label}</b> shipped{d}</>;
         case "order_refunded": return <>{who} <b>refunded</b> {label}{d}</>;
+        // detail: "Replacement · $192.00 retail · email: yes" — the email flag feeds the order timeline only.
+        case "no_charge_created": return <>{who} <b>created</b> no-charge order {label}{detail ? ` · ${detail.replace(/ · email: (yes|no)$/, "")}` : ""}</>;
+        case "no_charge_cancelled": return <>{who} <b>cancelled</b> no-charge order {label}</>;
         case "partner_approved": return <>{who} <b>approved</b> partner {label}</>;
         case "partner_declined": return <>{who} <b>declined</b> partner {label}</>;
         case "partner_suspended": return <>{who} <b>suspended</b> partner {label}</>;

@@ -113,7 +113,7 @@ export async function isUnsubscribed(email: string): Promise<boolean> {
 
 export async function hasPaidOrder(customerId: string): Promise<boolean> {
   const { count, error } = await db().from("orders").select("id", { count: "exact", head: true })
-    .eq("customer_id", customerId).in("status", ["paid", "processing", "shipped", "refunded"]);
+    .eq("customer_id", customerId).eq("kind", "sale").in("status", ["paid", "processing", "shipped", "refunded"]);
   if (error) throw new Error(`order count failed: ${JSON.stringify(error)}`);
   return (count ?? 0) > 0;
 }

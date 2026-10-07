@@ -63,7 +63,8 @@ describe("getOrderDetail", () => {
     from = fromQueue(t);
     const { getOrderDetail } = await import("@/lib/orders/detail");
     const d = (await getOrderDetail("AP-1029"))!;
-    expect(d.customer).toEqual({ id: "c1", fullName: "Priya Raman", email: "praman@example.org", verified: true, blocked: false, paidOrders: 2, spentCents: 61_439 });
+    expect(d.customer).toEqual({ id: "c1", fullName: "Priya Raman", email: "praman@example.org", verified: true, blocked: false, paidOrders: 2, spentCents: 61_439, noChargeOrders: 0 });
+    expect(d.noCharge).toBeNull();
     expect(d.code?.code).toBe("SPRING20");
     expect(d.partner).toEqual({ id: "p1", code: "QUINN10" });
     expect(d.commission?.state).toBe("clearing");
@@ -79,5 +80,29 @@ describe("getOrderDetail", () => {
     from = fromQueue(tables({ disputes: query({ error: { message: "down" } }) }));
     const { getOrderDetail } = await import("@/lib/orders/detail");
     await expect(getOrderDetail("AP-1029")).rejects.toThrow(/order disputes read failed/);
+  });
+
+  it("counts sales and no-charge orders apart and reads who created a no-charge order and what it replaces", async () => {
+    getOrderByNumber.mockResolvedValue({
+      ...order, order_number: "AP-1061", status: "paid", partner_id: null, discount_code_id: null, shipped_at: null, stripe_payment_intent: null, total_cents: 0,
+      kind: "no_charge", no_charge_reason: "replacement", no_charge_note: "2 vials cracked", replaces_order_id: "o0", created_by: "owner1",
+      order_items: [{ id: "i1", pack_qty: 1, quantity: 2 }, { id: "i2", pack_qty: 1, quantity: 1 }],
+    });
+    const created = query({ data: { full_name: "Alvester" } }), orig = query({ data: { order_number: "AP-1052" } });
+    from = fromQueue({
+      ...tables({ orders: query({ data: [{ total_cents: 41_439, kind: "sale" }, { total_cents: 0, kind: "no_charge" }, { total_cents: 48_000, kind: "sale" }] }) }),
+      customers: [query({ data: { id: "c1", full_name: "Dana Whitfield", email_verified_at: null, blocked_at: null } }), created],
+      orders: [query({ data: [{ total_cents: 41_439, kind: "sale" }, { total_cents: 0, kind: "no_charge" }, { total_cents: 48_000, kind: "sale" }] }), orig],
+      discount_codes: [], partners: [],
+      admin_events: [query({ data: [{ action: "no_charge_created", at: "2026-10-06T16:22:02Z", detail: "Replacement · $192.00 retail · email: yes", actor: { full_name: "Alvester" } }] })],
+    });
+    const { getOrderDetail } = await import("@/lib/orders/detail");
+    const d = (await getOrderDetail("AP-1061"))!;
+    expect(d.customer).toMatchObject({ paidOrders: 2, spentCents: 89_439, noChargeOrders: 1 });
+    expect(d.noCharge).toEqual({ reason: "replacement", note: "2 vials cracked", createdBy: "Alvester", replaces: "AP-1052" });
+    expect(callArgs(created, "eq")).toEqual(["id", "owner1"]);
+    expect(callArgs(orig, "eq")).toEqual(["id", "o0"]);
+    expect(d.timeline.map((e) => e.key)).toEqual(["email", "created"]);
+    expect(d.timeline[1]).toMatchObject({ sub: "Replacement for AP-1052", detail: "“2 vials cracked” · 3 vials held" });
   });
 });

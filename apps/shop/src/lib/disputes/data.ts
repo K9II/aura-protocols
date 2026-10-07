@@ -231,8 +231,9 @@ async function latestAgreement(customerId: string): Promise<Agreement | null> {
 }
 
 type CustomerOrder = { id: string; order_number: string; status: OrderStatus; total_cents: number; paid_at: string | null; created_at: string };
+// Sales only: a no-charge order is neither a prior purchase nor a paid order.
 async function customerOrders(customerId: string): Promise<CustomerOrder[]> {
-  const { data, error } = await db().from("orders").select("id, order_number, status, total_cents, paid_at, created_at").eq("customer_id", customerId).order("created_at", { ascending: true });
+  const { data, error } = await db().from("orders").select("id, order_number, status, total_cents, paid_at, created_at").eq("customer_id", customerId).eq("kind", "sale").order("created_at", { ascending: true });
   if (error) fail("dispute customer orders read", error);
   return (data as CustomerOrder[] | null) ?? [];
 }

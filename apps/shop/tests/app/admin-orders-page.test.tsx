@@ -100,4 +100,20 @@ describe("/admin/orders", () => {
     render(await OrdersPage({ searchParams: Promise.resolve({}) }));
     expect(screen.queryByRole("link", { name: "New no-charge order" })).toBeNull();
   });
+
+  it("marks a no-charge row and shows its $0.00 total", async () => {
+    m.searchOrdersForOwner.mockResolvedValue({ rows: [{ ...row, partner_id: null, kind: "no_charge", total_cents: 0 }], total: 1 });
+    m.orderFlags.mockResolvedValue({ disputes: new Set(), warnings: new Set() });
+    const { container } = render(await OrdersPage({ searchParams: Promise.resolve({}) }));
+    const marks = [...container.querySelectorAll(".a-mk.amb")].map((e) => e.textContent);
+    expect(marks.length).toBeGreaterThan(0);
+    expect(marks.every((t) => t === "No charge")).toBe(true);
+    expect(screen.getAllByText("$0.00").length).toBeGreaterThan(0);
+  });
+
+  it("a cancelled no-charge row reads Cancelled (no charge)", async () => {
+    m.searchOrdersForOwner.mockResolvedValue({ rows: [{ ...row, kind: "no_charge", status: "refunded", total_cents: 0 }], total: 1 });
+    render(await OrdersPage({ searchParams: Promise.resolve({ tab: "closed" }) }));
+    expect(screen.getAllByText("Cancelled (no charge)").length).toBeGreaterThan(0);
+  });
 });

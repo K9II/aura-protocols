@@ -81,7 +81,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   <td>{o.ship_city}, {o.ship_state}</td>
                   <td>{itemsSummary(o.order_items ?? [])}</td>
                   <td className="num">{usd(o.total_cents)}</td>
-                  <td><OrderStatusChip status={o.status} /></td>
+                  <td><OrderStatusChip status={o.status} kind={o.kind} /></td>
                   <td>{o.status === "paid" && <div className="a-acts">
                     <Link className="a-ulink" href={`/admin/orders/${o.order_number}/pick`}>Pick list</Link>
                     {can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary(o)} small />}
@@ -98,7 +98,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                 <span className="tot">{usd(o.total_cents)}</span>
                 <span className="nm">{o.ship_name} · {o.ship_city}, {o.ship_state}</span>
                 <div className="row2">
-                  {shipping && age ? <span className={`a-wait${age.late ? " red" : ""}`}>{age.text}</span> : <OrderStatusChip status={o.status} />}
+                  {shipping && age ? <span className={`a-wait${age.late ? " red" : ""}`}>{age.text}</span> : <OrderStatusChip status={o.status} kind={o.kind} />}
                   <span>{vials(o)} vial{vials(o) === 1 ? "" : "s"}</span>
                   {o.status === "paid" && can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary(o)} small />}
                 </div>

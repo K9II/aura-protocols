@@ -253,3 +253,14 @@ describe("recordOptIn", () => {
     expect(from).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("hasPaidOrder ignores no-charge orders", () => {
+  beforeEach(() => { vi.resetModules(); process.env.EMAIL_LINK_SECRET = "s"; });
+  it("counts sales only, so the first-order offer and the welcome series stay", async () => {
+    const q = query({});
+    from = fromQueue({ orders: [q] });
+    const { hasPaidOrder } = await import("@/lib/email/data");
+    await hasPaidOrder("c1");
+    expect(q.calls).toContainEqual(["eq", ["kind", "sale"]]);
+  });
+});
