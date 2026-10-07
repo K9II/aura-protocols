@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { listSavedReplies } from "@/lib/inquiries/data";
 import { shortDate } from "@/lib/discounts/time";
 import { Crumbs } from "@/components/admin/ui";
@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Saved replies", robots: { index: fal
 
 // Mock screen 5.
 export default async function SavedRepliesPage() {
-  await requireOwner();
+  await requirePermission("inquiries.view");
   const replies = await listSavedReplies();
   const updated = (r: (typeof replies)[number]) => `${shortDate(r.updated_at)}${r.updatedByName ? ` · ${r.updatedByName}` : ""}`;
   const actions = (r: (typeof replies)[number]) => (

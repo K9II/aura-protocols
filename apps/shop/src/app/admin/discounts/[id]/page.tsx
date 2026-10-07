@@ -3,7 +3,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { codeStatsById, discountDashboard, getCodeById, getDiscountCap, listEvents, listRedemptions, orderNumbersForRedemptions, REDEMPTIONS_LIMIT, type Redemption } from "@/lib/discounts/data";
 import { codeStatus, describeRule, termsFromRow, type DiscountCodeRow, type StoredStatus } from "@/lib/discounts/rules";
 import { dateTime, mountainDaysUntil, shortDate } from "@/lib/discounts/time";
@@ -65,7 +65,7 @@ function Move({ id, from, to }: { id: string; from: StoredStatus; to: StoredStat
 }
 
 export default async function CodePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
-  await requireOwner();
+  await requirePermission("discounts.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const code = await getCodeById(id);

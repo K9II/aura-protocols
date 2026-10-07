@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { recordAdminEvent } from "@/lib/audit/data";
 import { getOrderById, transitionOrder } from "@/lib/orders";
 import { CARRIERS, shippedEmail } from "@/lib/emails";
@@ -22,7 +22,7 @@ const schema = z.object({
 export type ShipState = { ok: true } | { error: string; field?: "tracking" } | null;
 
 export async function markShippedAction(_prev: ShipState, form: FormData): Promise<ShipState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("orders.ship");
   const parsed = schema.safeParse({ orderId: form.get("orderId"), tracking: form.get("tracking"), carrier: form.get("carrier") });
   if (!parsed.success) {
     return parsed.error.issues.some((i) => i.path[0] === "tracking") ? { error: "Use 8–40 letters and numbers.", field: "tracking" } : { error: "Choose a carrier and try again." };
@@ -71,7 +71,7 @@ export async function markShippedAction(_prev: ShipState, form: FormData): Promi
 // Stripe refund to trigger the usual follow-ups. This refunds it here: the
 // credit goes back to the customer, the commission is reversed, tax undone.
 export async function refundCreditOrderAction(form: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("orders.refund_credit");
   const parsed = z.object({ orderId: z.string().uuid() }).safeParse({ orderId: form.get("orderId") });
   if (!parsed.success) return;
   const order = await getOrderById(parsed.data.orderId);

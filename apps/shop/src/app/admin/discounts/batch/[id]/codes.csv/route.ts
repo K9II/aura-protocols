@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getBatch, listBatchCodes } from "@/lib/discounts/data";
 
 // One CSV cell: a leading = + - @ (or tab/CR) would run as a spreadsheet
@@ -10,7 +10,7 @@ function cell(v: string): string {
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
-  await requireOwner();
+  await requirePermission("discounts.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) return new Response("Not found", { status: 404 });
   const batch = await getBatch(id);

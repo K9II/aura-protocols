@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { currentMs } from "@/lib/clock";
 import { disputeRateCounts, listDisputes, listWarnings } from "@/lib/disputes/data";
 import { DISPUTE_FEE_CENTS, DISPUTE_RATE_DAYS } from "@/lib/disputes/constants";
@@ -23,7 +23,7 @@ const charged = (w: WarningListRow) => w.order.totalCents - w.order.creditCents;
 // Chargebacks that need a response, early fraud warnings, and history (mock
 // screen 1; phone = screen 6). Spec 2026-10-05-admin-disputes-design.md.
 export default async function DisputesPage() {
-  await requireOwner();
+  await requirePermission("disputes.view");
   const nowMs = currentMs();
   const [disputes, warnings, counts] = await Promise.all([
     listDisputes(), listWarnings(), disputeRateCounts(new Date(nowMs - DISPUTE_RATE_DAYS * DAY).toISOString()),

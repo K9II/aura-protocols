@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getOrderDetail } from "@/lib/orders/detail";
 import { codeText, moneyLines } from "@/lib/orders/money";
 import { orderMarkers } from "@/lib/orders/tabs";
@@ -30,7 +30,7 @@ function Lots({ allocated, shipped }: { allocated: LotQty[]; shipped: LotQty[] }
 }
 
 export default async function OrderPage({ params }: { params: Promise<{ number: string }> }) {
-  await requireOwner();
+  await requirePermission("orders.view");
   const { number } = await params;
   if (!/^AP-\d{1,10}$/.test(number)) notFound();
   const d = await getOrderDetail(number);

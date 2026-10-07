@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getCodeById, getDiscountCap } from "@/lib/discounts/data";
 import { getLiveCatalog } from "@/lib/catalog-live";
 import DiscountForm from "@/components/admin/discounts/DiscountForm";
@@ -10,7 +10,7 @@ import { Crumbs } from "@/components/admin/ui";
 export const metadata: Metadata = { title: "Edit code", robots: { index: false, follow: false } };
 
 export default async function EditCodePage({ params }: { params: Promise<{ id: string }> }) {
-  await requireOwner();
+  await requirePermission("discounts.edit");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const [code, capPct, live] = await Promise.all([getCodeById(id), getDiscountCap(), getLiveCatalog()]);

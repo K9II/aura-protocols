@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { currentMs } from "@/lib/clock";
 import { inquiryTabCounts, listInquiries, listUnmatched, type UnmatchedRow } from "@/lib/inquiries/data";
 import { INQUIRIES_PER_PAGE, INQUIRY_AUTO_CLOSE_DAYS } from "@/lib/inquiries/constants";
@@ -54,7 +54,7 @@ function Unmatched({ open, spam, domain, nowMs }: { open: UnmatchedRow[]; spam: 
 
 // The inbox (mock screens 1 and 4). Spec 2026-10-06-admin-inquiries-design.md.
 export default async function InquiriesPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[]; topic?: string | string[]; q?: string | string[]; page?: string | string[] }> }) {
-  await requireOwner();
+  await requirePermission("inquiries.view");
   const sp = await searchParams;
   const tab = parseTab(first(sp.tab));
   const topic = parseTopic(first(sp.topic));

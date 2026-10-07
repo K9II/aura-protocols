@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Instrument_Sans } from "next/font/google";
 import "./admin.css";
 import AdminShell from "@/components/admin/AdminShell";
-import { requireOwner } from "@/lib/dal";
+import { requireStaff } from "@/lib/dal";
 import { countOrderTabs } from "@/lib/orders";
 import { countPartners } from "@/lib/partners/data";
 import { emailNavCount } from "@/lib/email/campaigns/data";
@@ -16,7 +16,7 @@ const instrument = Instrument_Sans({ subsets: ["latin"], weight: ["400", "500", 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const owner = await requireOwner();
+  const owner = await requireStaff();
   // todayNavCount, disputesNavCount and inquiriesNavCount never throw (0 and a log line on failure).
   const [orders, partners, email, today, disputes, inquiries] = await Promise.all([
     countOrderTabs().catch((err) => { console.error("orders nav count failed:", err); return null; }),

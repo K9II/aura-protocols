@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { countOrderTabs, searchOrdersForOwner, type OrderRow } from "@/lib/orders";
 import { ORDER_PAGE_SIZE, ORDER_TABS, ORDER_TAB_LABEL, cleanOrderSearch, itemsSummary, orderMarkers, parseOrderTab, type OrderTab } from "@/lib/orders/tabs";
 import { orderFlags } from "@/lib/disputes/data";
@@ -19,7 +19,7 @@ const vials = (o: OrderRow) => (o.order_items ?? []).reduce((s, i) => s + i.pack
 const EMPTY: Record<OrderTab, string> = { to_ship: "Nothing to ship.", processing: "No payments clearing.", shipped: "Nothing shipped yet.", closed: "No refunded or cancelled orders.", all: "No orders yet." };
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[]; status?: string | string[]; q?: string | string[]; page?: string | string[] }> }) {
-  await requireOwner();
+  await requirePermission("orders.view");
   const sp = await searchParams;
   const tab = parseOrderTab(first(sp.tab), first(sp.status));
   const qRaw = first(sp.q) ?? "";

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { lotChoices } from "@/lib/email/campaigns/data";
 import { audienceCounts } from "@/lib/email/stats";
 import { parseKind } from "@/lib/email/campaigns/rules";
@@ -11,7 +11,7 @@ import CampaignEditor from "@/components/admin/email/CampaignEditor";
 export const metadata: Metadata = { title: "New campaign", robots: { index: false, follow: false } };
 
 export default async function NewCampaignPage({ searchParams }: { searchParams: Promise<{ kind?: string }> }) {
-  await requireOwner();
+  await requirePermission("email.draft");
   const kind = parseKind((await searchParams).kind);
   const [lots, counts, codes] = await Promise.all([kind === "new_lots" ? lotChoices(null) : Promise.resolve([]), audienceCounts(), promotionCodes()]);
   return (

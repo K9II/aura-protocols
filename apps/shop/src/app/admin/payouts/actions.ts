@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { logAdminEvent, recordAdminEvent } from "@/lib/audit/data";
 import { usd } from "@/lib/html";
 import { markPayoutPaid } from "@/lib/partners/ledger";
@@ -15,7 +15,7 @@ const paidSchema = z.object({ payoutId: z.string().uuid(), reference: z.string()
 const partnerSchema = z.object({ partnerId: z.string().uuid() });
 
 export async function markPayoutPaidAction(form: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("payouts.mark_paid");
   const parsed = paidSchema.safeParse({ payoutId: form.get("payoutId"), reference: form.get("reference") });
   if (!parsed.success) return;
   const payout = await markPayoutPaid(parsed.data.payoutId, parsed.data.reference);
@@ -29,7 +29,7 @@ export async function markPayoutPaidAction(form: FormData): Promise<void> {
 }
 
 export async function openW9Action(form: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("w9.open");
   const parsed = partnerSchema.safeParse({ partnerId: form.get("partnerId") });
   if (!parsed.success) return;
   const partner = await getPartnerById(parsed.data.partnerId);
@@ -40,7 +40,7 @@ export async function openW9Action(form: FormData): Promise<void> {
 }
 
 export async function markW9CheckedAction(form: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("w9.open");
   const parsed = partnerSchema.safeParse({ partnerId: form.get("partnerId") });
   if (!parsed.success) return;
   await markW9Checked(parsed.data.partnerId);

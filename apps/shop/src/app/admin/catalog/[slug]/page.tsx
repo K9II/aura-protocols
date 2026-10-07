@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { catalogContent } from "@/data/catalog";
 import { catalogEvents, fetchAdminOps, variantHistory } from "@/lib/catalog-ops/data";
 import { adminRows, byLiveThenNumber, isDiscrepancy, liveRefusal, type AdminLotRow } from "@/lib/catalog-ops/rules";
@@ -30,7 +30,7 @@ function status(l: AdminLotRow): [string, string] {
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-  await requireOwner();
+  await requirePermission("catalog.view");
   const { slug } = await params;
   const c = catalogContent.find((x) => x.slug === slug);
   if (!c) notFound();

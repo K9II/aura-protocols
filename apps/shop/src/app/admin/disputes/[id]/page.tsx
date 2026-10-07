@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { currentMs } from "@/lib/clock";
 import { getDisputeCase } from "@/lib/disputes/data";
 import { LETTER_FOR, buildEvidence, customerStrings, editable, evidenceSections, letterKind } from "@/lib/disputes/evidence";
@@ -27,7 +27,7 @@ type Tile = { l: string; v: string; d?: string; cls?: string; phone?: boolean };
 // Respond to a chargeback (mock screen 2), or read it once submitted or
 // decided (screen 4). Spec 2026-10-05-admin-disputes-design.md.
 export default async function DisputePage({ params }: { params: Promise<{ id: string }> }) {
-  await requireOwner();
+  await requirePermission("disputes.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const c = await getDisputeCase(id);

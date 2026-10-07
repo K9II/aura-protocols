@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getCustomerDetail, type CustomerDetail, type CustomerEvent, type LedgerRow } from "@/lib/customers/data";
 import { customersWithDisputes } from "@/lib/disputes/data";
 import { CATEGORY_LABEL, fingerprint, offerState, summarizeUserAgent, type CreditCategory } from "@/lib/customers/rules";
@@ -71,7 +71,7 @@ function Agreements({ c }: { c: CustomerDetail }) {
 }
 
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireOwner();
+  await requirePermission("customers.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const c = await getCustomerDetail(id);

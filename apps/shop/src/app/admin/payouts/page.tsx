@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getPayoutDetails, listPartners, listW9sAwaitingCheck } from "@/lib/partners/data";
 import { PAYOUT_PAGE_SIZE, countPayoutHistory, formatRunDate, latestRunSummary, listPayoutHistory, listQueuedPayouts, payoutRunWarning } from "@/lib/partners/ledger";
 import { CASH_MIN_CENTS, CREDIT_MULTIPLIER } from "@/lib/partners/tiers";
@@ -12,7 +12,7 @@ import { Crumbs, Icon, Kpis, Tabs } from "@/components/admin/ui";
 export const metadata: Metadata = { title: "Payouts", robots: { index: false, follow: false } };
 
 export default async function PayoutsPage({ searchParams }: { searchParams: Promise<{ tab?: string; page?: string }> }) {
-  await requireOwner();
+  await requirePermission("payouts.view");
   const sp = await searchParams;
   const tab = sp.tab === "history" ? "history" : "send";
   const pageRaw = Number(sp.page);

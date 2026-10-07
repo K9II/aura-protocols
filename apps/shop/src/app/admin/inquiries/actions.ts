@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { SUPPORT_EMAIL } from "@/lib/constants";
 import { accountIdByEmail } from "@/lib/account/data";
 import { alertOwner } from "@/lib/notify";
@@ -33,7 +33,7 @@ function refresh(ref?: number) {
 // Reply (and "Send and close"). Compliance first; then claim → send → finish,
 // so a double click sends once and a failed send leaves no trace.
 export async function replyAction(_prev: InquiryActionState, f: FormData): Promise<InquiryActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.reply");
   const id = uuid(f.get("id")), key = uuid(f.get("clientKey"));
   if (!id.success || !key.success) return { error: STALE };
   const body = text(f.get("body"));
@@ -75,7 +75,7 @@ export async function replyAction(_prev: InquiryActionState, f: FormData): Promi
 
 // Close / Re-open. A stale move throws (app/admin/error.tsx), as everywhere in the admin.
 export async function statusAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.reply");
   const id = uuid(f.get("id"));
   const op = f.get("op");
   if (!id.success || (op !== "close" && op !== "reopen")) throw new Error(STALE);
@@ -87,7 +87,7 @@ export async function statusAction(f: FormData): Promise<void> {
 }
 
 export async function topicAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.reply");
   const id = uuid(f.get("id"));
   const topic = parseTopic(f.get("topic"));
   if (!id.success || !topic) throw new Error(STALE);
@@ -97,7 +97,7 @@ export async function topicAction(f: FormData): Promise<void> {
 }
 
 export async function linkAction(_prev: InquiryActionState, f: FormData): Promise<InquiryActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.reply");
   const id = uuid(f.get("id"));
   const email = z.string().trim().toLowerCase().email().safeParse(f.get("email"));
   if (!id.success) return { error: STALE };
@@ -112,7 +112,7 @@ export async function linkAction(_prev: InquiryActionState, f: FormData): Promis
 }
 
 export async function unlinkAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.reply");
   const id = uuid(f.get("id"));
   if (!id.success) throw new Error(STALE);
   await setCustomer(id.data, null);
@@ -122,7 +122,7 @@ export async function unlinkAction(f: FormData): Promise<void> {
 }
 
 export async function dismissUnmatchedAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.reply");
   const id = uuid(f.get("id"));
   if (!id.success) throw new Error(STALE);
   const u = await getUnmatched(id.data);
@@ -134,7 +134,7 @@ export async function dismissUnmatchedAction(f: FormData): Promise<void> {
 // Copies the stored text into the chosen thread as a customer message (the
 // SQL function logs "unmatched_attached" with the owner and moves the status).
 export async function attachUnmatchedAction(_prev: InquiryActionState, f: FormData): Promise<InquiryActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.reply");
   const id = uuid(f.get("id"));
   const ref = parseRef(String(f.get("ref") ?? ""));
   if (!id.success) return { error: "That email was already handled. Reload the page." };
@@ -152,7 +152,7 @@ export async function attachUnmatchedAction(_prev: InquiryActionState, f: FormDa
 }
 
 export async function saveReplyAction(_prev: InquiryActionState, f: FormData): Promise<InquiryActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.saved_replies");
   const idRaw = f.get("id");
   const id = idRaw ? uuid(idRaw) : null;
   if (id && !id.success) return { error: STALE };
@@ -170,7 +170,7 @@ export async function saveReplyAction(_prev: InquiryActionState, f: FormData): P
 }
 
 export async function deleteReplyAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.saved_replies");
   const id = uuid(f.get("id"));
   if (!id.success) throw new Error(STALE);
   const name = await deleteSavedReply(id.data);

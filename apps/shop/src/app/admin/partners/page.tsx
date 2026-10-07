@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { countPartners, listPartners, type PartnerRow, type PartnerStatus } from "@/lib/partners/data";
 import { payableByPartner } from "@/lib/partners/ledger";
 import { AUDIENCE_SIZES, PARTNER_TYPES, PUBLISH_CHANNELS } from "@/lib/partners/codes";
@@ -21,7 +21,7 @@ const channels = (p: PartnerRow) => [
 ];
 
 export default async function PartnersPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  await requireOwner();
+  await requirePermission("partners.view");
   const { tab: raw } = await searchParams;
   const tab = (TABS.find(([s]) => s === raw)?.[0] ?? "applied") as PartnerStatus;
   const [counts, partners, payable] = await Promise.all([countPartners(), listPartners(tab), tab === "approved" ? payableByPartner() : Promise.resolve({} as Record<string, number>)]);

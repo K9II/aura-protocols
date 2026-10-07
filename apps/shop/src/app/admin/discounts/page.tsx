@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { codeStatsById, discountDashboard, getDiscountCap, listBatches, listCodes } from "@/lib/discounts/data";
 import { buildListRows, type ListRow } from "@/lib/discounts/list";
 import type { CodeStatus } from "@/lib/discounts/rules";
@@ -37,7 +37,7 @@ function endLine(r: ListRow): string {
 }
 
 export default async function DiscountsPage({ searchParams }: { searchParams: Promise<{ status?: string | string[]; q?: string | string[]; page?: string | string[] }> }) {
-  await requireOwner();
+  await requirePermission("discounts.view");
   const sp = await searchParams;
   const statusRaw = first(sp.status);
   const filter = (FILTERS.find(([k]) => k === statusRaw)?.[0] ?? "all") as CodeStatus | "all";

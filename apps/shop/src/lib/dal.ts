@@ -177,16 +177,6 @@ export async function requirePermission(p: Permission): Promise<Staff> {
   return denied();
 }
 
-export async function requireOwner(): Promise<Customer> {
-  const customer = await getCustomer();
-  if (customer?.isOwner) return customer;
-  if (!(await verifySession())) {
-    const path = (await headers()).get(ADMIN_PATH_HEADER);
-    redirect(`/sign-in?next=${encodeURIComponent(safeNext(path, "/admin"))}`);
-  }
-  notFound();
-}
-
 // Partner pages: signed-in customer with a partner record (any status);
 // no record → the application form.
 export async function requirePartner(): Promise<{ customer: Customer; partner: PartnerRow }> {

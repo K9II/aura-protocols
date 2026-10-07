@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { currentMs } from "@/lib/clock";
 import { loadNumbers, loadTodos } from "@/lib/today/today";
 import { parsePeriod } from "@/lib/today/periods";
@@ -16,7 +16,7 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
 // The command center's front door (spec 2026-10-05-admin-today-design.md):
 // to-dos left, numbers right; on a phone, to-dos first.
 export default async function TodayPage({ searchParams }: { searchParams: Promise<{ p?: string | string[] }> }) {
-  await requireOwner();
+  await requirePermission("today.view");
   const period = parsePeriod(first((await searchParams).p));
   const [slots, numbers] = await Promise.all([loadTodos(), loadNumbers(period)]); // neither throws
   const reloadHref = period === "today" ? "/admin" : `/admin?p=${period}`;

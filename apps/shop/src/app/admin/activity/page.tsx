@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { catalogContent } from "@/data/catalog";
 import { ACTIVITY_AREAS, AREA_LABEL, activityFeed, activityPeople, type ActivityArea } from "@/lib/audit/feed";
 import { dateTime, isoToZonedLocal } from "@/lib/discounts/time";
@@ -16,7 +16,7 @@ const dayLabel = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString("e
 const STAMP = /^\d{4}-\d{2}-\d{2}T[\d:.]+(Z|[+-]\d{2}:\d{2})$/;
 
 export default async function ActivityPage({ searchParams }: { searchParams: Promise<{ area?: string; who?: string; before?: string; p?: string; from?: string; to?: string }> }) {
-  await requireOwner();
+  await requirePermission("activity.view");
   const sp = await searchParams;
   const area = (ACTIVITY_AREAS as readonly string[]).includes(sp.area ?? "") ? (sp.area as ActivityArea) : undefined;
   const actor = sp.who && UUID.test(sp.who) ? sp.who : undefined;

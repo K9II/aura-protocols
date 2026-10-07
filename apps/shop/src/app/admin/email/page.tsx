@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { emailOverview, sendStats, attribution, cartRecovery } from "@/lib/email/stats";
 import { statKey, sumAttribution, sumKinds } from "@/lib/email/stat-keys";
 import { getEmailSettings, listRuns, AUTOMATION_LABEL } from "@/lib/email/admin-data";
@@ -24,7 +24,7 @@ const WELCOME_SUBJECTS = ["You asked for the paperwork.", "Three ways a fake COA
 const n = (x: number) => x.toLocaleString("en-US");
 
 export default async function EmailPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[]; page?: string | string[] }> }) {
-  await requireOwner();
+  await requirePermission("email.view");
   const sp = await searchParams;
   const tabRaw = first(sp.tab);
   const tab: CampaignTab = TABS.some(([t]) => t === tabRaw) ? (tabRaw as CampaignTab) : "all";

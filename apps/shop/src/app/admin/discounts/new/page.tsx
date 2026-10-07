@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getDiscountCap } from "@/lib/discounts/data";
 import { getLiveCatalog } from "@/lib/catalog-live";
 import DiscountForm from "@/components/admin/discounts/DiscountForm";
@@ -9,7 +9,7 @@ import { Crumbs } from "@/components/admin/ui";
 export const metadata: Metadata = { title: "New code", robots: { index: false, follow: false } };
 
 export default async function NewCodePage({ searchParams }: { searchParams: Promise<{ mode?: string | string[] }> }) {
-  await requireOwner();
+  await requirePermission("discounts.edit");
   const mode = (await searchParams).mode === "batch" ? "batch" : "single";
   const [capPct, live] = await Promise.all([getDiscountCap(), getLiveCatalog()]);
   return (

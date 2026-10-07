@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { randomUUID } from "node:crypto";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { currentMs } from "@/lib/clock";
 import { applyInquiryEvent, getThread, listSavedReplies, recordInquiryEvent, type ThreadMessage } from "@/lib/inquiries/data";
 import { getCustomerDetail } from "@/lib/customers/data";
@@ -74,7 +74,7 @@ function Message({ m, name, inquiryEmail, wholesale, nowMs }: { m: ThreadMessage
 // One conversation (mock screens 2, 3 and 8). Opening a new one moves it to
 // Needs reply. Spec 2026-10-06-admin-inquiries-design.md.
 export default async function InquiryPage({ params }: { params: Promise<{ ref: string }> }) {
-  const owner = await requireOwner();
+  const owner = await requirePermission("inquiries.view");
   const { ref: raw } = await params;
   const ref = parseRef(raw);
   if (!ref) notFound();

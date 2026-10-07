@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getOrderByNumber } from "@/lib/orders";
 import { orderItemLots, fetchAdminOps } from "@/lib/catalog-ops/data";
 
@@ -8,7 +8,7 @@ export const metadata = { title: "Pick list", robots: { index: false } };
 // One sheet per order for whoever packs it (us now, the 3PL later): every line
 // with its 3PL SKU and exactly which lots to pick. Print with Ctrl+P.
 export default async function PickList({ params }: { params: Promise<{ number: string }> }) {
-  await requireOwner();
+  await requirePermission("orders.view");
   const { number } = await params;
   const order = await getOrderByNumber(number);
   if (!order) notFound();

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getPartnerDetail, PARTNER_LINES_PAGE, type PartnerLine } from "@/lib/partners/detail";
 import { getPayoutDetails } from "@/lib/partners/data";
 import { AUDIENCE_SIZES, PARTNER_TYPES, PUBLISH_CHANNELS } from "@/lib/partners/codes";
@@ -31,7 +31,7 @@ function LineState({ l }: { l: PartnerLine }) {
 }
 
 export default async function PartnerPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ page?: string }> }) {
-  await requireOwner();
+  await requirePermission("partners.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const pageRaw = Number((await searchParams).page);

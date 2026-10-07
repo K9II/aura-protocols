@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { adjustCredit, getCustomerBasics, logCustomerEvent } from "@/lib/customers/data";
 import { blockCustomer, unblockCustomer } from "@/lib/customers/block";
 import { blockRefusal, parseCredit } from "@/lib/customers/rules";
@@ -30,7 +30,7 @@ async function target(f: FormData) {
 const refresh = (id: string) => { revalidatePath("/admin/customers"); revalidatePath(`/admin/customers/${id}`); revalidatePath("/admin/disputes", "layout"); };
 
 export async function adjustCreditAction(_prev: ActionState, f: FormData): Promise<ActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("credit.adjust");
   const c = await target(f);
   const balance = await creditBalance(c.id);
   const p = parseCredit({ direction: str(f, "direction"), amount: str(f, "amount"), category: str(f, "category"), note: str(f, "note"), email: str(f, "email"), message: str(f, "message") }, balance);
@@ -47,7 +47,7 @@ export async function adjustCreditAction(_prev: ActionState, f: FormData): Promi
 }
 
 export async function blockAction(_prev: ActionState, f: FormData): Promise<ActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("customers.block");
   const c = await target(f);
   const reason = str(f, "reason").trim().slice(0, 500);
   if (!reason) return { fieldErrors: { reason: "Say why." } };
@@ -59,7 +59,7 @@ export async function blockAction(_prev: ActionState, f: FormData): Promise<Acti
 }
 
 export async function unblockAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("customers.block");
   const c = await target(f);
   if (!c.blockedAt) throw new Error(STALE);
   await unblockCustomer(c.id, owner.id);
@@ -67,7 +67,7 @@ export async function unblockAction(f: FormData): Promise<void> {
 }
 
 export async function resendVerifyAdminAction(_prev: ActionState, f: FormData): Promise<ActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("customers.resend_verify");
   const c = await target(f);
   if (c.verifiedAt) return { error: "Already verified." };
   const last = await lastVerifySentAt(c.id);

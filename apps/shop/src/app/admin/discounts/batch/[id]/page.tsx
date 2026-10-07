@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getBatch, getCodeById, listBatchCodes, listEvents } from "@/lib/discounts/data";
 import { describeRule, termsFromRow } from "@/lib/discounts/rules";
 import { batchStatus } from "@/lib/discounts/list";
@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: "Batch", robots: { index: false, foll
 const PAGE = 40;
 
 export default async function BatchPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string; show?: string; all?: string }> }) {
-  await requireOwner();
+  await requirePermission("discounts.view");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const sp = await searchParams;

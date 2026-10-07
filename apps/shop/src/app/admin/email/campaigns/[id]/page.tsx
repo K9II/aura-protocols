@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
 import { getCampaign, lotChoices } from "@/lib/email/campaigns/data";
 import { audienceCounts } from "@/lib/email/stats";
 import { listAdminEvents } from "@/lib/email/admin-data";
@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: "Campaign", robots: { index: false, f
 export const maxDuration = 300;
 
 export default async function CampaignPage({ params, searchParams = Promise.resolve({}) }: { params: Promise<{ id: string }>; searchParams?: Promise<{ sendError?: string }> }) {
-  await requireOwner();
+  await requirePermission("email.view");
   const id = z.string().uuid().safeParse((await params).id);
   if (!id.success) notFound();
   const c = await getCampaign(id.data);

@@ -3,7 +3,8 @@
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import type { Staff } from "@/lib/staff/roles";
 import { currentMs } from "@/lib/clock";
 import { getDisputeCase, getWarning, logDisputeEvent, markSubmitted, resolveWarning, saveDraft } from "@/lib/disputes/data";
 import { buildEvidence, customerStrings, evidenceChars, fileFields, toStripeEvidence, type FileField } from "@/lib/disputes/evidence";
@@ -46,8 +47,7 @@ function refresh(disputeId?: string) {
 // is the records rebuilt now plus the owner's edits; it passes the compliance
 // scan; the PDF is uploaded (once per unchanged PDF); then Stripe gets it.
 // A Stripe error is returned as a message and nothing is recorded.
-async function respond(f: FormData, submit: boolean): Promise<DisputeActionState> {
-  const owner = await requireOwner();
+async function respond(f: FormData, submit: boolean, owner: Staff): Promise<DisputeActionState> {
   const id = uuid(f.get("id"));
   if (!id.success) return { error: STALE };
   const draft = parseDraft((k) => f.get(k));
@@ -82,11 +82,11 @@ async function respond(f: FormData, submit: boolean): Promise<DisputeActionState
 }
 
 export async function saveDisputeDraftAction(_prev: DisputeActionState, f: FormData): Promise<DisputeActionState> {
-  return respond(f, false);
+  return respond(f, false, await requirePermission("disputes.draft"));
 }
 
 export async function submitDisputeAction(_prev: DisputeActionState, f: FormData): Promise<DisputeActionState> {
-  return respond(f, true);
+  return respond(f, true, await requirePermission("disputes.submit"));
 }
 
 // Early fraud warning on an order that hasn't shipped: refund the card in
@@ -94,7 +94,7 @@ export async function submitDisputeAction(_prev: DisputeActionState, f: FormData
 // its vials return to stock, commission reversed, store credit returned).
 // The charge.refunded webhook re-runs those follow-ups idempotently.
 export async function refundEarlyWarningAction(_prev: DisputeActionState, f: FormData): Promise<DisputeActionState> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("disputes.warnings");
   const id = uuid(f.get("id"));
   if (!id.success) return { error: STALE_WARNING };
   const w = await getWarning(id.data);
@@ -136,7 +136,7 @@ export async function refundEarlyWarningAction(_prev: DisputeActionState, f: For
 // Watch a shipped order's warning (no refund after shipping), or close one
 // whose order is already refunded or cancelled.
 export async function watchEarlyWarningAction(f: FormData): Promise<void> {
-  const owner = await requireOwner();
+  const owner = await requirePermission("disputes.warnings");
   const id = uuid(f.get("id"));
   if (!id.success) throw new Error(STALE_WARNING);
   const w = await getWarning(id.data);
