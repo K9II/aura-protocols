@@ -3,7 +3,7 @@
 // Ship an order (mock screen 2): carrier + tracking. Errors come back from
 // the action and show in the dialog; on success it closes and the page
 // refreshes through revalidatePath.
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useId, useRef } from "react";
 import { markShippedAction } from "@/app/admin/orders/actions";
 import { CARRIERS } from "@/lib/emails";
 
@@ -12,7 +12,9 @@ export default function ShipDialog({ orderId, orderNumber, summary, small }: { o
   const [state, action, pending] = useActionState(markShippedAction, null);
   useEffect(() => { if (state && "ok" in state) ref.current?.close(); }, [state]);
   const err = state && "error" in state ? state : null;
-  const id = `ship-${orderId}`;
+  // useId, not orderId: the same order's row renders this dialog twice (desktop
+  // table + phone card), and htmlFor targets must stay unique across both.
+  const id = `ship-${useId()}`;
   return (
     <>
       <button type="button" className={`a-btn primary${small ? " sm" : ""}`} onClick={() => ref.current?.showModal()}>Ship</button>

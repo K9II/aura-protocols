@@ -3,7 +3,13 @@
 // A button that opens a confirm dialog around a server action (approve,
 // decline, suspend, refund to store credit). Replaces window.confirm for
 // actions that email someone or move money.
-import { useRef } from "react";
+import { useId, useRef } from "react";
+import { useFormStatus } from "react-dom";
+
+function SubmitButton({ className, children }: { className: string; children: React.ReactNode }) {
+  const { pending } = useFormStatus();
+  return <button type="submit" className={className} disabled={pending}>{children}</button>;
+}
 
 export default function ConfirmDialog({ label, title, confirmLabel, action, fields, tone = "primary", small, children }: {
   label: string; title: string; confirmLabel: string; action: (form: FormData) => Promise<void>;
@@ -11,7 +17,9 @@ export default function ConfirmDialog({ label, title, confirmLabel, action, fiel
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const cls = (base: string) => `${base}${tone === "plain" ? "" : ` ${tone}`}`;
-  const id = `confirm-${label}-${Object.values(fields).join("-")}`.replace(/[^a-zA-Z0-9-]/g, "");
+  // useId, not label/fields: the same row's dialog renders twice (desktop
+  // table + phone card), and htmlFor/aria-labelledby targets must stay unique.
+  const id = `confirm-${useId()}`;
   return (
     <>
       <button type="button" className={cls(`a-btn${small ? " sm" : ""}`)} onClick={() => ref.current?.showModal()}>{label}</button>
@@ -22,7 +30,7 @@ export default function ConfirmDialog({ label, title, confirmLabel, action, fiel
           <div className="a-modal-b"><div>{children}</div></div>
           <div className="a-modal-f"><div className="r">
             <button type="button" className="a-btn" onClick={() => ref.current?.close()}>Cancel</button>
-            <button type="submit" className={cls("a-btn")}>{confirmLabel}</button>
+            <SubmitButton className={cls("a-btn")}>{confirmLabel}</SubmitButton>
           </div></div>
         </form>
       </dialog>
