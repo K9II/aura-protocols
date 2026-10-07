@@ -110,7 +110,7 @@ export async function createNoChargeOrder(i: {
     customer_id: i.customerId, email: i.email, status: "awaiting_payment", kind: "no_charge",
     ship_name: i.ship.name, ship_line1: i.ship.line1, ship_line2: i.ship.line2, ship_city: i.ship.city, ship_state: i.ship.state, ship_zip: i.ship.zip,
     subtotal_cents: 0, shipping_cents: 0, insurance_cents: 0, tax_cents: 0, total_cents: 0,
-    store_credit_cents: 0, partner_discount_cents: 0, code_discount_cents: 0,
+    store_credit_cents: 0, partner_discount_cents: 0, code_discount_cents: 0, new_account_discount: false,
     retail_value_cents: i.retailCents, no_charge_reason: i.reason, no_charge_note: i.note,
     replaces_order_id: i.replacesOrderId, created_by: i.actorId,
     ruo_confirmed_at: i.agreedAt, no_charge_key: i.key,

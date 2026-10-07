@@ -15,7 +15,9 @@ alter table orders drop constraint if exists orders_no_charge_zero;
 alter table orders add constraint orders_no_charge_zero check (kind = 'sale' or (
   subtotal_cents = 0 and shipping_cents = 0 and insurance_cents = 0 and tax_cents = 0 and total_cents = 0
   and store_credit_cents = 0 and partner_discount_cents = 0 and code_discount_cents = 0
-  and partner_id is null and discount_code_id is null and stripe_session_id is null
+  and partner_id is null and attributed_by is null and discount_code_id is null and new_account_discount = false
+  and stripe_session_id is null and stripe_payment_intent is null and stripe_coupon_id is null
+  and tax_calculation_id is null and tax_transaction_id is null
   and no_charge_reason is not null and retail_value_cents is not null));
 create index if not exists orders_kind_paid_idx on orders (kind, paid_at desc);
 -- The New no-charge order form's one-time key: a double submit finds the

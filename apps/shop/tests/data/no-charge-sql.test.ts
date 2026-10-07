@@ -18,6 +18,14 @@ describe("no-charge.sql", () => {
     expect(sql).toMatch(/no_charge_reason in \('seeding', 'replacement', 'sample', 'other'\)/);
     expect(sql).toMatch(/orders_no_charge_zero/); // money must be zero on a no-charge order
   });
+  it("orders_no_charge_zero also rules out every payment, partner, offer and tax link", () => {
+    const at = sql.indexOf("add constraint orders_no_charge_zero");
+    const check = sql.slice(at, sql.indexOf(";", at));
+    for (const c of ["stripe_session_id is null", "stripe_payment_intent is null", "attributed_by is null", "new_account_discount = false",
+      "tax_calculation_id is null", "tax_transaction_id is null", "stripe_coupon_id is null", "partner_id is null", "discount_code_id is null"]) {
+      expect(check, c).toContain(c);
+    }
+  });
   it("a one-time form key stops a double submit creating two orders", () => {
     expect(sql).toMatch(/alter table orders add column if not exists no_charge_key text/);
     expect(sql).toMatch(/create unique index if not exists orders_no_charge_key_idx on orders \(no_charge_key\) where no_charge_key is not null/);

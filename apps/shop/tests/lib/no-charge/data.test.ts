@@ -59,7 +59,7 @@ describe("no-charge data", () => {
     expect(row).toMatchObject({
       customer_id: "c1", email: "dana.w@example.com", status: "awaiting_payment", kind: "no_charge",
       subtotal_cents: 0, shipping_cents: 0, insurance_cents: 0, tax_cents: 0, total_cents: 0, store_credit_cents: 0,
-      partner_discount_cents: 0, code_discount_cents: 0,
+      partner_discount_cents: 0, code_discount_cents: 0, new_account_discount: false,
       retail_value_cents: 9600, no_charge_reason: "replacement", no_charge_note: "2 vials cracked", replaces_order_id: "o0", created_by: "owner1",
       ruo_confirmed_at: "2026-09-01T00:00:00Z", no_charge_key: "3b241101-e2bb-4255-8caf-4136c566a962", ship_name: "Dana Whitfield", ship_line1: "1420 Elm St", ship_line2: null, ship_city: "Boulder", ship_state: "CO", ship_zip: "80302",
     });
