@@ -4,7 +4,7 @@ import { requireOwner } from "@/lib/dal";
 import { countOrderTabs, searchOrdersForOwner, type OrderRow } from "@/lib/orders";
 import { ORDER_PAGE_SIZE, ORDER_TABS, ORDER_TAB_LABEL, cleanOrderSearch, itemsSummary, orderMarkers, parseOrderTab, type OrderTab } from "@/lib/orders/tabs";
 import { orderFlags } from "@/lib/disputes/data";
-import { paidText, shipAge } from "@/lib/today/time";
+import { businessDaysSince, paidText, shipAge } from "@/lib/today/time";
 import { shortDate } from "@/lib/discounts/time";
 import { currentMs } from "@/lib/clock";
 import { usd } from "@/lib/html";
@@ -43,6 +43,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const lastPage = Math.max(1, Math.ceil(total / ORDER_PAGE_SIZE));
   const marks = (o: OrderRow) => orderMarkers(o, { dispute: flags.disputes.has(o.id), warning: flags.warnings.has(o.id) });
   const summary = (o: OrderRow) => `${o.ship_name} · ${o.ship_city}, ${o.ship_state} · ${vials(o)} vial${vials(o) === 1 ? "" : "s"}`;
+  const oldestAge = shipping && rows[0]?.paid_at ? businessDaysSince(rows[0].paid_at, now) : null;
 
   return (
     <div className="a-page">
@@ -58,7 +59,11 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       </div>
       {q && <div className="a-searchnote">{total} result{total === 1 ? "" : "s"} for <b>&ldquo;{q}&rdquo;</b> across all orders<Link className="a-ulink" href={href({ q: "", page: 1 })}>Clear</Link></div>}
 
-      {rows.length === 0 ? <div className="a-empty">{q ? "Nothing matches." : EMPTY[tab]}</div> : (
+      {rows.length === 0 ? (
+        <div className="a-empty">{total > 0
+          ? <>No rows on this page. <Link className="a-ulink" href={href({ page: 1 })}>Back to page 1</Link></>
+          : q ? "Nothing matches." : EMPTY[tab]}</div>
+      ) : (
         <>
           <table className="a-t a-only-desk">
             <thead><tr><th>Order</th><th>{shipping ? "Waiting" : "Placed"}</th><th>Customer</th><th>Ship to</th><th>Items</th><th className="num">Total</th><th>Status</th><th /></tr></thead>
@@ -99,9 +104,11 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
             );
           })}</div>
           <div className="a-tfoot">
-            {`${(page - 1) * ORDER_PAGE_SIZE + 1}–${Math.min(page * ORDER_PAGE_SIZE, total)} of ${total.toLocaleString("en-US")}`}
-            {shipping ? " · oldest first" : " · newest first"} · refunds are made in Stripe and update here automatically · chargebacks are in <Link className="a-ulink" href="/admin/disputes">Disputes</Link>
+            {shipping
+              ? <>{total} to ship{oldestAge !== null && ` · oldest waiting ${oldestAge} business day${oldestAge === 1 ? "" : "s"}`}</>
+              : <>{`${(page - 1) * ORDER_PAGE_SIZE + 1}–${Math.min(page * ORDER_PAGE_SIZE, total)} of ${total.toLocaleString("en-US")}`} · newest first · refunds are made in Stripe and update here automatically · chargebacks are in <Link className="a-ulink" href="/admin/disputes">Disputes</Link></>}
             <div className="r">
+              {shipping && <span className="muted">refunds are made in Stripe and update here automatically · chargebacks are in <Link className="a-ulink" href="/admin/disputes">Disputes</Link></span>}
               {page > 1 && <Link className="a-btn sm" href={href({ page: page - 1 })}>Previous</Link>}
               {page < lastPage && <Link className="a-btn sm" href={href({ page: page + 1 })}>Next</Link>}
             </div>

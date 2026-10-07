@@ -53,7 +53,7 @@ describe("orders", () => {
     const { searchOrdersForOwner } = await import("@/lib/orders");
     expect(await searchOrdersForOwner({ tab: "to_ship", q: "", page: 2 })).toEqual({ rows: [{ id: "o1" }], total: 73 });
     expect(callArgs(q, "in")).toEqual(["status", ["paid"]]);
-    expect(callArgs(q, "order")).toEqual(["created_at", { ascending: true }]);
+    expect(q.calls.filter(([m]) => m === "order").map(([, a]) => a)).toEqual([["created_at", { ascending: true }], ["id"]]);
     expect(callArgs(q, "range")).toEqual([50, 99]);
   });
 
@@ -64,7 +64,7 @@ describe("orders", () => {
     await searchOrdersForOwner({ tab: "to_ship", q: "whitfield", page: 1 });
     expect(callArgs(q, "in")).toEqual(["status", ["processing", "paid", "shipped", "cancelled", "refunded"]]);
     expect(callArgs(q, "or")).toEqual(["order_number.ilike.%whitfield%,email.ilike.%whitfield%,ship_name.ilike.%whitfield%,tracking_number.ilike.%whitfield%"]);
-    expect(callArgs(q, "order")).toEqual(["created_at", { ascending: false }]);
+    expect(q.calls.filter(([m]) => m === "order").map(([, a]) => a)).toEqual([["created_at", { ascending: false }], ["id"]]);
   });
 
   it("searchOrdersForOwner throws on a read error", async () => {

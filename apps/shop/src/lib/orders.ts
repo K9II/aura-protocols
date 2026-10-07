@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { canTransition, type OrderStatus } from "@/lib/order-status";
 import { catalogStockChanged } from "@/lib/catalog-live";
@@ -145,7 +146,7 @@ export async function searchOrdersForOwner(o: { tab: OrderTab; q: string; page: 
     const p = `%${o.q}%`;
     qb = qb.or(`order_number.ilike.${p},email.ilike.${p},ship_name.ilike.${p},tracking_number.ilike.${p}`);
   }
-  const { data, error, count } = await qb.order("created_at", { ascending: !o.q && o.tab === "to_ship" }).range(start, start + ORDER_PAGE_SIZE - 1);
+  const { data, error, count } = await qb.order("created_at", { ascending: !o.q && o.tab === "to_ship" }).order("id").range(start, start + ORDER_PAGE_SIZE - 1);
   if (error) throw new Error(`owner orders search failed: ${JSON.stringify(error)}`);
   return { rows: (data as OrderRow[] | null) ?? [], total: count ?? 0 };
 }
@@ -182,15 +183,16 @@ export async function listOrphanedPendingOrders(olderThanIso: string): Promise<{
   return (data as { id: string; order_number: string }[] | null) ?? [];
 }
 
-// Tab counts for the owner Orders page and the nav badge (To ship).
-export async function countOrderTabs(): Promise<Record<OrderTab, number>> {
+// Tab counts for the owner Orders page and the nav badge (To ship). Both read
+// it on the same request; `cache` shares the one set of queries between them.
+export const countOrderTabs = cache(async (): Promise<Record<OrderTab, number>> => {
   const counts = await Promise.all(ORDER_TABS.map(async (t) => {
     const { count, error } = await db().from("orders").select("id", { count: "exact", head: true }).in("status", [...TAB_STATUSES[t]]);
     if (error) throw new Error(`order tab count failed: ${JSON.stringify(error)}`);
     return count ?? 0;
   }));
   return Object.fromEntries(ORDER_TABS.map((t, i) => [t, counts[i]])) as Record<OrderTab, number>;
-}
+});
 
 export async function saveShipAddress(customerId: string, ship: ShipAddress): Promise<void> {
   const { error } = await db().from("customers").update({

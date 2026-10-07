@@ -70,4 +70,16 @@ describe("/admin/orders", () => {
     render(await OrdersPage({ searchParams: Promise.resolve({}) }));
     expect(screen.getByText("Nothing to ship.")).toBeInTheDocument();
   });
+
+  it("shows the oldest-waiting footer on To ship with no search", async () => {
+    render(await OrdersPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.getByText(/^1 to ship · oldest waiting \d+ business days?$/)).toBeInTheDocument();
+  });
+
+  it("shows 'No rows on this page' past the end, with a link back to page 1", async () => {
+    m.searchOrdersForOwner.mockResolvedValue({ rows: [], total: 5 });
+    render(await OrdersPage({ searchParams: Promise.resolve({ tab: "all", page: "9" }) }));
+    expect(screen.getByText("No rows on this page.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to page 1" })).toHaveAttribute("href", "/admin/orders?tab=all");
+  });
 });
