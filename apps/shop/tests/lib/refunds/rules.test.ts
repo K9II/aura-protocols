@@ -11,13 +11,16 @@ describe("refund rules", () => {
     expect(REFUND_REASON_LABEL.damaged).toBe("Damaged in transit");
   });
   it("offers Cancel and refund before shipping, the exception after, nothing otherwise", () => {
-    expect(refundOffer(base, { dispute: false, warning: false })).toEqual({ mode: "cancel" });
-    expect(refundOffer({ ...base, status: "shipped" }, { dispute: false, warning: false })).toEqual({ mode: "exception" });
-    expect(refundOffer({ ...base, status: "refunded" }, { dispute: false, warning: false })).toEqual({ mode: null });
-    expect(refundOffer({ ...base, status: "awaiting_payment" }, { dispute: false, warning: false })).toEqual({ mode: null });
-    expect(refundOffer({ ...base, kind: "no_charge" }, { dispute: false, warning: false })).toEqual({ mode: null });
-    expect(refundOffer(base, { dispute: true, warning: false })).toEqual({ mode: null, blockedBy: "dispute" });
-    expect(refundOffer(base, { dispute: false, warning: true })).toEqual({ mode: null, blockedBy: "warning" });
+    expect(refundOffer(base, { dispute: false, warning: false, lostDispute: false })).toEqual({ mode: "cancel" });
+    expect(refundOffer({ ...base, status: "shipped" }, { dispute: false, warning: false, lostDispute: false })).toEqual({ mode: "exception" });
+    expect(refundOffer({ ...base, status: "refunded" }, { dispute: false, warning: false, lostDispute: false })).toEqual({ mode: null });
+    expect(refundOffer({ ...base, status: "awaiting_payment" }, { dispute: false, warning: false, lostDispute: false })).toEqual({ mode: null });
+    expect(refundOffer({ ...base, kind: "no_charge" }, { dispute: false, warning: false, lostDispute: false })).toEqual({ mode: null });
+    expect(refundOffer(base, { dispute: true, warning: false, lostDispute: false })).toEqual({ mode: null, blockedBy: "dispute" });
+    expect(refundOffer(base, { dispute: false, warning: true, lostDispute: false })).toEqual({ mode: null, blockedBy: "warning" });
+    // A lost chargeback: the bank already returned the money — never refund it again.
+    expect(refundOffer(base, { dispute: false, warning: false, lostDispute: true })).toEqual({ mode: null, blockedBy: "dispute_lost" });
+    expect(refundOffer({ ...base, status: "shipped" }, { dispute: false, warning: true, lostDispute: true })).toEqual({ mode: null, blockedBy: "dispute_lost" });
   });
   it("splits the money by destination", () => {
     expect(splitRefund(base, "card")).toEqual({ cardCents: 18800, creditBackCents: 4000, cardToCreditCents: 0, totalCents: 22800 });

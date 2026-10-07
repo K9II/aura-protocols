@@ -98,6 +98,7 @@ export async function refundOrderAction(_prev: RefundState, form: FormData): Pro
   if (!order) return { errors: { form: ORDER_CHANGED } };
   const n = order.order_number;
   const offer = refundOffer(order, await orderFlags(order.id));
+  if (offer.blockedBy === "dispute_lost") return { errors: { form: `A chargeback on ${n} was lost — the bank already returned the money. No refund.` } };
   if (offer.blockedBy) {
     const what = offer.blockedBy === "dispute" ? "an open chargeback" : "an early fraud warning";
     return { errors: { form: `${n} has ${what}. Refund this one from Disputes.` } };

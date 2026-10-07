@@ -54,7 +54,8 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const disputedCustomers = await customersWithDisputes([c.id]);
 
   // Refunds (mock 2026-10-07-admin-refunds r1–r3, r5): owner only; orders
-  // with an open chargeback or fraud warning are refunded from Disputes.
+  // with an open chargeback or fraud warning are refunded from Disputes; a lost
+  // chargeback is never refunded.
   const canRefund = can(staff, "orders.refund");
   const offer = nc ? { mode: null } : refundOffer(o, d.flags);
   const refundMode = canRefund ? offer.mode : null;
@@ -104,6 +105,9 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
       )}
       {canRefund && offer.blockedBy === "dispute" && (
         <div className="a-callout info a-refund-note"><Icon name="info" /><div>A chargeback is open on this order — the bank already holds the money. Respond in <Link className="a-ulink" href={d.openDisputeId ? `/admin/disputes/${d.openDisputeId}` : "/admin/disputes"}>Disputes</Link>; a refund isn&apos;t possible while it&apos;s open.</div></div>
+      )}
+      {canRefund && offer.blockedBy === "dispute_lost" && (
+        <div className="a-callout info a-refund-note"><Icon name="info" /><div>A chargeback on this order was lost — the bank already returned the money. No refund.</div></div>
       )}
 
       <div className="a-og">

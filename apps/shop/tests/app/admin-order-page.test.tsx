@@ -26,7 +26,7 @@ const detail = {
   order, lots: new Map([["i1", { allocated: [{ lotNumber: "BPC-2609-A", qty: 5 }], shipped: [{ lotNumber: "BPC-2609-A", qty: 5 }] }]]),
   customer: { id: "c1", fullName: "Priya Raman", email: "praman@example.org", verified: true, blocked: false, paidOrders: 4, spentCents: 160_280 },
   code: { id: "dc1", code: "SPRING20", kind: "order_pct", value: 5, stack_on_top: true, free_shipping: false },
-  partner: { id: "p1", code: "QUINN10" }, commission: null, flags: { dispute: false, warning: false },
+  partner: { id: "p1", code: "QUINN10" }, commission: null, flags: { dispute: false, warning: false, lostDispute: false },
   timeline: [{ key: "shipped", at: "2026-10-01T21:02:00Z", tone: "ok", title: "Shipped · USPS 9400111899223344550112", who: "Alvester Adams" }],
 };
 
@@ -191,7 +191,7 @@ describe("/admin/orders/[number]", () => {
     });
 
     it("r5: an open fraud warning — no refund controls, the Disputes callout", async () => {
-      m.getOrderDetail.mockResolvedValue({ ...detail, order: paid, flags: { dispute: false, warning: true }, openDisputeId: null });
+      m.getOrderDetail.mockResolvedValue({ ...detail, order: paid, flags: { dispute: false, warning: true, lostDispute: false }, openDisputeId: null });
       const { container } = render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
       expect(screen.queryByRole("button", { name: "Cancel and refund" })).toBeNull();
       expect(container.querySelector("dialog")).toBeNull();
@@ -201,7 +201,7 @@ describe("/admin/orders/[number]", () => {
     });
 
     it("r5: an open chargeback — no refund controls, links the dispute", async () => {
-      m.getOrderDetail.mockResolvedValue({ ...detail, flags: { dispute: true, warning: false }, openDisputeId: "d9" });
+      m.getOrderDetail.mockResolvedValue({ ...detail, flags: { dispute: true, warning: false, lostDispute: false }, openDisputeId: "d9" });
       const { container } = render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
       expect(screen.queryByRole("button", { name: /^Refund…/ })).toBeNull();
       expect(container.querySelector("dialog")).toBeNull();
@@ -209,6 +209,14 @@ describe("/admin/orders/[number]", () => {
       expect(note).toHaveTextContent("A chargeback is open on this order — the bank already holds the money. Respond in Disputes; a refund isn't possible while it's open.");
       expect(within(note).getByRole("link", { name: "Disputes" })).toHaveAttribute("href", "/admin/disputes/d9");
     });
+  });
+
+  it("a lost chargeback — no refund controls, says why", async () => {
+    m.getOrderDetail.mockResolvedValue({ ...detail, flags: { dispute: false, warning: false, lostDispute: true }, openDisputeId: null });
+    const { container } = render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
+    expect(screen.queryByRole("button", { name: /^Refund…/ })).toBeNull();
+    expect(container.querySelector("dialog")).toBeNull();
+    expect(container.querySelector(".a-callout.info")).toHaveTextContent("A chargeback on this order was lost — the bank already returned the money. No refund.");
   });
 
   describe("a no-charge order (Screen 6)", () => {

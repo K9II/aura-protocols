@@ -218,7 +218,7 @@ describe("refundOrderAction", () => {
     vi.resetModules();
     for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requirePermission, getOrderById, transitionOrder, sendOrAlert, alertOwner, afterOrderRefunded, catalogStockChanged, revalidatePath, refunds.refundCard, refunds.stampRefund, refunds.creditCardPart, refunds.orderFlags]) f.mockReset();
     requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
-    refunds.orderFlags.mockResolvedValue({ dispute: false, warning: false });
+    refunds.orderFlags.mockResolvedValue({ dispute: false, warning: false, lostDispute: false });
     refunds.refundCard.mockResolvedValue("re_1");
     transitionOrder.mockResolvedValue(true);
   });
@@ -241,12 +241,21 @@ describe("refundOrderAction", () => {
 
   it("an open dispute → refund it from Disputes", async () => {
     getOrderById.mockResolvedValue(sale());
-    refunds.orderFlags.mockResolvedValue({ dispute: true, warning: false });
+    refunds.orderFlags.mockResolvedValue({ dispute: true, warning: false, lostDispute: false });
     const { refundOrderAction } = await import("@/app/admin/orders/actions");
     const r = await refundOrderAction(null, cancelForm());
     expect(r?.errors?.form).toMatch(/AP-1047.*Disputes/);
     expect(refunds.orderFlags).toHaveBeenCalledWith(id);
     expect(refunds.refundCard).not.toHaveBeenCalled();
+  });
+
+  it("a lost chargeback → no refund (the bank already returned the money)", async () => {
+    getOrderById.mockResolvedValue(sale({ status: "shipped" }));
+    refunds.orderFlags.mockResolvedValue({ dispute: false, warning: false, lostDispute: true });
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, exceptionForm())).toEqual({ errors: { form: "A chargeback on AP-1047 was lost — the bank already returned the money. No refund." } });
+    expect(refunds.refundCard).not.toHaveBeenCalled();
+    expect(transitionOrder).not.toHaveBeenCalled();
   });
 
   it("returns parse errors as is, with no Stripe call", async () => {

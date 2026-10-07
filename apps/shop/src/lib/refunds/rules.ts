@@ -15,9 +15,13 @@ export type RefundMode = "cancel" | "exception";
 
 type OrderMoney = { status: OrderStatus; kind: "sale" | "no_charge"; total_cents: number; store_credit_cents: number; stripe_payment_intent: string | null };
 
-export function refundOffer(o: OrderMoney, flags: { dispute: boolean; warning: boolean }): { mode: RefundMode | null; blockedBy?: "dispute" | "warning" } {
+// An open chargeback or fraud warning → refunded from Disputes; a lost
+// chargeback → the bank already returned the money, so never again.
+export type RefundFlags = { dispute: boolean; warning: boolean; lostDispute: boolean };
+export function refundOffer(o: OrderMoney, flags: RefundFlags): { mode: RefundMode | null; blockedBy?: "dispute" | "dispute_lost" | "warning" } {
   if (o.kind !== "sale" || (o.status !== "paid" && o.status !== "shipped")) return { mode: null };
   if (flags.dispute) return { mode: null, blockedBy: "dispute" };
+  if (flags.lostDispute) return { mode: null, blockedBy: "dispute_lost" };
   if (flags.warning) return { mode: null, blockedBy: "warning" };
   return { mode: o.status === "paid" ? "cancel" : "exception" };
 }

@@ -5,6 +5,7 @@ import { orderItemLots, type ItemLots } from "@/lib/catalog-ops/data";
 import type { CommissionState } from "@/lib/partners/ledger";
 import { buildOrderTimeline, type TimelineEntry, type TimelineSources } from "@/lib/orders/timeline";
 import type { NoChargeReason } from "@/lib/no-charge/rules";
+import type { RefundFlags } from "@/lib/refunds/rules";
 
 export type OrderDetail = {
   order: OrderRow;
@@ -15,7 +16,7 @@ export type OrderDetail = {
   code: { id: string; code: string; kind: string; value: number; stack_on_top: boolean; free_shipping: boolean } | null;
   partner: { id: string; code: string } | null;
   commission: { amount_cents: number; rate_pct: number; state: CommissionState; created_at: string; clears_at: string | null; voided_at: string | null } | null;
-  flags: { dispute: boolean; warning: boolean };
+  flags: RefundFlags;
   // The open chargeback's id (its Disputes page), if any.
   openDisputeId: string | null;
   // Who refunded it here (orders.refunded_by); null for a Stripe-dashboard refund.
@@ -30,19 +31,20 @@ function must<T>(what: string, r: { data: unknown; error: unknown }): T {
 }
 
 // An open chargeback (not closed) or an unresolved early fraud warning. Those
-// orders are refunded from Disputes, never from the order page.
-export function flagsFrom(disputes: Array<{ closed_at: string | null }>, warnings: Array<{ resolved_at: string | null }>): { dispute: boolean; warning: boolean } {
-  return { dispute: disputes.some((d) => !d.closed_at), warning: warnings.some((w) => !w.resolved_at) };
+// orders are refunded from Disputes, never from the order page. A lost
+// chargeback means the bank already returned the money: no refund at all.
+export function flagsFrom(disputes: Array<{ closed_at: string | null; outcome?: string | null }>, warnings: Array<{ resolved_at: string | null }>): RefundFlags {
+  return { dispute: disputes.some((d) => !d.closed_at), warning: warnings.some((w) => !w.resolved_at), lostDispute: disputes.some((d) => d.outcome === "lost") };
 }
 
 // The same flags for one order, read on their own (the refund action).
-export async function orderFlags(orderId: string): Promise<{ dispute: boolean; warning: boolean }> {
+export async function orderFlags(orderId: string): Promise<RefundFlags> {
   const [disputes, warnings] = await Promise.all([
-    db().from("disputes").select("closed_at").eq("order_id", orderId),
+    db().from("disputes").select("closed_at, outcome").eq("order_id", orderId),
     db().from("early_fraud_warnings").select("resolved_at").eq("order_id", orderId),
   ]);
   return flagsFrom(
-    must<Array<{ closed_at: string | null }> | null>("disputes", disputes) ?? [],
+    must<Array<{ closed_at: string | null; outcome: string | null }> | null>("disputes", disputes) ?? [],
     must<Array<{ resolved_at: string | null }> | null>("warnings", warnings) ?? [],
   );
 }

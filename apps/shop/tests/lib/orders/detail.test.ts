@@ -72,7 +72,7 @@ describe("getOrderDetail", () => {
     expect(d.code?.code).toBe("SPRING20");
     expect(d.partner).toEqual({ id: "p1", code: "QUINN10" });
     expect(d.commission?.state).toBe("clearing");
-    expect(d.flags).toEqual({ dispute: false, warning: false });
+    expect(d.flags).toEqual({ dispute: false, warning: false, lostDispute: false });
     expect(d.timeline[0]).toMatchObject({ key: "shipped", who: "Alvester Adams" });
     expect(callArgs(ordersQuery, "in")).toEqual(["status", ["paid", "shipped"]]);
     expect(callArgs(inquiriesQuery, "eq")).toEqual(["order_number", "AP-1029"]);
@@ -136,7 +136,15 @@ describe("orderFlags", () => {
   it("reads the order's open disputes and unresolved warnings", async () => {
     from = fromQueue({ disputes: [query({ data: [{ closed_at: "2026-09-10T00:00:00Z" }] })], early_fraud_warnings: [query({ data: [{ resolved_at: null }] })] });
     const { orderFlags } = await import("@/lib/orders/detail");
-    expect(await orderFlags("o1")).toEqual({ dispute: false, warning: true });
+    expect(await orderFlags("o1")).toEqual({ dispute: false, warning: true, lostDispute: false });
+  });
+
+  it("a lost chargeback is flagged (the bank already returned the money)", async () => {
+    const d = query({ data: [{ closed_at: "2026-09-10T00:00:00Z", outcome: "lost" }] });
+    from = fromQueue({ disputes: [d], early_fraud_warnings: [query({ data: [] })] });
+    const { orderFlags } = await import("@/lib/orders/detail");
+    expect(await orderFlags("o1")).toEqual({ dispute: false, warning: false, lostDispute: true });
+    expect(callArgs(d, "select")).toEqual(["closed_at, outcome"]);
   });
 
   it("throws on a failed read", async () => {
