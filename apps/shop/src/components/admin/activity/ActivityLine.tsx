@@ -28,9 +28,9 @@ export default function ActivityLine({ i }: { i: ActivityItem }): React.ReactNod
         case "w9_opened": return <>{who} <b>opened</b> {label}&apos;s W-9</>;
         case "w9_checked": return <>{who} marked {label}&apos;s W-9 checked</>;
         case "inquiries_seen": return <>{who} marked inquiries seen</>;
-        case "staff_disabled": return <>Disabled <b>{label}</b>{d}</>;
-        case "staff_enabled": return <>Enabled <b>{label}</b>{d}</>;
-        case "staff_signed_out": return <>Signed <b>{label}</b> out everywhere{d}</>;
+        case "staff_disabled": return <>{who} <b>disabled</b> {label ?? "a team login"}{d}</>;
+        case "staff_enabled": return <>{who} <b>enabled</b> {label ?? "a team login"}</>;
+        case "staff_signed_out": return <>{who} signed {label ?? "a team login"} out everywhere{d}</>;
       }
       return action;
     }

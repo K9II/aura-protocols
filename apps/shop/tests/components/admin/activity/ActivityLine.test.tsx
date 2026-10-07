@@ -30,14 +30,23 @@ describe("ActivityLine", () => {
       .toBe("Kearney · Paused · SPRING20");
   });
 
-  it("words Team actions on the disabled/enabled/signed-out person, with the reason if one was given", async () => {
+  it("words Team actions with the actor, on the disabled/enabled/signed-out person, with the reason if one was given", async () => {
     const { default: ActivityLine } = await import("@/components/admin/activity/ActivityLine");
     const text = (i: object) => render(<ActivityLine i={{ ...base, ...i } as never} />).container.textContent;
     expect(text({ key: "t1", area: "team", source: "admin", e: { id: "t1", area: "staff", action: "staff_disabled", target_id: "s1", label: "Assistant (Claude)", detail: "Pausing while I review last week's drafts" } }))
-      .toBe("Disabled Assistant (Claude) · Pausing while I review last week's drafts");
+      .toBe("Kearney disabled Assistant (Claude) · Pausing while I review last week's drafts");
     expect(text({ key: "t2", area: "team", source: "admin", e: { id: "t2", area: "staff", action: "staff_enabled", target_id: "s1", label: "Assistant (Claude)", detail: null } }))
-      .toBe("Enabled Assistant (Claude)");
+      .toBe("Kearney enabled Assistant (Claude)");
     expect(text({ key: "t3", area: "team", source: "admin", e: { id: "t3", area: "staff", action: "staff_signed_out", target_id: "s1", label: "Assistant (Claude)", detail: null } }))
-      .toBe("Signed Assistant (Claude) out everywhere");
+      .toBe("Kearney signed Assistant (Claude) out everywhere");
+  });
+
+  it("falls back to 'a team login' when the person behind a Team action is gone", async () => {
+    const { default: ActivityLine } = await import("@/components/admin/activity/ActivityLine");
+    const text = (i: object) => render(<ActivityLine i={{ ...base, ...i } as never} />).container.textContent;
+    expect(text({ key: "t4", area: "team", source: "admin", e: { id: "t4", area: "staff", action: "staff_disabled", target_id: "s1", label: null, detail: null } }))
+      .toBe("Kearney disabled a team login");
+    expect(text({ key: "t5", area: "team", source: "admin", e: { id: "t5", area: "staff", action: "staff_signed_out", target_id: "s1", label: null, detail: null } }))
+      .toBe("Kearney signed a team login out everywhere");
   });
 });
