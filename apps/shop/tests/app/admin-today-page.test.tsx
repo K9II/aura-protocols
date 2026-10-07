@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
-import { alertsSection, lotsSection, ordersSection, SLOT_INFO, SLOT_KEYS, type Slot, type SlotKey, type TodoSection } from "@/lib/today/todos";
+import { alertsSection, disputesSection, lotsSection, ordersSection, SLOT_INFO, SLOT_KEYS, type Slot, type SlotKey, type TodoSection } from "@/lib/today/todos";
 import { numbersView } from "@/lib/today/numbers";
 import { periodRanges } from "@/lib/today/periods";
-import { ownerStaff } from "../helpers/staff";
+import { warningRow } from "../helpers/dispute-fixtures";
+import { ownerStaff, assistantStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({ requirePermission: vi.fn(), loadTodos: vi.fn(), loadNumbers: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
@@ -83,5 +84,19 @@ describe("/admin (Today)", () => {
     expect(messages).toContain("Couldn't load the numbers.Reload");
     expect(screen.getAllByRole("link", { name: "Reload" })[0]).toHaveAttribute("href", "/admin?p=7d");
     expect(screen.queryByText(/No alerts, nothing to ship/)).toBeNull();
+  });
+
+  it("Assistant still sees Done on alerts; no early-warning action buttons", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff());
+    m.loadTodos.mockResolvedValue(slots({
+      alerts: [alertsSection([{ id: "0b6f1c2e-1111-4222-8333-944455556666", title: "Shipped lots don't match what was held", detail: "AP-1042 · line i1", count: 1, first_at: "2026-10-06T14:15:00Z", last_at: "2026-10-06T14:15:00Z", resolved_at: null, resolved_by_name: null, note: null }], NOW)!],
+      disputes: [disputesSection([], [warningRow()], NOW)!],
+    }));
+    render(await TodayPage(props()));
+    const alerts = screen.getByRole("region", { name: "Alerts" });
+    expect(within(alerts).getByRole("button", { name: "Done" })).toBeInTheDocument();
+    const disputes = screen.getByRole("region", { name: "Disputes" });
+    expect(within(disputes).queryByRole("button", { name: "Cancel and refund…" })).toBeNull();
+    expect(within(disputes).queryByRole("button", { name: "Watch" })).toBeNull();
   });
 });

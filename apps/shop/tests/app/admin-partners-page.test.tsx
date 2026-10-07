@@ -41,4 +41,12 @@ describe("/admin/partners", () => {
     expect(screen.getAllByText(/Code RCHEN starts working now/).length).toBeGreaterThan(0);
     expect(m.payableByPartner).not.toHaveBeenCalled();
   });
+
+  it("Assistant: no Approve/Decline on applications", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    m.listPartners.mockResolvedValue([{ ...base, status: "applied", code: "RCHEN", customers: { full_name: "Riley Chen", organization: null } }]);
+    render(await PartnersPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.queryAllByRole("button", { name: "Approve", hidden: true })).toEqual([]);
+    expect(screen.queryAllByRole("button", { name: "Decline", hidden: true })).toEqual([]);
+  });
 });

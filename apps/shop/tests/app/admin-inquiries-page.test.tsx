@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { NOW, inquiry } from "../helpers/inquiry-fixtures";
-import { ownerStaff } from "../helpers/staff";
+import { ownerStaff, assistantStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({ requirePermission: vi.fn(), listInquiries: vi.fn(), inquiryTabCounts: vi.fn(), listUnmatched: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
@@ -66,5 +66,16 @@ describe("/admin/inquiries", () => {
     expect(screen.getAllByRole("button", { name: "Attach to inquiry…" }).length).toBeGreaterThan(0);
     expect(screen.getByText("1 marked as spam by Amazon — show")).toBeInTheDocument();
     expect(m.listInquiries).not.toHaveBeenCalled();
+  });
+
+  it("Assistant: no Dismiss or Attach on Unmatched", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff());
+    m.listUnmatched.mockResolvedValue({
+      open: [{ id: "u1", ses_message_id: "s1", from_email: "peter.osei@gmail.com", from_name: "Peter Osei", to_address: null, subject: "Re:", body_text: "x", full_text: null, raw_key: "raw/s1", spam: false, attachment_names: [], created_at: "2026-10-06T15:05:00Z" }],
+      spam: [],
+    });
+    render(await InquiriesPage(sp({ tab: "unmatched" })));
+    expect(screen.queryByRole("button", { name: "Dismiss" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Attach to inquiry…" })).toBeNull();
   });
 });

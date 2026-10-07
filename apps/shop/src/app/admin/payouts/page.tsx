@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { getPayoutDetails, listPartners, listW9sAwaitingCheck } from "@/lib/partners/data";
 import { PAYOUT_PAGE_SIZE, countPayoutHistory, formatRunDate, latestRunSummary, listPayoutHistory, listQueuedPayouts, payoutRunWarning } from "@/lib/partners/ledger";
 import { CASH_MIN_CENTS, CREDIT_MULTIPLIER } from "@/lib/partners/tiers";
@@ -12,7 +13,10 @@ import { Crumbs, Icon, Kpis, Tabs } from "@/components/admin/ui";
 export const metadata: Metadata = { title: "Payouts", robots: { index: false, follow: false } };
 
 export default async function PayoutsPage({ searchParams }: { searchParams: Promise<{ tab?: string; page?: string }> }) {
-  await requirePermission("payouts.view");
+  const staff = await requirePermission("payouts.view");
+  const canSeeMethod = can(staff, "partners.payout_details");
+  const canMarkPaid = can(staff, "payouts.mark_paid");
+  const canOpenW9 = can(staff, "w9.open");
   const sp = await searchParams;
   const tab = sp.tab === "history" ? "history" : "send";
   const pageRaw = Number(sp.page);
@@ -22,7 +26,7 @@ export default async function PayoutsPage({ searchParams }: { searchParams: Prom
     tab === "history" ? listPayoutHistory(page) : Promise.resolve(null),
     tab === "send" ? countPayoutHistory() : Promise.resolve(null),
   ]);
-  const details = tab === "send" ? await Promise.all(queued.map((p) => getPayoutDetails(p.partner_id))) : [];
+  const details = tab === "send" && canSeeMethod ? await Promise.all(queued.map((p) => getPayoutDetails(p.partner_id))) : [];
   const cashTotal = queued.reduce((s, p) => s + p.cash_cents, 0);
   const carried = approved.filter((p) => p.cash_carry_cents > 0);
   const warning = payoutRunWarning(run);
@@ -57,16 +61,16 @@ export default async function PayoutsPage({ searchParams }: { searchParams: Prom
             return (
               <tr key={p.id}>
                 <td><Link className="a-ord" href={`/admin/partners/${p.partner_id}`}>{p.partners?.code}</Link><span className="sub">Run {formatRunDate(p.run_date)}</span></td>
-                <td>{current ?? "No payout method on file"}
+                <td>{canSeeMethod ? <>{current ?? "No payout method on file"}
                   {changed && <div className="a-err" role="alert">Changed since this payout was queued (was {p.details_hint}). Confirm with the partner first.</div>}
                   {d && <details style={{ fontSize: 12 }}><summary className="a-ulink">Show full details</summary>
-                    <p style={{ marginTop: 4 }}>{d.kind === "ach" ? `Routing ${d.routing} · Account ${d.account} · ${d.bank}` : `Zelle ${d.handle}`}</p></details>}</td>
+                    <p style={{ marginTop: 4 }}>{d.kind === "ach" ? `Routing ${d.routing} · Account ${d.account} · ${d.bank}` : `Zelle ${d.handle}`}</p></details>}</> : <span className="muted">Owner only</span>}</td>
                 <td className="num" style={{ font: "400 17px var(--serif)" }}>{usd(p.cash_cents)}</td>
-                <td><form action={markPayoutPaidAction} className="a-acts">
+                <td>{canMarkPaid && <form action={markPayoutPaidAction} className="a-acts">
                   <input type="hidden" name="payoutId" value={p.id} />
                   <div className="a-input" style={{ width: 170, height: 28 }}><input name="reference" required minLength={2} maxLength={80} placeholder="Reference" aria-label={`Payment reference for ${p.partners?.code}`} /></div>
                   <button type="submit" className="a-btn sm primary">Mark paid</button>
-                </form></td>
+                </form>}</td>
               </tr>
             );
           })}</tbody>
@@ -79,15 +83,15 @@ export default async function PayoutsPage({ searchParams }: { searchParams: Prom
             <div key={p.id} className="a-pord">
               <span><Link className="a-ord" href={`/admin/partners/${p.partner_id}`}>{p.partners?.code}</Link><span className="sub">Run {formatRunDate(p.run_date)}</span></span>
               <span className="tot">{usd(p.cash_cents)}</span>
-              <span className="nm">{current ?? "No payout method on file"}</span>
+              {canSeeMethod ? <><span className="nm">{current ?? "No payout method on file"}</span>
               {changed && <div className="a-err" role="alert">Changed since this payout was queued (was {p.details_hint}). Confirm with the partner first.</div>}
               {d && <details style={{ fontSize: 12 }}><summary className="a-ulink">Show full details</summary>
-                <p style={{ marginTop: 4 }}>{d.kind === "ach" ? `Routing ${d.routing} · Account ${d.account} · ${d.bank}` : `Zelle ${d.handle}`}</p></details>}
-              <form action={markPayoutPaidAction} className="row2">
+                <p style={{ marginTop: 4 }}>{d.kind === "ach" ? `Routing ${d.routing} · Account ${d.account} · ${d.bank}` : `Zelle ${d.handle}`}</p></details>}</> : <span className="nm muted">Owner only</span>}
+              {canMarkPaid && <form action={markPayoutPaidAction} className="row2">
                 <input type="hidden" name="payoutId" value={p.id} />
                 <div className="a-input" style={{ flex: 1, height: 28 }}><input name="reference" required minLength={2} maxLength={80} placeholder="Reference" aria-label={`Payment reference for ${p.partners?.code}`} /></div>
                 <button type="submit" className="a-btn sm primary">Mark paid</button>
-              </form>
+              </form>}
             </div>
           );
         })}</div>
@@ -129,10 +133,10 @@ export default async function PayoutsPage({ searchParams }: { searchParams: Prom
         {w9s.length === 0 ? <div className="a-card-b muted">None.</div> : w9s.map((p) => (
           <div key={p.id} className="a-trow" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
             <div><Link className="a-ord" href={`/admin/partners/${p.id}`}>{p.code}</Link><div className="t2">Uploaded {p.w9_uploaded_at ? shortDate(p.w9_uploaded_at) : "—"}{p.cash_carry_cents > 0 ? ` · ${usd(p.cash_carry_cents)} cash waiting` : ""}</div></div>
-            <div className="a-acts">
+            {canOpenW9 && <div className="a-acts">
               <form action={openW9Action}><input type="hidden" name="partnerId" value={p.id} /><button type="submit" className="a-btn sm">Open W-9</button></form>
               <form action={markW9CheckedAction}><input type="hidden" name="partnerId" value={p.id} /><button type="submit" className="a-btn sm primary">Mark checked</button></form>
-            </div>
+            </div>}
           </div>
         ))}
       </div>

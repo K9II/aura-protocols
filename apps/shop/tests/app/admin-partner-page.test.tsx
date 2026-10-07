@@ -67,4 +67,15 @@ describe("/admin/partners/[id]", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "—" })).toBeNull();
   });
+
+  it("Assistant: no Approve/Suspend, no Open W-9, Owner only instead of the method; getPayoutDetails not called", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    m.getPayoutDetails.mockClear();
+    render(await PartnerPage({ params: Promise.resolve({ id }), searchParams: Promise.resolve({}) }));
+    expect(screen.queryByRole("button", { name: "Suspend", hidden: true })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Open W-9" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Mark checked" })).toBeNull();
+    expect(screen.getByText("Hidden — owner only")).toBeInTheDocument();
+    expect(m.getPayoutDetails).not.toHaveBeenCalled();
+  });
 });

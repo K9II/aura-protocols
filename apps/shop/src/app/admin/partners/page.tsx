@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { countPartners, listPartners, type PartnerRow, type PartnerStatus } from "@/lib/partners/data";
 import { payableByPartner } from "@/lib/partners/ledger";
 import { AUDIENCE_SIZES, PARTNER_TYPES, PUBLISH_CHANNELS } from "@/lib/partners/codes";
@@ -21,7 +22,7 @@ const channels = (p: PartnerRow) => [
 ];
 
 export default async function PartnersPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  await requirePermission("partners.view");
+  const staff = await requirePermission("partners.view");
   const { tab: raw } = await searchParams;
   const tab = (TABS.find(([s]) => s === raw)?.[0] ?? "applied") as PartnerStatus;
   const [counts, partners, payable] = await Promise.all([countPartners(), listPartners(tab), tab === "approved" ? payableByPartner() : Promise.resolve({} as Record<string, number>)]);
@@ -43,7 +44,7 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
                 <td style={{ overflowWrap: "anywhere" }}>{channels(p).map((l) => <span key={l} style={{ display: "block" }}>{l}</span>)}</td>
                 <td>{sizeLabel(p.application.audienceSize)}</td>
                 <td className="a-mono">{p.code}</td>
-                <td><ApproveDecline p={p} small /></td>
+                <td>{can(staff, "partners.manage") && <ApproveDecline p={p} small />}</td>
               </tr>
             ))}</tbody>
           </table>
@@ -51,7 +52,7 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
             <div key={p.id} className="a-pord">
               <Link className="a-plain" href={`/admin/partners/${p.id}`}><b>{name(p)}</b></Link><span className="a-mono">{p.code}</span>
               <span className="nm">{typeLabel(p.partner_type)} · {sizeLabel(p.application.audienceSize)}</span>
-              <div className="row2"><ApproveDecline p={p} small /></div>
+              <div className="row2">{can(staff, "partners.manage") && <ApproveDecline p={p} small />}</div>
             </div>
           ))}</div>
         </>

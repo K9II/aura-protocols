@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { currentMs } from "@/lib/clock";
 import { inquiryTabCounts, listInquiries, listUnmatched, type UnmatchedRow } from "@/lib/inquiries/data";
 import { INQUIRIES_PER_PAGE, INQUIRY_AUTO_CLOSE_DAYS } from "@/lib/inquiries/constants";
@@ -21,7 +22,7 @@ function preview(r: InquiryRow): React.ReactNode {
   return <>{who && <span className="who">{who}</span>}{r.last_preview ?? ""}</>;
 }
 
-function Unmatched({ open, spam, domain, nowMs }: { open: UnmatchedRow[]; spam: UnmatchedRow[]; domain: string; nowMs: number }) {
+function Unmatched({ open, spam, domain, nowMs, canReply }: { open: UnmatchedRow[]; spam: UnmatchedRow[]; domain: string; nowMs: number; canReply: boolean }) {
   const row = (u: UnmatchedRow, i: number) => (
     <tr key={u.id}>
       <td className="a-from"><b>{u.from_name || u.from_email}</b><span className="em2">{u.from_email}</span></td>
@@ -29,8 +30,10 @@ function Unmatched({ open, spam, domain, nowMs }: { open: UnmatchedRow[]; spam: 
         <div className="muted" style={{ fontSize: 12 }}>{unmatchedReason(u, domain)}</div></td>
       <td className="muted">{whenText(u.created_at, nowMs)}</td>
       <td className="num" style={{ whiteSpace: "nowrap" }}>
-        <form action={dismissUnmatchedAction} style={{ display: "inline" }}><input type="hidden" name="id" value={u.id} /><button type="submit" className="a-btn sm">Dismiss</button></form>{" "}
-        <AttachDialog id={u.id} from={u.from_email} primary={i === 0} />
+        {canReply && <>
+          <form action={dismissUnmatchedAction} style={{ display: "inline" }}><input type="hidden" name="id" value={u.id} /><button type="submit" className="a-btn sm">Dismiss</button></form>{" "}
+          <AttachDialog id={u.id} from={u.from_email} primary={i === 0} />
+        </>}
       </td>
     </tr>
   );
@@ -54,7 +57,7 @@ function Unmatched({ open, spam, domain, nowMs }: { open: UnmatchedRow[]; spam: 
 
 // The inbox (mock screens 1 and 4). Spec 2026-10-06-admin-inquiries-design.md.
 export default async function InquiriesPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[]; topic?: string | string[]; q?: string | string[]; page?: string | string[] }> }) {
-  await requirePermission("inquiries.view");
+  const staff = await requirePermission("inquiries.view");
   const sp = await searchParams;
   const tab = parseTab(first(sp.tab));
   const topic = parseTopic(first(sp.topic));
@@ -107,7 +110,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
         )}
       </div>
 
-      {unmatched && <Unmatched open={unmatched.open} spam={unmatched.spam} domain={process.env.INBOUND_MAIL_DOMAIN ?? "in.auraprotocols.com"} nowMs={nowMs} />}
+      {unmatched && <Unmatched open={unmatched.open} spam={unmatched.spam} domain={process.env.INBOUND_MAIL_DOMAIN ?? "in.auraprotocols.com"} nowMs={nowMs} canReply={can(staff, "inquiries.reply")} />}
 
       {list && (list.rows.length === 0 ? <div className="a-empty">{qRaw || topic ? "Nothing matches." : tab === "open" ? "Nothing waiting for a reply." : "Nothing here yet."}</div> : (
         <>

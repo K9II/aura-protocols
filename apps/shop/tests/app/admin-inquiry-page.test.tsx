@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { NOW, inquiry } from "../helpers/inquiry-fixtures";
-import { ownerStaff } from "../helpers/staff";
+import { ownerStaff, assistantStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({
   requirePermission: vi.fn(), getThread: vi.fn(), applyInquiryEvent: vi.fn(), recordInquiryEvent: vi.fn(), listSavedReplies: vi.fn(), getCustomerDetail: vi.fn(),
@@ -107,5 +107,14 @@ describe("/admin/inquiries/[ref]", () => {
     expect(screen.getAllByText("AP-1052").length).toBeGreaterThan(0);
     expect(screen.getByText("$6.00")).toBeInTheDocument();
     expect(screen.getByText("Verified")).toBeInTheDocument();
+  });
+
+  it("Assistant: no Close, no Topic select, no Link account", async () => {
+    m.requirePermission.mockResolvedValue(assistantStaff({ id: "o1" }));
+    render(await InquiryPage(params("Q-1047")));
+    expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Re-open" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Topic" })).toBeNull();
+    expect(screen.queryByText("Link account", { exact: false })).toBeNull();
   });
 });

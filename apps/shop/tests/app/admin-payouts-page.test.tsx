@@ -66,4 +66,16 @@ describe("/admin/payouts", () => {
     render(await PayoutsPage({ searchParams: Promise.resolve({}) }));
     expect(screen.getAllByRole("alert")[0]).toHaveTextContent(/didn't finish/);  // banner first; the changed-details warning is also an alert
   });
+
+  it("Assistant: no Mark paid or W-9 forms; Owner only instead of the method; getPayoutDetails not called", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    m.listW9sAwaitingCheck.mockResolvedValue([{ id: "p1", code: "NORTHFIELD", w9_uploaded_at: "2026-09-01T00:00:00Z", cash_carry_cents: 0 }]);
+    m.getPayoutDetails.mockClear();
+    render(await PayoutsPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.queryByRole("button", { name: "Mark paid" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Open W-9" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Mark checked" })).toBeNull();
+    expect(screen.getAllByText("Owner only").length).toBeGreaterThan(0);
+    expect(m.getPayoutDetails).not.toHaveBeenCalled();
+  });
 });

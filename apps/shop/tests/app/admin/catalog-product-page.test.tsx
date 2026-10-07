@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { ownerStaff, assistantStaff } from "../../helpers/staff";
+import { assistantStaff } from "../../helpers/staff";
 const m = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../../helpers/staff")).ownerStaff()) }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(), replaceCertificateAction: vi.fn(),
