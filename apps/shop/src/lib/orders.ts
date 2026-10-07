@@ -127,7 +127,10 @@ export async function getOrderForCustomer(orderNumber: string, customerId: strin
 
 export async function listOrdersForCustomer(customerId: string): Promise<OrderRow[]> {
   const { data } = await db().from("orders").select(ORDER_WITH_ITEMS)
-    .eq("customer_id", customerId).neq("status", "awaiting_payment").order("created_at", { ascending: false });
+    .eq("customer_id", customerId).neq("status", "awaiting_payment")
+    // A no-charge attempt that failed is cancelled at once; the customer never knew of it.
+    .or("kind.eq.sale,status.neq.cancelled")
+    .order("created_at", { ascending: false });
   return (data as OrderRow[] | null) ?? [];
 }
 

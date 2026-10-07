@@ -30,6 +30,15 @@ describe("orders", () => {
     expect(callArgs(itemsQ, "insert")?.[0]).toEqual([expect.objectContaining({ order_id: "o1", lot_number: "AP-0001", quantity: 2, line_total_cents: 9800 })]);
   });
 
+  it("listOrdersForCustomer hides unfinished checkouts and no-charge attempts that were cancelled", async () => {
+    const q = query({ data: [] });
+    from = fromQueue({ orders: [q] });
+    const { listOrdersForCustomer } = await import("@/lib/orders");
+    await listOrdersForCustomer("u1");
+    expect(callArgs(q, "neq")).toEqual(["status", "awaiting_payment"]);
+    expect(callArgs(q, "or")).toEqual(["kind.eq.sale,status.neq.cancelled"]);
+  });
+
   it("records the discount code and its share", async () => {
     const orderQ = query({ data: { id: "o1", order_number: "AP-1001" } });
     const itemsQ = query({});
