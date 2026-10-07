@@ -10,7 +10,8 @@ import { customersWithDisputes } from "@/lib/disputes/data";
 import { lotsMatch, type LotQty } from "@/lib/catalog-ops/rules";
 import { dateTime } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
-import { refundCreditOrderAction } from "@/app/admin/orders/actions";
+import { cancelNoChargeOrderAction, refundCreditOrderAction } from "@/app/admin/orders/actions";
+import { REASON_LABEL } from "@/lib/no-charge/rules";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import ShipDialog from "@/components/admin/orders/ShipDialog";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
@@ -41,7 +42,8 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const vials = items.reduce((s, i) => s + i.pack_qty * i.quantity, 0);
   const live = (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live");
   const stripeUrl = o.stripe_payment_intent ? `https://dashboard.stripe.com/${live ? "" : "test/"}payments/${o.stripe_payment_intent}` : null;
-  const creditOnly = !o.stripe_session_id && o.store_credit_cents === o.total_cents && (o.status === "paid" || o.status === "shipped");
+  const nc = o.kind === "no_charge" ? d.noCharge : null;
+  const creditOnly = !nc && !o.stripe_session_id && o.store_credit_cents === o.total_cents && (o.status === "paid" || o.status === "shipped");
   const lines = moneyLines(o, { code: d.code, partnerCode: d.partner?.code ?? null });
   const charged = o.total_cents - o.store_credit_cents;
   const summary = `${o.ship_name} · ${o.ship_city}, ${o.ship_state} · ${vials} vial${vials === 1 ? "" : "s"}`;
@@ -52,8 +54,11 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
       <Crumbs items={[{ label: "Orders", href: "/admin/orders" }, { label: o.order_number }]} />
       <div className="a-dh">
         <h1 className="bigcode">{o.order_number}</h1>
-        <OrderStatusChip status={o.status} /><Markers list={orderMarkers(o, d.flags)} />
+        <OrderStatusChip status={o.status} kind={o.kind} /><Markers list={orderMarkers(o, d.flags)} />
         <div className="actions">
+          {nc && o.status === "paid" && can(staff, "orders.no_charge") && <ConfirmDialog label="Cancel order" title={`Cancel ${o.order_number}?`} confirmLabel="Cancel order" tone="danger" action={cancelNoChargeOrderAction} fields={{ orderId: o.id }}>
+            The {vials} vial{vials === 1 ? "" : "s"} go{vials === 1 ? "es" : ""} back to stock. Nothing is emailed.
+          </ConfirmDialog>}
           {o.status === "paid" && <><Link className="a-btn" href={`/admin/orders/${o.order_number}/pick`}>Pick list</Link>{can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary} />}</>}
           {creditOnly && can(staff, "orders.refund_credit") && <ConfirmDialog label="Refund to store credit" title={`Refund ${o.order_number} to store credit?`} confirmLabel={`Refund ${usd(o.store_credit_cents)}`} tone="danger" action={refundCreditOrderAction} fields={{ orderId: o.id }}>
             {usd(o.store_credit_cents)} goes back to {c.fullName}&apos;s store credit. Any partner commission is reversed and the tax is undone. This order never went through Stripe, so it can only be refunded here.
@@ -61,14 +66,17 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
           {stripeUrl && <a className="a-btn" href={stripeUrl} target="_blank" rel="noopener noreferrer"><Icon name="ext" />Open in Stripe</a>}
         </div>
       </div>
-      <div className="a-dsub">Placed {dateTime(o.created_at)}<span className="dot" />{c.fullName}<span className="dot" />{usd(charged)} charged</div>
+      {nc
+        ? <div className="a-dsub">Created {dateTime(o.created_at)}{nc.createdBy && <> by {nc.createdBy}</>}<span className="dot" />{c.fullName}<span className="dot" />
+          {nc.replaces ? <span>Replacement for <Link className="a-ulink" href={`/admin/orders/${nc.replaces}`}>{nc.replaces}</Link></span> : REASON_LABEL[nc.reason]}</div>
+        : <div className="a-dsub">Placed {dateTime(o.created_at)}<span className="dot" />{c.fullName}<span className="dot" />{usd(charged)} charged</div>}
 
       <div className="a-og">
         <div>
           <div className="a-card">
             <div className="a-card-h"><h3>Items</h3><span className="sub">{items.length} line{items.length === 1 ? "" : "s"} · {vials} vial{vials === 1 ? "" : "s"}</span></div>
             <table className="a-it">
-              <thead><tr><th>Item</th><th className="num a-only-desk">Unit</th><th className="num a-only-desk">Qty</th><th className="num">Line</th></tr></thead>
+              <thead><tr><th>Item</th><th className="num a-only-desk">{nc ? "Retail" : "Unit"}</th><th className="num a-only-desk">Qty</th><th className="num">{nc ? "Charged" : "Line"}</th></tr></thead>
               <tbody>{items.map((i) => {
                 const l = d.lots.get(i.id);
                 return (
@@ -76,7 +84,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
                     <td><b>{i.compound_name} · {i.strength}</b> <span className="muted">· {i.pack_qty === 1 ? "single vial" : `pack of ${i.pack_qty}`}</span>
                       <Lots allocated={l?.allocated ?? []} shipped={l?.shipped ?? []} />
                       {!l?.allocated.length && !l?.shipped.length && <div className="lots">Lot <span className="a-lotpill">{i.lot_number}</span></div>}</td>
-                    <td className="num a-only-desk">{usd(i.unit_price_cents)}</td>
+                    <td className="num a-only-desk">{usd(nc ? i.retail_unit_cents ?? 0 : i.unit_price_cents)}</td>
                     <td className="num a-only-desk">{i.quantity}</td>
                     <td className="num">{usd(i.line_total_cents)}</td>
                   </tr>
@@ -87,16 +95,25 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
 
           <div className="a-card">
             <div className="a-card-h"><h3>Money</h3></div>
-            <div className="a-money">{lines.map((l) => (
-              <div key={l.label} className={`ml ${l.kind}`}><span>{l.label}{l.note && <small>{l.note}</small>}</span><span>{signed(l.cents)}</span></div>
-            ))}</div>
+            {nc ? (
+              <div className="a-money">
+                <div className="ml"><span>Retail value<small>not a sale · kept for the record</small></span><span>{usd(o.retail_value_cents ?? 0)}</span></div>
+                <div className="ml"><span>Shipping</span><span>{usd(o.shipping_cents)}</span></div>
+                <div className="ml"><span>Tax</span><span>{usd(o.tax_cents)}</span></div>
+                <div className="ml charged"><span>Charged</span><span>{usd(o.total_cents)}</span></div>
+              </div>
+            ) : (
+              <div className="a-money">{lines.map((l) => (
+                <div key={l.label} className={`ml ${l.kind}`}><span>{l.label}{l.note && <small>{l.note}</small>}</span><span>{signed(l.cents)}</span></div>
+              ))}</div>
+            )}
           </div>
 
           <div className="a-card">
             <div className="a-card-h"><h3>Timeline</h3><span className="sub">newest first · shop time</span></div>
             <ul className="a-tl">{d.timeline.map((e) => (
               <li key={e.key} className={e.tone === "plain" ? undefined : e.tone}>
-                <div><b>{e.title}</b>
+                <div><b>{e.title}</b>{e.sub && <> · {e.sub}</>}
                   {(e.detail || e.who || e.href) && <span className="s2">
                     {e.who && <>by {e.who}</>}{e.who && (e.detail || e.href) && " · "}
                     {e.detail}{e.detail && e.href && " · "}
@@ -115,7 +132,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
               <b><Link href={`/admin/customers/${c.id}`} className="a-plain">{c.fullName}</Link></b>
               <div className="muted" style={{ fontSize: 12.5 }}>{c.email}</div>
               <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", fontSize: 12.5 }}>
-                <span>{c.paidOrders} order{c.paidOrders === 1 ? "" : "s"} · {usd(c.spentCents)}</span>
+                <span>{c.paidOrders} order{c.paidOrders === 1 ? "" : "s"} · {usd(c.spentCents)}{c.noChargeOrders > 0 && ` · ${c.noChargeOrders} no-charge`}</span>
                 <span className="a-chips" style={{ marginLeft: "auto" }}>{c.blocked ? <span className="a-chip blocked">Blocked</span> : c.verified ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}{disputedCustomers.has(c.id) && <span className="a-chip cb">Chargeback</span>}</span>
               </div>
             </div>
@@ -127,6 +144,17 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
               {o.tracking_number && <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--line)" }}>{(o.carrier ?? "").toUpperCase()} · <span className="a-mono">{o.tracking_number}</span></div>}
             </div>
           </div>
+          {nc && (
+            <div className="a-card">
+              <div className="a-card-h"><h3>No charge</h3></div>
+              <div className="a-card-b"><dl className="a-kv">
+                <dt>Reason</dt><dd>{REASON_LABEL[nc.reason]}</dd>
+                {nc.replaces && <><dt>Original</dt><dd><Link className="a-ord" href={`/admin/orders/${nc.replaces}`}>{nc.replaces}</Link></dd></>}
+                <dt>Created by</dt><dd>{nc.createdBy ?? "—"}</dd>
+                <dt>Counts as</dt><dd className="muted">Not a sale · no commission · first-order offer untouched</dd>
+              </dl></div>
+            </div>
+          )}
           {(d.code || d.partner || o.new_account_discount) && (
             <div className="a-card">
               <div className="a-card-h"><h3>Attribution</h3></div>

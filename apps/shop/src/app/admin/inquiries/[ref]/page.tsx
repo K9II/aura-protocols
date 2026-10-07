@@ -13,7 +13,7 @@ import { TOPICS, TOPIC_LABEL } from "@/lib/inquiries/topics";
 import { REPLY_SIGNATURE } from "@/lib/inquiries/constants";
 import { sameEmail } from "@/lib/inquiries/match";
 import { SUPPORT_EMAIL } from "@/lib/constants";
-import { STATUS_LABEL } from "@/lib/order-status";
+import { statusLabelFor } from "@/lib/order-status";
 import { shortDate } from "@/lib/discounts/time";
 import { whenText } from "@/lib/today/time";
 import { usd } from "@/lib/html";
@@ -103,7 +103,8 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
   const chip = STATUS_CHIP[status];
   const wholesale = i.topic === "wholesale";
   const firstMsg = t.messages[0];
-  const paid = customer ? customer.orders.filter((o) => o.status === "paid" || o.status === "shipped") : [];
+  // Sales only: a no-charge order isn't one of the customer's orders.
+  const paid = customer ? customer.orders.filter((o) => (o.status === "paid" || o.status === "shipped") && o.kind !== "no_charge") : [];
   const balance = customer ? customer.ledger.reduce((s, l) => s + l.amount_cents, 0) : 0;
   const allFiles = t.messages.flatMap((m) => m.files);
   const files = allFiles.length;
@@ -156,7 +157,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
                     <div key={o.id} className="a-row-o">
                       <Link className="a-mono" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link>
                       <span className="muted">{shortDate(o.created_at)} · {usd(o.total_cents)}</span>
-                      <span className={`a-chip o-${o.status}`}>{STATUS_LABEL[o.status]}</span>
+                      <span className={`a-chip o-${o.kind === "no_charge" && o.status === "refunded" ? "cancelled" : o.status}`}>{statusLabelFor(o)}</span>
                     </div>
                   ))}
                   <dl className="a-facts2" style={{ marginTop: 8 }}><dt>Store credit</dt><dd>{usd(balance)}</dd></dl>

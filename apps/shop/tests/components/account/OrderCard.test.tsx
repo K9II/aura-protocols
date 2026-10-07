@@ -33,4 +33,18 @@ describe("OrderCard", () => {
     expect(screen.getByRole("link", { name: "Lot BPC-2609-01" })).toHaveAttribute("href", "/coa?lot=BPC-2609-01");
     expect(screen.getByRole("link", { name: "Lot BPC-2610-02" })).toHaveAttribute("href", "/coa?lot=BPC-2610-02");
   });
+
+  it("a no-charge order reads No charge and Preparing to ship, never Paid", () => {
+    render(<OrderCard order={{ ...base, kind: "no_charge", total_cents: 0, status: "paid" }} />);
+    expect(screen.getByText("No charge")).toBeInTheDocument();
+    expect(screen.getByText("Preparing to ship")).toBeInTheDocument();
+    expect(screen.queryByText(/Paid/)).toBeNull();
+    expect(screen.queryByText("$0.00")).toBeNull();
+  });
+
+  it("a cancelled no-charge order reads Cancelled (no charge), never Refunded", () => {
+    render(<OrderCard order={{ ...base, kind: "no_charge", total_cents: 0, status: "refunded" }} />);
+    expect(screen.getByText("Cancelled (no charge)")).toBeInTheDocument();
+    expect(screen.queryByText(/Refunded/)).toBeNull();
+  });
 });

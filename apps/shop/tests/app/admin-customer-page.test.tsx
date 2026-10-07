@@ -76,4 +76,18 @@ describe("/admin/customers/[id]", () => {
     expect(screen.queryByRole("button", { name: "Block" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Resend verification" })).toBeNull();
   });
+
+  it("counts sales and no-charge orders apart (no-charge never in Paid orders, Spent or Average)", async () => {
+    getCustomerDetail.mockResolvedValueOnce({ ...detail, orders: [
+      { id: "o3", order_number: "AP-1061", status: "paid", kind: "no_charge", created_at: "2026-10-06T16:22:00Z", total_cents: 0, store_credit_cents: 0, new_account_discount: false, partner_id: null, attributed_by: null, order_items: [{ quantity: 3 }] },
+      { id: "o4", order_number: "AP-1060", status: "refunded", kind: "no_charge", created_at: "2026-10-05T16:22:00Z", total_cents: 0, store_credit_cents: 0, new_account_discount: false, partner_id: null, attributed_by: null, order_items: [{ quantity: 1 }] },
+      ...detail.orders.map((o) => ({ ...o, kind: "sale" })),
+    ] });
+    const { container } = render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    const kpi = screen.getByText("Paid orders").closest(".a-kpi") as HTMLElement;
+    expect(kpi).toHaveTextContent(/^Paid orders\s*1\s*1 no-charge$/);
+    expect(screen.getByText("Average order").closest(".a-kpi")).toHaveTextContent("$612.30");
+    expect(container.querySelectorAll(".a-mk.amb")).toHaveLength(2);
+    expect(screen.getByText("Cancelled (no charge)")).toBeInTheDocument();
+  });
 });

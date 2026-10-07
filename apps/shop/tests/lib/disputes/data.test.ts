@@ -32,6 +32,18 @@ describe("disputes data", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
+  it("names the orders→customers FK in list embeds (orders also has created_by → customers)", async () => {
+    const d = query({ data: [] }), w = query({ data: [] });
+    db.from = fromQueue({ disputes: [d], early_fraud_warnings: [w] });
+    const { listDisputes, listWarnings } = await import("@/lib/disputes/data");
+    await listDisputes(); await listWarnings();
+    for (const q of [d, w]) {
+      const sel = String(callArgs(q, "select")?.[0]);
+      expect(sel).toContain("customers!orders_customer_id_fkey(full_name)");
+      expect(sel).not.toMatch(/[ ,(]customers\(/);
+    }
+  });
+
   it("records a dispute through record_dispute; an error throws so Stripe retries", async () => {
     db.rpc.mockResolvedValueOnce({ data: DISPUTE_ID, error: null }).mockResolvedValueOnce({ data: null, error: { message: "down" } });
     const { recordDispute } = await import("@/lib/disputes/data");
@@ -116,6 +128,7 @@ describe("disputes data", () => {
   });
 
   it("assembles the facts for one chargeback from the order, account, agreement and lots", async () => {
+    let ordersQ!: ReturnType<typeof query>;
     m.getOrderById.mockResolvedValue(order);
     m.orderItemLots.mockResolvedValue(new Map([
       ["i1", { allocated: [{ lotNumber: "AP-BPC-2604", qty: 3 }], shipped: [{ lotNumber: "AP-BPC-2604", qty: 3 }] }],
@@ -126,11 +139,11 @@ describe("disputes data", () => {
       disputes: [query({ data: disputeRow({ billing_address: "Dana Whitfield, 1420 Elm St, Boulder, CO 80302, US" }) }), query({ data: [{ order_id: "o1" }] })],
       customers: [query({ data: { full_name: "Dana Whitfield", created_at: "2026-09-15T01:02:00Z", is_owner: false, blocked_at: null } })],
       account_agreements: [query({ data: { id: "a1", terms_version: "2026-09-27", age_21: true, ruo: true, dispute_policy: true, ip_hash: "9f3ce21a77b0", user_agent: IPHONE_UA, agreed_at: "2026-09-15T01:02:41Z" } })],
-      orders: [query({ data: [
+      orders: [(ordersQ = query({ data: [
         { id: "o0", order_number: "AP-1009", status: "shipped", total_cents: 6900, paid_at: "2026-09-15T17:00:00Z", created_at: "2026-09-15T16:59:00Z" },
         { id: "o1", order_number: "AP-1031", status: "shipped", total_cents: 41200, paid_at: "2026-09-21T16:02:00Z", created_at: "2026-09-21T16:00:00Z" },
         { id: "o9", order_number: "AP-1090", status: "awaiting_payment", total_cents: 9900, paid_at: null, created_at: "2026-10-03T16:00:00Z" },
-      ] })],
+      ] }))],
       dispute_events: [query({ data: [{ id: "e1", action: "draft_saved", note: null, at: "2026-10-06T15:31:00Z", customers: { full_name: "Kearney Adams" } }] })],
       lots: [query({ data: [{ lot_number: "AP-BPC-2604", purity_pct: "99.40", method: "HPLC", coa_path: "AP-BPC-2604/1.pdf" }] })],
     });
@@ -149,6 +162,8 @@ describe("disputes data", () => {
     expect(c.events).toEqual([{ id: "e1", action: "draft_saved", note: null, at: "2026-10-06T15:31:00Z", actorName: "Kearney" }]);
     expect(c.customer).toEqual({ id: CUSTOMER_ID, name: "Dana Whitfield", isOwner: false, blockedAt: null, paidOrders: 2, openCheckouts: [{ number: "AP-1090", totalCents: 9900 }] });
     expect(m.orderItemLots).toHaveBeenCalledWith(["i1", "i2"]);
+    // No-charge orders are neither prior purchases nor paid orders.
+    expect(ordersQ.calls).toContainEqual(["eq", ["kind", "sale"]]);
   });
 
   it("a deleted auth user falls back to the order's own email instead of failing the page", async () => {

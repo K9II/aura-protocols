@@ -5,11 +5,13 @@ import { canTransition, type OrderStatus } from "@/lib/order-status";
 import { catalogStockChanged } from "@/lib/catalog-live";
 import type { PricedOrder } from "@/lib/pricing";
 import type { ShipAddress } from "@/lib/ship-address";
+import type { NoChargeReason } from "@/lib/no-charge/rules";
 import { ORDER_PAGE_SIZE, ORDER_TABS, TAB_STATUSES, type OrderTab } from "@/lib/orders/tabs";
 
 export type OrderItemRow = {
   id: string; compound_slug: string; compound_name: string; variant_id: string; strength: string; pack_qty: number;
   quantity: number; unit_price_cents: number; line_total_cents: number; lot_number: string;
+  retail_unit_cents: number | null;
 };
 export type OrderRow = {
   id: string; order_number: string; customer_id: string; email: string; status: OrderStatus;
@@ -22,6 +24,8 @@ export type OrderRow = {
   tracking_number: string | null; carrier: string | null;
   paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null;
   expires_at: string; created_at: string;
+  kind: "sale" | "no_charge"; retail_value_cents: number | null; no_charge_reason: NoChargeReason | null; no_charge_note: string | null;
+  replaces_order_id: string | null; created_by: string | null;
   order_items?: OrderItemRow[];
 };
 
@@ -123,7 +127,10 @@ export async function getOrderForCustomer(orderNumber: string, customerId: strin
 
 export async function listOrdersForCustomer(customerId: string): Promise<OrderRow[]> {
   const { data } = await db().from("orders").select(ORDER_WITH_ITEMS)
-    .eq("customer_id", customerId).neq("status", "awaiting_payment").order("created_at", { ascending: false });
+    .eq("customer_id", customerId).neq("status", "awaiting_payment")
+    // A no-charge attempt that failed is cancelled at once; the customer never knew of it.
+    .or("kind.eq.sale,status.neq.cancelled")
+    .order("created_at", { ascending: false });
   return (data as OrderRow[] | null) ?? [];
 }
 

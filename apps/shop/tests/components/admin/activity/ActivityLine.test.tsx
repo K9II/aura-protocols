@@ -55,4 +55,15 @@ describe("ActivityLine", () => {
     expect(text({ key: "t5", area: "team", source: "admin", e: { id: "t5", area: "staff", action: "staff_signed_out", target_id: "s1", label: null, detail: null } }))
       .toBe("Kearney signed a team login out everywhere");
   });
+
+  it("words no-charge orders (the email flag is for the order page, not Activity)", async () => {
+    const { default: ActivityLine } = await import("@/components/admin/activity/ActivityLine");
+    const text = (i: object) => render(<ActivityLine i={{ ...base, ...i } as never} />).container.textContent;
+    expect(text({ key: "n1", area: "orders", source: "admin", e: { id: "n1", area: "orders", action: "no_charge_created", target_id: "o1", label: "AP-1061", detail: "Replacement · $192.00 retail · email: sent" } }))
+      .toBe("Kearney created no-charge order AP-1061 · Replacement · $192.00 retail");
+    expect(text({ key: "n3", area: "orders", source: "admin", e: { id: "n3", area: "orders", action: "no_charge_created", target_id: "o1", label: "AP-1061", detail: "Seeding · $48.00 retail · email: failed" } }))
+      .toBe("Kearney created no-charge order AP-1061 · Seeding · $48.00 retail");
+    expect(text({ key: "n2", area: "orders", source: "admin", e: { id: "n2", area: "orders", action: "no_charge_cancelled", target_id: "o1", label: "AP-1061", detail: null } }))
+      .toBe("Kearney cancelled no-charge order AP-1061");
+  });
 });

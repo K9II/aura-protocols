@@ -34,4 +34,9 @@ describe("order tabs", () => {
     expect(orderMarkers({ discount_code_id: "c", partner_id: "p" }, { dispute: true, warning: true })).toEqual(["dispute", "warning", "code", "partner"]);
     expect(orderMarkers({ discount_code_id: null, partner_id: null }, { dispute: false, warning: false })).toEqual([]);
   });
+
+  it("marks a no-charge order first", () => {
+    expect(orderMarkers({ discount_code_id: null, partner_id: null, kind: "no_charge" }, { dispute: false, warning: false })).toEqual(["no_charge"]);
+    expect(orderMarkers({ discount_code_id: null, partner_id: null, kind: "sale" }, { dispute: false, warning: false })).toEqual([]);
+  });
 });

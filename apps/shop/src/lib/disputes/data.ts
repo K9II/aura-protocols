@@ -71,7 +71,7 @@ export async function hasDisputeForCharge(chargeId: string): Promise<boolean> {
 
 // ---------- lists ----------
 
-const ORDER_BRIEF = "order_number, status, email, customer_id, shipped_at, paid_at, total_cents, store_credit_cents, customers(full_name)";
+const ORDER_BRIEF = "order_number, status, email, customer_id, shipped_at, paid_at, total_cents, store_credit_cents, customers!orders_customer_id_fkey(full_name)";
 type RawOrder = {
   order_number: string; status: OrderStatus; email: string; customer_id: string; shipped_at: string | null; paid_at: string | null;
   total_cents: number; store_credit_cents: number; customers: { full_name: string } | null;
@@ -231,8 +231,9 @@ async function latestAgreement(customerId: string): Promise<Agreement | null> {
 }
 
 type CustomerOrder = { id: string; order_number: string; status: OrderStatus; total_cents: number; paid_at: string | null; created_at: string };
+// Sales only: a no-charge order is neither a prior purchase nor a paid order.
 async function customerOrders(customerId: string): Promise<CustomerOrder[]> {
-  const { data, error } = await db().from("orders").select("id, order_number, status, total_cents, paid_at, created_at").eq("customer_id", customerId).order("created_at", { ascending: true });
+  const { data, error } = await db().from("orders").select("id, order_number, status, total_cents, paid_at, created_at").eq("customer_id", customerId).eq("kind", "sale").order("created_at", { ascending: true });
   if (error) fail("dispute customer orders read", error);
   return (data as CustomerOrder[] | null) ?? [];
 }

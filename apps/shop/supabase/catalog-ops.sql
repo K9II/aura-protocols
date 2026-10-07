@@ -127,6 +127,7 @@ revoke all on lot_stock from public, anon, authenticated;
 -- {"ok": false, "reason": "sold_out", "short": ["slug:variant", ...]}.
 -- Idempotent per order. The order row lock orders it against a cancel; the
 -- per-strength advisory locks (taken in sorted order) serialise the last vial.
+-- superseded by no-charge.sql
 create or replace function hold_vials(p_order uuid) returns json language plpgsql
 set search_path = public, pg_temp as $$
 declare

@@ -15,6 +15,7 @@ vi.mock("@/lib/orders", () => ({ getOrderById, saveTaxTransactionId }));
 vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/partners/ledger", () => ({ createCommission, markCommissionClearing, spendCredit }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ recordTax }) }));
+vi.mock("@/lib/emails", async (orig) => ({ ...(await orig<typeof import("@/lib/emails")>()), noChargeEmail: (o: { order_number: string }) => ({ subject: `NC ${o.order_number}`, html: "nc" }) }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
 
 const order = (over: Record<string, unknown> = {}) => ({
@@ -186,5 +187,50 @@ describe("afterOrderPaid", () => {
     await afterOrderPaid("o1");
     expect(recordTax).not.toHaveBeenCalled();
     expect(alertOwner).not.toHaveBeenCalled();
+  });
+  describe("no-charge orders", () => {
+    const nc = (over: Record<string, unknown> = {}) => order({
+      kind: "no_charge", subtotal_cents: 0, partner_discount_cents: 0, insurance_cents: 0, total_cents: 0,
+      partner_id: "p1", attributed_by: "code", store_credit_cents: 500, tax_calculation_id: "taxcalc_1", ...over,
+    });
+
+    it("skips commission, store credit and tax, still checks held vials, and sends the no-charge email when asked", async () => {
+      getOrderById.mockResolvedValue(nc());
+      getPartnerById.mockResolvedValue({ id: "p1", status: "approved", tier_pct: 15 });
+      sendOrAlert.mockResolvedValue(true);
+      const { afterOrderPaid } = await import("@/lib/order-paid");
+      expect(await afterOrderPaid("o1", { notify: true })).toEqual({ emailed: true });
+      expect(createCommission).not.toHaveBeenCalled();
+      expect(spendCredit).not.toHaveBeenCalled();
+      expect(recordTax).not.toHaveBeenCalled();
+      expect(orderHoldShortfall).toHaveBeenCalledWith("o1");
+      expect(sendOrAlert).toHaveBeenCalledTimes(1);
+      expect(sendOrAlert).toHaveBeenCalledWith({ to: "j@lab.org", subject: "NC AP-1001", html: "nc" }, "no-charge order AP-1001");
+    });
+
+    it("sends nothing without notify — never the confirmation or the owner new-order email", async () => {
+      getOrderById.mockResolvedValue(nc());
+      const { afterOrderPaid } = await import("@/lib/order-paid");
+      expect(await afterOrderPaid("o1")).toEqual({ emailed: false });
+      expect(sendOrAlert).not.toHaveBeenCalled();
+      expect(orderHoldShortfall).toHaveBeenCalledWith("o1");
+    });
+
+    it("reports emailed: false when the email failed (sendOrAlert already alerted the owner)", async () => {
+      getOrderById.mockResolvedValue(nc());
+      sendOrAlert.mockResolvedValue(false);
+      const { afterOrderPaid } = await import("@/lib/order-paid");
+      expect(await afterOrderPaid("o1", { notify: true })).toEqual({ emailed: false });
+      expect(sendOrAlert).toHaveBeenCalledTimes(1);
+    });
+
+    it("still alerts a shortfall on a no-charge order", async () => {
+      getOrderById.mockResolvedValue(nc());
+      orderHoldShortfall.mockResolvedValue([{ order_item_id: "i1", compound_slug: "mots-c", variant_id: "40mg", need: 2, covered: 1 }]);
+      const { afterOrderPaid } = await import("@/lib/order-paid");
+      await afterOrderPaid("o1", { notify: false });
+      expect(alertOwner).toHaveBeenCalledWith("Oversold: paid without enough held vials", expect.stringContaining("mots-c 40mg: 2 ordered, 1 held"));
+      expect(logOversold).toHaveBeenCalledWith("mots-c", "40mg", "AP-1001", 2, 1);
+    });
   });
 });

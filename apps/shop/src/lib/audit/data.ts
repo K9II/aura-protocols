@@ -10,7 +10,8 @@ export type AdminAction =
   | "partner_approved" | "partner_declined" | "partner_suspended" | "partner_reinstated"
   | "payout_paid" | "w9_opened" | "w9_checked"
   | "inquiries_seen"
-  | "staff_disabled" | "staff_enabled" | "staff_signed_out";
+  | "staff_disabled" | "staff_enabled" | "staff_signed_out"
+  | "no_charge_created" | "no_charge_cancelled";
 export type AdminEventInput = { area: AdminArea; action: AdminAction; targetId?: string | null; label?: string | null; detail?: string | null; actorId: string };
 
 const db = () => getSupabaseAdminClient();

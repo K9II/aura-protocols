@@ -112,6 +112,22 @@ describe("/admin/inquiries/[ref]", () => {
     expect(screen.getByText("Verified")).toBeInTheDocument();
   });
 
+  it("the customer card counts sales only and calls a cancelled no-charge order what it is", async () => {
+    m.getThread.mockResolvedValue({ inquiry: { ...inquiry({ customer_id: "c1" }), token: "t" }, messages: [], events: [] });
+    m.getCustomerDetail.mockResolvedValue({
+      id: "c1", fullName: "Dana Whitfield", email: "dana.w@example.com", createdAt: "2026-09-14T18:00:00Z", verifiedAt: "2026-09-14T18:05:00Z", blockedAt: null,
+      orders: [
+        { id: "o2", order_number: "AP-1061", status: "refunded", kind: "no_charge", created_at: "2026-10-06T18:00:00Z", total_cents: 0 },
+        { id: "o3", order_number: "AP-1060", status: "paid", kind: "no_charge", created_at: "2026-10-05T18:00:00Z", total_cents: 0 },
+        { id: "o1", order_number: "AP-1052", status: "shipped", kind: "sale", created_at: "2026-10-01T18:00:00Z", total_cents: 26800 },
+      ],
+      ledger: [],
+    });
+    render(await InquiryPage(params("Q-1047")));
+    expect(screen.getByText(/customer since .* · 1 order · \$268\.00/)).toBeInTheDocument();
+    expect(screen.getByText("Cancelled (no charge)")).toBeInTheDocument();
+  });
+
   it("Assistant: no Close, no Topic select, no Link account", async () => {
     m.requirePermission.mockResolvedValue(assistantStaff({ id: "o1" }));
     render(await InquiryPage(params("Q-1047")));

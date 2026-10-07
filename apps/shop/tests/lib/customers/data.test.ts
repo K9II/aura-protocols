@@ -45,4 +45,18 @@ describe("customers data", () => {
     expect(callArgs(upd, "update")).toEqual([{ blocked_at: "2026-10-04T00:00:00Z", blocked_reason: "fraud" }]);
     await expect(logCustomerEvent({ customerId: "u1", kind: "blocked", reason: "fraud", actorId: "owner" })).rejects.toThrow(/customer event/);
   });
+
+  it("getCustomerDetail reads each order's kind so the page can count sales and no-charge apart", async () => {
+    const orders = query({ data: [{ id: "o1", order_number: "AP-1061", status: "paid", kind: "no_charge", created_at: "2026-10-06T16:22:00Z", total_cents: 0, store_credit_cents: 0, new_account_discount: false, partner_id: null, attributed_by: null, order_items: [] }] });
+    from = fromQueue({
+      customers: [query({ data: { id: "u1", full_name: "Dana Whitfield", created_at: "2026-09-01T00:00:00Z" } })],
+      orders: [orders], account_agreements: [query({ data: [] })], gate_attestations: [query({ data: [] })],
+      store_credit_ledger: [query({ data: [] })], customer_events: [query({ data: [] })], partners: [query({ data: null })],
+    });
+    getUserById.mockResolvedValue({ data: { user: { email: "dana.w@example.com" } }, error: null });
+    const { getCustomerDetail } = await import("@/lib/customers/data");
+    const d = (await getCustomerDetail("u1"))!;
+    expect(String(callArgs(orders, "select")![0])).toMatch(/\bkind\b/);
+    expect(d.orders[0].kind).toBe("no_charge");
+  });
 });

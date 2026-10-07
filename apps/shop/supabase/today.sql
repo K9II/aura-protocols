@@ -57,6 +57,7 @@ end $$;
 -- credit is a payment, not a charge). Buckets are Mountain-time hours or days
 -- as local 'YYYY-MM-DDTHH:MI' keys (empty buckets left out; the app fills
 -- them). Top 5 strengths share each order's goods by line total.
+-- superseded by no-charge.sql
 create or replace function admin_sales_summary(p_from timestamptz, p_to timestamptz, p_bucket text) returns json
 language plpgsql stable security definer set search_path = public, pg_temp as $$
 begin

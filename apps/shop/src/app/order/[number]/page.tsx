@@ -34,17 +34,24 @@ export default async function OrderPage({ params, searchParams }: {
   const processing = order.status === "processing" || bankPending;
   const closed = order.status === "cancelled" || order.status === "refunded";
   const done = confirming || processing || order.status === "paid" || order.status === "shipped";
+  // Sent by us at no charge (seeding, replacement, sample): no receipt, no
+  // payment or refund wording, and the customer's cart is left alone.
+  const noCharge = order.kind === "no_charge";
 
   return (
     <div className="pharmacopoeia">
-      {done && <ClearCart />}
+      {done && !noCharge && <ClearCart />}
       <div className="p-container py-16" style={{ maxWidth: 760 }}>
         <p className="s-micro text-[color:var(--specimen)] mb-2.5">Order {order.order_number}</p>
         <h1 className="s-h1 mb-6" style={{ fontSize: 48 }}>
-          {closed ? <>Order <em>{order.status}.</em></> : processing ? <>Payment <em>processing.</em></> : done ? <>Thank <em>you.</em></> : <>Awaiting <em>payment.</em></>}
+          {noCharge ? (closed ? <>Order <em>cancelled.</em></> : <>Sent at <em>no charge.</em></>)
+            : closed ? <>Order <em>{order.status}.</em></> : processing ? <>Payment <em>processing.</em></> : done ? <>Thank <em>you.</em></> : <>Awaiting <em>payment.</em></>}
         </h1>
         <p className="text-[15px] text-[color:var(--ink-soft)] mb-6">
-          {order.status === "cancelled" ? "This order was cancelled and no payment was taken. Your cart is unchanged."
+          {noCharge ? (closed ? "Cancelled — nothing was charged."
+              : order.status === "shipped" ? "Nothing was charged. Your vials are on the way — tracking is below."
+              : "Nothing was charged. We'll email you tracking as soon as it ships.")
+            : order.status === "cancelled" ? "This order was cancelled and no payment was taken. Your cart is unchanged."
             : order.status === "refunded" ? "This order was refunded. The refund goes back to the way you paid."
             : confirming ? "Payment received — confirming your order now. A confirmation email is on its way."
             : processing ? "Bank payments take a few business days to clear. We'll email you as soon as it does."

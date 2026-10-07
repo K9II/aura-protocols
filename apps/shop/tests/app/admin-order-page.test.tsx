@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 
 const m = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), getOrderDetail: vi.fn(), customersWithDisputes: vi.fn(async () => new Set<string>()), notFound: vi.fn(() => { throw new Error("NEXT_NOT_FOUND"); }) }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/orders/detail", () => ({ getOrderDetail: m.getOrderDetail }));
 vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes: m.customersWithDisputes }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound }));
-vi.mock("@/app/admin/orders/actions", () => ({ refundCreditOrderAction: vi.fn() }));
+vi.mock("@/app/admin/orders/actions", () => ({ refundCreditOrderAction: vi.fn(), cancelNoChargeOrderAction: vi.fn() }));
 vi.mock("@/components/admin/orders/ShipDialog", () => ({ default: () => <button>Ship</button> }));
 import OrderPage from "@/app/admin/orders/[number]/page";
 
@@ -87,5 +87,77 @@ describe("/admin/orders/[number]", () => {
     expect(screen.queryByRole("button", { name: "Ship" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Refund to store credit", hidden: true })).toBeNull();
     expect(screen.getByRole("link", { name: "Pick list" })).toBeInTheDocument();
+  });
+
+  describe("a no-charge order (Screen 6)", () => {
+    const nc = {
+      ...order, order_number: "AP-1061", status: "paid", customer_id: "c1", email: "dana.w@example.com", ship_name: "Dana Whitfield",
+      subtotal_cents: 0, partner_discount_cents: 0, code_discount_cents: 0, shipping_cents: 0, insurance_cents: 0, tax_cents: 0, total_cents: 0, store_credit_cents: 0,
+      partner_id: null, discount_code_id: null, attributed_by: null, stripe_payment_intent: null, stripe_session_id: null, carrier: null, tracking_number: null, shipped_at: null,
+      created_at: "2026-10-06T16:22:00Z", paid_at: "2026-10-06T16:22:01Z",
+      kind: "no_charge", retail_value_cents: 19_200, no_charge_reason: "replacement", no_charge_note: "2 vials cracked in transit", replaces_order_id: "o0", created_by: "owner",
+      order_items: [
+        { id: "i1", compound_name: "BPC-157", strength: "10 mg", pack_qty: 1, quantity: 2, unit_price_cents: 0, line_total_cents: 0, retail_unit_cents: 4_800, lot_number: "BPC-2609-A" },
+        { id: "i2", compound_name: "MOTS-c", strength: "40 mg", pack_qty: 1, quantity: 1, unit_price_cents: 0, line_total_cents: 0, retail_unit_cents: 9_600, lot_number: "MOTS-2610-A" },
+      ],
+    };
+    const ncDetail = {
+      ...detail, order: nc, lots: new Map(), code: null, partner: null,
+      customer: { id: "c1", fullName: "Dana Whitfield", email: "dana.w@example.com", verified: true, blocked: false, paidOrders: 3, spentCents: 89_350, noChargeOrders: 1 },
+      noCharge: { reason: "replacement", note: "2 vials cracked in transit", createdBy: "Alvester", replaces: "AP-1052" },
+      timeline: [{ key: "created", at: "2026-10-06T16:22:00Z", tone: "ok", title: "Created — no charge", sub: "Replacement for AP-1052", who: "Alvester", detail: "“2 vials cracked in transit” · 3 vials held" }],
+    };
+
+    it("chips, actions, sub-line, items at retail, money, No charge card and customer counts", async () => {
+      m.getOrderDetail.mockResolvedValue(ncDetail);
+      const { container } = render(await OrderPage({ params: Promise.resolve({ number: "AP-1061" }) }));
+      expect(screen.getByText("Paid")).toBeInTheDocument();
+      expect(container.querySelector(".a-dh .a-mk.amb")).toHaveTextContent("No charge");
+      expect(screen.getAllByRole("button", { name: "Cancel order", hidden: true }).length).toBeGreaterThan(0);
+      expect(screen.getByText("Cancel AP-1061?")).toBeInTheDocument();
+      expect(screen.getByText("The 3 vials go back to stock. Nothing is emailed.")).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Pick list" })).toHaveAttribute("href", "/admin/orders/AP-1061/pick");
+      expect(screen.getByRole("button", { name: "Ship" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Refund to store credit", hidden: true })).toBeNull();
+      const sub = container.querySelector(".a-dsub") as HTMLElement;
+      expect(sub).toHaveTextContent("Created Oct 6, 10:22 am by Alvester");
+      expect(sub).toHaveTextContent("Dana Whitfield");
+      expect(within(sub).getByRole("link", { name: "AP-1052" })).toHaveAttribute("href", "/admin/orders/AP-1052");
+      const items = screen.getByRole("heading", { name: "Items" }).closest(".a-card") as HTMLElement;
+      expect(within(items).getAllByRole("columnheader").map((h) => h.textContent)).toEqual(["Item", "Retail", "Qty", "Charged"]);
+      expect(within(items).getByText("$48.00")).toBeInTheDocument();
+      expect(within(items).getAllByText("$0.00")).toHaveLength(2);
+      const money = screen.getByRole("heading", { name: "Money" }).closest(".a-card") as HTMLElement;
+      expect(money).toHaveTextContent("Retail value");
+      expect(money).toHaveTextContent("not a sale · kept for the record");
+      expect(money).toHaveTextContent("$192.00");
+      expect(within(money).getByText("Charged")).toBeInTheDocument();
+      const card = screen.getByRole("heading", { name: "No charge" }).closest(".a-card") as HTMLElement;
+      expect(card).toHaveTextContent("ReasonReplacement");
+      expect(within(card).getByRole("link", { name: "AP-1052" })).toHaveAttribute("href", "/admin/orders/AP-1052");
+      expect(card).toHaveTextContent("Created byAlvester");
+      expect(card).toHaveTextContent("Not a sale · no commission · first-order offer untouched");
+      expect(screen.getByText("3 orders · $893.50 · 1 no-charge")).toBeInTheDocument();
+      expect(screen.getByText("Created — no charge")).toBeInTheDocument();
+      expect(screen.getByText(/· Replacement for AP-1052/)).toBeInTheDocument();
+    });
+
+    it("hides Cancel order without orders.no_charge, and after shipping", async () => {
+      m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+      m.getOrderDetail.mockResolvedValue(ncDetail);
+      const a = render(await OrderPage({ params: Promise.resolve({ number: "AP-1061" }) }));
+      expect(screen.queryByRole("button", { name: "Cancel order", hidden: true })).toBeNull();
+      a.unmount();
+      m.getOrderDetail.mockResolvedValue({ ...ncDetail, order: { ...nc, status: "shipped" } });
+      render(await OrderPage({ params: Promise.resolve({ number: "AP-1061" }) }));
+      expect(screen.queryByRole("button", { name: "Cancel order", hidden: true })).toBeNull();
+    });
+
+    it("a cancelled no-charge order reads Cancelled (no charge)", async () => {
+      m.getOrderDetail.mockResolvedValue({ ...ncDetail, order: { ...nc, status: "refunded", refunded_at: "2026-10-07T16:00:00Z" } });
+      render(await OrderPage({ params: Promise.resolve({ number: "AP-1061" }) }));
+      expect(screen.getByText("Cancelled (no charge)")).toBeInTheDocument();
+      expect(screen.queryByText("Refunded")).toBeNull();
+    });
   });
 });
