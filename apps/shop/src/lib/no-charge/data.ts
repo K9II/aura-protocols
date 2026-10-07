@@ -9,7 +9,8 @@ import { cleanSearch } from "@/lib/customers/rules";
 import { zonedToIso } from "@/lib/discounts/time";
 import { localStamp } from "@/lib/today/time";
 import type { ShipAddress } from "@/lib/ship-address";
-import type { BuiltLine, NoChargeReason, StockOption } from "@/lib/no-charge/rules";
+import { NoChargeCreateError, type BuiltLine, type NoChargeReason, type StockOption } from "@/lib/no-charge/rules";
+import type { OrderStatus } from "@/lib/order-status";
 
 const db = () => getSupabaseAdminClient();
 const fail = (what: string, error: unknown): never => { throw new Error(`${what} failed: ${JSON.stringify(error)}`); };
@@ -97,10 +98,13 @@ export async function monthTotal(nowMs: number): Promise<{ orders: number; retai
 }
 
 // ---------- create ----------
+// `key` is the form's one-time key (orders.no_charge_key, unique): a second
+// submit of the same form returns { duplicate: true } instead of a second
+// order. A failure throws NoChargeCreateError.
 export async function createNoChargeOrder(i: {
   customerId: string; email: string; ship: ShipAddress; lines: BuiltLine[]; retailCents: number;
-  reason: NoChargeReason; note: string | null; replacesOrderId: string | null; actorId: string; agreedAt: string;
-}): Promise<{ id: string; orderNumber: string }> {
+  reason: NoChargeReason; note: string | null; replacesOrderId: string | null; actorId: string; agreedAt: string; key: string;
+}): Promise<{ id: string; orderNumber: string } | { duplicate: true }> {
   const now = new Date();
   const { data, error } = await db().from("orders").insert({
     customer_id: i.customerId, email: i.email, status: "awaiting_payment", kind: "no_charge",
@@ -109,10 +113,12 @@ export async function createNoChargeOrder(i: {
     store_credit_cents: 0, partner_discount_cents: 0, code_discount_cents: 0,
     retail_value_cents: i.retailCents, no_charge_reason: i.reason, no_charge_note: i.note,
     replaces_order_id: i.replacesOrderId, created_by: i.actorId,
-    ruo_confirmed_at: i.agreedAt,
+    ruo_confirmed_at: i.agreedAt, no_charge_key: i.key,
     expires_at: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
   }).select("id, order_number").single();
-  if (error || !data) fail("no-charge order insert", error ?? "no row");
+  const e = error as { code?: string; message?: string } | null;
+  if (e?.code === "23505" && /no_charge_key/.test(e.message ?? "")) return { duplicate: true };
+  if (error || !data) throw new NoChargeCreateError(`no-charge order insert failed: ${JSON.stringify(error ?? "no row")}`, null);
   const order = data as { id: string; order_number: string };
   // lot_number is NOT NULL; hold_vials fills it with the real allocation (same as checkout).
   const { error: itemsError } = await db().from("order_items").insert(i.lines.map((l) => ({
@@ -121,16 +127,30 @@ export async function createNoChargeOrder(i: {
     line_total_cents: l.lineTotalCents, retail_unit_cents: l.retailUnitCents, lot_number: "",
   })));
   if (itemsError) {
-    await db().from("orders").delete().eq("id", order.id);
-    fail("order_items insert", itemsError);
+    const { error: delError } = await db().from("orders").delete().eq("id", order.id);
+    throw new NoChargeCreateError(
+      `order_items insert failed: ${JSON.stringify(itemsError)}${delError ? `; order delete failed: ${JSON.stringify(delError)}` : ""}`,
+      delError ? { id: order.id, orderNumber: order.order_number } : null,
+    );
   }
   return { id: order.id, orderNumber: order.order_number };
 }
 
-// For Replacement: the original order must belong to the same customer.
+// The order an earlier submit of the same form created (double submit).
+export async function orderByNoChargeKey(key: string): Promise<{ id: string; orderNumber: string; status: OrderStatus } | null> {
+  const { data, error } = await db().from("orders").select("id, order_number, status")
+    .eq("no_charge_key", key).eq("kind", "no_charge").maybeSingle();
+  if (error) fail("no-charge key read", error);
+  const r = data as { id: string; order_number: string; status: OrderStatus } | null;
+  return r ? { id: r.id, orderNumber: r.order_number, status: r.status } : null;
+}
+
+// For Replacement: the original must be one of the same customer's paid or
+// shipped sale orders (the same list as saleOrders).
 export async function orderIdByNumber(n: string, customerId: string): Promise<string | null> {
   const { data, error } = await db().from("orders").select("id")
-    .eq("order_number", n.trim().toUpperCase()).eq("customer_id", customerId).maybeSingle();
+    .eq("order_number", n.trim().toUpperCase()).eq("customer_id", customerId)
+    .eq("kind", "sale").in("status", ["paid", "shipped"]).maybeSingle();
   if (error) fail("original order read", error);
   return (data as { id: string } | null)?.id ?? null;
 }

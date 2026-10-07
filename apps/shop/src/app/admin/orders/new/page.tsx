@@ -85,7 +85,7 @@ export default async function NewNoChargePage({ searchParams }: { searchParams: 
     <div className="a-page">
       {head}
       {usable
-        ? <NoChargeForm customer={who} stock={stock} originals={originals} month={month} recipientCard={card} />
+        ? <NoChargeForm customer={who} stock={stock} originals={originals} month={month} submitKey={crypto.randomUUID()} recipientCard={card} />
         : <div className="a-nc-grid one">{card}</div>}
     </div>
   );

@@ -18,6 +18,10 @@ describe("no-charge.sql", () => {
     expect(sql).toMatch(/no_charge_reason in \('seeding', 'replacement', 'sample', 'other'\)/);
     expect(sql).toMatch(/orders_no_charge_zero/); // money must be zero on a no-charge order
   });
+  it("a one-time form key stops a double submit creating two orders", () => {
+    expect(sql).toMatch(/alter table orders add column if not exists no_charge_key text/);
+    expect(sql).toMatch(/create unique index if not exists orders_no_charge_key_idx on orders \(no_charge_key\) where no_charge_key is not null/);
+  });
   it("hold_vials: a no-charge order may take a hidden strength of a shown product, never a hidden product", () => {
     const f = fn("hold_vials");
     expect(f).toMatch(/v_kind/);

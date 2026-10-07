@@ -18,6 +18,10 @@ alter table orders add constraint orders_no_charge_zero check (kind = 'sale' or 
   and partner_id is null and discount_code_id is null and stripe_session_id is null
   and no_charge_reason is not null and retail_value_cents is not null));
 create index if not exists orders_kind_paid_idx on orders (kind, paid_at desc);
+-- The New no-charge order form's one-time key: a double submit finds the
+-- first order instead of creating a second.
+alter table orders add column if not exists no_charge_key text;
+create unique index if not exists orders_no_charge_key_idx on orders (no_charge_key) where no_charge_key is not null;
 alter table order_items add column if not exists retail_unit_cents integer check (retail_unit_cents >= 0);
 
 alter table admin_events drop constraint if exists admin_events_action_check;

@@ -14,7 +14,7 @@ const recordShipped = vi.fn();
 const catalogStockChanged = vi.fn();
 const revalidatePath = vi.fn();
 const holdVials = vi.fn();
-const nc = vi.hoisted(() => ({ recipient: vi.fn(), stockOptions: vi.fn(), createNoChargeOrder: vi.fn(), orderIdByNumber: vi.fn() }));
+const nc = vi.hoisted(() => ({ recipient: vi.fn(), stockOptions: vi.fn(), createNoChargeOrder: vi.fn(), orderIdByNumber: vi.fn(), orderByNoChargeKey: vi.fn() }));
 const afterOrderPaid = vi.fn();
 const redirect = vi.fn((url: string) => { throw new Error(`REDIRECT ${url}`); });
 vi.mock("@/lib/dal", () => ({ requirePermission }));
@@ -242,6 +242,8 @@ describe("refundCreditOrderAction", () => {
 describe("createNoChargeOrderAction", () => {
   const cust = "22222222-2222-4222-8222-222222222222";
   const ship = { name: "Dr. Mara Lin", line1: "1 Lab Way", line2: null, city: "Austin", state: "TX" as const, zip: "78701" };
+  const KEY = "3b241101-e2bb-4255-8caf-4136c566a962";
+  const NOT_RESERVED = "Stock couldn't be reserved. Nothing was sent — try again.";
   const who = { id: cust, name: "Mara Lin", email: "mara@lab.org", verified: true, blocked: false, agreedAt: "2026-10-01T00:00:00Z", ship };
   const stock = [
     { slug: "bpc-157", variantId: "10mg", name: "BPC-157", strength: "10 mg", priceCents: 4800, available: 84, hidden: false },
@@ -249,7 +251,7 @@ describe("createNoChargeOrderAction", () => {
   ];
   const form = (over: Record<string, string | string[]> = {}) => {
     const v: Record<string, string | string[]> = {
-      customer: cust, reason: "replacement", replaces: "AP-1040", note: "Vial cracked in transit", email: "on",
+      customer: cust, key: KEY, reason: "replacement", replaces: "AP-1040", note: "Vial cracked in transit", email: "on",
       line: ["bpc-157:10mg:2", "mots-c:40mg:1"],
       ship_name: ship.name, ship_line1: ship.line1, ship_line2: "", ship_city: ship.city, ship_state: "tx", ship_zip: ship.zip, ...over,
     };
@@ -260,7 +262,7 @@ describe("createNoChargeOrderAction", () => {
 
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [audit.recordAdminEvent, requirePermission, transitionOrder, alertOwner, catalogStockChanged, revalidatePath, holdVials, afterOrderPaid, redirect, nc.recipient, nc.stockOptions, nc.createNoChargeOrder, nc.orderIdByNumber]) f.mockReset();
+    for (const f of [audit.recordAdminEvent, requirePermission, transitionOrder, alertOwner, catalogStockChanged, revalidatePath, holdVials, afterOrderPaid, redirect, nc.recipient, nc.stockOptions, nc.createNoChargeOrder, nc.orderIdByNumber, nc.orderByNoChargeKey]) f.mockReset();
     redirect.mockImplementation((url: string) => { throw new Error(`REDIRECT ${url}`); });
     requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
     nc.recipient.mockResolvedValue(who);
@@ -327,7 +329,7 @@ describe("createNoChargeOrderAction", () => {
         { compoundSlug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", packQty: 1, quantity: 2, unitPriceCents: 0, lineTotalCents: 0, retailUnitCents: 4800 },
         { compoundSlug: "mots-c", compoundName: "MOTS-c", variantId: "40mg", strength: "40 mg", packQty: 1, quantity: 1, unitPriceCents: 0, lineTotalCents: 0, retailUnitCents: 9600 },
       ],
-      retailCents: 19200, reason: "replacement", note: "Vial cracked in transit", replacesOrderId: "orig-id", actorId: "owner", agreedAt: "2026-10-01T00:00:00Z",
+      retailCents: 19200, reason: "replacement", note: "Vial cracked in transit", replacesOrderId: "orig-id", actorId: "owner", agreedAt: "2026-10-01T00:00:00Z", key: KEY,
     });
     expect(holdVials).toHaveBeenCalledWith("o9");
     expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "paid");
@@ -352,18 +354,96 @@ describe("createNoChargeOrderAction", () => {
   it("sold out while creating → cancels and names the short item", async () => {
     holdVials.mockResolvedValue({ ok: false, reason: "sold_out", short: [{ slug: "mots-c", variantId: "40mg" }] });
     const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
-    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { lines: "Not enough MOTS-c 40 mg left — someone just bought it. Lower the count." } });
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { lines: "Not enough MOTS-c 40 mg left — someone just bought it. Lower the count." }, key: expect.any(String) });
     expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "cancelled");
     expect(transitionOrder).not.toHaveBeenCalledWith("o9", "awaiting_payment", "paid");
     expect(afterOrderPaid).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
   });
 
-  it("a hold that throws → cancels, nothing created", async () => {
+  it("a hold that throws → cancels, nothing sent, a fresh form key", async () => {
     holdVials.mockRejectedValue(new Error("db down"));
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
-    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { form: "Stock couldn't be reserved. Nothing was created — try again." } });
+    const r = await createNoChargeOrderAction(null, form());
+    expect(r).toEqual({ errors: { form: NOT_RESERVED }, key: expect.any(String) });
+    expect(r!.key).not.toBe(KEY);
+    expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "cancelled");
+    expect(afterOrderPaid).not.toHaveBeenCalled();
+  });
+
+  it("refuses a form without its one-time key", async () => {
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form({ key: "" }))).toEqual({ errors: { form: "This form is out of date — reload the page." } });
+    expect(nc.createNoChargeOrder).not.toHaveBeenCalled();
+  });
+
+  it("a double submit opens the order the first submit created — no second order, no second hold", async () => {
+    nc.createNoChargeOrder.mockResolvedValue({ duplicate: true });
+    nc.orderByNoChargeKey.mockResolvedValue({ id: "o9", orderNumber: "AP-1061", status: "paid" });
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(createNoChargeOrderAction(null, form())).rejects.toThrow("REDIRECT /admin/orders/AP-1061");
+    expect(nc.orderByNoChargeKey).toHaveBeenCalledWith(KEY);
+    expect(holdVials).not.toHaveBeenCalled();
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(afterOrderPaid).not.toHaveBeenCalled();
+    expect(audit.recordAdminEvent).not.toHaveBeenCalled();
+  });
+
+  it("a resubmit of a form whose order was cancelled asks to try again with a fresh key", async () => {
+    nc.createNoChargeOrder.mockResolvedValue({ duplicate: true });
+    nc.orderByNoChargeKey.mockResolvedValue({ id: "o9", orderNumber: "AP-1061", status: "cancelled" });
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    const r = await createNoChargeOrderAction(null, form());
+    expect(r).toEqual({ errors: { form: NOT_RESERVED }, key: expect.any(String) });
+    expect(r!.key).not.toBe(KEY);
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("an order insert that throws → nothing sent, nothing to cancel", async () => {
+    const { NoChargeCreateError } = await import("@/lib/no-charge/rules");
+    nc.createNoChargeOrder.mockRejectedValue(new NoChargeCreateError("no-charge order insert failed", null));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { form: NOT_RESERVED }, key: expect.any(String) });
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(alertOwner).not.toHaveBeenCalled();
+    expect(holdVials).not.toHaveBeenCalled();
+  });
+
+  it("a create that leaves an order behind cancels it; a failed cancel alerts the owner by order number", async () => {
+    const { NoChargeCreateError } = await import("@/lib/no-charge/rules");
+    nc.createNoChargeOrder.mockRejectedValue(new NoChargeCreateError("order_items insert failed; order delete failed", { id: "o9", orderNumber: "AP-1061" }));
+    transitionOrder.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { form: NOT_RESERVED }, key: expect.any(String) });
+    expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "cancelled");
+    expect(alertOwner).toHaveBeenCalledWith("No-charge order not cancelled", expect.stringMatching(/^AP-1061: [\s\S]*db down/));
+  });
+
+  it("the paid transition throwing → cancels the order, nothing sent", async () => {
+    transitionOrder.mockImplementation(async (_id: string, _from: string, to: string) => { if (to === "paid") throw new Error("db down"); return true; });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { form: NOT_RESERVED }, key: expect.any(String) });
+    expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "cancelled");
+    expect(afterOrderPaid).not.toHaveBeenCalled();
+    expect(alertOwner).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("a cancel that finds the order already moved alerts the owner", async () => {
+    transitionOrder.mockResolvedValue(false);
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { form: NOT_RESERVED }, key: expect.any(String) });
+    expect(alertOwner).toHaveBeenCalledWith("No-charge order not cancelled", expect.stringMatching(/^AP-1061: /));
+  });
+
+  it("an inactive strength → cancels and asks to reload", async () => {
+    holdVials.mockResolvedValue({ ok: false, reason: "inactive" });
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await createNoChargeOrderAction(null, form())).toEqual({ errors: { form: "One of these strengths is no longer available — reload the page." }, key: expect.any(String) });
     expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "cancelled");
     expect(afterOrderPaid).not.toHaveBeenCalled();
   });

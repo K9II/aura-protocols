@@ -3,7 +3,7 @@
 // New no-charge order — port of mock Screen 5 (desktop, two columns with a
 // sticky summary) and Screen 7 right (phone, one column with the summary
 // line and Create pinned at the bottom). Posts to createNoChargeOrderAction:
-// `customer`, `reason`, `replaces`, `note`, repeated `line` =
+// `customer`, `key` (one-time), `reason`, `replaces`, `note`, repeated `line` =
 // slug:variantId:vials, `email` ("on") and the ship_* address fields.
 import { useActionState, useId, useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -28,9 +28,11 @@ function CreateButton({ className }: { className: string }) {
   return <button type="submit" className={className} disabled={pending}>{pending ? "Creating…" : "Create order"}</button>;
 }
 
-export default function NoChargeForm({ customer, stock, originals, month, recipientCard }: {
+// `submitKey` is the page render's one-time key (see createNoChargeOrderAction);
+// after a failed attempt the action sends back a fresh one.
+export default function NoChargeForm({ customer, stock, originals, month, submitKey, recipientCard }: {
   customer: Customer; stock: StockOption[]; originals: Array<{ number: string; createdAt: string }>;
-  month: { orders: number; retailCents: number }; recipientCard: React.ReactNode;
+  month: { orders: number; retailCents: number }; submitKey: string; recipientCard: React.ReactNode;
 }) {
   const [state, action] = useActionState<NoChargeState, FormData>(createNoChargeOrderAction, null);
   const err = state?.errors ?? {};
@@ -69,6 +71,7 @@ export default function NoChargeForm({ customer, stock, originals, month, recipi
   return (
     <form action={action} className="a-nc-form" noValidate>
       <input type="hidden" name="customer" value={customer.id} />
+      <input type="hidden" name="key" value={state?.key ?? submitKey} />
       {chosen.map((l) => <input key={l.key} type="hidden" name="line" value={`${l.sel}:${l.vials.trim()}`} />)}
       {!editing && <>
         <input type="hidden" name="ship_name" value={addr.name} /><input type="hidden" name="ship_line1" value={addr.line1} />

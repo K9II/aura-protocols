@@ -11,8 +11,8 @@ vi.mock("@/lib/no-charge/data", () => ({ searchRecipients: m.searchRecipients, r
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T18:00:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound }));
 vi.mock("@/components/admin/orders/NoChargeForm", () => ({
-  default: ({ customer, stock, originals, month, recipientCard }: { customer: { id: string }; stock: unknown[]; originals: unknown[]; month: { orders: number }; recipientCard: React.ReactNode }) =>
-    <>{recipientCard}<div data-testid="nc-form">form for {customer.id} · {stock.length} options · {originals.length} originals · {month.orders} this month</div></>,
+  default: ({ customer, stock, originals, month, submitKey, recipientCard }: { customer: { id: string }; stock: unknown[]; originals: unknown[]; month: { orders: number }; submitKey: string; recipientCard: React.ReactNode }) =>
+    <>{recipientCard}<div data-testid="nc-form" data-key={submitKey}>form for {customer.id} · {stock.length} options · {originals.length} originals · {month.orders} this month</div></>,
 }));
 import NewNoChargePage from "@/app/admin/orders/new/page";
 
@@ -71,6 +71,8 @@ describe("/admin/orders/new", () => {
     expect(screen.getByText("Dana Whitfield").closest(".a-pick")).toHaveTextContent("dana.w@example.com · 3 orders · Verified");
     expect(screen.getByRole("link", { name: "Change" })).toHaveAttribute("href", "/admin/orders/new");
     expect(screen.getByTestId("nc-form")).toHaveTextContent(`form for ${C1} · 1 options · 3 originals · 4 this month`);
+    // A fresh one-time key per render (a double submit of one render can't make two orders).
+    expect(screen.getByTestId("nc-form").dataset.key).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it("404s an unknown customer id", async () => {

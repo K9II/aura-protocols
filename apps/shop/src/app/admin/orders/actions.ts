@@ -15,8 +15,8 @@ import { catalogStockChanged } from "@/lib/catalog-live";
 import { afterOrderPaid } from "@/lib/order-paid";
 import { shipAddressSchema } from "@/lib/ship-address";
 import { usd } from "@/lib/html";
-import { createNoChargeOrder, orderIdByNumber, recipient, stockOptions } from "@/lib/no-charge/data";
-import { buildLines, parseNoCharge, REASON_LABEL, summary, type NoChargeErrors } from "@/lib/no-charge/rules";
+import { createNoChargeOrder, orderByNoChargeKey, orderIdByNumber, recipient, stockOptions } from "@/lib/no-charge/data";
+import { buildLines, NoChargeCreateError, parseNoCharge, REASON_LABEL, summary, type NoChargeErrors } from "@/lib/no-charge/rules";
 
 const schema = z.object({
   orderId: z.string().uuid(),
@@ -94,11 +94,15 @@ export async function refundCreditOrderAction(form: FormData): Promise<void> {
 
 // ---------- no-charge orders (seeding, replacement, sample) ----------
 // The New no-charge order form's state (useActionState). On success the
-// action redirects to the new order instead of returning.
-export type NoChargeState = { errors?: NoChargeErrors & { form?: string } } | null;
+// action redirects to the new order instead of returning. `key` is a fresh
+// one-time form key, sent back once the old one was used by an order that
+// was then cancelled.
+export type NoChargeState = { errors?: NoChargeErrors & { form?: string }; key?: string } | null;
 
 const CANT_RECEIVE = "That customer can't receive orders. Pick someone else.";
-const NOT_RESERVED = "Stock couldn't be reserved. Nothing was created — try again.";
+const NOT_RESERVED = "Stock couldn't be reserved. Nothing was sent — try again.";
+const NOT_AVAILABLE = "One of these strengths is no longer available — reload the page.";
+const STALE_FORM = "This form is out of date — reload the page.";
 
 function joinNames(names: string[]): string {
   return names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
@@ -106,11 +110,16 @@ function joinNames(names: string[]): string {
 
 // Creates the order, holds its vials (oldest live lot first, all or
 // nothing), moves it to paid and runs the no-charge paid steps. Money
-// fields are all 0, so it never counts as a sale.
+// fields are all 0, so it never counts as a sale. The form's one-time `key`
+// makes a double submit open the first order instead of creating a second.
+// Anything failing before paid cancels the order (releasing any hold) and
+// says nothing was sent; a cancel that fails alerts the owner.
 export async function createNoChargeOrderAction(_prev: NoChargeState, form: FormData): Promise<NoChargeState> {
   const owner = await requirePermission("orders.no_charge");
   const customerId = z.string().uuid().safeParse(form.get("customer"));
   if (!customerId.success) return { errors: { form: CANT_RECEIVE } };
+  const key = z.string().uuid().safeParse(form.get("key"));
+  if (!key.success) return { errors: { form: STALE_FORM } };
   const who = await recipient(customerId.data);
   if (!who || who.blocked || !who.agreedAt) return { errors: { form: CANT_RECEIVE } };
 
@@ -133,41 +142,61 @@ export async function createNoChargeOrderAction(_prev: NoChargeState, form: Form
 
   const lines = buildLines(input.lines, stock);
   const { retailCents } = summary(lines);
-  const order = await createNoChargeOrder({
-    customerId: who.id, email: who.email, ship: ship.data, lines, retailCents,
-    reason: input.reason, note: input.note, replacesOrderId, actorId: owner.id, agreedAt: who.agreedAt,
-  });
+  // Every failure after the key was used hands the form a fresh one.
+  const failed = (errors: NoChargeErrors & { form?: string }): NoChargeState => ({ errors, key: crypto.randomUUID() });
 
-  // Nothing held (hold_vials is all or nothing) — cancelling just closes the row.
-  const cancel = async () => {
-    try {
-      await transitionOrder(order.id, "awaiting_payment", "cancelled");
-    } catch (err) {
-      await alertOwner("No-charge order not cancelled", `${order.orderNumber}: ${String(err)}`);
+  let order: { id: string; orderNumber: string } | null = null;
+  let firstNumber: string | null = null;
+  try {
+    const created = await createNoChargeOrder({
+      customerId: who.id, email: who.email, ship: ship.data, lines, retailCents,
+      reason: input.reason, note: input.note, replacesOrderId, actorId: owner.id, agreedAt: who.agreedAt, key: key.data,
+    });
+    if ("duplicate" in created) {
+      // The same form was submitted twice: open the order the first one made.
+      const first = await orderByNoChargeKey(key.data);
+      if (!first || first.status === "cancelled") return failed({ form: NOT_RESERVED });
+      firstNumber = first.orderNumber;
+    } else {
+      order = created;
     }
-  };
+  } catch (err) {
+    console.error("no-charge order create failed:", err);
+    if (err instanceof NoChargeCreateError && err.order) await cancelUnsent(err.order);
+    return failed({ form: NOT_RESERVED });
+  }
+  // redirect() throws, so it stays outside the try above.
+  if (!order) redirect(`/admin/orders/${firstNumber}`);
+
   let hold: HoldResult;
   try {
     hold = await holdVials(order.id);
   } catch (err) {
     console.error("hold_vials failed:", err);
-    await cancel();
-    return { errors: { form: NOT_RESERVED } };
+    await cancelUnsent(order);
+    return failed({ form: NOT_RESERVED });
   }
   if (!hold.ok) {
-    await cancel();
+    await cancelUnsent(order);
     if (hold.reason === "sold_out") {
       const names = hold.short.map((s) => {
         const l = lines.find((x) => x.compoundSlug === s.slug && x.variantId === s.variantId);
         return l ? `${l.compoundName} ${l.strength}` : `${s.slug} ${s.variantId}`;
       });
-      return { errors: { lines: `Not enough ${joinNames(names)} left — someone just bought it. Lower the count.` } };
+      return failed({ lines: `Not enough ${joinNames(names)} left — someone just bought it. Lower the count.` });
     }
-    return { errors: { form: NOT_RESERVED } };
+    return failed({ form: NOT_AVAILABLE });
   }
-  if (!(await transitionOrder(order.id, "awaiting_payment", "paid"))) {
-    await cancel();
-    return { errors: { form: NOT_RESERVED } };
+  let paid: boolean;
+  try {
+    paid = await transitionOrder(order.id, "awaiting_payment", "paid");
+  } catch (err) {
+    console.error("no-charge paid transition failed:", err);
+    paid = false;
+  }
+  if (!paid) {
+    await cancelUnsent(order);
+    return failed({ form: NOT_RESERVED });
   }
   catalogStockChanged();
   try {
@@ -181,6 +210,19 @@ export async function createNoChargeOrderAction(_prev: NoChargeState, form: Form
   });
   revalidatePath("/admin/orders");
   redirect(`/admin/orders/${order.orderNumber}`);
+}
+
+// Cancels a no-charge order that never reached paid (awaiting_payment →
+// cancelled; the settle trigger releases any held vials). Never throws: if
+// the order can't be cancelled the owner is alerted by order number.
+async function cancelUnsent(order: { id: string; orderNumber: string }): Promise<void> {
+  try {
+    if (!(await transitionOrder(order.id, "awaiting_payment", "cancelled"))) {
+      await alertOwner("No-charge order not cancelled", `${order.orderNumber}: it was no longer awaiting payment — check it in Orders.`);
+    }
+  } catch (err) {
+    await alertOwner("No-charge order not cancelled", `${order.orderNumber}: ${String(err)}`);
+  }
 }
 
 // Cancel = paid → refunded; the settle trigger returns the sold vials to

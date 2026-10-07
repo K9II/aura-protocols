@@ -17,7 +17,7 @@ const originals = [{ number: "AP-1052", createdAt: "2026-10-01T18:00:00Z" }];
 const month = { orders: 4, retailCents: 61_200 };
 
 function setup(o: Partial<{ customer: typeof customer }> = {}) {
-  const r = render(<NoChargeForm customer={o.customer ?? customer} stock={stock} originals={originals} month={month} recipientCard={<div>card</div>} />);
+  const r = render(<NoChargeForm customer={o.customer ?? customer} stock={stock} originals={originals} month={month} submitKey="key-1" recipientCard={<div>card</div>} />);
   const form = r.container.querySelector("form")!;
   return { ...r, form, data: () => new FormData(form) };
 }
@@ -138,5 +138,14 @@ describe("NoChargeForm", () => {
     }
     expect(m.action).toHaveBeenCalledTimes(1);
     expect(screen.getAllByRole("button", { name: "Create order" }).length).toBeGreaterThan(0);
+  });
+
+  it("posts the page's one-time key, and the fresh one the action sends back after a failure", async () => {
+    m.action.mockResolvedValue({ errors: { form: "Stock couldn't be reserved. Nothing was sent — try again." }, key: "key-2" });
+    const { form, data } = setup();
+    expect(data().get("key")).toBe("key-1");
+    fireEvent.submit(form);
+    expect(await screen.findByText("Stock couldn't be reserved. Nothing was sent — try again.")).toBeInTheDocument();
+    expect(data().get("key")).toBe("key-2");
   });
 });

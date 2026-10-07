@@ -55,3 +55,12 @@ export function buildLines(lines: NoChargeLine[], stock: StockOption[]): BuiltLi
 export function summary(lines: BuiltLine[]): { vials: number; retailCents: number } {
   return { vials: lines.reduce((s, l) => s + l.quantity, 0), retailCents: lines.reduce((s, l) => s + l.quantity * l.retailUnitCents, 0) };
 }
+
+// createNoChargeOrder failed. `order` is the row it left behind (its cleanup
+// delete failed too), so the caller can cancel it; null when nothing is left.
+export class NoChargeCreateError extends Error {
+  constructor(message: string, readonly order: { id: string; orderNumber: string } | null) {
+    super(message);
+    this.name = "NoChargeCreateError";
+  }
+}

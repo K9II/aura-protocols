@@ -19,7 +19,7 @@ const ship = { name: "Dana Whitfield", line1: "1420 Elm St", line2: null, city: 
 const lines: BuiltLine[] = [
   { compoundSlug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", packQty: 1, quantity: 2, unitPriceCents: 0, lineTotalCents: 0, retailUnitCents: 4800 },
 ];
-const input = { customerId: "c1", email: "dana.w@example.com", ship, lines, retailCents: 9600, reason: "seeding" as const, note: null, replacesOrderId: null, actorId: "owner1", agreedAt: "2026-09-01T00:00:00Z" };
+const input = { customerId: "c1", email: "dana.w@example.com", ship, lines, retailCents: 9600, reason: "seeding" as const, note: null, replacesOrderId: null, actorId: "owner1", agreedAt: "2026-09-01T00:00:00Z", key: "3b241101-e2bb-4255-8caf-4136c566a962" };
 
 describe("no-charge data", () => {
   beforeEach(() => { vi.resetModules(); rpc.mockReset(); getUserById.mockReset(); fetchAdminOps.mockReset(); });
@@ -61,7 +61,7 @@ describe("no-charge data", () => {
       subtotal_cents: 0, shipping_cents: 0, insurance_cents: 0, tax_cents: 0, total_cents: 0, store_credit_cents: 0,
       partner_discount_cents: 0, code_discount_cents: 0,
       retail_value_cents: 9600, no_charge_reason: "replacement", no_charge_note: "2 vials cracked", replaces_order_id: "o0", created_by: "owner1",
-      ruo_confirmed_at: "2026-09-01T00:00:00Z", ship_name: "Dana Whitfield", ship_line1: "1420 Elm St", ship_line2: null, ship_city: "Boulder", ship_state: "CO", ship_zip: "80302",
+      ruo_confirmed_at: "2026-09-01T00:00:00Z", no_charge_key: "3b241101-e2bb-4255-8caf-4136c566a962", ship_name: "Dana Whitfield", ship_line1: "1420 Elm St", ship_line2: null, ship_city: "Boulder", ship_state: "CO", ship_zip: "80302",
     });
     expect(typeof row.expires_at).toBe("string");
     expect(callArgs(items, "insert")![0]).toEqual([{
@@ -74,9 +74,44 @@ describe("no-charge data", () => {
     const order = query({ data: { id: "o1", order_number: "AP-1060" } }), items = query({ error: { message: "down" } }), del = query({});
     from = fromQueue({ orders: [order, del], order_items: [items] });
     const { createNoChargeOrder } = await import("@/lib/no-charge/data");
-    await expect(createNoChargeOrder(input)).rejects.toThrow(/order_items insert failed/);
+    const { NoChargeCreateError } = await import("@/lib/no-charge/rules");
+    const err = await createNoChargeOrder(input).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(NoChargeCreateError);
+    expect(String(err)).toMatch(/order_items insert failed/);
+    expect((err as InstanceType<typeof NoChargeCreateError>).order).toBeNull(); // deleted — nothing left behind
     expect(callArgs(del, "delete")).toEqual([]);
     expect(callArgs(del, "eq")).toEqual(["id", "o1"]);
+  });
+
+  it("createNoChargeOrder reports a failed delete and hands back the order left behind", async () => {
+    const order = query({ data: { id: "o1", order_number: "AP-1060" } }), items = query({ error: { message: "down" } }), del = query({ error: { message: "locked" } });
+    from = fromQueue({ orders: [order, del], order_items: [items] });
+    const { createNoChargeOrder } = await import("@/lib/no-charge/data");
+    const err = await createNoChargeOrder(input).catch((e: unknown) => e) as Error & { order: unknown };
+    expect(err.message).toMatch(/order_items insert failed[\s\S]*down[\s\S]*delete failed[\s\S]*locked/);
+    expect(err.order).toEqual({ id: "o1", orderNumber: "AP-1060" });
+  });
+
+  it("createNoChargeOrder returns duplicate when the form's one-time key was already used", async () => {
+    from = fromQueue({ orders: [query({ error: { code: "23505", message: 'duplicate key value violates unique constraint "orders_no_charge_key_idx"' } })] });
+    const { createNoChargeOrder } = await import("@/lib/no-charge/data");
+    expect(await createNoChargeOrder(input)).toEqual({ duplicate: true });
+  });
+
+  it("orderByNoChargeKey finds the order a key created", async () => {
+    const q = query({ data: { id: "o1", order_number: "AP-1060", status: "paid" } });
+    from = fromQueue({ orders: [q] });
+    const { orderByNoChargeKey } = await import("@/lib/no-charge/data");
+    expect(await orderByNoChargeKey("k1")).toEqual({ id: "o1", orderNumber: "AP-1060", status: "paid" });
+    expect(q.calls).toContainEqual(["eq", ["no_charge_key", "k1"]]);
+    expect(q.calls).toContainEqual(["eq", ["kind", "no_charge"]]);
+  });
+
+  it("orderByNoChargeKey is null when none, throws on a read error", async () => {
+    from = fromQueue({ orders: [query({ data: null }), query({ error: { message: "down" } })] });
+    const { orderByNoChargeKey } = await import("@/lib/no-charge/data");
+    expect(await orderByNoChargeKey("k1")).toBeNull();
+    await expect(orderByNoChargeKey("k1")).rejects.toThrow(/no-charge key read failed/);
   });
 
   it("createNoChargeOrder throws when the order insert fails", async () => {
@@ -140,13 +175,15 @@ describe("no-charge data", () => {
     expect(q.calls).toContainEqual(["gte", ["paid_at", "2026-09-01T06:00:00.000Z"]]);
   });
 
-  it("orderIdByNumber only finds the customer's own order", async () => {
+  it("orderIdByNumber only finds the customer's own paid/shipped sale order", async () => {
     const q = query({ data: { id: "o0" } });
     from = fromQueue({ orders: [q] });
     const { orderIdByNumber } = await import("@/lib/no-charge/data");
     expect(await orderIdByNumber("ap-1052", "c1")).toBe("o0");
     expect(q.calls).toContainEqual(["eq", ["order_number", "AP-1052"]]);
     expect(q.calls).toContainEqual(["eq", ["customer_id", "c1"]]);
+    expect(q.calls).toContainEqual(["eq", ["kind", "sale"]]);
+    expect(q.calls).toContainEqual(["in", ["status", ["paid", "shipped"]]]);
   });
 
   it("saleOrders lists the customer's paid/shipped sale orders, newest first", async () => {
