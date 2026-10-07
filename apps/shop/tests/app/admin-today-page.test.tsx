@@ -52,8 +52,8 @@ describe("/admin (Today)", () => {
 
     const orders = screen.getByRole("region", { name: "Orders to ship" });
     expect(within(orders).getAllByRole("link", { name: "Pick list" })).toHaveLength(5);
-    expect(within(orders).getByRole("link", { name: "and 1 more →" })).toHaveAttribute("href", "/admin/orders?status=paid");
-    expect(within(orders).getByRole("link", { name: "AP-1038" })).toHaveAttribute("href", "/admin/orders?status=paid#AP-1038");
+    expect(within(orders).getByRole("link", { name: "and 1 more →" })).toHaveAttribute("href", "/admin/orders");
+    expect(within(orders).getByRole("link", { name: "AP-1038" })).toHaveAttribute("href", "/admin/orders/AP-1038");
 
     expect(within(screen.getByRole("region", { name: "Lots" })).getByRole("button", { name: "Announce" })).toBeInTheDocument();
 

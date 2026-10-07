@@ -69,7 +69,7 @@ describe("/admin/catalog/[slug]", () => {
   it("lot mismatch reads in plain words and links the order", async () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     expect(screen.getByText(/vials moved to the shipped lot/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "AP-1104" })).toHaveAttribute("href", "/admin/orders?status=all#AP-1104");
+    expect(screen.getByRole("link", { name: "AP-1104" })).toHaveAttribute("href", "/admin/orders/AP-1104");
   });
   it("disables Put live with the refusal reason when the certificate's missing", async () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));

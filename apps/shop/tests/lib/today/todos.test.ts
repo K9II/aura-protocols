@@ -78,9 +78,9 @@ describe("to-do sections", () => {
     expect(s.lines.map((l) => l.mono)).toEqual(["AP-1038", "AP-1040", "AP-1041", "AP-1042", "AP-1043"]);
     expect(s.more).toBe(1);
     expect(s.tone).toBe("red");
-    expect(s.link).toEqual({ label: "Orders", href: "/admin/orders?status=paid" });
+    expect(s.link).toEqual({ label: "Orders", href: "/admin/orders" });
     expect(s.lines[0]).toMatchObject({
-      icon: "clock", tone: "red", title: "Customer 38", href: "/admin/orders?status=paid#AP-1038",
+      icon: "clock", tone: "red", title: "Customer 38", href: "/admin/orders/AP-1038",
       age: { text: "3 bus. days · late", late: true }, detail: "3 items · $412.00 · paid Thu, Oct 1",
       action: { label: "Pick list", href: "/admin/orders/AP-1038/pick" },
     });

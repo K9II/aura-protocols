@@ -31,7 +31,7 @@ export function catalogEventLine(e: CatalogEvent, strengthOf: (variantId: string
     case "shown": return <>{who} showed it on the store</>;
     case "hidden": return <>{who} hid it from the store</>;
     case "oversold": return <>Oversold on {e.note}: {a.need} ordered, {a.covered} held</>;
-    case "lot_mismatch": return <>{who === "System" ? "Shipped" : `${who} shipped`} a different lot than allocated · {MISMATCH_NOTE[e.note ?? ""] ?? e.note}{a.order_number ? <> · <Link href={`/admin/orders?status=all#${a.order_number}`}>{a.order_number}</Link></> : null}</>;
+    case "lot_mismatch": return <>{who === "System" ? "Shipped" : `${who} shipped`} a different lot than allocated · {MISMATCH_NOTE[e.note ?? ""] ?? e.note}{a.order_number ? <> · <Link href={`/admin/orders/${a.order_number}`}>{a.order_number}</Link></> : null}</>;
     default: return e.kind;
   }
 }

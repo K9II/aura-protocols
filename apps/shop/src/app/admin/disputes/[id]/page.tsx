@@ -146,7 +146,7 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
             </div>
           )}
           <div className="a-card">
-            <div className="a-card-h"><h3>Order</h3><span className="r"><Link href={`/admin/orders?status=${o.status}#${o.number}`}>Open order</Link></span></div>
+            <div className="a-card-h"><h3>Order</h3><span className="r"><Link href={`/admin/orders/${o.number}`}>Open order</Link></span></div>
             <div className="a-card-b">
               <div className="a-sumrow"><span className="k">Order</span><span className="a-mono">{o.number}</span></div>
               <div className="a-sumrow"><span className="k">Paid</span><span>{o.paidAt ? shortDate(o.paidAt) : "—"}{f.cardLast4 ? ` · card ·· ${f.cardLast4}` : ""}</span></div>

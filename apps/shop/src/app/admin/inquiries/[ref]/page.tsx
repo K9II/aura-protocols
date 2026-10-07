@@ -147,7 +147,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
                   </div>
                   {customer.orders.slice(0, 3).map((o) => (
                     <div key={o.id} className="a-row-o">
-                      <Link className="a-mono" href={`/admin/orders?status=all#${o.order_number}`}>{o.order_number}</Link>
+                      <Link className="a-mono" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link>
                       <span className="muted">{shortDate(o.created_at)} · {usd(o.total_cents)}</span>
                       <span className={`a-chip o-${o.status}`}>{STATUS_LABEL[o.status]}</span>
                     </div>
@@ -170,7 +170,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
                 <button type="submit" className="a-btn sm">Change</button>
               </form>
               <dl className="a-facts2">
-                <dt>Order</dt><dd className="a-mono">{i.order_number ? (order ? <Link href={`/admin/orders?status=all#${i.order_number}`}>{i.order_number}</Link> : i.order_number) : "—"}</dd>
+                <dt>Order</dt><dd className="a-mono">{i.order_number ? (order ? <Link href={`/admin/orders/${i.order_number}`}>{i.order_number}</Link> : i.order_number) : "—"}</dd>
                 <dt>Messages</dt><dd>{t.messages.length}{files ? ` · ${plural(files, filesWord)}` : ""}</dd>
                 {wholesale && i.organization && <><dt>Organization</dt><dd>{i.organization}</dd></>}
               </dl>

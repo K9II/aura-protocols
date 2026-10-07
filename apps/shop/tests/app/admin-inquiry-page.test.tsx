@@ -70,7 +70,7 @@ describe("/admin/inquiries/[ref]", () => {
     m.getOrderByNumber.mockResolvedValue({ id: "ord1", order_number: "AP-1052" });
     render(await InquiryPage(params("Q-1047")));
     expect(m.getOrderByNumber).toHaveBeenCalledWith("AP-1052");
-    expect(screen.getByRole("link", { name: "AP-1052" })).toHaveAttribute("href", "/admin/orders?status=all#AP-1052");
+    expect(screen.getByRole("link", { name: "AP-1052" })).toHaveAttribute("href", "/admin/orders/AP-1052");
   });
 
   it("Messages says 'attachments' (not 'photos' or 'files') when the kept files are mixed", async () => {
