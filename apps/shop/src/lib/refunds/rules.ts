@@ -38,7 +38,7 @@ export function splitRefund(o: OrderMoney, destination: RefundDestination) {
 }
 
 export type RefundInput = { reason: RefundReason; note: string | null; destination: RefundDestination };
-export type RefundErrors = Partial<Record<"reason" | "note" | "destination" | "confirm" | "card_confirm", string>>;
+export type RefundErrors = Partial<Record<"reason" | "note" | "destination" | "confirm", string>>;
 
 // hasCard: the order has a Stripe payment. Before shipping the destination is
 // always the original payment (card if any, else store credit).
@@ -56,10 +56,10 @@ export function parseRefund(get: (k: string) => string | null, mode: RefundMode,
     if (d !== "card" && d !== "store_credit") errors.destination = "Pick where the money goes.";
     else if (d === "card" && !hasCard) errors.destination = "This order has no card payment — refund it to store credit.";
     else destination = d;
-    if (get("confirm") !== "on") errors.confirm = "Tick the box to confirm the exception.";
-    // Cash back after shipping goes against the published policy (claims are
-    // settled by replacement only) — a second, explicit acknowledgement.
-    if (d === "card" && hasCard && get("card_confirm") !== "on") errors.card_confirm = CARD_CONFIRM_ERROR;
+    // Cash back to the card after shipping goes against the published policy
+    // (claims are settled by replacement only) — the owner ticks that they
+    // understand it. Store credit needs no box.
+    if (d === "card" && hasCard && get("confirm") !== "on") errors.confirm = CARD_CONFIRM_ERROR;
   }
   if (Object.keys(errors).length) return { ok: false, errors };
   return { ok: true, value: { reason: reason!, note, destination } };

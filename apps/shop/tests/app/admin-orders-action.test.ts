@@ -264,7 +264,7 @@ describe("refundOrderAction", () => {
     getOrderById.mockResolvedValue(sale({ status: "shipped" }));
     const { refundOrderAction } = await import("@/app/admin/orders/actions");
     const r = await refundOrderAction(null, exceptionForm({ note: "", confirm: "" }));
-    expect(r).toEqual({ errors: { note: "Say why this order is an exception.", confirm: "Tick the box to confirm the exception." } });
+    expect(r).toEqual({ errors: { note: "Say why this order is an exception." } });
     expect(refunds.refundCard).not.toHaveBeenCalled();
   });
 
@@ -323,14 +323,14 @@ describe("refundOrderAction", () => {
   it("shipped exception to the card without the cash-refund box: refused, no Stripe call", async () => {
     getOrderById.mockResolvedValue(sale({ status: "shipped", store_credit_cents: 0 }));
     const { refundOrderAction } = await import("@/app/admin/orders/actions");
-    expect(await refundOrderAction(null, exceptionForm({ destination: "card" }))).toEqual({ errors: { card_confirm: "Tick the box to confirm a cash refund after shipping." } });
+    expect(await refundOrderAction(null, exceptionForm({ destination: "card", confirm: "" }))).toEqual({ errors: { confirm: "Tick the box to confirm a cash refund after shipping." } });
     expect(refunds.refundCard).not.toHaveBeenCalled();
   });
 
   it("shipped exception to the card: refunds the card part through Stripe", async () => {
     getOrderById.mockResolvedValue(sale({ status: "shipped", store_credit_cents: 0 }));
     const { refundOrderAction } = await import("@/app/admin/orders/actions");
-    expect(await refundOrderAction(null, exceptionForm({ destination: "card", card_confirm: "on" }))).toEqual({ ok: "AP-1047 was refunded." });
+    expect(await refundOrderAction(null, exceptionForm({ destination: "card" }))).toEqual({ ok: "AP-1047 was refunded." });
     expect(refunds.refundCard).toHaveBeenCalledWith("pi_1", 22800, id);
     expect(refunds.creditCardPart).not.toHaveBeenCalled();
     expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "$228.00 · to card · Damaged in transit" }));

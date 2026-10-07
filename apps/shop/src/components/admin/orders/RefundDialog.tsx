@@ -60,7 +60,6 @@ export default function RefundDialog(p: RefundDialogProps) {
   const [reason, setReason] = useState<string>(cancel ? "customer_cancelled" : "");
   const [note, setNote] = useState("");
   const [confirmed, setConfirmed] = useState(false);
-  const [cashConfirmed, setCashConfirmed] = useState(false);
   const err = state?.errors ?? {};
   const split = p.splits[dest];
   const close = () => ref.current?.close();
@@ -99,11 +98,11 @@ export default function RefundDialog(p: RefundDialogProps) {
                     <div className="a-fld" role="radiogroup" aria-labelledby={id("dest")}><label id={id("dest")}>Refund to</label>
                       <div className="a-dest">
                         <label className={`opt${dest === "store_credit" ? " on" : ""}`}>
-                          <input type="radio" name="destination" value="store_credit" checked={dest === "store_credit"} onChange={() => setDest("store_credit")} className="sr-only" />Store credit
+                          <input type="radio" name="destination" value="store_credit" checked={dest === "store_credit"} onChange={() => { setDest("store_credit"); setConfirmed(false); }} className="sr-only" />Store credit
                           <small>{usd(p.splits.store_credit.totalCents)} to {possessive(p.firstName)} balance{hasCard ? " · the card charge stays" : ""}</small>
                         </label>
                         <label className={`opt${dest === "card" ? " on" : ""}${hasCard ? "" : " dis"}`}>
-                          <input type="radio" name="destination" value="card" checked={dest === "card"} disabled={!hasCard} onChange={() => setDest("card")} className="sr-only" />{p.paymentLabel ?? "Card"}
+                          <input type="radio" name="destination" value="card" checked={dest === "card"} disabled={!hasCard} onChange={() => { setDest("card"); setConfirmed(false); }} className="sr-only" />{p.paymentLabel ?? "Card"}
                           <small>{hasCard
                             ? `${usd(p.splits.card.cardCents)} back to the card${p.splits.card.creditBackCents > 0 ? ` · ${usd(p.splits.card.creditBackCents)} to store credit` : ""}`
                             : "No card payment on this order"}</small>
@@ -135,14 +134,10 @@ export default function RefundDialog(p: RefundDialogProps) {
                       <li>{p.commission}</li>
                       <li>{p.firstName} gets a &quot;refunded&quot; email with the amount and where it went.</li>
                     </ul>
-                    <div>
-                      <label className="a-chkline"><input type="checkbox" name="confirm" required checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} /><span>I&apos;m making an exception to the refund policy for this order.</span></label>
-                      {err.confirm && <div className="a-err" role="alert">{err.confirm}</div>}
-                    </div>
                     {dest === "card" && (
                       <div>
-                        <label className="a-chkline"><input type="checkbox" name="card_confirm" required checked={cashConfirmed} onChange={(e) => setCashConfirmed(e.target.checked)} /><span>{CARD_CONFIRM_TEXT}</span></label>
-                        {err.card_confirm && <div className="a-err" role="alert">{err.card_confirm}</div>}
+                        <label className="a-chkline"><input type="checkbox" name="confirm" required checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} /><span>{CARD_CONFIRM_TEXT}</span></label>
+                        {err.confirm && <div className="a-err" role="alert">{err.confirm}</div>}
                       </div>
                     )}
                   </>

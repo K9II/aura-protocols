@@ -113,7 +113,7 @@ describe("RefundDialog — shipped exception (r3)", () => {
     expect(within(d).getByText("(required)")).toBeInTheDocument();
     const facts = within(d.querySelector(".a-rfacts") as HTMLElement).getAllByRole("listitem", { hidden: true }).map((li) => li.textContent);
     expect(facts).toEqual(["Vials stay out of stock — they've shipped.", "The QUINN10 commission ($21.40) is reversed.", "Jordan gets a \"refunded\" email with the amount and where it went."]);
-    expect(within(d).getByRole("checkbox", { name: "I'm making an exception to the refund policy for this order.", hidden: true })).not.toBeChecked();
+    expect(within(d).queryByRole("checkbox", { hidden: true })).toBeNull(); // store credit: no box
     expect(within(d).getByRole("button", { name: "Refund $268.00 to store credit", hidden: true })).toBeInTheDocument();
     const f = data(container);
     expect(f.get("mode")).toBe("exception");
@@ -127,21 +127,21 @@ describe("RefundDialog — shipped exception (r3)", () => {
     expect(screen.getByRole("button", { name: "Refund $268.00 to Visa ••1881", hidden: true })).toBeInTheDocument();
   });
 
-  it("a card refund after shipping adds a required cash-refund policy box", async () => {
+  it("only a card refund after shipping has a box: the cash-refund policy", () => {
     const { container } = render(<RefundDialog {...exception} />);
     const d = dialog(container);
-    expect(within(d).getAllByRole("checkbox", { hidden: true })).toHaveLength(1);
+    expect(within(d).queryByRole("checkbox", { hidden: true })).toBeNull();
     fireEvent.click(within(d).getByRole("radio", { name: /Visa ••1881/, hidden: true }));
+    expect(within(d).getAllByRole("checkbox", { hidden: true })).toHaveLength(1);
     const box = within(d).getByRole("checkbox", { name: /no cash refunds/, hidden: true });
     expect(box).toBeRequired();
-    expect(box).toHaveAttribute("name", "card_confirm");
+    expect(box).toHaveAttribute("name", "confirm");
     fireEvent.click(box);
-    expect(data(container).get("card_confirm")).toBe("on");
-    m.action.mockResolvedValue({ errors: { card_confirm: "Tick the box to confirm a cash refund after shipping." } });
-    await act(async () => { fireEvent.submit(container.querySelector("form")!); });
-    expect(screen.getByText("Tick the box to confirm a cash refund after shipping.")).toBeInTheDocument();
+    expect(data(container).get("confirm")).toBe("on");
     fireEvent.click(within(d).getByRole("radio", { name: /Store credit/, hidden: true }));
-    expect(within(d).getAllByRole("checkbox", { hidden: true })).toHaveLength(1);
+    expect(within(d).queryByRole("checkbox", { hidden: true })).toBeNull();
+    fireEvent.click(within(d).getByRole("radio", { name: /Visa ••1881/, hidden: true }));
+    expect(within(d).getByRole("checkbox", { hidden: true })).not.toBeChecked(); // switching destination clears the tick
   });
 
   it("disables the card option with no card payment", () => {
@@ -154,11 +154,12 @@ describe("RefundDialog — shipped exception (r3)", () => {
   });
 
   it("shows field errors under their fields", async () => {
-    m.action.mockResolvedValue({ errors: { reason: "Pick a reason.", note: "Say why this order is an exception.", confirm: "Tick the box to confirm the exception.", destination: "Pick where the money goes." } });
+    m.action.mockResolvedValue({ errors: { reason: "Pick a reason.", note: "Say why this order is an exception.", confirm: "Tick the box to confirm a cash refund after shipping.", destination: "Pick where the money goes." } });
     const { container } = render(<RefundDialog {...exception} />);
+    fireEvent.click(screen.getByRole("radio", { name: /Visa ••1881/, hidden: true }));
     await act(async () => { fireEvent.submit(container.querySelector("form")!); });
     const alerts = screen.getAllByRole("alert", { hidden: true }).map((a) => a.textContent);
-    expect(alerts).toEqual(["Pick where the money goes.", "Pick a reason.", "Say why this order is an exception.", "Tick the box to confirm the exception."]);
+    expect(alerts).toEqual(["Pick where the money goes.", "Pick a reason.", "Say why this order is an exception.", "Tick the box to confirm a cash refund after shipping."]);
     expect(container.querySelector(".a-err-banner")).toBeNull();
   });
 
@@ -168,6 +169,7 @@ describe("RefundDialog — shipped exception (r3)", () => {
     const d = dialog(container);
     fireEvent.change(within(d).getByRole("combobox", { name: "Reason", hidden: true }), { target: { value: "damaged" } });
     fireEvent.change(within(d).getByLabelText(/Note/), { target: { value: "Two vials cracked" } });
+    fireEvent.click(within(d).getByRole("radio", { name: /Visa ••1881/, hidden: true }));
     fireEvent.click(within(d).getByRole("checkbox", { hidden: true }));
     await act(async () => { fireEvent.submit(container.querySelector("form")!); });
     expect(screen.getByText("Pick where the money goes.")).toBeInTheDocument();
@@ -178,6 +180,7 @@ describe("RefundDialog — shipped exception (r3)", () => {
   it("reason, note and the policy box are required in the browser", () => {
     const { container } = render(<RefundDialog {...exception} />);
     const d = dialog(container);
+    fireEvent.click(within(d).getByRole("radio", { name: /Visa ••1881/, hidden: true }));
     expect(within(d).getByRole("combobox", { name: "Reason", hidden: true })).toBeRequired();
     expect(within(d).getByLabelText(/Note/)).toBeRequired();
     expect(within(d).getByRole("checkbox", { hidden: true })).toBeRequired();

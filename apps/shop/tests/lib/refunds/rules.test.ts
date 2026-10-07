@@ -32,17 +32,17 @@ describe("refund rules", () => {
     expect(parseRefund(get({ reason: "customer_cancelled" }), "cancel", true)).toEqual({ ok: true, value: { reason: "customer_cancelled", note: null, destination: "card" } });
     expect(parseRefund(get({ reason: "bogus" }), "cancel", true)).toMatchObject({ ok: false, errors: { reason: "Pick a reason." } });
   });
-  it("the exception needs a note, a destination and the policy box", () => {
-    expect(parseRefund(get({ reason: "goodwill", destination: "store_credit" }), "exception", true)).toMatchObject({ ok: false, errors: { note: "Say why this order is an exception.", confirm: "Tick the box to confirm the exception." } });
+  it("the exception needs a note and a destination; store credit needs no box", () => {
+    expect(parseRefund(get({ reason: "goodwill", destination: "store_credit" }), "exception", true)).toEqual({ ok: false, errors: { note: "Say why this order is an exception." } });
     expect(parseRefund(get({ reason: "goodwill", destination: "store_credit", note: "held 3 weeks", confirm: "on" }), "exception", true))
       .toEqual({ ok: true, value: { reason: "goodwill", note: "held 3 weeks", destination: "store_credit" } });
     expect(parseRefund(get({ reason: "goodwill", destination: "card", note: "x", confirm: "on" }), "exception", false)).toMatchObject({ ok: false, errors: { destination: "This order has no card payment — refund it to store credit." } });
     expect(parseRefund(get({ reason: "other", note: "x".repeat(REFUND_NOTE_MAX + 1), destination: "store_credit", confirm: "on" }), "exception", true)).toMatchObject({ ok: false, errors: { note: `Keep it under ${REFUND_NOTE_MAX} characters.` } });
   });
-  it("cash back to the card after shipping needs a second, policy box", () => {
-    const card = { reason: "goodwill", destination: "card", note: "held 3 weeks", confirm: "on" };
-    expect(parseRefund(get(card), "exception", true)).toEqual({ ok: false, errors: { card_confirm: CARD_CONFIRM_ERROR } });
-    expect(parseRefund(get({ ...card, card_confirm: "on" }), "exception", true)).toEqual({ ok: true, value: { reason: "goodwill", note: "held 3 weeks", destination: "card" } });
+  it("cash back to the card after shipping: the one box carries the cash-refund policy", () => {
+    const card = { reason: "goodwill", destination: "card", note: "held 3 weeks" };
+    expect(parseRefund(get(card), "exception", true)).toEqual({ ok: false, errors: { confirm: CARD_CONFIRM_ERROR } });
+    expect(parseRefund(get({ ...card, confirm: "on" }), "exception", true)).toEqual({ ok: true, value: { reason: "goodwill", note: "held 3 weeks", destination: "card" } });
     expect(parseRefund(get({ reason: "goodwill", destination: "store_credit", note: "x", confirm: "on" }), "exception", true)).toMatchObject({ ok: true });
     expect(parseRefund(get({ reason: "customer_cancelled" }), "cancel", true)).toMatchObject({ ok: true });
   });
