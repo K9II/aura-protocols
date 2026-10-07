@@ -3,7 +3,7 @@
 // page, route and action asks for one of these through requirePermission().
 export const PERMISSIONS = [
   "today.view", "alerts.resolve",
-  "orders.view", "orders.ship", "orders.refund_credit",
+  "orders.view", "orders.ship", "orders.refund_credit", "orders.no_charge",
   "customers.view", "customers.resend_verify", "credit.adjust", "customers.block",
   "discounts.view", "discounts.edit", "discounts.settings",
   "disputes.view", "disputes.draft", "disputes.submit", "disputes.warnings",
@@ -19,7 +19,7 @@ export type Permission = (typeof PERMISSIONS)[number];
 // What the Team page shows for the Assistant ("Can" / "Can't"), in plain words.
 export const PERMISSION_LABEL: Record<Permission, string> = {
   "today.view": "See Today", "alerts.resolve": "Mark alerts done",
-  "orders.view": "See orders", "orders.ship": "Ship orders", "orders.refund_credit": "Refund store-credit orders",
+  "orders.view": "See orders", "orders.ship": "Ship orders", "orders.refund_credit": "Refund store-credit orders", "orders.no_charge": "Create no-charge orders",
   "customers.view": "See customers", "customers.resend_verify": "Resend verification emails", "credit.adjust": "Change store credit", "customers.block": "Block customers",
   "discounts.view": "See discount codes", "discounts.edit": "Create and change discount codes", "discounts.settings": "Change the store-wide cap",
   "disputes.view": "See disputes", "disputes.draft": "Save dispute evidence drafts", "disputes.submit": "Submit dispute evidence", "disputes.warnings": "Act on early fraud warnings",
