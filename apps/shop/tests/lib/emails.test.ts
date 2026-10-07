@@ -68,6 +68,10 @@ describe("emails", () => {
     expect(html).toContain("$164.50 back to your original payment method and $20.00 back to your store credit");
     expect(orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 0 } as OrderRow).html).not.toContain("store credit");
     expect(findViolations(html)).toEqual([]);
+    const creditOnly = orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 18450 } as OrderRow).html;
+    expect(creditOnly).toContain("refunded in full: $184.50 back to your store credit.");
+    expect(creditOnly).not.toContain("original payment method");
+    expect(creditOnly).not.toContain("Card refunds");
   });
 
   it("refunded-after-shipping email: store credit or card, never 'cancelled', compliance-clean", () => {

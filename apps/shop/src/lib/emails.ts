@@ -87,9 +87,13 @@ export function achFailedEmail(o: OrderRow) {
 // An early fraud warning refunded before shipping (Disputes, Cancel and refund).
 export function orderRefundedEmail(o: OrderRow) {
   const charged = o.total_cents - o.store_credit_cents;
+  const parts = [
+    charged > 0 ? `${usd(charged)} back to your original payment method` : null,
+    o.store_credit_cents > 0 ? `${usd(o.store_credit_cents)} back to your store credit` : null,
+  ].filter(Boolean).join(" and ");
   return {
     subject: `Order ${o.order_number} was cancelled and refunded`,
-    html: shell(`Order ${o.order_number} cancelled`, `<p>Order ${e(o.order_number)} was cancelled before it shipped and refunded in full: ${usd(charged)} back to your original payment method${o.store_credit_cents > 0 ? ` and ${usd(o.store_credit_cents)} back to your store credit` : ""}. Card refunds usually appear within 5–10 business days, depending on your bank.</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
+    html: shell(`Order ${o.order_number} cancelled`, `<p>Order ${e(o.order_number)} was cancelled before it shipped and refunded in full: ${parts}.${charged > 0 ? " Card refunds usually appear within 5–10 business days, depending on your bank." : ""}</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
   };
 }
 
