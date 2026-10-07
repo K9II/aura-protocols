@@ -47,12 +47,42 @@ describe("orders", () => {
     expect(callArgs(q, "eq")).toEqual(["order_number", "AP-1001"]);
   });
 
-  it("countOrdersForOwner tallies each status and all, skipping unpaid checkouts", async () => {
-    const q = query({ data: [{ status: "paid" }, { status: "paid" }, { status: "shipped" }, { status: "cancelled" }] });
+  it("searchOrdersForOwner pages a tab: To ship oldest first, statuses from the tab", async () => {
+    const q = query({ data: [{ id: "o1" }], count: 73 });
     from = fromQueue({ orders: [q] });
-    const { countOrdersForOwner } = await import("@/lib/orders");
-    expect(await countOrdersForOwner()).toEqual({ paid: 2, processing: 0, shipped: 1, all: 4 });
-    expect(callArgs(q, "neq")).toEqual(["status", "awaiting_payment"]);
+    const { searchOrdersForOwner } = await import("@/lib/orders");
+    expect(await searchOrdersForOwner({ tab: "to_ship", q: "", page: 2 })).toEqual({ rows: [{ id: "o1" }], total: 73 });
+    expect(callArgs(q, "in")).toEqual(["status", ["paid"]]);
+    expect(q.calls.filter(([m]) => m === "order").map(([, a]) => a)).toEqual([["created_at", { ascending: true }], ["id"]]);
+    expect(callArgs(q, "range")).toEqual([50, 99]);
+  });
+
+  it("searchOrdersForOwner searches every paid-stage order, newest first, ignoring the tab", async () => {
+    const q = query({ data: [], count: 0 });
+    from = fromQueue({ orders: [q] });
+    const { searchOrdersForOwner } = await import("@/lib/orders");
+    await searchOrdersForOwner({ tab: "to_ship", q: "whitfield", page: 1 });
+    expect(callArgs(q, "in")).toEqual(["status", ["processing", "paid", "shipped", "cancelled", "refunded"]]);
+    expect(callArgs(q, "or")).toEqual(["order_number.ilike.%whitfield%,email.ilike.%whitfield%,ship_name.ilike.%whitfield%,tracking_number.ilike.%whitfield%"]);
+    expect(q.calls.filter(([m]) => m === "order").map(([, a]) => a)).toEqual([["created_at", { ascending: false }], ["id"]]);
+  });
+
+  it("searchOrdersForOwner throws on a read error", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "down" } })] });
+    const { searchOrdersForOwner } = await import("@/lib/orders");
+    await expect(searchOrdersForOwner({ tab: "all", q: "", page: 1 })).rejects.toThrow(/owner orders search failed/);
+  });
+
+  it("countOrderTabs counts each tab with a head count", async () => {
+    from = fromQueue({ orders: [query({ count: 5 }), query({ count: 1 }), query({ count: 184 }), query({ count: 9 }), query({ count: 199 })] });
+    const { countOrderTabs } = await import("@/lib/orders");
+    expect(await countOrderTabs()).toEqual({ to_ship: 5, processing: 1, shipped: 184, closed: 9, all: 199 });
+  });
+
+  it("countOrderTabs throws on a read error", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "x" } }), query({}), query({}), query({}), query({})] });
+    const { countOrderTabs } = await import("@/lib/orders");
+    await expect(countOrderTabs()).rejects.toThrow(/order tab count failed/);
   });
 
   it("createPendingOrder removes the order if the items insert fails", async () => {

@@ -40,7 +40,7 @@ describe("/admin/customers/[id]", () => {
     expect(screen.getByText("Chrome on macOS")).toBeInTheDocument();
     expect(screen.getByText("3f9a1c07")).toBeInTheDocument();
     expect(screen.getByText(/Used on/)).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "AP-1041" })[0]).toHaveAttribute("href", "/admin/orders?status=shipped#AP-1041");
+    expect(screen.getAllByRole("link", { name: "AP-1041" })[0]).toHaveAttribute("href", "/admin/orders/AP-1041");
     expect(screen.getByRole("button", { name: "Block" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Resend verification" })).toBeNull(); // verified
   });

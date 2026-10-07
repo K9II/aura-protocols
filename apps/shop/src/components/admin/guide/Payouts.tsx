@@ -10,13 +10,16 @@ export default function Payouts() {
       lede="Paying partners their cleared commission. Store credit is added automatically; cash is sent by you, by hand, from this page."
       tasks={<>
         <Task title="Send a cash payout">
-          <Step>On the 1st and 15th you&apos;ll get an email listing the cash to send. Go to <Ui>Payouts</Ui>.</Step>
-          <Step>For each partner, choose <Ui>Show full details</Ui> and send the amount from your bank (ACH) or Zelle.</Step>
+          <Step>On the 1st and 15th you&apos;ll get an email listing the cash to send. Go to <Ui>Payouts</Ui>; the <Ui>To send</Ui> tab lists what&apos;s queued.</Step>
+          <Step>Click the code to see that partner&apos;s commission first, then choose <Ui>Show full details</Ui> and send the amount from your bank (ACH) or Zelle.</Step>
           <Step>Type the payment&apos;s reference in <Ui>Reference</Ui> and choose <Ui>Mark paid</Ui>. The partner is emailed a receipt.</Step>
         </Task>
         <Task title="Check a W-9">
           <Step>Under &quot;W-9s waiting for your check&quot;, choose <Ui>Open W-9</Ui>.</Step>
           <Step>Check the name, tax number and signature are filled in and match the partner, then choose <Ui>Mark checked</Ui>.</Step>
+        </Task>
+        <Task title="Check what was paid">
+          <Step>The <Ui>History</Ui> tab lists every paid and credited payout with its reference.</Step>
         </Task>
       </>}
       how={

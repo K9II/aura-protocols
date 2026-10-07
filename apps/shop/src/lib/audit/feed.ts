@@ -51,7 +51,7 @@ async function adminEvents(f: ActivityFilter, areas: ActivityArea[]): Promise<Ra
   type R = AdminEventRow & { actor_id: string; at: string };
   return ((data ?? []) as R[]).map((r): Raw => {
     const area: ActivityArea = r.area === "today" ? "alerts" : (r.area as ActivityArea);
-    const href = area === "orders" && r.label ? `/admin/orders?status=all#${r.label}` : area === "partners" ? "/admin/partners" : area === "payouts" ? "/admin/payouts" : area === "alerts" ? "/admin" : null;
+    const href = area === "orders" && r.label ? `/admin/orders/${r.label}` : area === "partners" ? (r.target_id ? `/admin/partners/${r.target_id}` : "/admin/partners") : area === "payouts" ? "/admin/payouts" : area === "alerts" ? "/admin" : null;
     return { source: "admin", key: `a-${r.id}`, at: r.at, area, actorId: r.actor_id, href, e: r };
   });
 }

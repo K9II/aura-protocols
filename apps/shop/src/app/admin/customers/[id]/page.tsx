@@ -129,7 +129,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                 <thead><tr><th>Order</th><th>Date</th><th>Status</th><th className="num a-only-desk">Items</th><th className="num">Total</th><th className="num a-only-desk">Credit used</th></tr></thead>
                 <tbody>{c.orders.map((o) => (
                   <tr key={o.id}>
-                    <td><Link className="a-ord" href={`/admin/orders?status=${o.status}#${o.order_number}`}>{o.order_number}</Link></td>
+                    <td><Link className="a-ord" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link></td>
                     <td>{shortDate(o.created_at)}</td>
                     <td><span className={`a-chip o-${o.status}`}>{STATUS_TEXT[o.status] ?? o.status}</span></td>
                     <td className="num a-only-desk">{o.order_items.reduce((s, i) => s + i.quantity, 0)}</td>

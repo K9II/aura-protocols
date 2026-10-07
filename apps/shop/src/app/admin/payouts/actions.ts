@@ -25,6 +25,7 @@ export async function markPayoutPaidAction(form: FormData): Promise<void> {
     if (to) await sendOrAlert({ to, ...partnerCashPaidEmail({ cashCents: payout.cash_cents, reference: parsed.data.reference }) }, `payout ${payout.partners.code}`);
   }
   revalidatePath("/admin/payouts");
+  revalidatePath("/admin/partners/[id]", "page");
 }
 
 export async function openW9Action(form: FormData): Promise<void> {
@@ -46,4 +47,5 @@ export async function markW9CheckedAction(form: FormData): Promise<void> {
   const partner = await getPartnerById(parsed.data.partnerId);
   await recordAdminEvent({ area: "payouts", action: "w9_checked", targetId: parsed.data.partnerId, label: partner?.code ?? null, actorId: owner.id });
   revalidatePath("/admin/payouts");
+  revalidatePath("/admin/partners/[id]", "page");
 }

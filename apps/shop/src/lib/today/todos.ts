@@ -124,12 +124,12 @@ export function ordersSection(orders: ShipOrder[], nowMs: number): TodoSection |
     const age = shipAge(paidAt(o), nowMs);
     return {
       key: o.order_number, icon: age.late ? "clock" : "orders", tone: age.late ? "red" : "mut",
-      mono: o.order_number, href: `/admin/orders?status=paid#${o.order_number}`, title: o.ship_name,
+      mono: o.order_number, href: `/admin/orders/${o.order_number}`, title: o.ship_name,
       detail: `${plural(o.items, "item")} · ${usd(o.total_cents)} · ${paidText(paidAt(o), nowMs)}`,
       age, action: { label: "Pick list", href: `/admin/orders/${o.order_number}/pick` },
     };
   });
-  return build({ key: "orders", title: "Orders to ship", icon: "orders", n: orders.length, link: { label: "Orders", href: "/admin/orders?status=paid" } }, lines);
+  return build({ key: "orders", title: "Orders to ship", icon: "orders", n: orders.length, link: { label: "Orders", href: "/admin/orders" } }, lines);
 }
 
 // ---------- 3. stock ----------
