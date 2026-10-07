@@ -31,6 +31,11 @@ describe("product page", () => {
     await expect(ProductPage({ params: Promise.resolve({ slug: "bpc-157" }) })).rejects.toThrow();
   });
 
+  it("carries the processor's research-only line next to the RUO label", async () => {
+    await renderSlug("bpc-157");
+    expect(screen.getByText("All products currently listed on this site are for research purposes only.")).toBeInTheDocument();
+  });
+
   it("shows the COA tag and the selected strength's lot", async () => {
     const { container } = await renderSlug("bpc-157");
     expect(container.querySelector(".s-media")).toHaveTextContent("◇ COA on file");
