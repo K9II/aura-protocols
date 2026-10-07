@@ -18,7 +18,7 @@ export type TeamMember = {
   lastSignInAt: string | null; signIn: "Google" | "password"; disabledAt: string | null; disabledReason: string | null;
 };
 export async function listTeam(): Promise<TeamMember[]> {
-  const { data, error } = await db().from("staff").select("customer_id, role, status, disabled_at, disabled_reason, customers(full_name)");
+  const { data, error } = await db().from("staff").select("customer_id, role, status, disabled_at, disabled_reason, customers!staff_customer_id_fkey(full_name)");
   if (error) fail("team read", error);
   type R = { customer_id: string; role: RoleId; status: "active" | "disabled"; disabled_at: string | null; disabled_reason: string | null; customers: { full_name: string } | null };
   const rows = (data ?? []) as unknown as R[];
@@ -56,7 +56,7 @@ export async function endSessions(userId: string): Promise<number> {
 
 // Everyone who has ever been staff — Activity's person filter.
 export async function staffPeople(): Promise<Array<{ id: string; name: string }>> {
-  const { data, error } = await db().from("staff").select("customer_id, customers(full_name)");
+  const { data, error } = await db().from("staff").select("customer_id, customers!staff_customer_id_fkey(full_name)");
   if (error) fail("staff people read", error);
   type R = { customer_id: string; customers: { full_name: string } | null };
   return ((data ?? []) as unknown as R[]).map((r) => ({ id: r.customer_id, name: r.customers?.full_name ?? "—" }));
