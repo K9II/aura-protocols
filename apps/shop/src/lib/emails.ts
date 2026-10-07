@@ -93,6 +93,19 @@ export function orderRefundedEmail(o: OrderRow) {
   };
 }
 
+// A shipped order refunded as a recorded exception (admin Refund…): card part
+// back to the card, store credit, or both. Never says "cancelled".
+export function orderRefundedAfterShipEmail(o: OrderRow, s: { cardCents: number; creditBackCents: number; cardToCreditCents: number; totalCents: number }) {
+  const parts = [
+    s.cardCents > 0 ? `${usd(s.cardCents)} back to your original payment method (usually 5–10 business days, depending on your bank)` : null,
+    s.creditBackCents + s.cardToCreditCents > 0 ? `${usd(s.creditBackCents + s.cardToCreditCents)} to your store credit, available right away` : null,
+  ].filter(Boolean).join(" and ");
+  return {
+    subject: `Order ${o.order_number} was refunded`,
+    html: shell(`Order ${o.order_number} refunded`, `<p>We've refunded order ${e(o.order_number)}: ${parts}.</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
+  };
+}
+
 export function opsAlertEmail(title: string, detail: string) {
   return { subject: `[Aura shop] ${title}`, html: shell(title, `<pre style="white-space:pre-wrap;font-size:13px">${e(detail)}</pre>`) };
 }
