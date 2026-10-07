@@ -106,3 +106,19 @@ describe("getOrderDetail", () => {
     expect(d.timeline[1]).toMatchObject({ sub: "Replacement for AP-1052", detail: "“2 vials cracked” · 3 vials held" });
   });
 });
+
+describe("orderFlags", () => {
+  beforeEach(() => { vi.resetModules(); });
+
+  it("reads the order's open disputes and unresolved warnings", async () => {
+    from = fromQueue({ disputes: [query({ data: [{ closed_at: "2026-09-10T00:00:00Z" }] })], early_fraud_warnings: [query({ data: [{ resolved_at: null }] })] });
+    const { orderFlags } = await import("@/lib/orders/detail");
+    expect(await orderFlags("o1")).toEqual({ dispute: false, warning: true });
+  });
+
+  it("throws on a failed read", async () => {
+    from = fromQueue({ disputes: [query({ data: null, error: { message: "down" } })], early_fraud_warnings: [query({ data: [] })] });
+    const { orderFlags } = await import("@/lib/orders/detail");
+    await expect(orderFlags("o1")).rejects.toThrow("order disputes read failed");
+  });
+});

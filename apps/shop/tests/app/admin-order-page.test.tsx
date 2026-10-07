@@ -6,7 +6,7 @@ vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/orders/detail", () => ({ getOrderDetail: m.getOrderDetail }));
 vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes: m.customersWithDisputes }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound }));
-vi.mock("@/app/admin/orders/actions", () => ({ refundCreditOrderAction: vi.fn(), cancelNoChargeOrderAction: vi.fn() }));
+vi.mock("@/app/admin/orders/actions", () => ({ refundOrderAction: vi.fn(), cancelNoChargeOrderAction: vi.fn() }));
 vi.mock("@/components/admin/orders/ShipDialog", () => ({ default: () => <button>Ship</button> }));
 import OrderPage from "@/app/admin/orders/[number]/page";
 
@@ -63,10 +63,9 @@ describe("/admin/orders/[number]", () => {
     expect(screen.getByRole("link", { name: "Pick list" })).toHaveAttribute("href", "/admin/orders/AP-1029/pick");
   });
 
-  it("offers Refund to store credit only for a store-credit-only order", async () => {
+  it("has no Open in Stripe link for a store-credit-only order", async () => {
     m.getOrderDetail.mockResolvedValue({ ...detail, order: { ...order, stripe_session_id: null, stripe_payment_intent: null, store_credit_cents: 41_439 } });
     render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
-    expect(screen.getAllByRole("button", { name: "Refund to store credit", hidden: true }).length).toBeGreaterThan(0);
     expect(screen.queryByRole("link", { name: /Open in Stripe/ })).toBeNull();
   });
 
@@ -80,12 +79,11 @@ describe("/admin/orders/[number]", () => {
     expect(m.customersWithDisputes).toHaveBeenCalledWith(["c1"]);
   });
 
-  it("hides Ship and refund-to-credit for the Assistant", async () => {
+  it("hides Ship for the Assistant", async () => {
     m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
     m.getOrderDetail.mockResolvedValue({ ...detail, order: { ...order, status: "paid", shipped_at: null, stripe_session_id: null, stripe_payment_intent: null, store_credit_cents: 41_439 } });
     render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
     expect(screen.queryByRole("button", { name: "Ship" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Refund to store credit", hidden: true })).toBeNull();
     expect(screen.getByRole("link", { name: "Pick list" })).toBeInTheDocument();
   });
 

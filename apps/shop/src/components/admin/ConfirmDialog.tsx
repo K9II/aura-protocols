@@ -1,7 +1,7 @@
 "use client";
 
 // A button that opens a confirm dialog around a server action (approve,
-// decline, suspend, refund to store credit). Replaces window.confirm for
+// decline, suspend, cancel). Replaces window.confirm for
 // actions that email someone or move money.
 import { useId, useRef } from "react";
 import { useFormStatus } from "react-dom";

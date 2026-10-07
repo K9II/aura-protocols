@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
 import { recordAdminEvent } from "@/lib/audit/data";
 import { getOrderById, transitionOrder } from "@/lib/orders";
-import { CARRIERS, shippedEmail } from "@/lib/emails";
+import { CARRIERS, orderRefundedAfterShipEmail, orderRefundedEmail, shippedEmail } from "@/lib/emails";
 import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { markCommissionClearing } from "@/lib/partners/ledger";
 import { afterOrderRefunded } from "@/lib/stripe-events";
@@ -17,6 +17,11 @@ import { shipAddressSchema } from "@/lib/ship-address";
 import { usd } from "@/lib/html";
 import { createNoChargeOrder, orderByNoChargeKey, orderIdByNumber, recipient, stockOptions } from "@/lib/no-charge/data";
 import { buildLines, NoChargeCreateError, parseNoCharge, REASON_LABEL, summary, type NoChargeErrors } from "@/lib/no-charge/rules";
+import { orderFlags } from "@/lib/orders/detail";
+import { parseRefund, refundOffer, REFUND_REASON_LABEL, splitRefund, type RefundErrors } from "@/lib/refunds/rules";
+import { refundCard } from "@/lib/refunds/stripe";
+import { creditCardPart, stampRefund } from "@/lib/refunds/data";
+import { stripeMessage } from "@/lib/disputes/stripe";
 
 const schema = z.object({
   orderId: z.string().uuid(),
@@ -73,23 +78,88 @@ export async function markShippedAction(_prev: ShipState, form: FormData): Promi
   return { ok: true };
 }
 
-// An order paid entirely in store credit never reached Stripe, so there is no
-// Stripe refund to trigger the usual follow-ups. This refunds it here: the
-// credit goes back to the customer, the commission is reversed, tax undone.
-export async function refundCreditOrderAction(form: FormData): Promise<void> {
+// ---------- refunds (spec 2026-10-07-admin-refunds-design.md) ----------
+// The Refund dialog's state (useActionState).
+export type RefundState = { errors?: RefundErrors & { form?: string }; ok?: string } | null;
+
+const ORDER_CHANGED = "This order changed — reload the page.";
+
+// Before shipping = Cancel and refund (the policy: back to the original
+// payment); after shipping = a recorded exception (card or store credit).
+// The card part goes back through Stripe first (idempotent per order); the
+// order then moves to refunded and gets the usual refund follow-ups. The
+// charge.refunded webhook may win that race: it refunds the order and runs
+// the follow-ups itself but never stamps or emails, so this still does both.
+export async function refundOrderAction(_prev: RefundState, form: FormData): Promise<RefundState> {
   const owner = await requirePermission("orders.refund");
-  const parsed = z.object({ orderId: z.string().uuid() }).safeParse({ orderId: form.get("orderId") });
-  if (!parsed.success) return;
-  const order = await getOrderById(parsed.data.orderId);
-  if (!order || order.stripe_session_id || order.store_credit_cents !== order.total_cents) return;
-  if (order.status !== "paid" && order.status !== "shipped") return;
-  if (await transitionOrder(order.id, order.status, "refunded")) {
-    await recordAdminEvent({ area: "orders", action: "order_refunded", targetId: order.id, label: order.order_number, detail: "store credit returned", actorId: owner.id });
-    await afterOrderRefunded(order);
+  const orderId = z.string().uuid().safeParse(form.get("orderId"));
+  if (!orderId.success) return { errors: { form: ORDER_CHANGED } };
+  const order = await getOrderById(orderId.data);
+  if (!order) return { errors: { form: ORDER_CHANGED } };
+  const n = order.order_number;
+  const offer = refundOffer(order, await orderFlags(order.id));
+  if (offer.blockedBy) {
+    const what = offer.blockedBy === "dispute" ? "an open chargeback" : "an early fraud warning";
+    return { errors: { form: `${n} has ${what}. Refund this one from Disputes.` } };
   }
+  const mode = form.get("mode");
+  if (!offer.mode || offer.mode !== mode) return { errors: { form: ORDER_CHANGED } };
+
+  const parsed = parseRefund((k) => { const v = form.get(k); return typeof v === "string" ? v : null; }, offer.mode, !!order.stripe_payment_intent);
+  if (!parsed.ok) return { errors: parsed.errors };
+  const input = parsed.value;
+  const split = splitRefund(order, input.destination);
+
+  let stripeRefundId: string | null = null;
+  if (split.cardCents > 0) {
+    try {
+      stripeRefundId = await refundCard(order.stripe_payment_intent!, split.cardCents, order.id);
+    } catch (err) {
+      return { errors: { form: `Stripe didn't refund ${n}: ${stripeMessage(err)}. Nothing changed here — reload the page.` } };
+    }
+  }
+
+  if (await transitionOrder(order.id, order.status, "refunded")) {
+    await afterOrderRefunded(order);
+  } else {
+    // No money moved yet: nothing to reconcile, the order just changed.
+    if (split.cardCents === 0) return { errors: { form: ORDER_CHANGED } };
+    const after = await getOrderById(order.id);
+    if (after?.status !== "refunded") {
+      await alertOwner("Refund needs a look", `${n}: refunded in Stripe (${usd(split.cardCents)}) but the order is ${after?.status ?? "missing"} here — reconcile it by hand.`);
+      return { errors: { form: `${n} was refunded in Stripe but couldn't be updated here. You've been alerted — reconcile it by hand.` } };
+    }
+    // The charge.refunded webhook won: it already ran afterOrderRefunded.
+  }
+
+  if (split.cardToCreditCents > 0) {
+    try {
+      await creditCardPart(order.customer_id, split.cardToCreditCents, order.id);
+    } catch (err) {
+      await alertOwner("Refund credit not added", `${n}: ${usd(split.cardToCreditCents)} store credit — ${String(err)}`);
+    }
+  }
+  try {
+    await stampRefund(order.id, { destination: input.destination, reason: input.reason, note: input.note, by: owner.id, stripeRefundId });
+  } catch (err) {
+    await alertOwner("Refund details not saved", `${n}: ${String(err)}`);
+  }
+
+  const email = offer.mode === "cancel" ? orderRefundedEmail(order) : orderRefundedAfterShipEmail(order, split);
+  await sendOrAlert({ to: order.email, ...email }, `refund ${n}`);
+
+  const credit = split.creditBackCents + split.cardToCreditCents;
+  const where = split.cardCents > 0 && credit > 0 ? "card + store credit" : split.cardCents > 0 ? "to card" : "to store credit";
+  await recordAdminEvent({
+    area: "orders", action: "order_refunded", targetId: order.id, label: n,
+    detail: `${usd(split.totalCents)} · ${where} · ${REFUND_REASON_LABEL[input.reason]}`, actorId: owner.id,
+  });
+  // Before shipping the sold vials came back to stock (settle trigger).
+  if (offer.mode === "cancel") catalogStockChanged();
   revalidatePath("/admin/orders");
-  revalidatePath(`/admin/orders/${order.order_number}`);
+  revalidatePath(`/admin/orders/${n}`);
   revalidatePath("/admin/partners/[id]", "page");
+  return { ok: `${n} was refunded.` };
 }
 
 // ---------- no-charge orders (seeding, replacement, sample) ----------

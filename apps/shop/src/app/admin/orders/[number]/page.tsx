@@ -10,7 +10,7 @@ import { customersWithDisputes } from "@/lib/disputes/data";
 import { lotsMatch, type LotQty } from "@/lib/catalog-ops/rules";
 import { dateTime } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
-import { cancelNoChargeOrderAction, refundCreditOrderAction } from "@/app/admin/orders/actions";
+import { cancelNoChargeOrderAction } from "@/app/admin/orders/actions";
 import { REASON_LABEL } from "@/lib/no-charge/rules";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import ShipDialog from "@/components/admin/orders/ShipDialog";
@@ -43,7 +43,6 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const live = (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live");
   const stripeUrl = o.stripe_payment_intent ? `https://dashboard.stripe.com/${live ? "" : "test/"}payments/${o.stripe_payment_intent}` : null;
   const nc = o.kind === "no_charge" ? d.noCharge : null;
-  const creditOnly = !nc && !o.stripe_session_id && o.store_credit_cents === o.total_cents && (o.status === "paid" || o.status === "shipped");
   const lines = moneyLines(o, { code: d.code, partnerCode: d.partner?.code ?? null });
   const charged = o.total_cents - o.store_credit_cents;
   const summary = `${o.ship_name} · ${o.ship_city}, ${o.ship_state} · ${vials} vial${vials === 1 ? "" : "s"}`;
@@ -60,9 +59,6 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
             The {vials} vial{vials === 1 ? "" : "s"} go{vials === 1 ? "es" : ""} back to stock. Nothing is emailed.
           </ConfirmDialog>}
           {o.status === "paid" && <><Link className="a-btn" href={`/admin/orders/${o.order_number}/pick`}>Pick list</Link>{can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary} />}</>}
-          {creditOnly && can(staff, "orders.refund") && <ConfirmDialog label="Refund to store credit" title={`Refund ${o.order_number} to store credit?`} confirmLabel={`Refund ${usd(o.store_credit_cents)}`} tone="danger" action={refundCreditOrderAction} fields={{ orderId: o.id }}>
-            {usd(o.store_credit_cents)} goes back to {c.fullName}&apos;s store credit. Any partner commission is reversed and the tax is undone. This order never went through Stripe, so it can only be refunded here.
-          </ConfirmDialog>}
           {stripeUrl && <a className="a-btn" href={stripeUrl} target="_blank" rel="noopener noreferrer"><Icon name="ext" />Open in Stripe</a>}
         </div>
       </div>

@@ -25,6 +25,24 @@ function must<T>(what: string, r: { data: unknown; error: unknown }): T {
   return r.data as T;
 }
 
+// An open chargeback (not closed) or an unresolved early fraud warning. Those
+// orders are refunded from Disputes, never from the order page.
+export function flagsFrom(disputes: Array<{ closed_at: string | null }>, warnings: Array<{ resolved_at: string | null }>): { dispute: boolean; warning: boolean } {
+  return { dispute: disputes.some((d) => !d.closed_at), warning: warnings.some((w) => !w.resolved_at) };
+}
+
+// The same flags for one order, read on their own (the refund action).
+export async function orderFlags(orderId: string): Promise<{ dispute: boolean; warning: boolean }> {
+  const [disputes, warnings] = await Promise.all([
+    db().from("disputes").select("closed_at").eq("order_id", orderId),
+    db().from("early_fraud_warnings").select("resolved_at").eq("order_id", orderId),
+  ]);
+  return flagsFrom(
+    must<Array<{ closed_at: string | null }> | null>("disputes", disputes) ?? [],
+    must<Array<{ resolved_at: string | null }> | null>("warnings", warnings) ?? [],
+  );
+}
+
 // Everything the owner order page shows, read in parallel. Throws on any
 // failed read; null only when the order number doesn't exist.
 export async function getOrderDetail(orderNumber: string): Promise<OrderDetail | null> {
@@ -73,7 +91,7 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
       ? { reason: order.no_charge_reason!, note: order.no_charge_note, createdBy: creatorRow?.full_name ?? null, replaces: originalRow?.order_number ?? null }
       : null,
     code: codeRow, partner: partnerRow, commission: com,
-    flags: { dispute: ds.some((d) => !d.closed_at), warning: ws.some((w) => !w.resolved_at) },
+    flags: flagsFrom(ds, ws),
     timeline: buildOrderTimeline({
       order,
       adminEvents: ev.map((e) => ({ action: e.action, at: e.at, detail: e.detail, actorName: e.actor?.full_name ?? null })),
