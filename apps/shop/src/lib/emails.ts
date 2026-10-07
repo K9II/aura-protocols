@@ -51,6 +51,16 @@ export function orderConfirmationEmail(o: OrderRow) {
   };
 }
 
+// No-charge order (seeding, replacement, sample): items, no prices. The usual
+// shipped email follows on Ship.
+export function noChargeEmail(o: OrderRow) {
+  const items = (o.order_items ?? []).map((i) => `<li>${e(i.compound_name)} · ${e(i.strength)} × ${i.pack_qty * i.quantity}</li>`).join("");
+  return {
+    subject: `Order ${o.order_number} is on its way soon`,
+    html: shell(`Order ${o.order_number}`, `<p>We're sending you the items below at no charge. You'll get a tracking email when they ship. Each item ships from a lot whose certificate is on our COA lookup.</p><ul>${items}</ul>${shipTo(o)}`),
+  };
+}
+
 export function ownerNewOrderEmail(o: OrderRow) {
   return {
     subject: `New order ${o.order_number} — ${usd(o.total_cents)}`,

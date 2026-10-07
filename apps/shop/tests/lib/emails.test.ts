@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl, orderRefundedEmail } from "@/lib/emails";
+import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl, orderRefundedEmail, noChargeEmail } from "@/lib/emails";
 import type { OrderRow } from "@/lib/orders";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
@@ -68,6 +68,27 @@ describe("emails", () => {
     expect(html).toContain("$164.50 back to your original payment method and $20.00 back to your store credit");
     expect(orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 0 } as OrderRow).html).not.toContain("store credit");
     expect(findViolations(html)).toEqual([]);
+  });
+});
+
+describe("noChargeEmail", () => {
+  const nc = {
+    ...order, order_number: "AP-1061", kind: "no_charge", subtotal_cents: 0, total_cents: 0, tax_cents: 0, insurance_cents: 0,
+    order_items: [
+      { compound_name: "BPC-157", strength: "10 mg", pack_qty: 1, quantity: 2, line_total_cents: 0, lot_number: "AP-0001" },
+      { compound_name: "MOTS-c", strength: "40 mg", pack_qty: 1, quantity: 1, line_total_cents: 0, lot_number: "AP-0002" },
+    ],
+  } as unknown as OrderRow;
+
+  it("lists the items and the ship-to block, with no prices, compliance-clean", () => {
+    const { subject, html } = noChargeEmail(nc);
+    expect(subject).toBe("Order AP-1061 is on its way soon");
+    expect(html).toContain("BPC-157 · 10 mg × 2");
+    expect(html).toContain("MOTS-c · 40 mg × 1");
+    expect(html).toContain("Ship to:");
+    expect(html).toContain("Jane &lt;b&gt;");
+    expect(html).not.toContain("$");
+    expect(findViolations(`${subject} ${html}`)).toEqual([]);
   });
 });
 

@@ -3,17 +3,27 @@ import { getOrderById, saveTaxTransactionId } from "@/lib/orders";
 import { getPartnerById } from "@/lib/partners/data";
 import { createCommission, markCommissionClearing, spendCredit } from "@/lib/partners/ledger";
 import { getCommerceAdapter } from "@/lib/commerce";
-import { orderConfirmationEmail, ownerNewOrderEmail } from "@/lib/emails";
+import { noChargeEmail, orderConfirmationEmail, ownerNewOrderEmail } from "@/lib/emails";
 import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
 import { logOversold, orderHoldShortfall } from "@/lib/catalog-ops/data";
+import type { OrderRow } from "@/lib/orders";
 
 // Runs once, right after an order moves to paid (webhook, reconciler, or a
 // fully store-credit order). Each step below is independent and wrapped in
 // its own try/catch with a named owner alert — one step failing must never
 // stop the others, and the confirmation + owner emails always go out.
-export async function afterOrderPaid(orderId: string): Promise<void> {
+// A no-charge order has no money steps (no commission, credit or tax) and no
+// receipt or owner new-order email; it only checks held vials and, when the
+// owner ticked the box, sends the "on its way soon" email.
+export async function afterOrderPaid(orderId: string, opts: { notify?: boolean } = {}): Promise<void> {
   const order = await getOrderById(orderId);
   if (!order) throw new Error(`order ${orderId} not found after payment`);
+
+  if (order.kind === "no_charge") {
+    await checkHeldVials(order);
+    if (opts.notify) await sendOrAlert({ to: order.email, ...noChargeEmail(order) }, `no-charge order ${order.order_number}`);
+    return;
+  }
 
   if (order.partner_id && order.attributed_by) {
     try {
@@ -65,8 +75,16 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
     }
   }
 
-  // Paid but not fully held (it was paid after its holds were released): the
-  // order still ships — the customer paid — but stock is short. Tell the owner.
+  await checkHeldVials(order);
+
+  await sendOrAlert({ to: order.email, ...orderConfirmationEmail(order) }, `order ${order.order_number}`);
+  const owner = alertAddress();
+  if (owner) await sendOrAlert({ to: owner, ...ownerNewOrderEmail(order) }, `owner alert ${order.order_number}`);
+}
+
+// Paid but not fully held (it was paid after its holds were released): the
+// order still ships but stock is short. Tell the owner. Never throws.
+async function checkHeldVials(order: OrderRow): Promise<void> {
   try {
     const short = await orderHoldShortfall(order.id);
     if (short.length) {
@@ -86,8 +104,4 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
   } catch (err) {
     await alertOwner("Stock check failed after payment", `${order.order_number}: ${String(err)}`);
   }
-
-  await sendOrAlert({ to: order.email, ...orderConfirmationEmail(order) }, `order ${order.order_number}`);
-  const owner = alertAddress();
-  if (owner) await sendOrAlert({ to: owner, ...ownerNewOrderEmail(order) }, `owner alert ${order.order_number}`);
 }
