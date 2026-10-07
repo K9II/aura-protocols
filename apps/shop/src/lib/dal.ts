@@ -10,6 +10,7 @@ import { getPartnerForCustomer, type PartnerRow } from "@/lib/partners/data";
 import { readStaffRow } from "@/lib/staff/data";
 import { rolePermissions, type Staff } from "@/lib/staff/roles";
 import type { Permission } from "@/lib/staff/permissions";
+import type { ResearchField, ResearchInfo } from "@/lib/account/research";
 
 // Data Access Layer (Next 16 auth guide): every account page, order action,
 // route handler and the owner page calls these next to the data. proxy.ts only
@@ -24,6 +25,8 @@ export type Customer = SessionUser & {
   ship: ShipAddress | null;
   createdAt: string;
   verifyRequired: boolean;
+  // First-order research verification (null/absent = not given yet).
+  research?: ResearchInfo | null;
 };
 
 // unfinished: signed in (Google) but the account was never finished — no
@@ -38,6 +41,7 @@ type CustomerRow = {
   created_at: string;
   email_verified_at: string | null; verify_required: boolean;
   blocked_at: string | null;
+  research_field: string | null; research_org: string | null; research_verified_at: string | null;
 };
 
 type Profile = { name: string | null; viaGoogle: boolean };
@@ -95,6 +99,9 @@ export const getAccountState = cache(async (): Promise<AccountState> => {
       ...user, fullName: r.full_name, organization: r.organization, isOwner: r.is_owner,
       stripeCustomerId: r.stripe_customer_id, ship, createdAt: r.created_at,
       emailConfirmed: !!r.email_verified_at, verifyRequired: r.verify_required,
+      research: r.research_verified_at && r.research_field && r.research_org
+        ? { field: r.research_field as ResearchField, org: r.research_org, verifiedAt: r.research_verified_at }
+        : null,
     },
   };
 });
