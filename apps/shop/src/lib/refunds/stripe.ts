@@ -4,7 +4,9 @@ import { getStripe } from "@/lib/stripe";
 // Stripe calls for refunds from the admin. refundCard's errors are not caught
 // here: the action shows them to the owner and records nothing.
 
-const FALLBACK = "the original payment";
+// What paymentLabel says when Stripe gave no card/bank detail.
+export const NO_PAYMENT_LABEL = "the original payment";
+const FALLBACK = NO_PAYMENT_LABEL;
 
 // The card part only (equals the full charge): passing the amount guards
 // against refunding more than we think we took. The key makes a double click

@@ -6,18 +6,24 @@ vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (
 
 import { stampRefund, creditCardPart } from "@/lib/refunds/data";
 
-const fields = { destination: "store_credit" as const, reason: "goodwill" as const, note: "held 3 weeks", by: "u1", stripeRefundId: null };
+const fields = { destination: "store_credit" as const, reason: "goodwill" as const, note: "held 3 weeks", by: "u1", stripeRefundId: null, paymentLabel: null };
 
 describe("refunds/data", () => {
   beforeEach(() => { from = fromQueue({}); });
 
-  it("stampRefund records who, why and where — first writer wins", async () => {
-    const q = query();
+  it("stampRefund records who, why and where — first writer wins (true when it saved)", async () => {
+    const q = query({ data: [{ id: "o1" }] });
     from = fromQueue({ orders: [q] });
-    await stampRefund("o1", fields);
-    expect(callArgs(q, "update")).toEqual([{ refund_destination: "store_credit", refund_reason: "goodwill", refund_note: "held 3 weeks", refunded_by: "u1", stripe_refund_id: null }]);
+    expect(await stampRefund("o1", { ...fields, paymentLabel: "Visa ••4242" })).toBe(true);
+    expect(callArgs(q, "update")).toEqual([{ refund_destination: "store_credit", refund_reason: "goodwill", refund_note: "held 3 weeks", refunded_by: "u1", stripe_refund_id: null, refund_payment_label: "Visa ••4242" }]);
     expect(callArgs(q, "eq")).toEqual(["id", "o1"]);
     expect(callArgs(q, "is")).toEqual(["refund_reason", null]);
+    expect(callArgs(q, "select")).toEqual(["id"]);
+  });
+
+  it("stampRefund returns false when another refund already stamped the order", async () => {
+    from = fromQueue({ orders: [query({ data: [] })] });
+    expect(await stampRefund("o1", fields)).toBe(false);
   });
 
   it("stampRefund throws on a DB error", async () => {

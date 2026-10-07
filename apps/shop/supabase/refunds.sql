@@ -10,6 +10,8 @@ alter table orders add constraint orders_refund_reason_check check (refund_reaso
 alter table orders add column if not exists refund_note text;
 alter table orders add column if not exists refunded_by uuid references customers(id) on delete set null;
 alter table orders add column if not exists stripe_refund_id text;
+-- "Visa ••4242" for a card refund made here, saved so the page needn't ask Stripe.
+alter table orders add column if not exists refund_payment_label text;
 
 -- The card part of a shipped exception refunded as store credit.
 alter table store_credit_ledger drop constraint if exists store_credit_ledger_reason_check;

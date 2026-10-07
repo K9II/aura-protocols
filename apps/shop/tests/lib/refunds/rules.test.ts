@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { REFUND_REASONS, REFUND_REASON_LABEL, refundOffer, splitRefund, parseRefund, REFUND_NOTE_MAX } from "@/lib/refunds/rules";
+import { REFUND_REASONS, REFUND_REASON_LABEL, refundOffer, splitRefund, parseRefund, REFUND_NOTE_MAX, stripeNoAnswer } from "@/lib/refunds/rules";
 
 const base = { status: "paid" as const, kind: "sale" as const, total_cents: 22800, store_credit_cents: 4000, stripe_payment_intent: "pi_1" };
 const get = (v: Record<string, string>) => (k: string) => v[k] ?? null;
@@ -41,5 +41,13 @@ describe("refund rules", () => {
   });
   it("a credit-only order always refunds to store credit", () => {
     expect(parseRefund(get({ reason: "customer_cancelled" }), "cancel", false)).toEqual({ ok: true, value: { reason: "customer_cancelled", note: null, destination: "store_credit" } });
+  });
+  it("stripeNoAnswer: a connection or API error may have refunded; a card/invalid-request error didn't", () => {
+    expect(stripeNoAnswer({ type: "StripeConnectionError" })).toBe(true);
+    expect(stripeNoAnswer({ type: "StripeAPIError" })).toBe(true);
+    expect(stripeNoAnswer({ type: "StripeInvalidRequestError" })).toBe(false);
+    expect(stripeNoAnswer({ type: "StripeCardError" })).toBe(false);
+    expect(stripeNoAnswer(new Error("x"))).toBe(false);
+    expect(stripeNoAnswer(null)).toBe(false);
   });
 });

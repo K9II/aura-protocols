@@ -59,3 +59,11 @@ export function parseRefund(get: (k: string) => string | null, mode: RefundMode,
   if (Object.keys(errors).length) return { ok: false, errors };
   return { ok: true, value: { reason: reason!, note, destination } };
 }
+
+// A Stripe connection/API error (incl. a timeout) means Stripe didn't answer:
+// the refund may have gone through. Card and invalid-request errors are a
+// definite no.
+export function stripeNoAnswer(err: unknown): boolean {
+  const t = (err as { type?: unknown } | null)?.type;
+  return t === "StripeConnectionError" || t === "StripeAPIError";
+}

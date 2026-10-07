@@ -27,7 +27,7 @@ export type OrderRow = {
   kind: "sale" | "no_charge"; retail_value_cents: number | null; no_charge_reason: NoChargeReason | null; no_charge_note: string | null;
   replaces_order_id: string | null; created_by: string | null;
   refund_destination: "card" | "store_credit" | null; refund_reason: string | null; refund_note: string | null;
-  refunded_by: string | null; stripe_refund_id: string | null;
+  refunded_by: string | null; stripe_refund_id: string | null; refund_payment_label: string | null;
   order_items?: OrderItemRow[];
 };
 
