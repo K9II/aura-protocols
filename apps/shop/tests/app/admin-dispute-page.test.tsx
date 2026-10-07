@@ -3,9 +3,10 @@ import { render, screen, within } from "@testing-library/react";
 import { CUSTOMER_ID, DISPUTE_ID, disputeCase } from "../helpers/dispute-fixtures";
 import { ownerStaff, assistantStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requirePermission: vi.fn(), getDisputeCase: vi.fn() }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), getDisputeCase: vi.fn(), readStaffRow: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/disputes/data", () => ({ getDisputeCase: m.getDisputeCase }));
+vi.mock("@/lib/staff/data", () => ({ readStaffRow: m.readStaffRow }));
 vi.mock("@/lib/disputes/pdf", () => ({ buildEvidencePdf: async () => ({ bytes: new Uint8Array(84 * 1024), pages: 3 }) }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-07T15:42:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
@@ -20,6 +21,7 @@ describe("/admin/disputes/[id]", () => {
     for (const f of Object.values(m)) f.mockReset();
     m.requirePermission.mockResolvedValue(ownerStaff({ id: "owner1" }));
     m.getDisputeCase.mockResolvedValue(disputeCase({ draft_saved_at: "2026-10-06T15:31:00Z", funds_withdrawn_at: "2026-10-01T22:12:05Z" }));
+    m.readStaffRow.mockResolvedValue(null);
   });
 
   it("is owner-only and 404s a bad id or a missing chargeback", async () => {
@@ -89,6 +91,13 @@ describe("/admin/disputes/[id]", () => {
     render(await DisputePage(props()));
     expect(screen.queryByRole("button", { name: "Block customer…" })).toBeNull();
     expect(screen.getByText("Blocked")).toBeInTheDocument();
+  });
+
+  it("no Block button when the customer is a team login", async () => {
+    m.readStaffRow.mockResolvedValue({ role: "assistant", status: "active" });
+    render(await DisputePage(props()));
+    expect(m.readStaffRow).toHaveBeenCalledWith(CUSTOMER_ID);
+    expect(screen.queryByRole("button", { name: "Block customer…" })).toBeNull();
   });
 
   it("Assistant: Save draft present, Submit and Block absent", async () => {

@@ -35,6 +35,12 @@ export async function listTeam(): Promise<TeamMember[]> {
   return members.sort((a, b) => (a.role === b.role ? a.name.localeCompare(b.name) : a.role === "owner" ? -1 : 1));
 }
 
+// One row, for the event label when a Team action changes someone's status.
+export async function getTeamMember(id: string): Promise<TeamMember | null> {
+  const members = await listTeam();
+  return members.find((m) => m.id === id) ?? null;
+}
+
 export type StatusResult = "ok" | "missing" | "self" | "last_owner" | "unchanged";
 export async function setStaffStatus(i: { target: string; status: "active" | "disabled"; actorId: string; reason: string | null }): Promise<StatusResult> {
   const { data, error } = await db().rpc("admin_set_staff_status", { p_target: i.target, p_status: i.status, p_actor: i.actorId, p_reason: i.reason });

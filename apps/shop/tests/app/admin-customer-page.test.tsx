@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const { requirePermission, getCustomerDetail, customersWithDisputes } = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), getCustomerDetail: vi.fn(), customersWithDisputes: vi.fn() }));
+const { requirePermission, getCustomerDetail, customersWithDisputes, readStaffRow } = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), getCustomerDetail: vi.fn(), customersWithDisputes: vi.fn(), readStaffRow: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/customers/data", () => ({ getCustomerDetail }));
 vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes }));
+vi.mock("@/lib/staff/data", () => ({ readStaffRow }));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
 vi.mock("@/app/admin/customers/actions", () => ({ adjustCreditAction: vi.fn(), blockAction: vi.fn(), unblockAction: vi.fn(), resendVerifyAdminAction: vi.fn() }));
 import CustomerPage from "@/app/admin/customers/[id]/page";
@@ -25,7 +26,7 @@ const detail = {
 };
 
 describe("/admin/customers/[id]", () => {
-  beforeEach(() => { getCustomerDetail.mockResolvedValue(detail); customersWithDisputes.mockResolvedValue(new Set()); });
+  beforeEach(() => { getCustomerDetail.mockResolvedValue(detail); customersWithDisputes.mockResolvedValue(new Set()); readStaffRow.mockReset(); readStaffRow.mockResolvedValue(null); });
 
   it("404s a bad id or a missing customer", async () => {
     await expect(CustomerPage({ params: Promise.resolve({ id: "nope" }) })).rejects.toThrow("NOT_FOUND");
@@ -58,6 +59,13 @@ describe("/admin/customers/[id]", () => {
     render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
     expect(customersWithDisputes).toHaveBeenCalledWith([ID]);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Chargeback");
+  });
+
+  it("hides Block for a team login — disable it on the Team page instead", async () => {
+    readStaffRow.mockResolvedValue({ role: "assistant", status: "active" });
+    render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(readStaffRow).toHaveBeenCalledWith(ID);
+    expect(screen.queryByRole("button", { name: "Block" })).toBeNull();
   });
 
   it("hides Adjust credit, Block and Resend verification for the Assistant", async () => {

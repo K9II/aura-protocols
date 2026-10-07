@@ -6,6 +6,7 @@ import { requirePermission } from "@/lib/dal";
 import { adjustCredit, getCustomerBasics, logCustomerEvent } from "@/lib/customers/data";
 import { blockCustomer, unblockCustomer } from "@/lib/customers/block";
 import { blockRefusal, parseCredit } from "@/lib/customers/rules";
+import { readStaffRow } from "@/lib/staff/data";
 import { creditBalance } from "@/lib/partners/ledger";
 import { sendOrAlert } from "@/lib/notify";
 import { storeCreditAddedEmail } from "@/lib/emails";
@@ -51,7 +52,8 @@ export async function blockAction(_prev: ActionState, f: FormData): Promise<Acti
   const c = await target(f);
   const reason = str(f, "reason").trim().slice(0, 500);
   if (!reason) return { fieldErrors: { reason: "Say why." } };
-  const refusal = blockRefusal({ id: c.id, isOwner: c.isOwner }, owner.id);
+  const staffRow = await readStaffRow(c.id);
+  const refusal = blockRefusal({ id: c.id, isOwner: c.isOwner, isStaff: !!staffRow }, owner.id);
   if (refusal) return { error: refusal };
   await blockCustomer(c.id, reason, owner.id); // throws (and alerts) on a failed step
   refresh(c.id);

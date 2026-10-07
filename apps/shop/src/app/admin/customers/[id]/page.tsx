@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
+import { readStaffRow } from "@/lib/staff/data";
 import { getCustomerDetail, type CustomerDetail, type CustomerEvent, type LedgerRow } from "@/lib/customers/data";
 import { customersWithDisputes } from "@/lib/disputes/data";
 import { CATEGORY_LABEL, fingerprint, offerState, summarizeUserAgent, type CreditCategory } from "@/lib/customers/rules";
@@ -78,6 +79,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   const c = await getCustomerDetail(id);
   if (!c) notFound();
   const chargeback = (await customersWithDisputes([c.id])).has(c.id);
+  const isTeam = !!(await readStaffRow(c.id));
 
   const paid = c.orders.filter((o) => PAID.has(o.status));
   const spent = paid.reduce((s, o) => s + o.total_cents - o.store_credit_cents, 0);
@@ -107,7 +109,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         <div className="actions">
           {!c.verifiedAt && !c.blockedAt && can(staff, "customers.resend_verify") && <ResendVerify customerId={c.id} />}
           {can(staff, "credit.adjust") && <CreditDialog customerId={c.id} balanceCents={balance} />}
-          {!c.blockedAt && !c.isOwner && can(staff, "customers.block") && <BlockDialog customerId={c.id} name={c.fullName} openCheckouts={open.map((o) => ({ number: o.order_number, totalCents: o.total_cents }))} />}
+          {!c.blockedAt && !c.isOwner && !isTeam && can(staff, "customers.block") && <BlockDialog customerId={c.id} name={c.fullName} openCheckouts={open.map((o) => ({ number: o.order_number, totalCents: o.total_cents }))} />}
         </div>
       </div>
       {!c.verifiedAt && !c.blockedAt && (

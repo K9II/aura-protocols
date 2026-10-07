@@ -34,8 +34,9 @@ export function parseCredit(f: CreditForm, balanceCents: number): { ok: true; va
   return { ok: true, value: { amountCents: remove ? -cents : cents, category, note, email, message: email ? f.message.trim().slice(0, MAX_TEXT) || null : null } };
 }
 
-export function blockRefusal(target: { id: string; isOwner: boolean }, actorId: string): string | null {
+export function blockRefusal(target: { id: string; isOwner: boolean; isStaff: boolean }, actorId: string): string | null {
   if (target.isOwner) return "An owner account can't be blocked.";
+  if (target.isStaff) return "A team login can't be blocked — disable it on the Team page first.";
   if (target.id === actorId) return "You can't block yourself.";
   return null;
 }

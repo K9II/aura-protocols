@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
+import { readStaffRow } from "@/lib/staff/data";
 import { currentMs } from "@/lib/clock";
 import { getDisputeCase } from "@/lib/disputes/data";
 import { LETTER_FOR, buildEvidence, customerStrings, editable, evidenceSections, letterKind } from "@/lib/disputes/evidence";
@@ -33,6 +34,7 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
   if (!z.string().uuid().safeParse(id).success) notFound();
   const c = await getDisputeCase(id);
   if (!c) notFound();
+  const isTeam = !!(await readStaffRow(c.customer.id));
   const nowMs = currentMs();
   const d = c.dispute, f = c.facts, o = f.order;
   const built = buildEvidence(f);
@@ -99,7 +101,7 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
         <div><h1>Chargeback on {o.number} <span className={`a-chip ${chip.tone}`}>{chip.text}</span></h1><p>{sub}</p></div>
         <div className="actions">
           {!respond && <a className="a-btn" href={pdfHref}><Icon name="download" />Download PDF</a>}
-          {!c.customer.blockedAt && !c.customer.isOwner && can(staff, "customers.block") && (
+          {!c.customer.blockedAt && !c.customer.isOwner && !isTeam && can(staff, "customers.block") && (
             <BlockDialog customerId={c.customer.id} name={c.customer.name} openCheckouts={c.customer.openCheckouts} label="Block customer…"
               defaultReason={`Chargeback on ${o.number} without contacting us first.`} note="Blocking doesn't change the chargeback response." />
           )}

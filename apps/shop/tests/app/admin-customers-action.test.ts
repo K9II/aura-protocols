@@ -5,6 +5,7 @@ const requirePermission = vi.fn();
 const data = { getCustomerBasics: vi.fn(), adjustCredit: vi.fn(), logCustomerEvent: vi.fn() };
 const block = { blockCustomer: vi.fn(), unblockCustomer: vi.fn() };
 const creditBalance = vi.fn(), sendOrAlert = vi.fn(), sendVerifyEmail = vi.fn(), lastVerifySentAt = vi.fn();
+const staffData = { readStaffRow: vi.fn() };
 vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/customers/data", () => data);
 vi.mock("@/lib/customers/block", () => block);
@@ -12,6 +13,7 @@ vi.mock("@/lib/partners/ledger", () => ({ creditBalance }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert }));
 vi.mock("@/lib/account/verify", () => ({ sendVerifyEmail, lastVerifySentAt }));
 vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://shop.test" }));
+vi.mock("@/lib/staff/data", () => staffData);
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const ID = "3f1e2d4c-5b6a-4789-8abc-def012345678";
@@ -23,11 +25,12 @@ describe("customer admin actions", () => {
   beforeEach(() => {
     vi.resetModules();
     requirePermission.mockReset(); requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
-    for (const f of [...Object.values(data), ...Object.values(block), creditBalance, sendOrAlert, sendVerifyEmail, lastVerifySentAt]) f.mockReset();
+    for (const f of [...Object.values(data), ...Object.values(block), ...Object.values(staffData), creditBalance, sendOrAlert, sendVerifyEmail, lastVerifySentAt]) f.mockReset();
     data.getCustomerBasics.mockResolvedValue(target);
     creditBalance.mockResolvedValue(12_000);
     data.adjustCredit.mockResolvedValue({ ok: true, eventId: "e1" });
     sendOrAlert.mockResolvedValue(true);
+    staffData.readStaffRow.mockResolvedValue(null);
   });
 
   it("every action is owner-only", async () => {
@@ -70,6 +73,13 @@ describe("customer admin actions", () => {
     block.blockCustomer.mockResolvedValue({ closed: [] });
     expect(await blockAction(null, fd({ customerId: ID, reason: "fraud" }))).toEqual({ ok: "Blocked." });
     expect(block.blockCustomer).toHaveBeenCalledWith(ID, "fraud", "owner");
+  });
+
+  it("refuses to block a team login", async () => {
+    staffData.readStaffRow.mockResolvedValue({ role: "assistant", status: "active" });
+    const { blockAction } = await import("@/app/admin/customers/actions");
+    expect(await blockAction(null, fd({ customerId: ID, reason: "fraud" }))).toEqual({ error: "A team login can't be blocked — disable it on the Team page first." });
+    expect(block.blockCustomer).not.toHaveBeenCalled();
   });
 
   it("a bad id throws (stale form), a missing customer throws", async () => {
