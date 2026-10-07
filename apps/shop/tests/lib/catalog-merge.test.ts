@@ -37,7 +37,7 @@ describe("mergeCatalog", () => {
   it("prices from the database; no lot → out of stock, COA pending", () => {
     const m = mergeCatalog([entry("bpc-157")], ops(), url);
     expect(m.shown).toHaveLength(1);
-    expect(m.shown[0].variants[0]).toMatchObject({ priceUsd: 79, stock: "out", availableVials: 0, lot: { pending: true } });
+    expect(m.shown[0].variants[0]).toMatchObject({ priceUsd: 79, stock: "out", lot: { pending: true } });
   });
 
   it("a product with no row, or with shown = false, is hidden; strengths come from the database only", () => {
@@ -57,8 +57,14 @@ describe("mergeCatalog", () => {
       lot({ id: "c", lot_number: "BPC-2610-01", live_at: "2026-10-01T00:00:00Z", available: 200 }),
     ] }), url);
     const v = m.shown[0].variants[0];
-    expect(v.availableVials).toBe(212);
+    expect(v).not.toHaveProperty("availableVials"); // counts never reach the browser (competitors read page data)
     expect(v.stock).toBe("in");
+    // low stock still comes from the sum over live lots (12 + 15 > low_at 20; either alone would be low)
+    const two = mergeCatalog([entry("bpc-157")], ops({ lots: [
+      lot({ id: "d", lot_number: "BPC-2609-02", live_at: "2026-09-01T00:00:00Z", available: 12 }),
+      lot({ id: "e", lot_number: "BPC-2610-02", live_at: "2026-10-01T00:00:00Z", available: 15 }),
+    ] }), url);
+    expect(two.shown[0].variants[0].stock).toBe("in");
     expect(v.lot).toEqual({ lot: "BPC-2609-01", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-09-18", coaFile: "https://x/coa/BPC-2609-01/1.pdf" });
   });
 

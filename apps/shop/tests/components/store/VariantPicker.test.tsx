@@ -34,7 +34,7 @@ describe("VariantPicker", () => {
     const out = { ...bpc, variants: bpc.variants.map((v) => ({ ...v, stock: "out" as const })) };
     const { rerender } = render(<CartProvider catalog={liveFixture()}><VariantPicker compound={out} /></CartProvider>);
     expect(screen.getByRole("button", { name: /out of stock/i })).toBeDisabled();
-    const pending = { ...bpc, variants: bpc.variants.map((v) => ({ ...v, stock: "out" as const, availableVials: 0, lot: { pending: true as const } })) };
+    const pending = { ...bpc, variants: bpc.variants.map((v) => ({ ...v, stock: "out" as const, lot: { pending: true as const } })) };
     rerender(<CartProvider catalog={liveFixture()}><VariantPicker compound={pending} /></CartProvider>);
     expect(screen.getByRole("button", { name: /coa pending/i })).toBeDisabled();
     expect(screen.getByText(/certificate posted when lab results return/i)).toBeInTheDocument();
@@ -60,7 +60,7 @@ describe("VariantPicker", () => {
   });
 
   it("does not show a stock label for a pending lot (the COA-pending copy covers it)", () => {
-    const pending = { ...bpc, variants: bpc.variants.map((v) => ({ ...v, stock: "out" as const, availableVials: 0, lot: { pending: true as const } })) };
+    const pending = { ...bpc, variants: bpc.variants.map((v) => ({ ...v, stock: "out" as const, lot: { pending: true as const } })) };
     render(<CartProvider catalog={liveFixture()}><VariantPicker compound={pending} /></CartProvider>);
     expect(screen.queryByText("Out of stock")).toBeNull();
     expect(screen.getByText(/certificate posted when lab results return/i)).toBeInTheDocument();
