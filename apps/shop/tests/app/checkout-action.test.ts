@@ -27,6 +27,10 @@ const claimCode = vi.fn();
 const codeAttemptAllowed = vi.fn();
 const recordCodeFailure = vi.fn();
 const lookupDiscountCode = vi.fn();
+const verifyHumanCheck = vi.fn();
+const saveResearchVerification = vi.fn();
+vi.mock("@/lib/turnstile", () => ({ verifyHumanCheck }));
+vi.mock("@/lib/account/research-data", () => ({ saveResearchVerification }));
 vi.mock("@/lib/discounts/data", () => ({ getDiscountCap, claimCode, codeAttemptAllowed, recordCodeFailure }));
 vi.mock("@/lib/discounts/redeem", () => ({ lookupDiscountCode }));
 vi.mock("@/lib/gate", () => ({ hashIp: (ip: string) => `h:${ip}` }));
@@ -59,11 +63,13 @@ beforeEach(() => {
   catalogStockChanged.mockReset();
 });
 
-const customer = { id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false, stripeCustomerId: null, ship: null, createdAt: "2026-10-04T00:00:00Z" };
+const customer = { id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false, stripeCustomerId: null, ship: null, createdAt: "2026-10-04T00:00:00Z",
+  research: { field: "independent", org: "Jane Lab", verifiedAt: "2026-10-04T00:00:00Z" } };
 const input = {
   lines: [{ slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 }],
   ship: { name: "Jane", line1: "1 A St", line2: "", city: "Austin", state: "TX", zip: "78701" },
   ruoConfirmed: true,
+  humanToken: "tok",
 };
 const redirect = { kind: "redirect", url: "https://checkout.stripe.com/x", sessionId: "cs_1", stripeCustomerId: "cus_1", couponId: null };
 
@@ -82,6 +88,66 @@ describe("startCheckoutAction", () => {
     resolveAttribution.mockResolvedValue({ attribution: null });
     createPendingOrder.mockResolvedValue({ id: "o1", orderNumber: "AP-1001" });
     transitionOrder.mockResolvedValue(true);
+    verifyHumanCheck.mockReset(); verifyHumanCheck.mockResolvedValue({ ok: true });
+    saveResearchVerification.mockReset(); saveResearchVerification.mockResolvedValue(undefined);
+  });
+
+  it("asks Cloudflare about the token first, with the client IP and our hostname", async () => {
+    getCustomer.mockResolvedValue(customer);
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction(input);
+    expect(verifyHumanCheck).toHaveBeenCalledWith("tok", "1.2.3.4", expect.any(String));
+    expect(verifyHumanCheck.mock.invocationCallOrder[0]).toBeLessThan(listOpenOrdersForCustomer.mock.invocationCallOrder[0]);
+  });
+
+  it("a failed check creates nothing and doesn't alert the owner", async () => {
+    getCustomer.mockResolvedValue(customer);
+    verifyHumanCheck.mockResolvedValue({ ok: false, reason: "failed", detail: "invalid-input-response" });
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect((await startCheckoutAction(input)).error).toMatch(/tick the box again/);
+    for (const f of [listOpenOrdersForCustomer, lookupDiscountCode, createPendingOrder, holdVials, claimCode, createCheckout]) expect(f).not.toHaveBeenCalled();
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("an unavailable check refuses the checkout and alerts the owner", async () => {
+    getCustomer.mockResolvedValue(customer);
+    verifyHumanCheck.mockResolvedValue({ ok: false, reason: "unavailable", detail: "TURNSTILE_SECRET_KEY is not set" });
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect((await startCheckoutAction(input)).error).toMatch(/couldn't confirm the check/);
+    expect(createPendingOrder).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledWith("Checkout: human check unavailable", expect.stringContaining("TURNSTILE_SECRET_KEY is not set"));
+  });
+
+  it("first order: research details are required, then saved before the order exists", async () => {
+    getCustomer.mockResolvedValue({ ...customer, research: null });
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect((await startCheckoutAction(input)).error).toMatch(/field of research/);
+    expect(createPendingOrder).not.toHaveBeenCalled();
+    expect((await startCheckoutAction({ ...input, research: { field: "astrology", org: "X" } })).error).toBeTruthy();
+    expect((await startCheckoutAction({ ...input, research: { field: "independent", org: "   " } })).error).toBeTruthy();
+    expect(createPendingOrder).not.toHaveBeenCalled();
+    expect(await startCheckoutAction({ ...input, research: { field: "independent", org: " Halden Labs " } })).toEqual({ url: "https://checkout.stripe.com/x" });
+    expect(saveResearchVerification).toHaveBeenCalledWith("u1", { field: "independent", org: "Halden Labs" });
+    expect(saveResearchVerification.mock.invocationCallOrder[0]).toBeLessThan(createPendingOrder.mock.invocationCallOrder[0]);
+  });
+
+  it("already verified: research is neither required nor saved again", async () => {
+    getCustomer.mockResolvedValue(customer);
+    createCheckout.mockResolvedValue(redirect);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    await startCheckoutAction({ ...input, research: { field: "other", org: "New Co" } });
+    expect(saveResearchVerification).not.toHaveBeenCalled();
+    expect(createPendingOrder).toHaveBeenCalled();
+  });
+
+  it("a failed research save stops the checkout", async () => {
+    getCustomer.mockResolvedValue({ ...customer, research: null });
+    saveResearchVerification.mockRejectedValue(new Error("db down"));
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect((await startCheckoutAction({ ...input, research: { field: "independent", org: "Lab" } })).error).toMatch(/couldn't save your research details/);
+    expect(createPendingOrder).not.toHaveBeenCalled();
   });
 
   it("requires a signed-in, verified customer", async () => {

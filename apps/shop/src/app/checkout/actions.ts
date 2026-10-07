@@ -27,6 +27,10 @@ import { hashIp } from "@/lib/gate";
 import { catalogStockChanged, getLiveCatalog } from "@/lib/catalog-live";
 import { holdVials, type HoldResult } from "@/lib/catalog-ops/data";
 import { soldOutMessage } from "@/lib/catalog-ops/rules";
+import { verifyHumanCheck } from "@/lib/turnstile";
+import { HUMAN_CHECK_FAILED, HUMAN_CHECK_UNAVAILABLE } from "@/lib/human-check";
+import { RESEARCH_FIELDS, RESEARCH_ORG_MAX, RESEARCH_REQUIRED, RESEARCH_SAVE_FAILED } from "@/lib/account/research";
+import { saveResearchVerification } from "@/lib/account/research-data";
 
 const OFFER_CHECK_FAILED = "We couldn't check your new-account discount — please try again.";
 
@@ -41,6 +45,8 @@ const schema = z.object({
   ruoConfirmed: z.literal(true),
   partnerCode: z.string().max(40).optional(),
   useCredit: z.boolean().optional(),
+  humanToken: z.string().max(4096).optional(),
+  research: z.object({ field: z.enum(RESEARCH_FIELDS), org: z.string().trim().min(1).max(RESEARCH_ORG_MAX) }).optional(),
 });
 
 // Saves that only keep records tidy (saved address, coupon id, Stripe
@@ -55,9 +61,12 @@ async function bookkeep(what: string, save: () => Promise<void>, context?: strin
   }
 }
 
+async function requestIp(): Promise<string | null> {
+  return ((await headers()).get("x-forwarded-for") ?? "").split(",")[0].trim() || null;
+}
+
 async function requestIpHash(): Promise<string> {
-  const ip = ((await headers()).get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
-  return hashIp(ip);
+  return hashIp((await requestIp()) ?? "unknown");
 }
 
 type TypedCode =
@@ -133,8 +142,23 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   if (!customer.emailConfirmed) return { error: "Please verify your email first — check your inbox for the link." };
 
   const parsed = schema.safeParse(input);
-  if (!parsed.success) return { error: "Please complete the shipping address and confirm research use." };
-  const { lines, ship, partnerCode, useCredit } = parsed.data;
+  if (!parsed.success) return { error: "Please complete the shipping address, your research details and the research-use confirmation." };
+  const { lines, ship, partnerCode, useCredit, humanToken, research } = parsed.data;
+
+  // The human check (Cloudflare Turnstile) comes before any work: no code
+  // lookup, stock hold or order for a bot. "unavailable" is our problem
+  // (no secret, Cloudflare down) — refuse, and tell the owner.
+  const human = await verifyHumanCheck(humanToken, await requestIp(), new URL(siteUrl()).hostname);
+  if (!human.ok) {
+    if (human.reason === "unavailable") {
+      await alertOwner("Checkout: human check unavailable", `Customer ${customer.id}: ${human.detail}. No checkout can start until this is fixed.`);
+      return { error: HUMAN_CHECK_UNAVAILABLE };
+    }
+    return { error: HUMAN_CHECK_FAILED };
+  }
+  // Research verification is asked once, on the first order (processor rules).
+  const needsResearch = !customer.research;
+  if (needsResearch && !research) return { error: RESEARCH_REQUIRED };
 
   let live;
   try {
@@ -200,6 +224,14 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   const newAccountDiscount = result.newAccount;
 
   await bookkeep("saving the shipping address", () => saveShipAddress(customer.id, ship));
+  if (needsResearch) {
+    try {
+      await saveResearchVerification(customer.id, research!);
+    } catch (err) {
+      console.error("research verification save failed:", err);
+      return { error: RESEARCH_SAVE_FAILED };
+    }
+  }
 
   // Store credit is a payment, not a discount: tax is computed on the full
   // price first, then credit covers as much of the total as it can.
