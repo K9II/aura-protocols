@@ -45,6 +45,15 @@ describe("NoChargeForm", () => {
     expect(d.get("ship_zip")).toBe("85705");
   });
 
+  it("pre-selects Replacement and the original order (Send a replacement)", () => {
+    const r = render(<NoChargeForm customer={customer} stock={stock} originals={originals} month={month} submitKey="key-1" recipientCard={<div>card</div>} initialReason="replacement" initialReplaces="AP-1052" />);
+    const d = new FormData(r.container.querySelector("form")!);
+    expect(screen.getByRole("radio", { name: "Replacement" })).toBeChecked();
+    expect(d.get("reason")).toBe("replacement");
+    expect(d.get("replaces")).toBe("AP-1052");
+    expect(screen.getByRole("combobox", { name: "Original order" })).toHaveDisplayValue(/AP-1052/);
+  });
+
   it("labels options with stock, tags hidden strengths and shows Retail", () => {
     setup();
     expect(screen.getByRole("option", { name: "BPC-157 · 10 mg — 84 available" })).toBeInTheDocument();

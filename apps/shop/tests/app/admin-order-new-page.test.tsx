@@ -11,8 +11,8 @@ vi.mock("@/lib/no-charge/data", () => ({ searchRecipients: m.searchRecipients, r
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T18:00:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound }));
 vi.mock("@/components/admin/orders/NoChargeForm", () => ({
-  default: ({ customer, stock, originals, month, submitKey, recipientCard }: { customer: { id: string }; stock: unknown[]; originals: unknown[]; month: { orders: number }; submitKey: string; recipientCard: React.ReactNode }) =>
-    <>{recipientCard}<div data-testid="nc-form" data-key={submitKey}>form for {customer.id} · {stock.length} options · {originals.length} originals · {month.orders} this month</div></>,
+  default: ({ customer, stock, originals, month, submitKey, recipientCard, initialReason, initialReplaces }: { customer: { id: string }; stock: unknown[]; originals: unknown[]; month: { orders: number }; submitKey: string; recipientCard: React.ReactNode; initialReason?: string | null; initialReplaces?: string }) =>
+    <>{recipientCard}<div data-testid="nc-form" data-key={submitKey} data-reason={initialReason ?? ""} data-replaces={initialReplaces ?? ""}>form for {customer.id} · {stock.length} options · {originals.length} originals · {month.orders} this month</div></>,
 }));
 import NewNoChargePage from "@/app/admin/orders/new/page";
 
@@ -73,6 +73,22 @@ describe("/admin/orders/new", () => {
     expect(screen.getByTestId("nc-form")).toHaveTextContent(`form for ${C1} · 1 options · 3 originals · 4 this month`);
     // A fresh one-time key per render (a double submit of one render can't make two orders).
     expect(screen.getByTestId("nc-form").dataset.key).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it("pre-selects Replacement and the original order from Send a replacement", async () => {
+    render(await NewNoChargePage(sp({ customer: C1, reason: "replacement", replaces: "AP-1040" })));
+    expect(screen.getByTestId("nc-form").dataset.reason).toBe("replacement");
+    expect(screen.getByTestId("nc-form").dataset.replaces).toBe("AP-1040");
+  });
+
+  it("ignores an original that isn't one of the customer's sale orders, and no prefill without reason", async () => {
+    const a = render(await NewNoChargePage(sp({ customer: C1, reason: "replacement", replaces: "AP-9999" })));
+    expect(screen.getByTestId("nc-form").dataset.reason).toBe("replacement");
+    expect(screen.getByTestId("nc-form").dataset.replaces).toBe("");
+    a.unmount();
+    render(await NewNoChargePage(sp({ customer: C1 })));
+    expect(screen.getByTestId("nc-form").dataset.reason).toBe("");
+    expect(screen.getByTestId("nc-form").dataset.replaces).toBe("");
   });
 
   it("404s an unknown customer id", async () => {

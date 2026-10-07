@@ -38,6 +38,7 @@ const PATHS = {
   flask: <path d="M6 2h4M7 2v4L3.5 13h9L9 6V2" />,
   desktop: <><rect x="2" y="3" width="12" height="8" /><path d="M6 14h4M8 11v3" /></>,
   shield: <path d="M8 1.5 13.5 3.5v4c0 3.2-2.3 5.8-5.5 7-3.2-1.2-5.5-3.8-5.5-7v-4z" />,
+  dots: <path d="M3 8h.01M8 8h.01M13 8h.01" strokeWidth="2.4" />,
 } as const;
 export type IconName = keyof typeof PATHS;
 

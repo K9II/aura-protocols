@@ -21,7 +21,10 @@ function Step({ n, title, children }: { n: number; title: string; children?: Rea
 
 // Mock Screen 5 (desktop) / Screen 7 right (phone). Step 1 picks the
 // recipient (GET ?q= search, then ?customer=<id>); the rest is NoChargeForm.
-export default async function NewNoChargePage({ searchParams }: { searchParams: Promise<{ customer?: string | string[]; q?: string | string[] }> }) {
+// "Send a replacement" on a shipped order links here with
+// &reason=replacement&replaces=AP-…, which pre-selects both (the original
+// only when it's one of the customer's sale orders).
+export default async function NewNoChargePage({ searchParams }: { searchParams: Promise<{ customer?: string | string[]; q?: string | string[]; reason?: string | string[]; replaces?: string | string[] }> }) {
   await requirePermission("orders.no_charge");
   const sp = await searchParams;
   const customerRaw = first(sp.customer);
@@ -81,11 +84,16 @@ export default async function NewNoChargePage({ searchParams }: { searchParams: 
     </div></div>
   );
 
+  const replacement = first(sp.reason) === "replacement";
+  const replacesRaw = (first(sp.replaces) ?? "").trim().toUpperCase();
+  const replaces = replacement && originals.some((o) => o.number === replacesRaw) ? replacesRaw : "";
+
   return (
     <div className="a-page">
       {head}
       {usable
-        ? <NoChargeForm customer={who} stock={stock} originals={originals} month={month} submitKey={crypto.randomUUID()} recipientCard={card} />
+        ? <NoChargeForm customer={who} stock={stock} originals={originals} month={month} submitKey={crypto.randomUUID()} recipientCard={card}
+          initialReason={replacement ? "replacement" : null} initialReplaces={replaces} />
         : <div className="a-nc-grid one">{card}</div>}
     </div>
   );

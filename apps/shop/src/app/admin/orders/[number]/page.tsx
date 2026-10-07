@@ -12,10 +12,14 @@ import { dateTime } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
 import { cancelNoChargeOrderAction } from "@/app/admin/orders/actions";
 import { REASON_LABEL } from "@/lib/no-charge/rules";
+import { refundOffer, splitRefund } from "@/lib/refunds/rules";
+import { paymentLabel } from "@/lib/refunds/stripe";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import ShipDialog from "@/components/admin/orders/ShipDialog";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { Markers, OrderStatusChip } from "@/components/admin/orders/bits";
+import RefundDialog from "@/components/admin/orders/RefundDialog";
+import OrderMore, { type MoreItem } from "@/components/admin/orders/OrderMore";
 
 export const metadata: Metadata = { title: "Order", robots: { index: false, follow: false } };
 
@@ -48,6 +52,24 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const summary = `${o.ship_name} · ${o.ship_city}, ${o.ship_state} · ${vials} vial${vials === 1 ? "" : "s"}`;
   const disputedCustomers = await customersWithDisputes([c.id]);
 
+  // Refunds (mock 2026-10-07-admin-refunds r1–r3, r5): owner only; orders
+  // with an open chargeback or fraud warning are refunded from Disputes.
+  const canRefund = can(staff, "orders.refund");
+  const offer = nc ? { mode: null } : refundOffer(o, d.flags);
+  const refundMode = canRefund ? offer.mode : null;
+  const label = refundMode && o.stripe_payment_intent ? await paymentLabel(o.stripe_payment_intent) : null;
+  const firstName = c.fullName.trim().split(/\s+/)[0] || c.fullName;
+  const replaceHref = `/admin/orders/new?customer=${c.id}&reason=replacement&replaces=${o.order_number}`;
+  const refundDialogId = `refund-${o.id}`;
+  const commissionFact = d.commission && d.commission.state !== "void" && d.partner
+    ? `The ${d.partner.code} commission (${usd(d.commission.amount_cents)}) is reversed.`
+    : d.partner ? "No commission to reverse." : "No partner on this order.";
+  const more: MoreItem[] = [];
+  if (refundMode === "cancel") more.push({ kind: "dialog", label: "Cancel and refund", sub: "Before shipping · full refund", dialogId: refundDialogId, danger: true, phoneOnly: true });
+  if (!nc && o.status === "shipped" && can(staff, "orders.no_charge")) more.push({ kind: "link", label: "Send a replacement", sub: `New no-charge order · Replacement for ${o.order_number}`, href: replaceHref });
+  if (refundMode === "exception") more.push({ kind: "dialog", label: "Refund…", sub: "An exception to the refund policy", dialogId: refundDialogId, danger: true });
+  if (stripeUrl) more.push({ kind: "link", label: "Open in Stripe", sub: "The payment in the Stripe dashboard", href: stripeUrl, external: true, phoneOnly: true });
+
   return (
     <div className="a-page">
       <Crumbs items={[{ label: "Orders", href: "/admin/orders" }, { label: o.order_number }]} />
@@ -58,14 +80,24 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
           {nc && o.status === "paid" && can(staff, "orders.no_charge") && <ConfirmDialog label="Cancel order" title={`Cancel ${o.order_number}?`} confirmLabel="Cancel order" tone="danger" action={cancelNoChargeOrderAction} fields={{ orderId: o.id }}>
             The {vials} vial{vials === 1 ? "" : "s"} go{vials === 1 ? "es" : ""} back to stock. Nothing is emailed.
           </ConfirmDialog>}
+          {refundMode && <RefundDialog dialogId={refundDialogId} orderId={o.id} orderNumber={o.order_number} mode={refundMode} firstName={firstName} vials={vials}
+            commission={commissionFact} paymentLabel={label} replaceHref={replaceHref} button={refundMode === "cancel"}
+            splits={{ card: splitRefund(o, "card"), store_credit: splitRefund(o, "store_credit") }} />}
           {o.status === "paid" && <><Link className="a-btn" href={`/admin/orders/${o.order_number}/pick`}>Pick list</Link>{can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary} />}</>}
-          {stripeUrl && <a className="a-btn" href={stripeUrl} target="_blank" rel="noopener noreferrer"><Icon name="ext" />Open in Stripe</a>}
+          {stripeUrl && <a className="a-btn a-hide-640" href={stripeUrl} target="_blank" rel="noopener noreferrer"><Icon name="ext" />Open in Stripe</a>}
+          <OrderMore items={more} orderNumber={o.order_number} />
         </div>
       </div>
       {nc
         ? <div className="a-dsub">Created {dateTime(o.created_at)}{nc.createdBy && <> by {nc.createdBy}</>}<span className="dot" />{c.fullName}<span className="dot" />
           {nc.replaces ? <span>Replacement for <Link className="a-ulink" href={`/admin/orders/${nc.replaces}`}>{nc.replaces}</Link></span> : REASON_LABEL[nc.reason]}</div>
         : <div className="a-dsub">Placed {dateTime(o.created_at)}<span className="dot" />{c.fullName}<span className="dot" />{usd(charged)} charged</div>}
+      {canRefund && offer.blockedBy === "warning" && (
+        <div className="a-callout warn a-refund-note"><Icon name="warn" /><div>Stripe flagged this card as possibly stolen. To cancel and refund, use <Link className="a-ulink" href="/admin/disputes">Disputes → warning on {o.order_number}</Link> — it refunds as fraud so Radar blocks the card.</div></div>
+      )}
+      {canRefund && offer.blockedBy === "dispute" && (
+        <div className="a-callout info a-refund-note"><Icon name="info" /><div>A chargeback is open on this order — the bank already holds the money. Respond in <Link className="a-ulink" href={d.openDisputeId ? `/admin/disputes/${d.openDisputeId}` : "/admin/disputes"}>Disputes</Link>; a refund isn&apos;t possible while it&apos;s open.</div></div>
+      )}
 
       <div className="a-og">
         <div>

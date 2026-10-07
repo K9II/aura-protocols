@@ -43,14 +43,18 @@ describe("getOrderDetail", () => {
     getOrderByNumber.mockResolvedValue(order);
     from = fromQueue(tables({ disputes: query({ data: [{ id: "d1", status: "won", reason: "fraudulent", amount_cents: 1000, opened_at: "2026-09-01T00:00:00Z", closed_at: "2026-09-10T00:00:00Z", outcome: "won" }] }) }));
     const { getOrderDetail } = await import("@/lib/orders/detail");
-    expect((await getOrderDetail("AP-1029"))!.flags.dispute).toBe(false);
+    const closed = (await getOrderDetail("AP-1029"))!;
+    expect(closed.flags.dispute).toBe(false);
+    expect(closed.openDisputeId).toBeNull();
 
     from = fromQueue(tables({ disputes: query({ data: [
       { id: "d1", status: "won", reason: "fraudulent", amount_cents: 1000, opened_at: "2026-09-01T00:00:00Z", closed_at: "2026-09-10T00:00:00Z", outcome: "won" },
       { id: "d2", status: "needs_response", reason: "product_not_received", amount_cents: 2000, opened_at: "2026-10-01T00:00:00Z", closed_at: null, outcome: null },
     ] }) }));
     const { getOrderDetail: getOrderDetail2 } = await import("@/lib/orders/detail");
-    expect((await getOrderDetail2("AP-1029"))!.flags.dispute).toBe(true);
+    const open = (await getOrderDetail2("AP-1029"))!;
+    expect(open.flags.dispute).toBe(true);
+    expect(open.openDisputeId).toBe("d2");
   });
 
   it("assembles customer, code, partner, flags and a timeline", async () => {

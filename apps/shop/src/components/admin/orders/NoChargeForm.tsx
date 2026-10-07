@@ -30,9 +30,12 @@ function CreateButton({ className }: { className: string }) {
 
 // `submitKey` is the page render's one-time key (see createNoChargeOrderAction);
 // after a failed attempt the action sends back a fresh one.
-export default function NoChargeForm({ customer, stock, originals, month, submitKey, recipientCard }: {
+// `initialReason`/`initialReplaces` pre-select a Replacement for an original
+// order (the order page's "Send a replacement").
+export default function NoChargeForm({ customer, stock, originals, month, submitKey, recipientCard, initialReason = null, initialReplaces = "" }: {
   customer: Customer; stock: StockOption[]; originals: Array<{ number: string; createdAt: string }>;
   month: { orders: number; retailCents: number }; submitKey: string; recipientCard: React.ReactNode;
+  initialReason?: NoChargeReason | null; initialReplaces?: string;
 }) {
   const [state, action] = useActionState<NoChargeState, FormData>(createNoChargeOrderAction, null);
   const err = state?.errors ?? {};
@@ -40,12 +43,12 @@ export default function NoChargeForm({ customer, stock, originals, month, submit
   const id = (k: string) => `${uid}-${k}`;
   const firstName = customer.name.trim().split(/\s+/)[0] ?? customer.name;
 
-  const [reason, setReason] = useState<NoChargeReason | null>(null);
-  const [replaces, setReplaces] = useState("");
+  const [reason, setReason] = useState<NoChargeReason | null>(initialReason);
+  const [replaces, setReplaces] = useState(initialReplaces);
   const [note, setNote] = useState("");
   const [lines, setLines] = useState<Line[]>([{ key: 0, sel: "", vials: "1" }]);
   const [nextKey, setNextKey] = useState(1);
-  const [email, setEmail] = useState(emailDefault(null));
+  const [email, setEmail] = useState(emailDefault(initialReason));
   const [emailTouched, setEmailTouched] = useState(false);
   const saved = customer.ship;
   const [editing, setEditing] = useState(!saved);

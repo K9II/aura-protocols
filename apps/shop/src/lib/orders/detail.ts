@@ -16,6 +16,8 @@ export type OrderDetail = {
   partner: { id: string; code: string } | null;
   commission: { amount_cents: number; rate_pct: number; state: CommissionState; created_at: string; clears_at: string | null; voided_at: string | null } | null;
   flags: { dispute: boolean; warning: boolean };
+  // The open chargeback's id (its Disputes page), if any.
+  openDisputeId: string | null;
   timeline: TimelineEntry[];
 };
 
@@ -92,6 +94,7 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
       : null,
     code: codeRow, partner: partnerRow, commission: com,
     flags: flagsFrom(ds, ws),
+    openDisputeId: ds.find((x) => !x.closed_at)?.id ?? null,
     timeline: buildOrderTimeline({
       order,
       adminEvents: ev.map((e) => ({ action: e.action, at: e.at, detail: e.detail, actorName: e.actor?.full_name ?? null })),
