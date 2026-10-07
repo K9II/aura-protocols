@@ -6,8 +6,7 @@
 // exception (store credit by default, note and confirm required). Posts to
 // refundOrderAction; field errors show under their fields, a `form` error as
 // the red banner; on ok the dialog closes and the page refreshes.
-import { useActionState, useEffect, useId, useRef, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { startTransition, useActionState, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { refundOrderAction, type RefundState } from "@/app/admin/orders/actions";
 import { REFUND_NOTE_MAX, REFUND_REASONS, REFUND_REASON_LABEL, type RefundDestination, type RefundMode } from "@/lib/refunds/rules";
@@ -28,8 +27,7 @@ export type RefundDialogProps = {
   button?: boolean;
 };
 
-function Confirm({ children }: { children: React.ReactNode }) {
-  const { pending } = useFormStatus();
+function Confirm({ children, pending }: { children: React.ReactNode; pending: boolean }) {
   return <button type="submit" className="a-btn danger-fill" disabled={pending}>{children}</button>;
 }
 
@@ -48,13 +46,20 @@ function Lines({ split, label, firstName }: { split: RefundSplit; label: string 
 
 export default function RefundDialog(p: RefundDialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
-  const [state, action] = useActionState<RefundState, FormData>(refundOrderAction, null);
+  const [state, action, pending] = useActionState<RefundState, FormData>(refundOrderAction, null);
   useEffect(() => { if (state?.ok) ref.current?.close(); }, [state]);
   const uid = useId();
   const id = (k: string) => `${uid}-${k}`;
   const cancel = p.mode === "cancel";
   const hasCard = p.paymentLabel !== null;
   const [dest, setDest] = useState<RefundDestination>(cancel && hasCard ? "card" : "store_credit");
+  // Controlled, and submitted from onSubmit rather than <form action>: React 19
+  // resets a form after its action (a controlled select/checkbox included), so
+  // an error would otherwise wipe what was typed. The browser still checks
+  // `required` before onSubmit fires.
+  const [reason, setReason] = useState<string>(cancel ? "customer_cancelled" : "");
+  const [note, setNote] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
   const err = state?.errors ?? {};
   const split = p.splits[dest];
   const close = () => ref.current?.close();
@@ -68,7 +73,7 @@ export default function RefundDialog(p: RefundDialogProps) {
     <>
       {p.button && <button type="button" className="a-btn a-hide-640" onClick={() => ref.current?.showModal()}>Cancel and refund</button>}
       <dialog ref={ref} id={p.dialogId} className="a-modal a-sheet" aria-labelledby={id("h")}>
-        <form action={action}>
+        <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); startTransition(() => action(fd)); }}>
           <input type="hidden" name="orderId" value={p.orderId} />
           <input type="hidden" name="mode" value={p.mode} />
           {cancel && <input type="hidden" name="destination" value={dest} />}
@@ -114,13 +119,13 @@ export default function RefundDialog(p: RefundDialogProps) {
                   </ul>
                 )}
                 <div className="a-fld"><label htmlFor={id("reason")}>Reason</label>
-                  <div className="a-input"><select id={id("reason")} name="reason" defaultValue={cancel ? "customer_cancelled" : ""} style={{ flex: 1, border: 0, background: "transparent", height: "100%", padding: "0 10px" }}>
+                  <div className="a-input"><select id={id("reason")} name="reason" required value={reason} onChange={(e) => setReason(e.target.value)} style={{ flex: 1, border: 0, background: "transparent", height: "100%", padding: "0 10px" }}>
                     {!cancel && <option value="" disabled>Choose a reason</option>}
                     {REFUND_REASONS.map((r) => <option key={r} value={r}>{REFUND_REASON_LABEL[r]}</option>)}
                   </select></div>
                   {err.reason && <div className="a-err" role="alert">{err.reason}</div>}</div>
                 <div className="a-fld"><label htmlFor={id("note")}>Note <span className="muted" style={{ fontWeight: 400 }}>{cancel ? "(optional — only you see it)" : "(required)"}</span></label>
-                  <textarea id={id("note")} name="note" className="a-textarea" maxLength={REFUND_NOTE_MAX} placeholder={cancel ? "e.g. \"Ordered the wrong strength — Q-1049\"" : "Why this order is an exception — only you see it"} />
+                  <textarea id={id("note")} name="note" className="a-textarea" maxLength={REFUND_NOTE_MAX} required={!cancel} value={note} onChange={(e) => setNote(e.target.value)} placeholder={cancel ? "e.g. \"Ordered the wrong strength — Q-1049\"" : "Why this order is an exception — only you see it"} />
                   {err.note && <div className="a-err" role="alert">{err.note}</div>}</div>
                 {!cancel && (
                   <>
@@ -130,7 +135,7 @@ export default function RefundDialog(p: RefundDialogProps) {
                       <li>{p.firstName} gets a &quot;refunded&quot; email with the amount and where it went.</li>
                     </ul>
                     <div>
-                      <label className="a-chkline"><input type="checkbox" name="confirm" /><span>I&apos;m making an exception to the refund policy for this order.</span></label>
+                      <label className="a-chkline"><input type="checkbox" name="confirm" required checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} /><span>I&apos;m making an exception to the refund policy for this order.</span></label>
                       {err.confirm && <div className="a-err" role="alert">{err.confirm}</div>}
                     </div>
                   </>
@@ -138,7 +143,7 @@ export default function RefundDialog(p: RefundDialogProps) {
               </div>
               <div className="a-modal-f"><div className="r">
                 <button type="button" className="a-btn keep" onClick={close}>Keep order</button>
-                <Confirm>{confirmText}</Confirm>
+                <Confirm pending={pending}>{confirmText}</Confirm>
               </div></div>
             </>
           )}

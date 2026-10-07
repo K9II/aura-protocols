@@ -144,4 +144,30 @@ describe("RefundDialog — shipped exception (r3)", () => {
     expect(alerts).toEqual(["Pick where the money goes.", "Pick a reason.", "Say why this order is an exception.", "Tick the box to confirm the exception."]);
     expect(container.querySelector(".a-err-banner")).toBeNull();
   });
+
+  it("keeps what was typed after an error (React resets uncontrolled fields)", async () => {
+    m.action.mockResolvedValue({ errors: { destination: "Pick where the money goes." } });
+    const { container } = render(<RefundDialog {...exception} />);
+    const d = dialog(container);
+    fireEvent.change(within(d).getByRole("combobox", { name: "Reason", hidden: true }), { target: { value: "damaged" } });
+    fireEvent.change(within(d).getByLabelText(/Note/), { target: { value: "Two vials cracked" } });
+    fireEvent.click(within(d).getByRole("checkbox", { hidden: true }));
+    await act(async () => { fireEvent.submit(container.querySelector("form")!); });
+    expect(screen.getByText("Pick where the money goes.")).toBeInTheDocument();
+    const f = data(container);
+    expect([f.get("reason"), f.get("note"), f.get("confirm"), (within(d).getByRole("combobox", { name: "Reason", hidden: true }) as HTMLSelectElement).value]).toEqual(["damaged", "Two vials cracked", "on", "damaged"]);
+  });
+
+  it("reason, note and the policy box are required in the browser", () => {
+    const { container } = render(<RefundDialog {...exception} />);
+    const d = dialog(container);
+    expect(within(d).getByRole("combobox", { name: "Reason", hidden: true })).toBeRequired();
+    expect(within(d).getByLabelText(/Note/)).toBeRequired();
+    expect(within(d).getByRole("checkbox", { hidden: true })).toBeRequired();
+  });
+
+  it("before shipping the note stays optional", () => {
+    const { container } = render(<RefundDialog {...cancel} />);
+    expect(within(dialog(container)).getByLabelText(/Note/)).not.toBeRequired();
+  });
 });
