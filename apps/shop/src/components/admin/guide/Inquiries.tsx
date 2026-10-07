@@ -31,6 +31,9 @@ export default function Inquiries() {
         <Task title="Saved replies">
           <Step>Choose <Ui>Saved replies</Ui> to add, edit or delete them. They pass the same check when you save.</Step>
         </Task>
+        <Task title="The Assistant's drafts">
+          <Step>Claude&apos;s own login can write a reply and <Ui>Save draft</Ui>, but not send it. A row with one shows a <Ui>Draft ready</Ui> chip; open it, the draft is already in the box — edit if you like, then <Ui>Send</Ui>, or <Ui>Discard draft</Ui>.</Step>
+        </Task>
       </>}
       how={
         <Rules items={[

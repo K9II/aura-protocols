@@ -14,6 +14,7 @@ import Email from "@/components/admin/guide/Email";
 import Inquiries from "@/components/admin/guide/Inquiries";
 import Partners from "@/components/admin/guide/Partners";
 import Payouts from "@/components/admin/guide/Payouts";
+import Team from "@/components/admin/guide/Team";
 
 export const metadata: Metadata = { title: "Guide", robots: { index: false, follow: false } };
 
@@ -40,6 +41,7 @@ export default async function AdminGuidePage() {
         <Partners />
         <Payouts />
         <Activity />
+        <Team />
       </article>
     </div>
   );

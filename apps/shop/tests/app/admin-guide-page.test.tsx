@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { INQUIRY_AUTO_CLOSE_DAYS } from "@/lib/inquiries/constants";
+import { PERMISSION_LABEL } from "@/lib/staff/permissions";
+import { NEVER_FOR_ASSISTANT } from "@/lib/staff/roles";
 
 const { requireStaff, getDiscountCap } = vi.hoisted(() => ({
   requireStaff: vi.fn(async () => ({ id: "o1", fullName: "Kearney Adams", isOwner: true })),
@@ -22,8 +24,22 @@ describe("/admin/guide", () => {
     getDiscountCap.mockResolvedValue(30);
     render(await AdminGuidePage());
     expect(requireStaff).toHaveBeenCalled();
-    for (const t of ["Start here", "Today", "Discounts", "Orders", "Customers", "Disputes", "Catalog & lots", "Email", "Inquiries", "Partners", "Payouts"]) expect(screen.getByRole("heading", { level: 2, name: t })).toBeInTheDocument();
+    for (const t of ["Start here", "Today", "Discounts", "Orders", "Customers", "Disputes", "Catalog & lots", "Email", "Inquiries", "Partners", "Payouts", "Activity", "Team & the Assistant"]) expect(screen.getByRole("heading", { level: 2, name: t })).toBeInTheDocument();
     expect(screen.getAllByText(/30%/).length).toBeGreaterThan(0);
+  });
+
+  it("has the Team & the Assistant chapter, listing what's never for the Assistant from the permission list itself", async () => {
+    render(await AdminGuidePage());
+    const team = within(screen.getByRole("region", { name: "Team & the Assistant" }));
+    for (const s of ["Common tasks", "How it works", "Watch out for"]) expect(team.getByRole("heading", { name: s })).toBeInTheDocument();
+    for (const p of NEVER_FOR_ASSISTANT) expect(team.getByText(new RegExp(PERMISSION_LABEL[p].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))).toBeInTheDocument();
+  });
+
+  it("the Inquiries chapter mentions Save draft and Draft ready", async () => {
+    render(await AdminGuidePage());
+    const inquiries = within(screen.getByRole("region", { name: "Inquiries" }));
+    expect(inquiries.getByText("Save draft", { exact: false })).toBeInTheDocument();
+    expect(inquiries.getByText("Draft ready", { exact: false })).toBeInTheDocument();
   });
 
   it("has the Email chapter with figures from constants", async () => {
