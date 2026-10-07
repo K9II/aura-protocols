@@ -70,6 +70,17 @@ describe("CheckoutForm", () => {
     await waitFor(() => expect(human.resets).toBe(1));
   });
 
+  it("after a failed attempt the form re-locks and the error shows in the check panel, readable", async () => {
+    startCheckoutAction.mockResolvedValue({ error: "The check didn't go through — please tick the box again." });
+    const { container } = renderForm();
+    human.autoPass = false; // the reset after this attempt needs the visitor again
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.submit(container.querySelector("form")!);
+    await waitFor(() => expect(container.querySelector(".s-human [role=alert]")).toHaveTextContent("The check didn't go through"));
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+    expect(screen.getByRole("group", { name: /order details/i })).toBeDisabled();
+  });
+
   it("first order: research box defaults to Independent Researcher, prefills the company and sends both", async () => {
     const { container } = renderForm({ needsResearch: true, organization: "Halden Labs" });
     expect(screen.getByLabelText(/field of qualified research/i)).toHaveValue("independent");

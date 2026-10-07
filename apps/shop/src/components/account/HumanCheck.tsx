@@ -10,6 +10,8 @@ type Turnstile = {
 };
 declare global { interface Window { turnstile?: Turnstile } }
 
+const COMPACT_BELOW_PX = 360;
+
 // Cloudflare Turnstile, rendered explicitly. onToken gets the token when the
 // visitor passes and null when it expires or is reset. Each token works once,
 // so the form bumps resetKey after every attempt that doesn't leave the page.
@@ -29,6 +31,8 @@ export default function HumanCheck({ onToken, resetKey }: { onToken: (token: str
       if (cancelled || !box.current || !window.turnstile || widget.current) return;
       widget.current = window.turnstile.render(box.current, {
         sitekey: siteKey, action: HUMAN_CHECK_ACTION, "refresh-expired": "auto", theme: "light",
+        // The normal widget is a fixed 300 px; the smallest phones get the compact one.
+        size: window.matchMedia?.(`(max-width: ${COMPACT_BELOW_PX - 1}px)`).matches ? "compact" : "normal",
         callback: (t: string) => tokenCb.current(t),
         "expired-callback": () => tokenCb.current(null),
         "error-callback": () => tokenCb.current(null),

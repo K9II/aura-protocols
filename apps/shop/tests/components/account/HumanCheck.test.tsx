@@ -24,6 +24,14 @@ describe("HumanCheck", () => {
     expect(onToken).toHaveBeenLastCalledWith(null);
   });
 
+  it("uses the compact widget on the smallest phones", () => {
+    const mm = vi.fn((q: string) => ({ matches: q === "(max-width: 359px)" }));
+    vi.stubGlobal("matchMedia", mm);
+    render(<HumanCheck onToken={vi.fn()} resetKey={0} />);
+    expect(turnstile.render.mock.calls[0][1]).toMatchObject({ size: "compact" });
+    vi.unstubAllGlobals();
+  });
+
   it("a new resetKey clears the token and resets the widget", () => {
     const onToken = vi.fn();
     const { rerender } = render(<HumanCheck onToken={onToken} resetKey={0} />);

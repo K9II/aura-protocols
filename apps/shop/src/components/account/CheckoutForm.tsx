@@ -138,7 +138,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const codeShipping = !!priced.freeShipping && priced.shippingCents === 0 && priced.subtotalCents - priced.partnerDiscountCents < FREE_SHIPPING_THRESHOLD_USD * 100;
   return (
     <form onSubmit={submit}>
-      <section className={verified ? "s-human done" : "s-human"} aria-live="polite">
+      <div className={verified ? "s-human done" : "s-human"} aria-live="polite">
         {verified ? <p className="s-micro">✓ Verified</p> : (
           <>
             <p className="s-micro text-[color:var(--specimen)]">Step 1 · One moment</p>
@@ -147,7 +147,9 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
         )}
         <HumanCheck onToken={setHumanToken} resetKey={humanReset} />
         {!verified && <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-3">This protects our checkout from automated card testing.</p>}
-      </section>
+        {/* While the form is locked (greyed), the error shows here, where the customer acts next. */}
+        {!verified && error && <p role="alert" className="mt-3 text-sm text-[color:var(--specimen)]">{error}</p>}
+      </div>
       <fieldset disabled={!verified} aria-label="Order details" className={verified ? "s-co-form" : "s-co-form s-co-locked"}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.1fr) minmax(0,1fr)", gap: 48 }} className="s-checkout">
           <div>
@@ -236,7 +238,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
                   <span>Apply store credit <span className="text-[color:var(--ink-soft)]">(balance {usd(creditBalanceCents)})</span> — held when you continue to payment, returned automatically if it isn&apos;t completed.</span></label>
               )}
             </div>
-            {error && <p role="alert" className="mt-3 text-sm text-[color:var(--specimen)]">{error}</p>}
+            {verified && error && <p role="alert" className="mt-3 text-sm text-[color:var(--specimen)]">{error}</p>}
             <button type="submit" className="s-atc" disabled={!verified || !ruo || busy || priced.items.length === 0 || allRejected.length > 0 || codeNote?.tone === "bad"}>
               {busy ? "Starting secure payment…" : "Continue to secure payment →"}
             </button>

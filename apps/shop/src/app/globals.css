@@ -718,7 +718,7 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-human { border: 1px solid var(--ink); text-align: center; padding: 28px 16px 22px; margin-bottom: 28px; display: flex; flex-direction: column; align-items: center; }
 .pharmacopoeia .s-human-h { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: clamp(24px, 4vw, 34px); line-height: 1.15; margin: 8px 0 18px; max-width: 22ch; }
 .pharmacopoeia .s-human-h em { color: var(--specimen); }
-.pharmacopoeia .s-human.done { flex-direction: row; justify-content: space-between; text-align: left; padding: 10px 14px; gap: 12px; }
+.pharmacopoeia .s-human.done { flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; text-align: left; padding: 10px 14px; gap: 12px; }
 .pharmacopoeia .s-human.done .s-micro { color: #2F5D3A; }
 .pharmacopoeia .s-co-form { border: 0; padding: 0; margin: 0; min-width: 0; }
 .pharmacopoeia .s-co-locked { opacity: .38; filter: grayscale(1); }
