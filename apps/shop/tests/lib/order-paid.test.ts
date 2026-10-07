@@ -197,8 +197,9 @@ describe("afterOrderPaid", () => {
     it("skips commission, store credit and tax, still checks held vials, and sends the no-charge email when asked", async () => {
       getOrderById.mockResolvedValue(nc());
       getPartnerById.mockResolvedValue({ id: "p1", status: "approved", tier_pct: 15 });
+      sendOrAlert.mockResolvedValue(true);
       const { afterOrderPaid } = await import("@/lib/order-paid");
-      await afterOrderPaid("o1", { notify: true });
+      expect(await afterOrderPaid("o1", { notify: true })).toEqual({ emailed: true });
       expect(createCommission).not.toHaveBeenCalled();
       expect(spendCredit).not.toHaveBeenCalled();
       expect(recordTax).not.toHaveBeenCalled();
@@ -210,9 +211,17 @@ describe("afterOrderPaid", () => {
     it("sends nothing without notify — never the confirmation or the owner new-order email", async () => {
       getOrderById.mockResolvedValue(nc());
       const { afterOrderPaid } = await import("@/lib/order-paid");
-      await afterOrderPaid("o1");
+      expect(await afterOrderPaid("o1")).toEqual({ emailed: false });
       expect(sendOrAlert).not.toHaveBeenCalled();
       expect(orderHoldShortfall).toHaveBeenCalledWith("o1");
+    });
+
+    it("reports emailed: false when the email failed (sendOrAlert already alerted the owner)", async () => {
+      getOrderById.mockResolvedValue(nc());
+      sendOrAlert.mockResolvedValue(false);
+      const { afterOrderPaid } = await import("@/lib/order-paid");
+      expect(await afterOrderPaid("o1", { notify: true })).toEqual({ emailed: false });
+      expect(sendOrAlert).toHaveBeenCalledTimes(1);
     });
 
     it("still alerts a shortfall on a no-charge order", async () => {

@@ -46,7 +46,7 @@ describe("buildOrderTimeline", () => {
     const nc = { ...order, shipped_at: null, stripe_payment_intent: null, created_at: "2026-10-06T16:22:00Z", paid_at: "2026-10-06T16:22:01Z" };
     const t = buildOrderTimeline({
       ...empty, order: nc,
-      adminEvents: [{ action: "no_charge_created", at: "2026-10-06T16:22:02Z", actorName: "Alvester", detail: "Replacement · $192.00 retail · email: yes" }],
+      adminEvents: [{ action: "no_charge_created", at: "2026-10-06T16:22:02Z", actorName: "Alvester", detail: "Replacement · $192.00 retail · email: sent" }],
       noCharge: { reason: "replacement", replacesNumber: "AP-1052", note: "2 vials cracked in transit", vials: 3, email: "dana.w@example.com" },
     });
     expect(t.map((e) => e.key)).toEqual(["email", "created"]);
@@ -54,12 +54,24 @@ describe("buildOrderTimeline", () => {
     expect(t[0]).toMatchObject({ title: "Email sent", sub: "“On its way soon”", detail: "to dana.w@example.com" });
   });
 
-  it("no email line when it wasn't sent; the reason when it isn't a replacement; Cancelled (no charge) on a refund", () => {
+  it("an email that failed reads Email failed, in red", () => {
+    const nc = { ...order, shipped_at: null, stripe_payment_intent: null, created_at: "2026-10-06T16:22:00Z", paid_at: "2026-10-06T16:22:01Z" };
+    const t = buildOrderTimeline({
+      ...empty, order: nc,
+      adminEvents: [{ action: "no_charge_created", at: "2026-10-06T16:22:02Z", actorName: "Alvester", detail: "Seeding · $48.00 retail · email: failed" }],
+      noCharge: { reason: "seeding", replacesNumber: null, note: null, vials: 1, email: "dana.w@example.com" },
+    });
+    expect(t.map((e) => e.key)).toEqual(["email", "created"]);
+    expect(t[0]).toMatchObject({ title: "Email failed", sub: "“On its way soon”", tone: "red", detail: "to dana.w@example.com" });
+    expect(t.some((e) => e.title === "Email sent")).toBe(false);
+  });
+
+  it("no email line when it was off; the reason when it isn't a replacement; Cancelled (no charge) on a refund", () => {
     const nc = { ...order, shipped_at: null, stripe_payment_intent: null, refunded_at: "2026-10-07T16:00:00Z" };
     const t = buildOrderTimeline({
       ...empty, order: nc,
       adminEvents: [
-        { action: "no_charge_created", at: "2026-09-30T20:51:00Z", actorName: "Alvester", detail: "Seeding · $48.00 retail · email: no" },
+        { action: "no_charge_created", at: "2026-09-30T20:51:00Z", actorName: "Alvester", detail: "Seeding · $48.00 retail · email: off" },
         { action: "no_charge_cancelled", at: "2026-10-07T16:00:01Z", actorName: "Alvester", detail: null },
       ],
       noCharge: { reason: "seeding", replacesNumber: null, note: null, vials: 1, email: "dana.w@example.com" },

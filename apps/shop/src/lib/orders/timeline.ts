@@ -33,7 +33,7 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
   const nc = s.noCharge ?? null;
   const out: TimelineEntry[] = [];
   if (nc) {
-    // The created event's detail ends "email: yes|no" (createNoChargeOrderAction).
+    // The created event's detail ends "email: sent|failed|off" (createNoChargeOrderAction).
     const e = ev("no_charge_created");
     out.push({
       key: "created", at: o.created_at, tone: "ok", title: "Created — no charge",
@@ -41,7 +41,9 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
       who: e?.actorName ?? null,
       detail: [nc.note ? `“${nc.note}”` : null, `${nc.vials} vial${nc.vials === 1 ? "" : "s"} held`].filter(Boolean).join(" · "),
     });
-    if (e && /email: yes$/.test(e.detail ?? "")) out.push({ key: "email", at: e.at, tone: "plain", title: "Email sent", sub: "“On its way soon”", detail: `to ${nc.email}` });
+    const email = /email: (sent|failed)$/.exec(e?.detail ?? "")?.[1];
+    if (e && email === "sent") out.push({ key: "email", at: e.at, tone: "plain", title: "Email sent", sub: "“On its way soon”", detail: `to ${nc.email}` });
+    if (e && email === "failed") out.push({ key: "email", at: e.at, tone: "red", title: "Email failed", sub: "“On its way soon”", detail: `to ${nc.email}` });
   } else {
     out.push({ key: "placed", at: o.created_at, tone: "plain", title: "Placed", detail: "checkout started · research use confirmed" });
     if (o.paid_at) out.push({ key: "paid", at: o.paid_at, tone: "ok", title: "Paid", detail: o.stripe_payment_intent ? "Stripe payment" : "paid in store credit" });

@@ -271,7 +271,14 @@ describe("createNoChargeOrderAction", () => {
     nc.createNoChargeOrder.mockResolvedValue({ id: "o9", orderNumber: "AP-1061" });
     holdVials.mockResolvedValue({ ok: true });
     transitionOrder.mockResolvedValue(true);
-    afterOrderPaid.mockResolvedValue(undefined);
+    afterOrderPaid.mockResolvedValue({ emailed: true });
+  });
+
+  it("an email that didn't go is recorded as email: failed", async () => {
+    afterOrderPaid.mockResolvedValue({ emailed: false });
+    const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(createNoChargeOrderAction(null, form())).rejects.toThrow("REDIRECT");
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "Replacement · $192.00 retail · email: failed" }));
   });
 
   it("requires orders.no_charge", async () => {
@@ -335,12 +342,12 @@ describe("createNoChargeOrderAction", () => {
     expect(transitionOrder).toHaveBeenCalledWith("o9", "awaiting_payment", "paid");
     expect(afterOrderPaid).toHaveBeenCalledWith("o9", { notify: true });
     expect(catalogStockChanged).toHaveBeenCalled();
-    expect(audit.recordAdminEvent).toHaveBeenCalledWith({ area: "orders", action: "no_charge_created", targetId: "o9", label: "AP-1061", detail: "Replacement · $192.00 retail · email: yes", actorId: "owner" });
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith({ area: "orders", action: "no_charge_created", targetId: "o9", label: "AP-1061", detail: "Replacement · $192.00 retail · email: sent", actorId: "owner" });
     expect(holdVials.mock.invocationCallOrder[0]).toBeLessThan(transitionOrder.mock.invocationCallOrder[0]);
     expect(transitionOrder.mock.invocationCallOrder[0]).toBeLessThan(afterOrderPaid.mock.invocationCallOrder[0]);
   });
 
-  it("no email box → notify false, recorded as email: no; non-replacement ignores replaces", async () => {
+  it("no email box → notify false, recorded as email: off; non-replacement ignores replaces", async () => {
     const f = form({ reason: "seeding", note: "", replaces: "" });
     f.delete("email");
     const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
@@ -348,7 +355,7 @@ describe("createNoChargeOrderAction", () => {
     expect(nc.orderIdByNumber).not.toHaveBeenCalled();
     expect(nc.createNoChargeOrder).toHaveBeenCalledWith(expect.objectContaining({ reason: "seeding", note: null, replacesOrderId: null }));
     expect(afterOrderPaid).toHaveBeenCalledWith("o9", { notify: false });
-    expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "Seeding · $192.00 retail · email: no" }));
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "Seeding · $192.00 retail · email: off" }));
   });
 
   it("sold out while creating → cancels and names the short item", async () => {
@@ -453,7 +460,7 @@ describe("createNoChargeOrderAction", () => {
     const { createNoChargeOrderAction } = await import("@/app/admin/orders/actions");
     await expect(createNoChargeOrderAction(null, form())).rejects.toThrow("REDIRECT /admin/orders/AP-1061");
     expect(alertOwner).toHaveBeenCalledWith("No-charge order follow-up failed", expect.stringMatching(/^AP-1061: [\s\S]*email down/));
-    expect(audit.recordAdminEvent).toHaveBeenCalled();
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "Replacement · $192.00 retail · email: failed" }));
   });
 });
 

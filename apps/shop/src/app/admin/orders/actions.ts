@@ -199,14 +199,17 @@ export async function createNoChargeOrderAction(_prev: NoChargeState, form: Form
     return failed({ form: NOT_RESERVED });
   }
   catalogStockChanged();
+  let emailed = false;
   try {
-    await afterOrderPaid(order.id, { notify: input.email });
+    emailed = (await afterOrderPaid(order.id, { notify: input.email })).emailed;
   } catch (err) {
     await alertOwner("No-charge order follow-up failed", `${order.orderNumber}: ${String(err)}`);
   }
+  // "email: sent|failed|off" feeds the order timeline (lib/orders/timeline.ts).
+  const email = !input.email ? "off" : emailed ? "sent" : "failed";
   await recordAdminEvent({
     area: "orders", action: "no_charge_created", targetId: order.id, label: order.orderNumber,
-    detail: `${REASON_LABEL[input.reason]} · ${usd(retailCents)} retail · email: ${input.email ? "yes" : "no"}`, actorId: owner.id,
+    detail: `${REASON_LABEL[input.reason]} · ${usd(retailCents)} retail · email: ${email}`, actorId: owner.id,
   });
   revalidatePath("/admin/orders");
   redirect(`/admin/orders/${order.orderNumber}`);

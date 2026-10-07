@@ -15,14 +15,16 @@ import type { OrderRow } from "@/lib/orders";
 // A no-charge order has no money steps (no commission, credit or tax) and no
 // receipt or owner new-order email; it only checks held vials and, when the
 // owner ticked the box, sends the "on its way soon" email.
-export async function afterOrderPaid(orderId: string, opts: { notify?: boolean } = {}): Promise<void> {
+// `emailed` = the customer email (receipt, or "on its way soon") actually
+// went; false when it failed (sendOrAlert has alerted the owner) or wasn't asked for.
+export async function afterOrderPaid(orderId: string, opts: { notify?: boolean } = {}): Promise<{ emailed: boolean }> {
   const order = await getOrderById(orderId);
   if (!order) throw new Error(`order ${orderId} not found after payment`);
 
   if (order.kind === "no_charge") {
     await checkHeldVials(order);
-    if (opts.notify) await sendOrAlert({ to: order.email, ...noChargeEmail(order) }, `no-charge order ${order.order_number}`);
-    return;
+    if (!opts.notify) return { emailed: false };
+    return { emailed: await sendOrAlert({ to: order.email, ...noChargeEmail(order) }, `no-charge order ${order.order_number}`) };
   }
 
   if (order.partner_id && order.attributed_by) {
@@ -77,9 +79,10 @@ export async function afterOrderPaid(orderId: string, opts: { notify?: boolean }
 
   await checkHeldVials(order);
 
-  await sendOrAlert({ to: order.email, ...orderConfirmationEmail(order) }, `order ${order.order_number}`);
+  const emailed = await sendOrAlert({ to: order.email, ...orderConfirmationEmail(order) }, `order ${order.order_number}`);
   const owner = alertAddress();
   if (owner) await sendOrAlert({ to: owner, ...ownerNewOrderEmail(order) }, `owner alert ${order.order_number}`);
+  return { emailed };
 }
 
 // Paid but not fully held (it was paid after its holds were released): the

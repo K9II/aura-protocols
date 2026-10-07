@@ -94,7 +94,7 @@ describe("getOrderDetail", () => {
       customers: [query({ data: { id: "c1", full_name: "Dana Whitfield", email_verified_at: null, blocked_at: null } }), created],
       orders: [query({ data: [{ total_cents: 41_439, kind: "sale" }, { total_cents: 0, kind: "no_charge" }, { total_cents: 48_000, kind: "sale" }] }), orig],
       discount_codes: [], partners: [],
-      admin_events: [query({ data: [{ action: "no_charge_created", at: "2026-10-06T16:22:02Z", detail: "Replacement · $192.00 retail · email: yes", actor: { full_name: "Alvester" } }] })],
+      admin_events: [query({ data: [{ action: "no_charge_created", at: "2026-10-06T16:22:02Z", detail: "Replacement · $192.00 retail · email: sent", actor: { full_name: "Alvester" } }] })],
     });
     const { getOrderDetail } = await import("@/lib/orders/detail");
     const d = (await getOrderDetail("AP-1061"))!;
