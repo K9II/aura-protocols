@@ -269,6 +269,7 @@
 
 /* ---------- detail ---------- */
 .adm .a-dh { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.adm .a-dh h1.bigcode { margin: 0; }
 .adm .a-dh .bigcode { font: 500 24px var(--mono); letter-spacing: .03em; }
 .adm .a-dh .actions { margin-left: auto; display: flex; gap: 8px; }
 .adm .a-dsub { color: var(--ink-soft); margin-bottom: 18px; display: flex; gap: 14px; align-items: center; }
