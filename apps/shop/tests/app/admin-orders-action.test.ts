@@ -29,6 +29,11 @@ vi.mock("@/lib/no-charge/data", () => nc);
 vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("@/lib/catalog-live", () => ({ catalogStockChanged }));
+const refunds = vi.hoisted(() => ({ refundCard: vi.fn(), paymentLabel: vi.fn(), stampRefund: vi.fn(), creditCardPart: vi.fn(), orderFlags: vi.fn() }));
+vi.mock("@/lib/refunds/stripe", () => ({ refundCard: refunds.refundCard, paymentLabel: refunds.paymentLabel, NO_PAYMENT_LABEL: "the original payment" }));
+vi.mock("@/lib/refunds/data", () => ({ stampRefund: refunds.stampRefund, creditCardPart: refunds.creditCardPart }));
+vi.mock("@/lib/orders/detail", () => ({ orderFlags: refunds.orderFlags }));
+vi.mock("@/lib/disputes/stripe", () => ({ stripeMessage: (err: unknown) => (err instanceof Error ? err.message : String(err)).slice(0, 300).replace(/[.\s]+$/, "") }));
 
 function fd(v: Record<string, string>) { const f = new FormData(); for (const [k, x] of Object.entries(v)) f.set(k, x); return f; }
 const id = "11111111-1111-4111-8111-111111111111";
@@ -201,41 +206,237 @@ describe("markShippedAction", () => {
   });
 });
 
-describe("refundCreditOrderAction", () => {
-  const creditOrder = (status: string, over: Record<string, unknown> = {}) => ({
-    id, order_number: "AP-1009", status, stripe_session_id: null, store_credit_cents: 6950, total_cents: 6950, ...over,
+describe("refundOrderAction", () => {
+  // $228.00 total, $40.00 of it paid with store credit, $188.00 on the card.
+  const sale = (over: Record<string, unknown> = {}) => ({
+    id, order_number: "AP-1047", customer_id: "c1", email: "j@lab.org", status: "paid", kind: "sale",
+    total_cents: 22800, store_credit_cents: 4000, stripe_payment_intent: "pi_1", stripe_session_id: "cs_1", ...over,
   });
-  beforeEach(() => { vi.resetModules(); for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requirePermission, getOrderById, transitionOrder, alertOwner, afterOrderRefunded, revalidatePath]) f.mockReset(); });
+  const cancelForm = (over: Record<string, string> = {}) => fd({ orderId: id, mode: "cancel", reason: "customer_cancelled", ...over });
+  const exceptionForm = (over: Record<string, string> = {}) => fd({ orderId: id, mode: "exception", reason: "damaged", note: "Two vials cracked", destination: "store_credit", confirm: "on", ...over });
+  beforeEach(() => {
+    vi.resetModules();
+    for (const f of [audit.logAdminEvent, audit.recordAdminEvent, requirePermission, getOrderById, transitionOrder, sendOrAlert, alertOwner, afterOrderRefunded, catalogStockChanged, revalidatePath, refunds.refundCard, refunds.paymentLabel, refunds.stampRefund, refunds.creditCardPart, refunds.orderFlags]) f.mockReset();
+    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
+    refunds.orderFlags.mockResolvedValue({ dispute: false, warning: false, lostDispute: false });
+    refunds.refundCard.mockResolvedValue("re_1");
+    refunds.paymentLabel.mockResolvedValue("Visa ••4242");
+    refunds.stampRefund.mockResolvedValue(true);
+    transitionOrder.mockResolvedValue(true);
+  });
 
-  it("is owner-only", async () => {
+  it("is owner-only (orders.refund)", async () => {
     requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
-    const { refundCreditOrderAction } = await import("@/app/admin/orders/actions");
-    await expect(refundCreditOrderAction(fd({ orderId: id }))).rejects.toThrow("NOT_FOUND");
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    await expect(refundOrderAction(null, cancelForm())).rejects.toThrow("NOT_FOUND");
+    expect(requirePermission).toHaveBeenCalledWith("orders.refund");
     expect(transitionOrder).not.toHaveBeenCalled();
   });
 
-  it("refunds a paid or shipped order paid fully in store credit, then runs the refund follow-ups", async () => {
-    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
-    getOrderById.mockResolvedValue(creditOrder("shipped"));
-    transitionOrder.mockResolvedValue(true);
-    const { refundCreditOrderAction } = await import("@/app/admin/orders/actions");
-    await refundCreditOrderAction(fd({ orderId: id }));
-    expect(transitionOrder).toHaveBeenCalledWith(id, "shipped", "refunded");
-    expect(afterOrderRefunded).toHaveBeenCalledWith(expect.objectContaining({ id, order_number: "AP-1009" }));
+  it("a stale mode (the order shipped since the page loaded) → form error, no Stripe call", async () => {
+    getOrderById.mockResolvedValue(sale({ status: "shipped" }));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ errors: { form: "This order changed — reload the page." } });
+    expect(refunds.refundCard).not.toHaveBeenCalled();
+    expect(transitionOrder).not.toHaveBeenCalled();
+  });
+
+  it("an open dispute → refund it from Disputes", async () => {
+    getOrderById.mockResolvedValue(sale());
+    refunds.orderFlags.mockResolvedValue({ dispute: true, warning: false, lostDispute: false });
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    const r = await refundOrderAction(null, cancelForm());
+    expect(r?.errors?.form).toMatch(/AP-1047.*Disputes/);
+    expect(refunds.orderFlags).toHaveBeenCalledWith(id);
+    expect(refunds.refundCard).not.toHaveBeenCalled();
+  });
+
+  it("a lost chargeback → no refund (the bank already returned the money)", async () => {
+    getOrderById.mockResolvedValue(sale({ status: "shipped" }));
+    refunds.orderFlags.mockResolvedValue({ dispute: false, warning: false, lostDispute: true });
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, exceptionForm())).toEqual({ errors: { form: "A chargeback on AP-1047 was lost — the bank already returned the money. No refund." } });
+    expect(refunds.refundCard).not.toHaveBeenCalled();
+    expect(transitionOrder).not.toHaveBeenCalled();
+  });
+
+  it("returns parse errors as is, with no Stripe call", async () => {
+    getOrderById.mockResolvedValue(sale({ status: "shipped" }));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    const r = await refundOrderAction(null, exceptionForm({ note: "", confirm: "" }));
+    expect(r).toEqual({ errors: { note: "Say why this order is an exception." } });
+    expect(refunds.refundCard).not.toHaveBeenCalled();
+  });
+
+  it("cancel and refund: card part to Stripe, paid → refunded, follow-ups, stamp, email, event, stock", async () => {
+    getOrderById.mockResolvedValue(sale());
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm({ note: "Changed their mind" }))).toEqual({ ok: "AP-1047 was refunded." });
+    expect(refunds.refundCard).toHaveBeenCalledWith("pi_1", 18800, id);
+    expect(transitionOrder).toHaveBeenCalledWith(id, "paid", "refunded");
+    expect(afterOrderRefunded).toHaveBeenCalledTimes(1);
+    expect(refunds.creditCardPart).not.toHaveBeenCalled();
+    expect(refunds.stampRefund).toHaveBeenCalledWith(id, { destination: "card", reason: "customer_cancelled", note: "Changed their mind", by: "owner", stripeRefundId: "re_1", paymentLabel: "Visa ••4242" });
+    expect(refunds.paymentLabel).toHaveBeenCalledWith("pi_1");
+    expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "j@lab.org", subject: "Order AP-1047 was cancelled and refunded" });
+    expect(sendOrAlert.mock.calls[0][1]).toBe("refund AP-1047");
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith({ area: "orders", action: "order_refunded", targetId: id, label: "AP-1047", detail: "$228.00 · card + store credit · Customer asked to cancel", actorId: "owner" });
+    expect(catalogStockChanged).toHaveBeenCalled();
     expect(revalidatePath).toHaveBeenCalledWith("/admin/orders");
-    expect(revalidatePath).toHaveBeenCalledWith("/admin/orders/AP-1009");
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/orders/AP-1047");
     expect(revalidatePath).toHaveBeenCalledWith("/admin/partners/[id]", "page");
   });
 
-  it("refuses orders Stripe charged (those are refunded in Stripe) and unpaid ones", async () => {
-    requirePermission.mockResolvedValue(ownerStaff({ id: "owner" }));
-    const { refundCreditOrderAction } = await import("@/app/admin/orders/actions");
-    for (const o of [creditOrder("paid", { stripe_session_id: "cs_1" }), creditOrder("paid", { store_credit_cents: 5000 }), creditOrder("cancelled")]) {
-      getOrderById.mockResolvedValue(o);
-      await refundCreditOrderAction(fd({ orderId: id }));
-    }
+  it("a credit-only order (no Stripe payment): no Stripe call, store credit back, shipped or not", async () => {
+    getOrderById.mockResolvedValue(sale({ stripe_payment_intent: null, stripe_session_id: null, total_cents: 6950, store_credit_cents: 6950 }));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ ok: "AP-1047 was refunded." });
+    expect(refunds.refundCard).not.toHaveBeenCalled();
+    expect(transitionOrder).toHaveBeenCalledWith(id, "paid", "refunded");
+    expect(afterOrderRefunded).toHaveBeenCalledWith(expect.objectContaining({ id, order_number: "AP-1047" }));
+    expect(refunds.stampRefund).toHaveBeenCalledWith(id, expect.objectContaining({ destination: "store_credit", stripeRefundId: null, paymentLabel: null }));
+    expect(refunds.paymentLabel).not.toHaveBeenCalled();
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "$69.50 · to store credit · Customer asked to cancel" }));
+
+    getOrderById.mockResolvedValue(sale({ status: "shipped", stripe_payment_intent: null, stripe_session_id: null, total_cents: 6950, store_credit_cents: 6950 }));
+    expect(await refundOrderAction(null, exceptionForm({ destination: "card" }))).toEqual({ errors: { destination: "This order has no card payment — refund it to store credit." } });
+    expect(await refundOrderAction(null, exceptionForm())).toEqual({ ok: "AP-1047 was refunded." });
+    expect(transitionOrder).toHaveBeenLastCalledWith(id, "shipped", "refunded");
+    expect(refunds.refundCard).not.toHaveBeenCalled();
+    expect(refunds.creditCardPart).not.toHaveBeenCalled();
+  });
+
+  it("shipped exception to store credit: no Stripe call, card part credited, after-ship email, no stock change", async () => {
+    getOrderById.mockResolvedValue(sale({ status: "shipped" }));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, exceptionForm())).toEqual({ ok: "AP-1047 was refunded." });
+    expect(refunds.refundCard).not.toHaveBeenCalled();
+    expect(transitionOrder).toHaveBeenCalledWith(id, "shipped", "refunded");
+    expect(refunds.creditCardPart).toHaveBeenCalledWith("c1", 18800, id);
+    expect(refunds.stampRefund).toHaveBeenCalledWith(id, { destination: "store_credit", reason: "damaged", note: "Two vials cracked", by: "owner", stripeRefundId: null, paymentLabel: null });
+    expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ subject: "Order AP-1047 was refunded" });
+    expect(sendOrAlert.mock.calls[0][0].html).toContain("$228.00 to your store credit");
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "$228.00 · to store credit · Damaged in transit" }));
+    expect(catalogStockChanged).not.toHaveBeenCalled();
+  });
+
+  it("shipped exception to the card without the cash-refund box: refused, no Stripe call", async () => {
+    getOrderById.mockResolvedValue(sale({ status: "shipped", store_credit_cents: 0 }));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, exceptionForm({ destination: "card", confirm: "" }))).toEqual({ errors: { confirm: "Tick the box to confirm a cash refund after shipping." } });
+    expect(refunds.refundCard).not.toHaveBeenCalled();
+  });
+
+  it("shipped exception to the card: refunds the card part through Stripe", async () => {
+    getOrderById.mockResolvedValue(sale({ status: "shipped", store_credit_cents: 0 }));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, exceptionForm({ destination: "card" }))).toEqual({ ok: "AP-1047 was refunded." });
+    expect(refunds.refundCard).toHaveBeenCalledWith("pi_1", 22800, id);
+    expect(refunds.creditCardPart).not.toHaveBeenCalled();
+    expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "$228.00 · to card · Damaged in transit" }));
+  });
+
+  it("Stripe throws → form error, nothing changes here", async () => {
+    getOrderById.mockResolvedValue(sale());
+    refunds.refundCard.mockRejectedValue(new Error("Charge ch_1 has already been refunded."));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ errors: { form: "Stripe didn't refund AP-1047: Charge ch_1 has already been refunded. Nothing changed here — reload the page." } });
     expect(transitionOrder).not.toHaveBeenCalled();
+    expect(refunds.stampRefund).not.toHaveBeenCalled();
+    expect(sendOrAlert).not.toHaveBeenCalled();
+  });
+
+  it("the webhook won the race: no second afterOrderRefunded, the email still goes", async () => {
+    getOrderById.mockResolvedValueOnce(sale()).mockResolvedValueOnce(sale({ status: "refunded" }));
+    transitionOrder.mockResolvedValue(false);
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ ok: "AP-1047 was refunded." });
     expect(afterOrderRefunded).not.toHaveBeenCalled();
+    expect(refunds.stampRefund).toHaveBeenCalled();
+    expect(sendOrAlert).toHaveBeenCalledTimes(1);
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("refunded in Stripe but the order moved elsewhere → owner alert + form error", async () => {
+    getOrderById.mockResolvedValueOnce(sale()).mockResolvedValueOnce(sale({ status: "shipped" }));
+    transitionOrder.mockResolvedValue(false);
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ errors: { form: "AP-1047 was refunded in Stripe but couldn't be updated here. You've been alerted — reconcile it by hand." } });
+    expect(alertOwner).toHaveBeenCalledWith("Refund needs a look", "AP-1047: refunded in Stripe ($188.00) but the order is shipped here — reconcile it by hand.");
+    expect(afterOrderRefunded).not.toHaveBeenCalled();
+    expect(sendOrAlert).not.toHaveBeenCalled();
+  });
+
+  it("no money moved and the order changed → the plain stale error, no alert", async () => {
+    getOrderById.mockResolvedValueOnce(sale({ status: "shipped" })).mockResolvedValueOnce(sale({ status: "refunded" }));
+    transitionOrder.mockResolvedValue(false);
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, exceptionForm())).toEqual({ errors: { form: "This order changed — reload the page." } });
+    expect(alertOwner).not.toHaveBeenCalled();
+    expect(refunds.creditCardPart).not.toHaveBeenCalled();
+  });
+
+  it("creditCardPart throws → owner alerted, the refund still succeeds", async () => {
+    getOrderById.mockResolvedValue(sale({ status: "shipped" }));
+    refunds.creditCardPart.mockRejectedValue(new Error("db down"));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, exceptionForm())).toEqual({ ok: "AP-1047 was refunded." });
+    expect(alertOwner).toHaveBeenCalledWith("Refund credit not added", expect.stringMatching(/^AP-1047: [\s\S]*db down/));
+    expect(sendOrAlert).toHaveBeenCalledTimes(1);
+  });
+
+  it("stampRefund throws → owner alerted, the refund still succeeds", async () => {
+    getOrderById.mockResolvedValue(sale());
+    refunds.stampRefund.mockRejectedValue(new Error("db down"));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ ok: "AP-1047 was refunded." });
+    expect(alertOwner).toHaveBeenCalledWith("Refund details not saved", expect.stringMatching(/^AP-1047: [\s\S]*db down/));
+    // We can't tell whether another submit saved it: the customer is still told.
+    expect(sendOrAlert).toHaveBeenCalledTimes(1);
+    expect(audit.recordAdminEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("a second submit (the refund was already stamped) sends no second email or activity", async () => {
+    getOrderById.mockResolvedValueOnce(sale()).mockResolvedValueOnce(sale({ status: "refunded" }));
+    transitionOrder.mockResolvedValue(false);
+    refunds.stampRefund.mockResolvedValue(false);
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ ok: "AP-1047 was refunded." });
+    expect(sendOrAlert).not.toHaveBeenCalled();
+    expect(audit.recordAdminEvent).not.toHaveBeenCalled();
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("a card label Stripe couldn't read is saved as null", async () => {
+    getOrderById.mockResolvedValue(sale());
+    refunds.paymentLabel.mockResolvedValue("the original payment");
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    await refundOrderAction(null, cancelForm());
+    expect(refunds.stampRefund).toHaveBeenCalledWith(id, expect.objectContaining({ paymentLabel: null }));
+  });
+
+  it("Stripe didn't answer (connection/API error) → may have refunded: owner alerted, check Stripe", async () => {
+    getOrderById.mockResolvedValue(sale());
+    refunds.refundCard.mockRejectedValue(Object.assign(new Error("Request timed out"), { type: "StripeConnectionError" }));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ errors: { form: "Stripe didn't answer — the refund may have gone through. Check the order in Stripe before trying again." } });
+    expect(alertOwner).toHaveBeenCalledWith("Refund needs a look", expect.stringMatching(/^AP-1047: Stripe didn't answer[\s\S]*Request timed out/));
+    expect(transitionOrder).not.toHaveBeenCalled();
+  });
+
+  it("anything failing after Stripe refunded → owner alerted, form error, nothing thrown", async () => {
+    getOrderById.mockResolvedValue(sale());
+    afterOrderRefunded.mockRejectedValue(new Error("db down"));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ errors: { form: "AP-1047 was refunded in Stripe but not finished here. You've been alerted — check the order." } });
+    expect(alertOwner).toHaveBeenCalledWith("Refund needs a look", expect.stringMatching(/^AP-1047: refunded in Stripe \(re_1\) but not finished here — [\s\S]*db down/));
+
+    alertOwner.mockReset();
+    afterOrderRefunded.mockReset();
+    transitionOrder.mockRejectedValue(new Error("conn reset"));
+    getOrderById.mockResolvedValue(sale({ stripe_payment_intent: null, total_cents: 6950, store_credit_cents: 6950 }));
+    expect(await refundOrderAction(null, cancelForm())).toEqual({ errors: { form: "AP-1047 wasn't fully refunded here. You've been alerted — check the order." } });
+    expect(alertOwner).toHaveBeenCalledWith("Refund needs a look", expect.stringMatching(/^AP-1047: [\s\S]*conn reset/));
   });
 });
 

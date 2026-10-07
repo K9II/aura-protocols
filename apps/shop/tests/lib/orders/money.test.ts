@@ -29,6 +29,30 @@ describe("moneyLines", () => {
     expect(lines.at(-1)).toMatchObject({ label: "Charged", cents: 40_439 });
   });
 
+  describe("a refunded order (r4)", () => {
+    const refunded = { ...base, store_credit_cents: 4_000, status: "refunded", refund_reason: "customer_cancelled", refund_destination: "card" as const, stripe_payment_intent: "pi_1" };
+
+    it("ends with Refunded and where the money went", () => {
+      const lines = moneyLines(refunded, { code, partnerCode: "QUINN10", paymentLabel: "Visa ••4242" });
+      expect(lines.at(-2)).toMatchObject({ label: "Charged" });
+      expect(lines.at(-1)).toEqual({ label: "Refunded", note: "$374.39 to Visa ••4242 · $40.00 to store credit", cents: -41_439, kind: "refund" });
+    });
+
+    it("says card with no label, and all store credit for a credit destination", () => {
+      expect(moneyLines(refunded, { code, partnerCode: null }).at(-1)?.note).toBe("$374.39 to card · $40.00 to store credit");
+      expect(moneyLines({ ...refunded, refund_destination: "store_credit" }, { code, partnerCode: null, paymentLabel: "Visa ••4242" }).at(-1)?.note).toBe("$414.39 to store credit");
+      expect(moneyLines({ ...refunded, stripe_payment_intent: null, store_credit_cents: 41_439, refund_destination: "store_credit" }, { code, partnerCode: null }).at(-1)?.note).toBe("$414.39 to store credit");
+    });
+
+    it("a refund made in the Stripe dashboard (no reason on record) says in Stripe", () => {
+      expect(moneyLines({ ...refunded, refund_reason: null, refund_destination: null }, { code, partnerCode: null }).at(-1)).toEqual({ label: "Refunded", note: "in Stripe", cents: -41_439, kind: "refund" });
+    });
+
+    it("no Refunded line unless refunded", () => {
+      expect(moneyLines({ ...refunded, status: "shipped", refund_reason: null, refund_destination: null }, { code, partnerCode: null }).some((l) => l.kind === "refund")).toBe(false);
+    });
+  });
+
   it("leaves out discount lines that are zero", () => {
     const lines = moneyLines({ ...base, partner_id: null, partner_discount_cents: 0, code_discount_cents: 0 }, { code: null, partnerCode: null });
     expect(lines.filter((l) => l.kind === "disc")).toEqual([]);

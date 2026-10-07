@@ -6,6 +6,7 @@ import { usd } from "@/lib/html";
 import { CLEARING_DAYS } from "@/lib/partners/tiers";
 import type { CommissionState } from "@/lib/partners/ledger";
 import { REASON_LABEL, type NoChargeReason } from "@/lib/no-charge/rules";
+import { REFUND_REASON_LABEL, type RefundReason } from "@/lib/refunds/rules";
 
 // `sub` follows the bold title on the same line ("Created — no charge · Replacement for AP-1052").
 export type TimelineEntry = { key: string; at: string; tone: "ok" | "red" | "plain"; title: string; sub?: string; detail?: string; who?: string | null; href?: string; hrefLabel?: string };
@@ -13,6 +14,8 @@ export type TimelineSources = {
   order: {
     id: string; created_at: string; paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null;
     carrier: string | null; tracking_number: string | null; stripe_payment_intent: string | null; store_credit_cents: number; total_cents: number;
+    // Stamped by a refund made here (refundOrderAction); null for a Stripe-dashboard refund.
+    refund_reason?: string | null; refund_note?: string | null;
   };
   adminEvents: Array<{ action: string; at: string; actorName: string | null; detail: string | null }>;
   commission: { amount_cents: number; rate_pct: number; state: CommissionState; created_at: string; clears_at: string | null; voided_at: string | null; partnerCode: string } | null;
@@ -21,6 +24,8 @@ export type TimelineSources = {
   inquiries: Array<{ ref: number; subject: string; status: string; created_at: string }>;
   // Only for a no-charge order: it replaces Placed/Paid with "Created — no charge".
   noCharge?: { reason: NoChargeReason; replacesNumber: string | null; note: string | null; vials: number; email: string } | null;
+  // Who refunded it (orders.refunded_by) and the order's vials, for an admin refund.
+  refund?: { byName: string | null; vials: number } | null;
 };
 
 const words = (s: string) => s.replace(/_/g, " ");
@@ -61,9 +66,24 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
   if (o.cancelled_at) out.push({ key: "cancelled", at: o.cancelled_at, tone: "plain", title: "Cancelled", detail: "checkout closed · no money moved" });
   if (o.refunded_at && nc) {
     out.push({ key: "refunded", at: o.refunded_at, tone: "plain", title: "Cancelled (no charge)", detail: "vials back in stock", who: ev("no_charge_cancelled")?.actorName ?? null });
-  } else if (o.refunded_at) {
+  } else if (o.refunded_at && o.refund_reason) {
+    // Before shipping = the policy's Cancel and refund (vials back); after = an exception.
     const e = ev("order_refunded");
-    out.push({ key: "refunded", at: o.refunded_at, tone: "red", title: "Refunded", detail: e ? e.detail ?? undefined : "in Stripe", who: e?.actorName ?? null });
+    const vials = s.refund?.vials ?? 0;
+    const stock = o.shipped_at ? "vials stayed out" : `${vials} vial${vials === 1 ? "" : "s"} back to stock`;
+    out.push({
+      key: "refunded", at: o.refunded_at, tone: "red", title: o.shipped_at ? "Refunded — exception" : "Cancelled and refunded",
+      sub: `${usd(o.total_cents)} · ${REFUND_REASON_LABEL[o.refund_reason as RefundReason] ?? o.refund_reason}`,
+      who: s.refund?.byName ?? e?.actorName ?? null,
+      detail: [o.refund_note ? `“${o.refund_note}”` : null, stock].filter(Boolean).join(" · "),
+    });
+  } else if (o.refunded_at) {
+    // No stamp: refunded in the Stripe dashboard (spec), or here with the
+    // details not saved (the event says who).
+    const e = ev("order_refunded");
+    out.push(e
+      ? { key: "refunded", at: o.refunded_at, tone: "red", title: "Refunded", detail: e.detail ?? undefined, who: e.actorName }
+      : { key: "refunded", at: o.refunded_at, tone: "red", title: "Refunded in Stripe", who: null });
   }
   for (const d of s.disputes) {
     out.push({ key: `dispute-${d.id}`, at: d.opened_at, tone: "red", title: `Chargeback opened · ${words(d.reason)} · ${usd(d.amount_cents)}`, href: `/admin/disputes/${d.id}`, hrefLabel: "Open dispute" });

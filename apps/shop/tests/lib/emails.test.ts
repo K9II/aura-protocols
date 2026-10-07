@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl, orderRefundedEmail, noChargeEmail } from "@/lib/emails";
+import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl, orderRefundedEmail, orderRefundedAfterShipEmail, noChargeEmail } from "@/lib/emails";
 import type { OrderRow } from "@/lib/orders";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
@@ -68,6 +68,25 @@ describe("emails", () => {
     expect(html).toContain("$164.50 back to your original payment method and $20.00 back to your store credit");
     expect(orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 0 } as OrderRow).html).not.toContain("store credit");
     expect(findViolations(html)).toEqual([]);
+    const creditOnly = orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 18450 } as OrderRow).html;
+    expect(creditOnly).toContain("refunded in full: $184.50 back to your store credit.");
+    expect(creditOnly).not.toContain("original payment method");
+    expect(creditOnly).not.toContain("Card refunds");
+  });
+
+  it("refunded-after-shipping email: store credit or card, never 'cancelled', compliance-clean", () => {
+    const o = { ...order, order_number: "AP-1047" } as OrderRow;
+    const credit = orderRefundedAfterShipEmail(o, { cardCents: 0, creditBackCents: 0, cardToCreditCents: 26800, totalCents: 26800 });
+    expect(credit.subject).toBe("Order AP-1047 was refunded");
+    expect(credit.html).toContain("$268.00");
+    expect(credit.html).toContain("store credit");
+    expect(credit.html).not.toContain("cancelled");
+    expect(findViolations(`${credit.subject} ${credit.html}`)).toEqual([]);
+    const card = orderRefundedAfterShipEmail(o, { cardCents: 22800, creditBackCents: 4000, cardToCreditCents: 0, totalCents: 26800 });
+    expect(card.html).toContain("$228.00 back to your original payment method");
+    expect(card.html).toContain("5–10 business days");
+    expect(card.html).toContain("$40.00 to your store credit");
+    expect(findViolations(card.html)).toEqual([]);
   });
 });
 

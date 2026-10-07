@@ -46,6 +46,15 @@ describe("catalog-ops data", () => {
     expect(out.get("i249")!.allocated).toEqual([{ lotNumber: "C3", qty: 3 }]);
   });
 
+  it("orderItemLots reads returned holds apart (a refund before shipping)", async () => {
+    const holds = query({ data: [{ order_item_id: "i1", qty: 2, state: "returned", lots: { lot_number: "BPC-2609-A" } }] });
+    from = fromQueue({ lot_holds: [holds], shipped_lots: [query({ data: [] })] });
+    const { orderItemLots } = await import("@/lib/catalog-ops/data");
+    const out = await orderItemLots(["i1"]);
+    expect(out.get("i1")).toEqual({ allocated: [], shipped: [], returned: [{ lotNumber: "BPC-2609-A", qty: 2 }] });
+    expect(holds.calls.filter(([m]) => m === "in").map(([, a]) => a)).toContainEqual(["state", ["held", "sold", "returned"]]);
+  });
+
   it("orderItemLots throws when any chunk fails", async () => {
     const ids = Array.from({ length: 150 }, (_, i) => `i${i}`);
     from = fromQueue({ lot_holds: [query({ data: [] }), query({ error: { message: "down" } })], shipped_lots: [query({ data: [] }), query({ data: [] })] });

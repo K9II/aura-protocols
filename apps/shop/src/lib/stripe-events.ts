@@ -198,6 +198,11 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       // transitioned but (per one of the alerts below) didn't finish every
       // follow-up step — run them again; each one is idempotent.
       let refunded = order.status === "refunded";
+      // Refunded to store credit from the admin (a shipped exception), then
+      // the card refunded in the Stripe dashboard too: the customer got it twice.
+      if (refunded && order.refund_destination === "store_credit" && order.stripe_payment_intent && order.total_cents > order.store_credit_cents) {
+        await alertOwner("Refunded twice", `${order.order_number}: refunded to store credit here and to the card in Stripe — take the store credit back in Customers.`);
+      }
       if (!refunded && (order.status === "paid" || order.status === "shipped")) {
         refunded = await transitionOrder(order.id, order.status, "refunded");
       }

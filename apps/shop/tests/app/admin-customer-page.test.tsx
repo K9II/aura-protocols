@@ -46,6 +46,12 @@ describe("/admin/customers/[id]", () => {
     expect(screen.queryByRole("button", { name: "Resend verification" })).toBeNull(); // verified
   });
 
+  it("names a refund's card part given as store credit", async () => {
+    getCustomerDetail.mockResolvedValueOnce({ ...detail, ledger: [{ id: "l2", amount_cents: 18_800, reason: "refund_to_credit", ref_id: "o1", note: "Refund (card part) as store credit", created_at: "2026-10-03T22:12:00Z" }] });
+    render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(screen.getByText("Refund (card part) to credit — AP-1041")).toBeInTheDocument();
+  });
+
   it("blocked: banner with Unblock, no Block button; owners get no Block either", async () => {
     getCustomerDetail.mockResolvedValueOnce({ ...detail, blockedAt: "2026-10-04T16:31:00Z", blockedReason: "two chargebacks", blockedBy: "Kearney" });
     render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));

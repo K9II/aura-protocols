@@ -155,6 +155,23 @@ describe("handleStripeEvent", () => {
     expect(reverseTax).toHaveBeenCalledWith("tax_txn_1");
   });
 
+  it("refunded to store credit here, then the card refunded in Stripe → 'Refunded twice' alert", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("refunded", { refund_destination: "store_credit", stripe_payment_intent: "pi_1", store_credit_cents: 1000 }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
+    expect(alertOwner).toHaveBeenCalledWith("Refunded twice", "AP-1001: refunded to store credit here and to the card in Stripe — take the store credit back in Customers.");
+    expect(reverseCommission).toHaveBeenCalledWith("o1", "refund");
+  });
+
+  it("no 'Refunded twice' for a card refund made here, or a store-credit refund with no card part", async () => {
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    getOrderByPaymentIntent.mockResolvedValue(order("refunded", { refund_destination: "card", stripe_payment_intent: "pi_1" }));
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
+    getOrderByPaymentIntent.mockResolvedValue(order("refunded", { refund_destination: "store_credit", stripe_payment_intent: "pi_1", store_credit_cents: 11850 }));
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
+    expect(alertOwner).not.toHaveBeenCalledWith("Refunded twice", expect.anything());
+  });
+
   it("chargeback opened → commission reversed and the owner alerted; order status unchanged", async () => {
     getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
     const { handleStripeEvent } = await import("@/lib/stripe-events");

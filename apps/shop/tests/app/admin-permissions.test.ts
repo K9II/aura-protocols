@@ -50,7 +50,7 @@ const PAGE_PERMS: Record<string, string> = {
 // Expected permission per exported action (name → permission).
 export const ACTION_PERMS: Record<string, Record<string, string>> = {
   "actions.ts": { resolveAlertAction: "alerts.resolve" },
-  "orders/actions.ts": { markShippedAction: "orders.ship", refundCreditOrderAction: "orders.refund_credit", createNoChargeOrderAction: "orders.no_charge", cancelNoChargeOrderAction: "orders.no_charge" },
+  "orders/actions.ts": { markShippedAction: "orders.ship", refundOrderAction: "orders.refund", createNoChargeOrderAction: "orders.no_charge", cancelNoChargeOrderAction: "orders.no_charge" },
   "customers/actions.ts": { adjustCreditAction: "credit.adjust", blockAction: "customers.block", unblockAction: "customers.block", resendVerifyAdminAction: "customers.resend_verify" },
   "discounts/actions.ts": { saveCodeAction: "discounts.edit", codeAvailableAction: "discounts.edit", setCodeStateAction: "discounts.edit", resetUseAction: "discounts.edit", setCapAction: "discounts.settings" },
   "disputes/actions.ts": { saveDisputeDraftAction: "disputes.draft", submitDisputeAction: "disputes.submit", refundEarlyWarningAction: "disputes.warnings", watchEarlyWarningAction: "disputes.warnings" },

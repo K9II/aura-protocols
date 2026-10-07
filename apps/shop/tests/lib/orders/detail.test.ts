@@ -18,7 +18,7 @@ const order = {
 function tables(over: Partial<Record<string, ReturnType<typeof query>>> = {}) {
   return {
     customers: [over.customers ?? query({ data: { id: "c1", full_name: "Priya Raman", email_verified_at: "2026-09-01T00:00:00Z", blocked_at: null } })],
-    orders: [over.orders ?? query({ data: [{ total_cents: 41_439 }, { total_cents: 20_000 }] })],
+    orders: [over.orders ?? query({ data: [{ total_cents: 41_439, status: "shipped" }, { total_cents: 20_000, status: "paid" }, { total_cents: 9_000, status: "refunded", kind: "sale" }, { total_cents: 0, status: "refunded", kind: "no_charge" }] })],
     discount_codes: [over.discount_codes ?? query({ data: { id: "dc1", code: "SPRING20", kind: "order_pct", value: 5, stack_on_top: true, free_shipping: false } })],
     partners: [over.partners ?? query({ data: { id: "p1", code: "QUINN10" } })],
     commissions: [over.commissions ?? query({ data: { amount_cents: 5_707, rate_pct: 15, state: "clearing", created_at: "2026-09-30T20:51:01Z", clears_at: "2026-10-16T21:02:00Z", voided_at: null } })],
@@ -43,14 +43,18 @@ describe("getOrderDetail", () => {
     getOrderByNumber.mockResolvedValue(order);
     from = fromQueue(tables({ disputes: query({ data: [{ id: "d1", status: "won", reason: "fraudulent", amount_cents: 1000, opened_at: "2026-09-01T00:00:00Z", closed_at: "2026-09-10T00:00:00Z", outcome: "won" }] }) }));
     const { getOrderDetail } = await import("@/lib/orders/detail");
-    expect((await getOrderDetail("AP-1029"))!.flags.dispute).toBe(false);
+    const closed = (await getOrderDetail("AP-1029"))!;
+    expect(closed.flags.dispute).toBe(false);
+    expect(closed.openDisputeId).toBeNull();
 
     from = fromQueue(tables({ disputes: query({ data: [
       { id: "d1", status: "won", reason: "fraudulent", amount_cents: 1000, opened_at: "2026-09-01T00:00:00Z", closed_at: "2026-09-10T00:00:00Z", outcome: "won" },
       { id: "d2", status: "needs_response", reason: "product_not_received", amount_cents: 2000, opened_at: "2026-10-01T00:00:00Z", closed_at: null, outcome: null },
     ] }) }));
     const { getOrderDetail: getOrderDetail2 } = await import("@/lib/orders/detail");
-    expect((await getOrderDetail2("AP-1029"))!.flags.dispute).toBe(true);
+    const open = (await getOrderDetail2("AP-1029"))!;
+    expect(open.flags.dispute).toBe(true);
+    expect(open.openDisputeId).toBe("d2");
   });
 
   it("assembles customer, code, partner, flags and a timeline", async () => {
@@ -63,14 +67,14 @@ describe("getOrderDetail", () => {
     from = fromQueue(t);
     const { getOrderDetail } = await import("@/lib/orders/detail");
     const d = (await getOrderDetail("AP-1029"))!;
-    expect(d.customer).toEqual({ id: "c1", fullName: "Priya Raman", email: "praman@example.org", verified: true, blocked: false, paidOrders: 2, spentCents: 61_439, noChargeOrders: 0 });
+    expect(d.customer).toEqual({ id: "c1", fullName: "Priya Raman", email: "praman@example.org", verified: true, blocked: false, paidOrders: 2, spentCents: 61_439, noChargeOrders: 0, refundedOrders: 1 });
     expect(d.noCharge).toBeNull();
     expect(d.code?.code).toBe("SPRING20");
     expect(d.partner).toEqual({ id: "p1", code: "QUINN10" });
     expect(d.commission?.state).toBe("clearing");
-    expect(d.flags).toEqual({ dispute: false, warning: false });
+    expect(d.flags).toEqual({ dispute: false, warning: false, lostDispute: false });
     expect(d.timeline[0]).toMatchObject({ key: "shipped", who: "Alvester Adams" });
-    expect(callArgs(ordersQuery, "in")).toEqual(["status", ["paid", "shipped"]]);
+    expect(callArgs(ordersQuery, "in")).toEqual(["status", ["paid", "shipped", "refunded"]]);
     expect(callArgs(inquiriesQuery, "eq")).toEqual(["order_number", "AP-1029"]);
     expect(orderItemLots).toHaveBeenCalledWith(["i1"]);
   });
@@ -80,6 +84,25 @@ describe("getOrderDetail", () => {
     from = fromQueue(tables({ disputes: query({ error: { message: "down" } }) }));
     const { getOrderDetail } = await import("@/lib/orders/detail");
     await expect(getOrderDetail("AP-1029")).rejects.toThrow(/order disputes read failed/);
+  });
+
+  it("reads who refunded the order", async () => {
+    getOrderByNumber.mockResolvedValue({ ...order, status: "refunded", refunded_at: "2026-10-02T16:41:00Z", refunded_by: "owner1", refund_reason: "goodwill", refund_note: null });
+    const refunder = query({ data: { full_name: "Alvester" } });
+    const t = tables();
+    from = fromQueue({ ...t, customers: [...t.customers, refunder] });
+    const { getOrderDetail } = await import("@/lib/orders/detail");
+    const d = (await getOrderDetail("AP-1029"))!;
+    expect(d.refundedBy).toBe("Alvester");
+    expect(callArgs(refunder, "eq")).toEqual(["id", "owner1"]);
+    expect(d.timeline.find((e) => e.key === "refunded")).toMatchObject({ title: "Refunded — exception", who: "Alvester", detail: "vials stayed out" });
+  });
+
+  it("refundedBy is null when nobody stamped the refund", async () => {
+    getOrderByNumber.mockResolvedValue(order);
+    from = fromQueue(tables());
+    const { getOrderDetail } = await import("@/lib/orders/detail");
+    expect((await getOrderDetail("AP-1029"))!.refundedBy).toBeNull();
   });
 
   it("counts sales and no-charge orders apart and reads who created a no-charge order and what it replaces", async () => {
@@ -104,5 +127,29 @@ describe("getOrderDetail", () => {
     expect(callArgs(orig, "eq")).toEqual(["id", "o0"]);
     expect(d.timeline.map((e) => e.key)).toEqual(["email", "created"]);
     expect(d.timeline[1]).toMatchObject({ sub: "Replacement for AP-1052", detail: "“2 vials cracked” · 3 vials held" });
+  });
+});
+
+describe("orderFlags", () => {
+  beforeEach(() => { vi.resetModules(); });
+
+  it("reads the order's open disputes and unresolved warnings", async () => {
+    from = fromQueue({ disputes: [query({ data: [{ closed_at: "2026-09-10T00:00:00Z" }] })], early_fraud_warnings: [query({ data: [{ resolved_at: null }] })] });
+    const { orderFlags } = await import("@/lib/orders/detail");
+    expect(await orderFlags("o1")).toEqual({ dispute: false, warning: true, lostDispute: false });
+  });
+
+  it("a lost chargeback is flagged (the bank already returned the money)", async () => {
+    const d = query({ data: [{ closed_at: "2026-09-10T00:00:00Z", outcome: "lost" }] });
+    from = fromQueue({ disputes: [d], early_fraud_warnings: [query({ data: [] })] });
+    const { orderFlags } = await import("@/lib/orders/detail");
+    expect(await orderFlags("o1")).toEqual({ dispute: false, warning: false, lostDispute: true });
+    expect(callArgs(d, "select")).toEqual(["closed_at, outcome"]);
+  });
+
+  it("throws on a failed read", async () => {
+    from = fromQueue({ disputes: [query({ data: null, error: { message: "down" } })], early_fraud_warnings: [query({ data: [] })] });
+    const { orderFlags } = await import("@/lib/orders/detail");
+    await expect(orderFlags("o1")).rejects.toThrow("order disputes read failed");
   });
 });

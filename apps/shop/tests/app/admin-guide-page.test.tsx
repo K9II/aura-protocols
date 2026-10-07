@@ -4,6 +4,7 @@ import { INQUIRY_AUTO_CLOSE_DAYS } from "@/lib/inquiries/constants";
 import { PERMISSION_LABEL } from "@/lib/staff/permissions";
 import { NEVER_FOR_ASSISTANT } from "@/lib/staff/roles";
 import { NO_CHARGE_MAX_VIALS } from "@/lib/no-charge/rules";
+import { REFUND_NOTE_MAX, REFUND_REASONS, REFUND_REASON_LABEL } from "@/lib/refunds/rules";
 
 const { requireStaff, getDiscountCap } = vi.hoisted(() => ({
   requireStaff: vi.fn(async () => ({ id: "o1", fullName: "Kearney Adams", isOwner: true })),
@@ -88,5 +89,19 @@ describe("/admin/guide", () => {
     expect(within(ch).getByText("No-charge orders")).toBeInTheDocument();
     expect(ch).toHaveTextContent(/doesn.t use the customer.s first-order offer/);
     expect(ch).toHaveTextContent(`${NO_CHARGE_MAX_VIALS} vials per item`);
+  });
+
+  it("the Orders chapter explains refunds: Cancel and refund, Send a replacement, Refund…, reasons and the note limit from constants", async () => {
+    const { container } = render(await AdminGuidePage());
+    const ch = container.querySelector("#orders") as HTMLElement;
+    expect(within(ch).getByText("Refund an order")).toBeInTheDocument();
+    for (const ui of ["Cancel and refund", "Send a replacement", "Refund…", "⋯", "Disputes", "Refunded — exception"]) {
+      expect(within(ch).getAllByText(ui, { selector: ".a-ui" }).length).toBeGreaterThan(0);
+    }
+    for (const r of REFUND_REASONS) expect(ch).toHaveTextContent(REFUND_REASON_LABEL[r]);
+    expect(ch).toHaveTextContent(`up to ${REFUND_NOTE_MAX} characters`);
+    expect(ch).toHaveTextContent(/Partial refunds aren.t supported here/);
+    expect(ch).toHaveTextContent(/no reason or note on record/);
+    expect(ch).not.toHaveTextContent("Refund to store credit");
   });
 });

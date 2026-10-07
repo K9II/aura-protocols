@@ -2,12 +2,15 @@ import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
 import { CLEARING_DAYS } from "@/lib/partners/tiers";
 import { SHIP_LATE_BUSINESS_DAYS } from "@/lib/today/constants";
 import { NO_CHARGE_MAX_VIALS } from "@/lib/no-charge/rules";
+import { REFUND_NOTE_MAX, REFUND_REASONS, REFUND_REASON_LABEL } from "@/lib/refunds/rules";
+
+const reasons = REFUND_REASONS.map((r) => REFUND_REASON_LABEL[r]);
 
 export default function Orders() {
   return (
     <Chapter
       id="orders"
-      lede="Every order and where it stands. The job here is shipping paid orders; refunds happen in Stripe and show up here by themselves, and chargebacks are answered in Disputes."
+      lede="Every order and where it stands. The job here is shipping paid orders and, when the policy allows, refunding them; chargebacks are answered in Disputes."
       tasks={<>
         <Task title="Ship a paid order">
           <Step>Go to <Ui>Orders</Ui>. The <Ui>To ship</Ui> tab lists paid orders, oldest first. One waiting more than {SHIP_LATE_BUSINESS_DAYS} business days turns red.</Step>
@@ -20,8 +23,10 @@ export default function Orders() {
           <Step>Click the order number to open its page: items and the lots held and shipped, the money breakdown, the customer, any code or partner, and a timeline of everything that happened to it.</Step>
         </Task>
         <Task title="Refund an order">
-          <Step>For orders paid by card, wallet or bank, refund in the Stripe dashboard (the order page has <Ui>Open in Stripe</Ui>). A full refund marks the order <Ui>Refunded</Ui> here, reverses the partner commission and returns any store credit the customer used.</Step>
-          <Step>For an order paid entirely in store credit, open its page and choose <Ui>Refund to store credit</Ui>. It never went through Stripe, so it can&apos;t be refunded there.</Step>
+          <Step>Before it ships: open the order and choose <Ui>Cancel and refund</Ui> (on a phone it&apos;s under <Ui>⋯</Ui>). Pick a reason — {reasons.join(", ")} — add a note if you like, and confirm.</Step>
+          <Step>The card part goes back to the card through Stripe, store credit the customer used goes back to their balance, the vials go back in stock, any partner commission is reversed, and the customer gets the &ldquo;cancelled and refunded&rdquo; email. An order paid entirely in store credit goes back to store credit.</Step>
+          <Step>After it ships, the policy says the sale is final. For damage or loss, open <Ui>⋯</Ui> and choose <Ui>Send a replacement</Ui> — it opens a no-charge order with the replacement and the original order filled in.</Step>
+          <Step><Ui>Refund…</Ui> under <Ui>⋯</Ui> is for rare exceptions. A note is required (up to {REFUND_NOTE_MAX} characters), it goes to store credit unless you choose the card and the vials stay out of stock. If you send the money back to the card (a cash refund), you tick a box confirming you understand the policy — after shipping, claims are settled by replacement only, no cash refunds. The customer gets a &ldquo;refunded&rdquo; email with the amount and where it went.</Step>
         </Task>
         <Task title="Send vials at no charge">
           <Step>Go to <Ui>Orders</Ui> and choose <Ui>New no-charge order</Ui>. Find the customer by name or email — they need an account, so their 21+ and research-use agreement is on record.</Step>
@@ -41,14 +46,15 @@ export default function Orders() {
           ["Paid", <>Money received. Ready to pack and ship.</>],
           ["Shipped", <>Tracking entered and the customer emailed. From here an order can only be refunded.</>],
           ["Cancelled", <>An unfinished checkout that was closed. No money moved.</>],
-          ["Refunded", <>Fully refunded. The commission is reversed and any store credit used is returned.</>],
+          ["Refunded", <>Fully refunded. The commission is reversed and any store credit used is returned. The order page shows a <Ui>Refund</Ui> card — amount, where it went, the reason and who did it — and the timeline reads <Ui>Cancelled and refunded</Ui> or <Ui>Refunded — exception</Ui>.</>],
           ["No-charge orders", <>Every price is $0; the retail value is kept on the order for the record. It isn&apos;t a sale: Today, Discounts, Email results and Customers leave it out. No partner commission, and it doesn&apos;t use the customer&apos;s first-order offer. A cancelled one reads <Ui>Cancelled (no charge)</Ui>.</>],
         ]} />
       }
       watch={[
         <>Only choose <Ui>Mark shipped</Ui> with a real tracking number: the customer is emailed straight away and it can&apos;t be undone.</>,
-        <>A partial refund in Stripe leaves the order and the partner&apos;s commission as they were. You&apos;ll get an alert email; adjust the commission by hand if needed.</>,
-        <>Don&apos;t refund the same order in two places. Card orders: Stripe, or <Ui>Cancel and refund</Ui> on an early fraud warning in Disputes. Store-credit-only orders: here only.</>,
+        <>An order with an open chargeback or an early fraud warning is refunded from <Ui>Disputes</Ui>, not here — the order page points you there. An order whose chargeback was lost is never refunded: the bank already returned the money.</>,
+        <>A refund made in the Stripe dashboard still marks the order <Ui>Refunded</Ui> here, but there&apos;s no reason or note on record (the money line says &ldquo;in Stripe&rdquo; and the timeline <Ui>Refunded in Stripe</Ui>). Refund here instead.</>,
+        <>Partial refunds aren&apos;t supported here. A partial refund made in Stripe leaves the order and the partner&apos;s commission as they were; you&apos;ll get an alert email — adjust the commission by hand if needed.</>,
         <><Ui>Cancel order</Ui> on a no-charge order works only before it ships; it puts the vials back in stock and emails no one.</>,
         <>If a no-charge order&apos;s timeline shows <Ui>Email failed</Ui>, the &ldquo;on its way&rdquo; email didn&apos;t go (you also get an alert) — let the customer know yourself. If <Ui>Create order</Ui> says <Ui>Nothing was sent</Ui>, no order went to To ship; just try again.</>,
         <>Hidden strengths of shown products can be sent at no charge (tagged <Ui>Hidden</Ui> in the list); hidden products and archived strengths can&apos;t.</>,

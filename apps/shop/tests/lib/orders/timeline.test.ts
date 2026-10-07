@@ -26,7 +26,7 @@ describe("buildOrderTimeline", () => {
     });
     const keys = t.map((e) => e.key);
     expect(keys).toEqual(["commission-void", "refunded", "warning-w1-resolved", "dispute-d1-closed", "inquiry-1046", "dispute-d1", "warning-w1", "commission", "paid", "placed"]);
-    expect(t.find((e) => e.key === "refunded")).toMatchObject({ tone: "red", detail: "in Stripe" });
+    expect(t.find((e) => e.key === "refunded")).toMatchObject({ tone: "red", title: "Refunded in Stripe" });
     expect(t.find((e) => e.key === "dispute-d1")).toMatchObject({ href: "/admin/disputes/d1", tone: "red" });
     expect(t.find((e) => e.key === "inquiry-1046")).toMatchObject({ href: "/admin/inquiries/Q-1046", hrefLabel: "Q-1046" });
     expect(t.find((e) => e.key === "warning-w1-resolved")?.who).toBe("Alvester");
@@ -37,9 +37,32 @@ describe("buildOrderTimeline", () => {
     expect(t.find((e) => e.key === "paid")?.detail).toBe("paid in store credit");
   });
 
+  describe("an admin refund (r4)", () => {
+    const ev = { action: "order_refunded", at: "2026-10-02T16:41:00Z", actorName: "Alvester", detail: "$228.00 · card + store credit · Customer asked to cancel" };
+    const refunded = { ...order, shipped_at: null, refunded_at: "2026-10-02T16:41:00Z", total_cents: 22_800, refund_reason: "customer_cancelled", refund_note: "Ordered the wrong strength — Q-1049" };
+
+    it("before shipping: Cancelled and refunded, who, note and vials back to stock", () => {
+      const t = buildOrderTimeline({ ...empty, order: refunded, adminEvents: [ev], refund: { byName: "Alvester", vials: 3 } });
+      expect(t.find((e) => e.key === "refunded")).toEqual({
+        key: "refunded", at: "2026-10-02T16:41:00Z", tone: "red", title: "Cancelled and refunded", sub: "$228.00 · Customer asked to cancel",
+        who: "Alvester", detail: "“Ordered the wrong strength — Q-1049” · 3 vials back to stock",
+      });
+    });
+
+    it("after shipping: Refunded — exception, vials stayed out; no note → just the vials", () => {
+      const t = buildOrderTimeline({ ...empty, order: { ...refunded, shipped_at: "2026-10-01T21:02:00Z", refund_reason: "goodwill", refund_note: null }, adminEvents: [], refund: { byName: "Alvester", vials: 3 } });
+      expect(t.find((e) => e.key === "refunded")).toMatchObject({ title: "Refunded — exception", sub: "$228.00 · Goodwill", who: "Alvester", detail: "vials stayed out" });
+    });
+
+    it("the refunder falls back to the event's actor", () => {
+      const t = buildOrderTimeline({ ...empty, order: refunded, adminEvents: [ev], refund: { byName: null, vials: 1 } });
+      expect(t.find((e) => e.key === "refunded")).toMatchObject({ who: "Alvester", detail: "“Ordered the wrong strength — Q-1049” · 1 vial back to stock" });
+    });
+  });
+
   it("shows a refund done here with who did it", () => {
     const t = buildOrderTimeline({ ...empty, order: { ...order, refunded_at: "2026-10-05T16:00:00Z" }, adminEvents: [{ action: "order_refunded", at: "2026-10-05T16:00:00Z", actorName: "Alvester", detail: "store credit returned" }] });
-    expect(t.find((e) => e.key === "refunded")).toMatchObject({ who: "Alvester", detail: "store credit returned" });
+    expect(t.find((e) => e.key === "refunded")).toMatchObject({ title: "Refunded", who: "Alvester", detail: "store credit returned" });
   });
 
   it("a no-charge order starts with Created — no charge (who, note, vials held) and the On its way soon email", () => {

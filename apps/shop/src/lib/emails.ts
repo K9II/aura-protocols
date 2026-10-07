@@ -87,9 +87,26 @@ export function achFailedEmail(o: OrderRow) {
 // An early fraud warning refunded before shipping (Disputes, Cancel and refund).
 export function orderRefundedEmail(o: OrderRow) {
   const charged = o.total_cents - o.store_credit_cents;
+  const parts = [
+    charged > 0 ? `${usd(charged)} back to your original payment method` : null,
+    o.store_credit_cents > 0 ? `${usd(o.store_credit_cents)} back to your store credit` : null,
+  ].filter(Boolean).join(" and ");
   return {
     subject: `Order ${o.order_number} was cancelled and refunded`,
-    html: shell(`Order ${o.order_number} cancelled`, `<p>Order ${e(o.order_number)} was cancelled before it shipped and refunded in full: ${usd(charged)} back to your original payment method${o.store_credit_cents > 0 ? ` and ${usd(o.store_credit_cents)} back to your store credit` : ""}. Card refunds usually appear within 5–10 business days, depending on your bank.</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
+    html: shell(`Order ${o.order_number} cancelled`, `<p>Order ${e(o.order_number)} was cancelled before it shipped and refunded in full: ${parts}.${charged > 0 ? " Card refunds usually appear within 5–10 business days, depending on your bank." : ""}</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
+  };
+}
+
+// A shipped order refunded as a recorded exception (admin Refund…): card part
+// back to the card, store credit, or both. Never says "cancelled".
+export function orderRefundedAfterShipEmail(o: OrderRow, s: { cardCents: number; creditBackCents: number; cardToCreditCents: number; totalCents: number }) {
+  const parts = [
+    s.cardCents > 0 ? `${usd(s.cardCents)} back to your original payment method (usually 5–10 business days, depending on your bank)` : null,
+    s.creditBackCents + s.cardToCreditCents > 0 ? `${usd(s.creditBackCents + s.cardToCreditCents)} to your store credit, available right away` : null,
+  ].filter(Boolean).join(" and ");
+  return {
+    subject: `Order ${o.order_number} was refunded`,
+    html: shell(`Order ${o.order_number} refunded`, `<p>We've refunded order ${e(o.order_number)}: ${parts}.</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
   };
 }
 
