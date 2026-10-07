@@ -133,3 +133,12 @@ export async function orderIdByNumber(n: string, customerId: string): Promise<st
   if (error) fail("original order read", error);
   return (data as { id: string } | null)?.id ?? null;
 }
+
+// The customer's paid/shipped sale orders, newest first — the Original order
+// choices for a Replacement, and the order count on the recipient card.
+export async function saleOrders(customerId: string): Promise<Array<{ number: string; createdAt: string }>> {
+  const { data, error } = await db().from("orders").select("order_number, created_at")
+    .eq("customer_id", customerId).eq("kind", "sale").in("status", ["paid", "shipped"]).order("created_at", { ascending: false });
+  if (error) fail("customer orders read", error);
+  return ((data as Array<{ order_number: string; created_at: string }> | null) ?? []).map((r) => ({ number: r.order_number, createdAt: r.created_at }));
+}

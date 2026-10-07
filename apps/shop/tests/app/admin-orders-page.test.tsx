@@ -89,4 +89,15 @@ describe("/admin/orders", () => {
     expect(screen.queryByRole("button", { name: /Ship/ })).not.toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Pick list" })[0]).toHaveAttribute("href", "/admin/orders/AP-1031/pick");
   });
+
+  it("offers New no-charge order to the owner only", async () => {
+    render(await OrdersPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.getByRole("link", { name: "New no-charge order" })).toHaveAttribute("href", "/admin/orders/new");
+  });
+
+  it("hides New no-charge order from the Assistant", async () => {
+    m.requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    render(await OrdersPage({ searchParams: Promise.resolve({}) }));
+    expect(screen.queryByRole("link", { name: "New no-charge order" })).toBeNull();
+  });
 });

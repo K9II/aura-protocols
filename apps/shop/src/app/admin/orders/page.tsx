@@ -49,7 +49,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   return (
     <div className="a-page">
       <Crumbs items={[{ label: "Orders" }]} />
-      <div className="a-ph"><div><h1>Orders</h1><p>Every paid order. Ship from here or from the order&apos;s page — the customer gets the tracking email automatically.</p></div></div>
+      <div className="a-ph"><div><h1>Orders</h1><p>Every paid order. Ship from here or from the order&apos;s page — the customer gets the tracking email automatically.</p></div>
+        {can(staff, "orders.no_charge") && <div className="actions"><Link className="a-btn" href="/admin/orders/new"><Icon name="plus" />New no-charge order</Link></div>}</div>
 
       <div className="a-toolbar a-ord-bar">
         <Tabs items={ORDER_TABS.map((t) => ({ href: href({ tab: t, page: 1, q: "" }), label: ORDER_TAB_LABEL[t], n: counts[t], on: t === tab && !q }))} />

@@ -19,6 +19,7 @@ const PAGE_PERMS: Record<string, string> = {
   "orders/page.tsx": "orders.view",
   "orders/[number]/page.tsx": "orders.view",
   "orders/[number]/pick/page.tsx": "orders.view",
+  "orders/new/page.tsx": "orders.no_charge",
   "customers/page.tsx": "customers.view",
   "customers/[id]/page.tsx": "customers.view",
   "discounts/page.tsx": "discounts.view",

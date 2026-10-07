@@ -148,4 +148,21 @@ describe("no-charge data", () => {
     expect(q.calls).toContainEqual(["eq", ["order_number", "AP-1052"]]);
     expect(q.calls).toContainEqual(["eq", ["customer_id", "c1"]]);
   });
+
+  it("saleOrders lists the customer's paid/shipped sale orders, newest first", async () => {
+    const q = query({ data: [{ order_number: "AP-1052", created_at: "2026-10-01T18:00:00Z" }] });
+    from = fromQueue({ orders: [q] });
+    const { saleOrders } = await import("@/lib/no-charge/data");
+    expect(await saleOrders("c1")).toEqual([{ number: "AP-1052", createdAt: "2026-10-01T18:00:00Z" }]);
+    expect(q.calls).toContainEqual(["eq", ["customer_id", "c1"]]);
+    expect(q.calls).toContainEqual(["eq", ["kind", "sale"]]);
+    expect(q.calls).toContainEqual(["in", ["status", ["paid", "shipped"]]]);
+    expect(q.calls).toContainEqual(["order", ["created_at", { ascending: false }]]);
+  });
+
+  it("saleOrders throws on a read error", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "down" } })] });
+    const { saleOrders } = await import("@/lib/no-charge/data");
+    await expect(saleOrders("c1")).rejects.toThrow(/customer orders read failed/);
+  });
 });
