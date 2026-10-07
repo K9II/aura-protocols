@@ -198,6 +198,7 @@ left join orders o on o.id = r.order_id
 group by c.id;
 revoke all on discount_code_stats from public, anon, authenticated;
 
+-- superseded by no-charge.sql
 create or replace function discount_dashboard() returns json language sql stable
 set search_path = public, pg_temp as $$
   select json_build_object(

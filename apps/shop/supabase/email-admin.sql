@@ -88,6 +88,7 @@ alter table shop_settings add column if not exists welcome_paused boolean not nu
 alter table shop_settings add column if not exists cart_paused boolean not null default false;
 
 -- Confirmed subscribers, minus blocked accounts, split by whether they've ordered.
+-- superseded by no-charge.sql
 create or replace function email_audience(p_audience text) returns table (email text)
 language sql stable security definer set search_path = public, pg_temp as $$
   select s.email from subscribers s
@@ -170,6 +171,7 @@ $$;
 
 -- A paid order is credited to the most recent campaign or welcome file sent
 -- to its email in the p_days before payment.
+-- superseded by no-charge.sql
 create or replace function admin_email_attribution(p_since timestamptz, p_days integer)
 returns table (kind text, ref text, orders bigint, revenue_cents bigint)
 language sql stable security definer set search_path = public, pg_temp as $$
@@ -194,6 +196,7 @@ $$;
 -- Checkouts that got a reminder since p_since, and how many came back:
 -- the reminded order was paid, or the customer paid another order within
 -- p_hours of the last reminder (a new checkout cancels the old one).
+-- superseded by no-charge.sql
 create or replace function admin_cart_recovery(p_since timestamptz, p_hours integer) returns json
 language sql stable security definer set search_path = public, pg_temp as $$
   with reminded as (

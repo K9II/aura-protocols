@@ -48,6 +48,7 @@ end $$;
 -- One page of the Customers list. Emails come from auth.users (not reachable
 -- through the API). "Paid orders" = paid or shipped; "spent" = money paid
 -- (total minus store credit used). p_q is pre-cleaned by the server (no % _ \).
+-- superseded by no-charge.sql
 create or replace function admin_customer_list(p_q text, p_tab text, p_limit integer, p_offset integer)
 returns table (
   id uuid, email text, full_name text, organization text, is_owner boolean, created_at timestamptz,
@@ -84,6 +85,7 @@ returns table (
 $$;
 
 -- The list's tiles and tab counts.
+-- superseded by no-charge.sql
 create or replace function admin_customer_stats() returns json
 language sql stable security definer set search_path = public, pg_temp as $$
   with per as (

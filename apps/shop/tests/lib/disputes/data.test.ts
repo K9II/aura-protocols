@@ -32,6 +32,18 @@ describe("disputes data", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
+  it("names the orders→customers FK in list embeds (orders also has created_by → customers)", async () => {
+    const d = query({ data: [] }), w = query({ data: [] });
+    db.from = fromQueue({ disputes: [d], early_fraud_warnings: [w] });
+    const { listDisputes, listWarnings } = await import("@/lib/disputes/data");
+    await listDisputes(); await listWarnings();
+    for (const q of [d, w]) {
+      const sel = String(callArgs(q, "select")?.[0]);
+      expect(sel).toContain("customers!orders_customer_id_fkey(full_name)");
+      expect(sel).not.toMatch(/[ ,(]customers\(/);
+    }
+  });
+
   it("records a dispute through record_dispute; an error throws so Stripe retries", async () => {
     db.rpc.mockResolvedValueOnce({ data: DISPUTE_ID, error: null }).mockResolvedValueOnce({ data: null, error: { message: "down" } });
     const { recordDispute } = await import("@/lib/disputes/data");

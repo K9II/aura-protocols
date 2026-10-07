@@ -71,7 +71,7 @@ export async function hasDisputeForCharge(chargeId: string): Promise<boolean> {
 
 // ---------- lists ----------
 
-const ORDER_BRIEF = "order_number, status, email, customer_id, shipped_at, paid_at, total_cents, store_credit_cents, customers(full_name)";
+const ORDER_BRIEF = "order_number, status, email, customer_id, shipped_at, paid_at, total_cents, store_credit_cents, customers!orders_customer_id_fkey(full_name)";
 type RawOrder = {
   order_number: string; status: OrderStatus; email: string; customer_id: string; shipped_at: string | null; paid_at: string | null;
   total_cents: number; store_credit_cents: number; customers: { full_name: string } | null;
