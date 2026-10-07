@@ -60,7 +60,9 @@ export default function ReplyBox({ inquiryId, clientKey, to, from, signature, sa
       )}
       {state?.ok && <div className="a-scansent" role="status">{state.ok}</div>}
       <div className="a-reply-f">
-        <span className="note"><Icon name="shield" />Checked for compliance when you {drafting ? "save" : "send"}</span>
+        {/* Saving re-keys the box (the page passes the new draft_at), so the
+            action's own "saved" message is lost; the stored draft says it instead. */}
+        <span className="note"><Icon name="shield" />{drafting && draft ? `Draft saved ${draft.at} · checked for compliance when you save` : `Checked for compliance when you ${drafting ? "save" : "send"}`}</span>
         <div className="r">
           {drafting ? (
             <button type="submit" className="a-btn primary" disabled={pending}><Icon name="edit" />Save draft</button>

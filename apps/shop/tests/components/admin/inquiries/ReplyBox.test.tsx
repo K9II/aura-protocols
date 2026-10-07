@@ -25,6 +25,13 @@ describe("ReplyBox", () => {
     expect(hidden.value).toBe("2026-10-06T14:06:00.000Z");
   });
 
+  it("in draft mode, a stored draft says when it was saved (the box re-keys on save, losing the action message)", () => {
+    render(<ReplyBox inquiryId="i1" clientKey="k" to="dana@example.com" from="support@auraprotocols.com" signature="— Alvester, Aura Protocols"
+      saved={[]} mode="draft" draft={{ body: "Thanks —", byName: "Assistant (Claude)", at: "7:15 am", draftAt: "2026-10-07T13:15:00.000Z" }} />);
+    expect(screen.getByText("Draft saved 7:15 am · checked for compliance when you save")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Send" })).toBeNull();
+  });
+
   it("no hidden draftAt field when there's no draft to protect", () => {
     const { container } = render(<ReplyBox inquiryId="i1" clientKey="k" to="dana@example.com" from="support@auraprotocols.com" signature="— Kearney, Aura Protocols" saved={[]} />);
     expect(container.querySelector('input[name="draftAt"]')).toBeNull();
