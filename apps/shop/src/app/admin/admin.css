@@ -1173,3 +1173,8 @@
   .adm .a-reply-f .r .a-btn { flex: 1; justify-content: center; height: 36px; }
   .adm .a-iq-menu { width: min(330px, calc(100vw - 32px)); }
 }
+
+/* Inquiries on phones: every tab (incl. Unmatched) visible without sideways scrolling. */
+@media (max-width: 860px) {
+  .adm .a-iq-bar .a-tabs { flex-wrap: wrap; overflow-x: visible; row-gap: 4px; }
+}

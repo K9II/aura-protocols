@@ -37,15 +37,15 @@ function Unmatched({ open, spam, domain, nowMs }: { open: UnmatchedRow[]; spam: 
   return (
     <>
       {open.length === 0 ? <div className="a-empty">Nothing unmatched. Every email found its conversation.</div> : (
-        <table className="a-t">
+        <div className="a-scrollx"><table className="a-t">
           <thead><tr><th style={{ width: 250 }}>From</th><th>Subject</th><th>Received</th><th className="num">Action</th></tr></thead>
           <tbody>{open.map(row)}</tbody>
-        </table>
+        </table></div>
       )}
       {spam.length > 0 && (
         <details className="a-tfoot" style={{ display: "block" }}>
           <summary>{spam.length} marked as spam by Amazon — show</summary>
-          <table className="a-t" style={{ marginTop: 8 }}><tbody>{spam.map((u) => row(u, 1))}</tbody></table>
+          <div className="a-scrollx" style={{ marginTop: 8 }}><table className="a-t"><tbody>{spam.map((u) => row(u, 1))}</tbody></table></div>
         </details>
       )}
     </>
@@ -87,7 +87,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Pr
         <div className="actions"><Link className="a-btn" href="/admin/inquiries/replies"><Icon name="edit" />Saved replies</Link></div>
       </div>
 
-      <div className="a-toolbar">
+      <div className="a-toolbar a-iq-bar">
         <Tabs items={TABS.map((t) => ({ href: href({ tab: t, page: 1 }), label: TAB_LABEL[t], n: counts[t], on: t === tab }))} />
         {tab !== "unmatched" && (
           <details className="a-iq-filter">
