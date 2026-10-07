@@ -82,7 +82,7 @@ export default async function PartnerPage({ params, searchParams }: { params: Pr
                 <thead><tr><th>Order</th><th className="a-only-desk">Date</th><th className="num a-only-desk">Base</th><th className="num a-only-desk">Rate</th><th className="num">Amount</th><th>State</th></tr></thead>
                 <tbody>{d.lines.map((l) => (
                   <tr key={l.id}>
-                    <td><Link className="a-ord" href={`/admin/orders/${l.orderNumber}`}>{l.orderNumber}</Link>{l.kind === "adjustment" && <span className="muted"> · {l.reason}</span>}</td>
+                    <td>{l.orderNumber === "—" ? l.orderNumber : <Link className="a-ord" href={`/admin/orders/${l.orderNumber}`}>{l.orderNumber}</Link>}{l.kind === "adjustment" && <span className="muted"> · {l.reason}</span>}</td>
                     <td className="a-only-desk">{shortDate(l.at)}</td>
                     <td className="num a-only-desk">{l.kind === "commission" ? usd(l.baseCents) : ""}</td>
                     <td className="num a-only-desk">{l.kind === "commission" ? `${l.ratePct}%` : ""}</td>

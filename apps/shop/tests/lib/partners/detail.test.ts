@@ -22,13 +22,18 @@ describe("getPartnerDetail", () => {
 
   it("totals commissions, merges adjustments newest first and pages them", async () => {
     getPartnerById.mockResolvedValue(partner);
+    const commissionRows = [
+      { id: "k1", order_id: "o1", base_cents: 118_000, rate_pct: 15, amount_cents: 17_700, state: "pending", clears_at: null, created_at: "2026-10-04T10:00:00Z", orders: { order_number: "AP-1037" } },
+      { id: "k2", order_id: "o2", base_cents: 54_000, rate_pct: 15, amount_cents: 8_100, state: "payable", clears_at: "2026-10-01T00:00:00Z", created_at: "2026-09-18T10:00:00Z", orders: { order_number: "AP-1012" } },
+      { id: "k3", order_id: "o3", base_cents: 9_600, rate_pct: 10, amount_cents: 960, state: "void", clears_at: null, created_at: "2026-09-01T10:00:00Z", orders: { order_number: "AP-1002" } },
+    ];
     from = fromQueue({
       partner_clicks_daily: [query({ data: [{ clicks: 1000 }, { clicks: 284 }] })],
-      commissions: [query({ data: [
-        { id: "k1", order_id: "o1", base_cents: 118_000, rate_pct: 15, amount_cents: 17_700, state: "pending", clears_at: null, created_at: "2026-10-04T10:00:00Z", orders: { order_number: "AP-1037" } },
-        { id: "k2", order_id: "o2", base_cents: 54_000, rate_pct: 15, amount_cents: 8_100, state: "payable", clears_at: "2026-10-01T00:00:00Z", created_at: "2026-09-18T10:00:00Z", orders: { order_number: "AP-1012" } },
-        { id: "k3", order_id: "o3", base_cents: 9_600, rate_pct: 10, amount_cents: 960, state: "void", clears_at: null, created_at: "2026-09-01T10:00:00Z", orders: { order_number: "AP-1002" } },
-      ] })],
+      // One lightweight query over EVERY commission (no cap) for the totals, then the capped list for display.
+      commissions: [
+        query({ data: commissionRows.map((r) => ({ state: r.state, amount_cents: r.amount_cents })) }),
+        query({ data: commissionRows }),
+      ],
       commission_adjustments: [query({ data: [{ id: "a1", order_id: "o4", amount_cents: -3_375, reason: "chargeback", created_at: "2026-09-28T10:00:00Z", orders: { order_number: "AP-1018" } }] })],
       payouts: [query({ data: [{ id: "y1", run_date: "2026-10-01", cash_cents: 14_820, credit_cents: 19_266, status: "paid", reference: "ACH-77120", paid_at: "2026-10-02T15:00:00Z" }] })],
     });
@@ -47,7 +52,7 @@ describe("getPartnerDetail", () => {
   it("throws when a read fails", async () => {
     getPartnerById.mockResolvedValue(partner);
     from = fromQueue({
-      partner_clicks_daily: [query({ data: [] })], commissions: [query({ error: { message: "down" } })],
+      partner_clicks_daily: [query({ data: [] })], commissions: [query({ data: [] }), query({ error: { message: "down" } })],
       commission_adjustments: [query({ data: [] })], payouts: [query({ data: [] })],
     });
     const { getPartnerDetail } = await import("@/lib/partners/detail");

@@ -27,7 +27,7 @@ export default function Partners() {
           ["Code or link", <>A customer either types the partner&apos;s code or arrives through their link. A link is remembered for {REF_WINDOW_DAYS} days on that browser.</>],
           ["Customer discount", <>{CODE_DISCOUNT_PCT}% off, but each item still gets only its largest discount. A new account&apos;s {NEW_ACCOUNT_PCT}% wins over it, and the partner still earns commission on the order.</>],
           ["Commission", <>Recorded when the order is paid. It starts a {CLEARING_DAYS}-day hold when the order ships, then becomes payable. A refund or chargeback reverses it.</>],
-          ["Commission states", <><Ui>Pending</Ui> until the order ships, <Ui>Clearing</Ui> for {CLEARING_DAYS} days, then <Ui>Payable</Ui>, then <Ui>Paid</Ui>. <Ui>Void</Ui> means the order was refunded.</>],
+          ["Commission states", <><Ui>Pending</Ui> until the order ships, <Ui>Clearing</Ui> for {CLEARING_DAYS} days, then <Ui>Payable</Ui>, then <Ui>Paid</Ui>. <Ui>Void</Ui> means the commission was reversed — a refund, a chargeback or a suspension.</>],
           ["Tier", <>The <Ui>Tier</Ui> column is the partner&apos;s current commission rate. It rises with their lifetime sales.</>],
           ["Tax form", <>Partners upload a W-9. Cash can&apos;t be sent until you&apos;ve checked it (see Payouts).</>],
         ]} />

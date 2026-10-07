@@ -58,4 +58,13 @@ describe("/admin/partners/[id]", () => {
     expect(screen.getAllByRole("button", { name: "Reinstate", hidden: true }).length).toBeGreaterThan(0);
     expect(screen.queryAllByRole("button", { name: "Suspend", hidden: true })).toEqual([]);
   });
+
+  it("renders a line with no order as plain text, not a link to /admin/orders/—", async () => {
+    m.getPartnerDetail.mockResolvedValue({ ...detail, lines: [
+      { kind: "adjustment", id: "a2", orderNumber: "—", at: "2026-09-20T10:00:00Z", amountCents: -500, reason: "owner note" },
+    ] });
+    render(await PartnerPage({ params: Promise.resolve({ id }), searchParams: Promise.resolve({}) }));
+    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "—" })).toBeNull();
+  });
 });
