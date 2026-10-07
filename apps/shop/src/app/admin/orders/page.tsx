@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireOwner } from "@/lib/dal";
-import { countOrdersForOwner, listOrdersForOwner, type OrderRow } from "@/lib/orders";
+import { countOrderTabs, listOrdersForOwner, type OrderRow } from "@/lib/orders";
 import { ORDER_STATUSES, type OrderStatus } from "@/lib/order-status";
 import { CARRIERS } from "@/lib/emails";
 import { usd } from "@/lib/html";
@@ -26,7 +26,10 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
   await requireOwner();
   const { status: raw } = await searchParams;
   const status = (raw === "all" || (ORDER_STATUSES as readonly string[]).includes(raw ?? "") ? raw : "paid") as OrderStatus | "all";
-  const [orders, counts] = await Promise.all([listOrdersForOwner(status), countOrdersForOwner()]);
+  // TEMPORARY (Batch A / Task 2): countOrdersForOwner was removed; this page is
+  // rewritten in Task 8 (Batch C). Map the new tab counts back onto the old shape.
+  const [orders, tabCounts] = await Promise.all([listOrdersForOwner(status), countOrderTabs()]);
+  const counts = { paid: tabCounts.to_ship, processing: tabCounts.processing, shipped: tabCounts.shipped, all: tabCounts.all };
   const lots = await orderItemLots(orders.flatMap((o) => (o.order_items ?? []).map((i) => i.id)));
   const fmt = (xs: LotQty[]) => xs.map((x) => `${x.qty} × ${x.lotNumber}`).join(", ");
 
