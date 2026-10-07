@@ -22,3 +22,18 @@ describe("activityFeed: inquiries area", () => {
     ]);
   });
 });
+
+describe("activityFeed: team area", () => {
+  beforeEach(() => { vi.resetModules(); });
+
+  it("reads admin_events area \"staff\" as the \"team\" area, linked to /admin/team", async () => {
+    const ev = query({ data: [
+      { id: "e1", area: "staff", action: "staff_disabled", target_id: "s1", label: "Assistant (Claude)", detail: "Pausing for review", actor_id: "o1", at: "2026-10-07T14:00:00Z" },
+    ] });
+    db.from = fromQueue({ admin_events: [ev], customers: [query({ data: [{ id: "o1", full_name: "Alvester" }] })] });
+    const { activityFeed } = await import("@/lib/audit/feed");
+    const { items } = await activityFeed({ area: "team" }, () => "");
+    expect(callArgs(ev, "in")).toEqual(["area", ["staff"]]);
+    expect(items.map((i) => [i.area, i.href, i.source])).toEqual([["team", "/admin/team", "admin"]]);
+  });
+});

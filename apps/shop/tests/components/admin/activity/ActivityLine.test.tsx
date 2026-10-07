@@ -29,4 +29,15 @@ describe("ActivityLine", () => {
     expect(text({ key: "5", area: "discounts", source: "discount", codeLabel: "SPRING20", e: { id: 5, kind: "paused", detail: null, at: base.at, actor: "u1", actorName: null } }))
       .toBe("Kearney · Paused · SPRING20");
   });
+
+  it("words Team actions on the disabled/enabled/signed-out person, with the reason if one was given", async () => {
+    const { default: ActivityLine } = await import("@/components/admin/activity/ActivityLine");
+    const text = (i: object) => render(<ActivityLine i={{ ...base, ...i } as never} />).container.textContent;
+    expect(text({ key: "t1", area: "team", source: "admin", e: { id: "t1", area: "staff", action: "staff_disabled", target_id: "s1", label: "Assistant (Claude)", detail: "Pausing while I review last week's drafts" } }))
+      .toBe("Disabled Assistant (Claude) · Pausing while I review last week's drafts");
+    expect(text({ key: "t2", area: "team", source: "admin", e: { id: "t2", area: "staff", action: "staff_enabled", target_id: "s1", label: "Assistant (Claude)", detail: null } }))
+      .toBe("Enabled Assistant (Claude)");
+    expect(text({ key: "t3", area: "team", source: "admin", e: { id: "t3", area: "staff", action: "staff_signed_out", target_id: "s1", label: "Assistant (Claude)", detail: null } }))
+      .toBe("Signed Assistant (Claude) out everywhere");
+  });
 });

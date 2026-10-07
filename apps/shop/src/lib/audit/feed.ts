@@ -6,6 +6,7 @@ import type { CodeEvent } from "@/lib/discounts/data";
 import type { EmailAdminEvent } from "@/lib/email/admin-data";
 import type { DisputeEventRow } from "@/lib/disputes/rules";
 import type { AdminAction } from "@/lib/audit/data";
+import { staffPeople } from "@/lib/staff/data";
 import { ACTIVITY_AREAS, ACTIVITY_PAGE, type ActivityArea } from "@/lib/audit/constants";
 export { ACTIVITY_AREAS, AREA_LABEL, ACTIVITY_PAGE, type ActivityArea } from "@/lib/audit/constants";
 
@@ -43,15 +44,15 @@ function scoped<Q>(q: Q, actorCol: string, atCol: string, f: ActivityFilter): Q 
 }
 
 async function adminEvents(f: ActivityFilter, areas: ActivityArea[]): Promise<Raw[]> {
-  const want = areas.filter((a) => a === "orders" || a === "partners" || a === "payouts" || a === "alerts");
+  const want = areas.filter((a) => a === "orders" || a === "partners" || a === "payouts" || a === "alerts" || a === "team");
   if (want.length === 0) return [];
-  const dbAreas = want.map((a) => (a === "alerts" ? "today" : a));
+  const dbAreas = want.map((a) => (a === "alerts" ? "today" : a === "team" ? "staff" : a));
   const { data, error } = await scoped(db().from("admin_events").select("*").in("area", dbAreas), "actor_id", "at", f);
   if (error) fail("admin events read", error);
   type R = AdminEventRow & { actor_id: string; at: string };
   return ((data ?? []) as R[]).map((r): Raw => {
-    const area: ActivityArea = r.area === "today" ? "alerts" : (r.area as ActivityArea);
-    const href = area === "orders" && r.label ? `/admin/orders/${r.label}` : area === "partners" ? (r.target_id ? `/admin/partners/${r.target_id}` : "/admin/partners") : area === "payouts" ? "/admin/payouts" : area === "alerts" ? "/admin" : null;
+    const area: ActivityArea = r.area === "today" ? "alerts" : r.area === "staff" ? "team" : (r.area as ActivityArea);
+    const href = area === "orders" && r.label ? `/admin/orders/${r.label}` : area === "partners" ? (r.target_id ? `/admin/partners/${r.target_id}` : "/admin/partners") : area === "payouts" ? "/admin/payouts" : area === "alerts" ? "/admin" : area === "team" ? "/admin/team" : null;
     return { source: "admin", key: `a-${r.id}`, at: r.at, area, actorId: r.actor_id, href, e: r };
   });
 }
@@ -169,12 +170,11 @@ async function personNames(ids: string[]): Promise<Map<string, string>> {
   return names;
 }
 
-// The person filter: current owners, plus anyone who has acted (a former owner
-// stays findable after their owner flag is removed).
+// The person filter: current staff, plus anyone who has acted (a former
+// staff login stays findable after it's removed).
 export async function activityPeople(): Promise<Array<{ id: string; name: string }>> {
-  const { data, error } = await db().from("customers").select("id, full_name").eq("is_owner", true);
-  if (error) fail("owners read", error);
-  const people = new Map<string, string>(((data ?? []) as Array<{ id: string; full_name: string }>).map((c) => [c.id, c.full_name]));
+  const staff = await staffPeople();
+  const people = new Map<string, string>(staff.map((s) => [s.id, s.name]));
   const { items } = await activityFeed({}, () => "");
   for (const i of items) if (!people.has(i.actorId)) people.set(i.actorId, i.actorName);
   return [...people].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
