@@ -9,7 +9,7 @@ const fail = (what: string, error: unknown): never => { throw new Error(`${what}
 const num = <T extends { purity_pct: unknown; sellable: unknown; held: unknown; sold: unknown; available: unknown }>(r: T): T =>
   ({ ...r, purity_pct: Number(r.purity_pct), sellable: Number(r.sellable), held: Number(r.held), sold: Number(r.sold), available: Number(r.available) });
 
-const VARIANT_COLS = "slug, variant_id, strength, price_cents, low_at, threepl_sku, shown, archived_at";
+const VARIANT_COLS = "slug, variant_id, strength, price_cents, low_at, threepl_sku, shown, archived_at, wholesale";
 const LOT_COLS = "id, lot_number, slug, variant_id, purity_pct, method, tested_on, coa_path, status, live_at, sellable, held, sold, available";
 const ADMIN_LOT_COLS = `${LOT_COLS}, ordered_qty, counted_qty, damaged_qty, adjust_qty, discrepancy_note, received_by, received_at, retired_at`;
 

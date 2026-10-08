@@ -45,6 +45,7 @@ export type LiveVariant = VariantContent & {
   priceUsd: number;
   stock: StockState;       // the only stock signal that leaves the server: never send counts to the browser
   lot: Lot | PendingLot;   // lot selling now; else the last live lot (sold out); else pending
+  wholesale: boolean;        // sold as a 10-vial kit on /wholesale (catalog_variants.wholesale)
 };
 
 export type LiveCompound<C extends string = string> = CatalogEntry<C> & { variants: LiveVariant[] };

@@ -8,7 +8,7 @@ import {
 const c: Compound = {
   slug: "a", name: "Alpha", chemicalClass: "Peptide Fragments", identity: {},
   form: "x", storage: "x", vialMl: 3,
-  variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 50, stock: "in", lot: { pending: true } }],
+  variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 50, stock: "in", lot: { pending: true }, wholesale: true }],
   packDiscounts: [{ qty: 1, pct: 0 }, { qty: 3, pct: 10 }, { qty: 10, pct: 20 }],
 };
 const list = [c];

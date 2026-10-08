@@ -9,10 +9,10 @@ const base = {
 const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
 const list: Compound[] = [
   { ...base, slug: "alpha", name: "Alpha",
-    variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", lot: tested }, { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "out", lot: tested }] },
+    variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", lot: tested, wholesale: true }, { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "out", lot: tested, wholesale: true }] },
   // A strength with no live certified lot is always out (lib/catalog-merge.ts).
   { ...base, slug: "beta", name: "Beta",
-    variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 59, stock: "out", lot: { pending: true } }] },
+    variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 59, stock: "out", lot: { pending: true }, wholesale: true }] },
 ];
 
 describe("priceOrder", () => {
