@@ -23,8 +23,14 @@ export async function enableWholesale(customerId: string, ctx: { ipHash: string;
   if (e1) throw new Error(`wholesale agreement insert failed: ${JSON.stringify(e1)}`);
   const { data, error } = await db().from("customers")
     .update({ wholesale_enabled_at: new Date().toISOString() })
-    .eq("id", customerId).is("wholesale_disabled_at", null)
+    .eq("id", customerId).is("wholesale_enabled_at", null).is("wholesale_disabled_at", null)
     .select("id");
   if (error) throw new Error(`wholesale enable failed: ${JSON.stringify(error)}`);
-  return Array.isArray(data) && data.length === 1 ? "enabled" : "disabled";
+  if (Array.isArray(data) && data.length === 1) return "enabled";
+  // Already had wholesale_enabled_at set (re-accepting keeps the first date)
+  // or switched off by the owner — tell which.
+  const { data: row, error: e2 } = await db().from("customers")
+    .select("wholesale_enabled_at, wholesale_disabled_at").eq("id", customerId).maybeSingle();
+  if (e2) throw new Error(`wholesale read failed: ${JSON.stringify(e2)}`);
+  return !row || row.wholesale_disabled_at ? "disabled" : "enabled";
 }

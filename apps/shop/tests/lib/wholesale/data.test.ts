@@ -24,11 +24,20 @@ describe("wholesale data", () => {
     const { enableWholesale } = await import("@/lib/wholesale/data");
     expect(await enableWholesale("c1", { ipHash: "h", userAgent: "ua" })).toBe("enabled");
     expect(callArgs(ins, "insert")?.[0]).toMatchObject({ customer_id: "c1", terms_version: "2026-10-08", ip_hash: "h", user_agent: "ua" });
-    expect(upd.calls.filter(([m]) => m === "is").map(([, a]) => a[0])).toEqual(["wholesale_disabled_at"]);
+    expect(upd.calls.filter(([m]) => m === "is").map(([, a]) => a[0])).toEqual(["wholesale_enabled_at", "wholesale_disabled_at"]);
+  });
+
+  it("re-accepting keeps the first date", async () => {
+    const upd = query({ data: [] }), read = query({ data: { wholesale_enabled_at: "2026-10-01T00:00:00Z", wholesale_disabled_at: null } });
+    from = fromQueue({ wholesale_agreements: [query({})], customers: [upd, read] });
+    const { enableWholesale } = await import("@/lib/wholesale/data");
+    expect(await enableWholesale("c1", { ipHash: "h", userAgent: "ua" })).toBe("enabled");
+    expect(from.mock.calls.filter(([t]) => t === "customers")).toHaveLength(2); // update, then read — no second update
   });
 
   it("says disabled when the owner switched it off", async () => {
-    from = fromQueue({ wholesale_agreements: [query({})], customers: [query({ data: [] })] });
+    const upd = query({ data: [] }), read = query({ data: { wholesale_enabled_at: "2026-10-01T00:00:00Z", wholesale_disabled_at: "2026-10-05T00:00:00Z" } });
+    from = fromQueue({ wholesale_agreements: [query({})], customers: [upd, read] });
     const { enableWholesale } = await import("@/lib/wholesale/data");
     expect(await enableWholesale("c1", { ipHash: "h", userAgent: null })).toBe("disabled");
   });

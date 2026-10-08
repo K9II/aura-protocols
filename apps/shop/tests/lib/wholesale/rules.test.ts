@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  DEFAULT_TIERS, KIT_VIALS, tierFor, nextTier, kitRows, priceWholesale, cutoffFor, estimatedDates, canCancelWholesale, parseWholesaleSettings,
+  DEFAULT_TIERS, KIT_VIALS, MAX_KITS_PER_LINE, tierFor, nextTier, kitRows, priceWholesale, cutoffFor, estimatedDates, canCancelWholesale, parseWholesaleSettings,
 } from "@/lib/wholesale/rules";
 
 const live = [
@@ -44,6 +44,16 @@ describe("wholesale rules", () => {
     expect(m.items).toHaveLength(1);
     expect(m.kits).toBe(5);
     expect(m.tier.pct).toBe(30);
+  });
+
+  it("rejects a merged line over MAX_KITS_PER_LINE and drops it from items", () => {
+    expect(MAX_KITS_PER_LINE).toBe(50);
+    const q = priceWholesale([
+      { slug: "bpc-157", variantId: "10mg", kits: 20 }, { slug: "bpc-157", variantId: "10mg", kits: 20 }, { slug: "bpc-157", variantId: "10mg", kits: 20 },
+    ], kitRows(live), { tiers: DEFAULT_TIERS, depositPct: 40 });
+    expect(q.rejected.map((r) => r.reason)).toEqual(["bad_quantity"]);
+    expect(q.items).toEqual([]);
+    expect(q.kits).toBe(0);
   });
 
   it("cutoff: every other Monday from 2026-10-05, the cutoff day itself still joins", () => {
