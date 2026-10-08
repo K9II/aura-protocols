@@ -23,6 +23,19 @@ export type TaxQuoteRequest = {
   ship: ShipAddress; items: PricedItem[]; lineDiscountsCents: number[]; shippingCents: number; insuranceCents: number;
 };
 
+// One fixed amount on a Stripe page (wholesale deposit now, balance in Part 2).
+// No automatic tax: the order's tax was quoted up front and travels in the balance.
+export type PaymentCheckoutRequest = {
+  orderId: string; orderNumber: string; siteUrl: string;
+  customer: { email: string; fullName: string; stripeCustomerId: string | null };
+  ship: ShipAddress;
+  payment: "deposit" | "balance";
+  label: string;          // the single line the buyer sees
+  amountCents: number;
+  cancelPath: string;     // where "back" on Stripe returns to
+  attempt?: number;       // a fresh balance page per click (sessions expire in 24 h)
+};
+
 export type CheckoutResult =
   | { kind: "redirect"; url: string; sessionId: string; stripeCustomerId: string; couponId: string | null }
   | { kind: "unavailable"; message: string };
@@ -31,6 +44,7 @@ export type CheckoutResult =
 // second adapter; checkout, orders and the webhook contract stay the same.
 export interface CommerceAdapter {
   createCheckout(req: CheckoutRequest): Promise<CheckoutResult>;
+  createPaymentCheckout(req: PaymentCheckoutRequest): Promise<CheckoutResult>;
   quoteTax(req: TaxQuoteRequest): Promise<{ calculationId: string; taxCents: number }>;
   // Returns the created Stripe Tax transaction id (for a later reverseTax),
   // or null when Stripe already has a transaction under this reference.
@@ -50,6 +64,9 @@ export const STRIPE_MIN_CHARGE_CENTS = 50;
 
 const unavailableAdapter: CommerceAdapter = {
   async createCheckout() {
+    return { kind: "unavailable", message: CHECKOUT_UNAVAILABLE_MESSAGE };
+  },
+  async createPaymentCheckout() {
     return { kind: "unavailable", message: CHECKOUT_UNAVAILABLE_MESSAGE };
   },
   async quoteTax() {
@@ -75,20 +92,23 @@ function line(name: string, amount: number, quantity = 1): Stripe.Checkout.Sessi
   return { quantity, price_data: { currency: "usd", unit_amount: amount, tax_behavior: "exclusive", product_data: { name } } };
 }
 
+async function ensureStripeCustomer(stripe: Stripe, req: { orderId: string; ship: ShipAddress; customer: { email: string; fullName: string; stripeCustomerId: string | null } }): Promise<string> {
+  const shipping = { name: req.ship.name, address: stripeAddress(req.ship) };
+  // Stripe Tax uses the customer's shipping address, so it's set on the customer.
+  if (req.customer.stripeCustomerId) {
+    await stripe.customers.update(req.customer.stripeCustomerId, { email: req.customer.email, name: req.customer.fullName, shipping });
+    return req.customer.stripeCustomerId;
+  }
+  return (await stripe.customers.create(
+    { email: req.customer.email, name: req.customer.fullName, shipping },
+    { idempotencyKey: `customer-create-${req.orderId}` },
+  )).id;
+}
+
 const stripeAdapter: CommerceAdapter = {
   async createCheckout(req) {
     const stripe = getStripe();
-    const shipping = { name: req.ship.name, address: stripeAddress(req.ship) };
-    // Stripe Tax uses the customer's shipping address, so it's set on the customer.
-    let stripeCustomerId = req.customer.stripeCustomerId;
-    if (stripeCustomerId) {
-      await stripe.customers.update(stripeCustomerId, { email: req.customer.email, name: req.customer.fullName, shipping });
-    } else {
-      stripeCustomerId = (await stripe.customers.create(
-        { email: req.customer.email, name: req.customer.fullName, shipping },
-        { idempotencyKey: `customer-create-${req.orderId}` },
-      )).id;
-    }
+    const stripeCustomerId = await ensureStripeCustomer(stripe, req);
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
       ...req.items.map((i) => line(`${i.compoundName} — ${i.strength} · ${i.packQty}-pack`, i.unitPriceCents, i.quantity)),
@@ -136,6 +156,26 @@ const stripeAdapter: CommerceAdapter = {
     }, { idempotencyKey: `checkout-session-${req.orderId}` });
     if (!session.url) throw new Error("Stripe returned no checkout URL");
     return { kind: "redirect", url: session.url, sessionId: session.id, stripeCustomerId, couponId: coupon?.id ?? null };
+  },
+
+  async createPaymentCheckout(req) {
+    const stripe = getStripe();
+    const stripeCustomerId = await ensureStripeCustomer(stripe, req);
+    const meta = { order_id: req.orderId, payment: req.payment };
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer: stripeCustomerId,
+      client_reference_id: req.orderNumber,
+      metadata: meta,
+      payment_intent_data: { metadata: meta },
+      line_items: [line(req.label, req.amountCents)],
+      automatic_tax: { enabled: false },
+      expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_EXPIRY_HOURS * 3600,
+      success_url: `${req.siteUrl}/order/${req.orderNumber}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.siteUrl}${req.cancelPath}`,
+    }, { idempotencyKey: `${req.payment}-session-${req.orderId}-${req.attempt ?? 0}` });
+    if (!session.url) throw new Error("Stripe returned no checkout URL");
+    return { kind: "redirect", url: session.url, sessionId: session.id, stripeCustomerId, couponId: null };
   },
 
   async quoteTax(req) {

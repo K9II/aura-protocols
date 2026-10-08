@@ -180,6 +180,34 @@ describe("commerce adapter", () => {
     expect(taxTxCreateReversal).not.toHaveBeenCalled();
   });
 
+  const pay = { orderId: "o9", orderNumber: "AP-1050", siteUrl: "https://auraprotocols.com",
+    customer: { email: "j@lab.org", fullName: "Jane", stripeCustomerId: "cus_1" }, ship: req.ship,
+    payment: "deposit" as const, label: "Deposit (40%) — order AP-1050 · 3 kits", amountCents: 60600, cancelPath: "/wholesale" };
+
+  it("createPaymentCheckout charges one fixed amount, no automatic tax, tagged with the payment kind", async () => {
+    process.env.STRIPE_SECRET_KEY = "sk_test_x";
+    sessionsCreate.mockResolvedValue({ id: "cs_9", url: "https://stripe/cs_9" });
+    const { getCommerceAdapter } = await import("@/lib/commerce");
+    const r = await getCommerceAdapter().createPaymentCheckout(pay);
+    expect(r).toEqual({ kind: "redirect", url: "https://stripe/cs_9", sessionId: "cs_9", stripeCustomerId: "cus_1", couponId: null });
+    const [params, opts] = sessionsCreate.mock.calls[0];
+    expect(params).toMatchObject({
+      mode: "payment", customer: "cus_1", client_reference_id: "AP-1050",
+      metadata: { order_id: "o9", payment: "deposit" }, payment_intent_data: { metadata: { order_id: "o9", payment: "deposit" } },
+      automatic_tax: { enabled: false }, cancel_url: "https://auraprotocols.com/wholesale",
+      success_url: "https://auraprotocols.com/order/AP-1050?session_id={CHECKOUT_SESSION_ID}",
+    });
+    expect(params.line_items).toEqual([{ quantity: 1, price_data: { currency: "usd", unit_amount: 60600, tax_behavior: "exclusive", product_data: { name: pay.label } } }]);
+    expect(params.shipping_options).toBeUndefined();
+    expect(opts).toEqual({ idempotencyKey: "deposit-session-o9-0" });
+  });
+
+  it("createPaymentCheckout is unavailable without a Stripe key", async () => {
+    delete process.env.STRIPE_SECRET_KEY;
+    const { getCommerceAdapter, CHECKOUT_UNAVAILABLE_MESSAGE } = await import("@/lib/commerce");
+    expect(await getCommerceAdapter().createPaymentCheckout(pay)).toEqual({ kind: "unavailable", message: CHECKOUT_UNAVAILABLE_MESSAGE });
+  });
+
   it("expireCheckout closes an open Stripe page and reports a page that was already paid", async () => {
     process.env.STRIPE_SECRET_KEY = "sk_test_x";
     const { getCommerceAdapter } = await import("@/lib/commerce");
