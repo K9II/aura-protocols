@@ -4,8 +4,9 @@ import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
 let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
 
-const row = { wholesale_open: true, wholesale_tiers: [{ minKits: 1, pct: 25 }, { minKits: 5, pct: 30 }, { minKits: 10, pct: 35 }],
-  wholesale_deposit_pct: 40, wholesale_balance_days: 7, wholesale_run_days: 14, wholesale_lead_days: 28, wholesale_next_cutoff: null };
+const row = { wholesale_open: true, wholesale_tiers: [{ minKits: 5, pct: 20 }, { minKits: 10, pct: 25 }, { minKits: 20, pct: 30 }],
+  wholesale_deposit_pct: 40, wholesale_balance_days: 7, wholesale_run_days: 14, wholesale_lead_days: 28, wholesale_next_cutoff: null,
+  wholesale_min_kits: 5 };
 
 describe("wholesale data", () => {
   beforeEach(() => { vi.resetModules(); });

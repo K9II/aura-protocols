@@ -38,6 +38,7 @@ export type CatalogEntry<C extends string = string> = {
   vialMl: number;
   packDiscounts: PackDiscount[];
   featured?: boolean;
+  designation?: string;    // APro designation shown with the scientific name ("APro-3 RT")
 };
 
 export type LiveVariant = VariantContent & {

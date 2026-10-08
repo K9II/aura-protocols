@@ -94,6 +94,8 @@ export async function startWholesaleCheckoutAction(input: unknown): Promise<Star
   const parsed = startSchema.safeParse(input);
   if (!parsed.success) return { error: "Please complete the shipping address and the research-use confirmation." };
   const { lines, ship, humanToken } = parsed.data;
+  const kitCount = lines.reduce((n, l) => n + l.kits, 0);
+  if (kitCount < s.minKits) return { error: `Wholesale orders need at least ${s.minKits} kits — add ${s.minKits - kitCount} more.` };
 
   const human = await verifyHumanCheck(humanToken, await requestIp(), new URL(siteUrl()).hostname);
   if (!human.ok) {
@@ -114,6 +116,7 @@ export async function startWholesaleCheckoutAction(input: unknown): Promise<Star
   const quote = priceWholesale(lines, rows, s);
   if (quote.rejected.length) return { error: "Some kits can't be ordered right now — they've been flagged below.", rejected: quote.rejected };
   if (quote.items.length === 0) return { error: "Add at least one kit." };
+  if (quote.belowMinimum) return { error: `Wholesale orders need at least ${s.minKits} kits — add ${quote.kitsToMinimum} more.` };
 
   const adapter = getCommerceAdapter();
   const { failed } = await closeOpenCheckouts(customer.id, adapter, { all: false });

@@ -3,6 +3,7 @@ import type { OrderRow } from "@/lib/orders";
 import { SUPPORT_EMAIL } from "@/lib/constants";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 import { dateLabel } from "@/lib/today/time";
+import { compoundTitle } from "@/lib/catalog";
 
 export const CARRIERS = ["usps", "ups", "fedex", "dhl"] as const;
 export type Carrier = (typeof CARRIERS)[number];
@@ -112,8 +113,10 @@ export function orderRefundedAfterShipEmail(o: OrderRow, s: { cardCents: number;
 }
 
 function kitsTable(o: OrderRow): string {
-  const rows = (o.order_items ?? []).map((i) =>
-    `<tr><td>${e(i.compound_name)} · ${e(i.strength)}</td><td>${i.quantity} kit${i.quantity === 1 ? "" : "s"} (${i.pack_qty * i.quantity} vials)</td><td style="text-align:right">${usd(i.line_total_cents)}</td></tr>`).join("");
+  const items = o.order_items ?? [];
+  const title = (i: (typeof items)[number]) => `${e(compoundTitle({ slug: i.compound_slug, name: i.compound_name }))} · ${e(i.strength)}`;
+  const rows = items.map((i) =>
+    `<tr><td>${title(i)}</td><td>${i.quantity} kit${i.quantity === 1 ? "" : "s"} (${i.pack_qty * i.quantity} vials)</td><td style="text-align:right">${usd(i.line_total_cents)}</td></tr>`).join("");
   return `<table style="width:100%;border-collapse:collapse">${rows}</table>`;
 }
 

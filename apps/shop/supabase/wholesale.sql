@@ -26,6 +26,8 @@ create index if not exists orders_balance_pi_idx on orders (balance_payment_inte
 
 -- Per-strength switch (Admin → Catalog in Part 2). On by default.
 alter table catalog_variants add column if not exists wholesale boolean not null default true;
+-- Off at launch: supplier cost too close to list price for kit pricing (2026-10-08 margin review).
+update catalog_variants set wholesale = false where slug in ('igf-1-lr3', 'glutathione', 'pinealon', 'epithalon');
 
 -- Self-serve wholesale: on when the customer accepts the terms; the owner can switch it off.
 alter table customers add column if not exists wholesale_enabled_at timestamptz;
@@ -43,10 +45,13 @@ create table if not exists wholesale_agreements (
 create index if not exists wholesale_agreements_customer_idx on wholesale_agreements (customer_id, agreed_at desc);
 alter table wholesale_agreements enable row level security;
 
--- Settings (owner-editable in Part 2). Tiers: [{minKits, pct}] ascending; the app validates them.
+-- Settings (owner-editable in Part 2). Tiers: [{minKits, pct}] ascending, the first
+-- starting at wholesale_min_kits; the app validates them. Pricing (2026-10-08): minimum
+-- 5 kits; 5-9 20%, 10-19 25%, 20+ 30%. Each batch's lot test is absorbed in the price.
 alter table shop_settings add column if not exists wholesale_open boolean not null default false;
 alter table shop_settings add column if not exists wholesale_tiers jsonb not null
-  default '[{"minKits":1,"pct":25},{"minKits":5,"pct":30},{"minKits":10,"pct":35}]';
+  default '[{"minKits":5,"pct":20},{"minKits":10,"pct":25},{"minKits":20,"pct":30}]';
+alter table shop_settings add column if not exists wholesale_min_kits integer not null default 5 check (wholesale_min_kits between 1 and 50);
 alter table shop_settings add column if not exists wholesale_deposit_pct integer not null default 40 check (wholesale_deposit_pct between 10 and 90);
 alter table shop_settings add column if not exists wholesale_balance_days integer not null default 7 check (wholesale_balance_days between 1 and 30);
 alter table shop_settings add column if not exists wholesale_run_days integer not null default 14 check (wholesale_run_days between 7 and 56);

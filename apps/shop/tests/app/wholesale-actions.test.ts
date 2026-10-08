@@ -20,12 +20,16 @@ vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-09T18:00:00
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/headers", () => ({ headers: async () => new Map([["user-agent", "UA"]]) }));
 
-const settings = { open: true, tiers: [{ minKits: 1, pct: 25 }, { minKits: 5, pct: 30 }, { minKits: 10, pct: 35 }], depositPct: 40, balanceDays: 7, runDays: 14, leadDays: 28, nextCutoffOverride: null };
+const settings = { open: true, tiers: [{ minKits: 5, pct: 20 }, { minKits: 10, pct: 25 }, { minKits: 20, pct: 30 }], depositPct: 40, balanceDays: 7, runDays: 14, leadDays: 28, nextCutoffOverride: null,
+  minKits: 5 };
 const customer = (o: Record<string, unknown> = {}) => ({ id: "c1", email: "j@lab.org", fullName: "Jane", emailConfirmed: true, stripeCustomerId: null,
   research: { field: "independent", org: "Lab", verifiedAt: "x" }, wholesale: { enabledAt: "2026-10-01T00:00:00Z", disabledAt: null }, ...o });
 const ship = { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX", zip: "78701" };
-const live = { shown: [{ slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 68, wholesale: true }] }] };
-const input = { lines: [{ slug: "bpc-157", variantId: "10mg", kits: 2 }], ship, ruoConfirmed: true, humanToken: "tok" };
+const live = { shown: [
+  { slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 68, wholesale: true }] },
+  { slug: "tb-500", name: "TB-500", chemicalClass: "Peptide", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 66, wholesale: true }] },
+] };
+const input = { lines: [{ slug: "bpc-157", variantId: "10mg", kits: 3 }, { slug: "tb-500", variantId: "10mg", kits: 2 }], ship, ruoConfirmed: true, humanToken: "tok" };
 const wholesaleOrder = { id: "o1", order_number: "AP-1050", email: "j@lab.org", channel: "wholesale", status: "deposit_paid",
   wholesale_cutoff_on: "2026-10-19", deposit_cents: 40800, deposit_payment_intent: "pi_dep", order_items: [] };
 
@@ -49,9 +53,10 @@ describe("wholesale actions", () => {
     getCustomer.mockResolvedValue(customer());
     const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
     expect(await startWholesaleCheckoutAction(input)).toEqual({ url: "https://stripe/cs" });
+    // 3 x $544 + 2 x $528 at 20% off = $2,688; deposit 40%
     expect(createPendingWholesaleOrder).toHaveBeenCalledWith(expect.objectContaining({ customerId: "c1", cutoffOn: "2026-10-19", taxCents: 8000, taxCalculationId: "taxcalc_1",
-      quote: expect.objectContaining({ subtotalCents: 102000, depositCents: 40800 }) }));
-    expect(createPaymentCheckout).toHaveBeenCalledWith(expect.objectContaining({ orderId: "o1", payment: "deposit", amountCents: 40800, cancelPath: "/wholesale" }));
+      quote: expect.objectContaining({ subtotalCents: 268800, depositCents: 107520 }) }));
+    expect(createPaymentCheckout).toHaveBeenCalledWith(expect.objectContaining({ orderId: "o1", payment: "deposit", amountCents: 107520, cancelPath: "/wholesale" }));
     expect(attachCheckoutSession).toHaveBeenCalledWith("o1", "cs_1");
   });
 
@@ -65,6 +70,15 @@ describe("wholesale actions", () => {
     expect((await startWholesaleCheckoutAction(input)).error).toMatch(/turn on wholesale/i);
     getCustomer.mockResolvedValue(customer({ wholesale: { enabledAt: "x", disabledAt: "y" } }));
     expect((await startWholesaleCheckoutAction(input)).error).toMatch(/switched off/i);
+    expect(verifyHumanCheck).not.toHaveBeenCalled();
+    expect(createPendingWholesaleOrder).not.toHaveBeenCalled();
+  });
+
+  it("start: an order under the minimum is refused before any work", async () => {
+    getCustomer.mockResolvedValue(customer());
+    const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
+    const r = await startWholesaleCheckoutAction({ ...input, lines: [{ slug: "bpc-157", variantId: "10mg", kits: 4 }] });
+    expect(r.error).toMatch(/at least 5 kits/i);
     expect(verifyHumanCheck).not.toHaveBeenCalled();
     expect(createPendingWholesaleOrder).not.toHaveBeenCalled();
   });
@@ -88,7 +102,7 @@ describe("wholesale actions", () => {
 
   it("start: a line for a strength not sold wholesale is rejected and nothing is created", async () => {
     getCustomer.mockResolvedValue(customer());
-    getLiveCatalog.mockResolvedValue({ shown: [{ slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 68, wholesale: false }] }] });
+    getLiveCatalog.mockResolvedValue({ shown: [{ slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 68, wholesale: false }] }, live.shown[1]] });
     const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
     const r = await startWholesaleCheckoutAction(input);
     expect(r.rejected).toEqual([{ slug: "bpc-157", variantId: "10mg", reason: "unknown" }]);

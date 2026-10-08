@@ -10,12 +10,16 @@ export const CUTOFF_ANCHOR = "2026-10-05";   // a Monday; runs close every whole
 export const TESTED_BEFORE_SHIP_DAYS = 5;
 export const WHOLESALE_TERMS_VERSION = "2026-10-08";
 
+// Pricing (2026-10-08): the first tier starts at the order minimum. Each batch's
+// independent lot test is absorbed in the kit price — never shown as a charge.
 export type Tier = { minKits: number; pct: number };
-export const DEFAULT_TIERS: Tier[] = [{ minKits: 1, pct: 25 }, { minKits: 5, pct: 30 }, { minKits: 10, pct: 35 }];
+export const DEFAULT_TIERS: Tier[] = [{ minKits: 5, pct: 20 }, { minKits: 10, pct: 25 }, { minKits: 20, pct: 30 }];
 
 export type WholesaleSettings = {
   open: boolean; tiers: Tier[]; depositPct: number; balanceDays: number; runDays: number; leadDays: number; nextCutoffOverride: string | null;
+  minKits: number;          // smallest order
 };
+export type PricingSettings = Pick<WholesaleSettings, "tiers" | "depositPct" | "minKits">;
 
 // The terms a customer accepts to turn wholesale on (compliance-scanned copy).
 export const WHOLESALE_TERMS = [
@@ -25,50 +29,74 @@ export const WHOLESALE_TERMS = [
   "For laboratory research use only. Not for human or animal use, and not for resale for human use.",
 ];
 
+// The kits pictured on the signed-out page, in order (slug, variant id).
+export const FEATURED_KITS: Array<[string, string]> = [
+  ["bpc-157", "10mg"], ["retatrutide", "10mg"], ["tesamorelin", "10mg"], ["ss-31", "50mg"], ["bpc-157-tb-500-ghk-cu", "70mg"],
+];
+
 export function parseWholesaleSettings(row: {
   wholesale_open: boolean; wholesale_tiers: unknown; wholesale_deposit_pct: number; wholesale_balance_days: number;
   wholesale_run_days: number; wholesale_lead_days: number; wholesale_next_cutoff: string | null;
+  wholesale_min_kits: number;
 }): WholesaleSettings {
   const tiers = row.wholesale_tiers;
   const ok = Array.isArray(tiers) && tiers.length > 0
     && tiers.every((t, i) => Number.isInteger(t?.minKits) && Number.isInteger(t?.pct) && t.pct > 0 && t.pct < 90
-      && (i === 0 ? t.minKits === 1 : t.minKits > tiers[i - 1].minKits && t.pct >= tiers[i - 1].pct));
-  if (!ok) throw new Error(`wholesale tiers are invalid: ${JSON.stringify(tiers)}`);
+      && (i === 0 ? t.minKits === row.wholesale_min_kits : t.minKits > tiers[i - 1].minKits && t.pct >= tiers[i - 1].pct));
+  if (!ok) throw new Error(`wholesale tiers are invalid: ${JSON.stringify(tiers)} (minimum ${row.wholesale_min_kits})`);
   return {
     open: row.wholesale_open, tiers: tiers as Tier[], depositPct: row.wholesale_deposit_pct, balanceDays: row.wholesale_balance_days,
     runDays: row.wholesale_run_days, leadDays: row.wholesale_lead_days, nextCutoffOverride: row.wholesale_next_cutoff,
+    minKits: row.wholesale_min_kits,
   };
 }
 
+// Below the first tier (an order under the minimum) prices at the first tier.
 export function tierFor(kits: number, tiers: Tier[]): Tier {
   return [...tiers].reverse().find((t) => kits >= t.minKits) ?? tiers[0];
 }
 
+// The next discount step above the current one (from below the minimum, the second tier).
 export function nextTier(kits: number, tiers: Tier[]): { pct: number; kitsNeeded: number } | null {
-  const t = tiers.find((x) => x.minKits > kits);
+  const t = tiers.find((x) => x.minKits > kits && x.pct > tierFor(kits, tiers).pct);
   return t ? { pct: t.pct, kitsNeeded: t.minKits - kits } : null;
 }
 
-export type KitRow = { slug: string; name: string; chemicalClass: string; variantId: string; strength: string; priceUsd: number };
-type LiveLike = { slug: string; name: string; chemicalClass: string; variants: Array<{ id: string; strength: string; priceUsd: number; wholesale: boolean }> };
+export type KitRow = {
+  slug: string; name: string; designation: string | null; chemicalClass: string; variantId: string; strength: string; priceUsd: number;
+};
+type LiveLike = {
+  slug: string; name: string; designation?: string; chemicalClass: string;
+  variants: Array<{ id: string; strength: string; priceUsd: number; wholesale: boolean }>;
+};
 
 // Every strength on the store with its Wholesale switch on (pass LiveCatalog.shown).
 export function kitRows(shown: LiveLike[]): KitRow[] {
   return shown.flatMap((c) => c.variants.filter((v) => v.wholesale).map((v) => ({
-    slug: c.slug, name: c.name, chemicalClass: c.chemicalClass, variantId: v.id, strength: v.strength, priceUsd: v.priceUsd,
+    slug: c.slug, name: c.name, designation: c.designation ?? null, chemicalClass: c.chemicalClass, variantId: v.id, strength: v.strength, priceUsd: v.priceUsd,
   })));
+}
+
+// APro-designated compounds lead with the designation; the scientific name always shows alongside.
+export function kitTitle(r: { name: string; designation: string | null }): { title: string; scientific: string | null } {
+  return r.designation ? { title: r.designation, scientific: r.name } : { title: r.name, scientific: null };
+}
+
+export function featuredKits(rows: KitRow[]): KitRow[] {
+  return FEATURED_KITS.flatMap(([slug, id]) => rows.filter((r) => r.slug === slug && r.variantId === id));
 }
 
 export type KitLine = { slug: string; variantId: string; kits: number };
 export type WholesaleQuote = {
   items: PricedItem[]; rejected: Rejection[]; kits: number; tier: Tier;
+  belowMinimum: boolean; kitsToMinimum: number;
   subtotalCents: number; shippingCents: number; insuranceCents: number;
-  depositCents: number;             // charged at checkout (no tax)
-  balanceBeforeTaxCents: number;    // the rest of the goods + shipping + insurance; tax is added from the checkout quote
+  depositCents: number;             // charged at checkout (no tax): depositPct of the kits
+  balanceBeforeTaxCents: number;    // the rest of the kits + shipping + insurance; tax is added from the checkout quote
   totalBeforeTaxCents: number;
 };
 
-export function priceWholesale(lines: KitLine[], rows: KitRow[], s: Pick<WholesaleSettings, "tiers" | "depositPct">): WholesaleQuote {
+export function priceWholesale(lines: KitLine[], rows: KitRow[], s: PricingSettings): WholesaleQuote {
   const rejected: Rejection[] = [];
   const merged = new Map<string, { row: KitRow; kits: number }>();
   for (const l of lines) {
@@ -81,7 +109,7 @@ export function priceWholesale(lines: KitLine[], rows: KitRow[], s: Pick<Wholesa
     merged.set(key, { row, kits });
   }
   const kits = [...merged.values()].reduce((n, m) => n + m.kits, 0);
-  const tier = tierFor(Math.max(1, kits), s.tiers);
+  const tier = tierFor(kits, s.tiers);
   const items: PricedItem[] = [...merged.values()].map(({ row, kits: q }) => {
     const listUnitCents = Math.round(row.priceUsd * 100 * KIT_VIALS);
     const unitPriceCents = Math.round(listUnitCents * (1 - tier.pct / 100));
@@ -96,7 +124,10 @@ export function priceWholesale(lines: KitLine[], rows: KitRow[], s: Pick<Wholesa
   const insuranceCents = items.length === 0 ? 0 : INSURANCE_CENTS;
   const depositCents = Math.round(subtotalCents * s.depositPct / 100);
   const totalBeforeTaxCents = subtotalCents + shippingCents + insuranceCents;
-  return { items, rejected, kits, tier, subtotalCents, shippingCents, insuranceCents, depositCents, balanceBeforeTaxCents: totalBeforeTaxCents - depositCents, totalBeforeTaxCents };
+  return {
+    items, rejected, kits, tier, belowMinimum: kits < s.minKits, kitsToMinimum: Math.max(0, s.minKits - kits),
+    subtotalCents, shippingCents, insuranceCents, depositCents, balanceBeforeTaxCents: totalBeforeTaxCents - depositCents, totalBeforeTaxCents,
+  };
 }
 
 // The run an order placed on `today` (shop date, YYYY-MM-DD) joins: the owner's
