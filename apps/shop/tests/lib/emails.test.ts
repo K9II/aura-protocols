@@ -132,6 +132,15 @@ describe("wholesale emails", () => {
     expect(m.subject).toBe("Order AP-1050 cancelled — deposit refunded");
     expect(m.html).toContain("$606.00");
   });
+
+  it("wholesale deposit email with no run cutoff yet drops the dates sentence and uses generic refundable copy", async () => {
+    const { wholesaleDepositEmail } = await import("@/lib/emails");
+    const noCutoff = { ...(ws as Record<string, unknown>), wholesale_cutoff_on: null } as never;
+    const m = wholesaleDepositEmail(noCutoff, null);
+    expect(m.html).not.toContain("Order-by date");
+    expect(m.html).toContain("Your deposit is refundable until the order-by date — we'll confirm it by email.");
+    expect(m.html).not.toMatch(/  /);
+  });
 });
 
 describe("storeCreditAddedEmail", () => {

@@ -16,7 +16,16 @@ export async function afterDepositPaid(orderId: string): Promise<{ emailed: bool
   } catch (err) {
     await alertOwner("Wholesale settings unreadable", `${order.order_number}: deposit email used the 28-day default. ${String(err)}`);
   }
-  const dates = estimatedDates(order.wholesale_cutoff_on ?? "", leadDays);
+  // A run cutoff should always be set by the time a deposit is paid; if it
+  // somehow isn't, the emails still go out (with generic refund copy) and the
+  // owner is alerted to set the run by hand rather than this throwing after
+  // the order is already deposit_paid (Stripe would never retry the emails).
+  let dates: { testedAbout: string; shipsAbout: string } | null = null;
+  if (order.wholesale_cutoff_on) {
+    dates = estimatedDates(order.wholesale_cutoff_on, leadDays);
+  } else {
+    await alertOwner("Wholesale order missing cutoff date", `${order.order_number}: deposit paid but the order has no run cutoff; the deposit email went without dates. Set the run by hand.`);
+  }
   const emailed = await sendOrAlert({ to: order.email, ...wholesaleDepositEmail(order, dates) }, `wholesale deposit ${order.order_number}`);
   const owner = alertAddress();
   if (owner) await sendOrAlert({ to: owner, ...ownerNewWholesaleOrderEmail(order) }, `owner wholesale ${order.order_number}`);

@@ -117,16 +117,22 @@ function kitsTable(o: OrderRow): string {
   return `<table style="width:100%;border-collapse:collapse">${rows}</table>`;
 }
 
-// Wholesale (made to order): deposit received, the run's dates, the balance to come.
-export function wholesaleDepositEmail(o: OrderRow, d: { testedAbout: string; shipsAbout: string }) {
-  const cutoff = o.wholesale_cutoff_on ? dateLabel(o.wholesale_cutoff_on) : "";
+// Wholesale (made to order): deposit received, the run's dates, the balance
+// to come. `d` (and the cutoff itself) can be missing — a run not yet set —
+// in which case the dates sentence is dropped and the refundable line stays
+// generic rather than showing an empty date.
+export function wholesaleDepositEmail(o: OrderRow, d: { testedAbout: string; shipsAbout: string } | null) {
+  const cutoff = o.wholesale_cutoff_on ? dateLabel(o.wholesale_cutoff_on) : null;
+  const datesLine = cutoff && d
+    ? `<p>Order-by date: <b>${e(cutoff)}</b> · lot tested about ${e(dateLabel(d.testedAbout))} · ships about <b>${e(dateLabel(d.shipsAbout))}</b>.</p>`
+    : "";
+  const refundableLine = cutoff
+    ? `<p>Your deposit is refundable until ${e(cutoff)} — cancel from your order page.</p>`
+    : `<p>Your deposit is refundable until the order-by date — we'll confirm it by email.</p>`;
   return {
     subject: `Order ${o.order_number} — deposit received`,
     html: shell(`Order ${o.order_number} — deposit received`,
-      `<p>Thank you — your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was received. Your kits are made to order with this production run.</p>${kitsTable(o)}
-       <p>Order-by date: <b>${e(cutoff)}</b> · lot tested about ${e(dateLabel(d.testedAbout))} · ships about <b>${e(dateLabel(d.shipsAbout))}</b>.</p>
-       <p>Balance when your lot passes testing: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax). We'll email you a link to pay it; it's due within 7 days.</p>
-       <p>Your deposit is refundable until ${e(cutoff)} — cancel from your order page.</p>${shipTo(o)}`),
+      `<p>Thank you — your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was received. Your kits are made to order with this production run.</p>${kitsTable(o)}${datesLine}<p>Balance when your lot passes testing: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax). We'll email you a link to pay it; it's due within 7 days.</p>${refundableLine}${shipTo(o)}`),
   };
 }
 
