@@ -2,6 +2,7 @@ import { escapeHtml as e, usd } from "@/lib/html";
 import type { OrderRow } from "@/lib/orders";
 import { SUPPORT_EMAIL } from "@/lib/constants";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
+import { dateLabel } from "@/lib/today/time";
 
 export const CARRIERS = ["usps", "ups", "fedex", "dhl"] as const;
 export type Carrier = (typeof CARRIERS)[number];
@@ -107,6 +108,40 @@ export function orderRefundedAfterShipEmail(o: OrderRow, s: { cardCents: number;
   return {
     subject: `Order ${o.order_number} was refunded`,
     html: shell(`Order ${o.order_number} refunded`, `<p>We've refunded order ${e(o.order_number)}: ${parts}.</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
+  };
+}
+
+function kitsTable(o: OrderRow): string {
+  const rows = (o.order_items ?? []).map((i) =>
+    `<tr><td>${e(i.compound_name)} · ${e(i.strength)}</td><td>${i.quantity} kit${i.quantity === 1 ? "" : "s"} (${i.pack_qty * i.quantity} vials)</td><td style="text-align:right">${usd(i.line_total_cents)}</td></tr>`).join("");
+  return `<table style="width:100%;border-collapse:collapse">${rows}</table>`;
+}
+
+// Wholesale (made to order): deposit received, the run's dates, the balance to come.
+export function wholesaleDepositEmail(o: OrderRow, d: { testedAbout: string; shipsAbout: string }) {
+  const cutoff = o.wholesale_cutoff_on ? dateLabel(o.wholesale_cutoff_on) : "";
+  return {
+    subject: `Order ${o.order_number} — deposit received`,
+    html: shell(`Order ${o.order_number} — deposit received`,
+      `<p>Thank you — your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was received. Your kits are made to order with this production run.</p>${kitsTable(o)}
+       <p>Order-by date: <b>${e(cutoff)}</b> · lot tested about ${e(dateLabel(d.testedAbout))} · ships about <b>${e(dateLabel(d.shipsAbout))}</b>.</p>
+       <p>Balance when your lot passes testing: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax). We'll email you a link to pay it; it's due within 7 days.</p>
+       <p>Your deposit is refundable until ${e(cutoff)} — cancel from your order page.</p>${shipTo(o)}`),
+  };
+}
+
+export function wholesaleCancelledEmail(o: OrderRow) {
+  return {
+    subject: `Order ${o.order_number} cancelled — deposit refunded`,
+    html: shell(`Order ${o.order_number} cancelled`,
+      `<p>Your wholesale order was cancelled before its order-by date. Your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> is being refunded to the way you paid; it can take 5–10 business days to appear.</p>${kitsTable(o)}`),
+  };
+}
+
+export function ownerNewWholesaleOrderEmail(o: OrderRow) {
+  return {
+    subject: `New wholesale order ${o.order_number} — deposit ${usd(o.deposit_cents ?? 0)}`,
+    html: shell(`New wholesale order ${o.order_number}`, `<p>${e(o.email)} · run ${e(o.wholesale_cutoff_on ?? "")} · total ${usd(o.total_cents)}</p>${kitsTable(o)}${shipTo(o)}`),
   };
 }
 

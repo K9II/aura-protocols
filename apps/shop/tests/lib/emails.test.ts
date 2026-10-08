@@ -111,6 +111,29 @@ describe("noChargeEmail", () => {
   });
 });
 
+describe("wholesale emails", () => {
+  const ws = { ...order, channel: "wholesale", order_number: "AP-1050", deposit_cents: 60600, balance_cents: 99450, tax_cents: 8000,
+    wholesale_cutoff_on: "2026-10-19", order_items: [{ compound_name: "BPC-157", strength: "10 mg", pack_qty: 10, quantity: 2, line_total_cents: 102000 }] } as never;
+
+  it("wholesale deposit email: kits, deposit paid, balance, dates, cancel note", async () => {
+    const { wholesaleDepositEmail } = await import("@/lib/emails");
+    const m = wholesaleDepositEmail(ws, { testedAbout: "2026-11-11", shipsAbout: "2026-11-16" });
+    expect(m.subject).toBe("Order AP-1050 — deposit received");
+    expect(m.html).toContain("BPC-157");
+    expect(m.html).toContain("2 kits");
+    expect(m.html).toContain("$606.00");
+    expect(m.html).toContain("$994.50");
+    expect(m.html).toMatch(/refundable until/i);
+  });
+
+  it("wholesale cancelled email names the refunded deposit", async () => {
+    const { wholesaleCancelledEmail } = await import("@/lib/emails");
+    const m = wholesaleCancelledEmail(ws);
+    expect(m.subject).toBe("Order AP-1050 cancelled — deposit refunded");
+    expect(m.html).toContain("$606.00");
+  });
+});
+
 describe("storeCreditAddedEmail", () => {
   it("states amount and balance, tells them to tick Apply store credit, and escapes the message", () => {
     const m = storeCreditAddedEmail(5_000, 17_000, "Thanks <b>so</b> much", "https://auraprotocols.com");
