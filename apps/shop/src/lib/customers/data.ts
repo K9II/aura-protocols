@@ -59,6 +59,8 @@ export type CustomerDetail = {
   orders: DetailOrder[]; agreements: Agreement[]; attestations: Attestation[]; ledger: LedgerRow[]; events: CustomerEvent[];
   isPartner: boolean; referrer: { name: string; via: "code" | "link" | null; at: string } | null;
   blockedBy: string | null;
+  // First-order research verification (checkout), null until given.
+  research: { field: string; org: string; verifiedAt: string } | null;
 };
 
 export async function getCustomerDetail(id: string): Promise<CustomerDetail | null> {
@@ -92,6 +94,9 @@ export async function getCustomerDetail(id: string): Promise<CustomerDetail | nu
     id, email, fullName: r.full_name as string, organization: (r.organization as string | null) ?? null, isOwner: !!r.is_owner, createdAt: r.created_at as string,
     verifiedAt: (r.email_verified_at as string | null) ?? null, verifySentAt: (r.verify_sent_at as string | null) ?? null, marketingOptIn: !!r.marketing_opt_in,
     blockedAt: (r.blocked_at as string | null) ?? null, blockedReason: (r.blocked_reason as string | null) ?? null,
+    research: r.research_verified_at && r.research_field && r.research_org
+      ? { field: r.research_field as string, org: r.research_org as string, verifiedAt: r.research_verified_at as string }
+      : null,
     ship: r.ship_name && r.ship_line1 && r.ship_city && r.ship_state && r.ship_zip
       ? { name: r.ship_name as string, line1: r.ship_line1 as string, line2: (r.ship_line2 as string | null) ?? null, city: r.ship_city as string, state: r.ship_state as string, zip: r.ship_zip as string }
       : null,

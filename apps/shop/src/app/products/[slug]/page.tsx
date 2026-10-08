@@ -99,6 +99,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <VariantPicker compound={c} />
             <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders of ${FREE_SHIPPING_THRESHOLD_USD} or more</div>
             <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
+            <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-1.5">All products currently listed on this site are for research purposes only.</p>
             <BeforeOrdering />
           </div>
         </section>

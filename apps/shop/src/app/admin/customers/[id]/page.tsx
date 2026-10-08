@@ -11,6 +11,7 @@ import { CATEGORY_LABEL, fingerprint, offerState, summarizeUserAgent, type Credi
 import { dateTime, shortDate } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
 import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
+import { researchLabel } from "@/lib/account/research";
 import { unblockAction } from "@/app/admin/customers/actions";
 import CreditDialog from "@/components/admin/customers/CreditDialog";
 import BlockDialog from "@/components/admin/customers/BlockDialog";
@@ -109,6 +110,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         <div>
           <h1>{c.fullName} {c.blockedAt ? <span className="a-chip blocked">Blocked</span> : c.verifiedAt ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}{c.isPartner && <span className="a-chip partner">Partner</span>}{c.isOwner && <span className="a-chip owner">Owner</span>}{chargeback && <span className="a-chip cb">Chargeback</span>}</h1>
           <div className="sub">{c.email}{c.organization && <><span className="dot" />{c.organization}</>}<span className="dot" />Joined {fullDate(c.createdAt)}</div>
+          {c.research && <div className="sub">Research: {researchLabel(c.research.field)} · {c.research.org} · verified {fullDate(c.research.verifiedAt)}</div>}
         </div>
         <div className="actions">
           {!c.verifiedAt && !c.blockedAt && can(staff, "customers.resend_verify") && <ResendVerify customerId={c.id} />}

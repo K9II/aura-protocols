@@ -29,7 +29,8 @@ export default async function CheckoutPage() {
         <p className="s-micro text-[color:var(--specimen)] mb-2.5">Checkout · signed in as {customer.email}</p>
         <h1 className="s-h1 mb-8" style={{ fontSize: 48 }}>Review your <em>order.</em></h1>
         {customer.emailConfirmed ? (
-          <CheckoutForm email={customer.email} ship={customer.ship} initialCode={initialCode} creditBalanceCents={creditBalanceCents} newAccountOffer={newAccountOffer} capPct={capPct} />
+          <CheckoutForm email={customer.email} ship={customer.ship} initialCode={initialCode} creditBalanceCents={creditBalanceCents} newAccountOffer={newAccountOffer} capPct={capPct}
+            needsResearch={!customer.research} organization={customer.organization ?? null} />
         ) : (
           <p role="alert" className="text-[15px]">Please verify your email address first — we sent a link to {customer.email}. Once verified, come back to this page.<ResendVerify /></p>
         )}

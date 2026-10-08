@@ -46,6 +46,7 @@ export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
       </div>
       <div className="p-container pb-10">
         <p className="s-micro text-[color:var(--specimen)] mb-3">For research use only · Not for human consumption · 21+</p>
+        <p className="text-[12px] leading-relaxed text-[color:var(--ink)] mb-3">All products sold on this website are intended for research and identification purposes only. They are not intended for human or animal use of any kind, including ingestion.</p>
         <p className="text-[11.5px] leading-relaxed text-[color:var(--ink-soft)] border-t border-[color:var(--line)] pt-4">
           Aura Protocols supplies research compounds for in-vitro laboratory research only. Products are not drugs, supplements, or cosmetics; they are not approved by the FDA and are not intended to diagnose, treat, cure, or prevent any disease. © {new Date().getFullYear()} Aura Protocols LLC.
         </p>
