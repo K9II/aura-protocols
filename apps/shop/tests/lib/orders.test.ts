@@ -48,6 +48,33 @@ describe("orders", () => {
     expect(callArgs(orderQ, "insert")?.[0]).toMatchObject({ discount_code_id: "c1", code_discount_cents: 7900 });
   });
 
+  it("createPendingWholesaleOrder stores the channel, cutoff, deposit/balance, tax and 10-vial kit lines; no partner", async () => {
+    const ins = query({ data: { id: "o1", order_number: "AP-1050" } }), items = query({});
+    from = fromQueue({ orders: [ins], order_items: [items] });
+    const { createPendingWholesaleOrder } = await import("@/lib/orders");
+    const quote = { items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide", variantId: "10mg", strength: "10 mg", packQty: 10, quantity: 2,
+      listUnitCents: 68000, packPct: 25, unitPriceCents: 51000, lineTotalCents: 102000, lotNumber: "" }],
+      rejected: [], kits: 2, tier: { minKits: 5, pct: 20 }, belowMinimum: true, kitsToMinimum: 3,
+      subtotalCents: 102000, shippingCents: 0, insuranceCents: 550,
+      depositCents: 40800, balanceBeforeTaxCents: 61750, totalBeforeTaxCents: 102550 };
+    const r = await createPendingWholesaleOrder({ customerId: "c1", email: "j@lab.org", ship, quote, cutoffOn: "2026-10-19", taxCents: 8000, taxCalculationId: "taxcalc_1" });
+    expect(r).toEqual({ id: "o1", orderNumber: "AP-1050" });
+    expect(callArgs(ins, "insert")?.[0]).toMatchObject({
+      channel: "wholesale", status: "awaiting_payment", wholesale_cutoff_on: "2026-10-19", partner_id: null, partner_discount_cents: 0,
+      subtotal_cents: 102000, shipping_cents: 0, insurance_cents: 550, tax_cents: 8000, total_cents: 110550,
+      deposit_cents: 40800, balance_cents: 69750, tax_calculation_id: "taxcalc_1",
+    });
+    expect(callArgs(items, "insert")?.[0]).toEqual([expect.objectContaining({ pack_qty: 10, quantity: 2, unit_price_cents: 51000, lot_number: "" })]);
+  });
+
+  it("getOrderByPaymentIntent matches the retail, deposit or balance payment", async () => {
+    const q = query({ data: { id: "o1" } });
+    from = fromQueue({ orders: [q] });
+    const { getOrderByPaymentIntent } = await import("@/lib/orders");
+    await getOrderByPaymentIntent("pi_9");
+    expect(callArgs(q, "or")?.[0]).toBe("stripe_payment_intent.eq.pi_9,deposit_payment_intent.eq.pi_9,balance_payment_intent.eq.pi_9");
+  });
+
   it("getOrderByNumber finds the order by its order_number", async () => {
     const q = query({ data: { id: "o1", order_number: "AP-1001" } });
     from = fromQueue({ orders: [q] });
@@ -176,6 +203,22 @@ describe("orders", () => {
     from = fromQueue({ orders: [query({ error: { message: "down" } })] });
     const { listOrdersForOwner } = await import("@/lib/orders");
     await expect(listOrdersForOwner("paid")).rejects.toThrow(/owner orders select failed/);
+  });
+
+  it("stampWholesaleCancel records the refund details without changing status, only once", async () => {
+    const q = query({ data: [] });
+    from = fromQueue({ orders: [q] });
+    const { stampWholesaleCancel } = await import("@/lib/orders");
+    await stampWholesaleCancel("o1", "re_1");
+    expect(callArgs(q, "update")?.[0]).toEqual({ refund_destination: "card", refund_reason: "customer_cancelled", stripe_refund_id: "re_1" });
+    expect(q.calls.filter(([m]) => m === "eq").map(([, a]) => a)).toEqual([["id", "o1"], ["status", "refunded"]]);
+    expect(callArgs(q, "is")).toEqual(["stripe_refund_id", null]);
+  });
+
+  it("stampWholesaleCancel throws on a write error", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "down" } })] });
+    const { stampWholesaleCancel } = await import("@/lib/orders");
+    await expect(stampWholesaleCancel("o1", "re_1")).rejects.toThrow(/wholesale cancel stamp failed/);
   });
 });
 

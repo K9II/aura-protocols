@@ -18,6 +18,8 @@ const recordWarning = vi.fn();
 const resolveWarningsForCharge = vi.fn();
 const hasDisputeForCharge = vi.fn();
 const fetchChargeInfo = vi.fn();
+const afterDepositPaid = vi.fn();
+vi.mock("@/lib/wholesale/after-deposit", () => ({ afterDepositPaid }));
 vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/orders", () => ({ getOrderById, getOrderByPaymentIntent, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
@@ -38,7 +40,7 @@ describe("handleStripeEvent", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of [getOrderById, getOrderByPaymentIntent, transitionOrder, sendOrAlert, alertOwner, afterOrderPaid, reverseCommission, refundCredit, reverseTax, getPartnerById,
-      recordDispute, recordDisputeCard, recordFunds, logDisputeEvent, recordWarning, resolveWarningsForCharge, hasDisputeForCharge, fetchChargeInfo]) f.mockReset();
+      recordDispute, recordDisputeCard, recordFunds, logDisputeEvent, recordWarning, resolveWarningsForCharge, hasDisputeForCharge, fetchChargeInfo, afterDepositPaid]) f.mockReset();
     transitionOrder.mockResolvedValue(true);
     recordDispute.mockResolvedValue("d1");
     hasDisputeForCharge.mockResolvedValue(false);
@@ -236,6 +238,31 @@ describe("handleStripeEvent", () => {
     getOrderById.mockResolvedValue(null);
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await expect(handleStripeEvent(ev("checkout.session.completed", session()))).rejects.toThrow(/order o1 not found/);
+  });
+
+  // ---------- wholesale: deposit paid / deposit refunded (Part 1) ----------
+  it("a wholesale deposit → deposit_paid with the deposit payment intent; no retail after-payment steps", async () => {
+    getOrderById.mockResolvedValue(order("awaiting_payment", { channel: "wholesale", tax_calculation_id: "taxcalc_1" }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("checkout.session.completed", session({ metadata: { order_id: "o1", payment: "deposit" }, payment_intent: "pi_dep" })));
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "deposit_paid", { deposit_payment_intent: "pi_dep" });
+    expect(afterDepositPaid).toHaveBeenCalledWith("o1");
+    expect(afterOrderPaid).not.toHaveBeenCalled();
+  });
+
+  it("a wholesale payment that isn't a deposit alerts the owner and changes nothing (balance is Part 2)", async () => {
+    getOrderById.mockResolvedValue(order("deposit_paid", { channel: "wholesale" }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("checkout.session.completed", session({ metadata: { order_id: "o1", payment: "balance" } })));
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledWith("Wholesale payment not handled", expect.stringContaining("AP-1001"));
+  });
+
+  it("a fully refunded deposit → refunded", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("deposit_paid", { channel: "wholesale" }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", payment_intent: "pi_dep", refunded: true, amount_refunded: 60600 }));
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "deposit_paid", "refunded");
   });
 
   // ---------- disputes and early fraud warnings (Part 6) ----------

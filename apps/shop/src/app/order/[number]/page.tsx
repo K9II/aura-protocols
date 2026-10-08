@@ -6,6 +6,13 @@ import { getOrderForCustomer } from "@/lib/orders";
 import { getStripe } from "@/lib/stripe";
 import OrderCard from "@/components/account/OrderCard";
 import ClearCart from "@/components/account/ClearCart";
+import RunStrip from "@/components/store/wholesale/RunStrip";
+import CancelWholesaleButton from "@/components/store/wholesale/CancelWholesaleButton";
+import { getWholesaleSettings } from "@/lib/wholesale/data";
+import { canCancelWholesale, estimatedDates } from "@/lib/wholesale/rules";
+import { currentMs } from "@/lib/clock";
+import { dateLabel, localDate } from "@/lib/today/time";
+import { usd } from "@/lib/html";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false, follow: false } };
 
@@ -17,6 +24,7 @@ export default async function OrderPage({ params, searchParams }: {
   const customer = await requireCustomer(`/order/${number}`);
   const order = await getOrderForCustomer(number, customer.id);
   if (!order) notFound();
+  if (order.channel === "wholesale") return await wholesaleOrder(order);
 
   // Display only: if the webhook hasn't landed yet, ask Stripe so the page can
   // say "confirming". Only the webhook / reconciler changes the order.
@@ -60,6 +68,45 @@ export default async function OrderPage({ params, searchParams }: {
         </p>
         <OrderCard order={order} />
         <Link href="/account" className="p-btn-outline inline-block px-5 py-3 text-sm uppercase tracking-[0.06em] mt-8">My orders →</Link>
+      </div>
+    </div>
+  );
+}
+
+// Wholesale (made to order), mocks w6/w7: deposit, balance, the run's dates and
+// Cancel until the order-by date. Payment confirmation comes by email (webhook).
+async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOrderForCustomer>>>) {
+  const today = localDate(currentMs());
+  let leadDays: number | null = null;
+  try { leadDays = (await getWholesaleSettings()).leadDays; } catch (err) { console.error("wholesale settings read failed:", err); }
+  const cutoff = order.wholesale_cutoff_on;
+  const dates = cutoff && leadDays !== null ? estimatedDates(cutoff, leadDays) : null;
+  const deposit = usd(order.deposit_cents ?? 0);
+  const closed = order.status === "refunded" || order.status === "cancelled";
+  const head = order.status === "deposit_paid" ? <>Deposit <em>received.</em></>
+    : order.status === "balance_due" ? <>Balance <em>due.</em></>
+    : closed ? <>Order <em>cancelled.</em></>
+    : order.status === "awaiting_payment" ? <>Awaiting <em>deposit.</em></>
+    : <>Thank <em>you.</em></>;
+  return (
+    <div className="pharmacopoeia">
+      <div className="p-container py-16" style={{ maxWidth: 760 }}>
+        <p className="s-micro text-[color:var(--specimen)] mb-2.5">Order {order.order_number} · wholesale</p>
+        <h1 className="s-h1 mb-6" style={{ fontSize: 48 }}>{head}</h1>
+        {order.status === "refunded" && <p className="s-ws-lede">Your deposit of {deposit} is being refunded to the way you paid; it can take 5–10 business days to appear.</p>}
+        {order.status === "cancelled" && <p className="s-ws-lede">This order was cancelled.</p>}
+        {order.status === "awaiting_payment" && <p className="s-ws-lede">We haven&apos;t received your deposit yet. If you just paid, a confirmation email is on its way.</p>}
+        {!closed && <OrderCard order={order} />}
+        {(order.status === "deposit_paid" || order.status === "balance_due") && (
+          <div className="s-ws-sum" style={{ marginTop: 16 }}>
+            <div className="s-ws-ln"><span>Deposit paid</span><span>{deposit}</span></div>
+            <div className="s-ws-ln"><span>Balance when your lot passes testing</span><span>{usd(order.balance_cents ?? 0)}</span></div>
+            <p className="s-ws-note" style={{ margin: "2px 0 12px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} insurance and sales tax. We&apos;ll email you a link; it&apos;s due within 7 days.</p>
+            {cutoff && dates && <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0, background: "var(--paper)" }} />}
+          </div>
+        )}
+        {cutoff && canCancelWholesale(order, today) && <CancelWholesaleButton orderNumber={order.order_number} cutoffLabel={dateLabel(cutoff)} depositLabel={deposit} />}
+        <Link href="/account" className="s-ws-btn-o" style={{ marginTop: 14 }}>My orders →</Link>
       </div>
     </div>
   );

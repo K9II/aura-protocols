@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { getCustomer } from "@/lib/dal";
 import { priceOrder, type PricedOrder, type Rejection } from "@/lib/pricing";
@@ -23,8 +23,8 @@ import { claimCode, codeAttemptAllowed, getDiscountCap, recordCodeFailure } from
 import { lookupDiscountCode } from "@/lib/discounts/redeem";
 import { CLAIM_MESSAGE, CODE_MESSAGES, outcomeMessage, type ClaimResult } from "@/lib/discounts/messages";
 import type { CodeTerms } from "@/lib/discounts/rules";
-import { hashIp } from "@/lib/gate";
 import { catalogStockChanged, getLiveCatalog } from "@/lib/catalog-live";
+import { bookkeep, requestIp, requestIpHash } from "@/lib/checkout-shared";
 import { holdVials, type HoldResult } from "@/lib/catalog-ops/data";
 import { soldOutMessage } from "@/lib/catalog-ops/rules";
 import { verifyHumanCheck } from "@/lib/turnstile";
@@ -48,26 +48,6 @@ const schema = z.object({
   humanToken: z.string().max(4096).optional(),
   research: z.object({ field: z.enum(RESEARCH_FIELDS), org: z.string().trim().min(1).max(RESEARCH_ORG_MAX) }).optional(),
 });
-
-// Saves that only keep records tidy (saved address, coupon id, Stripe
-// customer id) must never cancel a checkout the customer can pay; a failure
-// is reported to the owner instead.
-async function bookkeep(what: string, save: () => Promise<void>, context?: string): Promise<void> {
-  try {
-    await save();
-  } catch (err) {
-    console.error(`${what} failed:`, err);
-    await alertOwner(`Checkout: ${what} failed`, `${context ? `${context}\n` : ""}${String(err)}`);
-  }
-}
-
-async function requestIp(): Promise<string | null> {
-  return ((await headers()).get("x-forwarded-for") ?? "").split(",")[0].trim() || null;
-}
-
-async function requestIpHash(): Promise<string> {
-  return hashIp((await requestIp()) ?? "unknown");
-}
 
 type TypedCode =
   | { kind: "discount"; id: string; code: string; terms: CodeTerms }

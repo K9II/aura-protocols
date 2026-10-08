@@ -5,9 +5,18 @@ describe("order status machine", () => {
   it("allows exactly the designed transitions", () => {
     const allowed = ORDER_STATUSES.flatMap((from) => ORDER_STATUSES.filter((to) => canTransition(from, to)).map((to) => `${from}>${to}`));
     expect(allowed.sort()).toEqual([
-      "awaiting_payment>cancelled", "awaiting_payment>paid", "awaiting_payment>processing",
-      "paid>refunded", "paid>shipped", "processing>cancelled", "processing>paid", "shipped>refunded",
+      "awaiting_payment>cancelled", "awaiting_payment>deposit_paid", "awaiting_payment>paid", "awaiting_payment>processing",
+      "balance_due>cancelled", "balance_due>paid",
+      "deposit_paid>balance_due", "deposit_paid>refunded",
+      "paid>refunded", "paid>shipped",
+      "processing>cancelled", "processing>deposit_paid", "processing>paid",
+      "shipped>refunded",
     ]);
+  });
+
+  it("labels the wholesale states", () => {
+    expect(STATUS_LABEL.deposit_paid).toBe("Deposit paid — in production");
+    expect(STATUS_LABEL.balance_due).toBe("Balance due");
   });
 
   it("labels every status for customers", () => {

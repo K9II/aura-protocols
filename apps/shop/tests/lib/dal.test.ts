@@ -37,6 +37,7 @@ describe("DAL", () => {
       id: "u1", email: "j@lab.org", emailConfirmed: true, fullName: "Jane", organization: null, isOwner: false,
       stripeCustomerId: null, ship: { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX", zip: "78701" },
       createdAt: "2026-10-01T00:00:00Z", verifyRequired: false, research: null,
+      wholesale: { enabledAt: null, disabledAt: null },
     });
   });
 
@@ -45,6 +46,13 @@ describe("DAL", () => {
     from = fromQueue({ customers: [query({ data: { ...row, research_field: "pharmacology", research_org: "Halden Labs", research_verified_at: "2026-10-07T15:00:00Z" } })] });
     const { getCustomer } = await import("@/lib/dal");
     expect((await getCustomer())?.research).toEqual({ field: "pharmacology", org: "Halden Labs", verifiedAt: "2026-10-07T15:00:00Z" });
+  });
+
+  it("getCustomer reads wholesale enabled/disabled state", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u1", email: "j@lab.org", email_confirmed_at: "2026-09-28" } }, error: null });
+    from = fromQueue({ customers: [query({ data: { ...row, wholesale_enabled_at: "2026-10-09T00:00:00Z", wholesale_disabled_at: null } })] });
+    const { getCustomer } = await import("@/lib/dal");
+    expect((await getCustomer())?.wholesale).toEqual({ enabledAt: "2026-10-09T00:00:00Z", disabledAt: null });
   });
 
   it("emailConfirmed comes from our own verification, not Supabase's (which confirms everyone)", async () => {

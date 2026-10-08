@@ -27,6 +27,8 @@ export type Customer = SessionUser & {
   verifyRequired: boolean;
   // First-order research verification (null/absent = not given yet).
   research?: ResearchInfo | null;
+  // Wholesale (self-serve): on once the terms were accepted; the owner can switch it off.
+  wholesale?: { enabledAt: string | null; disabledAt: string | null };
 };
 
 // unfinished: signed in (Google) but the account was never finished — no
@@ -42,6 +44,7 @@ type CustomerRow = {
   email_verified_at: string | null; verify_required: boolean;
   blocked_at: string | null;
   research_field: string | null; research_org: string | null; research_verified_at: string | null;
+  wholesale_enabled_at: string | null; wholesale_disabled_at: string | null;
 };
 
 type Profile = { name: string | null; viaGoogle: boolean };
@@ -102,6 +105,7 @@ export const getAccountState = cache(async (): Promise<AccountState> => {
       research: r.research_verified_at && r.research_field && r.research_org
         ? { field: r.research_field as ResearchField, org: r.research_org, verifiedAt: r.research_verified_at }
         : null,
+      wholesale: { enabledAt: r.wholesale_enabled_at ?? null, disabledAt: r.wholesale_disabled_at ?? null },
     },
   };
 });

@@ -7,7 +7,7 @@ const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, teste
 // The live catalog comes from the cart context (CartProvider's `catalog`).
 const catalog: Compound[] = [{
   slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {}, form: "", storage: "", vialMl: 3,
-  variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", lot: tested }],
+  variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", lot: tested, wholesale: true }],
   packDiscounts: [{ qty: 1, pct: 0 }, { qty: 2, pct: 5 }],
 }];
 const { checkCodeAction, startCheckoutAction, lines, cart } = vi.hoisted(() => ({

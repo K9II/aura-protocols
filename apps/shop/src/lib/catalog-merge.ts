@@ -14,7 +14,7 @@ export type CatalogOps = {
   products: Array<{ slug: string; shown: boolean }>;
   variants: Array<{
     slug: string; variant_id: string; strength: string; price_cents: number; low_at: number; threepl_sku: string | null;
-    shown: boolean; archived_at: string | null;
+    shown: boolean; archived_at: string | null; wholesale?: boolean;
   }>;
   lots: LotStockRow[];   // live + retired only (fetchCatalogOps filters drafts)
 };
@@ -76,6 +76,7 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
       variants.push({
         id: row.variant_id, strength: row.strength, shown: row.shown,
         priceUsd: row.price_cents / 100, stock: stockState(availableVials, row.low_at), lot,
+        wholesale: row.wholesale !== false,
       });
     }
     if (!variants.length) continue;

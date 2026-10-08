@@ -6,7 +6,7 @@ import type { Compound } from "@/data/catalog";
 const packs = [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }];
 const mk = (slug: string, cls: Compound["chemicalClass"], usd: number, featured = false): Compound => ({
   slug, name: slug.toUpperCase(), chemicalClass: cls, identity: {}, form: "", storage: "", vialMl: 3, featured,
-  variants: [{ id: "10mg", strength: "10 mg", shown: true, priceUsd: usd, stock: "out", lot: { pending: true } }], packDiscounts: packs,
+  variants: [{ id: "10mg", strength: "10 mg", shown: true, priceUsd: usd, stock: "out", lot: { pending: true }, wholesale: true }], packDiscounts: packs,
 });
 const list = [mk("mots-c", "Mitochondrial & Metabolic", 69), mk("bpc-157", "Peptide Fragments", 79, true), mk("blend", "Blends", 99)];
 const spring: CodeTerms = { kind: "order_pct", value: 20, stackOnTop: true, freeShipping: true, minOrderCents: 15000, includeSlugs: [], excludeSlugs: [], includeClasses: [], excludeClasses: ["Blends"] };

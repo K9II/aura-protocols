@@ -92,6 +92,17 @@ export function isPendingLot(lot: Lot | PendingLot): lot is PendingLot {
   return "pending" in lot;
 }
 
+// APro designation of a compound (catalog content), or null. Shown with the
+// scientific name, never instead of it: "APro-G3RT (Retatrutide)".
+export function designationFor(slug: string): string | null {
+  return catalogContent.find((c) => c.slug === slug)?.designation ?? null;
+}
+
+export function compoundTitle(c: { slug: string; name: string }): string {
+  const d = designationFor(c.slug);
+  return d ? `${d} (${c.name})` : c.name;
+}
+
 // Vial labels fit ~11 characters at the smallest name size (see Vial.tsx).
 // Parenthetical synonyms drop ("PT-141 (Bremelanotide)" → "PT-141"); long
 // blends show their first component plus "+".

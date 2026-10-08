@@ -38,6 +38,7 @@ export type CatalogEntry<C extends string = string> = {
   vialMl: number;
   packDiscounts: PackDiscount[];
   featured?: boolean;
+  designation?: string;    // APro designation shown with the scientific name ("APro-G3RT")
 };
 
 export type LiveVariant = VariantContent & {
@@ -45,6 +46,7 @@ export type LiveVariant = VariantContent & {
   priceUsd: number;
   stock: StockState;       // the only stock signal that leaves the server: never send counts to the browser
   lot: Lot | PendingLot;   // lot selling now; else the last live lot (sold out); else pending
+  wholesale: boolean;        // sold as a 10-vial kit on /wholesale (catalog_variants.wholesale)
 };
 
 export type LiveCompound<C extends string = string> = CatalogEntry<C> & { variants: LiveVariant[] };

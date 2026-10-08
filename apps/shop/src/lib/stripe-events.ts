@@ -13,6 +13,7 @@ import { closedNote, efwSuggestion, fraudTypeLabel, reasonLabel } from "@/lib/di
 import { disputeParams, eventAt, feeCents, idOf, warningParams } from "@/lib/disputes/stripe-map";
 import { hasDisputeForCharge, logDisputeEvent, recordDispute, recordDisputeCard, recordFunds, recordWarning, resolveWarningsForCharge } from "@/lib/disputes/data";
 import { fetchChargeInfo } from "@/lib/disputes/stripe";
+import { afterDepositPaid } from "@/lib/wholesale/after-deposit";
 
 function paymentIntentId(pi: string | { id: string } | null | undefined): string | null {
   return typeof pi === "string" ? pi : pi?.id ?? null;
@@ -36,12 +37,26 @@ export async function applyPaid(order: OrderRow, session: Stripe.Checkout.Sessio
       `Stripe session ${session.id} was paid but order ${order.order_number} (${order.id}) is ${order.status}. Refund it in Stripe, or reinstate and ship the order by hand.`);
     return false;
   }
+  if (order.channel === "wholesale") return applyWholesalePaid(order, session);
   if (order.status !== "awaiting_payment" && order.status !== "processing") return false;
   const patch = order.tax_calculation_id
     ? { stripe_payment_intent: paymentIntentId(session.payment_intent) }
     : { tax_cents: session.total_details?.amount_tax ?? 0, total_cents: session.amount_total ?? order.total_cents, stripe_payment_intent: paymentIntentId(session.payment_intent) };
   if (!(await transitionOrder(order.id, order.status, "paid", patch))) return false;
   await afterOrderPaid(order.id);
+  return true;
+}
+
+// Wholesale: the deposit moves the order into its production run. The balance
+// (Part 2) has its own handler; until then anything else is the owner's to check.
+async function applyWholesalePaid(order: OrderRow, session: Stripe.Checkout.Session): Promise<boolean> {
+  if (session.metadata?.payment !== "deposit") {
+    await alertOwner("Wholesale payment not handled", `${order.order_number}: Stripe session ${session.id} (${session.metadata?.payment ?? "no payment tag"}) was paid while the order is ${order.status}. Check it in Stripe.`);
+    return false;
+  }
+  if (order.status !== "awaiting_payment" && order.status !== "processing") return false;
+  if (!(await transitionOrder(order.id, order.status, "deposit_paid", { deposit_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
+  await afterDepositPaid(order.id);
   return true;
 }
 
@@ -203,7 +218,7 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       if (refunded && order.refund_destination === "store_credit" && order.stripe_payment_intent && order.total_cents > order.store_credit_cents) {
         await alertOwner("Refunded twice", `${order.order_number}: refunded to store credit here and to the card in Stripe — take the store credit back in Customers.`);
       }
-      if (!refunded && (order.status === "paid" || order.status === "shipped")) {
+      if (!refunded && (order.status === "paid" || order.status === "shipped" || order.status === "deposit_paid")) {
         refunded = await transitionOrder(order.id, order.status, "refunded");
       }
       if (!refunded) return;

@@ -18,11 +18,11 @@ const lotA = { lot: "AP-0001", purityPct: 99.6, method: "HPLC" as const, testedO
 const lotC = { lot: "AP-0003", purityPct: 99.1, method: "HPLC+MS" as const, testedOn: "2026-09-02", coaFile: "" };
 const fixture: Compound[] = [
   { ...base, slug: "a", name: "Alpha", chemicalClass: "Peptide Fragments",
-    variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", lot: lotA }, { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "in", lot: lotA }] },
+    variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", lot: lotA, wholesale: true }, { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "in", lot: lotA, wholesale: true }] },
   { ...base, slug: "b", name: "Beta", chemicalClass: "Peptide Fragments",
-    variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 59, stock: "out", lot: { pending: true } }] },
+    variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 59, stock: "out", lot: { pending: true }, wholesale: true }] },
   { ...base, slug: "c", name: "Gamma", chemicalClass: "Blends", components: ["a", "b"],
-    variants: [{ id: "blend", strength: "10 mg", shown: true, priceUsd: 99, stock: "in", lot: lotC }] },
+    variants: [{ id: "blend", strength: "10 mg", shown: true, priceUsd: 99, stock: "in", lot: lotC, wholesale: true }] },
 ];
 const compounds = liveFixture();
 
@@ -131,8 +131,8 @@ describe("pack prices", () => {
   const c = {
     ...fixture[0],
     variants: [
-      { id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in" as const, lot: lotA },
-      { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "in" as const, lot: lotA },
+      { id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in" as const, lot: lotA, wholesale: true },
+      { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "in" as const, lot: lotA, wholesale: true },
     ],
     packDiscounts: [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }],
   };

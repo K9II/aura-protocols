@@ -94,6 +94,17 @@ describe("mergeCatalog", () => {
     const m = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({ available: 0, sold: 200 })] }), url);
     expect(m.lots[0].status).toBe("sold_out");
   });
+
+  it("carries the per-strength wholesale switch (default on when the column is missing)", () => {
+    const ops = { products: [{ slug: "bpc-157", shown: true }], lots: [],
+      variants: [
+        { slug: "bpc-157", variant_id: "10mg", strength: "10 mg", price_cents: 6800, low_at: 5, threepl_sku: null, shown: true, archived_at: null, wholesale: false },
+        { slug: "bpc-157", variant_id: "5mg", strength: "5 mg", price_cents: 4200, low_at: 5, threepl_sku: null, shown: true, archived_at: null },
+      ] };
+    const live = mergeCatalog([{ slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide", packDiscounts: [] } as never], ops as never, (p) => p);
+    const v = Object.fromEntries(live.all[0].variants.map((x) => [x.id, x.wholesale]));
+    expect(v).toEqual({ "5mg": true, "10mg": false });
+  });
 });
 
 describe("strengths from the database", () => {
