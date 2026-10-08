@@ -14,6 +14,10 @@ import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { currentMs } from "@/lib/clock";
 import { dateLabel, localDate } from "@/lib/today/time";
 
+// Per request: whether wholesale is open, who is signed in and the current run
+// all change without a deploy (a static build would freeze the closed page).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Wholesale",
   description: "Made-to-order 10-vial research kits from independently tested lots, for laboratories and research organizations.",
