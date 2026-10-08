@@ -779,7 +779,7 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-ws-step .n { font-family: var(--font-jetbrains), ui-monospace, monospace; }
 .pharmacopoeia .s-ws-step.dis { opacity: .35; }
 .pharmacopoeia .s-ws-sum { border: 1px solid var(--ink); background: var(--paper-deep); padding: 16px; }
-.pharmacopoeia .s-ws-grid .s-ws-sum { position: sticky; top: 12px; }
+.pharmacopoeia .s-ws-grid .s-ws-sum { position: sticky; top: 140px; }   /* below the sticky site header, like .s-policy-rail */
 .pharmacopoeia .s-ws-ln { display: flex; justify-content: space-between; gap: 10px; margin: 3px 0; }
 .pharmacopoeia .s-ws-ln.b { font-weight: 700; }
 .pharmacopoeia .s-ws-ln.s { color: var(--ink-soft); }
@@ -811,6 +811,7 @@ main > .pharmacopoeia { overflow-x: clip; }
   .pharmacopoeia .s-ws-sheet .s-ws-nm { font-size: 16px; }
   .pharmacopoeia .s-ws-sheet td.s-ws-kp, .pharmacopoeia .s-ws-sheet th.s-ws-kp { display: none; }
   .pharmacopoeia .s-ws-kp-m { display: block; }
+  .pharmacopoeia .s-ws-sheet .s-ws-inl { display: none; }   /* strength moves to the line under the name */
   .pharmacopoeia .s-ws-grid .s-ws-sum { position: static; }
 }
 

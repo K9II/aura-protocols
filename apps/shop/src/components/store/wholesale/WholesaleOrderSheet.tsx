@@ -114,8 +114,9 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
                           onChange={(e) => setN(r, e.target.checked ? 1 : 0)} /></td>
                         <td className="pic"><KitBox title={t.title} strength={r.strength} art={r.art} width={92} /></td>
                         <td>
-                          <span className="s-ws-nm">{t.title}</span> <span className="s-ws-pv">· {t.scientific ? `${t.scientific} · ` : ""}{r.strength}</span>
-                          <span className="s-ws-kp-m s-ws-pv">{usd(unit)} kit</span>
+                          <span className="s-ws-nm">{t.title}</span> <span className="s-ws-pv s-ws-inl">· {t.scientific ? `${t.scientific} · ` : ""}{r.strength}</span>
+                          {/* phones (mock w8): strength and kit price on their own line */}
+                          <span className="s-ws-kp-m s-ws-pv">{t.scientific ? `${t.scientific} · ` : ""}{r.strength} · {usd(unit)} kit</span>
                           {flagged && <span className="s-ws-pv" style={{ display: "block", color: "var(--specimen)" }}>No longer offered as a kit — remove it to continue.</span>}
                         </td>
                         <td className="s-ws-kp">{usd(unit)}<br /><span className="s-ws-pv">{usd(Math.round(unit / KIT_VIALS))} / vial</span></td>

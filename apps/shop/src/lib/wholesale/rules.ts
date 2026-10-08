@@ -87,8 +87,12 @@ export function kitTitle(r: { name: string; designation: string | null }): { tit
   return r.designation ? { title: r.designation, scientific: r.name } : { title: r.name, scientific: null };
 }
 
+// The pictured kits, in order; a featured strength that isn't offered (hidden,
+// switched off) is replaced by the next kit on the list so the row stays full.
 export function featuredKits<T extends KitRow>(rows: T[]): T[] {
-  return FEATURED_KITS.flatMap(([slug, id]) => rows.filter((r) => r.slug === slug && r.variantId === id));
+  const picked = FEATURED_KITS.flatMap(([slug, id]) => rows.filter((r) => r.slug === slug && r.variantId === id));
+  const fill = rows.filter((r) => !picked.includes(r)).slice(0, Math.max(0, FEATURED_KITS.length - picked.length));
+  return [...picked, ...fill];
 }
 
 export type KitLine = { slug: string; variantId: string; kits: number };
