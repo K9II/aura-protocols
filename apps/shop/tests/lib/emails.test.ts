@@ -133,7 +133,7 @@ describe("wholesale emails", () => {
       { compound_slug: "bpc-157", compound_name: "BPC-157", strength: "10 mg", pack_qty: 10, quantity: 5, line_total_cents: 272000 },
     ] } as never;
     const m = wholesaleDepositEmail(reta, { testedAbout: "2026-11-11", shipsAbout: "2026-11-16" });
-    expect(m.html).toContain("APro-3 RT (Retatrutide) · 10 mg");
+    expect(m.html).toContain("APro-G3RT (Retatrutide) · 10 mg");
     expect(m.html).toContain("BPC-157 · 10 mg");
     expect(m.html).not.toMatch(/lot test ·/i);
     expect(findViolations(`${m.subject} ${m.html}`)).toEqual([]);

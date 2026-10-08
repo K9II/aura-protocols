@@ -15,7 +15,7 @@ const live = [
     { id: "5mg", strength: "5 mg", priceUsd: 42, wholesale: false },
   ] },
   { slug: "tb-500", name: "TB-500", chemicalClass: "Peptide", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 66, wholesale: true }] },
-  { slug: "retatrutide", name: "Retatrutide", designation: "APro-3 RT", chemicalClass: "Incretin & Amylin Analogs", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 125, wholesale: true }] },
+  { slug: "retatrutide", name: "Retatrutide", designation: "APro-G3RT", chemicalClass: "Incretin & Amylin Analogs", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 125, wholesale: true }] },
 ] as never;
 
 describe("wholesale rules", () => {
@@ -29,8 +29,8 @@ describe("wholesale rules", () => {
   it("kitRows lists only wholesale-enabled strengths, carrying the APro designation", () => {
     const rows = kitRows(live);
     expect(rows.map((r) => `${r.slug}/${r.variantId}`)).toEqual(["bpc-157/10mg", "tb-500/10mg", "retatrutide/10mg"]);
-    expect(rows.map((r) => r.designation)).toEqual([null, null, "APro-3 RT"]);
-    expect(kitTitle(rows[2])).toEqual({ title: "APro-3 RT", scientific: "Retatrutide" });
+    expect(rows.map((r) => r.designation)).toEqual([null, null, "APro-G3RT"]);
+    expect(kitTitle(rows[2])).toEqual({ title: "APro-G3RT", scientific: "Retatrutide" });
     expect(kitTitle(rows[0])).toEqual({ title: "BPC-157", scientific: null });
   });
 

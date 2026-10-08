@@ -77,12 +77,17 @@ export function kitRows(shown: LiveLike[]): KitRow[] {
   })));
 }
 
+// Picture data for a kit (cap colour + vial label), filled server-side from the
+// catalog content by lib/wholesale/art.ts so the client never loads it.
+export type KitArt = { cap: "red" | "black" | "white"; vialLabel: string };
+export type KitSheetRow = KitRow & { art: KitArt };
+
 // APro-designated compounds lead with the designation; the scientific name always shows alongside.
 export function kitTitle(r: { name: string; designation: string | null }): { title: string; scientific: string | null } {
   return r.designation ? { title: r.designation, scientific: r.name } : { title: r.name, scientific: null };
 }
 
-export function featuredKits(rows: KitRow[]): KitRow[] {
+export function featuredKits<T extends KitRow>(rows: T[]): T[] {
   return FEATURED_KITS.flatMap(([slug, id]) => rows.filter((r) => r.slug === slug && r.variantId === id));
 }
 

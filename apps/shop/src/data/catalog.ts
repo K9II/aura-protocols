@@ -53,9 +53,9 @@ export const catalogContent: CatalogEntry<ChemicalClass>[] = [
   // use" semaglutide/tirzepatide/retatrutide as falsely labeled, which
   // Stripe's prohibited list covers (2026-09-28 decision).
   // APro designations lead on these three; the scientific name always shows alongside (2026-10-08).
-  entry("semaglutide", "Semaglutide", "Incretin & Amylin Analogs", { designation: "APro-1 SM" }),
-  entry("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs", { designation: "APro-2 TRZ" }),
-  entry("retatrutide", "Retatrutide", "Incretin & Amylin Analogs", { designation: "APro-3 RT" }),
+  entry("semaglutide", "Semaglutide", "Incretin & Amylin Analogs", { designation: "APro-G1SM" }),
+  entry("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs", { designation: "APro-G2TRZ" }),
+  entry("retatrutide", "Retatrutide", "Incretin & Amylin Analogs", { designation: "APro-G3RT" }),
   entry("cagrilintide", "Cagrilintide", "Incretin & Amylin Analogs"),
   entry("cagrisema", "Cagrilintide / Semaglutide", "Incretin & Amylin Analogs", { components: ["cagrilintide", "semaglutide"] }),
   entry("retatrutide-cagrilintide", "Retatrutide / Cagrilintide", "Incretin & Amylin Analogs", { components: ["retatrutide", "cagrilintide"] }),

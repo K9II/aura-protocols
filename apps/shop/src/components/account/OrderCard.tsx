@@ -3,6 +3,7 @@ import { statusLabelFor } from "@/lib/order-status";
 import { trackingUrl } from "@/lib/emails";
 import { usd } from "@/lib/html";
 import type { OrderRow } from "@/lib/orders";
+import { compoundTitle } from "@/lib/catalog";
 
 const CARRIER_LABEL: Record<string, string> = { usps: "USPS", ups: "UPS", fedex: "FedEx", dhl: "DHL" };
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -21,7 +22,8 @@ export default function OrderCard({ order }: { order: OrderRow }) {
         <ul className="text-[13px] mt-2">
           {items.map((i) => (
             <li key={`${i.compound_slug}-${i.strength}-${i.pack_qty}`}>
-              {i.compound_name} · {i.strength} · {i.pack_qty}-pack × {i.quantity} ·{" "}
+              {compoundTitle({ slug: i.compound_slug, name: i.compound_name })} · {i.strength} · {order.channel === "wholesale"
+                ? <>kit × {i.quantity} · {usd(i.line_total_cents)}</> : <>{i.pack_qty}-pack × {i.quantity} ·{" "}</>}
               {i.lot_number.split(", ").filter(Boolean).map((lot, n) => (
                 <span key={lot}>{n > 0 && ", "}<Link className="underline" href={`/coa?lot=${encodeURIComponent(lot)}`}>Lot {lot}</Link></span>
               ))}

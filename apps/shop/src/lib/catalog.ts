@@ -93,7 +93,7 @@ export function isPendingLot(lot: Lot | PendingLot): lot is PendingLot {
 }
 
 // APro designation of a compound (catalog content), or null. Shown with the
-// scientific name, never instead of it: "APro-3 RT (Retatrutide)".
+// scientific name, never instead of it: "APro-G3RT (Retatrutide)".
 export function designationFor(slug: string): string | null {
   return catalogContent.find((c) => c.slug === slug)?.designation ?? null;
 }
