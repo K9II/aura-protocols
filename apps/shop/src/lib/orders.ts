@@ -7,6 +7,7 @@ import type { PricedOrder } from "@/lib/pricing";
 import type { ShipAddress } from "@/lib/ship-address";
 import type { NoChargeReason } from "@/lib/no-charge/rules";
 import { ORDER_PAGE_SIZE, ORDER_TABS, TAB_STATUSES, type OrderTab } from "@/lib/orders/tabs";
+import type { WholesaleQuote } from "@/lib/wholesale/rules";
 
 export type OrderItemRow = {
   id: string; compound_slug: string; compound_name: string; variant_id: string; strength: string; pack_qty: number;
@@ -15,14 +16,17 @@ export type OrderItemRow = {
 };
 export type OrderRow = {
   id: string; order_number: string; customer_id: string; email: string; status: OrderStatus;
+  channel: "retail" | "wholesale"; wholesale_cutoff_on: string | null;
   ship_name: string; ship_line1: string; ship_line2: string | null; ship_city: string; ship_state: string; ship_zip: string;
   subtotal_cents: number; shipping_cents: number; insurance_cents: number; tax_cents: number; total_cents: number;
+  deposit_cents: number | null; balance_cents: number | null;
   partner_id: string | null; attributed_by: "code" | "link" | null; partner_discount_cents: number; new_account_discount: boolean; store_credit_cents: number;
   discount_code_id: string | null; code_discount_cents: number;
   stripe_coupon_id: string | null; tax_calculation_id: string | null; tax_transaction_id: string | null;
   ruo_confirmed_at: string; stripe_session_id: string | null; stripe_payment_intent: string | null;
+  deposit_payment_intent: string | null; balance_payment_intent: string | null; balance_session_id: string | null;
   tracking_number: string | null; carrier: string | null;
-  paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null; deposit_paid_at: string | null;
+  paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null; deposit_paid_at: string | null; balance_due_at: string | null;
   expires_at: string; created_at: string;
   kind: "sale" | "no_charge"; retail_value_cents: number | null; no_charge_reason: NoChargeReason | null; no_charge_note: string | null;
   replaces_order_id: string | null; created_by: string | null;
@@ -62,6 +66,41 @@ export async function createPendingOrder(input: {
   if (error || !data) throw new Error(`order insert failed: ${JSON.stringify(error)}`);
   const order = data as { id: string; order_number: string };
   const { error: itemsError } = await db().from("order_items").insert(priced.items.map((i) => ({
+    order_id: order.id, compound_slug: i.compoundSlug, compound_name: i.compoundName, variant_id: i.variantId,
+    strength: i.strength, pack_qty: i.packQty, quantity: i.quantity, unit_price_cents: i.unitPriceCents,
+    line_total_cents: i.lineTotalCents, lot_number: i.lotNumber,
+  })));
+  if (itemsError) {
+    await db().from("orders").delete().eq("id", order.id);
+    throw new Error(`order_items insert failed: ${JSON.stringify(itemsError)}`);
+  }
+  return { id: order.id, orderNumber: order.order_number };
+}
+
+// A wholesale order (made to order): kits at tier prices, the run it joins,
+// the deposit charged now and the balance (rest of goods + shipping +
+// insurance + the tax quoted now) charged when the lot passes. No partner,
+// no discounts, no stock hold.
+export async function createPendingWholesaleOrder(input: {
+  customerId: string; email: string; ship: ShipAddress; quote: WholesaleQuote; cutoffOn: string;
+  taxCents: number; taxCalculationId: string;
+}): Promise<{ id: string; orderNumber: string }> {
+  const { customerId, email, ship, quote } = input;
+  const total = quote.totalBeforeTaxCents + input.taxCents;
+  const now = new Date();
+  const { data, error } = await db().from("orders").insert({
+    customer_id: customerId, email, status: "awaiting_payment", channel: "wholesale", wholesale_cutoff_on: input.cutoffOn,
+    ship_name: ship.name, ship_line1: ship.line1, ship_line2: ship.line2, ship_city: ship.city, ship_state: ship.state, ship_zip: ship.zip,
+    subtotal_cents: quote.subtotalCents, shipping_cents: quote.shippingCents, insurance_cents: quote.insuranceCents,
+    tax_cents: input.taxCents, total_cents: total,
+    partner_id: null, attributed_by: null, partner_discount_cents: 0, new_account_discount: false, store_credit_cents: 0,
+    deposit_cents: quote.depositCents, balance_cents: total - quote.depositCents, tax_calculation_id: input.taxCalculationId,
+    ruo_confirmed_at: now.toISOString(),
+    expires_at: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
+  }).select("id, order_number").single();
+  if (error || !data) throw new Error(`wholesale order insert failed: ${JSON.stringify(error)}`);
+  const order = data as { id: string; order_number: string };
+  const { error: itemsError } = await db().from("order_items").insert(quote.items.map((i) => ({
     order_id: order.id, compound_slug: i.compoundSlug, compound_name: i.compoundName, variant_id: i.variantId,
     strength: i.strength, pack_qty: i.packQty, quantity: i.quantity, unit_price_cents: i.unitPriceCents,
     line_total_cents: i.lineTotalCents, lot_number: i.lotNumber,
@@ -116,8 +155,11 @@ export async function getOrderByNumber(orderNumber: string): Promise<OrderRow | 
   return (data as OrderRow | null) ?? null;
 }
 
+// Retail orders have one payment; a wholesale order has a deposit and a balance.
 export async function getOrderByPaymentIntent(paymentIntent: string): Promise<OrderRow | null> {
-  const { data } = await db().from("orders").select(ORDER_WITH_ITEMS).eq("stripe_payment_intent", paymentIntent).maybeSingle();
+  const { data } = await db().from("orders").select(ORDER_WITH_ITEMS)
+    .or(`stripe_payment_intent.eq.${paymentIntent},deposit_payment_intent.eq.${paymentIntent},balance_payment_intent.eq.${paymentIntent}`)
+    .maybeSingle();
   return (data as OrderRow | null) ?? null;
 }
 
