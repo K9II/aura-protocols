@@ -1,7 +1,7 @@
 import { statusLabelFor, type OrderStatus } from "@/lib/order-status";
 import type { OrderMarker } from "@/lib/orders/tabs";
 
-const STATUS: Record<OrderStatus, string> = { awaiting_payment: "Open checkout", processing: "Processing", paid: "Paid", shipped: "Shipped", cancelled: "Cancelled", refunded: "Refunded" };
+const STATUS: Record<OrderStatus, string> = { awaiting_payment: "Open checkout", processing: "Processing", deposit_paid: "Deposit paid", balance_due: "Balance due", paid: "Paid", shipped: "Shipped", cancelled: "Cancelled", refunded: "Refunded" };
 // A cancelled no-charge order (paid → refunded, no money moved) reads
 // "Cancelled (no charge)" in the cancelled style, never "Refunded".
 export function OrderStatusChip({ status, kind }: { status: OrderStatus; kind?: "sale" | "no_charge" | null }) {

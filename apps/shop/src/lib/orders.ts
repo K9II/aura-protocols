@@ -22,7 +22,7 @@ export type OrderRow = {
   stripe_coupon_id: string | null; tax_calculation_id: string | null; tax_transaction_id: string | null;
   ruo_confirmed_at: string; stripe_session_id: string | null; stripe_payment_intent: string | null;
   tracking_number: string | null; carrier: string | null;
-  paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null;
+  paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null; deposit_paid_at: string | null;
   expires_at: string; created_at: string;
   kind: "sale" | "no_charge"; retail_value_cents: number | null; no_charge_reason: NoChargeReason | null; no_charge_note: string | null;
   replaces_order_id: string | null; created_by: string | null;
@@ -34,7 +34,7 @@ export type OrderRow = {
 const db = () => getSupabaseAdminClient();
 const ORDER_WITH_ITEMS = "*, order_items(*)";
 const STAMP: Partial<Record<OrderStatus, keyof OrderRow>> = {
-  paid: "paid_at", shipped: "shipped_at", cancelled: "cancelled_at", refunded: "refunded_at",
+  paid: "paid_at", shipped: "shipped_at", cancelled: "cancelled_at", refunded: "refunded_at", deposit_paid: "deposit_paid_at",
 };
 
 export async function createPendingOrder(input: {
