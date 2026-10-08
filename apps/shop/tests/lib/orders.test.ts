@@ -203,6 +203,22 @@ describe("orders", () => {
     const { listOrdersForOwner } = await import("@/lib/orders");
     await expect(listOrdersForOwner("paid")).rejects.toThrow(/owner orders select failed/);
   });
+
+  it("stampWholesaleCancel records the refund details without changing status, only once", async () => {
+    const q = query({ data: [] });
+    from = fromQueue({ orders: [q] });
+    const { stampWholesaleCancel } = await import("@/lib/orders");
+    await stampWholesaleCancel("o1", "re_1");
+    expect(callArgs(q, "update")?.[0]).toEqual({ refund_destination: "card", refund_reason: "customer_cancelled", stripe_refund_id: "re_1" });
+    expect(q.calls.filter(([m]) => m === "eq").map(([, a]) => a)).toEqual([["id", "o1"], ["status", "refunded"]]);
+    expect(callArgs(q, "is")).toEqual(["stripe_refund_id", null]);
+  });
+
+  it("stampWholesaleCancel throws on a write error", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "down" } })] });
+    const { stampWholesaleCancel } = await import("@/lib/orders");
+    await expect(stampWholesaleCancel("o1", "re_1")).rejects.toThrow(/wholesale cancel stamp failed/);
+  });
 });
 
 describe("store credit held by abandoned checkouts", () => {

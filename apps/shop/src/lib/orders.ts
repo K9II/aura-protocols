@@ -258,6 +258,18 @@ export async function saveStripeCustomerId(customerId: string, stripeCustomerId:
   if (error) throw new Error(`save Stripe customer failed: ${JSON.stringify(error)}`);
 }
 
+// A wholesale cancel whose transitionOrder lost the race to the
+// charge.refunded webhook: the order is already refunded, but the refund
+// details the webhook doesn't know (it's a card refund the customer asked
+// for) still need recording. A plain metadata update, never a status change;
+// only fires once (stripe_refund_id is still null).
+export async function stampWholesaleCancel(orderId: string, refundId: string): Promise<void> {
+  const { error } = await db().from("orders")
+    .update({ refund_destination: "card", refund_reason: "customer_cancelled", stripe_refund_id: refundId })
+    .eq("id", orderId).eq("status", "refunded").is("stripe_refund_id", null);
+  if (error) throw new Error(`wholesale cancel stamp failed: ${JSON.stringify(error)}`);
+}
+
 // Idempotency ledger: "process" for new events and for earlier attempts that
 // failed (processed_at null, so Stripe's retry gets another go); "duplicate"
 // only once an event has been fully processed.

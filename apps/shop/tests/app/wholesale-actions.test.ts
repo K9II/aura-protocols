@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const getCustomer = vi.fn(), getWholesaleSettings = vi.fn(), enableWholesale = vi.fn(), saveResearchVerification = vi.fn();
 const verifyHumanCheck = vi.fn(), getLiveCatalog = vi.fn(), createPendingWholesaleOrder = vi.fn(), transitionOrder = vi.fn(), attachCheckoutSession = vi.fn();
-const getOrderForCustomer = vi.fn(), refundCard = vi.fn(), sendOrAlert = vi.fn(), alertOwner = vi.fn(), closeOpenCheckouts = vi.fn();
+const getOrderForCustomer = vi.fn(), refundCard = vi.fn(), sendOrAlert = vi.fn(), alertOwner = vi.fn(), closeOpenCheckouts = vi.fn(), stampWholesaleCancel = vi.fn();
 const quoteTax = vi.fn(), createPaymentCheckout = vi.fn(), expireCheckout = vi.fn(), revalidatePath = vi.fn();
 vi.mock("@/lib/dal", () => ({ getCustomer }));
 vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings, enableWholesale }));
 vi.mock("@/lib/account/research-data", () => ({ saveResearchVerification }));
 vi.mock("@/lib/turnstile", () => ({ verifyHumanCheck }));
 vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog }));
-vi.mock("@/lib/orders", () => ({ createPendingWholesaleOrder, transitionOrder, attachCheckoutSession, getOrderForCustomer, saveShipAddress: vi.fn(), saveStripeCustomerId: vi.fn() }));
+vi.mock("@/lib/orders", () => ({ createPendingWholesaleOrder, transitionOrder, attachCheckoutSession, getOrderForCustomer, stampWholesaleCancel, saveShipAddress: vi.fn(), saveStripeCustomerId: vi.fn() }));
 vi.mock("@/lib/refunds/stripe", () => ({ refundCard }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner }));
 vi.mock("@/lib/checkout-close", () => ({ closeOpenCheckouts }));
@@ -26,12 +26,15 @@ const customer = (o: Record<string, unknown> = {}) => ({ id: "c1", email: "j@lab
 const ship = { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX", zip: "78701" };
 const live = { shown: [{ slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 68, wholesale: true }] }] };
 const input = { lines: [{ slug: "bpc-157", variantId: "10mg", kits: 2 }], ship, ruoConfirmed: true, humanToken: "tok" };
+const wholesaleOrder = { id: "o1", order_number: "AP-1050", email: "j@lab.org", channel: "wholesale", status: "deposit_paid",
+  wholesale_cutoff_on: "2026-10-19", deposit_cents: 40800, deposit_payment_intent: "pi_dep", order_items: [] };
 
 describe("wholesale actions", () => {
   beforeEach(() => {
     vi.resetModules();
     for (const f of [getCustomer, getWholesaleSettings, enableWholesale, saveResearchVerification, verifyHumanCheck, getLiveCatalog, createPendingWholesaleOrder,
-      transitionOrder, attachCheckoutSession, getOrderForCustomer, refundCard, sendOrAlert, alertOwner, closeOpenCheckouts, quoteTax, createPaymentCheckout, expireCheckout, revalidatePath]) f.mockReset();
+      transitionOrder, attachCheckoutSession, getOrderForCustomer, refundCard, sendOrAlert, alertOwner, closeOpenCheckouts, stampWholesaleCancel,
+      quoteTax, createPaymentCheckout, expireCheckout, revalidatePath]) f.mockReset();
     getWholesaleSettings.mockResolvedValue(settings);
     verifyHumanCheck.mockResolvedValue({ ok: true });
     getLiveCatalog.mockResolvedValue(live);
@@ -74,11 +77,46 @@ describe("wholesale actions", () => {
     expect(createPendingWholesaleOrder).not.toHaveBeenCalled();
   });
 
+  it("start: an unavailable human check alerts the owner and creates nothing", async () => {
+    getCustomer.mockResolvedValue(customer());
+    verifyHumanCheck.mockResolvedValue({ ok: false, reason: "unavailable", detail: "no secret" });
+    const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
+    expect((await startWholesaleCheckoutAction(input)).error).toBeTruthy();
+    expect(alertOwner).toHaveBeenCalledWith("Checkout: human check unavailable", expect.stringContaining("no secret"));
+    expect(createPendingWholesaleOrder).not.toHaveBeenCalled();
+  });
+
+  it("start: a line for a strength not sold wholesale is rejected and nothing is created", async () => {
+    getCustomer.mockResolvedValue(customer());
+    getLiveCatalog.mockResolvedValue({ shown: [{ slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 68, wholesale: false }] }] });
+    const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
+    const r = await startWholesaleCheckoutAction(input);
+    expect(r.rejected).toEqual([{ slug: "bpc-157", variantId: "10mg", reason: "unknown" }]);
+    expect(createPendingWholesaleOrder).not.toHaveBeenCalled();
+  });
+
   it("start: Stripe failing cancels the pending order", async () => {
     getCustomer.mockResolvedValue(customer());
     createPaymentCheckout.mockRejectedValue(new Error("stripe down"));
     const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
     expect((await startWholesaleCheckoutAction(input)).error).toMatch(/couldn't start payment/i);
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+  });
+
+  it("start: Stripe unavailable cancels the pending order and returns Stripe's message", async () => {
+    getCustomer.mockResolvedValue(customer());
+    createPaymentCheckout.mockResolvedValue({ kind: "unavailable", message: "Checkout opens soon — we'll email you the moment it's live." });
+    const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
+    expect(await startWholesaleCheckoutAction(input)).toEqual({ error: "Checkout opens soon — we'll email you the moment it's live." });
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
+  });
+
+  it("start: a failed save of the checkout session closes the Stripe page and cancels the order", async () => {
+    getCustomer.mockResolvedValue(customer());
+    attachCheckoutSession.mockRejectedValueOnce(new Error("db down"));
+    const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
+    expect((await startWholesaleCheckoutAction(input)).error).toMatch(/couldn't start payment/i);
+    expect(expireCheckout).toHaveBeenCalledWith("cs_1");
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "cancelled");
   });
 
@@ -92,16 +130,40 @@ describe("wholesale actions", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/wholesale");
   });
 
+  it("enable: refuses a customer whose wholesale was switched off", async () => {
+    getCustomer.mockResolvedValue(customer({ wholesale: { enabledAt: "2026-10-01T00:00:00Z", disabledAt: "2026-10-05T00:00:00Z" } }));
+    const { enableWholesaleAction } = await import("@/app/wholesale/actions");
+    expect((await enableWholesaleAction({ agree: true })).error).toMatch(/switched off/i);
+    expect(enableWholesale).not.toHaveBeenCalled();
+  });
+
+  it("enable: asks for research details when missing and none were given", async () => {
+    getCustomer.mockResolvedValue(customer({ research: null, wholesale: { enabledAt: null, disabledAt: null } }));
+    const { enableWholesaleAction } = await import("@/app/wholesale/actions");
+    const { RESEARCH_REQUIRED } = await import("@/lib/account/research");
+    expect(await enableWholesaleAction({ agree: true })).toEqual({ error: RESEARCH_REQUIRED });
+    expect(enableWholesale).not.toHaveBeenCalled();
+  });
+
+  it("enable: a race with the owner switching it off is reported, without revalidating", async () => {
+    getCustomer.mockResolvedValue(customer({ wholesale: { enabledAt: null, disabledAt: null } }));
+    enableWholesale.mockResolvedValue("disabled");
+    const { enableWholesaleAction } = await import("@/app/wholesale/actions");
+    expect((await enableWholesaleAction({ agree: true })).error).toMatch(/switched off/i);
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
   it("cancel before the cutoff refunds the deposit to the card, then marks it refunded and emails", async () => {
     getCustomer.mockResolvedValue(customer());
-    getOrderForCustomer.mockResolvedValue({ id: "o1", order_number: "AP-1050", email: "j@lab.org", channel: "wholesale", status: "deposit_paid",
-      wholesale_cutoff_on: "2026-10-19", deposit_cents: 40800, deposit_payment_intent: "pi_dep", order_items: [] });
+    getOrderForCustomer.mockResolvedValue({ ...wholesaleOrder });
     refundCard.mockResolvedValue("re_1");
     const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
     expect(await cancelWholesaleOrderAction("AP-1050")).toEqual({ ok: true });
     expect(refundCard).toHaveBeenCalledWith("pi_dep", 40800, "o1");
     expect(transitionOrder).toHaveBeenCalledWith("o1", "deposit_paid", "refunded", { refund_destination: "card", refund_reason: "customer_cancelled", stripe_refund_id: "re_1" });
-    expect(sendOrAlert).toHaveBeenCalled();
+    expect(sendOrAlert).toHaveBeenCalledTimes(1);
+    expect(stampWholesaleCancel).not.toHaveBeenCalled();
+    expect(alertOwner).not.toHaveBeenCalled();
   });
 
   it("cancel after the cutoff is refused and nothing is refunded", async () => {
@@ -110,5 +172,59 @@ describe("wholesale actions", () => {
     const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
     expect((await cancelWholesaleOrderAction("AP-1050")).error).toMatch(/order-by date/i);
     expect(refundCard).not.toHaveBeenCalled();
+  });
+
+  it("cancel when the order is already refunded does nothing", async () => {
+    getCustomer.mockResolvedValue(customer());
+    getOrderForCustomer.mockResolvedValue({ ...wholesaleOrder, status: "refunded" });
+    const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
+    expect(await cancelWholesaleOrderAction("AP-1050")).toEqual({ ok: true });
+    expect(refundCard).not.toHaveBeenCalled();
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(sendOrAlert).not.toHaveBeenCalled();
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("cancel refuses an order that doesn't exist or isn't wholesale", async () => {
+    getCustomer.mockResolvedValue(customer());
+    getOrderForCustomer.mockResolvedValueOnce(null);
+    const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
+    expect((await cancelWholesaleOrderAction("AP-9999")).error).toBe("Order not found.");
+    getOrderForCustomer.mockResolvedValueOnce({ id: "o2", order_number: "AP-1001", channel: "retail", status: "paid" });
+    expect((await cancelWholesaleOrderAction("AP-1001")).error).toBe("Order not found.");
+  });
+
+  it("cancel where the webhook wins the race but hasn't recorded refund details yet stamps them and emails once", async () => {
+    getCustomer.mockResolvedValue(customer());
+    getOrderForCustomer.mockResolvedValueOnce({ ...wholesaleOrder }).mockResolvedValueOnce({ ...wholesaleOrder, status: "refunded", stripe_refund_id: null });
+    refundCard.mockResolvedValue("re_1");
+    transitionOrder.mockResolvedValue(false);
+    const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
+    expect(await cancelWholesaleOrderAction("AP-1050")).toEqual({ ok: true });
+    expect(stampWholesaleCancel).toHaveBeenCalledWith("o1", "re_1");
+    expect(sendOrAlert).toHaveBeenCalledTimes(1);
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("cancel where the transition fails and the order is still not refunded alerts the owner, without emailing", async () => {
+    getCustomer.mockResolvedValue(customer());
+    getOrderForCustomer.mockResolvedValueOnce({ ...wholesaleOrder }).mockResolvedValueOnce({ ...wholesaleOrder, status: "deposit_paid" });
+    refundCard.mockResolvedValue("re_1");
+    transitionOrder.mockResolvedValue(false);
+    const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
+    expect(await cancelWholesaleOrderAction("AP-1050")).toEqual({ ok: true });
+    expect(alertOwner).toHaveBeenCalledWith("Wholesale deposit refunded but order not updated", expect.stringContaining("AP-1050"));
+    expect(sendOrAlert).not.toHaveBeenCalled();
+    expect(stampWholesaleCancel).not.toHaveBeenCalled();
+  });
+
+  it("cancel where the refund itself fails returns an error and touches nothing else", async () => {
+    getCustomer.mockResolvedValue(customer());
+    getOrderForCustomer.mockResolvedValue({ ...wholesaleOrder });
+    refundCard.mockRejectedValue(new Error("stripe down"));
+    const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
+    expect((await cancelWholesaleOrderAction("AP-1050")).error).toBeTruthy();
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(sendOrAlert).not.toHaveBeenCalled();
   });
 });

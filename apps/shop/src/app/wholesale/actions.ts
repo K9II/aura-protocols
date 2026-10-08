@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCustomer } from "@/lib/dal";
 import { shipAddressSchema } from "@/lib/ship-address";
-import { attachCheckoutSession, createPendingWholesaleOrder, getOrderForCustomer, saveShipAddress, saveStripeCustomerId, transitionOrder } from "@/lib/orders";
+import { attachCheckoutSession, createPendingWholesaleOrder, getOrderForCustomer, saveShipAddress, saveStripeCustomerId, stampWholesaleCancel, transitionOrder } from "@/lib/orders";
 import { getCommerceAdapter } from "@/lib/commerce";
 import { closeOpenCheckouts } from "@/lib/checkout-close";
 import { siteUrl } from "@/lib/supabase/env";
@@ -174,6 +174,9 @@ export async function cancelWholesaleOrderAction(orderNumber: string): Promise<{
   if (!customer) return { error: "Please sign in." };
   const order = await getOrderForCustomer(String(orderNumber).slice(0, 20), customer.id);
   if (!order || order.channel !== "wholesale") return { error: "Order not found." };
+  // Already cancelled (a second click, or the webhook beat us to it on an
+  // earlier call): nothing left to do.
+  if (order.status === "refunded") return { ok: true };
   if (!canCancelWholesale(order, localDate(currentMs()))) {
     return { error: "This order is past its order-by date, so it can't be cancelled here. Contact us if something is wrong." };
   }
@@ -194,14 +197,28 @@ export async function cancelWholesaleOrderAction(orderNumber: string): Promise<{
   } catch (err) {
     console.error("wholesale cancel transition failed:", err);
   }
-  // The charge.refunded webhook may win the race and move it first — that's fine.
+  // The charge.refunded webhook may win the race and move it first — that's
+  // fine, but then it doesn't know this refund was the customer's own cancel,
+  // so the refund details (and the email) are still ours to finish.
+  let shouldEmail = moved;
   if (!moved) {
     const now = await getOrderForCustomer(order.order_number, customer.id);
     if (now?.status !== "refunded") {
       await alertOwner("Wholesale deposit refunded but order not updated", `${order.order_number}: Stripe refund ${refundId} succeeded; the order is still ${now?.status ?? "unknown"}. Mark it refunded by hand.`);
+    } else if (!now.stripe_refund_id) {
+      try {
+        await stampWholesaleCancel(order.id, refundId);
+      } catch (err) {
+        console.error("wholesale cancel stamp failed:", err);
+        await alertOwner("Wholesale cancel details not saved", `${order.order_number}: ${String(err)}`);
+      }
+      shouldEmail = true;
     }
+    // else: the webhook already recorded the refund details and emailed — nothing left to do.
   }
-  await sendOrAlert({ to: order.email, ...wholesaleCancelledEmail(order) }, `wholesale cancelled ${order.order_number}`);
+  if (shouldEmail) {
+    await sendOrAlert({ to: order.email, ...wholesaleCancelledEmail(order) }, `wholesale cancelled ${order.order_number}`);
+  }
   revalidatePath(`/order/${order.order_number}`);
   return { ok: true };
 }
