@@ -12,6 +12,7 @@ import { listPartners } from "@/lib/partners/data";
 import { listQueuedPayouts } from "@/lib/partners/ledger";
 import { listOpenAlerts } from "@/lib/today/alerts";
 import { salesSummary } from "@/lib/today/data";
+import { profitSummary } from "@/lib/profit/data";
 import { openInquiryTodos } from "@/lib/inquiries/data";
 import { openDisputeTodos } from "@/lib/disputes/data";
 import {
@@ -90,8 +91,14 @@ export async function loadNumbers(p: Period): Promise<NumbersResult> {
   const nowMs = currentMs();
   const r = periodRanges(p, nowMs);
   try {
-    const [cur, prior] = await Promise.all([salesSummary(r.cur, r.bucket), salesSummary(r.prior, r.bucket)]);
-    return { ok: true, view: numbersView(p, r, cur, prior, nowMs) };
+    const [cur, prior, profit] = await Promise.all([
+      salesSummary(r.cur, r.bucket), salesSummary(r.prior, r.bucket),
+      // Profit failing on its own shows "Couldn't load" on that line only.
+      Promise.all([profitSummary(r.cur), profitSummary(r.prior)])
+        .then(([c, pr]) => ({ cur: c, prior: pr }))
+        .catch((err) => { console.error("today: profit failed:", err); return "error" as const; }),
+    ]);
+    return { ok: true, view: numbersView(p, r, cur, prior, nowMs, profit) };
   } catch (err) {
     console.error("today: numbers failed:", err);
     return { ok: false };

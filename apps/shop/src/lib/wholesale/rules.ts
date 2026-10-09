@@ -18,6 +18,7 @@ export const DEFAULT_TIERS: Tier[] = [{ minKits: 5, pct: 20 }, { minKits: 10, pc
 export type WholesaleSettings = {
   open: boolean; tiers: Tier[]; depositPct: number; balanceDays: number; runDays: number; leadDays: number; nextCutoffOverride: string | null;
   minKits: number;          // smallest order
+  kitBoxCents: number;      // branded box per kit (synced from AIOS), recorded on each order
 };
 export type PricingSettings = Pick<WholesaleSettings, "tiers" | "depositPct" | "minKits">;
 
@@ -37,7 +38,7 @@ export const FEATURED_KITS: Array<[string, string]> = [
 export function parseWholesaleSettings(row: {
   wholesale_open: boolean; wholesale_tiers: unknown; wholesale_deposit_pct: number; wholesale_balance_days: number;
   wholesale_run_days: number; wholesale_lead_days: number; wholesale_next_cutoff: string | null;
-  wholesale_min_kits: number;
+  wholesale_min_kits: number; wholesale_kit_box_cents?: number | null;
 }): WholesaleSettings {
   const tiers = row.wholesale_tiers;
   const ok = Array.isArray(tiers) && tiers.length > 0
@@ -47,7 +48,7 @@ export function parseWholesaleSettings(row: {
   return {
     open: row.wholesale_open, tiers: tiers as Tier[], depositPct: row.wholesale_deposit_pct, balanceDays: row.wholesale_balance_days,
     runDays: row.wholesale_run_days, leadDays: row.wholesale_lead_days, nextCutoffOverride: row.wholesale_next_cutoff,
-    minKits: row.wholesale_min_kits,
+    minKits: row.wholesale_min_kits, kitBoxCents: row.wholesale_kit_box_cents ?? 0,
   };
 }
 

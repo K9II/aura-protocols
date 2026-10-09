@@ -9,15 +9,18 @@ const CARRIER_LABEL: Record<string, string> = { usps: "USPS", ups: "UPS", fedex:
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 // A no-charge order (seeding, replacement, sample) shows "No charge" and is
-// never "Paid" or "Refunded" to the customer.
-export default function OrderCard({ order }: { order: OrderRow }) {
+// never "Paid" or "Refunded" to the customer. On My account (link) the order
+// number opens the order page, and a wholesale balance due gets its button.
+export default function OrderCard({ order, link = false }: { order: OrderRow; link?: boolean }) {
   const items = order.order_items ?? [];
   const noCharge = order.kind === "no_charge";
   const label = noCharge && order.status === "paid" ? "Preparing to ship" : statusLabelFor(order);
   return (
     <div className="s-cart-line" style={{ gridTemplateColumns: "1fr auto" }}>
       <div>
-        <span className="p-serif text-[17px]">Order {order.order_number}</span>
+        {link
+          ? <Link href={`/order/${order.order_number}`} className="p-serif text-[17px] underline underline-offset-4">Order {order.order_number}</Link>
+          : <span className="p-serif text-[17px]">Order {order.order_number}</span>}
         <div className="s-micro text-[color:var(--ink-soft)] mt-1">{date(order.created_at)}</div>
         <ul className="text-[13px] mt-2">
           {items.map((i) => (
@@ -39,6 +42,9 @@ export default function OrderCard({ order }: { order: OrderRow }) {
       <div className="text-right">
         <div>{noCharge ? "No charge" : usd(order.total_cents)}</div>
         <div className={`s-micro mt-1 ${order.status === "shipped" ? "text-[color:var(--specimen)]" : "text-[color:var(--ink-soft)]"}`}>{label}</div>
+        {link && order.status === "balance_due" && (
+          <Link href={`/order/${order.order_number}`} className="s-ws-btn" style={{ marginTop: 10, display: "inline-block" }}>Pay balance {usd(order.balance_cents ?? 0)} →</Link>
+        )}
       </div>
     </div>
   );

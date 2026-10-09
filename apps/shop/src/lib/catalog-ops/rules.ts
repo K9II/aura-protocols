@@ -21,11 +21,25 @@ export const NOTE_REQUIRED: readonly CountReason[] = ["owner_withdrawal", "other
 type Fail = { ok: false; fieldErrors: Record<string, string> };
 const intIn = (s: string, min: number, max: number) => { const n = Number(s.trim()); return Number.isInteger(n) && n >= min && n <= max ? n : null; };
 
-export type ReceiveInput = { lotNumber: string; purity: string; method: string; testedOn: string; ordered: string; counted: string; damaged: string; note: string; coaPath: string };
+export type ReceiveInput = {
+  lotNumber: string; purity: string; method: string; testedOn: string; ordered: string; counted: string; damaged: string; note: string; coaPath: string;
+  supplier?: string; cost?: string; testCost?: string; freight?: string; labels?: string;
+};
 export type ReceiveValue = {
   lotNumber: string; purityPct: number; method: (typeof METHODS)[number]; testedOn: string;
   orderedQty: number; countedQty: number; damagedQty: number; discrepancyNote: string | null; coaPath: string | null;
+  // What the lot cost (lot-costs.sql): null = not recorded.
+  supplier: string | null; costCents: number | null; testCents: number | null; freightCents: number | null; labelCents: number | null;
 };
+
+// "520", "520.50", "$1,040" → cents; "" → null; anything else → undefined (an error).
+export function dollarsToCents(s: string | undefined, max = 1_000_000): number | null | undefined {
+  const t = (s ?? "").replace(/[$,\s]/g, "");
+  if (t === "") return null;
+  if (!/^\d+(\.\d{1,2})?$/.test(t)) return undefined;
+  const c = Math.round(Number(t) * 100);
+  return c <= max * 100 ? c : undefined;
+}
 
 export function isDiscrepancy(ordered: number, counted: number, damaged: number): boolean {
   return counted !== ordered || damaged > 0;
@@ -55,6 +69,16 @@ export function parseReceive(i: ReceiveInput, today: string):
   if (ordered !== null && counted !== null && damaged !== null && !e.damaged && isDiscrepancy(ordered, counted, damaged) && !note) {
     e.note = "Say what happened — the counts don't match the invoice.";
   }
+  const supplier = (i.supplier ?? "").trim().slice(0, 80) || null;
+  const costCents = dollarsToCents(i.cost);
+  if (costCents === undefined) e.cost = "Dollars, like 520 or 520.50.";
+  const testCents = dollarsToCents(i.testCost);
+  if (testCents === undefined) e.testCost = "Dollars, like 250.";
+  const freightCents = dollarsToCents(i.freight);
+  if (freightCents === undefined) e.freight = "Dollars, like 75.";
+  const labelCents = dollarsToCents(i.labels);
+  if (labelCents === undefined) e.labels = "Dollars, like 20.";
+  if (costCents != null && !supplier) e.supplier = "Pick the supplier this cost is for.";
   if (Object.keys(e).length) return { ok: false, fieldErrors: e };
   return {
     ok: true,
@@ -62,6 +86,7 @@ export function parseReceive(i: ReceiveInput, today: string):
     value: {
       lotNumber, purityPct: Math.round(purity * 100) / 100, method: method!, testedOn: i.testedOn,
       orderedQty: ordered!, countedQty: counted!, damagedQty: damaged!, discrepancyNote: note || null, coaPath: i.coaPath.trim() || null,
+      supplier, costCents: costCents ?? null, testCents: testCents ?? null, freightCents: freightCents ?? null, labelCents: labelCents ?? null,
     },
   };
 }

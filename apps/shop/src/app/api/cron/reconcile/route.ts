@@ -13,6 +13,7 @@ import { dueReminder, evidenceChip, reasonLabel } from "@/lib/disputes/rules";
 import { shortDate } from "@/lib/discounts/time";
 import { autoCloseInquiries } from "@/lib/inquiries/data";
 import { runWholesaleCron } from "@/lib/wholesale/cron";
+import { backfillPaymentFees } from "@/lib/payment-fees";
 
 // Daily safety net (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`):
 // any Stripe session paid in the last 3 days whose order we never marked paid
@@ -118,6 +119,13 @@ export async function GET(request: Request): Promise<Response> {
     failed.push(...w.failed.map((f) => `wholesale ${f}`));
   } catch (err) {
     failed.push(`wholesale: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  // Card fees Stripe hadn't settled when the payment landed (profit then
+  // shows them as estimated until filled).
+  try {
+    await backfillPaymentFees(new Date(currentMs() - 14 * 86_400_000).toISOString());
+  } catch (err) {
+    failed.push(`card fees: ${err instanceof Error ? err.message : String(err)}`);
   }
   if (fixedPaid.length) {
     await alertOwner("Reconciler fixed paid orders", `These paid orders were missing their webhook and have now been recorded: ${fixedPaid.join(", ")}`);

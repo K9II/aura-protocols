@@ -40,6 +40,7 @@ const refresh = (slug: string) => { catalogChangedByOwner(); revalidatePath("/ad
 const receiveInput = (f: FormData) => ({
   lotNumber: str(f, "lotNumber"), purity: str(f, "purity"), method: str(f, "method"), testedOn: str(f, "testedOn"),
   ordered: str(f, "ordered"), counted: str(f, "counted"), damaged: str(f, "damaged"), note: str(f, "note"), coaPath: str(f, "coaPath"),
+  supplier: str(f, "supplier"), cost: str(f, "cost"), testCost: str(f, "testCost"), freight: str(f, "freight"), labels: str(f, "labels"),
 });
 const LIVE_REFUSAL: Record<string, string> = {
   no_certificate: "Attach the certificate first.",

@@ -87,6 +87,7 @@ export async function receiveLot(slug: string, variantId: string, v: ReceiveValu
     lot_number: v.lotNumber, slug, variant_id: variantId, purity_pct: v.purityPct, method: v.method, tested_on: v.testedOn,
     coa_path: v.coaPath, status: "draft", ordered_qty: v.orderedQty, counted_qty: v.countedQty, damaged_qty: v.damagedQty,
     discrepancy_note: v.discrepancyNote, received_by: actorId,
+    supplier: v.supplier, cost_cents: v.costCents, test_cents: v.testCents, freight_cents: v.freightCents, label_cents: v.labelCents,
   }).select("id").single();
   if (error && (error as { code?: string }).code === "23505") return { ok: false, taken: true };
   if (error || !data) fail("lot insert", error);
@@ -101,6 +102,7 @@ export async function updateDraftLot(id: string, v: ReceiveValue, actorId: strin
   const { data, error } = await db().from("lots").update({
     lot_number: v.lotNumber, purity_pct: v.purityPct, method: v.method, tested_on: v.testedOn, coa_path: v.coaPath,
     ordered_qty: v.orderedQty, counted_qty: v.countedQty, damaged_qty: v.damagedQty, discrepancy_note: v.discrepancyNote,
+    supplier: v.supplier, cost_cents: v.costCents, test_cents: v.testCents, freight_cents: v.freightCents, label_cents: v.labelCents,
   }).eq("id", id).eq("status", "draft").select("slug, variant_id");
   if (error && (error as { code?: string }).code === "23505") return { ok: false, taken: true };
   if (error) fail("draft lot update", error);
@@ -108,6 +110,24 @@ export async function updateDraftLot(id: string, v: ReceiveValue, actorId: strin
   if (!row) return { ok: false };
   await logEvent({ slug: row.slug, variant_id: row.variant_id, lot_id: id, kind: "lot_edited", actor_id: actorId });
   return { ok: true };
+}
+
+// What each lot of a product cost (lot-costs.sql), by lot id.
+export type LotCost = { supplier: string | null; cost_cents: number | null; test_cents: number | null; freight_cents: number | null; label_cents: number | null };
+export async function lotCosts(slug: string): Promise<Map<string, LotCost>> {
+  const { data, error } = await db().from("lots").select("id, supplier, cost_cents, test_cents, freight_cents, label_cents").eq("slug", slug);
+  if (error) fail("lot costs read", error);
+  return new Map(((data ?? []) as Array<LotCost & { id: string }>).map(({ id, ...c }) => [id, c]));
+}
+
+// Receive lot's pre-fills (shop_settings, synced from AIOS): lab fee per lot,
+// inbound freight + customs per box, labels per vial.
+export type LotDefaults = { testCents: number; inboundPerBoxCents: number; labelPerVialCents: number };
+export async function lotDefaults(): Promise<LotDefaults> {
+  const { data, error } = await db().from("shop_settings").select("lot_test_cents, inbound_per_box_cents, label_per_vial_cents").eq("id", true).single();
+  if (error) fail("lot cost defaults read", error);
+  const d = data as { lot_test_cents: number; inbound_per_box_cents: number; label_per_vial_cents: number };
+  return { testCents: d.lot_test_cents, inboundPerBoxCents: d.inbound_per_box_cents, labelPerVialCents: d.label_per_vial_cents };
 }
 
 export type LiveResult = "ok" | "missing" | "not_draft" | "no_certificate" | "nothing_sellable";

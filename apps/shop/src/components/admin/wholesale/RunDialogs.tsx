@@ -3,13 +3,13 @@
 // Run page controls (mock a2–a5): Record order, Link lot, Pass / Fail…,
 // Re-source, Notes and Cancel deposit…. Each wraps one Admin → Wholesale
 // server action; the server re-checks everything.
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   cancelDepositAction, failLineAction, linkLotAction, passLineAction, recordLineOrderAction, resourceLineAction, saveRunNotesAction,
   type ActionState,
 } from "@/app/admin/wholesale/actions";
 import { REFUND_REASONS, REFUND_REASON_LABEL } from "@/lib/refunds/rules";
-import { MAX_SUPPLIERS_PER_RUN } from "@/lib/wholesale/runs";
+import { MAX_SUPPLIERS_PER_RUN, prefillTotal } from "@/lib/wholesale/runs";
 import { usd } from "@/lib/html";
 
 type Act = (prev: ActionState, f: FormData) => Promise<ActionState>;
@@ -24,11 +24,24 @@ function useDialog(action: Act) {
 const Err = ({ msg }: { msg?: string }) => (msg ? <div className="a-err" role="alert">{msg}</div> : null);
 const Flash = ({ state }: { state: ActionState }) => (state?.ok ? <div className="a-flash" role="status">{state.ok}</div> : state?.error ? <div className="a-err" role="alert">{state.error}</div> : null);
 
-export function RecordOrderDialog({ runId, runNumber, cutoffLabel, slug, variantId, label, kits, suppliers, primary }: {
-  runId: string; runNumber: string; cutoffLabel: string; slug: string; variantId: string; label: string; kits: number; suppliers: string[]; primary?: boolean;
+const OTHER = "__other";
+
+export function RecordOrderDialog({ runId, runNumber, cutoffLabel, slug, variantId, label, kits, suppliers, choices, prices = {}, primary }: {
+  runId: string; runNumber: string; cutoffLabel: string; slug: string; variantId: string; label: string; kits: number; suppliers: string[];
+  choices: { options: string[]; full: boolean }; prices?: Record<string, number>; primary?: boolean;
 }) {
   const d = useDialog(recordLineOrderAction);
   const id = `ro-${slug}-${variantId}`;
+  // A run's own supplier comes first; otherwise the owner picks one.
+  const [pick, setPick] = useState(suppliers[0] ?? "");
+  const [extra, setExtra] = useState("0");
+  const extraN = /^\d+$/.test(extra.trim()) ? Number(extra.trim()) : 0;
+  const boxes = kits + extraN;
+  // The total follows the supplier's saved box price until the owner types
+  // their own (an invoice can differ: shipping, a discount).
+  const [typed, setTyped] = useState<string | null>(null);
+  const boxCents = pick && pick !== OTHER ? prices[pick] : undefined;
+  const total = typed ?? prefillTotal(boxCents, boxes);
   return (
     <>
       <button type="button" className={`a-btn sm${primary ? " primary" : ""}`} onClick={d.open}>Record order</button>
@@ -37,18 +50,27 @@ export function RecordOrderDialog({ runId, runNumber, cutoffLabel, slug, variant
           <input type="hidden" name="runId" value={runId} /><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={variantId} />
           <div className="a-modal-h"><h2 id={id}>Record order · {label}</h2><button type="button" className="x" aria-label="Close" onClick={d.close}>×</button></div>
           <div className="a-modal-b">
-            <dl className="a-dl"><dt>Run</dt><dd>{runNumber} · order by {cutoffLabel}</dd><dt>Kits</dt><dd>{kits} kit{kits === 1 ? "" : "s"} ({kits * 10} vials) — taken from the run&apos;s orders</dd></dl>
+            <dl className="a-dl"><dt>Run</dt><dd>{runNumber} · order by {cutoffLabel}</dd><dt>Kits</dt><dd>{kits} kit{kits === 1 ? "" : "s"} ({kits * 10} vials) — what this run&apos;s buyers ordered</dd>
+              <dt>You&apos;re ordering</dt><dd><b>{boxes} box{boxes === 1 ? "" : "es"} of 10 vials</b>{extraN > 0 ? ` (${kits} for buyers + ${extraN} for the shop)` : ""}</dd></dl>
             <div className="a-fld"><label htmlFor={`${id}-sup`}>Supplier</label>
-              <input id={`${id}-sup`} name="supplier" className="a-input" list={`${id}-list`} maxLength={80} required defaultValue={suppliers[0] ?? ""} />
-              <datalist id={`${id}-list`}>{suppliers.map((s) => <option key={s} value={s} />)}</datalist>
-              <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>A run uses at most {MAX_SUPPLIERS_PER_RUN} suppliers — this run has {suppliers.length}.</div>
+              <select id={`${id}-sup`} name={pick === OTHER ? undefined : "supplier"} className="a-select" style={{ width: "100%" }} required value={pick} onChange={(e) => { setPick(e.target.value); setTyped(null); }}>
+                <option value="" disabled>Choose a supplier…</option>
+                {choices.options.map((s) => <option key={s} value={s}>{s}{prices[s] ? ` · ${usd(prices[s])}/box` : ""}{suppliers.includes(s) ? " · in this run" : ""}</option>)}
+                {!choices.full && <option value={OTHER}>Other…</option>}
+              </select>
+              {pick === OTHER && <input name="supplier" className="a-input" style={{ marginTop: 6 }} maxLength={80} required autoFocus placeholder="Supplier name" aria-label="New supplier name" />}
+              <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>A run uses at most {MAX_SUPPLIERS_PER_RUN} suppliers — this run has {suppliers.length}{choices.full ? ", so only those two" : ""}.</div>
               <Err msg={d.state?.fieldErrors?.supplier} /></div>
-            <div className="a-grid2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div className="a-fld"><label htmlFor={`${id}-x`}>Extra retail boxes</label><input id={`${id}-x`} name="extraBoxes" className="a-input" inputMode="numeric" defaultValue="0" />
-                <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>Become retail stock when the lot passes</div><Err msg={d.state?.fieldErrors?.extraBoxes} /></div>
-              <div className="a-fld"><label htmlFor={`${id}-c`}>Cost (all boxes, $)</label><input id={`${id}-c`} name="cost" className="a-input" inputMode="decimal" required /><Err msg={d.state?.fieldErrors?.cost} /></div>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12, alignItems: "start" }}>
+              <div className="a-fld"><label htmlFor={`${id}-x`}>Extra boxes for the shop</label><input id={`${id}-x`} name="extraBoxes" className="a-input" inputMode="numeric" value={extra} onChange={(e) => setExtra(e.target.value)} />
+                <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>Optional. Added to this order, covered by the same lab test, and sold as single vials once the lot passes. 0 if none.</div><Err msg={d.state?.fieldErrors?.extraBoxes} /></div>
+              <div className="a-fld"><label htmlFor={`${id}-c`}>Total paid to the supplier ($)</label><input id={`${id}-c`} name="cost" className="a-input" inputMode="decimal" required value={total} onChange={(e) => setTyped(e.target.value)} />
+                <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{boxCents
+                  ? <>{usd(boxCents)} a box × {boxes} = {usd(boxCents * boxes)} (AIOS price){typed !== null ? <> · <button type="button" className="a-linkbtn" onClick={() => setTyped(null)}>use it</button></> : " — change it if the invoice differs"}</>
+                  : pick && pick !== OTHER ? <>No saved price for {pick} on this strength — enter the total for all {boxes} box{boxes === 1 ? "" : "es"}.</>
+                  : <>For all {boxes} box{boxes === 1 ? "" : "es"} on this order.</>}</div><Err msg={d.state?.fieldErrors?.cost} /></div>
             </div>
-            <div className="a-fld"><label htmlFor={`${id}-r`}>Supplier reference <span className="muted" style={{ fontWeight: 400 }}>· optional</span></label><input id={`${id}-r`} name="ref" className="a-input" maxLength={120} /></div>
+            <div className="a-fld"><label htmlFor={`${id}-r`}>Supplier&apos;s order or invoice number <span className="muted" style={{ fontWeight: 400 }}>· optional</span></label><input id={`${id}-r`} name="ref" className="a-input" maxLength={120} /></div>
             <Err msg={d.state?.error} />
           </div>
           <div className="a-modal-f"><div className="r"><button type="button" className="a-btn" onClick={d.close}>Cancel</button><button type="submit" className="a-btn primary" disabled={d.pending}>Record order</button></div></div>

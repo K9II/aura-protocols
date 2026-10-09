@@ -15,6 +15,18 @@ describe("OrderCard", () => {
     expect(screen.getByRole("link", { name: /lot AP-0001/i })).toHaveAttribute("href", "/coa?lot=AP-0001");
   });
 
+  it("on My account the order number opens the order page; a wholesale balance due gets Pay balance", () => {
+    render(<OrderCard link order={{ ...base, status: "balance_due", channel: "wholesale", balance_cents: 194950 } as OrderRow} />);
+    expect(screen.getByRole("link", { name: "Order AP-1042" })).toHaveAttribute("href", "/order/AP-1042");
+    expect(screen.getByRole("link", { name: "Pay balance $1,949.50 →" })).toHaveAttribute("href", "/order/AP-1042");
+  });
+
+  it("on the order page itself the number isn't a link", () => {
+    render(<OrderCard order={{ ...base, status: "balance_due", balance_cents: 100 } as OrderRow} />);
+    expect(screen.queryByRole("link", { name: "Order AP-1042" })).toBeNull();
+    expect(screen.queryByRole("link", { name: /Pay balance/ })).toBeNull();
+  });
+
   it("links tracking when shipped", () => {
     render(<OrderCard order={{ ...base, status: "shipped", tracking_number: "9400", carrier: "usps" }} />);
     expect(screen.getByRole("link", { name: "9400" })).toHaveAttribute("href", "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400");

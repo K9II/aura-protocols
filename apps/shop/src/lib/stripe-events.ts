@@ -4,6 +4,7 @@ import { getOrderById, getOrderByPaymentIntent, transitionOrder, type OrderRow }
 import { achFailedEmail } from "@/lib/emails";
 import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { afterOrderPaid } from "@/lib/order-paid";
+import { recordPaymentFee } from "@/lib/payment-fees";
 import { getCommerceAdapter } from "@/lib/commerce";
 import { refundCredit, reverseCommission } from "@/lib/partners/ledger";
 import { getPartnerById } from "@/lib/partners/data";
@@ -43,6 +44,7 @@ export async function applyPaid(order: OrderRow, session: Stripe.Checkout.Sessio
     ? { stripe_payment_intent: paymentIntentId(session.payment_intent) }
     : { tax_cents: session.total_details?.amount_tax ?? 0, total_cents: session.amount_total ?? order.total_cents, stripe_payment_intent: paymentIntentId(session.payment_intent) };
   if (!(await transitionOrder(order.id, order.status, "paid", patch))) return false;
+  await recordPaymentFee(order.id, "order", paymentIntentId(session.payment_intent));
   await afterOrderPaid(order.id);
   return true;
 }
@@ -55,11 +57,13 @@ async function applyWholesalePaid(order: OrderRow, session: Stripe.Checkout.Sess
   const kind = session.metadata?.payment;
   if (kind === "deposit" && (order.status === "awaiting_payment" || order.status === "processing")) {
     if (!(await transitionOrder(order.id, order.status, "deposit_paid", { deposit_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
+    await recordPaymentFee(order.id, "deposit", paymentIntentId(session.payment_intent));
     await afterDepositPaid(order.id);
     return true;
   }
   if (kind === "balance" && order.status === "balance_due") {
     if (!(await transitionOrder(order.id, "balance_due", "paid", { balance_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
+    await recordPaymentFee(order.id, "balance", paymentIntentId(session.payment_intent));
     await afterOrderPaid(order.id);
     return true;
   }

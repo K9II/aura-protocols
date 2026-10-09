@@ -108,6 +108,28 @@ export async function recordLineOrder(v: { runId: string; slug: string; variantI
     detail: `${v.kits} kits + ${v.extraBoxes} extra box(es) · ${v.supplier}${v.ref ? ` · ${v.ref}` : ""}` });
 }
 
+// Supplier box prices (supplier-prices.sql, synced from AIOS) for the given
+// strengths: "slug/variant_id" → { supplier → cents per box of 10 vials }.
+export async function supplierPricesFor(keys: string[]): Promise<Record<string, Record<string, number>>> {
+  const slugs = [...new Set(keys.map((k) => k.split("/")[0]))];
+  if (slugs.length === 0) return {};
+  const { data, error } = await db().from("supplier_prices").select("supplier, slug, variant_id, box_cents").in("slug", slugs);
+  if (error) fail("supplier prices read", error);
+  const out: Record<string, Record<string, number>> = {};
+  for (const r of (data ?? []) as Array<{ supplier: string; slug: string; variant_id: string; box_cents: number }>) {
+    const k = `${r.slug}/${r.variant_id}`;
+    if (keys.includes(k)) (out[k] ??= {})[r.supplier] = r.box_cents;
+  }
+  return out;
+}
+
+// Every supplier named on any run line, newest first (Record order drop-down).
+export async function pastSuppliers(): Promise<string[]> {
+  const { data, error } = await db().from("production_run_lines").select("supplier").not("supplier", "is", null).order("ordered_at", { ascending: false }).limit(500);
+  if (error) fail("past suppliers read", error);
+  return [...new Set(((data ?? []) as Array<{ supplier: string }>).map((r) => r.supplier))];
+}
+
 // Draft lots of a strength, not linked to another run line yet.
 export async function draftLotsFor(slug: string, variantId: string): Promise<DraftLot[]> {
   const { data, error } = await db().from("lots").select("id, lot_number, counted_qty, damaged_qty, coa_path, received_at")
@@ -127,6 +149,29 @@ export async function linkLot(lineId: string, lotId: string, actorId: string): P
   if (!row) return false;
   await logEvent({ runId: row.run_id, lineId, kind: "lot_linked", actorId });
   return true;
+}
+
+// The run line's supplier order is what this lot cost: copied onto the lot
+// unless a cost was already recorded when it was received (lot-costs.sql).
+// Freight and labels not recorded on the lot get the AIOS defaults (per box,
+// per counted vial), as Receive lot pre-fills them.
+export async function fillLotCostFromLine(lotId: string, line: { supplier: string | null; cost_cents: number | null; kits_ordered?: number | null; extra_boxes?: number },
+  defaults?: { inboundPerBoxCents: number; labelPerVialCents: number }): Promise<void> {
+  if (line.cost_cents != null) {
+    const { error } = await db().from("lots").update({ supplier: line.supplier, cost_cents: line.cost_cents })
+      .eq("id", lotId).is("cost_cents", null);
+    if (error) fail("lot cost from run line", error);
+  }
+  if (!defaults) return;
+  const boxes = (line.kits_ordered ?? 0) + (line.extra_boxes ?? 0);
+  const { data: lot, error: e1 } = await db().from("lots").select("counted_qty").eq("id", lotId).single();
+  if (e1 || !lot) fail("lot read for freight", e1);
+  const vials = (lot as { counted_qty: number }).counted_qty;
+  const fills: Array<["freight_cents" | "label_cents", number]> = [["freight_cents", boxes * defaults.inboundPerBoxCents], ["label_cents", vials * defaults.labelPerVialCents]];
+  for (const [col, cents] of fills) {
+    const { error } = await db().from("lots").update({ [col]: cents }).eq("id", lotId).is(col, null);
+    if (error) fail(`lot ${col} from defaults`, error);
+  }
 }
 
 export async function passLine(lineId: string, actorId: string): Promise<{ ok: true; held: number; short: string[] } | { ok: false; reason: string }> {

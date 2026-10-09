@@ -25,8 +25,8 @@ describe("SiteNav", () => {
 
   it("shows Shop, the store links and a live cart count", () => {
     render(<CartProvider catalog={liveFixture()}><SiteNav /><Adder /></CartProvider>);
-    const actions = screen.getByRole("navigation", { name: "Main" }).children[2] as HTMLElement;
-    expect(within(actions).getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/products");
+    const links = screen.getByRole("navigation", { name: "Main" }).children[1] as HTMLElement;
+    expect(within(links).getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/products");
     expect(screen.getByRole("link", { name: "COA Lookup" })).toHaveAttribute("href", "/coa");
     expect(screen.getByRole("link", { name: "Wholesale" })).toHaveAttribute("href", "/wholesale");
     expect(screen.getByRole("link", { name: "Affiliate Program" })).toHaveAttribute("href", "/affiliates");
@@ -42,7 +42,7 @@ describe("SiteNav", () => {
     expect(screen.getByRole("button", { name: /cart \(2\)/i })).toHaveClass("s-nav-cart-full");
   });
 
-  it("puts the logo at the left edge, links in the middle, Shop and Cart on the right", () => {
+  it("puts the logo at the left edge, links in the middle, account and Cart on the right", () => {
     render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
     const nav = screen.getByRole("navigation", { name: "Main" });
     const logo = screen.getByRole("link", { name: "Aura Protocols home" });
@@ -51,17 +51,17 @@ describe("SiteNav", () => {
     expect(order).toEqual(["s-nav-logo", "s-nav-links", "s-nav-actions"]);
     expect(nav.children[0]).toContainElement(logo);
     const actions = nav.children[2] as HTMLElement;
-    expect(actions).toContainElement(within(actions).getByRole("link", { name: "Shop" }));
+    expect(within(actions).queryByRole("link", { name: "Shop" })).toBeNull();
     expect(actions).toContainElement(screen.getByRole("button", { name: /cart/i }));
   });
 
-  it("places the sign-in control between Shop and Cart, and a phone Shop link in the links row", () => {
+  it("puts Shop first in the links row, ahead of COA Lookup; sign-in then Cart on the right", () => {
     render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
     const actions = screen.getByRole("navigation", { name: "Main" }).children[2] as HTMLElement;
     const labels = [...actions.querySelectorAll("a, button")].map((el) => el.textContent);
-    expect(labels).toEqual(["Shop", "Sign in", "Cart (0)"]);
+    expect(labels).toEqual(["Sign in", "Cart (0)"]);
     const links = screen.getByRole("navigation", { name: "Main" }).children[1] as HTMLElement;
-    expect(links.querySelector("a.s-nav-shop-link")).toHaveAttribute("href", "/products");
+    expect([...links.querySelectorAll("a")].map((a) => a.textContent)).toEqual(["Shop", "COA Lookup", "Wholesale", "Affiliate Program"]);
   });
 
   it("shows the banner: ISO/IEC 17025-accredited US lab, COA on every lot, fast domestic shipping, free-shipping threshold", () => {

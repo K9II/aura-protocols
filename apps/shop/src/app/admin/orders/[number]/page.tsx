@@ -15,6 +15,8 @@ import { REASON_LABEL } from "@/lib/no-charge/rules";
 import { refundOffer, REFUND_REASON_LABEL, splitRefund, type RefundReason, cardPayments } from "@/lib/refunds/rules";
 import { paymentLabel } from "@/lib/refunds/stripe";
 import { stripePaymentUrl } from "@/lib/stripe-dashboard";
+import { orderProfit } from "@/lib/profit/data";
+import { profitView, type ProfitView } from "@/lib/profit/rules";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import ShipDialog from "@/components/admin/orders/ShipDialog";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
@@ -64,6 +66,13 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
     refundMode && cardPayments(o).length ? paymentLabel(cardPayments(o)[cardPayments(o).length - 1].pi) : Promise.resolve(null),
   ]);
   const label = o.status === "refunded" ? o.refund_payment_label : dialogLabel;
+  // Real profit (lot-costs.sql) for a paid or shipped sale. A failed read shows
+  // "Couldn't load", never a made-up number.
+  let profit: ProfitView | "error" | null = null;
+  if (o.kind === "sale" && (o.status === "paid" || o.status === "shipped")) {
+    try { const r = await orderProfit(o.id); profit = r ? profitView(r) : "error"; }
+    catch (err) { console.error("order profit read failed:", err); profit = "error"; }
+  }
   const lines = moneyLines(o, { code: d.code, partnerCode: d.partner?.code ?? null, paymentLabel: label });
   const parts = o.status === "refunded" ? refundParts(o, label) : null;
   const refundUrl = o.stripe_refund_id ? stripeUrl : null;
@@ -149,6 +158,22 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
               ))}</div>
             )}
           </div>
+
+          {profit && (
+            <div className="a-card">
+              <div className="a-card-h"><h3>Profit</h3><span className="sub">what this order made</span></div>
+              {profit === "error" ? <div className="a-empty">Couldn&apos;t load the profit.</div> : (
+                <div className="a-money">
+                  {profit.lines.map((l) => (
+                    <div key={l.label} className="ml"><span>{l.label}{l.note && <small className="blk">{l.note}</small>}</span><span>{signed(l.cents)}</span></div>
+                  ))}
+                  <div className="ml total"><span>Profit</span><span>{signed(profit.profitCents)}{profit.marginPct != null ? ` · ${profit.marginPct}%` : ""}</span></div>
+                  {profit.warnings.map((w) => <div key={w} className="a-warnline" style={{ marginTop: 8 }}><Icon name="warn" />{w}</div>)}
+                  <p className="muted" style={{ fontSize: 12, margin: "8px 0 0" }}>Shipping labels and 3PL fees aren&apos;t included yet.</p>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="a-card">
             <div className="a-card-h"><h3>Timeline</h3><span className="sub">newest first · shop time</span></div>

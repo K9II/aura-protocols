@@ -19,9 +19,9 @@ const live = { shown: [
 ] };
 const enabled = { id: "c1", email: "j@lab.org", research: { field: "independent" }, organization: null, ship: null, wholesale: { enabledAt: "x", disabledAt: null } };
 
-async function page() {
+async function page(step?: string) {
   const { default: Page } = await import("@/app/wholesale/page");
-  return render(await Page());
+  return render(await Page({ searchParams: Promise.resolve(step ? { step } : {}) }));
 }
 
 describe("/wholesale", () => {
@@ -44,23 +44,41 @@ describe("/wholesale", () => {
     const { container } = await page();
     const text = container.textContent ?? "";
     expect(text).toMatch(/Research kits\./);
-    expect(text).toMatch(/Minimum 5 kits/);
+    expect(screen.getByRole("note", { name: "Minimum 5 kits per order" }).textContent).toMatch(/^5Minimum orderKits \(50 vials\)/);
     expect(text).toMatch(/Every batch is independently tested/);
     expect(text).toMatch(/Offered as kits · 2 strengths/);
     expect(text).toMatch(/APro-G3RT \(Retatrutide\) 10 mg/);
     expect(text).not.toMatch(/KPV/);
     expect(text).not.toMatch(/\$/);
-    expect(screen.getByRole("link", { name: /sign in to order/i }).getAttribute("href")).toBe("/sign-in?next=%2Fwholesale");
+    expect(screen.getByRole("link", { name: /sign in to order/i }).getAttribute("href")).toBe("/sign-in?next=%2Fwholesale%3Fstep%3Dorder");
     expect(screen.getByText("Order by")).toBeTruthy();
   });
 
-  it("open, signed in: turn on until enabled, then the order sheet with the pricing settings and kit art", async () => {
+  it("open, signed in: the intro first, with Start an order", async () => {
+    m.getWholesaleSettings.mockResolvedValue(open);
+    m.getAccountState.mockResolvedValue({ customer: enabled });
+    const { container } = await page();
+    expect(container.textContent).toMatch(/Offered as kits/);
+    expect(screen.queryByText("order sheet")).toBeNull();
+    expect(screen.getByRole("link", { name: /start an order/i }).getAttribute("href")).toBe("/wholesale?step=order");
+    expect(screen.queryByRole("link", { name: /sign in to order/i })).toBeNull();
+  });
+
+  it("open, signed out on the order step: still the intro with sign in", async () => {
+    m.getWholesaleSettings.mockResolvedValue(open);
+    m.getAccountState.mockResolvedValue({ customer: null, blocked: false, unfinished: false });
+    await page("order");
+    expect(screen.queryByText("order sheet")).toBeNull();
+    expect(screen.getByRole("link", { name: /sign in to order/i })).toBeTruthy();
+  });
+
+  it("order step, signed in: turn on until enabled, then the order sheet with the pricing settings and kit art", async () => {
     m.getWholesaleSettings.mockResolvedValue(open);
     m.getAccountState.mockResolvedValue({ customer: { ...enabled, research: null, wholesale: { enabledAt: null, disabledAt: null } } });
-    await page();
+    await page("order");
     expect(screen.getByText("turn on")).toBeTruthy();
     m.getAccountState.mockResolvedValue({ customer: enabled });
-    await page();
+    await page("order");
     expect(screen.getByText("order sheet")).toBeTruthy();
     const props = m.sheetProps.mock.calls[0][0] as { rows: Array<{ slug: string; art: { cap: string; vialLabel: string } }>; pricing: unknown; cutoffLabel: string };
     expect(props.pricing).toEqual({ tiers: open.tiers, depositPct: 40, minKits: 5 });
@@ -71,7 +89,7 @@ describe("/wholesale", () => {
   it("owner switched wholesale off for the customer: no sheet, inquiry stays", async () => {
     m.getWholesaleSettings.mockResolvedValue(open);
     m.getAccountState.mockResolvedValue({ customer: { ...enabled, wholesale: { enabledAt: "x", disabledAt: "y" } } });
-    await page();
+    await page("order");
     expect(screen.getByText(/switched off for your account/)).toBeTruthy();
     expect(screen.queryByText("order sheet")).toBeNull();
   });

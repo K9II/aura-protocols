@@ -8,6 +8,7 @@ import { startWholesaleCheckoutAction } from "@/app/wholesale/actions";
 import { KIT_VIALS, MAX_KITS_PER_LINE, kitTitle, nextTier, priceWholesale, type KitSheetRow, type PricingSettings } from "@/lib/wholesale/rules";
 import type { Rejection } from "@/lib/pricing";
 import { usd } from "@/lib/html";
+import MinimumKits from "@/components/store/wholesale/MinimumKits";
 
 type Addr = { name: string; line1: string; line2: string; city: string; state: string; zip: string };
 
@@ -93,7 +94,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
     return (
       <>
         <TierTable tiers={pricing.tiers} activePct={q.belowMinimum ? null : q.tier.pct} />
-        <p className="s-ws-rules"><b>Minimum {pricing.minKits} kits</b> per order. Every batch is independently tested, and you receive its certificate.</p>
+        <MinimumKits minKits={pricing.minKits} />
         {error && <p role="alert" className="mb-3 text-sm text-[color:var(--specimen)]">{error}</p>}
         <div className="s-ws-grid">
           <table className="s-ws-sheet">
