@@ -7,7 +7,8 @@
 //     read and shows those prices read-only (they're changed in Admin → Catalog).
 //
 // Run: node apps/shop/scripts/sync-supplier-prices.mjs [path/to/shop-economics.json] [--dry-run]
-// Default path: ../aura-aios/vault/business/shop-economics.json next to this repo.
+// Default path: business/shop-economics.json in the AIOS vault — AIOS_VAULT_PATH from
+// ../aura-aios/.env (OneDrive\Aura AIOS\vault, shared with the laptop), else ../aura-aios/vault.
 // Reads SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY from apps/shop/.env.local.
 import { createClient } from "@supabase/supabase-js";
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -19,7 +20,13 @@ import { defaultLabFeeCents, landedDefaultsCents, mapSupplierPrices, storePrices
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
-const jsonPath = resolve(args.find((a) => !a.startsWith("--")) ?? join(here, "..", "..", "..", "..", "aura-aios", "vault", "business", "shop-economics.json"));
+function aiosVault() {
+  const aios = join(here, "..", "..", "..", "..", "aura-aios");
+  const envPath = join(aios, ".env");
+  const m = existsSync(envPath) ? /^\s*AIOS_VAULT_PATH\s*=\s*(.+?)\s*$/m.exec(readFileSync(envPath, "utf8")) : null;
+  return m ? m[1].replace(/^["']|["']$/g, "") : join(aios, "vault");
+}
+const jsonPath = resolve(args.find((a) => !a.startsWith("--")) ?? join(aiosVault(), "business", "shop-economics.json"));
 
 function readEnvLocal() {
   const out = {};

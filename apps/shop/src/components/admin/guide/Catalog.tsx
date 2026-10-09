@@ -22,6 +22,7 @@ export default function Catalog() {
         </Task>
         <Task title="Change a price">
           <Step>On the product, click the pencil next to <Ui>Price / vial</Ui>, type the new price and choose Save. Checkouts already open keep the price they were shown.</Step>
+          <Step>Or change it from AIOS: on <Ui>Aura Shop → Economics</Ui>, prices marked <Ui>in store</Ui> are this price. Type the new one (or click its target or market link), check the old → new margins and confirm. It&apos;s saved here as your change, marked <Ui>from AIOS</Ui> in the product&apos;s Activity. If the price was changed here since AIOS last synced, nothing is sent and AIOS shows this price instead.</Step>
         </Task>
         <Task title="Hide or show a product">
           <Step>Use the <Ui>Shown on store</Ui> switch at the top of the product. Hidden products disappear from the store and search; checkouts already open still complete.</Step>
