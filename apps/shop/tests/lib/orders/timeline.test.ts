@@ -8,6 +8,19 @@ const order = {
 const empty: Omit<TimelineSources, "order"> = { adminEvents: [], commission: null, disputes: [], warnings: [], inquiries: [] };
 
 describe("buildOrderTimeline", () => {
+  it("a wholesale order: deposit (joined the run) → kits passed, balance requested → reminder → balance paid, linked to its run", () => {
+    const t = buildOrderTimeline({
+      ...empty,
+      order: { ...order, shipped_at: null, channel: "wholesale", deposit_cents: 129_600, balance_cents: 194_950,
+        deposit_paid_at: "2026-10-09T03:07:00Z", balance_due_at: "2026-10-09T04:20:00Z", paid_at: "2026-10-09T04:34:00Z" },
+      wholesale: { run: { id: "r1", number: "R-1004" }, events: [{ kind: "reminder_sent", at: "2026-10-09T04:25:00Z", detail: null }, { kind: "note", at: "2026-10-09T04:26:00Z", detail: "x" }] },
+    });
+    expect(t.map((e) => e.title)).toEqual([
+      "Balance paid · $1,949.50", "Balance reminder emailed", "Kits passed · balance of $1,949.50 requested", "Deposit paid · $1,296.00", "Placed",
+    ]);
+    expect(t.find((e) => e.key === "deposit")).toMatchObject({ detail: "joined run R-1004", href: "/admin/wholesale/runs/r1", hrefLabel: "R-1004" });
+  });
+
   it("lists placed, paid, shipped newest first with who shipped it and a tracking link", () => {
     const t = buildOrderTimeline({ ...empty, order, adminEvents: [{ action: "order_shipped", at: "2026-10-01T21:02:05Z", actorName: "Alvester Adams", detail: "USPS 9400111899223344550112" }] });
     expect(t.map((e) => e.key)).toEqual(["shipped", "paid", "placed"]);

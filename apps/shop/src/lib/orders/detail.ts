@@ -22,6 +22,8 @@ export type OrderDetail = {
   openDisputeId: string | null;
   // Who refunded it here (orders.refunded_by); null for a Stripe-dashboard refund.
   refundedBy: string | null;
+  // A wholesale order's production run (by its order-by date), if one exists.
+  run: { id: string; number: string } | null;
   timeline: TimelineEntry[];
 };
 
@@ -58,7 +60,8 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
   const items = order.order_items ?? [];
   const isNc = order.kind === "no_charge";
   const none = Promise.resolve({ data: null, error: null });
-  const [lots, cust, paid, code, partner, commission, events, disputes, warnings, inquiries, creator, original, refunder] = await Promise.all([
+  const isWs = order.channel === "wholesale";
+  const [lots, cust, paid, code, partner, commission, events, disputes, warnings, inquiries, creator, original, refunder, runRes, runEv] = await Promise.all([
     orderItemLots(items.map((i) => i.id)),
     db().from("customers").select("id, full_name, email_verified_at, blocked_at").eq("id", order.customer_id).maybeSingle(),
     db().from("orders").select("total_cents, kind, status").eq("customer_id", order.customer_id).in("status", ["paid", "shipped", "refunded"]),
@@ -74,7 +77,12 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
     isNc && order.created_by ? db().from("customers").select("full_name").eq("id", order.created_by).maybeSingle() : none,
     isNc && order.replaces_order_id ? db().from("orders").select("order_number").eq("id", order.replaces_order_id).maybeSingle() : none,
     order.refunded_by ? db().from("customers").select("full_name").eq("id", order.refunded_by).maybeSingle() : none,
+    isWs && order.wholesale_cutoff_on ? db().from("production_runs").select("id, number").eq("cutoff_on", order.wholesale_cutoff_on).maybeSingle() : none,
+    isWs ? db().from("production_run_events").select("kind, created_at, detail").eq("order_id", order.id).order("created_at") : none,
   ]);
+  const run = must<{ id: string; number: string } | null>("production run", runRes);
+  const runEvents = (must<Array<{ kind: string; created_at: string; detail: string | null }> | null>("run events", runEv) ?? [])
+    .map((e) => ({ kind: e.kind, at: e.created_at, detail: e.detail }));
   const c = must<{ id: string; full_name: string; email_verified_at: string | null; blocked_at: string | null } | null>("customer", cust);
   const custRows = must<Array<{ total_cents: number; kind?: "sale" | "no_charge"; status?: string }> | null>("customer orders", paid) ?? [];
   const paidRows = custRows.filter((r) => r.status !== "refunded");
@@ -106,6 +114,7 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
     flags: flagsFrom(ds, ws),
     openDisputeId: ds.find((x) => !x.closed_at)?.id ?? null,
     refundedBy: refunderRow?.full_name ?? null,
+    run,
     timeline: buildOrderTimeline({
       order,
       adminEvents: ev.map((e) => ({ action: e.action, at: e.at, detail: e.detail, actorName: e.actor?.full_name ?? null })),
@@ -117,6 +126,7 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
         ? { reason: order.no_charge_reason!, replacesNumber: originalRow?.order_number ?? null, note: order.no_charge_note, vials, email: order.email }
         : null,
       refund: { byName: refunderRow?.full_name ?? null, vials },
+      wholesale: isWs ? { run, events: runEvents } : null,
     }),
   };
 }
