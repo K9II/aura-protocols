@@ -5,6 +5,22 @@
 // names Record order shows (lib/wholesale/runs.ts KNOWN_SUPPLIERS).
 export const AIOS_VENDORS = { lkz: "LKZ", uther: "Uther", reta: "Reta-Peptide", ehz: "EHZ", bff: "BFF Chem", nana: "Nana" };
 
+// Store → AIOS: the store's retail price per vial for every AIOS product it
+// sells, as { aiosProductId: price } (AIOS overlays these on read and won't let
+// them be edited there), plus what moved compared with AIOS's own price.
+export function storePricesFor(products, variants) {
+  const price = new Map(variants.map((v) => [`${v.slug}/${v.variant_id}`, v.price_cents / 100]));
+  const prices = {};
+  const changes = [];
+  for (const p of products) {
+    const store = p.shop ? price.get(`${p.shop}/${variantIdOf(p.size)}`) : undefined;
+    if (store === undefined) continue;
+    prices[p.id] = store;
+    if (p.price !== store) changes.push({ id: p.id, from: p.price ?? null, to: store });
+  }
+  return { prices, changes };
+}
+
 // The AIOS default lab's flat fee per lot (rates.labs[defaults.lab].price),
 // in cents, or null when it has no flat price (e.g. per-molecule labs).
 export function defaultLabFeeCents(sheet) {

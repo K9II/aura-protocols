@@ -1,16 +1,20 @@
-// Copies supplier box prices from AIOS (vault/business/shop-economics.json,
-// where prices are maintained) into Aura Store's supplier_prices table, which
-// Admin → Wholesale → Record order uses to fill in the supplier total.
-// Replaces the whole AIOS-sourced set: rows not in this sync are removed.
+// Two-way price sync between AIOS (vault/business/shop-economics.json) and Aura Store:
+//   AIOS → store: supplier box prices (supplier_prices; replaces the AIOS-sourced
+//     set) and the default lab fee (shop_settings.lot_test_cents) — Record order
+//     and Receive lot pre-fill from them.
+//   store → AIOS: retail price per vial for every product the store sells,
+//     written to store-prices.json next to the AIOS file; AIOS overlays it on
+//     read and shows those prices read-only (they're changed in Admin → Catalog).
 //
 // Run: node apps/shop/scripts/sync-supplier-prices.mjs [path/to/shop-economics.json] [--dry-run]
 // Default path: ../aura-aios/vault/business/shop-economics.json next to this repo.
 // Reads SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY from apps/shop/.env.local.
 import { createClient } from "@supabase/supabase-js";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname as dirOf } from "node:path";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defaultLabFeeCents, mapSupplierPrices } from "./supplier-prices-map.mjs";
+import { defaultLabFeeCents, mapSupplierPrices, storePricesFor } from "./supplier-prices-map.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -39,12 +43,15 @@ async function main() {
   const products = sheet.products ?? [];
   const labCents = defaultLabFeeCents(sheet);
   const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
-  const { data: variants, error: vErr } = await db.from("catalog_variants").select("slug, variant_id");
+  const { data: variants, error: vErr } = await db.from("catalog_variants").select("slug, variant_id, price_cents, archived_at");
   if (vErr) throw new Error(`catalog read failed: ${vErr.message}`);
 
   const { rows, skipped } = mapSupplierPrices(products, variants ?? []);
   const strengths = new Set(rows.map((r) => `${r.slug}/${r.variant_id}`)).size;
   console.log(`${rows.length} prices for ${strengths} strengths (AIOS rows not in the store: ${skipped.notInStore}, duplicates ignored: ${skipped.duplicate})`);
+  const retail = storePricesFor(products, (variants ?? []).filter((v) => !v.archived_at));
+  console.log(`store → AIOS: ${Object.keys(retail.prices).length} retail prices from the store, ${retail.changes.length} differ from AIOS's own`);
+  for (const c of retail.changes) console.log(`  ${c.id}: ${c.from == null ? "—" : "$" + c.from} → $${c.to}`);
   console.log(labCents == null ? "default lab: no flat fee in AIOS — lab fee pre-fill unchanged" : `default lab (${sheet.defaults.lab}): $${(labCents / 100).toFixed(2)} per lot`);
   if (dryRun) { console.log("dry run — nothing written"); return; }
   if (rows.length === 0) throw new Error("nothing to sync — refusing to clear the table");
@@ -59,6 +66,12 @@ async function main() {
     const { error: labErr } = await db.from("shop_settings").update({ lot_test_cents: labCents }).eq("id", true);
     if (labErr) throw new Error(`lab fee update failed: ${labErr.message}`);
   }
+  // Written to a temp file then renamed, so AIOS never reads half a file.
+  const out = join(dirOf(jsonPath), "store-prices.json");
+  const body = { synced_at: syncedAt, about: "Retail price per vial from the shop (Admin → Catalog), by AIOS product id. Written by the shop's sync-supplier-prices.mjs; AIOS shows these read-only.", prices: retail.prices };
+  writeFileSync(`${out}.tmp`, `${JSON.stringify(body, null, 1)}\n`, "utf8");
+  renameSync(`${out}.tmp`, out);
+  console.log(`AIOS store prices written: ${out}`);
 }
 
 main().catch((e) => { console.error(e.message ?? e); process.exitCode = 1; });

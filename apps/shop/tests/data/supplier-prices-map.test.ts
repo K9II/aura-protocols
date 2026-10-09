@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { defaultLabFeeCents, mapSupplierPrices, variantIdOf } from "../../scripts/supplier-prices-map.mjs";
+import { defaultLabFeeCents, mapSupplierPrices, storePricesFor, variantIdOf } from "../../scripts/supplier-prices-map.mjs";
 
 const variants = [{ slug: "bpc-157", variant_id: "10mg" }, { slug: "slu-pp-332", variant_id: "250mcg" }];
 
@@ -37,5 +37,14 @@ describe("mapSupplierPrices (AIOS → supplier_prices)", () => {
   it("the default lab's flat fee per lot, or null without one", () => {
     expect(defaultLabFeeCents({ defaults: { lab: "vanguard_silver" }, rates: { labs: { vanguard_silver: { price: 250 } } } })).toBe(25000);
     expect(defaultLabFeeCents({ defaults: { lab: "janoshik" }, rates: { labs: { janoshik: { per_product: true } } } })).toBeNull();
+  });
+
+  it("store → AIOS: the store's retail price for each AIOS product it sells, and what moved", () => {
+    const r = storePricesFor(
+      [{ id: "bpc157-10", shop: "bpc-157", size: "10 mg", price: 65 }, { id: "slupp", shop: "slu-pp-332", size: "250 mcg" }, { id: "tb500-10", shop: "tb-500", size: "10 mg", price: 90 }],
+      [{ slug: "bpc-157", variant_id: "10mg", price_cents: 7900 }, { slug: "slu-pp-332", variant_id: "250mcg", price_cents: 7900 }],
+    );
+    expect(r.prices).toEqual({ "bpc157-10": 79, slupp: 79 });
+    expect(r.changes).toEqual([{ id: "bpc157-10", from: 65, to: 79 }, { id: "slupp", from: null, to: 79 }]);
   });
 });
