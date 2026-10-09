@@ -7,6 +7,8 @@ const getWholesaleSettings = vi.fn();
 vi.mock("@/lib/orders", () => ({ getOrderById }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
 vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings }));
+const ensureRun = vi.fn();
+vi.mock("@/lib/wholesale/runs-data", () => ({ ensureRun }));
 
 const order = (over: Record<string, unknown> = {}) => ({
   id: "o1", order_number: "AP-1050", email: "j@lab.org", deposit_cents: 60600, balance_cents: 99450,
@@ -19,7 +21,8 @@ const order = (over: Record<string, unknown> = {}) => ({
 describe("afterDepositPaid", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [getOrderById, sendOrAlert, alertOwner, getWholesaleSettings]) f.mockReset();
+    for (const f of [getOrderById, sendOrAlert, alertOwner, getWholesaleSettings, ensureRun]) f.mockReset();
+    ensureRun.mockResolvedValue("r1");
     sendOrAlert.mockResolvedValue(true);
     getWholesaleSettings.mockResolvedValue({ leadDays: 28 });
   });
@@ -50,5 +53,16 @@ describe("afterDepositPaid", () => {
     expect(customerMsg.html).not.toContain("Order-by date");
     const ownerMsg = sendOrAlert.mock.calls[1][0];
     expect(ownerMsg.to).toBe("owner@example.com");
+  });
+  it("creates the run for the order's cutoff; a failure alerts without stopping the emails", async () => {
+    getOrderById.mockResolvedValue(order());
+    const { afterDepositPaid } = await import("@/lib/wholesale/after-deposit");
+    await afterDepositPaid("o1");
+    expect(ensureRun).toHaveBeenCalledWith("2026-10-19");
+    ensureRun.mockRejectedValueOnce(new Error("db down"));
+    sendOrAlert.mockClear();
+    expect(await afterDepositPaid("o1")).toEqual({ emailed: true });
+    expect(alertOwner).toHaveBeenCalledWith("Wholesale run not created", expect.stringContaining("AP-1050"));
+    expect(sendOrAlert).toHaveBeenCalledTimes(2);
   });
 });

@@ -1408,3 +1408,13 @@
   .adm dialog.a-modal.a-sheet .a-modal-f .r .a-btn { height: 40px; }
   .adm .a-dest { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- Wholesale (Admin → Wholesale; mock 2026-10-08-wholesale-mocks/wholesale-admin.html) ---------- */
+.adm .a-chip.o-deposit_paid { color: var(--slate); background: var(--slate-bg); border-color: #B5C3D3; }
+.adm .a-chip.o-balance_due { color: var(--ochre); background: var(--ochre-bg); border-color: #DEC98F; }
+.adm tr.a-ws-failed td { background: var(--specimen-bg); }
+.adm .a-ws-fail-note { display: block; color: var(--specimen); font-size: 12px; margin-top: 2px; }
+.adm .a-ws-acts { display: inline-flex; gap: 6px; justify-content: flex-end; white-space: nowrap; }
+.adm .a-ws-tiers { width: 100%; }
+.adm .a-ws-tiers td { padding: 6px 8px; }
+.adm .a-ws-tiers input { width: 90px; }

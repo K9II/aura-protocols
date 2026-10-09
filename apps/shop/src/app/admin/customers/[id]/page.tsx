@@ -15,6 +15,7 @@ import { researchLabel } from "@/lib/account/research";
 import { unblockAction } from "@/app/admin/customers/actions";
 import CreditDialog from "@/components/admin/customers/CreditDialog";
 import BlockDialog from "@/components/admin/customers/BlockDialog";
+import WholesaleDialog from "@/components/admin/customers/WholesaleDialog";
 import ResendVerify from "@/components/admin/customers/ResendVerify";
 import ConfirmSubmit from "@/components/admin/ConfirmSubmit";
 import { customerEventText as eventText } from "@/components/admin/customers/eventText";
@@ -108,7 +109,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       <div className="a-idh">
         <div className="av" aria-hidden>{initials(c.fullName)}</div>
         <div>
-          <h1>{c.fullName} {c.blockedAt ? <span className="a-chip blocked">Blocked</span> : c.verifiedAt ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}{c.isPartner && <span className="a-chip partner">Partner</span>}{c.isOwner && <span className="a-chip owner">Owner</span>}{chargeback && <span className="a-chip cb">Chargeback</span>}</h1>
+          <h1>{c.fullName} {c.blockedAt ? <span className="a-chip blocked">Blocked</span> : c.verifiedAt ? <span className="a-chip ver">Verified</span> : <span className="a-chip unver">Unverified</span>}{c.isPartner && <span className="a-chip partner">Partner</span>}{c.wholesale.enabledAt && !c.wholesale.disabledAt && <span className="a-mk sl">Wholesale</span>}{c.isOwner && <span className="a-chip owner">Owner</span>}{chargeback && <span className="a-chip cb">Chargeback</span>}</h1>
           <div className="sub">{c.email}{c.organization && <><span className="dot" />{c.organization}</>}<span className="dot" />Joined {fullDate(c.createdAt)}</div>
           {c.research && <div className="sub">Research: {researchLabel(c.research.field)} · {c.research.org} · verified {fullDate(c.research.verifiedAt)}</div>}
         </div>
@@ -138,7 +139,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                 <thead><tr><th>Order</th><th>Date</th><th>Status</th><th className="num a-only-desk">Items</th><th className="num">Total</th><th className="num a-only-desk">Credit used</th></tr></thead>
                 <tbody>{c.orders.map((o) => (
                   <tr key={o.id}>
-                    <td><Link className="a-ord" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link>{o.kind === "no_charge" && <Markers list={["no_charge"]} />}</td>
+                    <td><Link className="a-ord" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link>{o.kind === "no_charge" && <Markers list={["no_charge"]} />}{o.channel === "wholesale" && <Markers list={["wholesale"]} />}</td>
                     <td>{shortDate(o.created_at)}</td>
                     <td>{o.kind === "no_charge" && o.status === "refunded" ? <OrderStatusChip status={o.status} kind={o.kind} /> : <span className={`a-chip o-${o.status}`}>{STATUS_TEXT[o.status] ?? o.status}</span>}</td>
                     <td className="num a-only-desk">{o.order_items.reduce((s, i) => s + i.quantity, 0)}</td>
@@ -182,6 +183,22 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                 <dt>Marketing email</dt><dd>{c.marketingOptIn ? "Opted in" : "Not opted in"}</dd>
                 <dt>Email verified</dt><dd>{c.verifiedAt ? dateTime(c.verifiedAt) : <span className="muted">Not yet</span>}</dd>
               </dl>
+            </div>
+          </div>
+          <div className="a-card">
+            <div className="a-card-h"><h3>Wholesale</h3></div>
+            <div className="a-card-b" style={{ paddingTop: 6, paddingBottom: 6 }}>
+              <dl className="a-facts2">
+                <dt>Status</dt>
+                <dd>{c.wholesale.disabledAt ? <>Off since {shortDate(c.wholesale.disabledAt)}{c.wholesale.disabledReason ? <small className="muted" style={{ display: "block" }}>{c.wholesale.disabledReason}</small> : null}</>
+                  : c.wholesale.enabledAt ? <>On since {shortDate(c.wholesale.enabledAt)}</> : <span className="muted">Not turned on</span>}</dd>
+                <dt>Terms</dt><dd>{c.wholesale.terms ? <>{c.wholesale.terms.version} · accepted {dateTime(c.wholesale.terms.at)}</> : <span className="muted">—</span>}</dd>
+                <dt>Orders</dt><dd>{c.orders.filter((o) => o.channel === "wholesale" && o.status !== "awaiting_payment" && o.status !== "cancelled").length || <span className="muted">—</span>}</dd>
+              </dl>
+              {can(staff, "wholesale.manage") && (c.wholesale.enabledAt || c.wholesale.disabledAt) && (
+                <div style={{ margin: "8px 0 6px" }}><WholesaleDialog customerId={c.id} name={c.fullName} off={!!c.wholesale.disabledAt} /></div>
+              )}
+              {!c.wholesale.disabledAt && c.wholesale.enabledAt && <p className="muted" style={{ fontSize: 12 }}>Turning off stops new wholesale orders; orders already placed carry on. The customer can still buy single vials.</p>}
             </div>
           </div>
           {c.ship && (

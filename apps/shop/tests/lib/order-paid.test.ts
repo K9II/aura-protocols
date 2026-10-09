@@ -17,6 +17,7 @@ vi.mock("@/lib/partners/ledger", () => ({ createCommission, markCommissionCleari
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ recordTax }) }));
 vi.mock("@/lib/emails", async (orig) => ({ ...(await orig<typeof import("@/lib/emails")>()), noChargeEmail: (o: { order_number: string }) => ({ subject: `NC ${o.order_number}`, html: "nc" }) }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
+vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: async () => ({ leadDays: 28 }) }));
 
 const order = (over: Record<string, unknown> = {}) => ({
   id: "o1", order_number: "AP-1001", customer_id: "u1", email: "j@lab.org", status: "paid", order_items: [],
@@ -232,5 +233,16 @@ describe("afterOrderPaid", () => {
       expect(alertOwner).toHaveBeenCalledWith("Oversold: paid without enough held vials", expect.stringContaining("mots-c 40mg: 2 ordered, 1 held"));
       expect(logOversold).toHaveBeenCalledWith("mots-c", "40mg", "AP-1001", 2, 1);
     });
+  });
+
+  it("a wholesale balance: records tax and sends the balance-received email (not the retail receipt)", async () => {
+    getOrderById.mockResolvedValue(order({ channel: "wholesale", wholesale_cutoff_on: "2026-10-19", balance_cents: 190150, tax_calculation_id: "taxcalc_1" }));
+    recordTax.mockResolvedValue("tax_tx_1");
+    sendOrAlert.mockResolvedValue(true);
+    const { afterOrderPaid } = await import("@/lib/order-paid");
+    expect(await afterOrderPaid("o1")).toEqual({ emailed: true });
+    expect(recordTax).toHaveBeenCalledWith("taxcalc_1", "AP-1001");
+    expect(sendOrAlert.mock.calls[0][0].subject).toBe("Order AP-1001 — balance received");
+    expect(sendOrAlert.mock.calls[0][0].html).toContain("Nov 16");
   });
 });

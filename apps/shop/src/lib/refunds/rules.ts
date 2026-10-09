@@ -15,7 +15,23 @@ export const REFUND_NOTE_MAX = 300;
 export type RefundDestination = "card" | "store_credit";
 export type RefundMode = "cancel" | "exception";
 
-type OrderMoney = { status: OrderStatus; kind: "sale" | "no_charge"; total_cents: number; store_credit_cents: number; stripe_payment_intent: string | null };
+type PaymentFields = {
+  id?: string; channel?: "retail" | "wholesale"; total_cents: number; store_credit_cents: number; stripe_payment_intent: string | null;
+  deposit_payment_intent?: string | null; deposit_cents?: number | null; balance_payment_intent?: string | null; balance_cents?: number | null;
+};
+type OrderMoney = PaymentFields & { status: OrderStatus; kind: "sale" | "no_charge" };
+
+// Each card payment behind an order, with its own refund idempotency key:
+// one for a retail order; deposit and (once paid) balance for a wholesale one.
+export function cardPayments(o: PaymentFields): Array<{ pi: string; cents: number; key: string }> {
+  if (o.channel === "wholesale") {
+    const out: Array<{ pi: string; cents: number; key: string }> = [];
+    if (o.deposit_payment_intent && o.deposit_cents) out.push({ pi: o.deposit_payment_intent, cents: o.deposit_cents, key: `order-refund-${o.id}-deposit` });
+    if (o.balance_payment_intent && o.balance_cents) out.push({ pi: o.balance_payment_intent, cents: o.balance_cents, key: `order-refund-${o.id}-balance` });
+    return out;
+  }
+  return o.stripe_payment_intent ? [{ pi: o.stripe_payment_intent, cents: o.total_cents - o.store_credit_cents, key: `order-refund-${o.id}` }] : [];
+}
 
 // An open chargeback or fraud warning → refunded from Disputes; a lost
 // chargeback → the bank already returned the money, so never again.
@@ -32,7 +48,7 @@ export function refundOffer(o: OrderMoney, flags: RefundFlags): { mode: RefundMo
 // with store credit, returned by afterOrderRefunded; cardToCreditCents → the
 // card part given as store credit instead (shipped exceptions only).
 export function splitRefund(o: OrderMoney, destination: RefundDestination) {
-  const card = o.stripe_payment_intent ? o.total_cents - o.store_credit_cents : 0;
+  const card = cardPayments(o).reduce((s, p) => s + p.cents, 0);
   const toCard = destination === "card" ? card : 0;
   return { cardCents: toCard, creditBackCents: o.store_credit_cents, cardToCreditCents: card - toCard, totalCents: o.total_cents };
 }

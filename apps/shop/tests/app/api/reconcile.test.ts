@@ -23,13 +23,15 @@ vi.mock("@/lib/discounts/data", () => ({ pruneCodeAttempts }));
 vi.mock("@/lib/catalog-ops/data", () => ({ lotIntegrity }));
 vi.mock("@/lib/disputes/data", () => ({ openDisputes, markReminded, logDisputeEvent }));
 vi.mock("@/lib/inquiries/data", () => ({ autoCloseInquiries }));
+const runWholesaleCron = vi.fn();
+vi.mock("@/lib/wholesale/cron", () => ({ runWholesaleCron }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => NOW }));
 
 const get = (auth?: string) => new Request("http://localhost/api/cron/reconcile", { headers: auth ? { authorization: auth } : {} });
 async function* pages(items: unknown[]) { for (const i of items) yield i; }
 
 describe("GET /api/cron/reconcile", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner, listOrphanedPendingOrders, pruneLookups, pruneCodeAttempts, lotIntegrity, openDisputes, markReminded, logDisputeEvent, autoCloseInquiries]) f.mockReset(); openDisputes.mockResolvedValue([]); listOrphanedPendingOrders.mockResolvedValue([]); pruneLookups.mockResolvedValue(undefined); pruneCodeAttempts.mockResolvedValue(undefined); lotIntegrity.mockResolvedValue({ negative: [], stale_holds: [] }); autoCloseInquiries.mockResolvedValue(0); process.env.CRON_SECRET = "s3cret"; });
+  beforeEach(() => { vi.resetModules(); for (const f of [list, getOrderById, transitionOrder, applyPaid, alertOwner, listOrphanedPendingOrders, pruneLookups, pruneCodeAttempts, lotIntegrity, openDisputes, markReminded, logDisputeEvent, autoCloseInquiries]) f.mockReset(); openDisputes.mockResolvedValue([]); listOrphanedPendingOrders.mockResolvedValue([]); pruneLookups.mockResolvedValue(undefined); pruneCodeAttempts.mockResolvedValue(undefined); lotIntegrity.mockResolvedValue({ negative: [], stale_holds: [] }); autoCloseInquiries.mockResolvedValue(0); runWholesaleCron.mockReset(); runWholesaleCron.mockResolvedValue({ runsCreated: 0, reminders: 0, overdue: 0, forfeited: 0, failed: [] }); process.env.CRON_SECRET = "s3cret"; });
 
   it("requires the cron secret", async () => {
     const { GET } = await import("@/app/api/cron/reconcile/route");
@@ -184,5 +186,23 @@ describe("GET /api/cron/reconcile", () => {
     const { GET } = await import("@/app/api/cron/reconcile/route");
     await GET(get("Bearer s3cret"));
     expect(alertOwner).toHaveBeenCalledWith("Reconcile had failures", expect.stringContaining("inquiry auto-close: db down"));
+  });
+
+  it("a paid wholesale balance session whose order is still balance due is applied", async () => {
+    list.mockReturnValue(pages([{ id: "cs_b", metadata: { order_id: "o9", payment: "balance" }, payment_status: "paid", status: "complete" }]));
+    getOrderById.mockResolvedValue({ id: "o9", status: "balance_due", channel: "wholesale", order_number: "AP-9" });
+    applyPaid.mockResolvedValue(true);
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    const body = await (await GET(get("Bearer s3cret"))).json();
+    expect(body.fixedPaid).toEqual(["AP-9"]);
+  });
+
+  it("runs the wholesale cron and reports its failures with the rest", async () => {
+    list.mockReturnValue(pages([]));
+    runWholesaleCron.mockResolvedValue({ runsCreated: 0, reminders: 0, overdue: 0, forfeited: 0, failed: ["balance AP-9: no run for 2026-09-01"] });
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    const body = await (await GET(get("Bearer s3cret"))).json();
+    expect(runWholesaleCron).toHaveBeenCalledWith(NOW);
+    expect(body.failed).toEqual(["wholesale balance AP-9: no run for 2026-09-01"]);
   });
 });

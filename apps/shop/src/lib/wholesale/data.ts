@@ -34,3 +34,13 @@ export async function enableWholesale(customerId: string, ctx: { ipHash: string;
   if (e2) throw new Error(`wholesale read failed: ${JSON.stringify(e2)}`);
   return !row || row.wholesale_disabled_at ? "disabled" : "enabled";
 }
+
+export async function saveWholesaleSettings(v: {
+  open: boolean; minKits: number; tiers: Array<{ minKits: number; pct: number }>; depositPct: number; balanceDays: number; runDays: number; leadDays: number; nextCutoff: string | null;
+}): Promise<void> {
+  const { error } = await db().from("shop_settings").update({
+    wholesale_open: v.open, wholesale_min_kits: v.minKits, wholesale_tiers: v.tiers, wholesale_deposit_pct: v.depositPct,
+    wholesale_balance_days: v.balanceDays, wholesale_run_days: v.runDays, wholesale_lead_days: v.leadDays, wholesale_next_cutoff: v.nextCutoff,
+  }).eq("id", true);
+  if (error) throw new Error(`wholesale settings save failed: ${JSON.stringify(error)}`);
+}

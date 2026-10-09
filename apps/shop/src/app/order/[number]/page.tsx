@@ -10,6 +10,11 @@ import RunStrip from "@/components/store/wholesale/RunStrip";
 import CancelWholesaleButton from "@/components/store/wholesale/CancelWholesaleButton";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
 import { canCancelWholesale, estimatedDates } from "@/lib/wholesale/rules";
+import { orderHasFailedStrength, strengthText } from "@/lib/wholesale/runs";
+import { runByCutoff, runLines } from "@/lib/wholesale/runs-data";
+import { compoundTitle } from "@/lib/catalog";
+import { addDays } from "@/lib/today/time";
+import PayBalanceButton from "@/components/store/wholesale/PayBalanceButton";
 import { currentMs } from "@/lib/clock";
 import { dateLabel, localDate } from "@/lib/today/time";
 import { usd } from "@/lib/html";
@@ -73,18 +78,40 @@ export default async function OrderPage({ params, searchParams }: {
   );
 }
 
-// Wholesale (made to order), mocks w6/w7: deposit, balance, the run's dates and
-// Cancel until the order-by date. Payment confirmation comes by email (webhook).
+// Wholesale (made to order), mocks w6/w7 and b1–b3: deposit received (Cancel
+// until the order-by date), a failed strength (keep waiting or cancel for a
+// full refund), balance due (Pay balance), balance received, then shipped.
 async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOrderForCustomer>>>) {
   const today = localDate(currentMs());
-  let leadDays: number | null = null;
-  try { leadDays = (await getWholesaleSettings()).leadDays; } catch (err) { console.error("wholesale settings read failed:", err); }
+  let settings: { leadDays: number; balanceDays: number } | null = null;
+  try { settings = await getWholesaleSettings(); } catch (err) { console.error("wholesale settings read failed:", err); }
   const cutoff = order.wholesale_cutoff_on;
-  const dates = cutoff && leadDays !== null ? estimatedDates(cutoff, leadDays) : null;
+  const dates = cutoff && settings ? estimatedDates(cutoff, settings.leadDays) : null;
   const deposit = usd(order.deposit_cents ?? 0);
+  const balance = usd(order.balance_cents ?? 0);
   const closed = order.status === "refunded" || order.status === "cancelled";
-  const head = order.status === "deposit_paid" ? <>Deposit <em>received.</em></>
-    : order.status === "balance_due" ? <>Balance <em>due.</em></>
+  // A strength of this order failed testing: shown only while deposit_paid; a
+  // failed read hides the notice rather than breaking the page.
+  let failed: string[] = [];
+  if (order.status === "deposit_paid" && cutoff) {
+    try {
+      const run = await runByCutoff(cutoff);
+      const lines = run ? await runLines(run.id) : [];
+      const items = (order.order_items ?? []).map((i) => ({ compound_slug: i.compound_slug, variant_id: i.variant_id, quantity: i.quantity }));
+      if (orderHasFailedStrength({ id: order.id, order_number: order.order_number, status: order.status, items }, lines)) {
+        failed = (order.order_items ?? []).filter((i) => lines.some((l) => l.slug === i.compound_slug && l.variant_id === i.variant_id && l.result === "failed"))
+          .map((i) => `${compoundTitle({ slug: i.compound_slug, name: i.compound_name })} ${strengthText(i.variant_id)}`);
+      }
+    } catch (err) {
+      console.error("wholesale run read failed:", err);
+    }
+  }
+  const dueOn = order.balance_due_at && settings ? addDays(localDate(Date.parse(order.balance_due_at)), settings.balanceDays) : null;
+  const newShips = failed.length && settings ? estimatedDates(today, settings.leadDays).shipsAbout : null;
+  const head = order.status === "balance_due" ? <>Your kits <em>passed.</em></>
+    : failed.length ? <>One lot needs <em>re-sourcing.</em></>
+    : order.status === "deposit_paid" ? <>Deposit <em>received.</em></>
+    : order.status === "paid" ? <>Balance <em>received.</em></>
     : closed ? <>Order <em>cancelled.</em></>
     : order.status === "awaiting_payment" ? <>Awaiting <em>deposit.</em></>
     : <>Thank <em>you.</em></>;
@@ -96,16 +123,43 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
         {order.status === "refunded" && <p className="s-ws-lede">Your deposit of {deposit} is being refunded to the way you paid; it can take 5–10 business days to appear.</p>}
         {order.status === "cancelled" && <p className="s-ws-lede">This order was cancelled.</p>}
         {order.status === "awaiting_payment" && <p className="s-ws-lede">We haven&apos;t received your deposit yet. If you just paid, a confirmation email is on its way.</p>}
+        {order.status === "balance_due" && <p className="s-ws-lede">Your production lot passed independent testing and your kits are set aside for you. Pay the balance to ship them.</p>}
+        {failed.length > 0 && <p className="s-ws-lede">The lot for <b>{failed.join(", ")}</b> didn&apos;t pass our independent testing, so it won&apos;t be sold. We&apos;re re-sourcing it.</p>}
+        {order.status === "paid" && <p className="s-ws-lede">Thank you — your kits ship with the lot&apos;s certificate. We&apos;ll email tracking when they&apos;re on the way.</p>}
         {!closed && <OrderCard order={order} />}
-        {(order.status === "deposit_paid" || order.status === "balance_due") && (
+        {order.status === "deposit_paid" && (
           <div className="s-ws-sum" style={{ marginTop: 16 }}>
             <div className="s-ws-ln"><span>Deposit paid</span><span>{deposit}</span></div>
-            <div className="s-ws-ln"><span>Balance when your lot passes testing</span><span>{usd(order.balance_cents ?? 0)}</span></div>
-            <p className="s-ws-note" style={{ margin: "2px 0 12px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} insurance and sales tax. We&apos;ll email you a link; it&apos;s due within 7 days.</p>
-            {cutoff && dates && <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0, background: "var(--paper)" }} />}
+            {failed.length > 0 ? <>
+              {newShips && <div className="s-ws-ln"><span>New estimated ship date</span><span>{dateLabel(newShips)}</span></div>}
+              <p className="s-ws-note" style={{ margin: "6px 0 0" }}>Nothing is needed to keep your order — we&apos;ll email you when the new lot passes.</p>
+            </> : <>
+              <div className="s-ws-ln"><span>Balance when your lot passes testing</span><span>{balance}</span></div>
+              <p className="s-ws-note" style={{ margin: "2px 0 12px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} insurance and sales tax. We&apos;ll email you a link; it&apos;s due within {settings?.balanceDays ?? 7} days.</p>
+              {cutoff && dates && <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0, background: "var(--paper)" }} />}
+            </>}
           </div>
         )}
-        {cutoff && canCancelWholesale(order, today) && <CancelWholesaleButton orderNumber={order.order_number} cutoffLabel={dateLabel(cutoff)} depositLabel={deposit} />}
+        {order.status === "balance_due" && (
+          <div className="s-ws-sum" style={{ marginTop: 16 }}>
+            <div className="s-ws-ln"><span>Deposit paid</span><span>{deposit}</span></div>
+            <div className="s-ws-ln b t"><span>Balance due{dueOn ? ` by ${dateLabel(dueOn)}` : ""}</span><span>{balance}</span></div>
+            <p className="s-ws-note" style={{ margin: "2px 0 6px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} insurance and sales tax.</p>
+            <PayBalanceButton orderNumber={order.order_number} label={balance} />
+            <p className="s-ws-note" style={{ marginTop: 8 }}>Unpaid orders are cancelled after {dueOn ? dateLabel(dueOn) : "the due date"} and the deposit is kept.</p>
+          </div>
+        )}
+        {order.status === "paid" && (
+          <div className="s-ws-sum" style={{ marginTop: 16 }}>
+            <div className="s-ws-ln"><span>Deposit</span><span>{deposit}</span></div>
+            <div className="s-ws-ln"><span>Balance</span><span>{balance}</span></div>
+            <div className="s-ws-ln b t"><span>Paid</span><span>{usd(order.total_cents)}</span></div>
+            {cutoff && dates && <div style={{ marginTop: 10 }}><RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0, background: "var(--paper)" }} /></div>}
+          </div>
+        )}
+        {cutoff && canCancelWholesale(order, today, { failed: failed.length > 0 }) && (
+          <CancelWholesaleButton orderNumber={order.order_number} cutoffLabel={dateLabel(cutoff)} depositLabel={deposit} failedLot={failed.length > 0} />
+        )}
         <Link href="/account" className="s-ws-btn-o" style={{ marginTop: 14 }}>My orders →</Link>
       </div>
     </div>

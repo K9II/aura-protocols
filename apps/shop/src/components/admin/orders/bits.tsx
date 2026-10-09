@@ -9,7 +9,7 @@ export function OrderStatusChip({ status, kind }: { status: OrderStatus; kind?: 
   return <span className={`a-chip o-${status}`}>{STATUS[status]}</span>;
 }
 
-const MARK: Record<OrderMarker, [string, string]> = { no_charge: ["No charge", "amb"], dispute: ["Dispute", "red"], warning: ["Warning", "amb"], code: ["Code", ""], partner: ["Partner", "sl"] };
+const MARK: Record<OrderMarker, [string, string]> = { wholesale: ["Wholesale", "sl"], no_charge: ["No charge", "amb"], dispute: ["Dispute", "red"], warning: ["Warning", "amb"], code: ["Code", ""], partner: ["Partner", "sl"] };
 export function Markers({ list }: { list: OrderMarker[] }) {
   return <>{list.map((m) => <span key={m} className={`a-mk ${MARK[m][1]}`.trim()}>{MARK[m][0]}</span>)}</>;
 }

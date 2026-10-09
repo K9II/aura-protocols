@@ -7,7 +7,7 @@ import { can } from "@/lib/staff/roles";
 import { catalogContent } from "@/data/catalog";
 import {
   addVariant, archiveVariant, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot,
-  replaceCertificate, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, updateDraftLot, variantRow,
+  replaceCertificate, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, setVariantWholesale, updateDraftLot, variantRow,
 } from "@/lib/catalog-ops/data";
 import {
   isCoaPathFor, isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku, parseStrength,
@@ -167,6 +167,15 @@ export async function setShownAction(f: FormData): Promise<void> {
   const slug = str(f, "slug");
   productOf(slug);
   if (!(await setShown(slug, str(f, "shown") === "true", owner.id))) throw new Error(PRODUCT_STALE);
+  refresh(slug);
+}
+
+// Offered (or not) as a 10-vial wholesale kit. Orders already placed keep their kits.
+export async function setWholesaleAction(f: FormData): Promise<void> {
+  const owner = await requirePermission("catalog.edit");
+  const slug = str(f, "slug"), variantId = str(f, "variantId");
+  await variantOf(slug, variantId);
+  if (!(await setVariantWholesale(slug, variantId, str(f, "on") === "true", owner.id))) throw new Error(PRODUCT_STALE);
   refresh(slug);
 }
 

@@ -8,6 +8,7 @@ export const CHAPTERS = [
   { id: "today", title: "Today", group: null, href: "/admin" },
   { id: "discounts", title: "Discounts", group: "Sell", href: "/admin/discounts" },
   { id: "orders", title: "Orders", group: "Sell", href: "/admin/orders" },
+  { id: "wholesale", title: "Wholesale", group: "Sell", href: "/admin/wholesale" },
   { id: "customers", title: "Customers", group: "Sell", href: "/admin/customers" },
   { id: "disputes", title: "Disputes", group: "Sell", href: "/admin/disputes" },
   { id: "catalog", title: "Catalog & lots", group: "Stock", href: "/admin/catalog" },

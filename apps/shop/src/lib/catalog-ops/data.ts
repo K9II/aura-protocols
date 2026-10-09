@@ -155,6 +155,16 @@ export async function setVariantField(slug: string, variantId: string, field: Va
   return { ok: true };
 }
 
+// Catalog → strength ⋯ → Sell as a wholesale kit / Stop selling as a kit.
+export async function setVariantWholesale(slug: string, variantId: string, on: boolean, actorId: string): Promise<boolean> {
+  const { data, error } = await db().from("catalog_variants").update({ wholesale: on, updated_at: new Date().toISOString() })
+    .eq("slug", slug).eq("variant_id", variantId).select("slug");
+  if (error) fail("wholesale switch", error);
+  if (!(data as unknown[] | null)?.length) return false;
+  await logEvent({ slug, variant_id: variantId, kind: on ? "wholesale_on" : "wholesale_off", actor_id: actorId });
+  return true;
+}
+
 export async function setShown(slug: string, shown: boolean, actorId: string): Promise<boolean> {
   const { data, error } = await db().from("catalog_products").update({ shown, updated_at: new Date().toISOString() }).eq("slug", slug).select("slug");
   if (error) fail("visibility update", error);

@@ -8,13 +8,14 @@ import { getStripe } from "@/lib/stripe";
 export const NO_PAYMENT_LABEL = "the original payment";
 const FALLBACK = NO_PAYMENT_LABEL;
 
-// The card part only (equals the full charge): passing the amount guards
-// against refunding more than we think we took. The key makes a double click
-// one refund. Early-fraud-warning refunds stay in Disputes (reason "fraudulent").
-export async function refundCard(paymentIntent: string, cents: number, orderId: string): Promise<string> {
+// The card part of one payment (equals that charge): passing the amount guards
+// against refunding more than we think we took. `key` makes a double click one
+// refund — a wholesale order has one key per payment (cardPayments in rules.ts).
+// Early-fraud-warning refunds stay in Disputes (reason "fraudulent").
+export async function refundCard(paymentIntent: string, cents: number, key: string): Promise<string> {
   const refund = await getStripe().refunds.create(
     { payment_intent: paymentIntent, amount: cents, reason: "requested_by_customer" },
-    { idempotencyKey: `order-refund-${orderId}` },
+    { idempotencyKey: key },
   );
   return refund.id;
 }

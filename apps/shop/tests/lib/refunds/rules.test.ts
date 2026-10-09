@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { REFUND_REASONS, REFUND_REASON_LABEL, refundOffer, splitRefund, parseRefund, REFUND_NOTE_MAX, stripeNoAnswer, CARD_CONFIRM_ERROR } from "@/lib/refunds/rules";
+import { REFUND_REASONS, REFUND_REASON_LABEL, refundOffer, splitRefund, cardPayments, parseRefund, REFUND_NOTE_MAX, stripeNoAnswer, CARD_CONFIRM_ERROR } from "@/lib/refunds/rules";
 
 const base = { status: "paid" as const, kind: "sale" as const, total_cents: 22800, store_credit_cents: 4000, stripe_payment_intent: "pi_1" };
 const get = (v: Record<string, string>) => (k: string) => v[k] ?? null;
@@ -56,5 +56,17 @@ describe("refund rules", () => {
     expect(stripeNoAnswer({ type: "StripeCardError" })).toBe(false);
     expect(stripeNoAnswer(new Error("x"))).toBe(false);
     expect(stripeNoAnswer(null)).toBe(false);
+  });
+  it("card payments: one for retail, deposit + balance for a paid wholesale order", () => {
+    expect(cardPayments({ channel: "retail", id: "o1", stripe_payment_intent: "pi_r", total_cents: 9600, store_credit_cents: 0 }))
+      .toEqual([{ pi: "pi_r", cents: 9600, key: "order-refund-o1" }]);
+    expect(cardPayments({ channel: "wholesale", id: "o2", stripe_payment_intent: null, total_cents: 316550, store_credit_cents: 0,
+      deposit_payment_intent: "pi_d", deposit_cents: 126400, balance_payment_intent: "pi_b", balance_cents: 190150 }))
+      .toEqual([{ pi: "pi_d", cents: 126400, key: "order-refund-o2-deposit" }, { pi: "pi_b", cents: 190150, key: "order-refund-o2-balance" }]);
+    expect(cardPayments({ channel: "wholesale", id: "o3", stripe_payment_intent: null, total_cents: 316550, store_credit_cents: 0,
+      deposit_payment_intent: "pi_d", deposit_cents: 126400, balance_payment_intent: null, balance_cents: 190150 }))
+      .toEqual([{ pi: "pi_d", cents: 126400, key: "order-refund-o3-deposit" }]);
+    expect(splitRefund({ status: "paid", kind: "sale", channel: "wholesale", id: "o2", stripe_payment_intent: null, total_cents: 316550, store_credit_cents: 0,
+      deposit_payment_intent: "pi_d", deposit_cents: 126400, balance_payment_intent: "pi_b", balance_cents: 190150 }, "card").cardCents).toBe(316550);
   });
 });

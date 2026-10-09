@@ -18,7 +18,7 @@ import { usd } from "@/lib/html";
 import { createNoChargeOrder, orderByNoChargeKey, orderIdByNumber, recipient, stockOptions } from "@/lib/no-charge/data";
 import { buildLines, NoChargeCreateError, parseNoCharge, REASON_LABEL, summary, type NoChargeErrors } from "@/lib/no-charge/rules";
 import { orderFlags } from "@/lib/orders/detail";
-import { parseRefund, refundOffer, REFUND_REASON_LABEL, splitRefund, stripeNoAnswer, type RefundErrors, type RefundInput, type RefundMode } from "@/lib/refunds/rules";
+import { cardPayments, parseRefund, refundOffer, REFUND_REASON_LABEL, splitRefund, stripeNoAnswer, type RefundErrors, type RefundInput, type RefundMode } from "@/lib/refunds/rules";
 import { NO_PAYMENT_LABEL, paymentLabel, refundCard } from "@/lib/refunds/stripe";
 import { creditCardPart, stampRefund } from "@/lib/refunds/data";
 import { stripeMessage } from "@/lib/disputes/stripe";
@@ -107,7 +107,7 @@ export async function refundOrderAction(_prev: RefundState, form: FormData): Pro
   const mode = form.get("mode");
   if (!offer.mode || offer.mode !== mode) return { errors: { form: ORDER_CHANGED } };
 
-  const parsed = parseRefund((k) => { const v = form.get(k); return typeof v === "string" ? v : null; }, offer.mode, !!order.stripe_payment_intent);
+  const parsed = parseRefund((k) => { const v = form.get(k); return typeof v === "string" ? v : null; }, offer.mode, cardPayments(order).length > 0);
   if (!parsed.ok) return { errors: parsed.errors };
   const input = parsed.value;
   const split = splitRefund(order, input.destination);
@@ -115,17 +115,27 @@ export async function refundOrderAction(_prev: RefundState, form: FormData): Pro
   let stripeRefundId: string | null = null;
   let label: string | null = null;
   if (split.cardCents > 0) {
-    try {
-      stripeRefundId = await refundCard(order.stripe_payment_intent!, split.cardCents, order.id);
-    } catch (err) {
-      if (stripeNoAnswer(err)) {
-        await alertOwner("Refund needs a look", `${n}: Stripe didn't answer the refund (${usd(split.cardCents)}) — check the payment in Stripe. ${stripeMessage(err)}`);
-        return { errors: { form: "Stripe didn't answer — the refund may have gone through. Check the order in Stripe before trying again." } };
+    // One refund per card payment (a wholesale order has a deposit and a balance).
+    const payments = cardPayments(order);
+    const done: string[] = [];
+    for (const p of payments) {
+      try {
+        done.push(await refundCard(p.pi, p.cents, p.key));
+      } catch (err) {
+        if (done.length) {
+          await alertOwner("Refund needs a look", `${n}: ${done.length} of ${payments.length} payments refunded in Stripe (${done.join(", ")}); the next one (${usd(p.cents)}) failed: ${stripeMessage(err)}. Refund the rest in Stripe, then reload.`);
+          return { errors: { form: `${n} was only partly refunded in Stripe. You've been alerted — finish it in Stripe.` } };
+        }
+        if (stripeNoAnswer(err)) {
+          await alertOwner("Refund needs a look", `${n}: Stripe didn't answer the refund (${usd(p.cents)}) — check the payment in Stripe. ${stripeMessage(err)}`);
+          return { errors: { form: "Stripe didn't answer — the refund may have gone through. Check the order in Stripe before trying again." } };
+        }
+        return { errors: { form: `Stripe didn't refund ${n}: ${stripeMessage(err)}. Nothing changed here — reload the page.` } };
       }
-      return { errors: { form: `Stripe didn't refund ${n}: ${stripeMessage(err)}. Nothing changed here — reload the page.` } };
     }
+    stripeRefundId = done.join(",");
     // Saved with the refund so the order page needn't ask Stripe again. Never throws.
-    const l = await paymentLabel(order.stripe_payment_intent!);
+    const l = await paymentLabel(payments[payments.length - 1].pi);
     label = l === NO_PAYMENT_LABEL ? null : l;
   }
 

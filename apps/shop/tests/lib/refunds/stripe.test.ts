@@ -9,9 +9,9 @@ import { refundCard, paymentLabel } from "@/lib/refunds/stripe";
 describe("refunds/stripe", () => {
   beforeEach(() => { refundsCreate.mockReset(); piRetrieve.mockReset(); });
 
-  it("refundCard refunds the card part once per order and returns the refund id", async () => {
+  it("refundCard refunds one payment under the key it is given and returns the refund id", async () => {
     refundsCreate.mockResolvedValue({ id: "re_1" });
-    expect(await refundCard("pi_1", 18800, "o1")).toBe("re_1");
+    expect(await refundCard("pi_1", 18800, "order-refund-o1")).toBe("re_1");
     expect(refundsCreate).toHaveBeenCalledWith(
       { payment_intent: "pi_1", amount: 18800, reason: "requested_by_customer" },
       { idempotencyKey: "order-refund-o1" },
@@ -20,7 +20,7 @@ describe("refunds/stripe", () => {
 
   it("refundCard lets a Stripe error through", async () => {
     refundsCreate.mockRejectedValue(new Error("charge already refunded"));
-    await expect(refundCard("pi_1", 100, "o1")).rejects.toThrow(/already refunded/);
+    await expect(refundCard("pi_1", 100, "order-refund-o1")).rejects.toThrow(/already refunded/);
   });
 
   it("paymentLabel names the card", async () => {

@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Orders", robots: { index: false, fol
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 const vials = (o: OrderRow) => (o.order_items ?? []).reduce((s, i) => s + i.pack_qty * i.quantity, 0);
-const EMPTY: Record<OrderTab, string> = { to_ship: "Nothing to ship.", processing: "No payments clearing.", shipped: "Nothing shipped yet.", closed: "No refunded or cancelled orders.", all: "No orders yet." };
+const EMPTY: Record<OrderTab, string> = { to_ship: "Nothing to ship.", processing: "No payments clearing.", wholesale: "No wholesale orders in production or waiting on a balance.", shipped: "Nothing shipped yet.", closed: "No refunded or cancelled orders.", all: "No orders yet." };
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[]; status?: string | string[]; q?: string | string[]; page?: string | string[] }> }) {
   const staff = await requirePermission("orders.view");

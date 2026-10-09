@@ -20,7 +20,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const staff = await requireStaff();
   const views: Views = {
-    today: can(staff, "today.view"), orders: can(staff, "orders.view"), customers: can(staff, "customers.view"),
+    today: can(staff, "today.view"), orders: can(staff, "orders.view"), wholesale: can(staff, "wholesale.view"), customers: can(staff, "customers.view"),
     discounts: can(staff, "discounts.view"), disputes: can(staff, "disputes.view"), catalog: can(staff, "catalog.view"),
     email: can(staff, "email.view"), inquiries: can(staff, "inquiries.view"), partners: can(staff, "partners.view"),
     payouts: can(staff, "payouts.view"), activity: can(staff, "activity.view"),

@@ -47,17 +47,27 @@ export async function applyPaid(order: OrderRow, session: Stripe.Checkout.Sessio
   return true;
 }
 
-// Wholesale: the deposit moves the order into its production run. The balance
-// (Part 2) has its own handler; until then anything else is the owner's to check.
+// Wholesale: the deposit moves the order into its production run; the
+// balance moves it to paid (then the usual after-payment steps: tax record,
+// held-vials check, the balance-received email). A retried event is a no-op;
+// anything else is the owner's to check.
 async function applyWholesalePaid(order: OrderRow, session: Stripe.Checkout.Session): Promise<boolean> {
-  if (session.metadata?.payment !== "deposit") {
-    await alertOwner("Wholesale payment not handled", `${order.order_number}: Stripe session ${session.id} (${session.metadata?.payment ?? "no payment tag"}) was paid while the order is ${order.status}. Check it in Stripe.`);
-    return false;
+  const kind = session.metadata?.payment;
+  if (kind === "deposit" && (order.status === "awaiting_payment" || order.status === "processing")) {
+    if (!(await transitionOrder(order.id, order.status, "deposit_paid", { deposit_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
+    await afterDepositPaid(order.id);
+    return true;
   }
-  if (order.status !== "awaiting_payment" && order.status !== "processing") return false;
-  if (!(await transitionOrder(order.id, order.status, "deposit_paid", { deposit_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
-  await afterDepositPaid(order.id);
-  return true;
+  if (kind === "balance" && order.status === "balance_due") {
+    if (!(await transitionOrder(order.id, "balance_due", "paid", { balance_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
+    await afterOrderPaid(order.id);
+    return true;
+  }
+  const retry = (kind === "deposit" && order.status !== "awaiting_payment" && order.status !== "processing" && !!order.deposit_payment_intent)
+    || (kind === "balance" && (order.status === "paid" || order.status === "shipped"));
+  if (retry) return false;
+  await alertOwner("Wholesale payment not handled", `${order.order_number}: Stripe session ${session.id} (${kind ?? "no payment tag"}) was paid while the order is ${order.status}. Check it in Stripe.`);
+  return false;
 }
 
 // Follow-ups once an order is refunded (by Stripe, or by the owner for an
@@ -217,6 +227,12 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       // the card refunded in the Stripe dashboard too: the customer got it twice.
       if (refunded && order.refund_destination === "store_credit" && order.stripe_payment_intent && order.total_cents > order.store_credit_cents) {
         await alertOwner("Refunded twice", `${order.order_number}: refunded to store credit here and to the card in Stripe — take the store credit back in Customers.`);
+      }
+      // A paid wholesale order has two payments: one charge refunded in the
+      // Stripe dashboard isn't the whole order — the owner refunds from Orders.
+      if (!refunded && order.channel === "wholesale" && (order.status === "paid" || order.status === "shipped")) {
+        await alertOwner("Wholesale payment refunded in Stripe", `${order.order_number}: one payment refunded in Stripe — refund the order from Orders so both payments and the stock are handled.`);
+        return;
       }
       if (!refunded && (order.status === "paid" || order.status === "shipped" || order.status === "deposit_paid")) {
         refunded = await transitionOrder(order.id, order.status, "refunded");

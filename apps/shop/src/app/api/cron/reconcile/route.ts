@@ -12,6 +12,7 @@ import { logDisputeEvent, markReminded, openDisputes } from "@/lib/disputes/data
 import { dueReminder, evidenceChip, reasonLabel } from "@/lib/disputes/rules";
 import { shortDate } from "@/lib/discounts/time";
 import { autoCloseInquiries } from "@/lib/inquiries/data";
+import { runWholesaleCron } from "@/lib/wholesale/cron";
 
 // Daily safety net (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`):
 // any Stripe session paid in the last 3 days whose order we never marked paid
@@ -33,7 +34,10 @@ export async function GET(request: Request): Promise<Response> {
         const orderId = session.metadata?.order_id;
         const order = orderId ? await getOrderById(orderId) : null;
         if (!order) continue;
-        if (session.payment_status === "paid" && (order.status === "awaiting_payment" || order.status === "processing")) {
+        const missedPaid = session.payment_status === "paid" && (
+          order.status === "awaiting_payment" || order.status === "processing"
+          || (order.channel === "wholesale" && order.status === "balance_due" && session.metadata?.payment === "balance"));
+        if (missedPaid) {
           if (await applyPaid(order, session)) fixedPaid.push(order.order_number);
         } else if (session.status === "expired" && order.status === "awaiting_payment") {
           if (await transitionOrder(order.id, "awaiting_payment", "cancelled")) cancelled.push(order.order_number);
@@ -107,6 +111,13 @@ export async function GET(request: Request): Promise<Response> {
     inquiriesClosed = await autoCloseInquiries(currentMs());
   } catch (err) {
     failed.push(`inquiry auto-close: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  // Wholesale runs: balance reminders, overdue alerts, forfeits, unordered runs.
+  try {
+    const w = await runWholesaleCron(currentMs());
+    failed.push(...w.failed.map((f) => `wholesale ${f}`));
+  } catch (err) {
+    failed.push(`wholesale: ${err instanceof Error ? err.message : String(err)}`);
   }
   if (fixedPaid.length) {
     await alertOwner("Reconciler fixed paid orders", `These paid orders were missing their webhook and have now been recorded: ${fixedPaid.join(", ")}`);

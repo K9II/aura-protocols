@@ -14,5 +14,7 @@ export function customerEventText(e: Pick<CustomerEvent, "kind" | "amount_cents"
     case "warning_refunded": return <>{who} <b>cancelled and refunded</b> {e.reason} · early fraud warning</>;
     case "warning_watched": return <>{who} chose <b>Watch</b> on {e.reason} · early fraud warning, already shipped</>;
     case "warning_closed": return <>{who} closed the early fraud warning on {e.reason}</>;
+    case "wholesale_off": return <>{who} <b>turned off wholesale</b>{e.reason ? ` · ${e.reason}` : ""}</>;
+    case "wholesale_on": return <>{who} allowed wholesale again</>;
   }
 }

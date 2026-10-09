@@ -17,7 +17,9 @@ import { openDisputeTodos } from "@/lib/disputes/data";
 import {
   alertsSection, disputesSection, emailSection, inquiriesSection, lotsSection, navCount, ordersSection, partnersSection, stockSection,
   SLOT_INFO, SLOT_KEYS, type Slot, type SlotKey, type TodoSection,
+  wholesaleSection,
 } from "@/lib/today/todos";
+import { wholesaleTodos } from "@/lib/wholesale/runs-data";
 import { numbersView, type NumbersView } from "@/lib/today/numbers";
 import { periodRanges, type Period } from "@/lib/today/periods";
 
@@ -40,6 +42,7 @@ const LOADERS: Record<SlotKey, (nowMs: number) => Promise<TodoSection[]>> = {
       items: (o.order_items ?? []).reduce((s, i) => s + i.quantity, 0),
     })), nowMs)]);
   },
+  wholesale: async (nowMs) => shown([wholesaleSection(await wholesaleTodos(nowMs))]),
   catalog: async () => {
     const [ops, waiting] = await Promise.all([fetchAdminOps(), waitingLots()]);
     const names = new Map(catalogContent.map((c) => [c.slug, c.name]));

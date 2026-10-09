@@ -5,7 +5,7 @@ const nav = vi.hoisted(() => ({ path: "/admin/discounts/abc" }));
 vi.mock("next/navigation", () => ({ usePathname: () => nav.path }));
 vi.mock("@/app/auth/actions", () => ({ signOutToSignInAction: vi.fn() }));
 
-const allViews = { today: true, orders: true, customers: true, discounts: true, disputes: true, catalog: true, email: true, inquiries: true, partners: true, payouts: true, activity: true };
+const allViews = { today: true, orders: true, wholesale: true, customers: true, discounts: true, disputes: true, catalog: true, email: true, inquiries: true, partners: true, payouts: true, activity: true };
 const counts = { orders: 0, partners: 0, email: 0, today: 0, disputes: 0, inquiries: 4 };
 const owner = { name: "Alvester", role: "Owner", assistant: false };
 const assistant = { name: "Assistant (Claude)", role: "Assistant", assistant: true };

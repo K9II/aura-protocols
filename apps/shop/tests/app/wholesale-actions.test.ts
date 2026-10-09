@@ -3,14 +3,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const getCustomer = vi.fn(), getWholesaleSettings = vi.fn(), enableWholesale = vi.fn(), saveResearchVerification = vi.fn();
 const verifyHumanCheck = vi.fn(), getLiveCatalog = vi.fn(), createPendingWholesaleOrder = vi.fn(), transitionOrder = vi.fn(), attachCheckoutSession = vi.fn();
 const getOrderForCustomer = vi.fn(), refundCard = vi.fn(), sendOrAlert = vi.fn(), alertOwner = vi.fn(), closeOpenCheckouts = vi.fn(), stampWholesaleCancel = vi.fn();
-const quoteTax = vi.fn(), createPaymentCheckout = vi.fn(), expireCheckout = vi.fn(), revalidatePath = vi.fn();
+const quoteTax = vi.fn(), createPaymentCheckout = vi.fn(), expireCheckout = vi.fn(), revalidatePath = vi.fn(), saveBalanceSession = vi.fn();
 vi.mock("@/lib/dal", () => ({ getCustomer }));
 vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings, enableWholesale }));
 vi.mock("@/lib/account/research-data", () => ({ saveResearchVerification }));
 vi.mock("@/lib/turnstile", () => ({ verifyHumanCheck }));
 vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog }));
-vi.mock("@/lib/orders", () => ({ createPendingWholesaleOrder, transitionOrder, attachCheckoutSession, getOrderForCustomer, stampWholesaleCancel, saveShipAddress: vi.fn(), saveStripeCustomerId: vi.fn() }));
+vi.mock("@/lib/orders", () => ({ createPendingWholesaleOrder, transitionOrder, attachCheckoutSession, getOrderForCustomer, stampWholesaleCancel, saveBalanceSession, saveShipAddress: vi.fn(), saveStripeCustomerId: vi.fn() }));
 vi.mock("@/lib/refunds/stripe", () => ({ refundCard }));
+const runByCutoff = vi.fn(), runLines = vi.fn();
+vi.mock("@/lib/wholesale/runs-data", () => ({ runByCutoff, runLines }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner }));
 vi.mock("@/lib/checkout-close", () => ({ closeOpenCheckouts }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ quoteTax, createPaymentCheckout, expireCheckout }) }));
@@ -38,8 +40,9 @@ describe("wholesale actions", () => {
     vi.resetModules();
     for (const f of [getCustomer, getWholesaleSettings, enableWholesale, saveResearchVerification, verifyHumanCheck, getLiveCatalog, createPendingWholesaleOrder,
       transitionOrder, attachCheckoutSession, getOrderForCustomer, refundCard, sendOrAlert, alertOwner, closeOpenCheckouts, stampWholesaleCancel,
-      quoteTax, createPaymentCheckout, expireCheckout, revalidatePath]) f.mockReset();
+      quoteTax, createPaymentCheckout, expireCheckout, revalidatePath, saveBalanceSession]) f.mockReset();
     getWholesaleSettings.mockResolvedValue(settings);
+    runByCutoff.mockReset(); runLines.mockReset(); runByCutoff.mockResolvedValue({ id: "r1" }); runLines.mockResolvedValue([]);
     verifyHumanCheck.mockResolvedValue({ ok: true });
     getLiveCatalog.mockResolvedValue(live);
     closeOpenCheckouts.mockResolvedValue({ failed: [] });
@@ -173,7 +176,7 @@ describe("wholesale actions", () => {
     refundCard.mockResolvedValue("re_1");
     const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
     expect(await cancelWholesaleOrderAction("AP-1050")).toEqual({ ok: true });
-    expect(refundCard).toHaveBeenCalledWith("pi_dep", 40800, "o1");
+    expect(refundCard).toHaveBeenCalledWith("pi_dep", 40800, "order-refund-o1-deposit");
     expect(transitionOrder).toHaveBeenCalledWith("o1", "deposit_paid", "refunded", { refund_destination: "card", refund_reason: "customer_cancelled", stripe_refund_id: "re_1" });
     expect(sendOrAlert).toHaveBeenCalledTimes(1);
     expect(stampWholesaleCancel).not.toHaveBeenCalled();
@@ -240,5 +243,52 @@ describe("wholesale actions", () => {
     expect((await cancelWholesaleOrderAction("AP-1050")).error).toBeTruthy();
     expect(transitionOrder).not.toHaveBeenCalled();
     expect(sendOrAlert).not.toHaveBeenCalled();
+  });
+
+  describe("pay the balance", () => {
+    const due = { ...wholesaleOrder, status: "balance_due", balance_cents: 190150, balance_session_id: "cs_old",
+      ship_name: "Jane", ship_line1: "1 A St", ship_line2: null, ship_city: "Austin", ship_state: "TX", ship_zip: "78701" };
+
+    it("expires the earlier page, opens a fresh balance page, saves its session", async () => {
+      getCustomer.mockResolvedValue(customer());
+      getOrderForCustomer.mockResolvedValue(due);
+      const { payBalanceAction } = await import("@/app/wholesale/actions");
+      expect(await payBalanceAction("AP-1050")).toEqual({ url: "https://stripe/cs" });
+      expect(expireCheckout).toHaveBeenCalledWith("cs_old");
+      expect(createPaymentCheckout).toHaveBeenCalledWith(expect.objectContaining({ orderId: "o1", payment: "balance", amountCents: 190150, cancelPath: "/order/AP-1050", attempt: expect.any(Number) }));
+      expect(saveBalanceSession).toHaveBeenCalledWith("o1", "cs_1");
+    });
+
+    it("refuses when nothing is due, or the order isn't theirs", async () => {
+      getCustomer.mockResolvedValue(customer());
+      const { payBalanceAction } = await import("@/app/wholesale/actions");
+      getOrderForCustomer.mockResolvedValue({ ...due, status: "deposit_paid" });
+      expect((await payBalanceAction("AP-1050")).error).toMatch(/no balance due/);
+      getOrderForCustomer.mockResolvedValue(null);
+      expect((await payBalanceAction("AP-1050")).error).toMatch(/not found/i);
+      expect(createPaymentCheckout).not.toHaveBeenCalled();
+    });
+
+    it("Stripe unavailable: its message, nothing saved", async () => {
+      getCustomer.mockResolvedValue(customer());
+      getOrderForCustomer.mockResolvedValue(due);
+      createPaymentCheckout.mockResolvedValue({ kind: "unavailable", message: "Payments are paused." });
+      const { payBalanceAction } = await import("@/app/wholesale/actions");
+      expect(await payBalanceAction("AP-1050")).toEqual({ error: "Payments are paused." });
+      expect(saveBalanceSession).not.toHaveBeenCalled();
+    });
+  });
+
+  it("cancel after the cutoff is allowed when a strength of the order failed testing", async () => {
+    getCustomer.mockResolvedValue(customer());
+    getOrderForCustomer.mockResolvedValue({ ...wholesaleOrder, wholesale_cutoff_on: "2026-10-05",
+      order_items: [{ compound_slug: "retatrutide", compound_name: "Retatrutide", variant_id: "10mg", strength: "10 mg", pack_qty: 10, quantity: 3, line_total_cents: 300000 }] });
+    runLines.mockResolvedValue([{ slug: "retatrutide", variant_id: "10mg", result: "failed" }]);
+    refundCard.mockResolvedValue("re_1");
+    transitionOrder.mockResolvedValue(true);
+    sendOrAlert.mockResolvedValue(true);
+    const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
+    expect(await cancelWholesaleOrderAction("AP-1050")).toEqual({ ok: true });
+    expect(refundCard).toHaveBeenCalled();
   });
 });

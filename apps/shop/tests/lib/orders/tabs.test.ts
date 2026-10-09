@@ -3,7 +3,8 @@ import { ORDER_TABS, TAB_STATUSES, cleanOrderSearch, itemsSummary, orderMarkers,
 
 describe("order tabs", () => {
   it("maps every tab to statuses; awaiting payment is never listed", () => {
-    expect(ORDER_TABS).toEqual(["to_ship", "processing", "shipped", "closed", "all"]);
+    expect(ORDER_TABS).toEqual(["to_ship", "processing", "wholesale", "shipped", "closed", "all"]);
+    expect(TAB_STATUSES.wholesale).toEqual(["deposit_paid", "balance_due"]);
     expect(TAB_STATUSES.to_ship).toEqual(["paid"]);
     expect(TAB_STATUSES.closed).toEqual(["cancelled", "refunded"]);
     for (const t of ORDER_TABS) expect(TAB_STATUSES[t]).not.toContain("awaiting_payment");

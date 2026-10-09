@@ -272,7 +272,7 @@ describe("refundOrderAction", () => {
     getOrderById.mockResolvedValue(sale());
     const { refundOrderAction } = await import("@/app/admin/orders/actions");
     expect(await refundOrderAction(null, cancelForm({ note: "Changed their mind" }))).toEqual({ ok: "AP-1047 was refunded." });
-    expect(refunds.refundCard).toHaveBeenCalledWith("pi_1", 18800, id);
+    expect(refunds.refundCard).toHaveBeenCalledWith("pi_1", 18800, `order-refund-${id}`);
     expect(transitionOrder).toHaveBeenCalledWith(id, "paid", "refunded");
     expect(afterOrderRefunded).toHaveBeenCalledTimes(1);
     expect(refunds.creditCardPart).not.toHaveBeenCalled();
@@ -331,7 +331,7 @@ describe("refundOrderAction", () => {
     getOrderById.mockResolvedValue(sale({ status: "shipped", store_credit_cents: 0 }));
     const { refundOrderAction } = await import("@/app/admin/orders/actions");
     expect(await refundOrderAction(null, exceptionForm({ destination: "card" }))).toEqual({ ok: "AP-1047 was refunded." });
-    expect(refunds.refundCard).toHaveBeenCalledWith("pi_1", 22800, id);
+    expect(refunds.refundCard).toHaveBeenCalledWith("pi_1", 22800, `order-refund-${id}`);
     expect(refunds.creditCardPart).not.toHaveBeenCalled();
     expect(audit.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: "$228.00 · to card · Damaged in transit" }));
   });
@@ -355,6 +355,28 @@ describe("refundOrderAction", () => {
     expect(refunds.stampRefund).toHaveBeenCalled();
     expect(sendOrAlert).toHaveBeenCalledTimes(1);
     expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("a paid wholesale order refunds the deposit and the balance, each with its own key", async () => {
+    getOrderById.mockResolvedValue(sale({ channel: "wholesale", stripe_payment_intent: null, store_credit_cents: 0, total_cents: 316550,
+      deposit_payment_intent: "pi_d", deposit_cents: 126400, balance_payment_intent: "pi_b", balance_cents: 190150 }));
+    refunds.refundCard.mockResolvedValueOnce("re_d").mockResolvedValueOnce("re_b");
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    await refundOrderAction(null, cancelForm());
+    expect(refunds.refundCard).toHaveBeenNthCalledWith(1, "pi_d", 126400, `order-refund-${id}-deposit`);
+    expect(refunds.refundCard).toHaveBeenNthCalledWith(2, "pi_b", 190150, `order-refund-${id}-balance`);
+    expect(transitionOrder).toHaveBeenCalledWith(id, "paid", "refunded");
+  });
+
+  it("wholesale: the balance refund failing after the deposit went back alerts the owner and changes nothing here", async () => {
+    getOrderById.mockResolvedValue(sale({ channel: "wholesale", stripe_payment_intent: null, store_credit_cents: 0, total_cents: 316550,
+      deposit_payment_intent: "pi_d", deposit_cents: 126400, balance_payment_intent: "pi_b", balance_cents: 190150 }));
+    refunds.refundCard.mockResolvedValueOnce("re_d").mockRejectedValueOnce(Object.assign(new Error("card declined"), { type: "StripeCardError" }));
+    const { refundOrderAction } = await import("@/app/admin/orders/actions");
+    const r = await refundOrderAction(null, cancelForm());
+    expect(r?.errors?.form).toMatch(/only partly refunded/);
+    expect(alertOwner).toHaveBeenCalledWith("Refund needs a look", expect.stringContaining("1 of 2 payments refunded"));
+    expect(transitionOrder).not.toHaveBeenCalled();
   });
 
   it("refunded in Stripe but the order moved elsewhere → owner alert + form error", async () => {

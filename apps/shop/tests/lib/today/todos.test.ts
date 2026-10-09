@@ -2,8 +2,7 @@ import { describe, it, expect } from "vitest";
 import { clipDetail, firstLine, normalizeAlertTitle, sortAlerts, type OwnerAlert } from "@/lib/today/alert-rules";
 import {
   alertsSection, disputesSection, emailSection, excerpt, inquiriesSection, lotsSection, navCount, ordersSection, partnersSection, stockSection,
-  type ShipOrder,
-} from "@/lib/today/todos";
+  type ShipOrder, wholesaleSection } from "@/lib/today/todos";
 import type { AdminLotRow, AdminRow } from "@/lib/catalog-ops/rules";
 import type { InquiryTodo } from "@/lib/inquiries/data";
 import { DISPUTE_ID, NOW as DNOW, WARNING_ID, listRow, warningRow } from "../../helpers/dispute-fixtures";
@@ -17,7 +16,7 @@ const order = (n: number, paid: string): ShipOrder => ({ order_number: `AP-10${n
 const row = (o: Partial<AdminRow>): AdminRow => ({
   slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", variantId: "10mg", strength: "10 mg", priceCents: 6900, lowAt: 10, sku: null,
   shown: true, productShown: true, strengthShown: true, archivedAt: null, available: 50, held: 0, stock: "in",
-  selling: null, next: null, lastSoldOut: null, hasDraft: false, hasDiscrepancy: false, ...o,
+  selling: null, next: null, lastSoldOut: null, hasDraft: false, hasDiscrepancy: false, wholesale: true, ...o,
 });
 const lot = (o: Partial<AdminLotRow>): AdminLotRow => ({
   id: "l1", lot_number: "AP-TB5-2611", slug: "tb-500", variant_id: "10mg", purity_pct: 99.1, method: "HPLC", tested_on: "2026-10-01",
@@ -215,5 +214,23 @@ describe("Today: disputes section", () => {
     expect(s.lines[0]).toMatchObject({ tone: "amb", detail: "Shipped Sep 20 · $96.00 · no refund after shipping; watch for a chargeback" });
     expect(s.lines[0].action).toMatchObject({ label: "Watch", warning: { kind: "watch" } });
     expect(s.tone).toBe("amb");
+  });
+
+  it("wholesale: unordered runs and failed lots are red, balances amber when one is overdue, the collecting run last", () => {
+    const sec = wholesaleSection({
+      collecting: { id: "r4", number: "R-1004", cutoff: "2026-11-02", orders: 2, kits: 11 },
+      toOrder: [{ id: "r3", number: "R-1003", days: 2, strengths: ["APro-G3RT (Retatrutide) 10 mg"] }],
+      failed: [{ runId: "r2", number: "R-1002", label: "APro-G3RT (Retatrutide) 10 mg" }],
+      balances: { due: 3, overdue: 1 },
+    })!;
+    expect(sec.tone).toBe("red");
+    expect(sec.n).toBe(3);
+    expect(sec.lines.map((l) => [l.mono ?? "", l.title, l.tone])).toEqual([
+      ["R-1003", "Past cutoff, not ordered", "red"],
+      ["R-1002", "Lot failed: APro-G3RT (Retatrutide) 10 mg", "red"],
+      ["", "3 balances due · 1 overdue", "amb"],
+      ["R-1004", "Closes Nov 2", "slate"],
+    ]);
+    expect(wholesaleSection({ collecting: null, toOrder: [], failed: [], balances: { due: 0, overdue: 0 } })).toBeNull();
   });
 });

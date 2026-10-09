@@ -4,6 +4,7 @@ import { ownerNewWholesaleOrderEmail, wholesaleDepositEmail } from "@/lib/emails
 import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
 import { estimatedDates } from "@/lib/wholesale/rules";
+import { ensureRun } from "@/lib/wholesale/runs-data";
 
 // Runs once a wholesale deposit is paid. No commission (wholesale pays none),
 // no stock (made to order), no tax record (recorded when the balance is paid).
@@ -23,6 +24,11 @@ export async function afterDepositPaid(orderId: string): Promise<{ emailed: bool
   let dates: { testedAbout: string; shipsAbout: string } | null = null;
   if (order.wholesale_cutoff_on) {
     dates = estimatedDates(order.wholesale_cutoff_on, leadDays);
+    try {
+      await ensureRun(order.wholesale_cutoff_on);
+    } catch (err) {
+      await alertOwner("Wholesale run not created", `${order.order_number}: run for ${order.wholesale_cutoff_on} — ${String(err)}. The cron creates it on its next pass.`);
+    }
   } else {
     await alertOwner("Wholesale order missing cutoff date", `${order.order_number}: deposit paid but the order has no run cutoff; the deposit email went without dates. Set the run by hand.`);
   }

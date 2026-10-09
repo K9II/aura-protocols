@@ -1,13 +1,14 @@
 // StrengthMenu.tsx — the ⋯ menu on a strength: Hide from / Show on store,
+// Sell as a wholesale kit / Stop selling as a kit,
 // Archive strength, Delete strength (only with no lots and no orders).
 "use client";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { archiveStrengthAction, deleteStrengthAction, setStrengthShownAction } from "@/app/admin/catalog/actions";
+import { archiveStrengthAction, deleteStrengthAction, setStrengthShownAction, setWholesaleAction } from "@/app/admin/catalog/actions";
 import ConfirmSubmit from "@/components/admin/ConfirmSubmit";
 
 const DELETE_REFUSAL ="This one has lots or orders, so archive it instead.";
 
-export default function StrengthMenu({ slug, variantId, strength, shown, canDelete }: { slug: string; variantId: string; strength: string; shown: boolean; canDelete: boolean }) {
+export default function StrengthMenu({ slug, variantId, strength, shown, wholesale, canDelete }: { slug: string; variantId: string; strength: string; shown: boolean; wholesale: boolean; canDelete: boolean }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -34,6 +35,11 @@ export default function StrengthMenu({ slug, variantId, strength, shown, canDele
             <button type="submit" className="it">{shown
               ? <>Hide from store<small>Greyed out here; customers stop seeing it. Show it again any time.</small></>
               : <>Show on store<small>Customers see it again. With no live lot it shows Out of stock.</small></>}</button>
+          </form>
+          <form action={setWholesaleAction} onSubmit={close}>{hidden}<input type="hidden" name="on" value={wholesale ? "false" : "true"} />
+            <button type="submit" className="it">{wholesale
+              ? <>Stop selling as a kit<small>Leaves the wholesale order sheet. Orders already placed keep it.</small></>
+              : <>Sell as a wholesale kit<small>Shows on the wholesale order sheet when the strength is on the store.</small></>}</button>
           </form>
           <form action={archiveStrengthAction} onSubmit={close}>{hidden}
             <ConfirmSubmit className="it" message={`Archive ${strength}? It leaves the store and this list. Lots, certificates and orders are kept; restore it any time.`}>

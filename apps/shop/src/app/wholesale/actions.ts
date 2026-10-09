@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCustomer } from "@/lib/dal";
 import { shipAddressSchema } from "@/lib/ship-address";
-import { attachCheckoutSession, createPendingWholesaleOrder, getOrderForCustomer, saveShipAddress, saveStripeCustomerId, stampWholesaleCancel, transitionOrder } from "@/lib/orders";
+import { attachCheckoutSession, createPendingWholesaleOrder, getOrderForCustomer, saveBalanceSession, saveShipAddress, saveStripeCustomerId, stampWholesaleCancel, transitionOrder } from "@/lib/orders";
 import { getCommerceAdapter } from "@/lib/commerce";
 import { closeOpenCheckouts } from "@/lib/checkout-close";
 import { siteUrl } from "@/lib/supabase/env";
@@ -19,6 +19,8 @@ import { bookkeep, requestIp, requestIpHash } from "@/lib/checkout-shared";
 import { enableWholesale, getWholesaleSettings } from "@/lib/wholesale/data";
 import { canCancelWholesale, cutoffFor, kitRows, MAX_KITS_PER_LINE, priceWholesale, type WholesaleSettings } from "@/lib/wholesale/rules";
 import { refundCard } from "@/lib/refunds/stripe";
+import { orderHasFailedStrength } from "@/lib/wholesale/runs";
+import { runByCutoff, runLines } from "@/lib/wholesale/runs-data";
 import { wholesaleCancelledEmail } from "@/lib/emails";
 import { currentMs } from "@/lib/clock";
 import { localDate } from "@/lib/today/time";
@@ -180,7 +182,19 @@ export async function cancelWholesaleOrderAction(orderNumber: string): Promise<{
   // Already cancelled (a second click, or the webhook beat us to it on an
   // earlier call): nothing left to do.
   if (order.status === "refunded") return { ok: true };
-  if (!canCancelWholesale(order, localDate(currentMs()))) {
+  // After the cutoff only when one of the order's strengths failed testing.
+  let failed = false;
+  if (order.wholesale_cutoff_on && order.status === "deposit_paid") {
+    try {
+      const run = await runByCutoff(order.wholesale_cutoff_on);
+      const lines = run ? await runLines(run.id) : [];
+      failed = orderHasFailedStrength({ id: order.id, order_number: order.order_number, status: order.status,
+        items: (order.order_items ?? []).map((i) => ({ compound_slug: i.compound_slug, variant_id: i.variant_id, quantity: i.quantity })) }, lines);
+    } catch (err) {
+      console.error("wholesale run read failed:", err);
+    }
+  }
+  if (!canCancelWholesale(order, localDate(currentMs()), { failed })) {
     return { error: "This order is past its order-by date, so it can't be cancelled here. Contact us if something is wrong." };
   }
   if (!order.deposit_payment_intent || !order.deposit_cents) {
@@ -189,7 +203,7 @@ export async function cancelWholesaleOrderAction(orderNumber: string): Promise<{
   }
   let refundId: string;
   try {
-    refundId = await refundCard(order.deposit_payment_intent, order.deposit_cents, order.id);
+    refundId = await refundCard(order.deposit_payment_intent, order.deposit_cents, `order-refund-${order.id}-deposit`);
   } catch (err) {
     console.error("wholesale deposit refund failed:", err);
     return { error: "We couldn't refund your deposit — please try again." };
@@ -224,4 +238,34 @@ export async function cancelWholesaleOrderAction(orderNumber: string): Promise<{
   }
   revalidatePath(`/order/${order.order_number}`);
   return { ok: true };
+}
+
+// ---------- pay the balance (order page) ----------
+// A fresh Stripe page per click (sessions expire within 24 h; the balance has
+// 7 days); the previous page is expired first so only one can be paid.
+export async function payBalanceAction(orderNumber: string): Promise<{ url?: string; error?: string }> {
+  const customer = await getCustomer();
+  if (!customer) return { error: "Please sign in." };
+  const order = await getOrderForCustomer(String(orderNumber).slice(0, 20), customer.id);
+  if (!order || order.channel !== "wholesale") return { error: "Order not found." };
+  if (order.status !== "balance_due" || !order.balance_cents) return { error: "This order has no balance due." };
+  const adapter = getCommerceAdapter();
+  if (order.balance_session_id) {
+    try { await adapter.expireCheckout(order.balance_session_id); } catch (err) { console.error("expire earlier balance session failed:", err); }
+  }
+  try {
+    const r = await adapter.createPaymentCheckout({
+      orderId: order.id, orderNumber: order.order_number, siteUrl: siteUrl(),
+      customer: { email: customer.email, fullName: customer.fullName, stripeCustomerId: customer.stripeCustomerId },
+      ship: { name: order.ship_name, line1: order.ship_line1, line2: order.ship_line2 ?? "", city: order.ship_city, state: order.ship_state as never, zip: order.ship_zip },
+      payment: "balance", label: `Balance — order ${order.order_number}`, amountCents: order.balance_cents,
+      cancelPath: `/order/${order.order_number}`, attempt: Math.floor(currentMs() / 1000),
+    });
+    if (r.kind === "unavailable") return { error: r.message };
+    await saveBalanceSession(order.id, r.sessionId);
+    return { url: r.url };
+  } catch (err) {
+    console.error("balance checkout failed:", err);
+    return { error: "We couldn't start payment — please try again." };
+  }
 }
