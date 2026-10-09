@@ -189,7 +189,7 @@ export async function cancelWholesaleOrderAction(orderNumber: string): Promise<{
   }
   let refundId: string;
   try {
-    refundId = await refundCard(order.deposit_payment_intent, order.deposit_cents, order.id);
+    refundId = await refundCard(order.deposit_payment_intent, order.deposit_cents, `order-refund-${order.id}-deposit`);
   } catch (err) {
     console.error("wholesale deposit refund failed:", err);
     return { error: "We couldn't refund your deposit — please try again." };

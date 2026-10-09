@@ -12,7 +12,7 @@ import { dateTime } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
 import { cancelNoChargeOrderAction } from "@/app/admin/orders/actions";
 import { REASON_LABEL } from "@/lib/no-charge/rules";
-import { refundOffer, REFUND_REASON_LABEL, splitRefund, type RefundReason } from "@/lib/refunds/rules";
+import { refundOffer, REFUND_REASON_LABEL, splitRefund, type RefundReason, cardPayments } from "@/lib/refunds/rules";
 import { paymentLabel } from "@/lib/refunds/stripe";
 import { stripePaymentUrl } from "@/lib/stripe-dashboard";
 import { Crumbs, Icon } from "@/components/admin/ui";
@@ -61,7 +61,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   // offered; a refund made here saved its label (r4), so no read after.
   const [disputedCustomers, dialogLabel] = await Promise.all([
     customersWithDisputes([c.id]),
-    refundMode && o.stripe_payment_intent ? paymentLabel(o.stripe_payment_intent) : Promise.resolve(null),
+    refundMode && cardPayments(o).length ? paymentLabel(cardPayments(o)[cardPayments(o).length - 1].pi) : Promise.resolve(null),
   ]);
   const label = o.status === "refunded" ? o.refund_payment_label : dialogLabel;
   const lines = moneyLines(o, { code: d.code, partnerCode: d.partner?.code ?? null, paymentLabel: label });

@@ -173,7 +173,7 @@ describe("wholesale actions", () => {
     refundCard.mockResolvedValue("re_1");
     const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
     expect(await cancelWholesaleOrderAction("AP-1050")).toEqual({ ok: true });
-    expect(refundCard).toHaveBeenCalledWith("pi_dep", 40800, "o1");
+    expect(refundCard).toHaveBeenCalledWith("pi_dep", 40800, "order-refund-o1-deposit");
     expect(transitionOrder).toHaveBeenCalledWith("o1", "deposit_paid", "refunded", { refund_destination: "card", refund_reason: "customer_cancelled", stripe_refund_id: "re_1" });
     expect(sendOrAlert).toHaveBeenCalledTimes(1);
     expect(stampWholesaleCancel).not.toHaveBeenCalled();
