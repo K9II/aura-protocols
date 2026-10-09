@@ -16,6 +16,8 @@ vi.mock("@/lib/partners/data", () => ({ listPartners: m.listPartners }));
 vi.mock("@/lib/partners/ledger", () => ({ listQueuedPayouts: m.listQueuedPayouts }));
 vi.mock("@/lib/inquiries/data", () => ({ openInquiryTodos: m.openInquiryTodos }));
 vi.mock("@/lib/today/data", () => ({ salesSummary: m.salesSummary }));
+const profitSummary = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/profit/data", () => ({ profitSummary }));
 vi.mock("@/lib/disputes/data", () => ({ openDisputeTodos: m.openDisputeTodos }));
 const wholesaleTodos = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/wholesale/runs-data", () => ({ wholesaleTodos }));
@@ -88,12 +90,22 @@ describe("today assembly", () => {
   });
 
   it("numbers: the current and prior period, mapped into the view; any failure is { ok: false }", async () => {
+    profitSummary.mockResolvedValue({ orders: 0, goodsCents: 0, costCents: 0, profitCents: 0, uncostedOrders: 0, feesEstimated: 0 });
     m.salesSummary.mockResolvedValueOnce(sum({ salesCents: 134650, orders: 5 })).mockResolvedValueOnce(sum({ salesCents: 110369, orders: 3 }));
     const { loadNumbers } = await import("@/lib/today/today");
     const r = await loadNumbers("today");
     expect(m.salesSummary).toHaveBeenNthCalledWith(1, { from: "2026-10-06T06:00:00.000Z", to: "2026-10-06T15:42:00.000Z" }, "hour");
     expect(m.salesSummary).toHaveBeenNthCalledWith(2, { from: "2026-10-05T06:00:00.000Z", to: "2026-10-05T15:42:00.000Z" }, "hour");
     expect(r.ok && r.view.sales).toBe("$1,346.50");
+    m.salesSummary.mockResolvedValue(sum({ salesCents: 100000, orders: 2 }));
+    profitSummary.mockResolvedValueOnce({ orders: 2, goodsCents: 100000, costCents: 40000, profitCents: 60000, uncostedOrders: 1, feesEstimated: 0 })
+      .mockResolvedValueOnce({ orders: 1, goodsCents: 50000, costCents: 20000, profitCents: 30000, uncostedOrders: 0, feesEstimated: 0 });
+    const withProfit = await loadNumbers("7d");
+    expect(withProfit.ok && withProfit.view.profit).toEqual({ value: "$600.00", margin: "60%", change: { dir: "up", text: "▲ 100%" }, note: "1 order without lot costs" });
+    profitSummary.mockRejectedValueOnce(new Error("function admin_profit_summary does not exist"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const profitDown = await loadNumbers("7d");
+    expect(profitDown.ok && profitDown.view.profit).toBe("error");
     m.salesSummary.mockRejectedValue(new Error("function admin_sales_summary does not exist"));
     expect(await loadNumbers("7d")).toEqual({ ok: false });
   });

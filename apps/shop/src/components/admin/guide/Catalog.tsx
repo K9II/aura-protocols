@@ -14,6 +14,7 @@ export default function Catalog() {
           <Step>Open the product in <Ui>Catalog &amp; lots</Ui> and choose <Ui>Receive a lot</Ui> on the strength that arrived.</Step>
           <Step>Type the lot number, purity, method and test date from the certificate, and attach the certificate PDF (up to {COA_MAX_BYTES / 1024 / 1024} MB).</Step>
           <Step>Fill the receiving check: <Ui>Ordered</Ui> from the supplier invoice, <Ui>Counted</Ui> from the box, and any <Ui>Damaged</Ui>. If they don&apos;t match, say what happened — you&apos;ll also get an email.</Step>
+          <Step>Pick the <Ui>Supplier</Ui>. <Ui>Paid to the supplier</Ui> fills itself in from that supplier&apos;s box price in AIOS × the boxes ordered, and <Ui>Lab test fee</Ui> from your default lab — change either if the invoice differs. These are what each vial cost you, and they drive the <Ui>Profit</Ui> card on every order.</Step>
           <Step>Choose <Ui>Save and put live</Ui> to start selling it, or <Ui>Save as draft</Ui> to finish later.</Step>
         </Task>
         <Task title="Put a draft lot live">

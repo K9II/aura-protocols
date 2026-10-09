@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const m = vi.hoisted(() => ({
   requirePermission: vi.fn(), alertOwner: vi.fn(), sendOrAlert: vi.fn(), catalogStockChanged: vi.fn(), revalidatePath: vi.fn(),
   getOrderById: vi.fn(), stampWholesaleCancel: vi.fn(), transitionOrder: vi.fn(), refundCard: vi.fn(), lotById: vi.fn(), variantRow: vi.fn(),
-  draftLotsFor: vi.fn(), failLine: vi.fn(), getRun: vi.fn(), lineById: vi.fn(), linkLot: vi.fn(), logEvent: vi.fn(), passLine: vi.fn(),
+  draftLotsFor: vi.fn(), failLine: vi.fn(), fillLotCostFromLine: vi.fn(), getRun: vi.fn(), lineById: vi.fn(), linkLot: vi.fn(), logEvent: vi.fn(), passLine: vi.fn(),
   recordLineOrder: vi.fn(), resourceLine: vi.fn(), runByCutoff: vi.fn(), runLines: vi.fn(), runOrders: vi.fn(), saveRunNotes: vi.fn(),
   afterLineFailed: vi.fn(), releaseReadyOrders: vi.fn(), saveWholesaleSettings: vi.fn(),
 }));
@@ -15,7 +15,7 @@ vi.mock("@/lib/orders", () => ({ getOrderById: m.getOrderById, stampWholesaleCan
 vi.mock("@/lib/refunds/stripe", () => ({ refundCard: m.refundCard }));
 vi.mock("@/lib/catalog-ops/data", () => ({ lotById: m.lotById, variantRow: m.variantRow }));
 vi.mock("@/lib/wholesale/runs-data", () => ({
-  draftLotsFor: m.draftLotsFor, failLine: m.failLine, getRun: m.getRun, lineById: m.lineById, linkLot: m.linkLot, logEvent: m.logEvent, passLine: m.passLine,
+  draftLotsFor: m.draftLotsFor, failLine: m.failLine, fillLotCostFromLine: m.fillLotCostFromLine, getRun: m.getRun, lineById: m.lineById, linkLot: m.linkLot, logEvent: m.logEvent, passLine: m.passLine,
   recordLineOrder: m.recordLineOrder, resourceLine: m.resourceLine, runByCutoff: m.runByCutoff, runLines: m.runLines, runOrders: m.runOrders, saveRunNotes: m.saveRunNotes,
 }));
 vi.mock("@/lib/wholesale/balance", () => ({ afterLineFailed: m.afterLineFailed, releaseReadyOrders: m.releaseReadyOrders }));
@@ -59,6 +59,7 @@ describe("Admin → Wholesale actions", () => {
     expect((await linkLotAction(null, fd({ lineId: LINE, lotId: "55555555-5555-4555-8555-555555555555" })))?.fieldErrors?.lotId).toBeTruthy();
     expect((await linkLotAction(null, fd({ lineId: LINE, lotId: LOT })))?.ok).toMatch(/Lot linked/);
     expect(m.linkLot).toHaveBeenCalledWith(LINE, LOT, "owner");
+    expect(m.fillLotCostFromLine).toHaveBeenCalledWith(LOT, expect.objectContaining({ id: LINE }));
   });
 
   it("pass: a refusal is explained; a pass refreshes stock, alerts a short lot and releases ready orders", async () => {

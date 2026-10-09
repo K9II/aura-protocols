@@ -24,6 +24,8 @@ vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/orders", () => ({ getOrderById, getOrderByPaymentIntent, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
 vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
+const recordPaymentFee = vi.hoisted(() => vi.fn(async () => true));
+vi.mock("@/lib/payment-fees", () => ({ recordPaymentFee }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ reverseTax }) }));
 vi.mock("@/lib/partners/ledger", () => ({ reverseCommission, refundCredit }));
 vi.mock("@/lib/disputes/data", () => ({ recordDispute, recordDisputeCard, recordFunds, logDisputeEvent, recordWarning, resolveWarningsForCharge, hasDisputeForCharge }));
@@ -52,6 +54,7 @@ describe("handleStripeEvent", () => {
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("checkout.session.completed", session()));
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "paid", { tax_cents: 808, total_cents: 12658, stripe_payment_intent: "pi_1" });
+    expect(recordPaymentFee).toHaveBeenCalledWith("o1", "order", "pi_1");
     expect(afterOrderPaid).toHaveBeenCalledWith("o1");
   });
 
@@ -375,6 +378,7 @@ describe("handleStripeEvent", () => {
     const { applyPaid } = await import("@/lib/stripe-events");
     expect(await applyPaid((await getOrderById())!, { id: "cs_b", metadata: { order_id: "o1", payment: "balance" }, payment_intent: "pi_b" } as never)).toBe(true);
     expect(transitionOrder).toHaveBeenCalledWith("o1", "balance_due", "paid", { balance_payment_intent: "pi_b" });
+    expect(recordPaymentFee).toHaveBeenCalledWith("o1", "balance", "pi_b");
     expect(afterOrderPaid).toHaveBeenCalledWith("o1");
   });
 

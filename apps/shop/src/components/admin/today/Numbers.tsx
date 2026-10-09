@@ -32,6 +32,10 @@ export default function Numbers({ period, view, reloadHref }: { period: Period; 
             <div className="v">{view.sales} <Chg c={view.salesChange} suffix={view.vs} /></div>
             <div className="sub">charged <b>{view.charged}</b> · shipping <b>{view.shipping}</b> · tax <b>{view.tax}</b></div>
             {view.refund && <div className="ref">{view.refund}</div>}
+            {view.profit === "error"
+              ? <div className="pro">Profit · couldn&apos;t load</div>
+              : <div className="pro">Profit <b>{view.profit.value}</b>{view.profit.margin && <> · {view.profit.margin}</>} <Chg c={view.profit.change} suffix={view.vs} />
+                  {view.profit.note && <span className="n"> · {view.profit.note}</span>}</div>}
           </div>
           <div className="a-mini">
             {view.minis.map((mi) => (

@@ -10,7 +10,7 @@ import { createClient } from "@supabase/supabase-js";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { mapSupplierPrices } from "./supplier-prices-map.mjs";
+import { defaultLabFeeCents, mapSupplierPrices } from "./supplier-prices-map.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -35,7 +35,9 @@ if (!existsSync(jsonPath)) throw new Error(`AIOS file not found: ${jsonPath}`);
 // Runs as a function and sets process.exitCode (no process.exit mid-request:
 // Node on Windows asserts when a fetch handle is still closing).
 async function main() {
-  const products = JSON.parse(readFileSync(jsonPath, "utf8")).products ?? [];
+  const sheet = JSON.parse(readFileSync(jsonPath, "utf8"));
+  const products = sheet.products ?? [];
+  const labCents = defaultLabFeeCents(sheet);
   const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
   const { data: variants, error: vErr } = await db.from("catalog_variants").select("slug, variant_id");
   if (vErr) throw new Error(`catalog read failed: ${vErr.message}`);
@@ -43,6 +45,7 @@ async function main() {
   const { rows, skipped } = mapSupplierPrices(products, variants ?? []);
   const strengths = new Set(rows.map((r) => `${r.slug}/${r.variant_id}`)).size;
   console.log(`${rows.length} prices for ${strengths} strengths (AIOS rows not in the store: ${skipped.notInStore}, duplicates ignored: ${skipped.duplicate})`);
+  console.log(labCents == null ? "default lab: no flat fee in AIOS — lab fee pre-fill unchanged" : `default lab (${sheet.defaults.lab}): $${(labCents / 100).toFixed(2)} per lot`);
   if (dryRun) { console.log("dry run — nothing written"); return; }
   if (rows.length === 0) throw new Error("nothing to sync — refusing to clear the table");
 
@@ -52,6 +55,10 @@ async function main() {
   const { error: delErr, count } = await db.from("supplier_prices").delete({ count: "exact" }).eq("source", "aios").lt("synced_at", syncedAt);
   if (delErr) throw new Error(`removing old prices failed: ${delErr.message}`);
   console.log(`synced at ${syncedAt}; removed ${count ?? 0} old price(s)`);
+  if (labCents != null) {
+    const { error: labErr } = await db.from("shop_settings").update({ lot_test_cents: labCents }).eq("id", true);
+    if (labErr) throw new Error(`lab fee update failed: ${labErr.message}`);
+  }
 }
 
 main().catch((e) => { console.error(e.message ?? e); process.exitCode = 1; });

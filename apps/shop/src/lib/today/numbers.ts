@@ -14,6 +14,10 @@ export type SalesSummary = {
 
 export type Change = { dir: "up" | "dn" | "flat"; text: string } | null;
 
+// One period from admin_profit_summary (lot-costs.sql), in cents.
+export type ProfitTotals = { orders: number; goodsCents: number; profitCents: number; uncostedOrders: number; feesEstimated: number };
+export type ProfitLine = { value: string; margin: string | null; change: Change; note: string | null } | "error";
+
 // Percent change; null when there's nothing before to compare with.
 export function pctChange(cur: number, prior: number): Change {
   if (prior <= 0) return null;
@@ -34,6 +38,7 @@ export type Bar = { key: string; h: number; zero: boolean; now: boolean; tip: st
 export type NumbersView = {
   vs: string;
   sales: string; salesChange: Change; charged: string; shipping: string; tax: string; refund: string | null;
+  profit: ProfitLine;
   minis: Mini[];
   chart: { title: string; range: string; bars: Bar[]; axis: string[] };
   topTitle: string;
@@ -44,7 +49,23 @@ const n = (x: number) => x.toLocaleString("en-US");
 const plural = (x: number, word: string) => `${n(x)} ${word}${x === 1 ? "" : "s"}`;
 const avg = (s: SalesSummary) => (s.orders ? Math.round(s.salesCents / s.orders) : 0);
 
-export function numbersView(p: Period, r: PeriodRanges, cur: SalesSummary, prior: SalesSummary, nowMs: number): NumbersView {
+// Profit next to Sales: goods minus product cost, lab share, card fees and
+// commission. "error" when it couldn't be read (shown as such, never $0).
+export function profitLine(cur: ProfitTotals, prior: ProfitTotals): Exclude<ProfitLine, "error"> {
+  const notes = [
+    cur.uncostedOrders > 0 ? `${plural(cur.uncostedOrders, "order")} without lot costs` : "",
+    cur.feesEstimated > 0 ? `${plural(cur.feesEstimated, "order")} with estimated card fees` : "",
+  ].filter(Boolean);
+  return {
+    value: usd(cur.profitCents),
+    margin: cur.goodsCents > 0 ? `${Math.round((cur.profitCents / cur.goodsCents) * 100)}%` : null,
+    change: pctChange(cur.profitCents, prior.profitCents),
+    note: notes.length ? notes.join(" · ") : null,
+  };
+}
+
+export function numbersView(p: Period, r: PeriodRanges, cur: SalesSummary, prior: SalesSummary, nowMs: number,
+  profit: { cur: ProfitTotals; prior: ProfitTotals } | "error" = "error"): NumbersView {
   const count = p === "today" ? countChange : pctChange;
   const cents = fillBuckets(r.keys, cur.buckets);
   const max = Math.max(0, ...cents);
@@ -56,6 +77,7 @@ export function numbersView(p: Period, r: PeriodRanges, cur: SalesSummary, prior
     salesChange: pctChange(cur.salesCents, prior.salesCents),
     charged: usd(cur.chargedCents), shipping: usd(cur.shippingCents), tax: usd(cur.taxCents),
     refund: cur.refundedOrders > 0 ? `refunded ${usd(cur.refundedCents)} (${plural(cur.refundedOrders, "order")})` : null,
+    profit: profit === "error" ? "error" : profitLine(profit.cur, profit.prior),
     minis: [
       { label: "Orders", short: "Orders", value: n(cur.orders), change: count(cur.orders, prior.orders), suffix: p === "today" ? "vs yesterday" : undefined },
       { label: "Average order", short: "Avg order", value: usd(avg(cur)), change: pctChange(avg(cur), avg(prior)) },

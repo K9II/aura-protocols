@@ -87,9 +87,11 @@ describe("catalog-ops data", () => {
     const ev = query({});
     from = fromQueue({ lots: [ins, query({ error: { code: "23505", message: "dup" } })], catalog_events: [ev] });
     const { receiveLot } = await import("@/lib/catalog-ops/data");
-    const v = { lotNumber: "BPC-2610-03", purityPct: 99.4, method: "HPLC+MS" as const, testedOn: "2026-10-02", orderedQty: 200, countedQty: 196, damagedQty: 2, discrepancyNote: "short", coaPath: null };
+    const v = { lotNumber: "BPC-2610-03", purityPct: 99.4, method: "HPLC+MS" as const, testedOn: "2026-10-02", orderedQty: 200, countedQty: 196, damagedQty: 2, discrepancyNote: "short", coaPath: null,
+      supplier: "Nana", costCents: 104000, testCents: 25000 };
     expect(await receiveLot("bpc-157", "10mg", v, "owner")).toEqual({ ok: true, id: "l9" });
-    expect(callArgs(ins, "insert")?.[0]).toMatchObject({ lot_number: "BPC-2610-03", slug: "bpc-157", variant_id: "10mg", counted_qty: 196, received_by: "owner", status: "draft" });
+    expect(callArgs(ins, "insert")?.[0]).toMatchObject({ lot_number: "BPC-2610-03", slug: "bpc-157", variant_id: "10mg", counted_qty: 196, received_by: "owner", status: "draft",
+      supplier: "Nana", cost_cents: 104000, test_cents: 25000 });
     expect(callArgs(ev, "insert")?.[0]).toMatchObject({ kind: "lot_received", lot_id: "l9", actor_id: "owner" });
     expect(await receiveLot("bpc-157", "10mg", v, "owner")).toEqual({ ok: false, taken: true });
   });

@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
 import { catalogContent } from "@/data/catalog";
-import { catalogEvents, fetchAdminOps, variantHistory } from "@/lib/catalog-ops/data";
+import { catalogEvents, fetchAdminOps, lotCosts, lotTestCents, variantHistory, type LotCost } from "@/lib/catalog-ops/data";
+import { supplierPricesFor } from "@/lib/wholesale/runs-data";
 import { adminRows, byLiveThenNumber, isDiscrepancy, liveRefusal, type AdminLotRow } from "@/lib/catalog-ops/rules";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import { coaPublicUrl } from "@/lib/catalog-live";
@@ -36,6 +37,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const c = catalogContent.find((x) => x.slug === slug);
   if (!c) notFound();
   const [ops, events, history] = await Promise.all([fetchAdminOps(slug), catalogEvents(slug), variantHistory(slug)]);
+  // Receive lot's pre-fills (supplier box prices, lab fee) and each lot's
+  // recorded cost. A failed read leaves the fields for the owner to type.
+  let prices: Record<string, Record<string, number>> = {}, testCents: number | undefined, costs = new Map<string, LotCost>();
+  if (can(staff, "lots.receive")) {
+    try {
+      [prices, testCents, costs] = await Promise.all([
+        supplierPricesFor(ops.variants.filter((v) => v.slug === slug).map((v) => `${slug}/${v.variant_id}`)), lotTestCents(), lotCosts(slug)]);
+    } catch (err) { console.error("lot cost pre-fills failed:", err); }
+  }
+  const dollars = (c: number | null | undefined) => (c == null ? "" : (c / 100).toFixed(c % 100 ? 2 : 0));
   const shown = ops.products.find((p) => p.slug === slug)?.shown ?? false;
   const all = adminRows([c], ops);
   const rows = all.filter((r) => !r.archivedAt);
@@ -93,7 +104,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                           <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn sm primary" disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
                           {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}
                         </div>}
-                        {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, purity: String(l.purity_pct), method: l.method, testedOn: l.tested_on, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", coaPath: l.coa_path ?? "" }} />}
+                        {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, purity: String(l.purity_pct), method: l.method, testedOn: l.tested_on, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", coaPath: l.coa_path ?? "", supplier: costs.get(l.id)?.supplier ?? "", cost: dollars(costs.get(l.id)?.cost_cents), testCost: dollars(costs.get(l.id)?.test_cents) }} prices={prices[`${slug}/${r.variantId}`]} testCents={testCents} />}
                       </>;
                     })()}
                   </div></td>
@@ -117,7 +128,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   </div>
                   <div className="r">
                     {!r.strengthShown && can(staff, "catalog.edit") && <form action={setStrengthShownAction}><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={r.variantId} /><input type="hidden" name="shown" value="true" /><button type="submit" className="a-btn sm">Show on store</button></form>}
-                    {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} />}
+                    {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} prices={prices[`${slug}/${r.variantId}`]} testCents={testCents} />}
                     {can(staff, "catalog.edit") && <StrengthMenu slug={slug} variantId={r.variantId} strength={r.strength} shown={r.strengthShown} wholesale={r.wholesale} canDelete={h.lots === 0 && h.orders === 0} />}
                   </div>
                 </div>

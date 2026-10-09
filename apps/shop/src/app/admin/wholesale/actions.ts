@@ -15,7 +15,7 @@ import { currentMs } from "@/lib/clock";
 import { localDate } from "@/lib/today/time";
 import { kitsByStrength, strengthKey, suppliersOk } from "@/lib/wholesale/runs";
 import {
-  draftLotsFor, failLine, getRun, lineById, linkLot, logEvent, passLine, recordLineOrder, resourceLine, runByCutoff, runLines, runOrders, saveRunNotes,
+  draftLotsFor, failLine, fillLotCostFromLine, getRun, lineById, linkLot, logEvent, passLine, recordLineOrder, resourceLine, runByCutoff, runLines, runOrders, saveRunNotes,
 } from "@/lib/wholesale/runs-data";
 import { afterLineFailed, releaseReadyOrders } from "@/lib/wholesale/balance";
 import { parseSettingsForm } from "@/lib/wholesale/rules";
@@ -75,6 +75,10 @@ export async function linkLotAction(_prev: ActionState, f: FormData): Promise<Ac
   const lots = await draftLotsFor(line.slug, line.variant_id);
   if (!lots.some((l) => l.id === lotId)) return { fieldErrors: { lotId: "That lot isn't a draft lot of this strength (or it's linked to another run)." } };
   if (!(await linkLot(line.id, lotId, owner.id))) return { error: "That line changed — reload the page." };
+  // Profit needs the lot's cost; a failure here doesn't undo the link.
+  try { await fillLotCostFromLine(lotId, line); } catch (err) {
+    await alertOwner("Lot cost not recorded", `${line.slug} ${line.variant_id} lot ${lotId}: the run order's cost wasn't copied onto the lot. Enter it on the lot (Catalog → Edit). ${String(err)}`);
+  }
   refresh(line.run_id);
   return { ok: "Lot linked. Add its certificate, then Pass or Fail." };
 }

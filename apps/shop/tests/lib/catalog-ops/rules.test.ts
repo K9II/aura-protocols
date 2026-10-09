@@ -12,7 +12,16 @@ describe("parseReceive", () => {
     expect(r).toEqual({ ok: true, warnings: {}, value: {
       lotNumber: "BPC-2610-03", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-10-02",
       orderedQty: 200, countedQty: 200, damagedQty: 0, discrepancyNote: null, coaPath: "BPC-2610-03/1.pdf",
+      supplier: null, costCents: null, testCents: null,
     } });
+  });
+  it("records the supplier, what was paid and the lab fee; a cost needs its supplier", () => {
+    const r = parseReceive({ ...base, supplier: " Nana ", cost: "$1,040", testCost: "250" }, "2026-10-05");
+    expect(r.ok && r.value).toMatchObject({ supplier: "Nana", costCents: 104000, testCents: 25000 });
+    const bad = parseReceive({ ...base, cost: "lots", testCost: "-5" }, "2026-10-05");
+    expect(!bad.ok && Object.keys(bad.fieldErrors).sort()).toEqual(["cost", "testCost"]);
+    const noSup = parseReceive({ ...base, cost: "520" }, "2026-10-05");
+    expect(!noSup.ok && noSup.fieldErrors.supplier).toMatch(/supplier/);
   });
   it("refuses bad lot numbers, purity outside 90–100, future test dates, damaged > counted", () => {
     const r = parseReceive({ ...base, lotNumber: "x", purity: "89", testedOn: "2026-10-06", damaged: "300" }, "2026-10-05");

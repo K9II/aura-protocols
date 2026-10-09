@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mapSupplierPrices, variantIdOf } from "../../scripts/supplier-prices-map.mjs";
+import { defaultLabFeeCents, mapSupplierPrices, variantIdOf } from "../../scripts/supplier-prices-map.mjs";
 
 const variants = [{ slug: "bpc-157", variant_id: "10mg" }, { slug: "slu-pp-332", variant_id: "250mcg" }];
 
@@ -32,5 +32,10 @@ describe("mapSupplierPrices (AIOS → supplier_prices)", () => {
   it("variant ids follow the store rule", () => {
     expect(variantIdOf("250 mcg")).toBe("250mcg");
     expect(variantIdOf("10 MG")).toBe("10mg");
+  });
+
+  it("the default lab's flat fee per lot, or null without one", () => {
+    expect(defaultLabFeeCents({ defaults: { lab: "vanguard_silver" }, rates: { labs: { vanguard_silver: { price: 250 } } } })).toBe(25000);
+    expect(defaultLabFeeCents({ defaults: { lab: "janoshik" }, rates: { labs: { janoshik: { per_product: true } } } })).toBeNull();
   });
 });

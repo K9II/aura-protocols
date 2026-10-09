@@ -151,6 +151,15 @@ export async function linkLot(lineId: string, lotId: string, actorId: string): P
   return true;
 }
 
+// The run line's supplier order is what this lot cost: copied onto the lot
+// unless a cost was already recorded when it was received (lot-costs.sql).
+export async function fillLotCostFromLine(lotId: string, line: { supplier: string | null; cost_cents: number | null }): Promise<void> {
+  if (line.cost_cents == null) return;
+  const { error } = await db().from("lots").update({ supplier: line.supplier, cost_cents: line.cost_cents })
+    .eq("id", lotId).is("cost_cents", null);
+  if (error) fail("lot cost from run line", error);
+}
+
 export async function passLine(lineId: string, actorId: string): Promise<{ ok: true; held: number; short: string[] } | { ok: false; reason: string }> {
   const { data, error } = await db().rpc("pass_run_line", { p_line: lineId, p_actor: actorId });
   if (error || !data) fail("pass run line", error);
