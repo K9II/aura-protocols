@@ -108,6 +108,13 @@ export async function recordLineOrder(v: { runId: string; slug: string; variantI
     detail: `${v.kits} kits + ${v.extraBoxes} extra box(es) · ${v.supplier}${v.ref ? ` · ${v.ref}` : ""}` });
 }
 
+// Every supplier named on any run line, newest first (Record order drop-down).
+export async function pastSuppliers(): Promise<string[]> {
+  const { data, error } = await db().from("production_run_lines").select("supplier").not("supplier", "is", null).order("ordered_at", { ascending: false }).limit(500);
+  if (error) fail("past suppliers read", error);
+  return [...new Set(((data ?? []) as Array<{ supplier: string }>).map((r) => r.supplier))];
+}
+
 // Draft lots of a strength, not linked to another run line yet.
 export async function draftLotsFor(slug: string, variantId: string): Promise<DraftLot[]> {
   const { data, error } = await db().from("lots").select("id, lot_number, counted_qty, damaged_qty, coa_path, received_at")

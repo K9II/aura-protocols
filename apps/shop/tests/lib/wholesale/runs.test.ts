@@ -1,6 +1,6 @@
 // tests/lib/wholesale/runs.test.ts
 import { describe, it, expect } from "vitest";
-import { kitsByStrength, lineStage, runStatus, orderReady, suppliersOk, balanceTiming, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS } from "@/lib/wholesale/runs";
+import { kitsByStrength, lineStage, runStatus, orderReady, suppliersOk, balanceTiming, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS, supplierOptions, KNOWN_SUPPLIERS } from "@/lib/wholesale/runs";
 
 const line = (o: Record<string, unknown> = {}) => ({ id: "l1", slug: "bpc-157", variant_id: "10mg", kits_ordered: null, extra_boxes: 0, supplier: null,
   cost_cents: null, supplier_ref: null, ordered_at: null, lot_id: null, result: "pending" as const, result_at: null, fail_note: null, ...o });
@@ -50,5 +50,19 @@ describe("run rules", () => {
     expect(t.overdueAt).toBe(Date.parse("2026-11-19T15:00:00Z"));
     expect(t.forfeitAt).toBe(Date.parse("2026-11-20T15:00:00Z"));
     expect(PAST_CUTOFF_ALERT_DAYS).toBe(2);
+  });
+});
+
+describe("supplierOptions", () => {
+  it("a new run: the known suppliers, then ones used on earlier runs, no duplicates", () => {
+    const r = supplierOptions([], ["HK Peptides", "lkz"]);
+    expect(r.full).toBe(false);
+    expect(r.options).toEqual([...KNOWN_SUPPLIERS, "HK Peptides"]);
+  });
+  it("the run's own supplier comes first", () => {
+    expect(supplierOptions(["Uther"], []).options[0]).toBe("Uther");
+  });
+  it("a run with two suppliers offers only those two", () => {
+    expect(supplierOptions(["LKZ", "HK Peptides"], ["Nana"])).toEqual({ options: ["LKZ", "HK Peptides"], full: true });
   });
 });

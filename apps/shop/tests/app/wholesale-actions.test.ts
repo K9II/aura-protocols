@@ -59,7 +59,7 @@ describe("wholesale actions", () => {
     // 3 x $544 + 2 x $528 at 20% off = $2,688; deposit 40%
     expect(createPendingWholesaleOrder).toHaveBeenCalledWith(expect.objectContaining({ customerId: "c1", cutoffOn: "2026-10-19", taxCents: 8000, taxCalculationId: "taxcalc_1",
       quote: expect.objectContaining({ subtotalCents: 268800, depositCents: 107520 }) }));
-    expect(createPaymentCheckout).toHaveBeenCalledWith(expect.objectContaining({ orderId: "o1", payment: "deposit", amountCents: 107520, cancelPath: "/wholesale" }));
+    expect(createPaymentCheckout).toHaveBeenCalledWith(expect.objectContaining({ orderId: "o1", payment: "deposit", amountCents: 107520, cancelPath: "/wholesale?step=order" }));
     expect(attachCheckoutSession).toHaveBeenCalledWith("o1", "cs_1");
   });
 

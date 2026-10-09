@@ -4,11 +4,11 @@ import { ownerStaff, assistantStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({
   requirePermission: vi.fn(), getWholesaleSettings: vi.fn(), listRuns: vi.fn(), runLines: vi.fn(), runOrders: vi.fn(), getRun: vi.fn(),
-  runEvents: vi.fn(), draftLotsFor: vi.fn(), lotById: vi.fn(), notFound: vi.fn(() => { throw new Error("NOT_FOUND"); }),
+  runEvents: vi.fn(), draftLotsFor: vi.fn(), pastSuppliers: vi.fn(), lotById: vi.fn(), notFound: vi.fn(() => { throw new Error("NOT_FOUND"); }),
 }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: m.getWholesaleSettings }));
-vi.mock("@/lib/wholesale/runs-data", () => ({ listRuns: m.listRuns, runLines: m.runLines, runOrders: m.runOrders, getRun: m.getRun, runEvents: m.runEvents, draftLotsFor: m.draftLotsFor }));
+vi.mock("@/lib/wholesale/runs-data", () => ({ listRuns: m.listRuns, runLines: m.runLines, runOrders: m.runOrders, getRun: m.getRun, runEvents: m.runEvents, draftLotsFor: m.draftLotsFor, pastSuppliers: m.pastSuppliers }));
 vi.mock("@/lib/catalog-ops/data", () => ({ lotById: m.lotById }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-30T16:00:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound, useRouter: () => ({ refresh: vi.fn() }) }));
@@ -36,6 +36,7 @@ describe("Admin → Wholesale pages", () => {
     m.getRun.mockResolvedValue(run);
     m.runEvents.mockResolvedValue([]);
     m.draftLotsFor.mockResolvedValue([]);
+    m.pastSuppliers.mockResolvedValue(["HK Peptides"]);
     m.lotById.mockResolvedValue({ lot_number: "BPC-2611A", coa_path: "x.pdf", held: 0 });
   });
 
@@ -65,6 +66,8 @@ describe("Admin → Wholesale pages", () => {
     expect(screen.getByRole("button", { name: "Fail…" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Cancel deposit…" })).toBeTruthy();
     expect(container.textContent).toMatch(/1 of 2 suppliers · LKZ/);
+    const opts = [...container.querySelectorAll("select[name=supplier] option")].map((o) => o.textContent);
+    expect(opts).toEqual(["Choose a supplier…", "LKZ · in this run", "Uther", "Reta-Peptide", "EHZ", "BFF Chem", "Nana", "HK Peptides", "Other…"]);
     expect(screen.getByDisplayValue("Claim filed with Uther")).toBeTruthy();
   });
 

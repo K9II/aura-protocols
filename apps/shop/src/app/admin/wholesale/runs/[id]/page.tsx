@@ -11,9 +11,9 @@ import { lotById } from "@/lib/catalog-ops/data";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
 import { estimatedDates } from "@/lib/wholesale/rules";
 import {
-  kitsByStrength, lineStage, MAX_SUPPLIERS_PER_RUN, runStatus, RUN_CHIP, RUN_STATUS_LABEL, STAGE_CHIP, strengthKey, strengthText, type RunLine,
+  kitsByStrength, lineStage, MAX_SUPPLIERS_PER_RUN, runStatus, supplierOptions, RUN_CHIP, RUN_STATUS_LABEL, STAGE_CHIP, strengthKey, strengthText, type RunLine,
 } from "@/lib/wholesale/runs";
-import { draftLotsFor, getRun, runEvents, runLines, runOrders, type RunEvent } from "@/lib/wholesale/runs-data";
+import { draftLotsFor, getRun, pastSuppliers, runEvents, runLines, runOrders, type RunEvent } from "@/lib/wholesale/runs-data";
 import { dateTime } from "@/lib/discounts/time";
 import { Crumbs } from "@/components/admin/ui";
 import { OrderStatusChip } from "@/components/admin/orders/bits";
@@ -44,6 +44,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   const status = runStatus(run.cutoff_on, today, lines, orders);
   const dates = estimatedDates(run.cutoff_on, s.leadDays);
   const suppliers = [...new Set(lines.map((l) => l.supplier).filter((x): x is string => !!x))];
+  const choices = supplierOptions(suppliers, manage ? await pastSuppliers() : []);
 
   // Every strength the run's orders need, plus any line already recorded.
   const keys = [...new Set([...needed.keys(), ...lines.map((l) => strengthKey(l.slug, l.variant_id))])];
@@ -89,7 +90,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                     <span className="muted"> · {r.stage === "passed" ? `held ${r.lot.held} vials` : r.stage === "failed" ? "never sold" : r.lot.coa_path ? "COA ✓" : "no certificate yet"}</span></> : "—"}</td>
                   <td><span className={`a-chip ${STAGE_CHIP[r.stage].cls}`}>{STAGE_CHIP[r.stage].text}</span></td>
                   <td className="r a-nw">{manage && (
-                    r.stage === "to_order" ? <RecordOrderDialog runId={run.id} runNumber={run.number} cutoffLabel={cutoffLabel} slug={r.slug} variantId={r.variantId} label={label} kits={needed.get(r.k) ?? 0} suppliers={suppliers} primary />
+                    r.stage === "to_order" ? <RecordOrderDialog runId={run.id} runNumber={run.number} cutoffLabel={cutoffLabel} slug={r.slug} variantId={r.variantId} label={label} kits={needed.get(r.k) ?? 0} suppliers={suppliers} choices={choices} primary />
                     : r.stage === "ordered" ? <LinkLotDialog lineId={r.line!.id} label={label} lots={r.drafts} />
                     : r.stage === "received" ? <PassFailButtons lineId={r.line!.id} label={label} buyers={r.buyers} />
                     : r.stage === "failed" ? <ResourceButton lineId={r.line!.id} />

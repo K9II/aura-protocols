@@ -23,7 +23,7 @@ export default function SiteNav() {
         <span className="whitespace-nowrap">Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
       </div>
       <div className="p-container pt-3.5 pb-2 bg-[color:var(--paper)]">
-        {/* Logo left · links centered · Shop + Cart right (Kearney, option A, 2026-09-28).
+        {/* Logo left · links centered (Shop first, 2026-10-09) · account + Cart right.
             Phones: logo + actions on one row, links centered on a second row. */}
         <nav className="s-nav" aria-label="Main">
           <Link href="/" aria-label="Aura Protocols home" className="s-nav-logo"><AuraLockup size={58} mode="loop" /></Link>
@@ -34,7 +34,6 @@ export default function SiteNav() {
             <Link href="/affiliates">Affiliate Program</Link>
           </div>
           <div className="s-nav-actions">
-            <Link href="/products" className="s-nav-shop">Shop</Link>
             <AuthLinks />
             <button type="button" className={totals.itemCount > 0 ? "s-nav-cart s-nav-cart-full" : "s-nav-cart"} onClick={() => setOpen(true)}>
               Cart ({totals.itemCount})

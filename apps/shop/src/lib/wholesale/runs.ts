@@ -2,7 +2,22 @@
 // A run is keyed by its cutoff date; its status is derived, never stored.
 import type { OrderStatus } from "@/lib/order-status";
 
-export const MAX_SUPPLIERS_PER_RUN = 2;     // feedback: max 2 suppliers per order
+export const MAX_SUPPLIERS_PER_RUN = 2;
+// The Record order drop-down: the AIOS order planner's suppliers (2026-10-09).
+export const KNOWN_SUPPLIERS = ["LKZ", "Uther", "Reta-Peptide", "EHZ", "BFF Chem", "Nana"] as const;
+
+// Choices for a run's next supplier order: the run's own suppliers first; once
+// it has MAX_SUPPLIERS_PER_RUN, only those. Otherwise the known list plus any
+// used on earlier runs, without duplicates (case-insensitive).
+export function supplierOptions(inRun: string[], used: string[]): { options: string[]; full: boolean } {
+  const full = inRun.length >= MAX_SUPPLIERS_PER_RUN;
+  const out: string[] = [];
+  for (const s of full ? inRun : [...inRun, ...KNOWN_SUPPLIERS, ...used]) {
+    const t = s.trim();
+    if (t && !out.some((o) => o.toLowerCase() === t.toLowerCase())) out.push(t);
+  }
+  return { options: out, full };
+}     // feedback: max 2 suppliers per order
 export const PAST_CUTOFF_ALERT_DAYS = 2;    // Today + alert when a closed run isn't ordered by then
 export const BALANCE_REMINDER_DAY = 5;      // reminder email this many days after "kits passed"
 const DAY = 24 * 3600 * 1000;

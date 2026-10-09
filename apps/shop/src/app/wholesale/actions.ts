@@ -154,7 +154,7 @@ export async function startWholesaleCheckoutAction(input: unknown): Promise<Star
       orderId: order.id, orderNumber: order.orderNumber, siteUrl: siteUrl(),
       customer: { email: customer.email, fullName: customer.fullName, stripeCustomerId: customer.stripeCustomerId }, ship,
       payment: "deposit", label: `Deposit (${s.depositPct}%) — order ${order.orderNumber} · ${quote.kits} kit${quote.kits === 1 ? "" : "s"}`,
-      amountCents: quote.depositCents, cancelPath: "/wholesale",
+      amountCents: quote.depositCents, cancelPath: "/wholesale?step=order",
     });
     if (r.kind === "unavailable") { await cancelPending("Stripe was unavailable"); return { error: r.message }; }
     sessionId = r.sessionId;

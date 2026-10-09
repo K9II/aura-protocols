@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const SLIDES = [
   { eb: "Tested in an ISO/IEC 17025-accredited US lab", h: <>Proof before <em>product.</em></>, sub: "Research compounds released only after independent lot testing." },
   { eb: "Lot release", h: <>Tested before it’s listed.</>, sub: "Every lot’s certificate is published under its lot number." },
-  { eb: "The catalog", h: <>Every compound by its <em>scientific name.</em></>, sub: "Grouped by chemical class. No nicknames." },
+  { eb: "Lot traceability", h: <>Every vial traced to its <em>tested lot.</em></>, sub: "Each order records the lot it shipped from, matched to that lot’s certificate." },
 ];
 const ADVANCE_MS = 5500;
 

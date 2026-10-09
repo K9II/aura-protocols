@@ -12,7 +12,7 @@ export default function Wholesale() {
       tasks={<>
         <Task title="Order a run from the supplier">
           <Step>After the order-by date the run shows <Ui>To order</Ui> on <Ui>Today</Ui> and in <Ui>Wholesale</Ui>. Open the run.</Step>
-          <Step>For each strength choose <Ui>Record order</Ui>: the supplier, any <Ui>Extra retail boxes</Ui>, the cost and the supplier&apos;s reference. The kits come from the run&apos;s orders. A run uses at most {MAX_SUPPLIERS_PER_RUN} suppliers.</Step>
+          <Step>For each strength choose <Ui>Record order</Ui>: pick the <Ui>Supplier</Ui>, add any <Ui>Extra boxes for the shop</Ui>, and enter the <Ui>Total paid to the supplier</Ui> and their order or invoice number. The kits come from the run&apos;s orders. A run uses at most {MAX_SUPPLIERS_PER_RUN} suppliers.</Step>
         </Task>
         <Task title="Receive and link the lot">
           <Step>When the boxes arrive, receive them in <Ui>Catalog &amp; lots</Ui> as usual and add the certificate. The lot stays a draft.</Step>

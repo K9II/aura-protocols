@@ -4,6 +4,7 @@ import InquiryForm from "@/components/store/InquiryForm";
 import RunStrip from "@/components/store/wholesale/RunStrip";
 import TierTable from "@/components/store/wholesale/TierTable";
 import FeaturedKits from "@/components/store/wholesale/FeaturedKits";
+import MinimumKits from "@/components/store/wholesale/MinimumKits";
 import WholesaleOrderSheet from "@/components/store/wholesale/WholesaleOrderSheet";
 import WholesaleTurnOn from "@/components/store/wholesale/WholesaleTurnOn";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
@@ -45,7 +46,12 @@ function ClosedPage() {
   );
 }
 
-export default async function WholesalePage() {
+// Everyone lands on the intro (tiers, how it works, featured kits) first;
+// "Start an order" (or signing in) moves on to ?step=order.
+const ORDER_HREF = "/wholesale?step=order";
+
+export default async function WholesalePage({ searchParams }: { searchParams: Promise<{ step?: string | string[] }> }) {
+  const ordering = (await searchParams).step === "order";
   let s: WholesaleSettings;
   try {
     s = await getWholesaleSettings();
@@ -61,10 +67,10 @@ export default async function WholesalePage() {
   const live = await getLiveCatalogOrNull();
   const rows = live ? withArt(kitRows(live.shown)) : null;
   const pricing = { tiers: s.tiers, depositPct: s.depositPct, minKits: s.minKits };
-  const rules = <p className="s-ws-rules"><b>Minimum {s.minKits} kits</b> per order. Every batch is independently tested, and you receive its certificate.</p>;
+  const rules = <MinimumKits minKits={s.minKits} />;
 
   let body: React.ReactNode;
-  if (!customer) {
+  if (!customer || !ordering) {
     body = (
       <>
         <TierTable tiers={s.tiers} />
@@ -76,7 +82,9 @@ export default async function WholesalePage() {
           <li>Your kits ship with the lot&apos;s certificate.</li>
         </ol>
         {rows && rows.length > 0 && <FeaturedKits rows={rows} />}
-        <Link href={`/sign-in?next=${encodeURIComponent("/wholesale")}`} className="s-ws-btn">Sign in to order →</Link>
+        {customer
+          ? <Link href={ORDER_HREF} className="s-ws-btn">Start an order →</Link>
+          : <Link href={`/sign-in?next=${encodeURIComponent(ORDER_HREF)}`} className="s-ws-btn">Sign in to order →</Link>}
       </>
     );
   } else if (customer.wholesale?.disabledAt) {
