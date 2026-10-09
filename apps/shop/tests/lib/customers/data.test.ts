@@ -52,11 +52,33 @@ describe("customers data", () => {
       customers: [query({ data: { id: "u1", full_name: "Dana Whitfield", created_at: "2026-09-01T00:00:00Z" } })],
       orders: [orders], account_agreements: [query({ data: [] })], gate_attestations: [query({ data: [] })],
       store_credit_ledger: [query({ data: [] })], customer_events: [query({ data: [] })], partners: [query({ data: null })],
+      wholesale_agreements: [query({ data: [] })],
     });
     getUserById.mockResolvedValue({ data: { user: { email: "dana.w@example.com" } }, error: null });
     const { getCustomerDetail } = await import("@/lib/customers/data");
     const d = (await getCustomerDetail("u1"))!;
     expect(String(callArgs(orders, "select")![0])).toMatch(/\bkind\b/);
     expect(d.orders[0].kind).toBe("no_charge");
+  });
+
+  it("getCustomerDetail carries the wholesale switch and the latest wholesale terms", async () => {
+    from = fromQueue({
+      customers: [query({ data: { id: "u1", full_name: "Dana Whitfield", created_at: "2026-09-01T00:00:00Z", wholesale_enabled_at: "2026-10-09T16:14:00Z", wholesale_disabled_at: null, wholesale_disabled_reason: null } })],
+      orders: [query({ data: [] })], account_agreements: [query({ data: [] })], gate_attestations: [query({ data: [] })],
+      store_credit_ledger: [query({ data: [] })], customer_events: [query({ data: [] })], partners: [query({ data: null })],
+      wholesale_agreements: [query({ data: [{ terms_version: "2026-10-08", agreed_at: "2026-10-09T16:14:00Z" }] })],
+    });
+    getUserById.mockResolvedValue({ data: { user: { email: "dana.w@example.com" } }, error: null });
+    const { getCustomerDetail } = await import("@/lib/customers/data");
+    expect((await getCustomerDetail("u1"))!.wholesale).toEqual({ enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: { version: "2026-10-08", at: "2026-10-09T16:14:00Z" } });
+  });
+
+  it("setCustomerWholesale off records the reason and logs the event", async () => {
+    const upd = query({}), ev = query({});
+    from = fromQueue({ customers: [upd], customer_events: [ev] });
+    const { setCustomerWholesale } = await import("@/lib/customers/data");
+    await setCustomerWholesale("u1", false, "Asked about reselling", "owner");
+    expect(callArgs(upd, "update")?.[0]).toMatchObject({ wholesale_disabled_reason: "Asked about reselling", wholesale_disabled_at: expect.any(String) });
+    expect(callArgs(ev, "insert")?.[0]).toMatchObject({ customer_id: "u1", kind: "wholesale_off", reason: "Asked about reselling", actor_id: "owner" });
   });
 });

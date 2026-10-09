@@ -19,6 +19,8 @@ export function catalogEventLine(e: CatalogEvent, strengthOf: (variantId: string
     case "strength_archived": return <>{who} archived {st}</>;
     case "strength_restored": return <>{who} restored {st} · hidden</>;
     case "strength_deleted": return <>{who} deleted {st}</>;
+    case "wholesale_on": return <>{who} started selling {st} as a wholesale kit</>;
+    case "wholesale_off": return <>{who} stopped selling {st} as a wholesale kit</>;
     case "lot_received": return <>{who} received {lot} · {a.counted} of {a.ordered}{Number(a.damaged) ? `, ${a.damaged} damaged` : ""}</>;
     case "lot_edited": return <>{who} edited draft {lot}</>;
     case "lot_live": return <>{who} put {lot} live</>;

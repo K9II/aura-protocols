@@ -139,6 +139,7 @@ export type AdminRow = {
   productShown: boolean; strengthShown: boolean; archivedAt: string | null;
   available: number; held: number; stock: StockState; selling: LotRef | null; next: LotRef | null; lastSoldOut: string | null;
   hasDraft: boolean; hasDiscrepancy: boolean;
+  wholesale: boolean;   // offered as a 10-vial wholesale kit (catalog_variants.wholesale)
 };
 
 const ref = (l: AdminLotRow): LotRef => ({
@@ -167,6 +168,7 @@ export function adminRows(content: ContentLite[], ops: AdminOps): AdminRow[] {
         available, held: live.reduce((s, l) => s + l.held, 0), stock: stockState(available, vr.low_at),
         selling: selling ? ref(selling) : null, next: nextLot ? ref(nextLot) : null,
         lastSoldOut: soldOut.length ? soldOut[soldOut.length - 1].lot_number : null,
+        wholesale: vr.wholesale !== false,
         hasDraft: drafts.length > 0, hasDiscrepancy: lots.some((l) => l.status !== "retired" && isDiscrepancy(l.ordered_qty, l.counted_qty, l.damaged_qty)),
       });
     }

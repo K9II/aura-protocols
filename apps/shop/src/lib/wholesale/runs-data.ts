@@ -1,7 +1,13 @@
 import "server-only";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import type { OrderStatus } from "@/lib/order-status";
-import type { RunLine, RunOrder } from "@/lib/wholesale/runs";
+import { balanceTiming, daysSince, kitsByStrength, PAST_CUTOFF_ALERT_DAYS, strengthKey, type RunLine, type RunOrder } from "@/lib/wholesale/runs";
+import { cutoffFor } from "@/lib/wholesale/rules";
+import { getWholesaleSettings } from "@/lib/wholesale/data";
+import { catalogContent } from "@/data/catalog";
+import { compoundTitle } from "@/lib/catalog";
+import { addDays, localDate } from "@/lib/today/time";
+import type { WholesaleTodoInput } from "@/lib/today/todos";
 
 const db = () => getSupabaseAdminClient();
 const fail = (what: string, e: unknown): never => { throw new Error(`${what} failed: ${JSON.stringify(e)}`); };
@@ -172,4 +178,38 @@ export async function cutoffsWithoutRuns(): Promise<string[]> {
   if (e2) fail("runs read", e2);
   const have = new Set(((runs ?? []) as Array<{ cutoff_on: string }>).map((r) => r.cutoff_on));
   return cutoffs.filter((c) => !have.has(c));
+}
+
+// ---------- Today (lib/today/today.ts reads this; no second query path) ----------
+const strengthLabel = (slug: string, variantId: string): string => {
+  const c = catalogContent.find((x) => x.slug === slug);
+  const strength = variantId.replace(/^(\d+(?:\.\d+)?)(mg|mcg|iu)$/i, (_, n: string, u: string) => `${n} ${u.toLowerCase() === "iu" ? "IU" : u}`);
+  return `${c ? compoundTitle(c) : slug} ${strength}`;
+};
+
+export async function wholesaleTodos(nowMs: number): Promise<WholesaleTodoInput> {
+  const today = localDate(nowMs);
+  const [s, runs, due] = await Promise.all([getWholesaleSettings(), listRuns(), balanceDueOrders()]);
+  const cutoff = cutoffFor(today, { runDays: s.runDays, override: s.nextCutoffOverride });
+  const recent = runs.filter((r) => r.cutoff_on >= addDays(today, -120));
+  const orders = await runOrders(recent.map((r) => r.cutoff_on));
+  const out: WholesaleTodoInput = { collecting: null, toOrder: [], failed: [], balances: { due: due.length, overdue: 0 } };
+  for (const o of due) if (o.balance_due_at && nowMs >= balanceTiming(o.balance_due_at, s.balanceDays).overdueAt) out.balances.overdue++;
+  for (const r of recent) {
+    const mine = orders.filter((o) => o.wholesale_cutoff_on === r.cutoff_on);
+    if (r.cutoff_on === cutoff) {
+      const live = mine.filter((o) => o.status === "deposit_paid");
+      out.collecting = { id: r.id, number: r.number, cutoff: r.cutoff_on, orders: live.length, kits: [...kitsByStrength(live).values()].reduce((a, b) => a + b, 0) };
+      continue;
+    }
+    if (today <= r.cutoff_on) continue;
+    const lines = await runLines(r.id);
+    for (const l of lines) if (l.result === "failed") out.failed.push({ runId: r.id, number: r.number, label: strengthLabel(l.slug, l.variant_id) });
+    const days = daysSince(r.cutoff_on, today);
+    if (days < PAST_CUTOFF_ALERT_DAYS) continue;
+    const missing = [...kitsByStrength(mine.filter((o) => o.status === "deposit_paid")).keys()]
+      .filter((k) => !lines.some((l) => strengthKey(l.slug, l.variant_id) === k && (l.ordered_at || l.result === "passed")));
+    if (missing.length) out.toOrder.push({ id: r.id, number: r.number, days, strengths: missing.map((k) => { const [slug, v] = k.split("/"); return strengthLabel(slug, v); }) });
+  }
+  return out;
 }

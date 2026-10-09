@@ -17,6 +17,8 @@ vi.mock("@/lib/partners/ledger", () => ({ listQueuedPayouts: m.listQueuedPayouts
 vi.mock("@/lib/inquiries/data", () => ({ openInquiryTodos: m.openInquiryTodos }));
 vi.mock("@/lib/today/data", () => ({ salesSummary: m.salesSummary }));
 vi.mock("@/lib/disputes/data", () => ({ openDisputeTodos: m.openDisputeTodos }));
+const wholesaleTodos = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/wholesale/runs-data", () => ({ wholesaleTodos }));
 
 const sum = (o: Record<string, unknown> = {}) => ({
   salesCents: 0, orders: 0, chargedCents: 0, shippingCents: 0, taxCents: 0, refundedCents: 0, refundedOrders: 0,
@@ -32,6 +34,8 @@ const lotRow = (o: Record<string, unknown>) => ({
 describe("today assembly", () => {
   beforeEach(() => {
     vi.resetModules();
+    wholesaleTodos.mockReset();
+    wholesaleTodos.mockResolvedValue({ collecting: null, toOrder: [], failed: [], balances: { due: 0, overdue: 0 } });
     for (const f of Object.values(m)) f.mockReset();
     vi.spyOn(console, "error").mockImplementation(() => {});
     m.listOpenAlerts.mockResolvedValue([{ id: "a1", title: "T", detail: "D", count: 1, first_at: "2026-10-06T14:00:00Z", last_at: "2026-10-06T14:00:00Z", resolved_at: null, resolved_by_name: null, note: null }]);
@@ -54,8 +58,8 @@ describe("today assembly", () => {
   it("loads every section through the modules' own data functions; the nav count is the sum of their counts", async () => {
     const { loadTodos, todayNavCount } = await import("@/lib/today/today");
     const slots = await loadTodos();
-    expect(slots.map((s) => s.key)).toEqual(["alerts", "disputes", "orders", "catalog", "email", "partners", "inquiries"]);
-    expect(slots.map((s) => (s.sections ?? []).map((x) => `${x.key}:${x.n}`))).toEqual([["alerts:1"], [], ["orders:1"], ["stock:1", "lots:1"], [], ["partners:1"], []]);
+    expect(slots.map((s) => s.key)).toEqual(["alerts", "disputes", "orders", "wholesale", "catalog", "email", "partners", "inquiries"]);
+    expect(slots.map((s) => (s.sections ?? []).map((x) => `${x.key}:${x.n}`))).toEqual([["alerts:1"], [], ["orders:1"], [], ["stock:1", "lots:1"], [], ["partners:1"], []]);
     expect(slots.find((s) => s.key === "catalog")?.sections?.[1].lines[0].title).toBe("BPC-157 10 mg is missing its certificate");
     expect(m.listOrdersForOwner).toHaveBeenCalledWith("paid", { oldestFirst: true });
     expect(m.listPartners).toHaveBeenCalledWith("applied");

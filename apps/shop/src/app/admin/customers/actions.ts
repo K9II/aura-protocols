@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
-import { adjustCredit, getCustomerBasics, logCustomerEvent } from "@/lib/customers/data";
+import { adjustCredit, getCustomerBasics, logCustomerEvent, setCustomerWholesale } from "@/lib/customers/data";
 import { blockCustomer, unblockCustomer } from "@/lib/customers/block";
 import { blockRefusal, parseCredit } from "@/lib/customers/rules";
 import { readStaffRow } from "@/lib/staff/data";
@@ -78,4 +78,16 @@ export async function resendVerifyAdminAction(_prev: ActionState, f: FormData): 
   await logCustomerEvent({ customerId: c.id, kind: "verify_resent", actorId: owner.id });
   refresh(c.id);
   return { ok: "Sent." };
+}
+
+// Wholesale on/off for one customer (owner). Off needs a reason, kept in the activity.
+export async function setCustomerWholesaleAction(_prev: ActionState, f: FormData): Promise<ActionState> {
+  const owner = await requirePermission("wholesale.manage");
+  const c = await target(f);
+  const on = str(f, "on") === "true";
+  const reason = str(f, "reason").trim().slice(0, 500) || null;
+  if (!on && !reason) return { fieldErrors: { reason: "Say why." } };
+  await setCustomerWholesale(c.id, on, reason, owner.id);
+  refresh(c.id);
+  return { ok: on ? "Wholesale allowed again." : "Wholesale turned off." };
 }

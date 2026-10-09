@@ -34,7 +34,7 @@ export type TodoLine = {
   action?: TodoAction;
   alert?: AlertLineData;  // alerts only: what the Done dialog shows
 };
-export type SectionKey = "alerts" | "disputes" | "orders" | "stock" | "lots" | "email" | "partners" | "inquiries";
+export type SectionKey = "alerts" | "disputes" | "orders" | "wholesale" | "stock" | "lots" | "email" | "partners" | "inquiries";
 export type TodoSection = {
   key: SectionKey; title: string; icon: IconName;
   n: number;              // the header count; the nav count adds these up
@@ -46,12 +46,13 @@ export type TodoSection = {
 
 // Sections load in slots, most urgent first. Stock and Lots share one catalog
 // read, so they load — and fail — together as "Stock and lots".
-export const SLOT_KEYS = ["alerts", "disputes", "orders", "catalog", "email", "partners", "inquiries"] as const;
+export const SLOT_KEYS = ["alerts", "disputes", "orders", "wholesale", "catalog", "email", "partners", "inquiries"] as const;
 export type SlotKey = (typeof SLOT_KEYS)[number];
 export const SLOT_INFO: Record<SlotKey, { title: string; icon: IconName }> = {
   alerts: { title: "Alerts", icon: "warn" },
   disputes: { title: "Disputes", icon: "shield" },
   orders: { title: "Orders to ship", icon: "orders" },
+  wholesale: { title: "Wholesale", icon: "orders" },
   catalog: { title: "Stock and lots", icon: "catalog" },
   email: { title: "Email", icon: "mail" },
   partners: { title: "Partners", icon: "partners" },
@@ -246,4 +247,28 @@ export function inquiriesSection(i: { count: number; oldest: InquiryTodo[] }, no
     };
   });
   return build({ key: "inquiries", title: "Inquiries", icon: "inbox", n: i.count, link: { label: "Inquiries", href: "/admin/inquiries" } }, lines, Math.max(0, i.count - lines.length));
+}
+
+// ---------- wholesale (Part 2) ----------
+// Runs past their order-by date with a strength not ordered, failed lots
+// waiting to be re-sourced (both red), balances due (amber once one is
+// overdue), and the run collecting now. The count = the red lines + overdue.
+export type WholesaleTodoInput = {
+  collecting: { id: string; number: string; cutoff: string; orders: number; kits: number } | null;
+  toOrder: Array<{ id: string; number: string; days: number; strengths: string[] }>;
+  failed: Array<{ runId: string; number: string; label: string }>;
+  balances: { due: number; overdue: number };
+};
+export function wholesaleSection(i: WholesaleTodoInput): TodoSection | null {
+  const lines: TodoLine[] = [];
+  for (const r of i.toOrder) lines.push({ key: `order-${r.id}`, icon: "orders", tone: "red", mono: r.number, href: `/admin/wholesale/runs/${r.id}`,
+    title: "Past cutoff, not ordered", detail: `${plural(r.days, "day")} since the cutoff · ${r.strengths.join(", ")}`, action: { label: "Open run", href: `/admin/wholesale/runs/${r.id}` } });
+  for (const f of i.failed) lines.push({ key: `failed-${f.runId}-${f.label}`, icon: "warn", tone: "red", mono: f.number, href: `/admin/wholesale/runs/${f.runId}`,
+    title: `Lot failed: ${f.label}`, detail: "Re-source it and record the new order", action: { label: "Open run", href: `/admin/wholesale/runs/${f.runId}` } });
+  if (i.balances.due) lines.push({ key: "balances", icon: "payouts", tone: i.balances.overdue ? "amb" : "slate",
+    title: `${plural(i.balances.due, "balance")} due${i.balances.overdue ? ` · ${i.balances.overdue} overdue` : ""}`,
+    detail: "Buyers pay from their order page", action: { label: "Orders", href: "/admin/orders?tab=wholesale" } });
+  if (i.collecting && i.collecting.orders) lines.push({ key: "collecting", icon: "orders", tone: "slate", mono: i.collecting.number, href: `/admin/wholesale/runs/${i.collecting.id}`,
+    title: `Closes ${dateLabel(i.collecting.cutoff)}`, detail: `${plural(i.collecting.orders, "order")} · ${plural(i.collecting.kits, "kit")}` });
+  return build({ key: "wholesale", title: "Wholesale", icon: "orders", n: i.toOrder.length + i.failed.length + i.balances.overdue, link: { label: "Wholesale", href: "/admin/wholesale" } }, lines);
 }

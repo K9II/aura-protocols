@@ -98,7 +98,7 @@ describe("orders", () => {
     from = fromQueue({ orders: [q] });
     const { searchOrdersForOwner } = await import("@/lib/orders");
     await searchOrdersForOwner({ tab: "to_ship", q: "whitfield", page: 1 });
-    expect(callArgs(q, "in")).toEqual(["status", ["processing", "paid", "shipped", "cancelled", "refunded"]]);
+    expect(callArgs(q, "in")).toEqual(["status", ["processing", "deposit_paid", "balance_due", "paid", "shipped", "cancelled", "refunded"]]);
     expect(callArgs(q, "or")).toEqual(["order_number.ilike.%whitfield%,email.ilike.%whitfield%,ship_name.ilike.%whitfield%,tracking_number.ilike.%whitfield%"]);
     expect(q.calls.filter(([m]) => m === "order").map(([, a]) => a)).toEqual([["created_at", { ascending: false }], ["id"]]);
   });
@@ -110,13 +110,13 @@ describe("orders", () => {
   });
 
   it("countOrderTabs counts each tab with a head count", async () => {
-    from = fromQueue({ orders: [query({ count: 5 }), query({ count: 1 }), query({ count: 184 }), query({ count: 9 }), query({ count: 199 })] });
+    from = fromQueue({ orders: [query({ count: 5 }), query({ count: 1 }), query({ count: 4 }), query({ count: 184 }), query({ count: 9 }), query({ count: 203 })] });
     const { countOrderTabs } = await import("@/lib/orders");
-    expect(await countOrderTabs()).toEqual({ to_ship: 5, processing: 1, shipped: 184, closed: 9, all: 199 });
+    expect(await countOrderTabs()).toEqual({ to_ship: 5, processing: 1, wholesale: 4, shipped: 184, closed: 9, all: 203 });
   });
 
   it("countOrderTabs throws on a read error", async () => {
-    from = fromQueue({ orders: [query({ error: { message: "x" } }), query({}), query({}), query({}), query({})] });
+    from = fromQueue({ orders: [query({ error: { message: "x" } }), query({}), query({}), query({}), query({}), query({})] });
     const { countOrderTabs } = await import("@/lib/orders");
     await expect(countOrderTabs()).rejects.toThrow(/order tab count failed/);
   });

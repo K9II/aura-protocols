@@ -1,18 +1,19 @@
 // Owner Orders list rules. Pure.
 import type { OrderStatus } from "@/lib/order-status";
 
-export const ORDER_TABS = ["to_ship", "processing", "shipped", "closed", "all"] as const;
+export const ORDER_TABS = ["to_ship", "processing", "wholesale", "shipped", "closed", "all"] as const;
 export type OrderTab = (typeof ORDER_TABS)[number];
-export const ORDER_TAB_LABEL: Record<OrderTab, string> = { to_ship: "To ship", processing: "Processing", shipped: "Shipped", closed: "Closed", all: "All" };
+export const ORDER_TAB_LABEL: Record<OrderTab, string> = { to_ship: "To ship", processing: "Processing", wholesale: "Wholesale", shipped: "Shipped", closed: "Closed", all: "All" };
 export const ORDER_PAGE_SIZE = 50;
 
 // "All" = every order that reached payment (unfinished checkouts are never listed).
 export const TAB_STATUSES: Record<OrderTab, readonly OrderStatus[]> = {
   to_ship: ["paid"],
   processing: ["processing"],
+  wholesale: ["deposit_paid", "balance_due"],   // made-to-order kits in production or awaiting the balance
   shipped: ["shipped"],
   closed: ["cancelled", "refunded"],
-  all: ["processing", "paid", "shipped", "cancelled", "refunded"],
+  all: ["processing", "deposit_paid", "balance_due", "paid", "shipped", "cancelled", "refunded"],
 };
 
 // Old links used ?status=<order status>; they keep working.

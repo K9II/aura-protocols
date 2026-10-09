@@ -51,7 +51,7 @@ const PAGE_PERMS: Record<string, string> = {
 export const ACTION_PERMS: Record<string, Record<string, string>> = {
   "actions.ts": { resolveAlertAction: "alerts.resolve" },
   "orders/actions.ts": { markShippedAction: "orders.ship", refundOrderAction: "orders.refund", createNoChargeOrderAction: "orders.no_charge", cancelNoChargeOrderAction: "orders.no_charge" },
-  "customers/actions.ts": { adjustCreditAction: "credit.adjust", blockAction: "customers.block", unblockAction: "customers.block", resendVerifyAdminAction: "customers.resend_verify" },
+  "customers/actions.ts": { setCustomerWholesaleAction: "wholesale.manage", adjustCreditAction: "credit.adjust", blockAction: "customers.block", unblockAction: "customers.block", resendVerifyAdminAction: "customers.resend_verify" },
   "discounts/actions.ts": { saveCodeAction: "discounts.edit", codeAvailableAction: "discounts.edit", setCodeStateAction: "discounts.edit", resetUseAction: "discounts.edit", setCapAction: "discounts.settings" },
   "wholesale/actions.ts": {
     recordLineOrderAction: "wholesale.manage", linkLotAction: "wholesale.manage", passLineAction: "wholesale.manage", failLineAction: "wholesale.manage",
@@ -61,7 +61,7 @@ export const ACTION_PERMS: Record<string, Record<string, string>> = {
   "catalog/actions.ts": {
     coaUploadAction: "lots.receive", receiveLotAction: "lots.receive", replaceCertificateAction: "lots.receive",
     putLiveAction: "lots.put_live", retireAction: "lots.put_live", correctCountAction: "stock.correct",
-    setFieldAction: "catalog.edit", setShownAction: "catalog.edit", addStrengthAction: "catalog.edit", setStrengthShownAction: "catalog.edit",
+    setFieldAction: "catalog.edit", setShownAction: "catalog.edit", setWholesaleAction: "catalog.edit", addStrengthAction: "catalog.edit", setStrengthShownAction: "catalog.edit",
     archiveStrengthAction: "catalog.edit", restoreStrengthAction: "catalog.edit", deleteStrengthAction: "catalog.edit",
   },
   "email/actions.ts": {

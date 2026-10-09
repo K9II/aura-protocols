@@ -4,6 +4,7 @@ import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
 let from: ReturnType<typeof fromQueue>;
 const rpc = vi.fn();
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t), rpc }) }));
+vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: async () => ({ runDays: 14, nextCutoffOverride: null, balanceDays: 7 }) }));
 
 describe("run data", () => {
   beforeEach(() => { vi.resetModules(); rpc.mockReset(); });
@@ -38,5 +39,29 @@ describe("run data", () => {
     const { logOnce } = await import("@/lib/wholesale/runs-data");
     expect(await logOnce({ runId: "r1", kind: "reminder_sent", key: "reminder:o1" })).toBe(false);
     await expect(logOnce({ runId: "r1", kind: "reminder_sent", key: "reminder:o2" })).rejects.toThrow(/run event/);
+  });
+
+  it("wholesaleTodos: the collecting run, a closed run not ordered, a failed lot, balances due/overdue", async () => {
+    const runs = query({ data: [
+      { id: "r3", number: "R-1003", cutoff_on: "2026-10-19", notes: "", created_at: "x" },
+      { id: "r2", number: "R-1002", cutoff_on: "2026-10-05", notes: "", created_at: "x" },
+    ] });
+    const due = query({ data: [
+      { id: "o8", order_number: "AP-8", status: "balance_due", balance_due_at: "2026-10-01T15:00:00Z", wholesale_cutoff_on: "2026-09-21", order_items: [] },
+      { id: "o9", order_number: "AP-9", status: "balance_due", balance_due_at: "2026-10-12T15:00:00Z", wholesale_cutoff_on: "2026-09-21", order_items: [] },
+    ] });
+    const orders = query({ data: [
+      { id: "o1", order_number: "AP-1", status: "deposit_paid", wholesale_cutoff_on: "2026-10-19", order_items: [{ compound_slug: "bpc-157", variant_id: "10mg", quantity: 5 }] },
+      { id: "o2", order_number: "AP-2", status: "deposit_paid", wholesale_cutoff_on: "2026-10-05", order_items: [{ compound_slug: "retatrutide", variant_id: "10mg", quantity: 3 }, { compound_slug: "tb-500", variant_id: "10mg", quantity: 2 }] },
+    ] });
+    const lines = query({ data: [{ id: "l1", slug: "retatrutide", variant_id: "10mg", ordered_at: "x", result: "failed", lot_id: "lot" }] });
+    from = fromQueue({ production_runs: [runs], orders: [due, orders], production_run_lines: [lines] });
+    const { wholesaleTodos } = await import("@/lib/wholesale/runs-data");
+    expect(await wholesaleTodos(Date.parse("2026-10-13T16:00:00Z"))).toEqual({
+      collecting: { id: "r3", number: "R-1003", cutoff: "2026-10-19", orders: 1, kits: 5 },
+      toOrder: [{ id: "r2", number: "R-1002", days: 8, strengths: ["TB-500 10 mg"] }],
+      failed: [{ runId: "r2", number: "R-1002", label: "APro-G3RT (Retatrutide) 10 mg" }],
+      balances: { due: 2, overdue: 1 },
+    });
   });
 });
