@@ -3,9 +3,10 @@ import { CHAPTERS, SECTIONS, chapterForPath, chapterNumber, guideHref, sectionId
 
 describe("guide chapters", () => {
   it("has unique ids in the agreed order", () => {
-    expect(CHAPTERS.map((c) => c.id)).toEqual(["start", "today", "discounts", "orders", "customers", "disputes", "catalog", "email", "inquiries", "partners", "payouts", "activity", "team"]);
+    expect(CHAPTERS.map((c) => c.id)).toEqual(["start", "today", "discounts", "orders", "wholesale", "customers", "disputes", "catalog", "email", "inquiries", "partners", "payouts", "activity", "team"]);
     expect(chapterNumber("start")).toBe(1);
-    expect(chapterNumber("payouts")).toBe(11);
+    expect(chapterNumber("payouts")).toBe(12);
+    expect(chapterForPath("/admin/wholesale/runs/abc")).toBe("wholesale");
     expect(chapterForPath("/admin/activity")).toBe("activity");
     expect(chapterForPath("/admin/team")).toBe("team");
   });

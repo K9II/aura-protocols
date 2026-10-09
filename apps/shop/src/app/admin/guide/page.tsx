@@ -6,6 +6,7 @@ import StartHere from "@/components/admin/guide/StartHere";
 import Today from "@/components/admin/guide/Today";
 import Discounts from "@/components/admin/guide/Discounts";
 import Orders from "@/components/admin/guide/Orders";
+import Wholesale from "@/components/admin/guide/Wholesale";
 import Customers from "@/components/admin/guide/Customers";
 import Disputes from "@/components/admin/guide/Disputes";
 import Activity from "@/components/admin/guide/Activity";
@@ -33,6 +34,7 @@ export default async function AdminGuidePage() {
         <Today />
         <Discounts capPct={capPct} />
         <Orders />
+        <Wholesale />
         <Customers />
         <Disputes />
         <Catalog />
