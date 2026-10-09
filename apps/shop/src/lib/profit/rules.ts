@@ -12,6 +12,8 @@ export type ProfitView = {
 };
 
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+// A cost as a negative line; 0 stays 0 (not -0, which prints as "$-0.00").
+const less = (c: number) => (c ? -c : 0);
 
 // Goods (after discounts) minus product cost, lab test share, card fees and
 // partner commission. Shipping labels and 3PL fees aren't known to the store
@@ -25,10 +27,10 @@ export function profitView(r: ProfitRow): ProfitView {
   return {
     lines: [
       { label: "Goods (after discounts)", cents: r.goodsCents },
-      { label: "Product cost", cents: -r.productCents, note: `${plural(r.vials, "vial")} at each lot's cost per vial` },
-      { label: "Lab test share", cents: -r.testCents },
-      { label: "Card fees", cents: -r.feeCents, note: r.feeEstimated ? "estimated · 2.9% + 30¢" : undefined },
-      { label: "Partner commission", cents: -r.commissionCents },
+      { label: "Product cost", cents: less(r.productCents), note: `${plural(r.vials, "vial")} at each lot's cost per vial` },
+      { label: "Lab test share", cents: less(r.testCents) },
+      { label: "Card fees", cents: less(r.feeCents), note: r.feeEstimated ? "estimated · 2.9% + 30¢" : undefined },
+      { label: "Partner commission", cents: less(r.commissionCents) },
     ],
     profitCents,
     marginPct: r.goodsCents > 0 ? Math.round((profitCents / r.goodsCents) * 100) : null,

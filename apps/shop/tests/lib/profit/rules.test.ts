@@ -32,4 +32,7 @@ describe("toProfitRow", () => {
     expect(toProfitRow({ goods_cents: "1000", product_cents: 200, test_cents: "50", fee_cents: 59, fee_estimated: true, commission_cents: "0", vials: "10", vials_costed: 10 }))
       .toEqual({ goodsCents: 1000, productCents: 200, testCents: 50, feeCents: 59, feeEstimated: true, commissionCents: 0, vials: 10, vialsCosted: 10 });
   });
+  it("a zero cost is 0, not -0", () => {
+    expect(Object.is(profitView(row({ commissionCents: 0 })).lines[4].cents, 0)).toBe(true);
+  });
 });
