@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { assistantStaff } from "../../helpers/staff";
 const m = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../../helpers/staff")).ownerStaff()) }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
-vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(), replaceCertificateAction: vi.fn(),
+vi.mock("@/app/admin/catalog/actions", () => ({ setWholesaleAction: vi.fn(), receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(), replaceCertificateAction: vi.fn(),
   addStrengthAction: vi.fn(), setStrengthShownAction: vi.fn(), archiveStrengthAction: vi.fn(), restoreStrengthAction: vi.fn(), deleteStrengthAction: vi.fn() }));
 // catalog-live.ts also imports fetchCatalogOps from catalog-ops/data at module
 // scope (unstable_cache(fetchCatalogOps, ...)); mocked wholesale like every

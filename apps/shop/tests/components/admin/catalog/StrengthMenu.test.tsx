@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-vi.mock("@/app/admin/catalog/actions", () => ({ setStrengthShownAction: vi.fn(), archiveStrengthAction: vi.fn(), deleteStrengthAction: vi.fn(async () => null) }));
+vi.mock("@/app/admin/catalog/actions", () => ({ setWholesaleAction: vi.fn(), setStrengthShownAction: vi.fn(), archiveStrengthAction: vi.fn(), deleteStrengthAction: vi.fn(async () => null) }));
 import StrengthMenu from "@/components/admin/catalog/StrengthMenu";
 
 describe("StrengthMenu", () => {
-  const props = { slug: "ss-31", variantId: "10mg", strength: "10 mg", shown: true, canDelete: false };
+  const props = { slug: "ss-31", variantId: "10mg", strength: "10 mg", shown: true, wholesale: true, canDelete: false };
 
   it("opens from a labelled button with aria-expanded; closes on Escape and returns focus", () => {
     render(<StrengthMenu {...props} />);
@@ -58,5 +58,15 @@ describe("StrengthMenu", () => {
     fireEvent.submit(screen.getByRole("button", { name: /Hide from store/ }).closest("form")!);
     expect(btn).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("button", { name: /Hide from store/ })).not.toBeInTheDocument();
+  });
+
+  it("offers Stop selling as a kit when on, Sell as a wholesale kit when off", () => {
+    const { unmount } = render(<StrengthMenu {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "More for 10 mg" }));
+    expect(screen.getByRole("button", { name: /Stop selling as a kit/ })).toBeInTheDocument();
+    unmount();
+    render(<StrengthMenu {...props} wholesale={false} />);
+    fireEvent.click(screen.getByRole("button", { name: "More for 10 mg" }));
+    expect(screen.getByRole("button", { name: /Sell as a wholesale kit/ })).toBeInTheDocument();
   });
 });

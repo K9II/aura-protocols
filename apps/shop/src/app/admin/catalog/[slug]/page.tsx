@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             return (
               <div key={r.variantId} className={`a-card${r.strengthShown ? "" : " hid"}`}>
                 <div className="a-st-h">
-                  <h2>{r.strength}</h2><span className={`a-chip ${sc}`}>{sl}</span>
+                  <h2>{r.strength}</h2>{r.wholesale && <span className="a-mk sl" title="Offered as a 10-vial wholesale kit">Kit</span>}<span className={`a-chip ${sc}`}>{sl}</span>
                   <div className="facts">
                     <div><span className="l"><span className="a-only-desk">Price / vial</span><span className="a-only-phone">Price</span></span>{can(staff, "catalog.edit") ? <InlineField slug={slug} variantId={r.variantId} field="price" label="Price per vial" display={usd(r.priceCents)} initial={(r.priceCents / 100).toFixed(2)} /> : <span>{usd(r.priceCents)}</span>}</div>
                     <div><span className="l">Low at</span>{can(staff, "catalog.edit") ? <InlineField slug={slug} variantId={r.variantId} field="low" label="Low stock level" display={String(r.lowAt)} initial={String(r.lowAt)} /> : <span>{String(r.lowAt)}</span>}</div>
@@ -118,7 +118,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   <div className="r">
                     {!r.strengthShown && can(staff, "catalog.edit") && <form action={setStrengthShownAction}><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={r.variantId} /><input type="hidden" name="shown" value="true" /><button type="submit" className="a-btn sm">Show on store</button></form>}
                     {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} />}
-                    {can(staff, "catalog.edit") && <StrengthMenu slug={slug} variantId={r.variantId} strength={r.strength} shown={r.strengthShown} canDelete={h.lots === 0 && h.orders === 0} />}
+                    {can(staff, "catalog.edit") && <StrengthMenu slug={slug} variantId={r.variantId} strength={r.strength} shown={r.strengthShown} wholesale={r.wholesale} canDelete={h.lots === 0 && h.orders === 0} />}
                   </div>
                 </div>
                 {lots.length === 0 ? (r.strengthShown && <div className="a-card-b muted">No lots yet — this strength shows Out of stock with &ldquo;COA pending&rdquo; until a lot goes live.</div>) : (

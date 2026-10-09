@@ -7,7 +7,7 @@ vi.mock("@/lib/customers/data", () => ({ getCustomerDetail }));
 vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes }));
 vi.mock("@/lib/staff/data", () => ({ readStaffRow }));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
-vi.mock("@/app/admin/customers/actions", () => ({ adjustCreditAction: vi.fn(), blockAction: vi.fn(), unblockAction: vi.fn(), resendVerifyAdminAction: vi.fn() }));
+vi.mock("@/app/admin/customers/actions", () => ({ setCustomerWholesaleAction: vi.fn(), adjustCreditAction: vi.fn(), blockAction: vi.fn(), unblockAction: vi.fn(), resendVerifyAdminAction: vi.fn() }));
 import CustomerPage from "@/app/admin/customers/[id]/page";
 
 const ID = "3f1e2d4c-5b6a-4789-8abc-def012345678";
@@ -23,6 +23,7 @@ const detail = {
   attestations: [], ledger: [{ id: "l1", amount_cents: 15_000, reason: "owner_adjust", ref_id: "e1", note: "late shipment", created_at: "2026-10-02T22:12:00Z" }],
   events: [{ id: "e1", kind: "credit_added", amount_cents: 15_000, reason: "goodwill", note: "late shipment", actor_id: "owner", created_at: "2026-10-02T22:12:00Z", actorName: "Kearney" }],
   isPartner: false, referrer: null, blockedBy: null,
+  wholesale: { enabledAt: null, disabledAt: null, disabledReason: null, terms: null },
 };
 
 describe("/admin/customers/[id]", () => {
@@ -101,5 +102,14 @@ describe("/admin/customers/[id]", () => {
     expect(screen.getByText("Average order").closest(".a-kpi")).toHaveTextContent("$612.30");
     expect(container.querySelectorAll(".a-mk.amb")).toHaveLength(2);
     expect(screen.getByText("Cancelled (no charge)")).toBeInTheDocument();
+  });
+
+  it("wholesale card: on since + terms, and the owner can turn it off", async () => {
+    getCustomerDetail.mockResolvedValue({ ...detail, wholesale: { enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: { version: "2026-10-08", at: "2026-10-09T16:14:00Z" } } });
+    const { default: Page } = await import("@/app/admin/customers/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: detail.id }) }));
+    expect(container.textContent).toMatch(/On since Oct 9/);
+    expect(container.textContent).toMatch(/2026-10-08 · accepted/);
+    expect(screen.getByRole("button", { name: "Turn off wholesale…" })).toBeTruthy();
   });
 });
