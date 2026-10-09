@@ -3,7 +3,9 @@ import { getOrderById, saveTaxTransactionId } from "@/lib/orders";
 import { getPartnerById } from "@/lib/partners/data";
 import { createCommission, markCommissionClearing, spendCredit } from "@/lib/partners/ledger";
 import { getCommerceAdapter } from "@/lib/commerce";
-import { noChargeEmail, orderConfirmationEmail, ownerNewOrderEmail } from "@/lib/emails";
+import { noChargeEmail, orderConfirmationEmail, ownerNewOrderEmail, wholesaleBalanceReceivedEmail } from "@/lib/emails";
+import { getWholesaleSettings } from "@/lib/wholesale/data";
+import { estimatedDates } from "@/lib/wholesale/rules";
 import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
 import { logOversold, orderHoldShortfall } from "@/lib/catalog-ops/data";
 import type { OrderRow } from "@/lib/orders";
@@ -78,6 +80,20 @@ export async function afterOrderPaid(orderId: string, opts: { notify?: boolean }
   }
 
   await checkHeldVials(order);
+
+  // Wholesale: this was the balance — the buyer gets "balance received" with the ship estimate.
+  if (order.channel === "wholesale") {
+    let shipsAbout: string | null = null;
+    try {
+      if (order.wholesale_cutoff_on) shipsAbout = estimatedDates(order.wholesale_cutoff_on, (await getWholesaleSettings()).leadDays).shipsAbout;
+    } catch (err) {
+      console.error("wholesale settings read failed:", err);   // the date is an estimate; the email goes without it
+    }
+    const sent = await sendOrAlert({ to: order.email, ...wholesaleBalanceReceivedEmail(order, { shipsAbout }) }, `wholesale balance ${order.order_number}`);
+    const ownerTo = alertAddress();
+    if (ownerTo) await sendOrAlert({ to: ownerTo, ...ownerNewOrderEmail(order) }, `owner alert ${order.order_number}`);
+    return { emailed: sent };
+  }
 
   const emailed = await sendOrAlert({ to: order.email, ...orderConfirmationEmail(order) }, `order ${order.order_number}`);
   const owner = alertAddress();

@@ -250,14 +250,6 @@ describe("handleStripeEvent", () => {
     expect(afterOrderPaid).not.toHaveBeenCalled();
   });
 
-  it("a wholesale payment that isn't a deposit alerts the owner and changes nothing (balance is Part 2)", async () => {
-    getOrderById.mockResolvedValue(order("deposit_paid", { channel: "wholesale" }));
-    const { handleStripeEvent } = await import("@/lib/stripe-events");
-    await handleStripeEvent(ev("checkout.session.completed", session({ metadata: { order_id: "o1", payment: "balance" } })));
-    expect(transitionOrder).not.toHaveBeenCalled();
-    expect(alertOwner).toHaveBeenCalledWith("Wholesale payment not handled", expect.stringContaining("AP-1001"));
-  });
-
   it("a fully refunded deposit → refunded", async () => {
     getOrderByPaymentIntent.mockResolvedValue(order("deposit_paid", { channel: "wholesale" }));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
@@ -374,5 +366,34 @@ describe("handleStripeEvent", () => {
     expect(hasDisputeForCharge).toHaveBeenCalledWith("ch_5");
     expect(resolveWarningsForCharge).toHaveBeenCalledWith("ch_5");
     expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  // ---------- wholesale: balance (Part 2) ----------
+  it("a wholesale balance → paid with the balance payment intent, then the after-payment steps", async () => {
+    getOrderById.mockResolvedValue(order("balance_due", { channel: "wholesale" }));
+    transitionOrder.mockResolvedValue(true);
+    const { applyPaid } = await import("@/lib/stripe-events");
+    expect(await applyPaid((await getOrderById())!, { id: "cs_b", metadata: { order_id: "o1", payment: "balance" }, payment_intent: "pi_b" } as never)).toBe(true);
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "balance_due", "paid", { balance_payment_intent: "pi_b" });
+    expect(afterOrderPaid).toHaveBeenCalledWith("o1");
+  });
+
+  it("a balance paid while the order isn't due alerts the owner; a retried one does nothing", async () => {
+    const { applyPaid } = await import("@/lib/stripe-events");
+    const sess = { id: "cs_b", metadata: { order_id: "o1", payment: "balance" }, payment_intent: "pi_b" } as never;
+    expect(await applyPaid(order("deposit_paid", { channel: "wholesale" }) as never, sess)).toBe(false);
+    expect(alertOwner).toHaveBeenCalledWith("Wholesale payment not handled", expect.stringContaining("deposit_paid"));
+    alertOwner.mockClear();
+    expect(await applyPaid(order("paid", { channel: "wholesale" }) as never, sess)).toBe(false);
+    expect(alertOwner).not.toHaveBeenCalled();
+    expect(transitionOrder).not.toHaveBeenCalled();
+  });
+
+  it("one charge of a paid wholesale order refunded in Stripe alerts instead of refunding the order", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("paid", { channel: "wholesale" }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent({ type: "charge.refunded", data: { object: { payment_intent: "pi_d", refunded: true, amount_refunded: 126400 } } } as never);
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledWith("Wholesale payment refunded in Stripe", expect.stringContaining("refund the order from Orders"));
   });
 });

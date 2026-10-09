@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCustomer } from "@/lib/dal";
 import { shipAddressSchema } from "@/lib/ship-address";
-import { attachCheckoutSession, createPendingWholesaleOrder, getOrderForCustomer, saveShipAddress, saveStripeCustomerId, stampWholesaleCancel, transitionOrder } from "@/lib/orders";
+import { attachCheckoutSession, createPendingWholesaleOrder, getOrderForCustomer, saveBalanceSession, saveShipAddress, saveStripeCustomerId, stampWholesaleCancel, transitionOrder } from "@/lib/orders";
 import { getCommerceAdapter } from "@/lib/commerce";
 import { closeOpenCheckouts } from "@/lib/checkout-close";
 import { siteUrl } from "@/lib/supabase/env";
@@ -224,4 +224,34 @@ export async function cancelWholesaleOrderAction(orderNumber: string): Promise<{
   }
   revalidatePath(`/order/${order.order_number}`);
   return { ok: true };
+}
+
+// ---------- pay the balance (order page) ----------
+// A fresh Stripe page per click (sessions expire within 24 h; the balance has
+// 7 days); the previous page is expired first so only one can be paid.
+export async function payBalanceAction(orderNumber: string): Promise<{ url?: string; error?: string }> {
+  const customer = await getCustomer();
+  if (!customer) return { error: "Please sign in." };
+  const order = await getOrderForCustomer(String(orderNumber).slice(0, 20), customer.id);
+  if (!order || order.channel !== "wholesale") return { error: "Order not found." };
+  if (order.status !== "balance_due" || !order.balance_cents) return { error: "This order has no balance due." };
+  const adapter = getCommerceAdapter();
+  if (order.balance_session_id) {
+    try { await adapter.expireCheckout(order.balance_session_id); } catch (err) { console.error("expire earlier balance session failed:", err); }
+  }
+  try {
+    const r = await adapter.createPaymentCheckout({
+      orderId: order.id, orderNumber: order.order_number, siteUrl: siteUrl(),
+      customer: { email: customer.email, fullName: customer.fullName, stripeCustomerId: customer.stripeCustomerId },
+      ship: { name: order.ship_name, line1: order.ship_line1, line2: order.ship_line2 ?? "", city: order.ship_city, state: order.ship_state as never, zip: order.ship_zip },
+      payment: "balance", label: `Balance — order ${order.order_number}`, amountCents: order.balance_cents,
+      cancelPath: `/order/${order.order_number}`, attempt: Math.floor(currentMs() / 1000),
+    });
+    if (r.kind === "unavailable") return { error: r.message };
+    await saveBalanceSession(order.id, r.sessionId);
+    return { url: r.url };
+  } catch (err) {
+    console.error("balance checkout failed:", err);
+    return { error: "We couldn't start payment — please try again." };
+  }
 }

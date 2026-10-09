@@ -33,7 +33,10 @@ export async function GET(request: Request): Promise<Response> {
         const orderId = session.metadata?.order_id;
         const order = orderId ? await getOrderById(orderId) : null;
         if (!order) continue;
-        if (session.payment_status === "paid" && (order.status === "awaiting_payment" || order.status === "processing")) {
+        const missedPaid = session.payment_status === "paid" && (
+          order.status === "awaiting_payment" || order.status === "processing"
+          || (order.channel === "wholesale" && order.status === "balance_due" && session.metadata?.payment === "balance"));
+        if (missedPaid) {
           if (await applyPaid(order, session)) fixedPaid.push(order.order_number);
         } else if (session.status === "expired" && order.status === "awaiting_payment") {
           if (await transitionOrder(order.id, "awaiting_payment", "cancelled")) cancelled.push(order.order_number);

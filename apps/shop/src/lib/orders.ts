@@ -263,6 +263,12 @@ export async function saveStripeCustomerId(customerId: string, stripeCustomerId:
 // details the webhook doesn't know (it's a card refund the customer asked
 // for) still need recording. A plain metadata update, never a status change;
 // only fires once (stripe_refund_id is still null).
+// The latest Stripe page for a wholesale balance (an earlier one is expired before a new one opens).
+export async function saveBalanceSession(orderId: string, sessionId: string): Promise<void> {
+  const { error } = await db().from("orders").update({ balance_session_id: sessionId }).eq("id", orderId).eq("status", "balance_due");
+  if (error) throw new Error(`balance session save failed: ${JSON.stringify(error)}`);
+}
+
 export async function stampWholesaleCancel(orderId: string, refundId: string): Promise<void> {
   const { error } = await db().from("orders")
     .update({ refund_destination: "card", refund_reason: "customer_cancelled", stripe_refund_id: refundId })

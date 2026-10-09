@@ -185,4 +185,13 @@ describe("GET /api/cron/reconcile", () => {
     await GET(get("Bearer s3cret"));
     expect(alertOwner).toHaveBeenCalledWith("Reconcile had failures", expect.stringContaining("inquiry auto-close: db down"));
   });
+
+  it("a paid wholesale balance session whose order is still balance due is applied", async () => {
+    list.mockReturnValue(pages([{ id: "cs_b", metadata: { order_id: "o9", payment: "balance" }, payment_status: "paid", status: "complete" }]));
+    getOrderById.mockResolvedValue({ id: "o9", status: "balance_due", channel: "wholesale", order_number: "AP-9" });
+    applyPaid.mockResolvedValue(true);
+    const { GET } = await import("@/app/api/cron/reconcile/route");
+    const body = await (await GET(get("Bearer s3cret"))).json();
+    expect(body.fixedPaid).toEqual(["AP-9"]);
+  });
 });
