@@ -15,8 +15,8 @@ export default function Wholesale() {
           <Step>For each strength choose <Ui>Record order</Ui>: pick the <Ui>Supplier</Ui>, add any <Ui>Extra boxes for the shop</Ui>, and enter the <Ui>Total paid to the supplier</Ui> and their order or invoice number. The kits come from the run&apos;s orders. A run uses at most {MAX_SUPPLIERS_PER_RUN} suppliers.</Step>
         </Task>
         <Task title="Receive and link the lot">
-          <Step>When the boxes arrive, receive them in <Ui>Catalog &amp; lots</Ui> as usual and add the certificate. The lot stays a draft.</Step>
-          <Step>Back on the run, choose <Ui>Link lot</Ui> and pick that draft lot.</Step>
+          <Step>When the boxes arrive, choose <Ui>Receive lot</Ui> on that strength&apos;s row of the run. The form is filled in from your supplier order (supplier, what you paid, the vials ordered); add the lot number, purity, test date, the certificate and what you counted.</Step>
+          <Step>Choose <Ui>Save and link to the run</Ui>. The lot stays a draft, linked to the run, until you pass it. (A lot already received in <Ui>Catalog &amp; lots</Ui> can be attached with <Ui>Link lot</Ui> instead.)</Step>
         </Task>
         <Task title="Pass or fail a strength">
           <Step><Ui>Pass</Ui> puts the lot live and sets aside {KIT_VIALS} vials per kit for every order of the run in the same moment, before any retail checkout can see the lot. Extra boxes become retail stock. When every strength an order needs has passed, the buyer is asked for the balance.</Step>

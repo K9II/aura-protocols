@@ -18,6 +18,8 @@ import { dateTime } from "@/lib/discounts/time";
 import { Crumbs } from "@/components/admin/ui";
 import { OrderStatusChip } from "@/components/admin/orders/bits";
 import { CancelDepositDialog, LinkLotDialog, PassFailButtons, RecordOrderDialog, ResourceButton, RunNotes } from "@/components/admin/wholesale/RunDialogs";
+import ReceiveLotDialog from "@/components/admin/catalog/ReceiveLotDialog";
+import { lotDefaults, type LotDefaults } from "@/lib/catalog-ops/data";
 
 export const metadata: Metadata = { title: "Wholesale run", robots: { index: false, follow: false } };
 
@@ -48,9 +50,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   // Box prices for the strengths still to order (owner only; a failed read just
   // leaves the total for the owner to type).
   let prices: Record<string, Record<string, number>> = {};
+  let recvDefaults: LotDefaults | undefined;
   if (manage) {
     try { prices = await supplierPricesFor([...new Set([...needed.keys(), ...lines.map((l) => strengthKey(l.slug, l.variant_id))])]); }
     catch (err) { console.error("supplier prices read failed:", err); }
+    try { recvDefaults = await lotDefaults(); } catch (err) { console.error("lot defaults read failed:", err); }
   }
 
   // Every strength the run's orders need, plus any line already recorded.
@@ -98,7 +102,12 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                   <td><span className={`a-chip ${STAGE_CHIP[r.stage].cls}`}>{STAGE_CHIP[r.stage].text}</span></td>
                   <td className="r a-nw">{manage && (
                     r.stage === "to_order" ? <RecordOrderDialog runId={run.id} runNumber={run.number} cutoffLabel={cutoffLabel} slug={r.slug} variantId={r.variantId} label={label} kits={needed.get(r.k) ?? 0} suppliers={suppliers} choices={choices} prices={prices[r.k] ?? {}} primary />
-                    : r.stage === "ordered" ? <LinkLotDialog lineId={r.line!.id} label={label} lots={r.drafts} />
+                    : r.stage === "ordered" ? <span className="a-ws-acts">
+                      <ReceiveLotDialog small primary slug={r.slug} variantId={r.variantId} title={label} prices={prices[r.k]} defaults={recvDefaults}
+                        runLine={{ id: r.line!.id, supplier: r.line!.supplier ?? "", cost: r.line!.cost_cents != null ? (r.line!.cost_cents / 100).toFixed(r.line!.cost_cents % 100 ? 2 : 0) : "",
+                          vials: ((r.line!.kits_ordered ?? 0) + (r.line!.extra_boxes ?? 0)) * 10 }} />
+                      {r.drafts.length > 0 && <LinkLotDialog lineId={r.line!.id} label={label} lots={r.drafts} />}
+                    </span>
                     : r.stage === "received" ? <PassFailButtons lineId={r.line!.id} label={label} buyers={r.buyers} />
                     : r.stage === "failed" ? <ResourceButton lineId={r.line!.id} />
                     : null)}</td>
