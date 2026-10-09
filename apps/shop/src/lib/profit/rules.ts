@@ -1,4 +1,5 @@
 // Real profit of an order (lot-costs.sql order_profit_rows). Pure.
+import { usd } from "@/lib/html";
 
 export type ProfitRow = {
   goodsCents: number; productCents: number; freightCents: number; labelCents: number; testCents: number; packagingCents: number; feeCents: number; feeEstimated: boolean;
@@ -27,9 +28,9 @@ export function profitView(r: ProfitRow): ProfitView {
   return {
     lines: [
       { label: "Goods (after discounts)", cents: r.goodsCents },
-      { label: "Supplier cost", cents: less(r.productCents), note: `${plural(r.vials, "vial")} at each lot's cost per vial` },
-      { label: "Shipping & customs in", cents: less(r.freightCents) },
-      { label: "Labels", cents: less(r.labelCents) },
+      // Landed cost: what the vials cost to have on the shelf, one line with its parts.
+      { label: "Landed cost", cents: less(r.productCents + r.freightCents + r.labelCents),
+        note: `${plural(r.vials, "vial")}: supplier ${usd(r.productCents)} + shipping & customs ${usd(r.freightCents)} + labels ${usd(r.labelCents)}` },
       { label: "Lab test share", cents: less(r.testCents) },
       // wholesale only: the branded kit boxes recorded on the order
       ...(r.packagingCents > 0 ? [{ label: "Kit boxes", cents: less(r.packagingCents) }] : []),

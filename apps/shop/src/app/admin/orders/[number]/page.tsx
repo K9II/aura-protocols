@@ -165,7 +165,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
               {profit === "error" ? <div className="a-empty">Couldn&apos;t load the profit.</div> : (
                 <div className="a-money">
                   {profit.lines.map((l) => (
-                    <div key={l.label} className="ml"><span>{l.label}{l.note && <small>{l.note}</small>}</span><span>{signed(l.cents)}</span></div>
+                    <div key={l.label} className="ml"><span>{l.label}{l.note && <small className="blk">{l.note}</small>}</span><span>{signed(l.cents)}</span></div>
                   ))}
                   <div className="ml total"><span>Profit</span><span>{signed(profit.profitCents)}{profit.marginPct != null ? ` · ${profit.marginPct}%` : ""}</span></div>
                   {profit.warnings.map((w) => <div key={w} className="a-warnline" style={{ marginTop: 8 }}><Icon name="warn" />{w}</div>)}

@@ -11,9 +11,10 @@ describe("profitView", () => {
     expect(v.profitCents).toBe(194400 - 41600 - 7500 - 2000 - 9800 - 9500 - 1000);
     expect(v.marginPct).toBe(63);
     expect(v.lines.map((l) => [l.label, l.cents])).toEqual([
-      ["Goods (after discounts)", 194400], ["Supplier cost", -41600], ["Shipping & customs in", -7500], ["Labels", -2000],
+      ["Goods (after discounts)", 194400], ["Landed cost", -51100],
       ["Lab test share", -9800], ["Card fees", -9500], ["Partner commission", -1000],
     ]);
+    expect(v.lines[1].note).toBe("50 vials: supplier $416.00 + shipping & customs $75.00 + labels $20.00");
     expect(v.warnings).toEqual([]);
   });
   it("a wholesale order's kit boxes get their own line; retail shows none", () => {
@@ -40,6 +41,6 @@ describe("toProfitRow", () => {
       .toEqual({ goodsCents: 1000, productCents: 200, freightCents: 30, labelCents: 4, testCents: 50, packagingCents: 450, feeCents: 59, feeEstimated: true, commissionCents: 0, vials: 10, vialsCosted: 10 });
   });
   it("a zero cost is 0, not -0", () => {
-    expect(Object.is(profitView(row({ commissionCents: 0 })).lines[6].cents, 0)).toBe(true);
+    expect(Object.is(profitView(row({ commissionCents: 0 })).lines[4].cents, 0)).toBe(true);
   });
 });
