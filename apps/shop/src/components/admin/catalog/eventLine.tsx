@@ -4,6 +4,8 @@ import type { CatalogEvent } from "@/lib/catalog-ops/data";
 import { COUNT_REASON_LABEL, type CountReason } from "@/lib/catalog-ops/rules";
 import { usd } from "@/lib/html";
 
+// AIOS "Send to store" (admin_set_variant_price, aios-price.sql) notes its price changes with this.
+const AIOS_NOTE = "Sent from AIOS";
 const MISMATCH_NOTE: Record<string, string> = { moved: "vials moved to the shipped lot", "not moved": "not moved — check stock" };
 
 export function catalogEventLine(e: CatalogEvent, strengthOf: (variantId: string | null) => string): React.ReactNode {
@@ -27,7 +29,7 @@ export function catalogEventLine(e: CatalogEvent, strengthOf: (variantId: string
     case "lot_retired": return <>{who} retired {lot}</>;
     case "count_corrected": return <>{who} corrected {lot} count {Number(a.sellable) - Number(b.sellable) > 0 ? "+" : ""}{Number(a.sellable) - Number(b.sellable)} · {COUNT_REASON_LABEL[e.reason as CountReason] ?? e.reason}</>;
     case "certificate_replaced": return <>{who} replaced the certificate for {lot}</>;
-    case "price_changed": return <>{who} changed {strengthOf(e.variant_id)} price <b>{usd(Number(b.price_cents))} → {usd(Number(a.price_cents))}</b></>;
+    case "price_changed": return <>{who} changed {strengthOf(e.variant_id)} price <b>{usd(Number(b.price_cents))} → {usd(Number(a.price_cents))}</b>{e.note === AIOS_NOTE ? " · from AIOS" : ""}</>;
     case "low_at_changed": return <>{who} set {strengthOf(e.variant_id)} low level to {a.low_at}</>;
     case "threepl_sku_changed": return <>{who} set {strengthOf(e.variant_id)} 3PL SKU to <span className="a-nw">{a.threepl_sku ?? "none"}</span></>;
     case "shown": return <>{who} showed it on the store</>;
