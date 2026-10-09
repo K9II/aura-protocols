@@ -19,6 +19,8 @@ import { bookkeep, requestIp, requestIpHash } from "@/lib/checkout-shared";
 import { enableWholesale, getWholesaleSettings } from "@/lib/wholesale/data";
 import { canCancelWholesale, cutoffFor, kitRows, MAX_KITS_PER_LINE, priceWholesale, type WholesaleSettings } from "@/lib/wholesale/rules";
 import { refundCard } from "@/lib/refunds/stripe";
+import { orderHasFailedStrength } from "@/lib/wholesale/runs";
+import { runByCutoff, runLines } from "@/lib/wholesale/runs-data";
 import { wholesaleCancelledEmail } from "@/lib/emails";
 import { currentMs } from "@/lib/clock";
 import { localDate } from "@/lib/today/time";
@@ -180,7 +182,19 @@ export async function cancelWholesaleOrderAction(orderNumber: string): Promise<{
   // Already cancelled (a second click, or the webhook beat us to it on an
   // earlier call): nothing left to do.
   if (order.status === "refunded") return { ok: true };
-  if (!canCancelWholesale(order, localDate(currentMs()))) {
+  // After the cutoff only when one of the order's strengths failed testing.
+  let failed = false;
+  if (order.wholesale_cutoff_on && order.status === "deposit_paid") {
+    try {
+      const run = await runByCutoff(order.wholesale_cutoff_on);
+      const lines = run ? await runLines(run.id) : [];
+      failed = orderHasFailedStrength({ id: order.id, order_number: order.order_number, status: order.status,
+        items: (order.order_items ?? []).map((i) => ({ compound_slug: i.compound_slug, variant_id: i.variant_id, quantity: i.quantity })) }, lines);
+    } catch (err) {
+      console.error("wholesale run read failed:", err);
+    }
+  }
+  if (!canCancelWholesale(order, localDate(currentMs()), { failed })) {
     return { error: "This order is past its order-by date, so it can't be cancelled here. Contact us if something is wrong." };
   }
   if (!order.deposit_payment_intent || !order.deposit_cents) {

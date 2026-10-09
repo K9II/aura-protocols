@@ -11,6 +11,8 @@ vi.mock("@/lib/turnstile", () => ({ verifyHumanCheck }));
 vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog }));
 vi.mock("@/lib/orders", () => ({ createPendingWholesaleOrder, transitionOrder, attachCheckoutSession, getOrderForCustomer, stampWholesaleCancel, saveBalanceSession, saveShipAddress: vi.fn(), saveStripeCustomerId: vi.fn() }));
 vi.mock("@/lib/refunds/stripe", () => ({ refundCard }));
+const runByCutoff = vi.fn(), runLines = vi.fn();
+vi.mock("@/lib/wholesale/runs-data", () => ({ runByCutoff, runLines }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner }));
 vi.mock("@/lib/checkout-close", () => ({ closeOpenCheckouts }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ quoteTax, createPaymentCheckout, expireCheckout }) }));
@@ -40,6 +42,7 @@ describe("wholesale actions", () => {
       transitionOrder, attachCheckoutSession, getOrderForCustomer, refundCard, sendOrAlert, alertOwner, closeOpenCheckouts, stampWholesaleCancel,
       quoteTax, createPaymentCheckout, expireCheckout, revalidatePath, saveBalanceSession]) f.mockReset();
     getWholesaleSettings.mockResolvedValue(settings);
+    runByCutoff.mockReset(); runLines.mockReset(); runByCutoff.mockResolvedValue({ id: "r1" }); runLines.mockResolvedValue([]);
     verifyHumanCheck.mockResolvedValue({ ok: true });
     getLiveCatalog.mockResolvedValue(live);
     closeOpenCheckouts.mockResolvedValue({ failed: [] });
@@ -274,5 +277,18 @@ describe("wholesale actions", () => {
       expect(await payBalanceAction("AP-1050")).toEqual({ error: "Payments are paused." });
       expect(saveBalanceSession).not.toHaveBeenCalled();
     });
+  });
+
+  it("cancel after the cutoff is allowed when a strength of the order failed testing", async () => {
+    getCustomer.mockResolvedValue(customer());
+    getOrderForCustomer.mockResolvedValue({ ...wholesaleOrder, wholesale_cutoff_on: "2026-10-05",
+      order_items: [{ compound_slug: "retatrutide", compound_name: "Retatrutide", variant_id: "10mg", strength: "10 mg", pack_qty: 10, quantity: 3, line_total_cents: 300000 }] });
+    runLines.mockResolvedValue([{ slug: "retatrutide", variant_id: "10mg", result: "failed" }]);
+    refundCard.mockResolvedValue("re_1");
+    transitionOrder.mockResolvedValue(true);
+    sendOrAlert.mockResolvedValue(true);
+    const { cancelWholesaleOrderAction } = await import("@/app/wholesale/actions");
+    expect(await cancelWholesaleOrderAction("AP-1050")).toEqual({ ok: true });
+    expect(refundCard).toHaveBeenCalled();
   });
 });
