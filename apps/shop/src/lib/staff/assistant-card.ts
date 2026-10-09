@@ -1,5 +1,5 @@
 // "What the Assistant can do" card (Team page, mock Screen 1 of
-// staff.html) — the five Can / six Can't lines are the mock's verbatim
+// staff.html) — the five Can / seven Can't lines are the mock's verbatim
 // wording. The Permission[] on each line is data for the guard test
 // (tests/lib/staff/assistant-card.test.ts), not what's rendered: it's
 // what a future change to PERMISSIONS or the assistant role is checked
@@ -10,9 +10,9 @@ export type PermGroup = { text: string; perms: readonly Permission[] };
 
 export const CAN_GROUPS: readonly PermGroup[] = [
   {
-    text: "See Today, orders, customers, discounts, disputes, catalog & lots, email, inquiries, partners, payouts and Activity",
+    text: "See Today, orders, wholesale, customers, discounts, disputes, catalog & lots, email, inquiries, partners, payouts and Activity",
     perms: [
-      "today.view", "orders.view", "customers.view", "discounts.view", "disputes.view", "catalog.view",
+      "today.view", "orders.view", "wholesale.view", "customers.view", "discounts.view", "disputes.view", "catalog.view",
       "email.view", "inquiries.view", "partners.view", "payouts.view", "activity.view",
     ],
   },
@@ -25,6 +25,7 @@ export const CAN_GROUPS: readonly PermGroup[] = [
 export const CANT_GROUPS: readonly PermGroup[] = [
   { text: "Send email, replies or campaigns", perms: ["email.send", "email.pause", "inquiries.reply", "inquiries.saved_replies"] },
   { text: "Ship, refund, cancel or create orders", perms: ["orders.ship", "orders.refund", "orders.no_charge"] },
+  { text: "Run wholesale production runs or change wholesale settings", perms: ["wholesale.manage"] },
   {
     text: "Change store credit, prices, stock, lots or discount codes",
     perms: ["credit.adjust", "catalog.edit", "stock.correct", "stock.owner_withdrawal", "lots.receive", "lots.put_live", "discounts.edit", "discounts.settings"],

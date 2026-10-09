@@ -12,6 +12,7 @@ export const PERMISSIONS = [
   "inquiries.view", "inquiries.draft", "inquiries.reply", "inquiries.saved_replies",
   "partners.view", "partners.manage", "partners.payout_details", "w9.open",
   "payouts.view", "payouts.mark_paid",
+  "wholesale.view", "wholesale.manage",
   "activity.view", "staff.manage",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
@@ -28,5 +29,6 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   "inquiries.view": "See inquiries", "inquiries.draft": "Save reply drafts", "inquiries.reply": "Reply to, close and sort inquiries", "inquiries.saved_replies": "Edit saved replies",
   "partners.view": "See partners", "partners.manage": "Approve, decline and suspend partners", "partners.payout_details": "See partner bank/Zelle details", "w9.open": "Open W-9s",
   "payouts.view": "See payouts", "payouts.mark_paid": "Mark payouts paid",
+  "wholesale.view": "See wholesale runs and settings", "wholesale.manage": "Run production runs and change wholesale settings",
   "activity.view": "See Activity", "staff.manage": "Change the team",
 };
