@@ -108,6 +108,21 @@ export async function recordLineOrder(v: { runId: string; slug: string; variantI
     detail: `${v.kits} kits + ${v.extraBoxes} extra box(es) · ${v.supplier}${v.ref ? ` · ${v.ref}` : ""}` });
 }
 
+// Supplier box prices (supplier-prices.sql, synced from AIOS) for the given
+// strengths: "slug/variant_id" → { supplier → cents per box of 10 vials }.
+export async function supplierPricesFor(keys: string[]): Promise<Record<string, Record<string, number>>> {
+  const slugs = [...new Set(keys.map((k) => k.split("/")[0]))];
+  if (slugs.length === 0) return {};
+  const { data, error } = await db().from("supplier_prices").select("supplier, slug, variant_id, box_cents").in("slug", slugs);
+  if (error) fail("supplier prices read", error);
+  const out: Record<string, Record<string, number>> = {};
+  for (const r of (data ?? []) as Array<{ supplier: string; slug: string; variant_id: string; box_cents: number }>) {
+    const k = `${r.slug}/${r.variant_id}`;
+    if (keys.includes(k)) (out[k] ??= {})[r.supplier] = r.box_cents;
+  }
+  return out;
+}
+
 // Every supplier named on any run line, newest first (Record order drop-down).
 export async function pastSuppliers(): Promise<string[]> {
   const { data, error } = await db().from("production_run_lines").select("supplier").not("supplier", "is", null).order("ordered_at", { ascending: false }).limit(500);

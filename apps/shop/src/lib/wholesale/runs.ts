@@ -6,6 +6,14 @@ export const MAX_SUPPLIERS_PER_RUN = 2;
 // The Record order drop-down: the AIOS order planner's suppliers (2026-10-09).
 export const KNOWN_SUPPLIERS = ["LKZ", "Uther", "Reta-Peptide", "EHZ", "BFF Chem", "Nana"] as const;
 
+// Record order's pre-filled total: the supplier's box price × boxes, as a
+// dollar string for the input ("52", "104.50"), or "" without a price.
+export function prefillTotal(boxCents: number | undefined, boxes: number): string {
+  if (!boxCents || boxes <= 0) return "";
+  const c = boxCents * boxes;
+  return c % 100 === 0 ? String(c / 100) : (c / 100).toFixed(2);
+}
+
 // Choices for a run's next supplier order: the run's own suppliers first; once
 // it has MAX_SUPPLIERS_PER_RUN, only those. Otherwise the known list plus any
 // used on earlier runs, without duplicates (case-insensitive).

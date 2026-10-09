@@ -1,6 +1,6 @@
 // tests/lib/wholesale/runs.test.ts
 import { describe, it, expect } from "vitest";
-import { kitsByStrength, lineStage, runStatus, orderReady, suppliersOk, balanceTiming, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS, supplierOptions, KNOWN_SUPPLIERS } from "@/lib/wholesale/runs";
+import { kitsByStrength, lineStage, runStatus, orderReady, suppliersOk, balanceTiming, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS, supplierOptions, KNOWN_SUPPLIERS, prefillTotal } from "@/lib/wholesale/runs";
 
 const line = (o: Record<string, unknown> = {}) => ({ id: "l1", slug: "bpc-157", variant_id: "10mg", kits_ordered: null, extra_boxes: 0, supplier: null,
   cost_cents: null, supplier_ref: null, ordered_at: null, lot_id: null, result: "pending" as const, result_at: null, fail_note: null, ...o });
@@ -64,5 +64,16 @@ describe("supplierOptions", () => {
   });
   it("a run with two suppliers offers only those two", () => {
     expect(supplierOptions(["LKZ", "HK Peptides"], ["Nana"])).toEqual({ options: ["LKZ", "HK Peptides"], full: true });
+  });
+});
+
+describe("prefillTotal", () => {
+  it("box price × boxes, as dollars for the input", () => {
+    expect(prefillTotal(5200, 1)).toBe("52");
+    expect(prefillTotal(5250, 3)).toBe("157.50");
+  });
+  it("blank without a price or boxes", () => {
+    expect(prefillTotal(undefined, 2)).toBe("");
+    expect(prefillTotal(5200, 0)).toBe("");
   });
 });
