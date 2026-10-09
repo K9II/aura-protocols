@@ -413,7 +413,7 @@ insert into catalog_products (slug, shown) values
   ('cjc-1295-ipamorelin', true), ('sermorelin', true), ('tesamorelin', true), ('igf-1-lr3', true),
   ('bpc-157', true), ('tb-500', true), ('kpv', true), ('aod-9604', true),
   ('ss-31', true), ('mots-c', true), ('slu-pp-332', true),
-  ('epithalon', true), ('pinealon', true), ('dsip', true), ('pt-141', true),
+  ('epithalon', true), ('pinealon', true), ('dsip', true), ('pt-141', true), ('semax', true), ('selank', true),
   ('ghk-cu', true), ('nad-plus', true), ('glutathione', true),
   ('bpc-157-tb-500-blend', true), ('bpc-157-tb-500-ghk-cu', true), ('bpc-157-tb-500-ghk-cu-kpv', true)
 on conflict do nothing;
@@ -443,6 +443,8 @@ select v.slug, v.variant_id, v.strength, v.price_cents, v.shown from (values
   ('epithalon', '10mg', '10 mg', 4900, true),
   ('pinealon', '10mg', '10 mg', 5900, true),
   ('dsip', '5mg', '5 mg', 4900, true),
+  ('semax', '10mg', '10 mg', 6500, true),
+  ('selank', '10mg', '10 mg', 6500, true),
   ('pt-141', '10mg', '10 mg', 5500, true),
   ('ghk-cu', '50mg', '50 mg', 5900, true),
   ('nad-plus', '500mg', '500 mg', 8900, true),

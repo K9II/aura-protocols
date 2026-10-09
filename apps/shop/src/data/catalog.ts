@@ -48,10 +48,10 @@ function entry(
 }
 
 export const catalogContent: CatalogEntry<ChemicalClass>[] = [
-  // Incretin & Amylin Analogs — hidden in Aura Store (catalog_products.shown =
-  // false) pending written payment-processor approval: FDA treats "research
-  // use" semaglutide/tirzepatide/retatrutide as falsely labeled, which
-  // Stripe's prohibited list covers (2026-09-28 decision).
+  // Incretin & Amylin Analogs — shown in Aura Store since 2026-10-09 (AllayPay,
+  // the primary processor, accepts GLP-1s). Stripe's prohibited list covers
+  // "research use" semaglutide/tirzepatide/retatrutide, so these must never be
+  // charged through Stripe.
   // APro designations lead on these three; the scientific name always shows alongside (2026-10-08).
   entry("semaglutide", "Semaglutide", "Incretin & Amylin Analogs", { designation: "APro-G1SM" }),
   entry("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs", { designation: "APro-G2TRZ" }),
@@ -78,6 +78,8 @@ export const catalogContent: CatalogEntry<ChemicalClass>[] = [
   entry("pinealon", "Pinealon", "Short Peptides & Neuropeptides"),
   entry("dsip", "DSIP", "Short Peptides & Neuropeptides"),
   entry("pt-141", "PT-141 (Bremelanotide)", "Short Peptides & Neuropeptides"),
+  entry("semax", "Semax", "Short Peptides & Neuropeptides"),
+  entry("selank", "Selank", "Short Peptides & Neuropeptides"),
   // Cofactors & Conjugates
   entry("ghk-cu", "GHK-Cu", "Cofactors & Conjugates", { featured: true }),
   entry("nad-plus", "NAD+", "Cofactors & Conjugates", { featured: true }),

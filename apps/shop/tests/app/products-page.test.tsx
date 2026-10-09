@@ -18,9 +18,9 @@ async function renderPage(params: Record<string, string>) {
 describe("/products", () => {
   beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: shown(), lots: [] }); });
 
-  it("lists all 21 shown compounds with no filter", async () => {
+  it("lists all 23 shown compounds with no filter", async () => {
     await renderPage({});
-    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(21);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(23);
   });
 
   it("filters by chemical class", async () => {
@@ -40,7 +40,7 @@ describe("/products", () => {
 
   it("ignores an unknown class", async () => {
     await renderPage({ cat: "Nope" });
-    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(21);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(23);
   });
 
   it("finds a product by any strength's lot number", async () => {
