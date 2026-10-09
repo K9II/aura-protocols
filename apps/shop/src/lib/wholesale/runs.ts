@@ -73,3 +73,13 @@ export function balanceTiming(balanceDueAt: string, balanceDays: number): { remi
 }
 
 export const daysSince = (date: string, today: string) => Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${date}T12:00:00Z`)) / DAY);
+
+// "10mg" → "10 mg" (variant ids are derived from the strength label).
+export const strengthText = (variantId: string): string =>
+  variantId.replace(/^(\d+(?:\.\d+)?)(mg|mcg|iu)$/i, (_, n: string, u: string) => `${n} ${u.toLowerCase() === "iu" ? "IU" : u.toLowerCase()}`);
+
+export const STAGE_CHIP: Record<LineStage, { cls: string; text: string }> = {
+  to_order: { cls: "need", text: "To order" }, ordered: { cls: "sched", text: "Ordered" }, received: { cls: "draft", text: "Received" },
+  passed: { cls: "c-live", text: "Passed" }, failed: { cls: "red", text: "Failed" },
+};
+export const RUN_CHIP: Record<RunStatus, string> = { collecting: "sched", to_order: "red", in_production: "amber", ready_to_ship: "active", done: "ended" };

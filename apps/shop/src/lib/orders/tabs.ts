@@ -33,9 +33,10 @@ export function itemsSummary(items: Array<{ pack_qty: number; quantity: number }
   return `${items.length} item${items.length === 1 ? "" : "s"} · ${vials} vial${vials === 1 ? "" : "s"}`;
 }
 
-export type OrderMarker = "no_charge" | "dispute" | "warning" | "code" | "partner";
-export function orderMarkers(o: { discount_code_id: string | null; partner_id: string | null; kind?: "sale" | "no_charge" | null }, f: { dispute: boolean; warning: boolean }): OrderMarker[] {
+export type OrderMarker = "wholesale" | "no_charge" | "dispute" | "warning" | "code" | "partner";
+export function orderMarkers(o: { discount_code_id: string | null; partner_id: string | null; kind?: "sale" | "no_charge" | null; channel?: "retail" | "wholesale" }, f: { dispute: boolean; warning: boolean }): OrderMarker[] {
   const out: OrderMarker[] = [];
+  if (o.channel === "wholesale") out.push("wholesale");
   if (o.kind === "no_charge") out.push("no_charge");
   if (f.dispute) out.push("dispute");
   if (f.warning) out.push("warning");

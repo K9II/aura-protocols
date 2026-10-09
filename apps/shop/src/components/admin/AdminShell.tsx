@@ -9,7 +9,7 @@ import { signOutToSignInAction } from "@/app/auth/actions";
 
 // `also`: other pages that belong to an item. Today's "/admin" is not a prefix
 // for the whole admin, so it is current only on itself and Past alerts.
-export type ViewKey = "today" | "orders" | "customers" | "discounts" | "disputes" | "catalog" | "email" | "inquiries" | "partners" | "payouts" | "activity";
+export type ViewKey = "today" | "orders" | "wholesale" | "customers" | "discounts" | "disputes" | "catalog" | "email" | "inquiries" | "partners" | "payouts" | "activity";
 export type Views = Record<ViewKey, boolean>;
 export type Who = { name: string; role: string; assistant: boolean };
 
@@ -18,6 +18,7 @@ const NAV: Array<{ group?: string; items: Item[] }> = [
   { items: [{ href: "/admin", label: "Today", icon: "today", view: "today", count: "today", also: ["/admin/alerts"] }] },
   { group: "Sell", items: [
     { href: "/admin/orders", label: "Orders", icon: "orders", view: "orders", count: "orders" },
+    { href: "/admin/wholesale", label: "Wholesale", icon: "orders", view: "wholesale" },
     { href: "/admin/customers", label: "Customers", icon: "customers", view: "customers" },
     { href: "/admin/discounts", label: "Discounts", icon: "discounts", view: "discounts" },
     { href: "/admin/disputes", label: "Disputes", icon: "shield", view: "disputes", count: "disputes" },
