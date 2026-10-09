@@ -61,7 +61,7 @@ export function RecordOrderDialog({ runId, runNumber, cutoffLabel, slug, variant
               {pick === OTHER && <input name="supplier" className="a-input" style={{ marginTop: 6 }} maxLength={80} required autoFocus placeholder="Supplier name" aria-label="New supplier name" />}
               <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>A run uses at most {MAX_SUPPLIERS_PER_RUN} suppliers — this run has {suppliers.length}{choices.full ? ", so only those two" : ""}.</div>
               <Err msg={d.state?.fieldErrors?.supplier} /></div>
-            <div className="a-grid2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12, alignItems: "start" }}>
               <div className="a-fld"><label htmlFor={`${id}-x`}>Extra boxes for the shop</label><input id={`${id}-x`} name="extraBoxes" className="a-input" inputMode="numeric" value={extra} onChange={(e) => setExtra(e.target.value)} />
                 <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>Optional. Added to this order, covered by the same lab test, and sold as single vials once the lot passes. 0 if none.</div><Err msg={d.state?.fieldErrors?.extraBoxes} /></div>
               <div className="a-fld"><label htmlFor={`${id}-c`}>Total paid to the supplier ($)</label><input id={`${id}-c`} name="cost" className="a-input" inputMode="decimal" required value={total} onChange={(e) => setTyped(e.target.value)} />

@@ -160,6 +160,15 @@
 .adm .a-search input { border: 0; outline: 0; background: transparent; flex: 1; min-width: 0; }
 .adm .a-select { height: 28px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); background: var(--surface); padding: 0 8px; font-weight: 500; color: var(--ink-soft); }
 .adm .a-select b { color: var(--ink); font-weight: 500; }
+/* Native drop-downs in dialogs (Record order, Link lot, Cancel deposit): full
+   width, long choices cut with "…", and an arrow that's always visible. */
+.adm select.a-select { display: block; width: 100%; max-width: 100%; min-width: 0; height: 32px; padding: 0 30px 0 10px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%231C1A15' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center / 10px 6px; -webkit-appearance: none; appearance: none; color: var(--ink); font: inherit; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; cursor: pointer; }
+.adm .a-modal-b > *, .adm .a-modal-b .a-fld { min-width: 0; }
+/* Plain inputs and text areas in dialogs: padded off the box line, full width,
+   the admin font; numbers in the mono face, like the money columns. */
+.adm .a-modal-b input.a-input, .adm .a-modal-b textarea.a-input { display: block; width: 100%; padding: 0 10px; font: inherit; color: var(--ink); outline: 0; }
+.adm .a-modal-b input.a-input[inputmode=numeric], .adm .a-modal-b input.a-input[inputmode=decimal] { font: 500 13px var(--mono); }
+.adm .a-modal-b input.a-input:focus, .adm .a-modal-b select.a-select:focus { border-color: var(--ink); }
 
 /* ---------- tables ---------- */
 .adm table.a-t { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); }
@@ -500,7 +509,7 @@
 .adm .a-banner { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--specimen-bg); border: 1px solid #E2BDB5; color: #6E1D14; margin-bottom: 16px; }
 .adm .a-banner b { font-weight: 600; }
 .adm .a-banner form, .adm .a-banner .a-btn { margin-left: auto; }
-.adm dialog.a-modal { margin: auto; width: 500px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); padding: 0; background: var(--surface); border: 1px solid var(--line-strong); box-shadow: 0 28px 60px -24px rgba(0,0,0,.5); color: var(--ink); }
+.adm dialog.a-modal { white-space: normal; text-align: left; margin: auto; width: 500px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); padding: 0; background: var(--surface); border: 1px solid var(--line-strong); box-shadow: 0 28px 60px -24px rgba(0,0,0,.5); color: var(--ink); }
 .adm dialog.a-modal::backdrop { background: rgba(28,26,21,.34); }
 /* Long forms scroll inside the body; the title bar and buttons stay put (short phones). */
 .adm dialog.a-modal[open] { display: flex; flex-direction: column; }
