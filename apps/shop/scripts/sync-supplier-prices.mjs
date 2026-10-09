@@ -67,6 +67,7 @@ async function main() {
     ...(labCents != null ? { lot_test_cents: labCents } : {}),
     ...(landed.inboundPerBoxCents != null ? { inbound_per_box_cents: landed.inboundPerBoxCents } : {}),
     ...(landed.labelPerVialCents != null ? { label_per_vial_cents: landed.labelPerVialCents } : {}),
+    ...(landed.kitBoxCents != null ? { wholesale_kit_box_cents: landed.kitBoxCents } : {}),
   };
   if (Object.keys(settings).length) {
     const { error: setErr } = await db.from("shop_settings").update(settings).eq("id", true);

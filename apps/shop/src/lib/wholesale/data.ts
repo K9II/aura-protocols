@@ -3,7 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { parseWholesaleSettings, WHOLESALE_TERMS_VERSION, type WholesaleSettings } from "@/lib/wholesale/rules";
 
 const db = () => getSupabaseAdminClient();
-const SETTINGS_COLS = "wholesale_open, wholesale_tiers, wholesale_deposit_pct, wholesale_balance_days, wholesale_run_days, wholesale_lead_days, wholesale_next_cutoff, wholesale_min_kits";
+const SETTINGS_COLS = "wholesale_open, wholesale_tiers, wholesale_deposit_pct, wholesale_balance_days, wholesale_run_days, wholesale_lead_days, wholesale_next_cutoff, wholesale_min_kits, wholesale_kit_box_cents";
 
 // Throws on a read error or broken tiers: callers fail closed (the page shows
 // the inquiry form, checkout refuses).

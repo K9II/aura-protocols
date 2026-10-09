@@ -57,12 +57,12 @@ describe("orders", () => {
       rejected: [], kits: 2, tier: { minKits: 5, pct: 20 }, belowMinimum: true, kitsToMinimum: 3,
       subtotalCents: 102000, shippingCents: 0, insuranceCents: 550,
       depositCents: 40800, balanceBeforeTaxCents: 61750, totalBeforeTaxCents: 102550 };
-    const r = await createPendingWholesaleOrder({ customerId: "c1", email: "j@lab.org", ship, quote, cutoffOn: "2026-10-19", taxCents: 8000, taxCalculationId: "taxcalc_1" });
+    const r = await createPendingWholesaleOrder({ customerId: "c1", email: "j@lab.org", ship, quote, cutoffOn: "2026-10-19", taxCents: 8000, taxCalculationId: "taxcalc_1", kitBoxCents: 450 });
     expect(r).toEqual({ id: "o1", orderNumber: "AP-1050" });
     expect(callArgs(ins, "insert")?.[0]).toMatchObject({
       channel: "wholesale", status: "awaiting_payment", wholesale_cutoff_on: "2026-10-19", partner_id: null, partner_discount_cents: 0,
       subtotal_cents: 102000, shipping_cents: 0, insurance_cents: 550, tax_cents: 8000, total_cents: 110550,
-      deposit_cents: 40800, balance_cents: 69750, tax_calculation_id: "taxcalc_1",
+      deposit_cents: 40800, balance_cents: 69750, tax_calculation_id: "taxcalc_1", packaging_cents: 900,
     });
     expect(callArgs(items, "insert")?.[0]).toEqual([expect.objectContaining({ pack_qty: 10, quantity: 2, unit_price_cents: 51000, lot_number: "" })]);
   });

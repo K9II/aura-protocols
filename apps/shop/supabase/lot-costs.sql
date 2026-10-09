@@ -19,6 +19,11 @@ alter table shop_settings add column if not exists lot_test_cents integer not nu
 -- Receive lot's other pre-fills (AIOS defaults china_inbound_per_kit, label_print_per_vial).
 alter table shop_settings add column if not exists inbound_per_box_cents integer not null default 1500 check (inbound_per_box_cents between 0 and 100000);
 alter table shop_settings add column if not exists label_per_vial_cents integer not null default 40 check (label_per_vial_cents between 0 and 10000);
+-- Wholesale: each kit ships in a branded Aura Protocols box (AIOS defaults
+-- kit_box_per_kit). A wholesale order records its box cost when it's placed,
+-- so a later price change doesn't rewrite old orders' profit.
+alter table shop_settings add column if not exists wholesale_kit_box_cents integer not null default 450 check (wholesale_kit_box_cents between 0 and 10000);
+alter table orders add column if not exists packaging_cents integer check (packaging_cents is null or packaging_cents >= 0);
 
 -- The actual Stripe fee of each payment, read from its balance transaction
 -- when the payment lands (lib/payment-fees.ts). One row per payment.
@@ -42,7 +47,7 @@ drop function if exists order_profit_rows(timestamptz, timestamptz, uuid);
 create or replace function order_profit_rows(p_from timestamptz, p_to timestamptz, p_order uuid)
 returns table (
   order_id uuid, goods_cents bigint, product_cents bigint, freight_cents bigint, label_cents bigint, test_cents bigint,
-  fee_cents bigint, fee_estimated boolean, commission_cents bigint, vials bigint, vials_costed bigint
+  packaging_cents bigint, fee_cents bigint, fee_estimated boolean, commission_cents bigint, vials bigint, vials_costed bigint
 ) language sql stable security definer set search_path = public, pg_temp as $$
   with o as (
     select x.* from orders x
@@ -80,6 +85,7 @@ returns table (
   )
   select o.id, (o.subtotal_cents - o.partner_discount_cents)::bigint,
     coalesce(lc.product, 0)::bigint, coalesce(lc.freight, 0)::bigint, coalesce(lc.label, 0)::bigint, coalesce(lc.test, 0)::bigint,
+    coalesce(o.packaging_cents, 0)::bigint,
     coalesce(fees.cents, 0)::bigint, coalesce(fees.estimated, false),
     coalesce((select c.amount_cents from commissions c where c.order_id = o.id and c.state <> 'void'), 0)::bigint,
     coalesce(lc.vials, 0)::bigint, coalesce(lc.costed, 0)::bigint
@@ -94,8 +100,8 @@ language sql stable security definer set search_path = public, pg_temp as $$
   select json_build_object(
     'orders', count(*),
     'goods_cents', coalesce(sum(goods_cents), 0),
-    'cost_cents', coalesce(sum(product_cents + freight_cents + label_cents + test_cents + fee_cents + commission_cents), 0),
-    'profit_cents', coalesce(sum(goods_cents - product_cents - freight_cents - label_cents - test_cents - fee_cents - commission_cents), 0),
+    'cost_cents', coalesce(sum(product_cents + freight_cents + label_cents + test_cents + packaging_cents + fee_cents + commission_cents), 0),
+    'profit_cents', coalesce(sum(goods_cents - product_cents - freight_cents - label_cents - test_cents - packaging_cents - fee_cents - commission_cents), 0),
     'uncosted_orders', count(*) filter (where vials_costed < vials or vials = 0),
     'fees_estimated', count(*) filter (where fee_estimated))
   from order_profit_rows(p_from, p_to, null)

@@ -137,7 +137,7 @@ export async function startWholesaleCheckoutAction(input: unknown): Promise<Star
   }
 
   const cutoffOn = cutoffFor(localDate(currentMs()), { runDays: s.runDays, override: s.nextCutoffOverride });
-  const order = await createPendingWholesaleOrder({ customerId: customer.id, email: customer.email, ship, quote, cutoffOn, taxCents: tax.taxCents, taxCalculationId: tax.calculationId });
+  const order = await createPendingWholesaleOrder({ customerId: customer.id, email: customer.email, ship, quote, cutoffOn, taxCents: tax.taxCents, taxCalculationId: tax.calculationId, kitBoxCents: s.kitBoxCents });
 
   const cancelPending = async (why: string): Promise<void> => {
     try {

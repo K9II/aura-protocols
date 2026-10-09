@@ -32,7 +32,7 @@ export function defaultLabFeeCents(sheet) {
 export function landedDefaultsCents(sheet) {
   const d = sheet?.defaults ?? {};
   const c = (v) => (typeof v === "number" && v >= 0 ? Math.round(v * 100) : null);
-  return { inboundPerBoxCents: c(d.china_inbound_per_kit), labelPerVialCents: c(d.label_print_per_vial) };
+  return { inboundPerBoxCents: c(d.china_inbound_per_kit), labelPerVialCents: c(d.label_print_per_vial), kitBoxCents: c(d.kit_box_per_kit) };
 }
 
 // "10 mg" → "10mg", "250 mcg" → "250mcg" (the store's variant_id rule).

@@ -83,7 +83,7 @@ export async function createPendingOrder(input: {
 // no discounts, no stock hold.
 export async function createPendingWholesaleOrder(input: {
   customerId: string; email: string; ship: ShipAddress; quote: WholesaleQuote; cutoffOn: string;
-  taxCents: number; taxCalculationId: string;
+  taxCents: number; taxCalculationId: string; kitBoxCents: number;
 }): Promise<{ id: string; orderNumber: string }> {
   const { customerId, email, ship, quote } = input;
   const total = quote.totalBeforeTaxCents + input.taxCents;
@@ -95,6 +95,7 @@ export async function createPendingWholesaleOrder(input: {
     tax_cents: input.taxCents, total_cents: total,
     partner_id: null, attributed_by: null, partner_discount_cents: 0, new_account_discount: false, store_credit_cents: 0,
     deposit_cents: quote.depositCents, balance_cents: total - quote.depositCents, tax_calculation_id: input.taxCalculationId,
+    packaging_cents: quote.kits * input.kitBoxCents,
     ruo_confirmed_at: now.toISOString(),
     expires_at: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
   }).select("id, order_number").single();
