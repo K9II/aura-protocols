@@ -145,3 +145,17 @@ alter table customer_events drop constraint if exists customer_events_kind_check
 alter table customer_events add constraint customer_events_kind_check check (kind in (
   'blocked', 'unblocked', 'credit_added', 'credit_removed', 'verify_resent',
   'warning_refunded', 'warning_watched', 'warning_closed', 'wholesale_on', 'wholesale_off'));
+
+-- Reconcile: wholesale vials are held on purpose from Pass until the balance
+-- is paid (deposit_paid → balance_due), so those aren't stale holds.
+-- Supersedes lot_integrity in catalog-ops.sql (re-apply this file after it).
+create or replace function lot_integrity() returns json language sql stable
+set search_path = public, pg_temp as $$
+  select json_build_object(
+    'negative', (select coalesce(json_agg(lot_number), '[]'::json) from lot_stock where available < 0),
+    'stale_holds', (select coalesce(json_agg(distinct o.order_number), '[]'::json)
+                    from lot_holds h join orders o on o.id = h.order_id
+                    where h.state = 'held' and o.status not in ('awaiting_payment', 'processing', 'deposit_paid', 'balance_due'))
+  )
+$$;
+revoke all on function lot_integrity() from public, anon, authenticated;

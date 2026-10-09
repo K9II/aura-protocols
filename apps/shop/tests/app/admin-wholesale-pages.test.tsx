@@ -80,6 +80,16 @@ describe("Admin → Wholesale pages", () => {
     expect(screen.queryByRole("button", { name: "Cancel deposit…" })).toBeNull();
   });
 
+  it("run page: a re-sourced line shows the kits the run needs now, with Record order", async () => {
+    m.runOrders.mockResolvedValue([order({ items: [{ compound_slug: "bpc-157", variant_id: "10mg", quantity: 5 }] })]);
+    m.runLines.mockResolvedValue([line({ kits_ordered: 10, ordered_at: null, lot_id: null })]);
+    const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
+    const row = [...container.querySelectorAll("tbody tr")].find((r) => r.textContent?.includes("BPC-157"))!;
+    expect(row.querySelectorAll("td")[1].textContent).toBe("5");
+    expect(screen.getByRole("button", { name: "Record order" })).toBeTruthy();
+  });
+
   it("run page: an unknown run is a 404", async () => {
     m.getRun.mockResolvedValue(null);
     const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");

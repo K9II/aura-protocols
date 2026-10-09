@@ -19,6 +19,10 @@ describe("wholesale-runs.sql", () => {
   it("a refund from deposit_paid releases held vials", () => {
     expect(sql).toMatch(/new\.status = 'refunded' and old\.status = 'deposit_paid'/);
   });
+  it("reconcile doesn't flag vials held for a wholesale balance", () => {
+    expect(sql).toMatch(/create or replace function lot_integrity\(\)[\s\S]*not in \('awaiting_payment', 'processing', 'deposit_paid', 'balance_due'\)/);
+    expect(sql).toMatch(/revoke all on function lot_integrity\(\) from public, anon, authenticated/);
+  });
   it("RLS on every new table, customer_events gains wholesale_on/off", () => {
     for (const t of ["production_runs", "production_run_lines", "production_run_events"]) expect(sql).toContain(`alter table ${t} enable row level security`);
     expect(sql).toMatch(/'wholesale_on', 'wholesale_off'/);

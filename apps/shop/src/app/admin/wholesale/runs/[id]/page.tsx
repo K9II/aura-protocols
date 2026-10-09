@@ -55,7 +55,8 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
     const lot = line?.lot_id ? await lotById(line.lot_id) : null;
     const drafts = manage && stage === "ordered" ? await draftLotsFor(slug, variantId) : [];
     const buyers = live.filter((o) => o.status === "deposit_paid" && o.items.some((i) => i.compound_slug === slug && i.variant_id === variantId)).length;
-    return { k, slug, variantId, line, stage, lot, drafts, buyers, kits: line?.kits_ordered ?? needed.get(k) ?? 0,
+    return { k, slug, variantId, line, stage, lot, drafts, buyers, // A re-sourced line is back at to_order: show what the run needs now.
+      kits: (stage === "to_order" ? undefined : line?.kits_ordered) ?? needed.get(k) ?? 0,
       title: c?.designation ?? c?.name ?? slug, sci: c?.designation ? c.name : null, strength: strengthText(variantId) };
   }));
   const cutoffLabel = dateLabel(run.cutoff_on);
