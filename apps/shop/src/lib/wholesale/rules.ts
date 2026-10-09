@@ -154,6 +154,9 @@ export function estimatedDates(cutoff: string, leadDays: number): { testedAbout:
   return { testedAbout: addDays(shipsAbout, -TESTED_BEFORE_SHIP_DAYS), shipsAbout };
 }
 
-export function canCancelWholesale(o: { status: OrderStatus; wholesale_cutoff_on: string | null }, today: string): boolean {
-  return o.status === "deposit_paid" && !!o.wholesale_cutoff_on && today <= o.wholesale_cutoff_on;
+// Before the cutoff: always. After it: only when a strength in the order failed
+// testing (spec: failed lot → wait or cancel for a full deposit refund).
+export function canCancelWholesale(o: { status: OrderStatus; wholesale_cutoff_on: string | null }, today: string, run: { failed: boolean } = { failed: false }): boolean {
+  if (o.status !== "deposit_paid" || !o.wholesale_cutoff_on) return false;
+  return today <= o.wholesale_cutoff_on || run.failed;
 }

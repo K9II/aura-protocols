@@ -108,4 +108,9 @@ describe("wholesale rules", () => {
   it("featured kits: the five on the signed-out page in order; one not offered is replaced by the next kit", () => {
     expect(featuredKits(kitRows(live)).map((r) => r.slug)).toEqual(["bpc-157", "retatrutide", "tb-500"]);
   });
+  it("after the cutoff a buyer can still cancel when a strength in their order failed", () => {
+    expect(canCancelWholesale({ status: "deposit_paid", wholesale_cutoff_on: "2026-10-19" }, "2026-11-01", { failed: true })).toBe(true);
+    expect(canCancelWholesale({ status: "deposit_paid", wholesale_cutoff_on: "2026-10-19" }, "2026-11-01", { failed: false })).toBe(false);
+    expect(canCancelWholesale({ status: "balance_due", wholesale_cutoff_on: "2026-10-19" }, "2026-11-01", { failed: true })).toBe(false);
+  });
 });
