@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   DEFAULT_TIERS, KIT_VIALS, MAX_KITS_PER_LINE, tierFor, nextTier, kitRows, priceWholesale, cutoffFor, estimatedDates, canCancelWholesale, parseWholesaleSettings,
-  featuredKits, kitTitle,
+  featuredKits, kitTitle, parseSettingsForm,
 } from "@/lib/wholesale/rules";
 
 // 2026-10-08: minimum 5 kits; 5-9 20%, 10-19 25%, 20+ 30%; lot tests absorbed (no fee).
@@ -112,5 +112,17 @@ describe("wholesale rules", () => {
     expect(canCancelWholesale({ status: "deposit_paid", wholesale_cutoff_on: "2026-10-19" }, "2026-11-01", { failed: true })).toBe(true);
     expect(canCancelWholesale({ status: "deposit_paid", wholesale_cutoff_on: "2026-10-19" }, "2026-11-01", { failed: false })).toBe(false);
     expect(canCancelWholesale({ status: "balance_due", wholesale_cutoff_on: "2026-10-19" }, "2026-11-01", { failed: true })).toBe(false);
+  });
+
+  it("settings form: the first tier starts at the minimum; tiers climb; bounds enforced", () => {
+    const form = (o: Record<string, string> = {}) => (k: string) => ({ open: "on", minKits: "5", tierPct0: "20", tierKits1: "10", tierPct1: "25", tierKits2: "20", tierPct2: "30",
+      depositPct: "40", balanceDays: "7", runDays: "14", leadDays: "28", nextCutoff: "", ...o } as Record<string, string>)[k] ?? null;
+    const ok = parseSettingsForm(form(), "2026-10-09");
+    expect(ok).toEqual({ ok: true, value: { open: true, minKits: 5, tiers: [{ minKits: 5, pct: 20 }, { minKits: 10, pct: 25 }, { minKits: 20, pct: 30 }], depositPct: 40, balanceDays: 7, runDays: 14, leadDays: 28, nextCutoff: null } });
+    expect(parseSettingsForm(form({ tierKits2: "", tierPct2: "" }), "2026-10-09")).toMatchObject({ ok: true, value: { tiers: [{ minKits: 5, pct: 20 }, { minKits: 10, pct: 25 }] } });
+    expect(parseSettingsForm(form({ tierPct1: "15" }), "2026-10-09")).toMatchObject({ ok: false, errors: { tierKits1: expect.any(String) } });
+    expect(parseSettingsForm(form({ depositPct: "5" }), "2026-10-09")).toMatchObject({ ok: false, errors: { depositPct: "10% to 90%." } });
+    expect(parseSettingsForm(form({ nextCutoff: "2026-10-01" }), "2026-10-09")).toMatchObject({ ok: false, errors: { nextCutoff: "That date has passed." } });
+    expect(parseSettingsForm(form({ open: "" }), "2026-10-09")).toMatchObject({ ok: true, value: { open: false } });
   });
 });

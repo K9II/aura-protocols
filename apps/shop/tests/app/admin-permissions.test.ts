@@ -53,6 +53,10 @@ export const ACTION_PERMS: Record<string, Record<string, string>> = {
   "orders/actions.ts": { markShippedAction: "orders.ship", refundOrderAction: "orders.refund", createNoChargeOrderAction: "orders.no_charge", cancelNoChargeOrderAction: "orders.no_charge" },
   "customers/actions.ts": { adjustCreditAction: "credit.adjust", blockAction: "customers.block", unblockAction: "customers.block", resendVerifyAdminAction: "customers.resend_verify" },
   "discounts/actions.ts": { saveCodeAction: "discounts.edit", codeAvailableAction: "discounts.edit", setCodeStateAction: "discounts.edit", resetUseAction: "discounts.edit", setCapAction: "discounts.settings" },
+  "wholesale/actions.ts": {
+    recordLineOrderAction: "wholesale.manage", linkLotAction: "wholesale.manage", passLineAction: "wholesale.manage", failLineAction: "wholesale.manage",
+    resourceLineAction: "wholesale.manage", saveRunNotesAction: "wholesale.manage", cancelDepositAction: "wholesale.manage", saveWholesaleSettingsAction: "wholesale.manage",
+  },
   "disputes/actions.ts": { saveDisputeDraftAction: "disputes.draft", submitDisputeAction: "disputes.submit", refundEarlyWarningAction: "disputes.warnings", watchEarlyWarningAction: "disputes.warnings" },
   "catalog/actions.ts": {
     coaUploadAction: "lots.receive", receiveLotAction: "lots.receive", replaceCertificateAction: "lots.receive",

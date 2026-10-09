@@ -160,3 +160,43 @@ export function canCancelWholesale(o: { status: OrderStatus; wholesale_cutoff_on
   if (o.status !== "deposit_paid" || !o.wholesale_cutoff_on) return false;
   return today <= o.wholesale_cutoff_on || run.failed;
 }
+
+// Admin → Wholesale → Settings (owner). Bounds match the shop_settings checks;
+// the first tier always starts at the minimum. `today` = shop date.
+export type SettingsInput = {
+  open: boolean; minKits: number; tiers: Tier[]; depositPct: number; balanceDays: number; runDays: number; leadDays: number; nextCutoff: string | null;
+};
+export function parseSettingsForm(get: (k: string) => string | null, today: string): { ok: true; value: SettingsInput } | { ok: false; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+  const int = (k: string, lo: number, hi: number, msg: string): number => {
+    const n = Number((get(k) ?? "").trim());
+    if (!Number.isInteger(n) || n < lo || n > hi) { errors[k] = msg; return lo; }
+    return n;
+  };
+  const minKits = int("minKits", 1, 50, "1 to 50 kits.");
+  const depositPct = int("depositPct", 10, 90, "10% to 90%.");
+  const balanceDays = int("balanceDays", 1, 30, "1 to 30 days.");
+  const runDays = int("runDays", 7, 56, "7 to 56 days.");
+  const leadDays = int("leadDays", 7, 90, "7 to 90 days.");
+  const tiers: Tier[] = [];
+  for (let i = 0; i < 3; i++) {
+    const kitsRaw = i === 0 ? String(minKits) : (get(`tierKits${i}`) ?? "").trim();
+    const pctRaw = (get(`tierPct${i}`) ?? "").trim();
+    if (i > 0 && !kitsRaw && !pctRaw) break;            // tiers 2 and 3 are optional
+    const kits = Number(kitsRaw), pct = Number(pctRaw);
+    if (!Number.isInteger(pct) || pct < 1 || pct > 60) { errors[`tierPct${i}`] = "1% to 60%."; continue; }
+    if (!Number.isInteger(kits) || kits < 1 || kits > 500) { errors[`tierKits${i}`] = "Whole kits."; continue; }
+    const prev = tiers[tiers.length - 1];
+    if (prev && (kits <= prev.minKits || pct < prev.pct)) { errors[`tierKits${i}`] = "Each tier needs more kits and at least the discount before it."; continue; }
+    tiers.push({ minKits: kits, pct });
+  }
+  const cutoffRaw = (get("nextCutoff") ?? "").trim();
+  let nextCutoff: string | null = null;
+  if (cutoffRaw) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(cutoffRaw) || Number.isNaN(Date.parse(cutoffRaw))) errors.nextCutoff = "Pick a date.";
+    else if (cutoffRaw < today) errors.nextCutoff = "That date has passed.";
+    else nextCutoff = cutoffRaw;
+  }
+  if (Object.keys(errors).length) return { ok: false, errors };
+  return { ok: true, value: { open: get("open") === "on", minKits, tiers, depositPct, balanceDays, runDays, leadDays, nextCutoff } };
+}
