@@ -154,6 +154,50 @@ export function ownerNewWholesaleOrderEmail(o: OrderRow) {
   };
 }
 
+const orderLink = (siteUrl: string, n: string) => `${siteUrl}/order/${encodeURIComponent(n)}`;
+
+export function wholesaleBalanceDueEmail(o: OrderRow, d: { dueOn: string; siteUrl: string }) {
+  const link = orderLink(d.siteUrl, o.order_number);
+  return {
+    subject: `Order ${o.order_number} — your kits passed testing`,
+    html: shell(`Your kits passed testing`,
+      `<p>Your production lot passed independent testing and your kits are set aside for you.</p>${kitsTable(o)}<p>Balance: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax), due by <b>${e(dateLabel(d.dueOn))}</b>.</p><p><a href="${e(link)}">Pay your balance</a> on your order page. Unpaid orders are cancelled after the due date and the deposit is kept.</p>`),
+  };
+}
+
+export function wholesaleBalanceReminderEmail(o: OrderRow, d: { dueOn: string; siteUrl: string }) {
+  return {
+    subject: `Order ${o.order_number} — balance due ${dateLabel(d.dueOn)}`,
+    html: shell(`Balance due ${e(dateLabel(d.dueOn))}`,
+      `<p>A reminder: the balance of <b>${usd(o.balance_cents ?? 0)}</b> for order ${e(o.order_number)} is due by <b>${e(dateLabel(d.dueOn))}</b>. <a href="${e(orderLink(d.siteUrl, o.order_number))}">Pay it on your order page</a>. After that date the order is cancelled and the deposit is kept.</p>`),
+  };
+}
+
+export function wholesaleLotFailedEmail(o: OrderRow, d: { strengths: string[]; newShipsAbout: string; siteUrl: string }) {
+  const list = d.strengths.map((s) => `<li>${e(s)}</li>`).join("");
+  return {
+    subject: `Order ${o.order_number} — a lot needs re-sourcing`,
+    html: shell(`A lot needs re-sourcing`,
+      `<p>The production lot for the following did not pass our independent testing, so it will not be sold:</p><ul>${list}</ul><p>We are re-sourcing it. New estimated ship date: <b>${e(dateLabel(d.newShipsAbout))}</b>. Nothing is needed from you to keep your order. If you would rather not wait, <a href="${e(orderLink(d.siteUrl, o.order_number))}">cancel on your order page for a full refund of your deposit</a>.</p>`),
+  };
+}
+
+export function wholesaleForfeitEmail(o: OrderRow) {
+  return {
+    subject: `Order ${o.order_number} cancelled — balance not received`,
+    html: shell(`Order ${o.order_number} cancelled`,
+      `<p>We did not receive the balance for order ${e(o.order_number)} by its due date, so the order was cancelled and the deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was kept, as set out in the wholesale terms.</p>`),
+  };
+}
+
+export function wholesaleBalanceReceivedEmail(o: OrderRow, d: { shipsAbout: string | null }) {
+  return {
+    subject: `Order ${o.order_number} — balance received`,
+    html: shell(`Balance received`,
+      `<p>Thank you — your balance of <b>${usd(o.balance_cents ?? 0)}</b> was received.</p>${kitsTable(o)}${d.shipsAbout ? `<p>Your kits ship about <b>${e(dateLabel(d.shipsAbout))}</b>, with the lot's certificate. We'll email tracking when they ship.</p>` : ""}${shipTo(o)}`),
+  };
+}
+
 export function opsAlertEmail(title: string, detail: string) {
   return { subject: `[Aura shop] ${title}`, html: shell(title, `<pre style="white-space:pre-wrap;font-size:13px">${e(detail)}</pre>`) };
 }

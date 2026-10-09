@@ -139,6 +139,26 @@ describe("wholesale emails", () => {
     expect(findViolations(`${m.subject} ${m.html}`)).toEqual([]);
   });
 
+  it("balance due: amount, due date, link to the order page", async () => {
+    const { wholesaleBalanceDueEmail } = await import("@/lib/emails");
+    const m = wholesaleBalanceDueEmail(ws, { dueOn: "2026-11-19", siteUrl: "https://auraprotocols.com" });
+    expect(m.subject).toBe("Order AP-1050 — your kits passed testing");
+    expect(m.html).toContain("$994.50");
+    expect(m.html).toContain("Nov 19");
+    expect(m.html).toContain("https://auraprotocols.com/order/AP-1050");
+    expect(findViolations(`${m.subject} ${m.html}`)).toEqual([]);
+  });
+  it("reminder, lot failed, forfeit and balance received", async () => {
+    const e = await import("@/lib/emails");
+    expect(e.wholesaleBalanceReminderEmail(ws, { dueOn: "2026-11-19", siteUrl: "https://x" }).subject).toBe("Order AP-1050 — balance due Nov 19");
+    const f = e.wholesaleLotFailedEmail(ws, { strengths: ["APro-G3RT (Retatrutide) 10 mg"], newShipsAbout: "2026-12-14", siteUrl: "https://x" });
+    expect(f.html).toContain("APro-G3RT (Retatrutide) 10 mg");
+    expect(f.html).toContain("Dec 14");
+    expect(f.html).toMatch(/cancel.*full refund/i);
+    expect(e.wholesaleForfeitEmail(ws).subject).toBe("Order AP-1050 cancelled — balance not received");
+    expect(e.wholesaleBalanceReceivedEmail(ws, { shipsAbout: "2026-11-16" }).subject).toBe("Order AP-1050 — balance received");
+    for (const m of [f, e.wholesaleForfeitEmail(ws)]) expect(findViolations(`${m.subject} ${m.html}`)).toEqual([]);
+  });
   it("wholesale cancelled email names the refunded deposit", async () => {
     const { wholesaleCancelledEmail } = await import("@/lib/emails");
     const m = wholesaleCancelledEmail(ws);
