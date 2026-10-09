@@ -10,16 +10,19 @@ import { usd } from "@/lib/html";
 
 export type DraftLot = {
   id: string; lotNumber: string; purity: string; method: string; testedOn: string; ordered: string; counted: string; damaged: string; note: string; coaPath: string;
-  supplier: string; cost: string; testCost: string;
+  supplier: string; cost: string; testCost: string; freight: string; labels: string;
 };
-const EMPTY: Omit<DraftLot, "id"> = { lotNumber: "", purity: "", method: "HPLC+MS", testedOn: "", ordered: "", counted: "", damaged: "0", note: "", coaPath: "", supplier: "", cost: "", testCost: "" };
+const EMPTY: Omit<DraftLot, "id"> = { lotNumber: "", purity: "", method: "HPLC+MS", testedOn: "", ordered: "", counted: "", damaged: "0", note: "", coaPath: "", supplier: "", cost: "", testCost: "", freight: "", labels: "" };
 const OTHER = "__other";
 
 // prices: this strength's supplier box prices (supplier_prices, from AIOS);
-// testCents: the default lab fee. Both pre-fill the cost fields.
-export default function ReceiveLotDialog({ slug, variantId, title, draft, small, prices = {}, testCents }: {
-  slug: string; variantId: string; title: string; draft?: DraftLot; small?: boolean; prices?: Record<string, number>; testCents?: number;
+// defaults: lab fee per lot, freight per box, labels per vial (AIOS rates).
+// They pre-fill the cost fields until the owner types their own.
+export default function ReceiveLotDialog({ slug, variantId, title, draft, small, prices = {}, defaults }: {
+  slug: string; variantId: string; title: string; draft?: DraftLot; small?: boolean; prices?: Record<string, number>;
+  defaults?: { testCents: number; inboundPerBoxCents: number; labelPerVialCents: number };
 }) {
+  const testCents = defaults?.testCents;
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState(receiveLotAction, null);
   const initial = () => draft ?? { id: "", ...EMPTY, testCost: testCents != null ? (testCents / 100).toFixed(testCents % 100 ? 2 : 0) : "" };
@@ -28,6 +31,8 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
   const [other, setOther] = useState(!!draft?.supplier && !options.includes(draft.supplier));
   // The cost follows supplier box price × boxes until the owner types their own.
   const [costTyped, setCostTyped] = useState<string | null>(draft?.cost ? draft.cost : null);
+  const [freightTyped, setFreightTyped] = useState<string | null>(draft?.freight ? draft.freight : null);
+  const [labelsTyped, setLabelsTyped] = useState<string | null>(draft?.labels ? draft.labels : null);
   // Two dialogs can sit on the same product page (one strength per card, plus
   // a separate "Receive a lot" vs "Edit draft" trigger for the same strength)
   // — scope every field id so their labels never collide.
@@ -36,7 +41,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
     if (state?.ok) {
       ref.current?.close();
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
-      setV(initial()); setCostTyped(null); setOther(false);
+      setV(initial()); setCostTyped(null); setFreightTyped(null); setLabelsTyped(null); setOther(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only reacts to a fresh action result
   }, [state]);
@@ -53,6 +58,9 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
   const boxes = Number.isInteger(ordered) && ordered > 0 ? Math.ceil(ordered / 10) : 0;
   const boxCents = !other && v.supplier ? prices[v.supplier] : undefined;
   const cost = costTyped ?? prefillTotal(boxCents, boxes);
+  const freight = freightTyped ?? prefillTotal(defaults?.inboundPerBoxCents, boxes);
+  const labelVials = Number.isInteger(counted) && counted > 0 ? counted : (Number.isInteger(ordered) ? ordered : 0);
+  const labels = labelsTyped ?? prefillTotal(defaults?.labelPerVialCents, labelVials);
   return (
     <>
       <button type="button" className={`a-btn${small ? " sm" : ""}`} onClick={() => ref.current?.showModal()}>
@@ -103,6 +111,15 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
                 <div className="a-fld"><label htmlFor={`r-test-${scope}`}>Lab test fee</label><div className="a-input"><span className="affix l">$</span><input id={`r-test-${scope}`} name="testCost" inputMode="decimal" value={v.testCost} onChange={set("testCost")} /></div>
                   <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>For this lot&apos;s certificate.</div>
                   {fe.testCost && <div className="a-err" role="alert">{fe.testCost}</div>}</div>
+              </div>
+              <div className="a-row3" style={{ marginTop: 12 }}>
+                <div className="a-fld"><label htmlFor={`r-fr-${scope}`}>Shipping &amp; customs</label><div className="a-input"><span className="affix l">$</span><input id={`r-fr-${scope}`} name="freight" inputMode="decimal" value={freight} onChange={(e) => setFreightTyped(e.target.value)} /></div>
+                  <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{defaults && boxes && freightTyped === null ? <>{usd(defaults.inboundPerBoxCents)} a box × {boxes} (AIOS) — change it to the real bill</> : <>Freight and duty to get this lot to you.</>}</div>
+                  {fe.freight && <div className="a-err" role="alert">{fe.freight}</div>}</div>
+                <div className="a-fld"><label htmlFor={`r-lb-${scope}`}>Labels</label><div className="a-input"><span className="affix l">$</span><input id={`r-lb-${scope}`} name="labels" inputMode="decimal" value={labels} onChange={(e) => setLabelsTyped(e.target.value)} /></div>
+                  <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{defaults && labelVials && labelsTyped === null ? <>{usd(defaults.labelPerVialCents)} a vial × {labelVials} (AIOS)</> : <>Printed labels for its vials.</>}</div>
+                  {fe.labels && <div className="a-err" role="alert">{fe.labels}</div>}</div>
+                <div />
               </div>
               <div className="sum"><span>Sellable <b>{sellable ?? "—"}</b></span>{known && <span className="muted">= {counted} counted − {damaged} damaged</span>}{disc && <span className="muted" style={{ marginLeft: "auto" }}>You&apos;ll get an email about the shortfall</span>}</div>
             </div>

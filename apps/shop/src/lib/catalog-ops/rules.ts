@@ -23,13 +23,13 @@ const intIn = (s: string, min: number, max: number) => { const n = Number(s.trim
 
 export type ReceiveInput = {
   lotNumber: string; purity: string; method: string; testedOn: string; ordered: string; counted: string; damaged: string; note: string; coaPath: string;
-  supplier?: string; cost?: string; testCost?: string;
+  supplier?: string; cost?: string; testCost?: string; freight?: string; labels?: string;
 };
 export type ReceiveValue = {
   lotNumber: string; purityPct: number; method: (typeof METHODS)[number]; testedOn: string;
   orderedQty: number; countedQty: number; damagedQty: number; discrepancyNote: string | null; coaPath: string | null;
   // What the lot cost (lot-costs.sql): null = not recorded.
-  supplier: string | null; costCents: number | null; testCents: number | null;
+  supplier: string | null; costCents: number | null; testCents: number | null; freightCents: number | null; labelCents: number | null;
 };
 
 // "520", "520.50", "$1,040" → cents; "" → null; anything else → undefined (an error).
@@ -74,6 +74,10 @@ export function parseReceive(i: ReceiveInput, today: string):
   if (costCents === undefined) e.cost = "Dollars, like 520 or 520.50.";
   const testCents = dollarsToCents(i.testCost);
   if (testCents === undefined) e.testCost = "Dollars, like 250.";
+  const freightCents = dollarsToCents(i.freight);
+  if (freightCents === undefined) e.freight = "Dollars, like 75.";
+  const labelCents = dollarsToCents(i.labels);
+  if (labelCents === undefined) e.labels = "Dollars, like 20.";
   if (costCents != null && !supplier) e.supplier = "Pick the supplier this cost is for.";
   if (Object.keys(e).length) return { ok: false, fieldErrors: e };
   return {
@@ -82,7 +86,7 @@ export function parseReceive(i: ReceiveInput, today: string):
     value: {
       lotNumber, purityPct: Math.round(purity * 100) / 100, method: method!, testedOn: i.testedOn,
       orderedQty: ordered!, countedQty: counted!, damagedQty: damaged!, discrepancyNote: note || null, coaPath: i.coaPath.trim() || null,
-      supplier, costCents: costCents ?? null, testCents: testCents ?? null,
+      supplier, costCents: costCents ?? null, testCents: testCents ?? null, freightCents: freightCents ?? null, labelCents: labelCents ?? null,
     },
   };
 }

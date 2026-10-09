@@ -47,7 +47,7 @@ export default function Orders() {
           ["Shipped", <>Tracking entered and the customer emailed. From here an order can only be refunded.</>],
           ["Cancelled", <>An unfinished checkout that was closed. No money moved.</>],
           ["Refunded", <>Fully refunded. The commission is reversed and any store credit used is returned. The order page shows a <Ui>Refund</Ui> card — amount, where it went, the reason and who did it — and the timeline reads <Ui>Cancelled and refunded</Ui> or <Ui>Refunded — exception</Ui>.</>],
-          ["Profit", <>The <Ui>Profit</Ui> card on a paid or shipped order: goods after discounts, minus the product cost (each vial at its lot&apos;s cost — what you paid the supplier spread over the vials you could sell), the lot&apos;s lab fee spread the same way, the card fee Stripe actually charged, and any partner commission. Shipping labels and 3PL fees aren&apos;t in it yet.</>],
+          ["Profit", <>The <Ui>Profit</Ui> card on a paid or shipped order: goods after discounts, minus each vial&apos;s landed cost — what you paid the supplier, the shipping and customs to bring the lot in and its labels, spread over the vials you could sell — the lot&apos;s lab fee spread the same way, the card fee Stripe actually charged, and any partner commission. Shipping labels and 3PL fees aren&apos;t in it yet.</>],
           ["No-charge orders", <>Every price is $0; the retail value is kept on the order for the record. It isn&apos;t a sale: Today, Discounts, Email results and Customers leave it out. No partner commission, and it doesn&apos;t use the customer&apos;s first-order offer. A cancelled one reads <Ui>Cancelled (no charge)</Ui>.</>],
         ]} />
       }

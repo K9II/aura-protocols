@@ -10,6 +10,10 @@ describe("lot-costs.sql", () => {
     expect(sql).toMatch(/alter table lots add column if not exists cost_cents integer/);
     expect(sql).toMatch(/alter table lots add column if not exists test_cents integer/);
     expect(sql).toMatch(/alter table shop_settings add column if not exists lot_test_cents integer not null default 25000/);
+    expect(sql).toMatch(/alter table lots add column if not exists freight_cents integer/);
+    expect(sql).toMatch(/alter table lots add column if not exists label_cents integer/);
+    expect(sql).toMatch(/inbound_per_box_cents integer not null default 1500/);
+    expect(sql).toMatch(/label_per_vial_cents integer not null default 40/);
   });
 
   it("one recorded fee per payment, private", () => {

@@ -28,6 +28,13 @@ export function defaultLabFeeCents(sheet) {
   return typeof lab?.price === "number" && lab.price >= 0 ? Math.round(lab.price * 100) : null;
 }
 
+// AIOS per-box inbound freight and per-vial label cost, in cents (null if missing).
+export function landedDefaultsCents(sheet) {
+  const d = sheet?.defaults ?? {};
+  const c = (v) => (typeof v === "number" && v >= 0 ? Math.round(v * 100) : null);
+  return { inboundPerBoxCents: c(d.china_inbound_per_kit), labelPerVialCents: c(d.label_print_per_vial) };
+}
+
 // "10 mg" → "10mg", "250 mcg" → "250mcg" (the store's variant_id rule).
 export const variantIdOf = (size) => String(size ?? "").replace(/\s+/g, "").toLowerCase();
 

@@ -12,7 +12,7 @@ describe("parseReceive", () => {
     expect(r).toEqual({ ok: true, warnings: {}, value: {
       lotNumber: "BPC-2610-03", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-10-02",
       orderedQty: 200, countedQty: 200, damagedQty: 0, discrepancyNote: null, coaPath: "BPC-2610-03/1.pdf",
-      supplier: null, costCents: null, testCents: null,
+      supplier: null, costCents: null, testCents: null, freightCents: null, labelCents: null,
     } });
   });
   it("records the supplier, what was paid and the lab fee; a cost needs its supplier", () => {

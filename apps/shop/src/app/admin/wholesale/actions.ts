@@ -10,7 +10,7 @@ import { getOrderById, stampWholesaleCancel, transitionOrder } from "@/lib/order
 import { refundCard } from "@/lib/refunds/stripe";
 import { REFUND_REASONS, stripeNoAnswer, type RefundReason } from "@/lib/refunds/rules";
 import { wholesaleCancelledEmail } from "@/lib/emails";
-import { lotById, variantRow } from "@/lib/catalog-ops/data";
+import { lotById, lotDefaults, variantRow } from "@/lib/catalog-ops/data";
 import { currentMs } from "@/lib/clock";
 import { localDate } from "@/lib/today/time";
 import { kitsByStrength, strengthKey, suppliersOk } from "@/lib/wholesale/runs";
@@ -76,7 +76,7 @@ export async function linkLotAction(_prev: ActionState, f: FormData): Promise<Ac
   if (!lots.some((l) => l.id === lotId)) return { fieldErrors: { lotId: "That lot isn't a draft lot of this strength (or it's linked to another run)." } };
   if (!(await linkLot(line.id, lotId, owner.id))) return { error: "That line changed — reload the page." };
   // Profit needs the lot's cost; a failure here doesn't undo the link.
-  try { await fillLotCostFromLine(lotId, line); } catch (err) {
+  try { await fillLotCostFromLine(lotId, line, await lotDefaults()); } catch (err) {
     await alertOwner("Lot cost not recorded", `${line.slug} ${line.variant_id} lot ${lotId}: the run order's cost wasn't copied onto the lot. Enter it on the lot (Catalog → Edit). ${String(err)}`);
   }
   refresh(line.run_id);

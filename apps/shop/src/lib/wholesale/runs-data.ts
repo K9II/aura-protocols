@@ -153,11 +153,25 @@ export async function linkLot(lineId: string, lotId: string, actorId: string): P
 
 // The run line's supplier order is what this lot cost: copied onto the lot
 // unless a cost was already recorded when it was received (lot-costs.sql).
-export async function fillLotCostFromLine(lotId: string, line: { supplier: string | null; cost_cents: number | null }): Promise<void> {
-  if (line.cost_cents == null) return;
-  const { error } = await db().from("lots").update({ supplier: line.supplier, cost_cents: line.cost_cents })
-    .eq("id", lotId).is("cost_cents", null);
-  if (error) fail("lot cost from run line", error);
+// Freight and labels not recorded on the lot get the AIOS defaults (per box,
+// per counted vial), as Receive lot pre-fills them.
+export async function fillLotCostFromLine(lotId: string, line: { supplier: string | null; cost_cents: number | null; kits_ordered?: number | null; extra_boxes?: number },
+  defaults?: { inboundPerBoxCents: number; labelPerVialCents: number }): Promise<void> {
+  if (line.cost_cents != null) {
+    const { error } = await db().from("lots").update({ supplier: line.supplier, cost_cents: line.cost_cents })
+      .eq("id", lotId).is("cost_cents", null);
+    if (error) fail("lot cost from run line", error);
+  }
+  if (!defaults) return;
+  const boxes = (line.kits_ordered ?? 0) + (line.extra_boxes ?? 0);
+  const { data: lot, error: e1 } = await db().from("lots").select("counted_qty").eq("id", lotId).single();
+  if (e1 || !lot) fail("lot read for freight", e1);
+  const vials = (lot as { counted_qty: number }).counted_qty;
+  const fills: Array<["freight_cents" | "label_cents", number]> = [["freight_cents", boxes * defaults.inboundPerBoxCents], ["label_cents", vials * defaults.labelPerVialCents]];
+  for (const [col, cents] of fills) {
+    const { error } = await db().from("lots").update({ [col]: cents }).eq("id", lotId).is(col, null);
+    if (error) fail(`lot ${col} from defaults`, error);
+  }
 }
 
 export async function passLine(lineId: string, actorId: string): Promise<{ ok: true; held: number; short: string[] } | { ok: false; reason: string }> {

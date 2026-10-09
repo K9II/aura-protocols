@@ -14,7 +14,7 @@ import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname as dirOf } from "node:path";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defaultLabFeeCents, mapSupplierPrices, storePricesFor } from "./supplier-prices-map.mjs";
+import { defaultLabFeeCents, landedDefaultsCents, mapSupplierPrices, storePricesFor } from "./supplier-prices-map.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -62,9 +62,16 @@ async function main() {
   const { error: delErr, count } = await db.from("supplier_prices").delete({ count: "exact" }).eq("source", "aios").lt("synced_at", syncedAt);
   if (delErr) throw new Error(`removing old prices failed: ${delErr.message}`);
   console.log(`synced at ${syncedAt}; removed ${count ?? 0} old price(s)`);
-  if (labCents != null) {
-    const { error: labErr } = await db.from("shop_settings").update({ lot_test_cents: labCents }).eq("id", true);
-    if (labErr) throw new Error(`lab fee update failed: ${labErr.message}`);
+  const landed = landedDefaultsCents(sheet);
+  const settings = {
+    ...(labCents != null ? { lot_test_cents: labCents } : {}),
+    ...(landed.inboundPerBoxCents != null ? { inbound_per_box_cents: landed.inboundPerBoxCents } : {}),
+    ...(landed.labelPerVialCents != null ? { label_per_vial_cents: landed.labelPerVialCents } : {}),
+  };
+  if (Object.keys(settings).length) {
+    const { error: setErr } = await db.from("shop_settings").update(settings).eq("id", true);
+    if (setErr) throw new Error(`receive-lot defaults update failed: ${setErr.message}`);
+    console.log(`receive-lot defaults: ${JSON.stringify(settings)}`);
   }
   // Written to a temp file then renamed, so AIOS never reads half a file.
   const out = join(dirOf(jsonPath), "store-prices.json");

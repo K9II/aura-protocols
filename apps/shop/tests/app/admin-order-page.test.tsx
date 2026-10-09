@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 
 const m = vi.hoisted(() => ({ paymentLabel: vi.fn(async () => "Visa ••4242"), requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()), getOrderDetail: vi.fn(), customersWithDisputes: vi.fn(async () => new Set<string>()), notFound: vi.fn(() => { throw new Error("NEXT_NOT_FOUND"); }),
-  orderProfit: vi.fn(async () => ({ goodsCents: 30000, productCents: 9000, testCents: 1000, feeCents: 900, feeEstimated: false, commissionCents: 3000, vials: 4, vialsCosted: 4 })) }));
+  orderProfit: vi.fn(async () => ({ goodsCents: 30000, productCents: 9000, freightCents: 0, labelCents: 0, testCents: 1000, feeCents: 900, feeEstimated: false, commissionCents: 3000, vials: 4, vialsCosted: 4 })) }));
 vi.mock("@/lib/profit/data", () => ({ orderProfit: m.orderProfit }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/orders/detail", () => ({ getOrderDetail: m.getOrderDetail }));
