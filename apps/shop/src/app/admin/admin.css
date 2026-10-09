@@ -516,7 +516,7 @@
 .adm dialog.a-modal > form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .adm .a-modal-b { overflow-y: auto; min-height: 0; }
 .adm .a-modal-h { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
-.adm .a-modal-h h2 { font: 400 20px var(--serif); }
+.adm .a-modal-h h2, .adm dialog.a-modal .a-modal-h h2 { font: 400 20px var(--serif); flex: 1; min-width: 0; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; overflow: visible; }
 .adm .a-modal-h .x { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
 .adm .a-modal-b { padding: 16px 18px; display: grid; gap: 14px; }
 .adm .a-modal-f { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--surface-2); }

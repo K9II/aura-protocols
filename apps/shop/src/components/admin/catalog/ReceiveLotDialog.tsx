@@ -88,10 +88,10 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
               {disc && <div className="a-fld" style={{ marginTop: 12 }}><label htmlFor={`r-note-${scope}`}>What happened <span className="muted" style={{ fontWeight: 400 }}>· required when counts don&apos;t match</span></label>
                 <textarea id={`r-note-${scope}`} name="note" className="a-textarea" maxLength={500} value={v.note} onChange={set("note")} required />{fe.note && <div className="a-err" role="alert">{fe.note}</div>}</div>}
               <div className="a-row3" style={{ marginTop: 12 }}>
-                <div className="a-fld"><label htmlFor={`r-sup-${scope}`}>Supplier</label><div className="a-input"><select id={`r-sup-${scope}`} value={other ? OTHER : v.supplier} onChange={(e) => { const s = e.target.value; setOther(s === OTHER); setV({ ...v, supplier: s === OTHER ? "" : s }); setCostTyped(null); }} style={{ flex: 1, border: 0, background: "transparent", height: "100%", padding: "0 10px" }}>
+                <div className="a-fld"><label htmlFor={`r-sup-${scope}`}>Supplier</label><select id={`r-sup-${scope}`} className="a-select" value={other ? OTHER : v.supplier} onChange={(e) => { const s = e.target.value; setOther(s === OTHER); setV({ ...v, supplier: s === OTHER ? "" : s }); setCostTyped(null); }}>
                   <option value="">Choose…</option>
                   {options.map((s) => <option key={s} value={s}>{s}{prices[s] ? ` · ${usd(prices[s])}/box` : ""}</option>)}
-                  <option value={OTHER}>Other…</option></select></div>
+                  <option value={OTHER}>Other…</option></select>
                   {other && <div className="a-input" style={{ marginTop: 6 }}><input name="supplier" aria-label="New supplier name" placeholder="Supplier name" maxLength={80} value={v.supplier} onChange={set("supplier")} /></div>}
                   {fe.supplier && <div className="a-err" role="alert">{fe.supplier}</div>}</div>
                 <div className="a-fld"><label htmlFor={`r-cost-${scope}`}>Paid to the supplier</label><div className="a-input"><span className="affix l">$</span><input id={`r-cost-${scope}`} name="cost" inputMode="decimal" value={cost} onChange={(e) => setCostTyped(e.target.value)} /></div>
