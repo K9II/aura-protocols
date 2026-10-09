@@ -24,7 +24,7 @@ export default async function AccountPage() {
         </div>
         <h1 className="s-h1 mb-8" style={{ fontSize: 48 }}>My <em>orders.</em></h1>
         {!customer.emailConfirmed && <p role="alert" className="text-sm text-[color:var(--specimen)] mb-6">Please verify your email address — we sent a link to {customer.email}.<ResendVerify /></p>}
-        {orders.length === 0 ? <p className="text-[color:var(--ink-soft)]">No orders yet.</p> : orders.map((o) => <OrderCard key={o.id} order={o} />)}
+        {orders.length === 0 ? <p className="text-[color:var(--ink-soft)]">No orders yet.</p> : orders.map((o) => <OrderCard key={o.id} order={o} link />)}
         <div className="border-t border-[color:var(--line)] pt-6 mt-6" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
           <div><p className="s-micro mb-2">Shipping address</p><AddressForm ship={customer.ship} /></div>
           <div><p className="s-micro mb-2">Agreements on file</p>
