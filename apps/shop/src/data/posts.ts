@@ -764,7 +764,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Chemical Identity" },
       {
         type: "h3",
-        text: "Semaglutide (APro-G1SM)",
+        text: "Semaglutide",
       },
       {
         type: "p",
@@ -772,7 +772,7 @@ export const posts: Post[] = [
       },
       {
         type: "h3",
-        text: "Tirzepatide (APro-G2TRZ)",
+        text: "Tirzepatide",
       },
       {
         type: "p",
@@ -813,7 +813,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Semaglutide and tirzepatide are active ingredients of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Aura Protocols supplies both, as APro-G1SM and APro-G2TRZ, as research chemicals for laboratory use only.",
+        text: "Semaglutide and tirzepatide are active ingredients of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Aura Protocols supplies both as research chemicals for laboratory use only.",
       },
       {
         type: "faq",
