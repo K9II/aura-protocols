@@ -47,11 +47,11 @@ alter table wholesale_agreements enable row level security;
 
 -- Settings (owner-editable in Part 2). Tiers: [{minKits, pct}] ascending, the first
 -- starting at wholesale_min_kits; the app validates them. Pricing (2026-10-10): minimum
--- 5 kits; 5-9 25%, 10-19 30%, 20+ 35% (was 20/25/30 on 2026-10-08). Each batch's lot test
+-- 5 kits; 5-9 30%, 10-19 35%, 20+ 40% (was 20/25/30 on 2026-10-08). Each batch's lot test
 -- is absorbed in the price.
 alter table shop_settings add column if not exists wholesale_open boolean not null default false;
 alter table shop_settings add column if not exists wholesale_tiers jsonb not null
-  default '[{"minKits":5,"pct":25},{"minKits":10,"pct":30},{"minKits":20,"pct":35}]';
+  default '[{"minKits":5,"pct":30},{"minKits":10,"pct":35},{"minKits":20,"pct":40}]';
 alter table shop_settings add column if not exists wholesale_min_kits integer not null default 5 check (wholesale_min_kits between 1 and 50);
 alter table shop_settings add column if not exists wholesale_deposit_pct integer not null default 40 check (wholesale_deposit_pct between 10 and 90);
 alter table shop_settings add column if not exists wholesale_balance_days integer not null default 7 check (wholesale_balance_days between 1 and 30);
