@@ -50,370 +50,11 @@ export type Post = {
 
 export const posts: Post[] = [
   {
-    slug: "wearable-engine-personalized-peptide-protocol",
-    title: "Your Wearable Has the Data. Aura Builds the Protocol.",
-    excerpt:
-      "Whoop, Oura, and Apple Health measure your recovery, sleep, and HRV — then go silent. The Aura Engine turns that data into a research peptide protocol tuned to you.",
-    category: "Buyer's Guide",
-    date: "July 2026",
-    readTime: "9 min read",
-    pinned: true,
-    content: [
-      {
-        type: "intro",
-        text: "Your wearable is very good at one thing: telling you something is wrong. A 31% recovery score. A red night of sleep. HRV trending down for the third straight week. What it never tells you is the only thing you actually want to know — what to do about it. This is the gap the Aura Engine was built to close.",
-      },
-      {
-        type: "h2",
-        text: "It Measures Everything. It Decides Nothing.",
-      },
-      {
-        type: "p",
-        text: "Recovery scores, sleep stages, resting heart rate, HRV — modern wearables surface a remarkable amount of signal about how your body is actually doing. But signal isn't a plan. You can stare at a week of poor recovery and tanking HRV and still have no idea which lever to pull. The dashboard measures the problem with precision and then hands the entire interpretation — and every decision — back to you.",
-      },
-      {
-        type: "p",
-        text: "For most people that means guesswork: a supplement someone mentioned on a podcast, a generic protocol copied from a forum, or nothing at all. The measurement is personalized down to the millisecond. The response is a shrug.",
-      },
-      {
-        type: "h2",
-        text: "Why Generic Peptide Protocols Miss",
-      },
-      {
-        type: "p",
-        text: "Peptide research is full of one-size-fits-all templates — fixed doses, fixed timing, fixed stacks pulled from a generic article. The problem is that none of them account for the one variable that matters most: your actual physiology, right now.",
-      },
-      {
-        type: "ul",
-        items: [
-          "A template can't see that your sleep collapsed this month — the exact context a recovery- or sleep-oriented protocol should respond to",
-          "A template can't tell whether your HRV is stable or in free-fall, which changes how aggressively a research protocol should be approached",
-          "A template assumes you're a starting point everyone shares — you're not; your baseline is your own",
-          "A template never updates — your data changes weekly, but the protocol on the forum was written once and frozen",
-        ],
-      },
-      {
-        type: "h2",
-        text: "What the Aura Engine Actually Does",
-      },
-      {
-        type: "p",
-        text: "The Engine connects to the wearable you already wear — Whoop, Oura, or Apple Health — and reads the metrics that matter: recovery, sleep quality, and HRV. It then maps that data to a research peptide protocol matched to where you actually are, not to a generic average. Instead of a static table you have to interpret, you get a starting point that reflects your own recovery, sleep, and stress signals.",
-      },
-      {
-        type: "ul",
-        items: [
-          "Connect — link Whoop, Oura, or Apple Health in about a minute; no new hardware to buy",
-          "Read — the Engine analyzes your recovery, sleep, and HRV trends",
-          "Map — it builds a research peptide protocol tuned to that data, with dosing, timing, and COA-verified sourcing",
-          "Adapt — as your data shifts, the protocol logic shifts with it, instead of staying frozen",
-        ],
-      },
-      {
-        type: "h2",
-        text: "The After-GLP-1 Problem It Was Built For",
-      },
-      {
-        type: "p",
-        text: "Nowhere is the data-without-direction gap clearer than coming off a GLP-1. Millions of people are cycling off Ozempic, Wegovy, and Zepbound — and their wearables light up with exactly the problems that follow: lost lean mass, worse sleep, blunted recovery, and flat energy. The numbers spell out the fallout in detail. They still don't say what to do next.",
-      },
-      {
-        type: "ul",
-        items: [
-          "Muscle loss after rapid weight loss shows up as degraded recovery and strain tolerance",
-          "Sleep disruption post-GLP-1 is visible in your sleep stages and HRV long before you can articulate it",
-          "Libido and energy changes correlate with the same recovery and stress signals your wearable already tracks",
-          "This is precisely the situation where a protocol matched to your data beats a generic recommendation",
-        ],
-      },
-      {
-        type: "h2",
-        text: "How It Works, Start to Finish",
-      },
-      {
-        type: "ul",
-        items: [
-          "Step 1 — Connect a wearable for free (Whoop, Oura, or Apple Health)",
-          "Step 2 — The Engine reads your recovery, sleep, and HRV and identifies what your data is pointing to",
-          "Step 3 — You get a research peptide protocol tuned to that picture — compounds, dosing, timing, and where to source COA-verified material",
-          "Step 4 — When you're ready to move from research to a supervised plan, a US-licensed MD-prescribed path is available",
-        ],
-      },
-      {
-        type: "h2",
-        text: "Why Personalized Beats a Template",
-      },
-      {
-        type: "ul",
-        items: [
-          "It starts from your baseline, not a stranger's average",
-          "It adjusts as your wearable data changes week to week",
-          "It points only to COA-verified sources, so identity and purity aren't a guess",
-          "It removes the research-design guesswork that stops most people before they start",
-        ],
-      },
-      {
-        type: "h2",
-        text: "Whoop Tells You the What. Aura Tells You the What-to-Do.",
-      },
-      {
-        type: "p",
-        text: "Wearables won the measurement war. They are extraordinary at telling you the what — what your recovery is, what your sleep did, what your HRV is doing. The Aura Engine is built for the next step that none of them take: the what-to-do. It treats your wearable not as a scoreboard but as an input — the starting data for a protocol that's actually yours.",
-      },
-      {
-        type: "faq",
-        faq: [
-          {
-            q: "Do I need to buy new hardware?",
-            a: "No. The Engine works with the wearable you already have — Whoop, Oura, or Apple Health. Connecting takes about a minute and there's nothing new to purchase.",
-          },
-          {
-            q: "Is connecting a wearable free?",
-            a: "Yes. You can connect a wearable and get a data-matched starting protocol for free. The optional MD-prescribed path is a separate, supervised step you choose only when you're ready.",
-          },
-          {
-            q: "How is this different from the protocol templates I can find for free?",
-            a: "A free template is written once, for an average person, and never updates. The Engine builds from your own recovery, sleep, and HRV data and adapts as that data changes. The template guesses; the Engine starts from your numbers.",
-          },
-          {
-            q: "Why does this matter specifically after a GLP-1?",
-            a: "Coming off Ozempic, Wegovy, or Zepbound tends to produce muscle loss, worse sleep, and blunted recovery — all of which show up clearly in wearable data. That makes it a near-ideal case for a protocol matched to your data rather than a generic recommendation.",
-          },
-          {
-            q: "Are these protocols medical advice?",
-            a: "No. Aura's research protocols are for informational and research purposes only and are not medical advice. The compounds referenced are for research use. A supervised, MD-prescribed path is available separately when you want clinical oversight.",
-          },
-        ],
-      },
-      {
-        type: "callout",
-        text: "The peptide compounds referenced by the Engine and across Aura Protocols are for research purposes only. They are not approved for human use outside of specific FDA-approved formulations under medical supervision. Nothing here constitutes medical advice.",
-      },
-      {
-        type: "disclaimer",
-        text: "This article may contain affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
-      },
-    ],
-  },
-  {
-    slug: "why-glp1-dose-response-varies",
-    title: "Why the Same GLP-1 Dose Hits Everyone Differently",
-    excerpt:
-      "One person responds powerfully to 0.5mg while another needs five to ten times more for the same effect. The reason isn't body weight or \"better receptors\" — it's what the research actually shows about exposure, genetics, and starting biology.",
-    category: "Weight Management",
-    date: "August 2026",
-    readTime: "8 min read",
-    content: [
-      {
-        type: "intro",
-        text: "It's one of the most common questions in the GLP-1 research community: why does 0.5mg of semaglutide produce a dramatic response in one person while someone else needs five to ten times more to feel the same thing? The intuitive answers — body weight, or simply \"better receptors\" — turn out to be mostly wrong. The literature points to something more interesting, and it changes how you should think about dosing entirely.",
-      },
-      {
-        type: "h2",
-        text: "The Number in the Syringe Is Only the Beginning",
-      },
-      {
-        type: "p",
-        text: "The cleanest way to understand dose response is a short chain: dose leads to exposure, exposure leads to response — and both of those sit on top of your individual starting biology. The milligrams you draw up are only the first link. Two people injecting the exact same amount can end up with different amounts of drug actually circulating, respond differently to the same circulating level, and start from different metabolic baselines before a single dose is given. Miss any of those links and the dose number tells you almost nothing on its own.",
-      },
-      {
-        type: "h2",
-        text: "Same Dose ≠ Same Exposure",
-      },
-      {
-        type: "p",
-        text: "Exposure — how much drug your body is actually working with over time — is not fixed by the label dose. Body weight is one variable that shifts it for both semaglutide and tirzepatide: heavier individuals tend to sit at somewhat lower exposure at a given dose. But the effect is modest. It is not large enough that these drugs are dosed by body weight the way, say, some chemotherapies are. That's the part that surprises people: being 300 lb does not automatically mean you need more than someone who is 150 lb. Weight nudges the exposure curve; it doesn't dictate it.",
-      },
-      {
-        type: "h2",
-        text: "Same Exposure ≠ Same Response: The Genetics",
-      },
-      {
-        type: "p",
-        text: "This is where it gets genuinely interesting. Even if two people had identical drug exposure, they still might not respond the same way — because the receptor and the signaling machinery behind it are not identical from person to person. Two genes keep showing up in the research: GLP1R, which codes for the GLP-1 receptor itself, and ARRB1 (β-arrestin-1), which is involved in how that receptor passes its signal along once activated.",
-      },
-      {
-        type: "ul",
-        items: [
-          "A 2023 genome-wide analysis in The Lancet Diabetes & Endocrinology (4,571 adults) found that combining GLP1R and ARRB1 variants identified about 4% of people who had roughly a 30% greater HbA1c reduction than the worst-responding ~9% — from the same class of drug.",
-          "A 2025 study in Obesity (112 patients with severe obesity on semaglutide 2.4mg) found that people carrying two copies of the GLP1R rs6923761 A variant lost weight at about 1.6% of body weight per month, versus about 1.0% per month in carriers of the G variant — and sex mattered too.",
-          "A 2026 genome-wide study in Nature of 27,885 people on GLP-1 drugs tied a GLP1R missense variant to greater weight loss (about 0.76 kg more per copy of the effect allele) and linked GLP1R and GIPR variants to nausea and vomiting — with the GIPR association showing up only in tirzepatide users, exactly as its dual GIP/GLP-1 mechanism would predict.",
-        ],
-      },
-      {
-        type: "callout",
-        text: "Genetics is one piece, not a dosing formula. The research is nowhere near being able to say \"0.5mg works for you because your receptors are sensitive\" or \"you need 6mg because your receptors are weak.\" These are population-level associations, not a genotype-to-dose calculator. There is still a great deal we don't understand.",
-      },
-      {
-        type: "h2",
-        text: "Your Starting Biology Moves the Whole Curve",
-      },
-      {
-        type: "p",
-        text: "Beyond exposure and receptor genetics, where you start matters. The clearest illustration comes from semaglutide's own phase 3 program. In STEP 1, adults without diabetes lost about 14.9% of body weight on 2.4mg. In STEP 2, adults with type 2 diabetes lost about 9.6% on the same 2.4mg target dose. Same drug, same dose, a meaningfully different average result — driven by the metabolic starting point, not the milligrams. We know the effect is real; we still don't fully understand every mechanism behind it.",
-      },
-      {
-        type: "h2",
-        text: "Dose Still Matters — On Average",
-      },
-      {
-        type: "p",
-        text: "None of this means dose is irrelevant. It clearly is — on average. Retatrutide's phase 2 trial showed a clean dose-response gradient at 48 weeks:",
-      },
-      {
-        type: "ul",
-        items: [
-          "1mg → about 8.7% mean weight reduction",
-          "4mg → about 17.1%",
-          "8mg → about 22.8%",
-          "12mg → about 24.2%",
-        ],
-      },
-      {
-        type: "p",
-        text: "More drug produced more weight loss on average. But \"on average\" is doing a lot of work in that sentence. Those are group means, and people within the same dose group still responded very differently from one another. The average curve is real; your personal position on it is your own.",
-      },
-      {
-        type: "h2",
-        text: "So What Actually Makes a \"Low-Dose Responder\"?",
-      },
-      {
-        type: "p",
-        text: "Putting it together, a genuine low-dose responder is probably some combination of three things working in their favor at once:",
-      },
-      {
-        type: "ul",
-        items: [
-          "Exposure — the same dose simply produces higher effective drug levels in some people than others.",
-          "Response — at similar exposure, receptor genetics and signaling differences change how strongly the body reacts.",
-          "Starting biology — no two people are metabolically identical before the first dose, and that shifts the entire dose-response curve.",
-        ],
-      },
-      {
-        type: "p",
-        text: "Which reframes the whole \"what's the right dose\" argument. Someone thriving on 0.5mg is not proof that everyone should stay low. Someone who needs 6mg does not have \"bad receptors.\" They are different people sitting on different dose-response curves — and there are almost certainly variables the research hasn't pinned down yet.",
-      },
-      {
-        type: "h2",
-        text: "Why This Is the Entire Case for Personalization",
-      },
-      {
-        type: "p",
-        parts: [
-          "This is exactly why a research protocol matched to your own data beats a template written for an average person. If exposure, receptor response, and starting biology all vary from person to person, then a single \"correct\" dose copied off a forum is a coin flip. Finding the dose-response that works for you — starting conservatively and adjusting against real signal — is not caution for its own sake; it's what the science actually implies. It's also the reason the ",
-          { href: "/products/semaglutide", text: "semaglutide" },
-          ", ",
-          { href: "/products/tirzepatide", text: "tirzepatide" },
-          ", and ",
-          { href: "/products/retatrutide", text: "retatrutide" },
-          " research guides on this site emphasize titration and individual response over any one \"magic\" number.",
-        ],
-      },
-      {
-        type: "p",
-        text: "It's the same principle the Aura Engine is built on. Instead of handing you a generic protocol, it starts from your own wearable data — recovery, sleep, and HRV — and builds a research starting point tuned to where you actually are, then adapts as that data changes. Connect a wearable and get your data-matched starting protocol for free.",
-      },
-      {
-        type: "cta",
-        text: "View Semaglutide Vendor",
-        productSlug: "semaglutide",
-        vendor: "American Peptides",
-        affiliateUrl: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/semaglutide",
-      },
-      {
-        type: "cta",
-        text: "View Retatrutide Vendor",
-        productSlug: "retatrutide",
-        vendor: "Evolve Peptides",
-        affiliateUrl: "https://www.evolvepeptides.com/product/reta-10mg/?ref=auraproto",
-      },
-      {
-        type: "faq",
-        faq: [
-          {
-            q: "Does body weight decide my GLP-1 dose?",
-            a: "Not really. Heavier people tend to sit at somewhat lower drug exposure at a given dose of semaglutide or tirzepatide, but the effect is modest — not enough that these drugs are dosed by body weight. Being larger does not automatically mean you need a higher dose than someone smaller.",
-          },
-          {
-            q: "Can a genetic test tell me my ideal dose?",
-            a: "No. Variants in GLP1R, ARRB1, and GIPR are associated with differences in response and side effects across large groups, but the research is not close to a genotype-to-dose formula for an individual. Genetics is one input among several, not a prescription.",
-          },
-          {
-            q: "Why did I lose less than the trial averages I read about?",
-            a: "Averages hide enormous individual spread, and starting biology shifts the whole curve. In semaglutide's own trials, people without diabetes lost about 14.9% while people with type 2 diabetes lost about 9.6% on the same 2.4mg dose. Your metabolic starting point, exposure, and receptor response all move your personal result away from the headline number.",
-          },
-          {
-            q: "Is a low-dose responder just lucky?",
-            a: "In a sense — they likely have a favorable combination of higher effective exposure, a more responsive receptor/signaling profile, and a starting biology that suits the drug. It doesn't mean everyone should stay low, and needing a higher dose doesn't mean your receptors are defective. Different people, different dose-response curves.",
-          },
-          {
-            q: "Are these compounds safe to just experiment with?",
-            a: "The compounds referenced here are for research use only and are not approved for general human use outside specific FDA-approved formulations under medical supervision. Nothing in this article is medical advice. A supervised, MD-prescribed path is a separate option when you want clinical oversight.",
-          },
-        ],
-      },
-      {
-        type: "h2",
-        text: "References",
-      },
-      {
-        type: "p",
-        parts: [
-          "1. Dawed AY, et al. \"Pharmacogenomics of GLP-1 receptor agonists: a genome-wide analysis of observational data and large randomised controlled trials.\" Lancet Diabetes Endocrinol, 2023. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/36528349/", text: "PubMed", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "2. Phan A, et al. \"A GLP1R gene variant and sex influence the response to semaglutide treatment in patients with severe obesity.\" Obesity (Silver Spring), 2025. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/40384505/", text: "PubMed", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "3. Su QJ, et al. \"Genetic predictors of GLP1 receptor agonist weight loss and side effects.\" Nature, 2026 (genome-wide study of 27,885 people). ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/41951734/", text: "PubMed", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. Wilding JPH, et al. \"Once-Weekly Semaglutide in Adults with Overweight or Obesity\" (STEP 1). N Engl J Med, 2021. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/33567185/", text: "PubMed", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. Davies M, et al. \"Semaglutide 2·4 mg once a week in adults with overweight or obesity, and type 2 diabetes (STEP 2).\" Lancet, 2021. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/33667417/", text: "PubMed", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. Jastreboff AM, et al. \"Triple-Hormone-Receptor Agonist Retatrutide for Obesity — A Phase 2 Trial.\" N Engl J Med, 2023. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/37366315/", text: "PubMed", external: true },
-        ],
-      },
-      {
-        type: "callout",
-        text: "The peptide compounds referenced here are for research purposes only. They are not approved for human use outside of specific FDA-approved formulations under medical supervision. Nothing in this article constitutes medical advice.",
-      },
-      {
-        type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
-      },
-    ],
-  },
-  {
     slug: "pt-141-melanocortin-bremelanotide-guide",
     ruo: true,
     title: "PT-141 (Bremelanotide): A Research Literature Summary",
     excerpt:
-      "A cyclic heptapeptide analog of alpha-MSH that acts at the central melanocortin receptors MC3R and MC4R. What laboratory studies have measured about its receptor activity and hypothalamic neuron activation, and what is still unknown.",
+      "A cyclic heptapeptide analog of alpha-MSH that acts at the central melanocortin receptors MC3R and MC4R. What laboratory studies have measured about its receptor activity and hypothalamic neuron activation, and where research is heading.",
     category: "Short Peptides & Neuropeptides",
     date: "June 2026",
     lastUpdated: "October 2026",
@@ -421,7 +62,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "PT-141 (bremelanotide) belongs to the melanocortin peptide family, the group of ligands derived from or modelled on alpha-melanocyte-stimulating hormone (α-MSH). This summary covers its structure, the receptor system it acts on, what laboratory studies have measured, and the questions that remain open. It does not cover clinical literature.",
+        text: "PT-141 (bremelanotide) belongs to the melanocortin peptide family, the group of ligands derived from or modelled on alpha-melanocyte-stimulating hormone (α-MSH). This summary covers its structure, the receptor system it acts on, what laboratory studies have measured, and where research is heading. It does not cover clinical literature.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -442,7 +83,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from receptor pharmacology and rat and nonhuman-primate studies. They describe how PT-141 acts on melanocortin receptors and hypothalamic neurons in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -451,13 +92,13 @@ export const posts: Post[] = [
           "MC3R and MC4R as the neural melanocortin receptors; the system's role in energy homeostasis (Yuan and Tao, 2022, review)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Receptor contribution: PT-141 acts at more than one melanocortin receptor, and how much each contributes to a given measured response is not fully separated.",
-          "Other receptors: how strongly PT-141 acts at MC1R, MC5R and the other melanocortin receptors in a given tissue matters for interpreting any in vivo experiment.",
-          "Much of the early pharmacology was published by the developing company's scientists; independent receptor-level work is thinner.",
+          "Receptor contribution: separating how much each melanocortin receptor contributes to a given measured response.",
+          "Other receptors: mapping PT-141's activity at MC1R, MC5R and the other melanocortin receptors tissue by tissue, which shapes how any in vivo experiment is read.",
+          "Independent replication: extending the receptor-level pharmacology, much of it published by the developing company's scientists, through independent laboratories.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -515,7 +156,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "BPC-157: A Research Literature Summary",
     excerpt:
-      "A synthetic 15-residue peptide from a sequence first found in gastric juice. What laboratory studies have measured — VEGFR2 signaling, tendon-fibroblast migration and growth hormone receptor expression — and what is still unknown.",
+      "A synthetic 15-residue peptide from a sequence first found in gastric juice. What laboratory studies have measured — VEGFR2 signaling, tendon-fibroblast migration and growth hormone receptor expression — and where research is heading.",
     category: "Peptide Fragments",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -523,7 +164,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "BPC-157 has been studied since the 1990s, almost entirely in animal and cell-culture models. This summary covers what those laboratory studies measured, how strong the evidence is, and the questions that remain open.",
+        text: "BPC-157 has been studied since the 1990s, almost entirely in animal and cell-culture models. This summary covers what those laboratory studies measured, how strong the evidence is, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -543,7 +184,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from cell culture, explants and animal models. They describe what BPC-157 does to signaling pathways and tissue measurements in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -553,13 +194,13 @@ export const posts: Post[] = [
           "A 2025 systematic review of the orthopaedic literature found 36 eligible studies, 35 of them preclinical, and reported a half-life under 30 minutes with liver metabolism and renal clearance (Vasireddi et al., 2025)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Primary target: the receptor or binding partner through which BPC-157 starts these signaling changes has not been identified experimentally.",
-          "Stability: a reported half-life under 30 minutes sits awkwardly with effects measured hours or days later; what species is active in vivo is unresolved.",
-          "Concentration of authorship: much of the animal literature comes from a small number of groups, and independent replication is limited.",
+          "Primary target: identifying the receptor or binding partner through which BPC-157 starts these signaling changes.",
+          "Stability: reconciling a reported half-life under 30 minutes with effects measured hours or days later, and establishing which species is active in vivo.",
+          "Independent replication: extending the animal findings, many of them from a small number of groups, to independent laboratories.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -641,7 +282,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "TB-500 is a short synthetic fragment of thymosin beta-4 (Tβ4), a 43-residue protein found in most cell types. Most of the published research is on full-length Tβ4, not on the fragment, and the two are often treated as the same thing. This summary keeps them apart: what the fragment is, what studies of Tβ4 and of its fragments have measured, and the questions that remain open.",
+        text: "TB-500 is a short synthetic fragment of thymosin beta-4 (Tβ4), a 43-residue protein found in most cell types. Most of the published research is on full-length Tβ4, not on the fragment, and the two are often treated as the same thing. This summary keeps them apart: what the fragment is, what studies of Tβ4 and of its fragments have measured, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -661,7 +302,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from cell culture, mouse models and equine analytical work, and most of them are about full-length thymosin beta-4 rather than the TB-500 fragment. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -671,13 +312,13 @@ export const posts: Post[] = [
           "Ac-LKKTETQ and its metabolites detected by LC-MS in equine plasma and urine (Ho et al., 2012)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Fragment versus protein: how much of full-length Tβ4's measured activity the 17–23 fragment reproduces is largely untested; Dettin and colleagues found the N-terminal region modulates fragment activity.",
-          "Extracellular mechanism: Tβ4 is mainly intracellular, and how it acts from outside the cell is not fully worked out.",
-          "Metabolism: the fragment is broken down into smaller metabolites (Ho et al., 2012), which matters for interpreting any in vivo result.",
+          "Fragment versus protein: testing how much of full-length Tβ4's measured activity the 17–23 fragment reproduces, building on Dettin and colleagues' finding that the N-terminal region modulates fragment activity.",
+          "Extracellular mechanism: working out how Tβ4, mainly an intracellular protein, acts from outside the cell.",
+          "Metabolism: characterising the smaller metabolites the fragment is broken down into (Ho et al., 2012), which matters for interpreting any in vivo result.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -801,13 +442,13 @@ export const posts: Post[] = [
           "Half-life extension: both carry a fatty-acid modification; for semaglutide, albumin binding through the fatty-acid side chain and its linker was the design lever (Lau et al., 2015)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Which part of tirzepatide's activity comes from GIP receptor agonism and which from its biased GLP-1 receptor signaling is still being separated experimentally.",
-          "Receptor occupancy and signaling bias can differ between recombinant cell lines and native tissue, so assay choice matters when comparing the two.",
-          "Much of the characterisation is published by the developers' own scientists, as is usual for drug candidates; independent pharmacology is thinner.",
+          "Separating which part of tirzepatide's activity comes from GIP receptor agonism and which from its biased GLP-1 receptor signaling.",
+          "Comparing receptor occupancy and signaling bias in native tissue as well as recombinant cell lines, since assay choice matters when comparing the two.",
+          "Extending the pharmacology, much of it published by the developers' own scientists as is usual for drug candidates, through independent laboratories.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -868,81 +509,92 @@ export const posts: Post[] = [
     ],
   },
   {
-    slug: "cjc-1295-ipamorelin-stack",
-    title: "CJC-1295 / Ipamorelin: The Complete Research Guide",
+    slug: "cjc-1295-ipamorelin-research-guide",
+    ruo: true,
+    title: "CJC-1295 / Ipamorelin: A Research Literature Summary",
     excerpt:
-      "Two receptors, one synergistic effect — and one of the few stacks on this site backed by real human clinical data, not just animal models.",
-    category: "Growth & Performance",
+      "A two-component blend: modified GRF(1–29), the tetrasubstituted growth hormone–releasing hormone fragment also sold as CJC-1295 without DAC, and the GH secretagogue ipamorelin. What each component's laboratory literature covers, and where research is heading.",
+    category: "GH-Axis Peptides",
     date: "July 2026",
-    readTime: "8 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "CJC-1295 paired with Ipamorelin is one of the most-cited growth hormone secretagogue combinations in the research-peptide space — and unusually for this site, part of the reason is that a piece of the mechanism has actually been tested in humans, not just animal models.",
+        text: "This blend pairs two synthetic peptides that act on separate receptors in the growth hormone axis: a stabilised fragment of growth hormone–releasing hormone (GHRH) and ipamorelin, a selective growth hormone secretagogue developed at Novo Nordisk. This summary covers what each component is, what its laboratory literature covers, and where research is heading. It does not cover clinical literature.",
       },
-      { type: "h2", text: "Understanding Each Compound" },
-      { type: "h3", text: "CJC-1295 (with DAC)" },
+      { type: "h2", text: "Components" },
+      {
+        type: "ul",
+        items: [
+          "Modified GRF(1–29), also sold as CJC-1295 without DAC: the 29-residue amide Tyr-D-Ala-Asp-Ala-Ile-Phe-Thr-Gln-Ser-Tyr-Arg-Lys-Val-Leu-Ala-Gln-Leu-Ser-Ala-Arg-Lys-Leu-Leu-Gln-Asp-Ile-Leu-Ser-Arg-NH₂ (C152H252N44O42, molecular weight 3367.9 g/mol); agonist at the GHRH receptor",
+          "Ipamorelin: the pentapeptide Aib-His-D-2-Nal-D-Phe-Lys-NH₂ (C38H49N9O5, molecular weight 711.9 g/mol); agonist at the growth hormone secretagogue (GHRP) receptor",
+        ],
+      },
+      { type: "h2", text: "What Each Component's Literature Covers" },
+      { type: "h3", text: "Modified GRF(1–29)" },
       {
         type: "p",
-        text: "CJC-1295 is a synthetic analogue of growth hormone-releasing hormone (GHRH). The DAC (Drug Affinity Complex) modification extends its half-life from minutes to approximately 6–8 days by binding to serum albumin, producing sustained elevation of baseline GH and IGF-1 rather than sharp pulses.",
+        text: "Compared with native human GRF(1–29), the peptide carries four substitutions: D-Ala2, Gln8, Ala15 and Leu27. They sit at positions the GRF analog literature identified as weak points of the native sequence. In plasma, native GRF is cut by the enzyme dipeptidylpeptidase IV (DPP-IV) between residues 2 and 3; residue 8 is prone to chemical rearrangement and Met27 to oxidation in solution; and an alanine at position 15 was reported to raise receptor binding affinity (Campbell et al., 1994).",
+      },
+      {
+        type: "p",
+        text: "The name CJC-1295 comes from Jetté and colleagues at ConjuChem (2005), who added an albumin-binding group to this tetrasubstituted peptide. Their albumin conjugates were more stable against DPP-IV in vitro and released GH from cultured rat anterior pituitary cells; in rats, the selected compound gave a fourfold larger GH response over two hours than GRF(1–29) and remained in plasma beyond 72 hours. Those extended-duration results belong to the albumin-binding (DAC) form, not to the peptide in this blend.",
       },
       { type: "h3", text: "Ipamorelin" },
       {
         type: "p",
-        text: "Ipamorelin is a synthetic pentapeptide and selective agonist at the ghrelin receptor (GHSR-1a) in the pituitary. Its foundational 1998 characterization established it as the first selective GH secretagogue — stimulating GH release without significantly elevating cortisol, ACTH, or prolactin, unlike earlier GHRPs (GHRP-2, GHRP-6), which do raise cortisol and ACTH.",
+        text: "Raun and colleagues (1998) identified ipamorelin in a chemistry programme built on GHRP-1. It released GH from primary rat pituitary cells with potency and efficacy similar to GHRP-6, and profiling with GHRP and GHRH antagonists showed that it acts through a GHRP-like receptor. In conscious swine it did not change FSH, LH, prolactin or TSH and, unlike GHRP-6 and GHRP-2, did not raise ACTH or cortisol beyond the levels seen with GHRH, which led the authors to describe it as the first selective GH secretagogue. Johansen and colleagues (1999) measured longitudinal bone growth and body-weight gain in adult female rats given ipamorelin for 15 days; total IGF-I, IGF-binding proteins and bone-turnover markers did not change.",
       },
-      { type: "h2", text: "Why the Combination Works" },
+      { type: "h3", text: "Why the two receptors are paired" },
       {
         type: "p",
-        text: "CJC-1295 and Ipamorelin act on two distinct receptor systems in the GH axis — the GHRH receptor and the ghrelin receptor, respectively. Human studies of ghrelin combined with GHRH found the two peptides stimulate GH release synergistically: the combined GH response exceeded the sum of each peptide's individual response. Mechanistic work on the pituitary receptors found GHRH increases the ghrelin receptor's binding capacity in a dose-dependent way (positive binding cooperativity), and that GH secretagogues potentiate GHRH-induced cAMP production at the cellular level — a plausible molecular basis for the synergy seen in human dosing studies.",
-      },
-      {
-        type: "ul",
-        items: [
-          "CJC-1295 raises the baseline of GH secretion via sustained GHRH-receptor activation",
-          "Ipamorelin activates the separate ghrelin-receptor pathway, selectively, without cortisol/ACTH elevation",
-          "Human ghrelin+GHRH dosing studies found the combined GH response exceeds either peptide's individual response",
-          "A human trial of CJC-1295 alone found sustained, dose-dependent GH and IGF-I increases at 30–60 mcg/kg, safe and well tolerated",
-        ],
+        text: "GHRH and GHRP-type secretagogues act through different pituitary receptors. Work in rats with GHRP-6, an earlier secretagogue acting at the same receptor class as ipamorelin, found that endogenous GHRH is needed for its full GH-releasing activity, and that the synergy between the two seen in pharmacological studies is physiologically relevant (Bercu et al., 1992). No study in the literature summarised here has examined this specific pair.",
       },
       {
         type: "callout",
-        text: "The human data above is for the individual mechanisms (CJC-1295 alone; ghrelin+GHRH synergy) — there is no published human trial of the specific CJC-1295+Ipamorelin combination as sold by research vendors. The synergy mechanism is human-validated; the specific stack is not.",
+        text: "The findings above come from cultured pituitary cells, rats and swine, studied one component at a time. They describe GH-axis signaling in those models and are not evidence of any effect of research material in people.",
       },
-      { type: "h2", text: "What the Broader Research Shows" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
-          "Increased lean body mass in animal models of sustained GH/IGF-1 elevation",
-          "Reduction in adipose tissue, particularly visceral fat, in animal models",
-          "Improved sleep quality reported in connection with GH's role in slow-wave sleep",
-          "Enhanced recovery from exercise-induced muscle damage in preclinical studies",
+          "Four substitutions at known weak points of native GRF(1–29): the DPP-IV cleavage site, residue 8, residue 15 and residue 27 (Campbell et al., 1994)",
+          "Albumin-binding CJC-1295 (DAC form): fourfold GH response over two hours versus GRF(1–29) in rats, and plasma presence beyond 72 hours (Jetté et al., 2005)",
+          "Ipamorelin: GH release from primary rat pituitary cells with potency similar to GHRP-6, through a GHRP-like receptor (Raun et al., 1998)",
+          "Ipamorelin selectivity in swine: no change in FSH, LH, prolactin, TSH, ACTH or cortisol beyond GHRH-like levels (Raun et al., 1998)",
+          "Longitudinal bone growth measured in adult female rats over 15 days of ipamorelin (Johansen et al., 1999)",
         ],
       },
+      { type: "h2", text: "Where Research Is Heading" },
       {
-        type: "callout",
-        text: "CJC-1295 and Ipamorelin are research compounds only. Neither has been approved by the FDA for human use. The lean-mass, fat-reduction, and recovery findings above are from preclinical models, not human trials.",
+        type: "ul",
+        items: [
+          "Interaction: studying whether the two peptides affect each other's stability or activity when combined in one solution.",
+          "Attribution: using single-compound controls to separate GHRH-receptor from GHRP-receptor effects in any experiment with the blend.",
+          "The non-DAC peptide itself: characterising tetrasubstituted GRF(1–29) directly, since much of the CJC-1295 literature describes the albumin-binding form.",
+          "Independent replication: extending ipamorelin's pharmacology, first published by the developer's scientists, through independent laboratories.",
+        ],
       },
-      { type: "h2", text: "Where to Source CJC-1295 / Ipamorelin for Research" },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the CJC-1295 / Ipamorelin product page",
-        productSlug: "cjc-1295-ipamorelin",
+        text: "Neither CJC-1295 nor ipamorelin is approved by the FDA for any use, and neither was among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies this blend as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is there human evidence for CJC-1295 and Ipamorelin, or is it all animal studies?",
-            a: "Partial. CJC-1295 alone has a published human dosing trial showing sustained, dose-dependent GH/IGF-1 increases. The GHRH+ghrelin synergy mechanism has also been demonstrated in humans. But the specific combination product sold by research vendors has not itself been through a published human trial — the lean-mass and fat-reduction findings for the stack specifically are animal-model data.",
+            q: "Is the CJC-1295 in this blend the DAC form?",
+            a: "No. It is modified GRF(1–29), the tetrasubstituted peptide without the albumin-binding group. Results reported for the DAC form, such as its extended plasma presence, do not apply to it.",
           },
           {
-            q: "Why doesn't Ipamorelin raise cortisol like older GH secretagogues?",
-            a: "Its original 1998 characterization found it selectively activates the ghrelin receptor pathway for GH release without the cross-activity on ACTH/cortisol pathways seen with older GHRPs like GHRP-6 and GHRP-2 — a deliberate selectivity improvement, not an accident of dosing.",
+            q: "Do the two components act on the same receptor?",
+            a: "No. Modified GRF(1–29) acts at the GHRH receptor; ipamorelin acts at the growth hormone secretagogue (GHRP) receptor.",
+          },
+          {
+            q: "Is either component FDA-approved?",
+            a: "No. Neither is approved by the FDA for any use.",
           },
         ],
       },
@@ -950,226 +602,57 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Teichman SL, et al. \"Prolonged stimulation of growth hormone (GH) and insulin-like growth factor I secretion by CJC-1295, a long-acting analog of GH-releasing hormone, in healthy adults.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/16352683/", text: "PubMed", external: true },
+          "1. Campbell RM, Stricker P, Miller R, et al. \"Enhanced stability and potency of novel growth hormone-releasing factor (GRF) analogues derived from rodent and human GRF sequences.\" Peptides. 1994;15(3):489-495. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/7937325/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Raun K, et al. \"Ipamorelin, the first selective growth hormone secretagogue.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/9849822/", text: "PubMed", external: true },
+          "2. Jetté L, Léger R, Thibaudeau K, et al. \"Human growth hormone-releasing factor (hGRF)1-29-albumin bioconjugates activate the GRF receptor on the anterior pituitary in rats: identification of CJC-1295 as a long-lasting GRF analog.\" Endocrinology. 2005;146(7):3052-3058. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/15817669/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"A low dose of ghrelin stimulates growth hormone (GH) release synergistically with GH-releasing hormone in humans.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/11549707/", text: "PubMed", external: true },
+          "3. Raun K, Hansen BS, Johansen NL, et al. \"Ipamorelin, the first selective growth hormone secretagogue.\" European Journal of Endocrinology. 1998;139(5):552-561. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/9849822/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "4. \"Ghrelin and Growth Hormone (GH) Secretagogues Potentiate GH-Releasing Hormone (GHRH)-Induced Cyclic AMP Production...\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/12446584/", text: "PubMed", external: true },
+          "4. Johansen PB, Nowak J, Skjaerbaek C, et al. \"Ipamorelin, a new growth-hormone-releasing peptide, induces longitudinal bone growth in rats.\" Growth Hormone & IGF Research. 1999;9(2):106-113. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/10373343/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. Bercu BB, Yang SW, Masuda R, Walker RF. \"Role of selected endogenous peptides in growth hormone-releasing hexapeptide activity: analysis of growth hormone-releasing hormone, thyroid hormone-releasing hormone, and gonadotropin-releasing hormone.\" Endocrinology. 1992;130(5):2579-2586. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/1315249/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. PubChem. Modified GRF(1–29) (CID 56841945) and ipamorelin (CID 9831659). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/56841945", text: "pubchem.ncbi.nlm.nih.gov", external: true },
+          " · ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/9831659", text: "pubchem.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "7. FDA. \"July 23-24, 2026: Meeting of the Pharmacy Compounding Advisory Committee.\" ",
+          { href: "https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026", text: "fda.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
-      },
-    ],
-  },
-  {
-    slug: "best-peptides-for-weight-loss",
-    title: "Best Peptides for Weight Loss: What the Research Shows",
-    excerpt:
-      "A research-backed breakdown of the most studied peptides for fat loss, appetite control, and metabolic optimization.",
-    category: "Weight Management",
-    date: "April 2026",
-    readTime: "9 min read",
-    content: [
-      {
-        type: "intro",
-        text: "The peptide space has produced some of the most compelling weight management research in recent history. From GLP-1 receptor agonists to growth hormone secretagogues, several compounds have demonstrated significant fat loss effects in controlled studies. Here's what the evidence actually shows.",
-      },
-      {
-        type: "h2",
-        text: "1. Semaglutide — The Benchmark",
-      },
-      {
-        type: "p",
-        parts: [
-          { href: "/products/semaglutide", text: "Semaglutide" },
-          " remains the most clinically studied peptide for weight loss. As a GLP-1 receptor agonist, it works by slowing gastric emptying, reducing appetite signals in the hypothalamus, and improving insulin sensitivity. The STEP trials showed an average of 15–17% body weight reduction over 68 weeks — results previously unseen outside of bariatric surgery.",
-        ],
-      },
-      {
-        type: "ul",
-        items: [
-          "15–17% average body weight reduction in STEP clinical trials",
-          "Significant reduction in waist circumference and visceral fat",
-          "Improved fasting glucose and HbA1c",
-          "Cardiovascular risk reduction in SELECT trial",
-        ],
-      },
-      {
-        type: "h2",
-        text: "2. CJC-1295 / Ipamorelin — Indirect Fat Loss via GH",
-      },
-      {
-        type: "p",
-        text: "Growth hormone has well-documented lipolytic effects — it directly stimulates the breakdown of stored fat (lipolysis) and inhibits fat storage. CJC-1295 paired with Ipamorelin produces sustained, physiological GH elevation that supports fat metabolism, particularly visceral and subcutaneous adipose tissue reduction.",
-      },
-      {
-        type: "ul",
-        items: [
-          "GH-mediated lipolysis — direct fat cell breakdown",
-          "Preferential loss of visceral fat in animal models",
-          "Preservation of lean muscle mass during caloric restriction",
-          "Improved insulin sensitivity over time",
-        ],
-      },
-      {
-        type: "cta",
-        text: "View CJC-1295 / Ipamorelin at American Peptides",
-        productSlug: "cjc-1295-ipamorelin",
-        vendor: "American Peptides",
-        affiliateUrl: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/cjc-1295-no-dac-ipamorelin",
-      },
-      {
-        type: "h2",
-        text: "3. BPC-157 — Supporting the Metabolic Environment",
-      },
-      {
-        type: "p",
-        parts: [
-          "While ",
-          { href: "/products/bpc-157", text: "BPC-157" },
-          " is not a direct fat loss compound, its role in gut healing and metabolic regulation deserves mention in weight management research — see our ",
-          { href: "/blog/bpc-157-complete-guide", text: "complete BPC-157 research guide" },
-          " for the full mechanism breakdown. Gut microbiome health and intestinal barrier integrity are increasingly recognized as critical factors in metabolic health and body composition. BPC-157's documented effects on gut mucosal healing may support an optimal metabolic environment.",
-        ],
-      },
-      {
-        type: "h2",
-        text: "Stacking Considerations",
-      },
-      {
-        type: "p",
-        text: "Research contexts often combine compounds with complementary mechanisms. A GLP-1 agonist like semaglutide addresses appetite and insulin signaling, while a GH secretagogue stack addresses direct lipolysis and muscle preservation. These are distinct pathways that can theoretically be studied in combination — though this requires careful protocol design.",
-      },
-      {
-        type: "callout",
-        text: "All peptides discussed in this article are research compounds only. They are not approved for weight loss treatment and must not be used as substitutes for medical care. Consult a qualified physician for any weight management concerns.",
-      },
-      {
-        type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
-      },
-    ],
-  },
-  {
-    slug: "peptides-for-libido-sexual-health",
-    title: "Peptides for Libido & Sexual Health: PT-141 and Beyond",
-    excerpt:
-      "An evidence-based look at peptides studied for libido enhancement and sexual function in both men and women.",
-    category: "Wellness",
-    date: "April 2026",
-    readTime: "7 min read",
-    content: [
-      {
-        type: "intro",
-        text: "Sexual health is a dimension of wellness that is increasingly being studied through the lens of peptide biology. Unlike traditional approaches that target hormones or vascular function, several peptides operate through central nervous system pathways — specifically the melanocortin system — to influence libido and sexual response at the neurological level.",
-      },
-      {
-        type: "h2",
-        text: "PT-141 (Bremelanotide) — The Most Studied",
-      },
-      {
-        type: "p",
-        text: "PT-141 is a synthetic analogue of alpha-melanocyte-stimulating hormone (α-MSH) and acts as a melanocortin receptor agonist — specifically at MC3R and MC4R receptors in the central nervous system. Unlike PDE5 inhibitors (sildenafil, tadalafil) which work primarily through vascular mechanisms, PT-141 activates the neural pathways that initiate sexual desire.",
-      },
-      {
-        type: "ul",
-        items: [
-          "Acts centrally via melanocortin receptors — not vascular",
-          "Studied in both male and female sexual dysfunction models",
-          "FDA approved version (Vyleesi) exists for hypoactive sexual desire disorder in premenopausal women",
-          "Studied for effects on sexual desire and arousal independent of hormonal status",
-          "Effects reported within 45–60 minutes in clinical studies",
-        ],
-      },
-      {
-        type: "h3",
-        text: "Research in Women",
-      },
-      {
-        type: "p",
-        text: "PT-141 has been studied in women with hypoactive sexual desire disorder (HSDD). Double-blind trials demonstrated statistically significant improvements in sexual desire scores compared to placebo. The central mechanism of action makes it particularly relevant for desire-phase dysfunction, which is distinct from arousal or physiological response issues.",
-      },
-      {
-        type: "h3",
-        text: "Research in Men",
-      },
-      {
-        type: "p",
-        text: "In men, PT-141 has been studied both as a standalone compound and in combination with PDE5 inhibitors. Research shows improvements in erectile function scores, with the central pathway providing benefit even in cases where vascular approaches are insufficient. The dual mechanism — central desire activation plus possible peripheral effects — makes it a distinctive research subject.",
-      },
-      {
-        type: "h2",
-        text: "The Role of BPC-157 in Sexual Health",
-      },
-      {
-        type: "p",
-        parts: [
-          { href: "/products/bpc-157", text: "BPC-157" },
-          "'s nitric oxide modulating properties have generated interest in its potential role in vascular aspects of sexual function. Nitric oxide is a key mediator of penile erection and clitoral engorgement. While direct sexual health studies on BPC-157 are limited, its effects on NO pathways and vascular health represent an emerging area of research interest — see our ",
-          { href: "/blog/bpc-157-complete-guide", text: "BPC-157 research guide" },
-          " for more.",
-        ],
-      },
-      {
-        type: "h2",
-        text: "Hormonal Context: Sermorelin and Testosterone",
-      },
-      {
-        type: "p",
-        parts: [
-          "Growth hormone and IGF-1 play supporting roles in sexual health — they influence energy, mood, and hormonal balance. ",
-          { href: "/products/sermorelin", text: "Sermorelin" },
-          ", as a GHRH analogue, stimulates natural GH production and has been studied in the context of age-related hormonal decline. In men with low GH status, restoration of GH levels has been associated with improvements in sexual function markers.",
-        ],
-      },
-      {
-        type: "h2",
-        text: "Key Considerations for Researchers",
-      },
-      {
-        type: "ul",
-        items: [
-          "PT-141 is the most directly studied peptide for sexual function",
-          "Central vs. peripheral mechanisms are an important distinction in study design",
-          "Hormonal baseline (testosterone, estrogen, GH) should be characterized in any study",
-          "Nausea is the most commonly reported side effect of PT-141 in clinical trials",
-          "Flushing and transient blood pressure changes have been observed at higher doses",
-        ],
-      },
-      {
-        type: "callout",
-        text: "All compounds discussed are for research purposes only. Sexual health concerns should be addressed with a qualified healthcare professional. PT-141 (Vyleesi) is FDA-approved only for a specific indication in premenopausal women under medical supervision.",
-      },
-      {
-        type: "cta",
-        text: "View PT-141 Vendors",
-        productSlug: "pt-141",
-        vendor: "PSPeptides",
-        affiliateUrl: "https://pspeptides.com/product/buy-pt-141/?ref=aurapro",
-      },
-      {
-        type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -1251,7 +734,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "SS-31 (Elamipretide): A Research Literature Summary",
     excerpt:
-      "The tetrapeptide D-Arg-Dmt-Lys-Phe-NH₂. What laboratory studies have measured — cardiolipin binding, cytochrome c peroxidase inhibition, cristae structure and membrane electrostatics — and what is still unknown.",
+      "The tetrapeptide D-Arg-Dmt-Lys-Phe-NH₂. What laboratory studies have measured — cardiolipin binding, cytochrome c peroxidase inhibition, cristae structure and membrane electrostatics — and where research is heading.",
     category: "Mitochondrial & Metabolic",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -1259,7 +742,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "SS-31 is one of the Szeto–Schiller (SS) peptides, a class of small amphipathic tetrapeptides that target the inner mitochondrial membrane; much of the work on them comes from H. H. Szeto's group at Weill Cornell Medical College. Its laboratory literature centres on one lipid, cardiolipin. This summary covers what SS-31 is, what those studies measured, and the questions that remain open.",
+        text: "SS-31 is one of the Szeto–Schiller (SS) peptides, a class of small amphipathic tetrapeptides that target the inner mitochondrial membrane; much of the work on them comes from H. H. Szeto's group at Weill Cornell Medical College. Its laboratory literature centres on one lipid, cardiolipin. This summary covers what SS-31 is, what those studies measured, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -1279,7 +762,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from model membranes, isolated mitochondria and animal models. They describe how SS-31 interacts with mitochondrial membranes in those systems. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -1289,13 +772,13 @@ export const posts: Post[] = [
           "Altered calcium burden in isolated mitochondria under calcium stress (Mitchell et al., 2020)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Mechanism: cardiolipin binding and membrane-electrostatics effects are both proposed, and Mitchell and colleagues describe them as non-exclusive; how much each contributes is unresolved.",
-          "Conflicts of interest: the peptides' inventor, H. H. Szeto, is an author on much of the work and founded the company that licensed them, as the 2020 paper discloses.",
-          "Selectivity: reviews report little effect on normal mitochondria (Zhu et al., 2022), and how SS-31 distinguishes stressed from normal membranes is not fully explained.",
+          "Mechanism: weighing the two proposed, non-exclusive mechanisms (cardiolipin binding and membrane electrostatics, per Mitchell and colleagues) and how much each contributes.",
+          "Independent replication: broadening a literature in which the peptides' inventor, H. H. Szeto, who founded the company that licensed them, is an author on much of the work, as the 2020 paper discloses.",
+          "Selectivity: explaining how SS-31 distinguishes stressed from normal mitochondrial membranes, given reports of little effect on normal mitochondria (Zhu et al., 2022).",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -1360,7 +843,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "SLU-PP-332: A Research Literature Summary",
     excerpt:
-      "A synthetic small-molecule agonist of the estrogen-related receptors ERRα, β and γ. What laboratory studies have measured — mitochondrial respiration in muscle cells and an ERRα-dependent exercise gene program in mice — and what is still unknown.",
+      "A synthetic small-molecule agonist of the estrogen-related receptors ERRα, β and γ. What laboratory studies have measured — mitochondrial respiration in muscle cells and an ERRα-dependent exercise gene program in mice — and where research is heading.",
     category: "Mitochondrial & Metabolic",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -1368,7 +851,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "SLU-PP-332 was developed at Saint Louis University as a chemical tool for switching on the estrogen-related receptors (ERRs) in living animals. It is a small molecule, not a peptide, and its published research comes from one group. This summary covers what it is, what those studies measured, and the questions that remain open.",
+        text: "SLU-PP-332 was developed at Saint Louis University as a chemical tool for switching on the estrogen-related receptors (ERRs) in living animals. It is a small molecule, not a peptide, and its published research comes from one group. This summary covers what it is, what those studies measured, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -1388,7 +871,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from a muscle cell line and mouse models. They describe what SLU-PP-332 does to receptor activity, gene programs and metabolic measurements in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -1398,13 +881,13 @@ export const posts: Post[] = [
           "Energy expenditure, fatty-acid oxidation, fat mass and insulin sensitivity measured in diet-induced obese and ob/ob mice (Billon et al., 2024)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Independent replication: both papers come from the developing group, and several authors hold stock in a company working on ERR-based compounds, as the 2023 paper discloses.",
-          "Selectivity: SLU-PP-332 acts on all three ERRs, and which receptor drives each measured effect beyond the ERRα-dependent exercise program is not fully mapped.",
-          "Model gap: all in vivo data are from mice, including genetically obese ob/ob mice; how the findings carry over to other species is unknown.",
+          "Independent replication: extending results that so far come from the developing group, several of whose authors hold stock in a company working on ERR-based compounds, as the 2023 paper discloses.",
+          "Selectivity: mapping which of the three ERRs drives each measured effect beyond the ERRα-dependent exercise program.",
+          "Model range: carrying the mouse findings, including those in genetically obese ob/ob mice, into other species and models.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -1462,7 +945,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "APro-G3RT (Retatrutide): A Research Literature Summary",
     excerpt:
-      "A single peptide that acts at three receptors: glucagon, GIP and GLP-1. What laboratory studies have measured about its receptor activity profile, and what is still unknown.",
+      "A single peptide that acts at three receptors: glucagon, GIP and GLP-1. What laboratory studies have measured about its receptor activity profile, and where research is heading.",
     category: "Incretin & Amylin Analogs",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -1470,7 +953,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "Retatrutide, developed at Eli Lilly as LY3437943, extends the dual-agonist idea behind tirzepatide to a third receptor, the glucagon receptor. This summary covers its chemistry, what the discovery work measured in vitro and in mice, and the questions that remain open. It does not cover clinical literature.",
+        text: "Retatrutide, developed at Eli Lilly as LY3437943, extends the dual-agonist idea behind tirzepatide to a third receptor, the glucagon receptor. This summary covers its chemistry, what the discovery work measured in vitro and in mice, and where research is heading. It does not cover clinical literature.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -1486,7 +969,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from receptor assays and mouse models. They describe how retatrutide engages its three receptors in those systems. They are not evidence of any effect of research material in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -1495,13 +978,13 @@ export const posts: Post[] = [
           "In obese mice: energy expenditure attributed to the glucagon receptor, calorie intake to the GIP and GLP-1 receptors (Coskun et al., 2022)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Receptor contributions: separating the effects of three receptor activities in one molecule needs receptor-selective controls, and the laboratory literature on this is still small.",
-          "Glucagon receptor: glucagon signaling acts on liver metabolism among other tissues, and how the glucagon component behaves across experimental systems is less characterised than the incretin components.",
-          "The discovery and pharmacology work was published by the developer's scientists; independent laboratory studies are few.",
+          "Receptor contributions: separating the effects of three receptor activities in one molecule with receptor-selective controls, a laboratory literature that is still growing.",
+          "Glucagon receptor: characterising the glucagon component across experimental systems as fully as the incretin components.",
+          "Independent replication: extending the discovery and pharmacology work, published by the developer's scientists, through independent laboratory studies.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -1579,13 +1062,13 @@ export const posts: Post[] = [
         type: "callout",
         text: "No published study tests retatrutide and cagrilintide together. Each component's findings come from studies of that compound alone, and none of them is evidence of any effect of research material in people.",
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Interaction: whether the two peptides affect each other's stability or activity when combined in one solution has not been studied.",
-          "Receptor attribution: the blend touches five receptor types (glucagon, GIP, GLP-1, amylin and calcitonin), so any measured effect needs single-compound controls to interpret.",
-          "Both components are recent; independent laboratory literature on either is limited.",
+          "Interaction: studying whether the two peptides affect each other's stability or activity when combined in one solution.",
+          "Receptor attribution: using single-compound controls to assign effects across the five receptor types the blend touches (glucagon, GIP, GLP-1, amylin and calcitonin).",
+          "Both components are recent, and independent laboratory literature on each is still building.",
         ],
       },
       {
@@ -1676,13 +1159,13 @@ export const posts: Post[] = [
         type: "callout",
         text: "The laboratory literature summarised here is for each component on its own. The two act on separate receptor families, and none of these findings is evidence of any effect of research material in people.",
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Interaction: whether the two peptides affect each other's stability or activity when combined in one solution is not characterised in the laboratory literature summarised here.",
-          "Receptor attribution: an effect measured with the blend cannot be assigned to the amylin/calcitonin or the GLP-1 receptor system without single-compound controls.",
-          "Albumin binding: both are lipidated, and the protein content of a medium affects how much of each is free in vitro.",
+          "Interaction: characterising whether the two peptides affect each other's stability or activity when combined in one solution.",
+          "Receptor attribution: using single-compound controls to assign a measured effect to the amylin/calcitonin or the GLP-1 receptor system.",
+          "Albumin binding: accounting for how the protein content of a medium sets the free fraction of each lipidated component in vitro.",
         ],
       },
       {
@@ -1746,7 +1229,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "APro-G2TRZ (Tirzepatide): A Research Literature Summary",
     excerpt:
-      "A fatty-acid-modified peptide that acts at both the GIP and GLP-1 receptors. What receptor-pharmacology studies have measured — imbalanced, biased dual agonism — and what is still unknown.",
+      "A fatty-acid-modified peptide that acts at both the GIP and GLP-1 receptors. What receptor-pharmacology studies have measured — imbalanced, biased dual agonism — and where research is heading.",
     category: "Incretin & Amylin Analogs",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -1754,7 +1237,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "Tirzepatide, developed at Eli Lilly as LY3298176, acts at two incretin receptors rather than one. Most of what is known about how it engages those receptors comes from cell-based signaling assays and isolated islets. This summary covers its chemistry, those laboratory findings and the questions that remain open. It does not cover clinical literature.",
+        text: "Tirzepatide, developed at Eli Lilly as LY3298176, acts at two incretin receptors rather than one. Most of what is known about how it engages those receptors comes from cell-based signaling assays and isolated islets. This summary covers its chemistry, those laboratory findings and where research is heading. It does not cover clinical literature.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -1774,7 +1257,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from receptor-signaling assays, isolated islets and mice. They describe how tirzepatide engages its receptors in those systems. They are not evidence of any effect of research material in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -1784,13 +1267,13 @@ export const posts: Post[] = [
           "β-arrestin-1 limited the islet insulin response to GLP-1 but not to tirzepatide (Willard et al., 2020)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Which part of tirzepatide's activity comes from GIP receptor agonism and which from its biased GLP-1 receptor signaling is still being separated experimentally.",
-          "Receptor occupancy and signaling bias can differ between recombinant cell lines and native tissue, so assay choice matters.",
-          "Most of the pharmacology was published by the developer's scientists, as is usual for a drug candidate; independent work is thinner.",
+          "Separating which part of tirzepatide's activity comes from GIP receptor agonism and which from its biased GLP-1 receptor signaling.",
+          "Comparing receptor occupancy and signaling bias in native tissue as well as recombinant cell lines, since assay choice matters.",
+          "Extending the pharmacology, most of it published by the developer's scientists as is usual for a drug candidate, through independent laboratories.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -1848,7 +1331,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "APro-G1SM (Semaglutide): A Research Literature Summary",
     excerpt:
-      "A fatty-acid-modified analog of glucagon-like peptide-1. What laboratory and discovery research has established about its design, albumin binding and GLP-1 receptor activity, and what is still unknown.",
+      "A fatty-acid-modified analog of glucagon-like peptide-1. What laboratory and discovery research has established about its design, albumin binding and GLP-1 receptor activity, and where research is heading.",
     category: "Incretin & Amylin Analogs",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -1856,7 +1339,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "Semaglutide was designed at Novo Nordisk as a longer-lasting analog of the gut hormone glucagon-like peptide-1 (GLP-1), building on the earlier analog liraglutide. This summary covers its chemistry, what the discovery and receptor research established, and the questions that remain open. It does not cover clinical literature.",
+        text: "Semaglutide was designed at Novo Nordisk as a longer-lasting analog of the gut hormone glucagon-like peptide-1 (GLP-1), building on the earlier analog liraglutide. This summary covers its chemistry, what the discovery and receptor research established, and where research is heading. It does not cover clinical literature.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -1876,7 +1359,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from medicinal-chemistry, receptor and animal pharmacokinetic studies. They describe how semaglutide was designed and how it engages its receptor. They are not evidence of any effect of research material in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -1886,13 +1369,13 @@ export const posts: Post[] = [
           "GLP-1 receptor expressed in pancreas, gut, heart, lungs, kidneys and brain (Knudsen and Lau, 2019)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Tissue targets: the GLP-1 receptor is expressed in many tissues, and which receptor population accounts for a given measured effect depends on the experimental system.",
-          "Albumin binding: because semaglutide is held by albumin, its free concentration in a culture medium depends on the medium's protein content, which matters for in vitro work.",
-          "Most of the design and pharmacology literature comes from the developer's own scientists, as is usual for a drug candidate.",
+          "Tissue targets: matching measured effects to the GLP-1 receptor populations responsible, since the receptor is expressed in many tissues.",
+          "Albumin binding: accounting for how a culture medium's protein content sets semaglutide's free concentration in in vitro work.",
+          "Independent replication: extending the design and pharmacology literature, much of it from the developer's own scientists as is usual for a drug candidate, through independent laboratories.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -1950,7 +1433,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "Cagrilintide: A Research Literature Summary",
     excerpt:
-      "A lipidated, long-acting analog of the pancreatic hormone amylin. What laboratory studies have measured — its design against amyloid formation and its binding to amylin and calcitonin receptors — and what is still unknown.",
+      "A lipidated, long-acting analog of the pancreatic hormone amylin. What laboratory studies have measured — its design against amyloid formation and its binding to amylin and calcitonin receptors — and where research is heading.",
     category: "Incretin & Amylin Analogs",
     date: "August 2026",
     lastUpdated: "October 2026",
@@ -1958,7 +1441,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "Cagrilintide was developed at Novo Nordisk as a stable, long-acting analog of amylin, a hormone that is notoriously hard to work with because it forms amyloid fibrils. This summary covers its chemistry, what structural and receptor studies have measured, and the questions that remain open. It does not cover clinical literature.",
+        text: "Cagrilintide was developed at Novo Nordisk as a stable, long-acting analog of amylin, a hormone that is notoriously hard to work with because it forms amyloid fibrils. This summary covers its chemistry, what structural and receptor studies have measured, and where research is heading. It does not cover clinical literature.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -1978,7 +1461,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from medicinal chemistry and structural biology. They describe how cagrilintide was designed and how it binds its receptors. They are not evidence of any effect of research material in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -1987,13 +1470,13 @@ export const posts: Post[] = [
           "Amylin-like binding mode with distinct receptor conformational dynamics, from cryo-EM structures (Cao et al., 2025)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Receptor balance: cagrilintide acts at both amylin and calcitonin receptors, and how much each contributes to a measured response is not fully separated.",
-          "Dynamics: Cao and colleagues suggest the distinct conformational dynamics could matter functionally; that link has not been tested directly.",
-          "Both papers involve the developer's scientists or funding, as each discloses.",
+          "Receptor balance: separating how much amylin and calcitonin receptor activity each contribute to a measured response.",
+          "Dynamics: testing directly whether the distinct conformational dynamics Cao and colleagues describe matter functionally.",
+          "Independent replication: extending work in which both papers involve the developer's scientists or funding, as each discloses.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -2051,7 +1534,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "Epithalon: A Research Literature Summary",
     excerpt:
-      "A synthetic tetrapeptide, Ala-Glu-Asp-Gly, modelled on a pineal-gland extract. What laboratory studies have measured — telomerase activity and telomere length in cultured fibroblasts — and what is still unknown.",
+      "A synthetic tetrapeptide, Ala-Glu-Asp-Gly, modelled on a pineal-gland extract. What laboratory studies have measured — telomerase activity and telomere length in cultured fibroblasts — and where research is heading.",
     category: "Short Peptides & Neuropeptides",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -2059,7 +1542,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "Epithalon (also written Epitalon) comes from Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology. It is often confused with Epithalamin, the extract it was modelled on, and the evidence for the two is not interchangeable. This summary covers what Epithalon is, what laboratory studies have measured, and the questions that remain open.",
+        text: "Epithalon (also written Epitalon) comes from Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology. It is often confused with Epithalamin, the extract it was modelled on, and the evidence for the two is not interchangeable. This summary covers what Epithalon is, what laboratory studies have measured, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -2079,7 +1562,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from cultured human cells and animal models, and studies of Epithalamin, the extract, are a separate literature. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -2088,14 +1571,14 @@ export const posts: Post[] = [
           "Reported effects on melatonin synthesis, IL-2 mRNA, thymocyte mitogenic activity and several enzymes, by review (Araj et al., 2025)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Independent replication: the telomerase findings come from one research group and have not been widely reproduced elsewhere.",
-          "Mechanism: how a four-residue peptide would switch on the telomerase gene is not established.",
-          "Structure: physico-chemical and structural characterisation of the peptide is limited (Araj et al., 2025).",
-          "Epithalon and Epithalamin are often cited interchangeably; results for the extract should not be read as results for the synthetic peptide.",
+          "Independent replication: reproducing the telomerase findings, which so far come from one research group, in other laboratories.",
+          "Mechanism: establishing how a four-residue peptide would switch on the telomerase gene.",
+          "Structure: building on the limited physico-chemical and structural characterisation of the peptide (Araj et al., 2025).",
+          "Keeping Epithalon and Epithalamin apart, since they are often cited interchangeably and results for the extract are not results for the synthetic peptide.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -2162,7 +1645,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "Tesamorelin: A Research Literature Summary",
     excerpt:
-      "Full-length GHRH(1–44) amide with a trans-3-hexenoyl group on Tyr1. What non-clinical studies have measured — resistance to DPP-IV, slower breakdown in plasma, and GH and IGF-1 responses in animals — and what is still unknown.",
+      "Full-length GHRH(1–44) amide with a trans-3-hexenoyl group on Tyr1. What non-clinical studies have measured — resistance to DPP-IV, slower breakdown in plasma, and GH and IGF-1 responses in animals — and where research is heading.",
     category: "GH-Axis Peptides",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -2170,7 +1653,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "Tesamorelin, developed as TH9507, is a growth hormone–releasing hormone (GHRH) analog with one small change to the native sequence. It was designed to resist the enzyme that inactivates native GHRH. This summary covers its chemistry, what non-clinical studies have measured, and the questions that remain open.",
+        text: "Tesamorelin, developed as TH9507, is a growth hormone–releasing hormone (GHRH) analog with one small change to the native sequence. It was designed to resist the enzyme that inactivates native GHRH. This summary covers its chemistry, what non-clinical studies have measured, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -2190,7 +1673,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from plasma stability assays and animal pharmacology and toxicology studies. They describe how tesamorelin behaves in those systems. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -2200,13 +1683,13 @@ export const posts: Post[] = [
           "Reversible organ and blood findings in dogs with prolonged exposure, attributed to sustained high GH and IGF-1 (Ferdinandi et al., 2007)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Source of the data: the non-clinical characterisation was published by the developer; independent laboratory pharmacology is limited.",
-          "Species differences: dogs showed more pronounced effects than rats in the same studies, so the choice of species matters when interpreting results.",
-          "Downstream effects: tesamorelin acts through GH and IGF-1, so effects measured in an experiment may reflect either hormone, or both.",
+          "Independent replication: adding independent laboratory pharmacology to the non-clinical characterisation published by the developer.",
+          "Species differences: explaining why dogs showed more pronounced effects than rats in the same studies, which shapes species choice.",
+          "Downstream effects: separating effects of GH from those of IGF-1, since tesamorelin acts through both.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -2257,7 +1740,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "GHK-Cu (Copper Peptide): A Research Literature Summary",
     excerpt:
-      "The tripeptide Gly-His-Lys bound to copper(II), first reported in human serum in 1973. What laboratory studies have measured — extracellular-matrix synthesis, cell recruitment and gene-expression shifts — and what is still unknown.",
+      "The tripeptide Gly-His-Lys bound to copper(II), first reported in human serum in 1973. What laboratory studies have measured — extracellular-matrix synthesis, cell recruitment and gene-expression shifts — and where research is heading.",
     category: "Cofactors & Conjugates",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -2265,7 +1748,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "GHK has one of the longest research histories of any compound we carry: Loren Pickart reported it in human serum in 1973. Most of the literature since then studies it as its copper complex, GHK-Cu. This summary covers what it is, what laboratory studies have measured, and the questions that remain open.",
+        text: "GHK has one of the longest research histories of any compound we carry: Loren Pickart reported it in human serum in 1973. Most of the literature since then studies it as its copper complex, GHK-Cu. This summary covers what it is, what laboratory studies have measured, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -2285,7 +1768,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from cell culture, animal injury models and analyses of gene-expression datasets. A shift in gene expression is not a measured physiological result, and none of this is evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -2295,13 +1778,13 @@ export const posts: Post[] = [
           "Expression changes reported in at least 4,000 human genes (Pickart et al., 2015)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Concentration of authorship: the main reviews come from Loren Pickart's group, which works for a skin-care company (Skin Biology, Bellevue, Washington); independent reviews are fewer.",
-          "Copper versus peptide: how much of each effect comes from the peptide and how much from copper delivery is not fully separated.",
-          "Gene data: the gene-expression figures come from the same group and describe expression changes, not tested mechanisms.",
+          "Independent replication: broadening a literature whose main reviews come from Loren Pickart's group, which works for a skin-care company (Skin Biology, Bellevue, Washington).",
+          "Copper versus peptide: separating how much of each effect comes from the peptide and how much from copper delivery.",
+          "Gene data: testing mechanisms behind the reported gene-expression changes, which so far come from the same group.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -2366,7 +1849,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "IGF-1 LR3: A Research Literature Summary",
     excerpt:
-      "An engineered 83-residue analog of insulin-like growth factor 1. What laboratory studies have measured — IGF-binding-protein escape and potency in cultured cells — and what is still unknown.",
+      "An engineered 83-residue analog of insulin-like growth factor 1. What laboratory studies have measured — IGF-binding-protein escape and potency in cultured cells — and where research is heading.",
     category: "GH-Axis Peptides",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -2374,7 +1857,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "IGF-1 LR3 (Long R3 IGF-I) is not a natural peptide. It was engineered in Adelaide in the early 1990s as a laboratory reagent for studying how insulin-like growth factor 1 (IGF-1) acts, and it is still used that way in cell culture. This summary covers how it was designed, what laboratory studies have measured, and the questions that remain open.",
+        text: "IGF-1 LR3 (Long R3 IGF-I) is not a natural peptide. It was engineered in Adelaide in the early 1990s as a laboratory reagent for studying how insulin-like growth factor 1 (IGF-1) acts, and it is still used that way in cell culture. This summary covers how it was designed, what laboratory studies have measured, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -2394,7 +1877,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from cultured cell lines and binding assays. They describe how IGF-1 LR3 behaves in those systems. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -2404,13 +1887,13 @@ export const posts: Post[] = [
           "The IGF-1 receptor is described as crucial for tumour transformation and malignant-cell survival, and only partly involved in normal cell growth (Larsson et al., 2005, review)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Tumour biology: the IGF-1 receptor is central to tumour transformation and malignant-cell survival in the cancer literature (Larsson et al., 2005), and IGF-1 LR3 was built to reach that receptor more easily. That needs weighing in any experimental system that includes transformed cells.",
-          "Tissue selectivity: the receptor is widely expressed, so effects measured in one cell type say little about others.",
-          "Most of the primary characterisation is from the original 1990s work; later papers mostly use IGF-1 LR3 as a reagent rather than studying it directly.",
+          "Tumour biology: accounting for the IGF-1 receptor's central role in tumour transformation and malignant-cell survival (Larsson et al., 2005) in any experimental system that includes transformed cells, since IGF-1 LR3 was built to reach that receptor more easily.",
+          "Tissue selectivity: comparing responses across cell types, since the receptor is widely expressed and one cell type says little about others.",
+          "Direct study: revisiting the molecule itself, since most later papers use IGF-1 LR3 as a reagent and the primary characterisation dates from the original 1990s work.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -2475,7 +1958,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "AOD-9604: A Research Literature Summary",
     excerpt:
-      "A 16-residue C-terminal fragment of human growth hormone. What laboratory studies have measured about its effects on lipid metabolism in mice, why its β3-adrenergic mechanism is often misstated, and what is still unknown.",
+      "A 16-residue C-terminal fragment of human growth hormone. What laboratory studies have measured about its effects on lipid metabolism in mice, why its β3-adrenergic mechanism is often misstated, and where research is heading.",
     category: "Peptide Fragments",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -2483,7 +1966,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "AOD-9604 is a synthetic fragment from the C-terminal end of human growth hormone (hGH). It was developed to study the lipid-metabolism activity of that region separately from the rest of the hormone. This summary covers what it is, what its main laboratory study found, a common misreading of that study, and the questions that remain open.",
+        text: "AOD-9604 is a synthetic fragment from the C-terminal end of human growth hormone (hGH). It was developed to study the lipid-metabolism activity of that region separately from the rest of the hormone. This summary covers what it is, what its main laboratory study found, a common misreading of that study, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -2503,7 +1986,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from mouse models, including receptor-knockout mice. They describe what AOD-9604 does to lipid-metabolism measurements in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -2513,13 +1996,13 @@ export const posts: Post[] = [
           "Conclusion: lipolytic action not mediated directly through the β3-AR (Heffernan et al., 2001)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Receptor: if not the β3-AR directly, what AOD-9604 binds to start its lipolytic effect is not identified.",
-          "Short versus long term: the short-term knockout result and the long-term knockout result point in different directions, and how they fit together is unresolved.",
-          "Breadth: the mechanistic picture rests mainly on one mouse study, and independent laboratory work is limited.",
+          "Receptor: identifying what AOD-9604 binds to start its lipolytic effect, if not the β3-AR directly.",
+          "Short versus long term: reconciling the short-term and long-term knockout results, which point in different directions.",
+          "Independent replication: extending a mechanistic picture that rests mainly on one mouse study.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -2570,7 +2053,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "Sermorelin: A Research Literature Summary",
     excerpt:
-      "GHRH(1–29) amide, the shortest synthetic fragment with the full activity of growth hormone–releasing hormone. What laboratory studies of the GHRH receptor have measured, its regulatory history, and what is still unknown.",
+      "GHRH(1–29) amide, the shortest synthetic fragment with the full activity of growth hormone–releasing hormone. What laboratory studies of the GHRH receptor have measured, its regulatory history, and where research is heading.",
     category: "GH-Axis Peptides",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -2578,7 +2061,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "Sermorelin is the N-terminal 29-residue fragment of human growth hormone–releasing hormone (GHRH), amidated at the C-terminus. Its fragment, GRF(1–29)-NH2, became the standard scaffold for laboratory work on the GHRH receptor in the 1980s. This summary covers its chemistry, what receptor studies have measured, its regulatory history and the questions that remain open.",
+        text: "Sermorelin is the N-terminal 29-residue fragment of human growth hormone–releasing hormone (GHRH), amidated at the C-terminus. Its fragment, GRF(1–29)-NH2, became the standard scaffold for laboratory work on the GHRH receptor in the 1980s. This summary covers its chemistry, what receptor studies have measured, its regulatory history and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -2594,7 +2077,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from rat tissue membranes and adenylate cyclase assays. They describe how the peptide interacts with receptors in those preparations.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -2604,13 +2087,13 @@ export const posts: Post[] = [
           "N-terminal substitutions such as N-Ac-Tyr1, D-Arg2 turn the fragment into a receptor antagonist (Robberecht et al., 1986)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Receptor cross-talk: GRF(1–29) analogs also act on VIP receptors outside the pituitary, so tissue choice affects which receptor a result reflects.",
-          "Stability: native GHRH fragments are broken down quickly in biological media, which has driven decades of analog design; results with the unmodified fragment have to be read with that in mind.",
-          "Much of the receptor pharmacology dates from the 1980s and 1990s; modern structural data on the GHRH receptor are newer and still being connected to the older analog work.",
+          "Receptor cross-talk: separating GHRH-receptor from VIP-receptor activity outside the pituitary, since GRF(1–29) analogs act on both.",
+          "Stability: accounting for how quickly native GHRH fragments break down in biological media, which has driven decades of analog design.",
+          "Structure: connecting newer structural data on the GHRH receptor to the 1980s and 1990s analog pharmacology.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -2668,7 +2151,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "NAD+: A Research Literature Summary",
     excerpt:
-      "A dinucleotide coenzyme, not a peptide. What laboratory research has established about its roles as a redox cofactor and as the substrate of sirtuins and PARPs, how cells take up its precursors, and what is still unknown.",
+      "A dinucleotide coenzyme, not a peptide. What laboratory research has established about its roles as a redox cofactor and as the substrate of sirtuins and PARPs, how cells take up its precursors, and where research is heading.",
     category: "Cofactors & Conjugates",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -2676,7 +2159,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "NAD+ is present in every living cell. It is not a peptide but a dinucleotide coenzyme, and it is one of the most studied molecules in cell metabolism. This summary covers its chemistry, the enzyme systems that depend on it, what laboratory work shows about how cells take up NAD+ precursors, and the questions that remain open.",
+        text: "NAD+ is present in every living cell. It is not a peptide but a dinucleotide coenzyme, and it is one of the most studied molecules in cell metabolism. This summary covers its chemistry, the enzyme systems that depend on it, what laboratory work shows about how cells take up NAD+ precursors, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -2696,7 +2179,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from cell biology, biochemistry and animal models. They describe how NAD+ and its precursors behave in those systems. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -2706,13 +2189,13 @@ export const posts: Post[] = [
           "NRK1 required for cells to use external NR and NMN; extracellular NMN converted to NR before uptake (Ratajczak et al., 2016)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Extracellular NAD+: whether NAD+ supplied outside the cell is used intact or first broken down to smaller precursors such as NMN and NR is a live research question, and it matters for any experiment that adds NAD+ to the medium.",
-          "Compartments: NAD+ pools in the nucleus, cytoplasm and mitochondria are regulated separately, and whole-cell measurements can hide shifts between them.",
-          "Competition: sirtuins, PARPs and other NAD+-consuming enzymes draw on the same pool, so changing NAD+ availability can affect several systems at once.",
+          "Extracellular NAD+: working out whether NAD+ supplied outside the cell is used intact or first broken down to precursors such as NMN and NR, a live question for any experiment that adds NAD+ to the medium.",
+          "Compartments: measuring the separately regulated NAD+ pools in the nucleus, cytoplasm and mitochondria, which whole-cell measurements can blur.",
+          "Competition: tracing how sirtuins, PARPs and other NAD+-consuming enzymes share one pool, so a change in NAD+ availability can reach several systems at once.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -2777,7 +2260,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "KPV: A Research Literature Summary",
     excerpt:
-      "The tripeptide Lys-Pro-Val, the C-terminal end of alpha-MSH. What laboratory studies have measured — PepT1 uptake, NF-κB inhibition in intestinal and immune cells, and inflammation markers in mouse colitis models — and what is still unknown.",
+      "The tripeptide Lys-Pro-Val, the C-terminal end of alpha-MSH. What laboratory studies have measured — PepT1 uptake, NF-κB inhibition in intestinal and immune cells, and inflammation markers in mouse colitis models — and where research is heading.",
     category: "Peptide Fragments",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -2785,7 +2268,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "KPV is a three-residue fragment of alpha-melanocyte-stimulating hormone (α-MSH). Its laboratory literature is small and focused: how it enters cells, what it does to inflammatory signaling, and how it behaves in mouse models of intestinal inflammation. This summary covers those studies and the questions that remain open.",
+        text: "KPV is a three-residue fragment of alpha-melanocyte-stimulating hormone (α-MSH). Its laboratory literature is small and focused: how it enters cells, what it does to inflammatory signaling, and how it behaves in mouse models of intestinal inflammation. This summary covers those studies and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -2805,7 +2288,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from human cell lines and mouse models. They describe what KPV does to signaling pathways and inflammation markers in those systems. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -2815,13 +2298,13 @@ export const posts: Post[] = [
           "In a mouse colitis-associated tumour model, KPV changed tumour formation in wild-type mice but not in PepT1-knockout mice, tying its activity to PepT1 (Viennois et al., 2016)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Receptor: KPV's activity is at least partly independent of MC1R, and the intracellular target through which it inhibits NF-κB is not identified.",
-          "Transport dependence: PepT1 is expressed at low levels in healthy colon and rises with inflammation (Viennois et al., 2016), so results may depend on the inflammatory state of the tissue.",
-          "Breadth: most work is in intestinal models from a few groups; other tissues are much less studied.",
+          "Target: identifying the intracellular target through which KPV inhibits NF-κB, given activity at least partly independent of MC1R.",
+          "Transport: accounting for PepT1, expressed at low levels in healthy colon and higher with inflammation (Viennois et al., 2016), so results may depend on the tissue's inflammatory state.",
+          "Breadth: extending work beyond intestinal models and the few groups that have led it.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -2888,7 +2371,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "MOTS-c: A Research Literature Summary",
     excerpt:
-      "A 16-residue peptide encoded in mitochondrial DNA. What laboratory studies have measured — folate-cycle inhibition, AICAR accumulation and AMPK activation in cells and mice — and what is still unknown.",
+      "A 16-residue peptide encoded in mitochondrial DNA. What laboratory studies have measured — folate-cycle inhibition, AICAR accumulation and AMPK activation in cells and mice — and where research is heading.",
     category: "Mitochondrial & Metabolic",
     date: "July 2026",
     lastUpdated: "October 2026",
@@ -2896,7 +2379,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "MOTS-c is unusual among research peptides because it is encoded in mitochondrial DNA rather than in the cell nucleus. It was described in 2015 by Changhan Lee, Pinchas Cohen and colleagues at the University of Southern California. This summary covers what laboratory studies have measured, how strong the evidence is, and the questions that remain open.",
+        text: "MOTS-c is unusual among research peptides because it is encoded in mitochondrial DNA rather than in the cell nucleus. It was described in 2015 by Changhan Lee, Pinchas Cohen and colleagues at the University of Southern California. This summary covers what laboratory studies have measured, how strong the evidence is, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -2916,7 +2399,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from cultured cells and mice. They describe what MOTS-c does to metabolic pathways and measurements in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -2927,13 +2410,13 @@ export const posts: Post[] = [
           "Later reviews summarise its role in muscle and fat metabolism across rodent studies (Lee et al., 2016; Gao et al., 2023)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Receptor: how MOTS-c acts on cells, and whether it has a receptor at the cell surface, is not established.",
-          "Model gap: the core findings come from cell lines and mice; how well they carry over to other species is unknown.",
-          "Endogenous role: how much circulating MOTS-c normally varies, and what controls its release from mitochondria, are still being worked out.",
+          "Receptor: identifying how MOTS-c signals to cells, including any partner at the cell surface.",
+          "Model range: extending findings from cell lines and mice to other species.",
+          "Endogenous role: mapping natural circulating levels and what controls MOTS-c's release from mitochondria.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -3034,13 +2517,13 @@ export const posts: Post[] = [
         type: "callout",
         text: "No published study tests BPC-157 and TB-500 together, and most TB-500-related findings are for full-length thymosin beta-4 rather than the fragment. Each finding comes from cell culture or animal models and is not evidence of any effect in people.",
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Interaction: whether the two peptides affect each other's stability or activity when combined in one solution has not been studied.",
-          "Fragment versus protein: how much of thymosin beta-4's measured activity the 17–23 fragment reproduces is largely untested.",
-          "Attribution: in any experiment with the blend, an observed effect cannot be assigned to one component without single-compound controls.",
+          "Interaction: studying whether the two peptides affect each other's stability or activity when combined in one solution.",
+          "Fragment versus protein: testing how much of thymosin beta-4's measured activity the 17–23 fragment reproduces.",
+          "Attribution: using single-compound controls to assign any effect observed with the blend to one component.",
         ],
       },
       {
@@ -3132,13 +2615,13 @@ export const posts: Post[] = [
         type: "callout",
         text: "No published study tests BPC-157, TB-500 and GHK-Cu together. Each component's findings come from studies of that compound alone, in cell culture and animal models, and none of them is evidence of any effect in people.",
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Interaction: whether the three compounds affect each other's stability or activity when combined in one solution has not been studied.",
-          "Copper: GHK-Cu brings a bound copper(II) ion into the mixture, and its effect on the other two peptides in solution is uncharacterised.",
-          "Attribution: in any experiment with the blend, an observed effect cannot be assigned to one component without single-compound controls.",
+          "Interaction: studying whether the three compounds affect each other's stability or activity when combined in one solution.",
+          "Copper: characterising how the copper(II) ion GHK-Cu brings into the mixture affects the other two peptides in solution.",
+          "Attribution: using single-compound controls to assign any effect observed with the blend to one component.",
         ],
       },
       {
@@ -3233,13 +2716,13 @@ export const posts: Post[] = [
         type: "callout",
         text: "No published study tests these four compounds together. Each component's findings come from studies of that compound alone, in cell culture and animal models, and none of them is evidence of any effect in people.",
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Interaction: whether the four compounds affect each other's stability or activity when combined in one solution has not been studied.",
-          "Transport: KPV's activity in the 2008 study depended on PepT1 uptake, which other components may or may not share or compete for.",
-          "Attribution: in any experiment with the blend, an observed effect cannot be assigned to one component without single-compound controls.",
+          "Interaction: studying whether the four compounds affect each other's stability or activity when combined in one solution.",
+          "Transport: testing whether the other components share or compete for PepT1, on which KPV's activity depended in the 2008 study.",
+          "Attribution: using single-compound controls to assign any effect observed with the blend to one component.",
         ],
       },
       {
@@ -3292,113 +2775,11 @@ export const posts: Post[] = [
     ],
   },
   {
-    slug: "wolverine-vs-glow-vs-klow",
-    title: "Wolverine vs. GLOW vs. KLOW: Choosing a Blend",
-    excerpt:
-      "Three pre-blended stacks, each adding one peptide to the last. Here's what actually changes between them, and what stays the same.",
-    category: "Stacks",
-    date: "July 2026",
-    readTime: "5 min read",
-    pinned: true,
-    categoryLead: true,
-    content: [
-      {
-        type: "intro",
-        text: "Wolverine, GLOW, and KLOW are the same core pairing — BPC-157 and TB-500 — with one peptide added at each step. They're not three unrelated formulas to weigh against each other; they're a single base plus increasingly specific coverage. Here's what each addition actually changes.",
-      },
-      { type: "h2", text: "The Three Stacks at a Glance" },
-      { type: "h3", text: "Wolverine — BPC-157 + TB-500" },
-      {
-        type: "p",
-        parts: [
-          "The base pairing: tissue-repair signaling (BPC-157) plus cell-migration signaling (TB-500). See the ",
-          { href: "/blog/wolverine-stack-research-guide", text: "Wolverine Stack guide" },
-          " for the mechanism detail.",
-        ],
-      },
-      { type: "h3", text: "GLOW — Wolverine + GHK-Cu" },
-      {
-        type: "p",
-        parts: [
-          "Adds a third peptide studied for collagen synthesis and broader gene-expression effects. See the ",
-          { href: "/blog/glow-blend-research-guide", text: "GLOW Blend guide" },
-          ".",
-        ],
-      },
-      { type: "h3", text: "KLOW — GLOW + KPV" },
-      {
-        type: "p",
-        parts: [
-          "Adds a fourth peptide studied for NF-κB inflammatory signaling and gut-lining research. See the ",
-          { href: "/blog/klow-blend-research-guide", text: "KLOW Blend guide" },
-          ".",
-        ],
-      },
-      { type: "h2", text: "What Changes Between Them" },
-      {
-        type: "ul",
-        items: [
-          "Angiogenesis / cell-migration research — present in all three (BPC-157 + TB-500 base)",
-          "Collagen synthesis / gene-expression research — added in GLOW and KLOW only (GHK-Cu)",
-          "NF-κB / anti-inflammatory research — present in KLOW only (KPV)",
-          "Gut-lining / cytokine-signaling research — present in KLOW only (KPV)",
-        ],
-      },
-      { type: "h2", text: "What Doesn't Change" },
-      {
-        type: "p",
-        text: "Vendors that carry more than one of the three typically keep the BPC-157/TB-500 ratio consistent across all of them — GLOW and KLOW aren't a different repair formula, they're the same one with additional peptides layered on top. None of the three has been studied as a combined formulation; every mechanism referenced above comes from research on that individual peptide.",
-      },
-      { type: "h2", text: "Choosing Between Them" },
-      {
-        type: "ul",
-        items: [
-          "Research is specifically about tissue/tendon/muscle repair with no need for the skin or inflammatory angles — Wolverine covers the base mechanisms without the extra peptides",
-          "Research also touches collagen, skin, or follicular pathways — GLOW adds that coverage",
-          "Research also touches inflammatory signaling or gut-lining pathways — KLOW adds that coverage on top of GLOW",
-        ],
-      },
-      {
-        type: "callout",
-        text: "This is a research-use-only comparison of documented mechanisms per compound, not a recommendation that more peptides produce a stronger effect. Each addition is a different, independently studied mechanism — not a dose increase.",
-      },
-      { type: "h2", text: "Sourcing" },
-      {
-        type: "button",
-        text: "View the Wolverine Stack product page",
-        productSlug: "bpc-157-tb-500-blend",
-      },
-      {
-        type: "button",
-        text: "View the GLOW Stack product page",
-        productSlug: "glow-stack",
-      },
-      {
-        type: "button",
-        text: "View the KLOW Stack product page",
-        productSlug: "klow-stack",
-      },
-      {
-        type: "faq",
-        faq: [
-          {
-            q: "Should I just buy KLOW since it has the most peptides?",
-            a: "Not necessarily. Each addition targets a specific, separate mechanism (collagen/gene-expression for GHK-Cu, anti-inflammatory/gut-lining for KPV) rather than making the base repair mechanism stronger. Which stack fits depends on what the research protocol is actually studying, not on peptide count.",
-          },
-        ],
-      },
-      {
-        type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
-      },
-    ],
-  },
-  {
     slug: "dsip-research-guide",
     ruo: true,
     title: "DSIP (Delta Sleep-Inducing Peptide): A Research Literature Summary",
     excerpt:
-      "A nonapeptide isolated from rabbit cerebral venous blood in 1977. What laboratory studies have measured, why its receptor, gene and natural source are still unknown, and what remains open.",
+      "A nonapeptide isolated from rabbit cerebral venous blood in 1977. What laboratory studies have measured, and where research on its receptor, gene and natural source is heading.",
     category: "Short Peptides & Neuropeptides",
     date: "August 2026",
     lastUpdated: "October 2026",
@@ -3406,7 +2787,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "DSIP has a research history of almost fifty years and a mechanism that is still unresolved. It was isolated while testing the idea that a circulating factor in the blood promotes slow-wave sleep, and its name records that hypothesis rather than an established function. This summary covers what DSIP is, what laboratory work has measured, and why so much remains open.",
+        text: "DSIP has a research history of almost fifty years and a mechanism that is still unresolved. It was isolated while testing the idea that a circulating factor in the blood promotes slow-wave sleep, and its name records that hypothesis rather than an established function. This summary covers what DSIP is, what laboratory work has measured, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -3426,7 +2807,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from animal studies, tissue assays and reviews. They describe what DSIP and DSIP-like material do in those systems. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -3435,13 +2816,13 @@ export const posts: Post[] = [
           "No gene, precursor protein or receptor isolated; DSIP-like peptides proposed as the source of its activity (Kovalzon and Strekalova, 2006)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Receptor and gene: neither has been identified, which leaves every functional result without a defined mechanism.",
-          "Natural source: whether DSIP itself, or a related DSIP-like peptide, is the endogenous molecule is unresolved.",
-          "Age of the evidence: much of the primary work dates from the 1970s and 1980s, and modern replication is limited.",
+          "Receptor and gene: identifying both, which would give the functional results a defined mechanism.",
+          "Natural source: settling whether DSIP itself, or a related DSIP-like peptide, is the endogenous molecule.",
+          "Modern replication: revisiting primary work that dates mostly from the 1970s and 1980s with current methods.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -3508,7 +2889,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "Glutathione (GSH): A Research Literature Summary",
     excerpt:
-      "The tripeptide γ-glutamyl-cysteinyl-glycine, the most abundant low-molecular-weight thiol in animal cells. What biochemistry has established about its synthesis and its GSH/GSSG redox couple, and what is still unknown.",
+      "The tripeptide γ-glutamyl-cysteinyl-glycine, the most abundant low-molecular-weight thiol in animal cells. What biochemistry has established about its synthesis and its GSH/GSSG redox couple, and where research is heading.",
     category: "Cofactors & Conjugates",
     date: "August 2026",
     lastUpdated: "October 2026",
@@ -3516,7 +2897,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "Glutathione is one of the best-characterised molecules in cell biochemistry. It sits at the centre of cellular redox balance and of the detoxification of many foreign compounds. This summary covers its chemistry, how cells make it, what laboratory research has established about its roles, and the questions that remain open.",
+        text: "Glutathione is one of the best-characterised molecules in cell biochemistry. It sits at the centre of cellular redox balance and of the detoxification of many foreign compounds. This summary covers its chemistry, how cells make it, what laboratory research has established about its roles, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -3536,7 +2917,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These are findings of cell biochemistry and enzymology. They describe how glutathione is made and what it does inside cells. They are not evidence of any effect of adding glutathione in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -3546,13 +2927,13 @@ export const posts: Post[] = [
           "Roles in antioxidant defence, xenobiotic detoxification and cell signalling (Wu et al., 2004; Lu, 2013)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Uptake: intact glutathione added outside cells is not simply taken up; how much enters cells intact, versus being broken down and resynthesised, depends on the cell type and conditions.",
-          "Oxidation in handling: GSH oxidises to GSSG in solution, so the GSH/GSSG ratio measured in an experiment can reflect sample handling as well as biology.",
-          "Compartments: glutathione pools in the cytosol, mitochondria and nucleus are regulated separately, and whole-cell measurements can hide shifts between them.",
+          "Uptake: measuring how much glutathione added outside cells enters intact, versus being broken down and resynthesised, across cell types and conditions.",
+          "Handling: controlling GSH oxidation to GSSG in solution, so a measured GSH/GSSG ratio reflects biology rather than sample handling.",
+          "Compartments: measuring the separately regulated pools in the cytosol, mitochondria and nucleus, which whole-cell measurements can blur.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -3610,7 +2991,7 @@ export const posts: Post[] = [
     ruo: true,
     title: "Pinealon: A Research Literature Summary",
     excerpt:
-      "The synthetic tripeptide Glu-Asp-Arg (EDR). What laboratory studies have measured — reactive oxygen species and cell death in three cell types, dendritic spines in a mouse model, and DNA docking — and what is still unknown.",
+      "The synthetic tripeptide Glu-Asp-Arg (EDR). What laboratory studies have measured — reactive oxygen species and cell death in three cell types, dendritic spines in a mouse model, and DNA docking — and where research is heading.",
     category: "Short Peptides & Neuropeptides",
     date: "August 2026",
     lastUpdated: "October 2026",
@@ -3618,7 +2999,7 @@ export const posts: Post[] = [
     content: [
       {
         type: "intro",
-        text: "Pinealon is one of the short \"bioregulator\" peptides from Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology, the same program behind Epithalon. Published work measures oxidative-stress markers, cell survival and gene-related endpoints in cell-culture and rodent models. This summary covers those studies and the questions that remain open.",
+        text: "Pinealon is one of the short \"bioregulator\" peptides from Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology, the same program behind Epithalon. Published work measures oxidative-stress markers, cell survival and gene-related endpoints in cell-culture and rodent models. This summary covers those studies and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -3638,7 +3019,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from cell culture, a transgenic mouse model and computer docking. They describe what Pinealon does to those endpoints in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -3648,13 +3029,13 @@ export const posts: Post[] = [
           "Docking predicts EDR binding sites in gene promoter regions (Khavinson et al., 2021)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Independent replication: the literature comes almost entirely from one research group.",
-          "Genome interaction: the proposal that a tripeptide binds DNA rests on indirect evidence and docking, and has not been shown experimentally.",
-          "Specificity: how much of the effect is specific to the EDR sequence, rather than shared by related short peptides such as KED, is not settled.",
+          "Independent replication: extending a literature that comes almost entirely from one research group.",
+          "Genome interaction: testing experimentally the proposal, so far based on indirect evidence and docking, that a tripeptide binds DNA.",
+          "Specificity: settling how much of the effect is specific to the EDR sequence rather than shared by related short peptides such as KED.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -3708,14 +3089,14 @@ export const posts: Post[] = [
     ruo: true,
     title: "Semax: A Research Literature Summary",
     excerpt:
-      "A synthetic heptapeptide built from the ACTH(4–7) fragment plus a Pro-Gly-Pro tail. What laboratory studies have measured — neurotrophin gene expression, monoamine turnover and ischemia transcriptomics in rodents — and what is still unknown.",
+      "A synthetic heptapeptide built from the ACTH(4–7) fragment plus a Pro-Gly-Pro tail. What laboratory studies have measured — neurotrophin gene expression, monoamine turnover and ischemia transcriptomics in rodents — and where research is heading.",
     category: "Short Peptides & Neuropeptides",
     date: "October 2026",
     readTime: "6 min read",
     content: [
       {
         type: "intro",
-        text: "Semax is a synthetic heptapeptide developed at the Institute of Molecular Genetics of the Russian Academy of Sciences. Its published research base is large for a short peptide but concentrated: most of it is rodent and cell work from a small network of Moscow laboratories. This summary covers what those laboratory studies measured, how strong the evidence is, and the questions that remain open.",
+        text: "Semax is a synthetic heptapeptide developed at the Institute of Molecular Genetics of the Russian Academy of Sciences. Its published research base is large for a short peptide but concentrated: most of it is rodent and cell work from a small network of Moscow laboratories. This summary covers what those laboratory studies measured, how strong the evidence is, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -3739,7 +3120,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from rodent models and tissue measurements: gene expression, protein levels and neurotransmitter metabolites. They describe what Semax does to those endpoints in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -3750,14 +3131,14 @@ export const posts: Post[] = [
           "In vitro, Semax inhibited enkephalin-degrading enzymes from human serum (IC50 about 10 µM), as did its pentapeptide fragment (Kost et al., 2001)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Independent replication: nearly all of the work comes from one Moscow research network, and outside replication is sparse.",
-          "Active species: the PGP fragment is active by itself in some assays, so how much of each result comes from the intact heptapeptide and how much from its fragments is unresolved.",
-          "Stability: how fast Semax breaks down in biological media is an active research topic (Shevchenko et al., 2013), and it affects how every in vivo result should be read.",
-          "Many of the primary papers are in Russian-language journals with English abstracts only, which limits independent review of methods.",
+          "Independent replication: extending work that comes almost entirely from one Moscow research network.",
+          "Active species: separating results from the intact heptapeptide and from its fragments, since the PGP fragment is active by itself in some assays.",
+          "Stability: building on studies of how fast Semax breaks down in biological media (Shevchenko et al., 2013), which shapes how every in vivo result is read.",
+          "Access to methods: wider review of primary papers published in Russian-language journals with English abstracts only.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
@@ -3845,14 +3226,14 @@ export const posts: Post[] = [
     ruo: true,
     title: "Selank: A Research Literature Summary",
     excerpt:
-      "A synthetic heptapeptide: the tetrapeptide tuftsin extended with Pro-Gly-Pro. What laboratory studies have measured — GABAergic gene expression, GABA receptor binding and immune-gene expression in rodents — and what is still unknown.",
+      "A synthetic heptapeptide: the tetrapeptide tuftsin extended with Pro-Gly-Pro. What laboratory studies have measured — GABAergic gene expression, GABA receptor binding and immune-gene expression in rodents — and where research is heading.",
     category: "Short Peptides & Neuropeptides",
     date: "October 2026",
     readTime: "6 min read",
     content: [
       {
         type: "intro",
-        text: "Selank is a synthetic heptapeptide from the same Moscow research community as Semax (the Institute of Molecular Genetics and the Zakusov Institute of Pharmacology). Its laboratory literature centres on two themes: the GABA system and immune-gene expression. This summary covers what those studies measured, how strong the evidence is, and the questions that remain open.",
+        text: "Selank is a synthetic heptapeptide from the same Moscow research community as Semax (the Institute of Molecular Genetics and the Zakusov Institute of Pharmacology). Its laboratory literature centres on two themes: the GABA system and immune-gene expression. This summary covers what those studies measured, how strong the evidence is, and where research is heading.",
       },
       { type: "h2", text: "Chemical Identity" },
       {
@@ -3876,7 +3257,7 @@ export const posts: Post[] = [
         type: "callout",
         text: "These findings come from membrane preparations, rodent tissue and rodent behavior tests. They describe what Selank does to those endpoints in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Published Research at a Glance" },
+      { type: "h2", text: "Research Highlights" },
       {
         type: "ul",
         items: [
@@ -3887,14 +3268,14 @@ export const posts: Post[] = [
           "In vitro, Selank inhibited enkephalin-degrading enzymes from human serum (IC50 about 20 µM) (Kost et al., 2001)",
         ],
       },
-      { type: "h2", text: "Open Questions" },
+      { type: "h2", text: "Where Research Is Heading" },
       {
         type: "ul",
         items: [
-          "Independent replication: almost all of the literature comes from one Moscow research network.",
-          "Binding site: the receptor-binding work suggests Selank's site on the GABA receptor complex differs from diazepam's, but it has not been identified.",
-          "Active species: the Gly-Pro fragment reproduces several of the gene-expression results, so the contribution of the intact heptapeptide versus its fragments is unresolved.",
-          "Many of the primary papers are in Russian-language journals with English abstracts only.",
+          "Independent replication: extending a literature that comes almost entirely from one Moscow research network.",
+          "Binding site: identifying Selank's site on the GABA receptor complex, which receptor-binding work suggests differs from diazepam's.",
+          "Active species: separating the intact heptapeptide's contribution from its fragments', since the Gly-Pro fragment reproduces several gene-expression results.",
+          "Access to methods: wider review of primary papers published in Russian-language journals with English abstracts only.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
