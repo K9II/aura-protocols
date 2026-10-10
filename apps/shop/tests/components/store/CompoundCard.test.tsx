@@ -19,7 +19,7 @@ describe("CompoundCard", () => {
     expect(screen.getByText("Peptide Fragments")).toBeInTheDocument();
     expect(screen.getByText("from $93.10")).toBeInTheDocument();
     expect(screen.getByText("99.6% · tested")).toBeInTheDocument();
-    expect(screen.getByText("◇ COA on file")).toBeInTheDocument();
+    expect(document.querySelector(".s-coa-tag")?.textContent).toBe("◇ COA on file");
   });
 
   it("shows the monograph placard with the CAS number, and Price / Certificate labels", () => {
@@ -48,7 +48,7 @@ describe("CompoundCard", () => {
   it("shows COA pending instead of the tag and purity", () => {
     render(<CompoundCard compound={{ ...c, variants: c.variants.map((v) => ({ ...v, stock: "out" as const, lot: { pending: true as const } })) }} />);
     expect(screen.getByText("COA pending")).toBeInTheDocument();
-    expect(screen.queryByText("◇ COA on file")).toBeNull();
+    expect(document.querySelector(".s-coa-tag")).toBeNull();
   });
 
   it("takes the lot line from the first strength with a released lot", () => {

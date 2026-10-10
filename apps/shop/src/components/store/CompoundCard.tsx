@@ -21,7 +21,7 @@ export default function CompoundCard({ compound: c, index = 0 }: { compound: Com
   return (
     <Link href={`/products/${c.slug}`} className="s-card" style={{ "--cls": color } as CSSProperties}>
       <div className="s-card-ph">
-        {!pending && <span className="s-coa-tag">◇ COA on file</span>}
+        {!pending && <span className="s-coa-tag">◇ COA<span className="s-coa-more"> on file</span></span>}
         {allOut ? (
           <span className="s-flag s-flag--out s-micro">Out of stock</span>
         ) : anyLow ? (
