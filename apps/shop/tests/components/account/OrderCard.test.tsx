@@ -15,6 +15,18 @@ describe("OrderCard", () => {
     expect(screen.getByRole("link", { name: /lot AP-0001/i })).toHaveAttribute("href", "/coa?lot=AP-0001");
   });
 
+  it("on My account the order number opens the order page; a wholesale balance due gets Pay balance", () => {
+    render(<OrderCard link order={{ ...base, status: "balance_due", channel: "wholesale", balance_cents: 194950 } as OrderRow} />);
+    expect(screen.getByRole("link", { name: "Order AP-1042" })).toHaveAttribute("href", "/order/AP-1042");
+    expect(screen.getByRole("link", { name: "Pay balance $1,949.50 →" })).toHaveAttribute("href", "/order/AP-1042");
+  });
+
+  it("on the order page itself the number isn't a link", () => {
+    render(<OrderCard order={{ ...base, status: "balance_due", balance_cents: 100 } as OrderRow} />);
+    expect(screen.queryByRole("link", { name: "Order AP-1042" })).toBeNull();
+    expect(screen.queryByRole("link", { name: /Pay balance/ })).toBeNull();
+  });
+
   it("links tracking when shipped", () => {
     render(<OrderCard order={{ ...base, status: "shipped", tracking_number: "9400", carrier: "usps" }} />);
     expect(screen.getByRole("link", { name: "9400" })).toHaveAttribute("href", "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400");
@@ -25,5 +37,26 @@ describe("OrderCard", () => {
     expect(screen.getByText(/USPS tracking/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "9400 1118 9922 3344 5566 77" }))
       .toHaveAttribute("href", "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400111899223344556677");
+  });
+
+  it("links each lot of a split line to COA lookup", () => {
+    const ITEM = base.order_items![0];
+    render(<OrderCard order={{ ...base, status: "paid", order_items: [{ ...ITEM, lot_number: "BPC-2609-01, BPC-2610-02" }] }} />);
+    expect(screen.getByRole("link", { name: "Lot BPC-2609-01" })).toHaveAttribute("href", "/coa?lot=BPC-2609-01");
+    expect(screen.getByRole("link", { name: "Lot BPC-2610-02" })).toHaveAttribute("href", "/coa?lot=BPC-2610-02");
+  });
+
+  it("a no-charge order reads No charge and Preparing to ship, never Paid", () => {
+    render(<OrderCard order={{ ...base, kind: "no_charge", total_cents: 0, status: "paid" }} />);
+    expect(screen.getByText("No charge")).toBeInTheDocument();
+    expect(screen.getByText("Preparing to ship")).toBeInTheDocument();
+    expect(screen.queryByText(/Paid/)).toBeNull();
+    expect(screen.queryByText("$0.00")).toBeNull();
+  });
+
+  it("a cancelled no-charge order reads Cancelled (no charge), never Refunded", () => {
+    render(<OrderCard order={{ ...base, kind: "no_charge", total_cents: 0, status: "refunded" }} />);
+    expect(screen.getByText("Cancelled (no charge)")).toBeInTheDocument();
+    expect(screen.queryByText(/Refunded/)).toBeNull();
   });
 });

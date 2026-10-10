@@ -5,7 +5,8 @@ import { join } from "node:path";
 // The free-shipping threshold lives in lib/cart.ts. Pages must render the
 // constant, never a hard-coded amount, so a threshold change can't drift.
 const SRC = join(__dirname, "..", "..", "src");
-const FILES = ["app/page.tsx", "app/products/[slug]/page.tsx"];
+// The product page's shipping line lives in the buy panel (VariantPicker).
+const FILES = ["app/page.tsx", "components/store/VariantPicker.tsx"];
 
 describe("free-shipping copy", () => {
   it.each(FILES)("%s has no hard-coded threshold and uses the constant", (rel) => {

@@ -4,10 +4,17 @@ import { getOrderById, getOrderByPaymentIntent, transitionOrder, type OrderRow }
 import { achFailedEmail } from "@/lib/emails";
 import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { afterOrderPaid } from "@/lib/order-paid";
+import { recordPaymentFee } from "@/lib/payment-fees";
 import { getCommerceAdapter } from "@/lib/commerce";
 import { refundCredit, reverseCommission } from "@/lib/partners/ledger";
 import { getPartnerById } from "@/lib/partners/data";
 import { usd } from "@/lib/html";
+import { shortDate } from "@/lib/discounts/time";
+import { closedNote, efwSuggestion, fraudTypeLabel, reasonLabel } from "@/lib/disputes/rules";
+import { disputeParams, eventAt, feeCents, idOf, warningParams } from "@/lib/disputes/stripe-map";
+import { hasDisputeForCharge, logDisputeEvent, recordDispute, recordDisputeCard, recordFunds, recordWarning, resolveWarningsForCharge } from "@/lib/disputes/data";
+import { fetchChargeInfo } from "@/lib/disputes/stripe";
+import { afterDepositPaid } from "@/lib/wholesale/after-deposit";
 
 function paymentIntentId(pi: string | { id: string } | null | undefined): string | null {
   return typeof pi === "string" ? pi : pi?.id ?? null;
@@ -27,17 +34,44 @@ export async function applyPaid(order: OrderRow, session: Stripe.Checkout.Sessio
   if (order.status === "cancelled" || order.status === "refunded") {
     // Money arrived for an order we already closed (e.g. its Stripe page
     // outlived a failed checkout). Nothing is shipped automatically.
-    await alertOwner(`Payment received for a ${order.status} order (${order.order_number})`,
+    await alertOwner("Payment received for a closed order",
       `Stripe session ${session.id} was paid but order ${order.order_number} (${order.id}) is ${order.status}. Refund it in Stripe, or reinstate and ship the order by hand.`);
     return false;
   }
+  if (order.channel === "wholesale") return applyWholesalePaid(order, session);
   if (order.status !== "awaiting_payment" && order.status !== "processing") return false;
   const patch = order.tax_calculation_id
     ? { stripe_payment_intent: paymentIntentId(session.payment_intent) }
     : { tax_cents: session.total_details?.amount_tax ?? 0, total_cents: session.amount_total ?? order.total_cents, stripe_payment_intent: paymentIntentId(session.payment_intent) };
   if (!(await transitionOrder(order.id, order.status, "paid", patch))) return false;
+  await recordPaymentFee(order.id, "order", paymentIntentId(session.payment_intent));
   await afterOrderPaid(order.id);
   return true;
+}
+
+// Wholesale: the deposit moves the order into its production run; the
+// balance moves it to paid (then the usual after-payment steps: tax record,
+// held-vials check, the balance-received email). A retried event is a no-op;
+// anything else is the owner's to check.
+async function applyWholesalePaid(order: OrderRow, session: Stripe.Checkout.Session): Promise<boolean> {
+  const kind = session.metadata?.payment;
+  if (kind === "deposit" && (order.status === "awaiting_payment" || order.status === "processing")) {
+    if (!(await transitionOrder(order.id, order.status, "deposit_paid", { deposit_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
+    await recordPaymentFee(order.id, "deposit", paymentIntentId(session.payment_intent));
+    await afterDepositPaid(order.id);
+    return true;
+  }
+  if (kind === "balance" && order.status === "balance_due") {
+    if (!(await transitionOrder(order.id, "balance_due", "paid", { balance_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
+    await recordPaymentFee(order.id, "balance", paymentIntentId(session.payment_intent));
+    await afterOrderPaid(order.id);
+    return true;
+  }
+  const retry = (kind === "deposit" && order.status !== "awaiting_payment" && order.status !== "processing" && !!order.deposit_payment_intent)
+    || (kind === "balance" && (order.status === "paid" || order.status === "shipped"));
+  if (retry) return false;
+  await alertOwner("Wholesale payment not handled", `${order.order_number}: Stripe session ${session.id} (${kind ?? "no payment tag"}) was paid while the order is ${order.status}. Check it in Stripe.`);
+  return false;
 }
 
 // Follow-ups once an order is refunded (by Stripe, or by the owner for an
@@ -47,13 +81,13 @@ export async function afterOrderRefunded(order: OrderRow): Promise<void> {
   try {
     await reverseCommission(order.id, "refund");
   } catch (err) {
-    await alertOwner(`Commission not reversed for ${order.order_number}`, String(err));
+    await alertOwner("Commission not reversed", `${order.order_number}: ${String(err)}`);
   }
   if (order.store_credit_cents > 0) {
     try {
       await refundCredit(order.customer_id, order.store_credit_cents, order.id);
     } catch (err) {
-      await alertOwner(`Store credit not refunded for ${order.order_number}`, String(err));
+      await alertOwner("Store credit not refunded", `${order.order_number}: ${String(err)}`);
     }
   }
   // Automatic-tax Checkout sessions (card path) reverse their own tax
@@ -63,9 +97,84 @@ export async function afterOrderRefunded(order: OrderRow): Promise<void> {
     try {
       await getCommerceAdapter().reverseTax(order.tax_transaction_id);
     } catch (err) {
-      await alertOwner(`Tax transaction not reversed for ${order.order_number}`, String(err));
+      await alertOwner("Tax transaction not reversed", `${order.order_number}: ${String(err)}`);
     }
   }
+}
+
+// ---------- chargebacks and early fraud warnings (spec 2026-10-05-admin-disputes-design.md) ----------
+// A dispute or warning can be delivered before the paid event: throwing makes
+// Stripe retry, and the webhook route alerts the owner now. Every write below
+// is idempotent (upsert by Stripe id, keyed activity entries), so a retry
+// after a partial failure never duplicates anything.
+async function disputedOrder(d: Stripe.Dispute): Promise<OrderRow | null> {
+  const pi = paymentIntentId(d.payment_intent);
+  if (!pi) {
+    await alertOwner("Chargeback has no payment intent", `Dispute ${d.id} on charge ${idOf(d.charge) ?? "(none)"} (${usd(d.amount)}) has no payment_intent; it can't be matched to an order. Handle it in Stripe.`);
+    return null;
+  }
+  const order = await getOrderByPaymentIntent(pi);
+  if (!order) throw new Error(`dispute on ${pi}: no order matched yet`);
+  return order;
+}
+
+async function onDisputeOpened(event: Stripe.Event, dispute: Stripe.Dispute): Promise<void> {
+  const order = await disputedOrder(dispute);
+  if (!order) return;
+  const id = await recordDispute(disputeParams(dispute, order.id, eventAt(event)));
+  await logDisputeEvent({ disputeId: id, action: "opened", note: dispute.reason, key: `opened:${dispute.id}` });
+  const charge = idOf(dispute.charge);
+  if (charge) {
+    await recordDisputeCard(id, await fetchChargeInfo(charge));
+    await resolveWarningsForCharge(charge);
+  }
+  const reversed = await reverseCommission(order.id, "chargeback");
+  if (reversed === "none" && order.partner_id && order.attributed_by) {
+    const partner = await getPartnerById(order.partner_id);
+    if (partner?.status === "approved") throw new Error(`dispute on ${order.order_number}: commission not recorded yet`);
+  }
+  const due = dispute.evidence_details?.due_by ? ` · respond by ${shortDate(new Date(dispute.evidence_details.due_by * 1000).toISOString())}` : "";
+  await alertOwner("Chargeback opened", `Order ${order.order_number} · ${reasonLabel(dispute.reason)} · ${usd(dispute.amount)}${due}. The evidence is ready in Disputes: review it, then submit it to Stripe before the deadline.`);
+}
+
+async function onDisputeChanged(event: Stripe.Event, dispute: Stripe.Dispute): Promise<void> {
+  const order = await disputedOrder(dispute);
+  if (!order) return;
+  const at = eventAt(event);
+  const id = await recordDispute(disputeParams(dispute, order.id, at));
+  if (event.type === "charge.dispute.funds_withdrawn") {
+    await recordFunds(id, "withdrawn", at);
+    await logDisputeEvent({ disputeId: id, action: "funds_withdrawn", note: `${usd(dispute.amount)} + ${usd(feeCents(dispute))} fee`, key: `funds_withdrawn:${dispute.id}` });
+  } else if (event.type === "charge.dispute.funds_reinstated") {
+    await recordFunds(id, "reinstated", at);
+    await logDisputeEvent({ disputeId: id, action: "funds_reinstated", note: usd(dispute.amount), key: `funds_reinstated:${dispute.id}` });
+  } else if (event.type === "charge.dispute.closed") {
+    const note = closedNote(dispute.status, dispute.amount);
+    await logDisputeEvent({ disputeId: id, action: "closed", note, key: `closed:${dispute.id}` });
+    await alertOwner("Chargeback decided", `Order ${order.order_number} · ${note}. See it in Disputes.`);
+  }
+}
+
+async function onEarlyFraudWarning(event: Stripe.Event, w: Stripe.Radar.EarlyFraudWarning): Promise<void> {
+  const charge = idOf(w.charge);
+  const pi = paymentIntentId(w.payment_intent) ?? (charge ? (await fetchChargeInfo(charge)).paymentIntent : null);
+  if (!pi) {
+    await alertOwner("Early fraud warning has no payment intent", `Warning ${w.id} on charge ${charge ?? "(none)"} has no payment intent; it can't be matched to an order. Handle it in Stripe.`);
+    return;
+  }
+  const order = await getOrderByPaymentIntent(pi);
+  if (!order) throw new Error(`early fraud warning on ${pi}: no order matched yet`);
+  await recordWarning(warningParams(w, order.id));
+  // A chargeback already opened on this charge: the warning is moot, so
+  // close it the same way a later-arriving dispute would (never leaves a
+  // refund button up for something that's already a full chargeback).
+  if (charge && (await hasDisputeForCharge(charge))) {
+    await resolveWarningsForCharge(charge);
+    return;
+  }
+  if (event.type !== "radar.early_fraud_warning.created") return;
+  const s = efwSuggestion({ status: order.status, shippedAt: order.shipped_at });
+  await alertOwner("Early fraud warning", `Order ${order.order_number} · ${fraudTypeLabel(w.fraud_type)} · ${usd(order.total_cents - order.store_credit_cents)} · ${s.alert}`);
 }
 
 export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
@@ -110,7 +219,7 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       if (!order) throw new Error(`refund on ${pi}: no order matched yet`);
       if (!charge.refunded) {
         // Partial refunds leave the order (and the commission) as is.
-        await alertOwner(`Partial refund on ${order.order_number}`,
+        await alertOwner("Partial refund in Stripe",
           `${usd(charge.amount_refunded ?? 0)} of order ${order.order_number} was refunded in Stripe. The order stays ${order.status} and the partner commission (if any) is unchanged - adjust it by hand if needed.`);
         return;
       }
@@ -118,30 +227,37 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       // transitioned but (per one of the alerts below) didn't finish every
       // follow-up step — run them again; each one is idempotent.
       let refunded = order.status === "refunded";
-      if (!refunded && (order.status === "paid" || order.status === "shipped")) {
+      // Refunded to store credit from the admin (a shipped exception), then
+      // the card refunded in the Stripe dashboard too: the customer got it twice.
+      if (refunded && order.refund_destination === "store_credit" && order.stripe_payment_intent && order.total_cents > order.store_credit_cents) {
+        await alertOwner("Refunded twice", `${order.order_number}: refunded to store credit here and to the card in Stripe — take the store credit back in Customers.`);
+      }
+      // A paid wholesale order has two payments: one charge refunded in the
+      // Stripe dashboard isn't the whole order — the owner refunds from Orders.
+      if (!refunded && order.channel === "wholesale" && (order.status === "paid" || order.status === "shipped")) {
+        await alertOwner("Wholesale payment refunded in Stripe", `${order.order_number}: one payment refunded in Stripe — refund the order from Orders so both payments and the stock are handled.`);
+        return;
+      }
+      if (!refunded && (order.status === "paid" || order.status === "shipped" || order.status === "deposit_paid")) {
         refunded = await transitionOrder(order.id, order.status, "refunded");
       }
       if (!refunded) return;
       await afterOrderRefunded(order);
       return;
     }
-    case "charge.dispute.created": {
-      const dispute = event.data.object as Stripe.Dispute;
-      const pi = paymentIntentId(dispute.payment_intent);
-      if (!pi) return;
-      // Stripe can deliver a dispute before (or alongside) the paid event.
-      // Throwing makes Stripe retry, and the webhook route alerts the owner
-      // now; the retry reverses the commission and sends the alert below.
-      const order = await getOrderByPaymentIntent(pi);
-      if (!order) throw new Error(`dispute on ${pi}: no order matched yet`);
-      const reversed = await reverseCommission(order.id, "chargeback");
-      if (reversed === "none" && order.partner_id && order.attributed_by) {
-        const partner = await getPartnerById(order.partner_id);
-        if (partner?.status === "approved") throw new Error(`dispute on ${order.order_number}: commission not recorded yet`);
-      }
-      await alertOwner(`Chargeback opened on ${order.order_number}`, `Order ${order.order_number} · reason: ${dispute.reason}. Respond in the Stripe dashboard with the order, tracking and agreement records.`);
+    case "charge.dispute.created":
+      await onDisputeOpened(event, event.data.object as Stripe.Dispute);
       return;
-    }
+    case "charge.dispute.updated":
+    case "charge.dispute.closed":
+    case "charge.dispute.funds_withdrawn":
+    case "charge.dispute.funds_reinstated":
+      await onDisputeChanged(event, event.data.object as Stripe.Dispute);
+      return;
+    case "radar.early_fraud_warning.created":
+    case "radar.early_fraud_warning.updated":
+      await onEarlyFraudWarning(event, event.data.object as Stripe.Radar.EarlyFraudWarning);
+      return;
     default:
       return;
   }

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import CompoundCard from "@/components/store/CompoundCard";
 import CategoryPills from "@/components/store/CategoryPills";
-import { CHEMICAL_CLASSES, compounds, type ChemicalClass } from "@/data/catalog";
+import Unavailable from "@/components/store/Unavailable";
+import { CHEMICAL_CLASSES, type ChemicalClass, type Compound } from "@/data/catalog";
+import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { isPendingLot } from "@/lib/catalog";
 
 export const metadata: Metadata = {
@@ -12,10 +14,10 @@ export const metadata: Metadata = {
 
 function matches(q: string) {
   const needle = q.trim().toLowerCase();
-  return (c: (typeof compounds)[number]) =>
+  return (c: Compound) =>
     c.name.toLowerCase().includes(needle) ||
     (c.identity.cas ?? "").includes(needle) ||
-    (!isPendingLot(c.currentLot) && c.currentLot.lot.toLowerCase() === needle);
+    c.variants.some((v) => !isPendingLot(v.lot) && v.lot.lot.toLowerCase() === needle);
 }
 
 export default async function ProductsPage({
@@ -24,6 +26,9 @@ export default async function ProductsPage({
   searchParams: Promise<{ cat?: string; q?: string }>;
 }) {
   const { cat, q } = await searchParams;
+  const live = await getLiveCatalogOrNull();
+  if (!live) return <Unavailable />;
+  const compounds = live.shown;
   const active = CHEMICAL_CLASSES.includes(cat as ChemicalClass) ? (cat as ChemicalClass) : undefined;
   let list = active ? compounds.filter((c) => c.chemicalClass === active) : compounds;
   if (q) list = list.filter(matches(q));
@@ -45,7 +50,7 @@ export default async function ProductsPage({
             <input name="q" defaultValue={q ?? ""} placeholder="Search compounds, CAS no., or lot…" aria-label="Search" />
             <button type="submit">Search</button>
           </form>
-          <CategoryPills active={active} />
+          <CategoryPills catalog={compounds} active={active} />
         </div>
         <section className="py-6 pb-16" style={{ borderBottom: "none" }}>
           {list.length === 0 ? (

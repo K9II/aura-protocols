@@ -1,36 +1,52 @@
 import "server-only";
+import { cache } from "react";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { canTransition, type OrderStatus } from "@/lib/order-status";
+import { catalogStockChanged } from "@/lib/catalog-live";
 import type { PricedOrder } from "@/lib/pricing";
 import type { ShipAddress } from "@/lib/ship-address";
+import type { NoChargeReason } from "@/lib/no-charge/rules";
+import { ORDER_PAGE_SIZE, ORDER_TABS, TAB_STATUSES, type OrderTab } from "@/lib/orders/tabs";
+import type { WholesaleQuote } from "@/lib/wholesale/rules";
 
 export type OrderItemRow = {
-  compound_slug: string; compound_name: string; variant_id: string; strength: string; pack_qty: number;
+  id: string; compound_slug: string; compound_name: string; variant_id: string; strength: string; pack_qty: number;
   quantity: number; unit_price_cents: number; line_total_cents: number; lot_number: string;
+  retail_unit_cents: number | null;
 };
 export type OrderRow = {
   id: string; order_number: string; customer_id: string; email: string; status: OrderStatus;
+  channel: "retail" | "wholesale"; wholesale_cutoff_on: string | null;
   ship_name: string; ship_line1: string; ship_line2: string | null; ship_city: string; ship_state: string; ship_zip: string;
   subtotal_cents: number; shipping_cents: number; insurance_cents: number; tax_cents: number; total_cents: number;
-  partner_id: string | null; attributed_by: "code" | "link" | null; partner_discount_cents: number; store_credit_cents: number;
+  deposit_cents: number | null; balance_cents: number | null;
+  partner_id: string | null; attributed_by: "code" | "link" | null; partner_discount_cents: number; new_account_discount: boolean; store_credit_cents: number;
+  discount_code_id: string | null; code_discount_cents: number;
   stripe_coupon_id: string | null; tax_calculation_id: string | null; tax_transaction_id: string | null;
   ruo_confirmed_at: string; stripe_session_id: string | null; stripe_payment_intent: string | null;
+  deposit_payment_intent: string | null; balance_payment_intent: string | null; balance_session_id: string | null;
   tracking_number: string | null; carrier: string | null;
-  paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null;
+  paid_at: string | null; shipped_at: string | null; cancelled_at: string | null; refunded_at: string | null; deposit_paid_at: string | null; balance_due_at: string | null;
   expires_at: string; created_at: string;
+  kind: "sale" | "no_charge"; retail_value_cents: number | null; no_charge_reason: NoChargeReason | null; no_charge_note: string | null;
+  replaces_order_id: string | null; created_by: string | null;
+  refund_destination: "card" | "store_credit" | null; refund_reason: string | null; refund_note: string | null;
+  refunded_by: string | null; stripe_refund_id: string | null; refund_payment_label: string | null;
   order_items?: OrderItemRow[];
 };
 
 const db = () => getSupabaseAdminClient();
 const ORDER_WITH_ITEMS = "*, order_items(*)";
 const STAMP: Partial<Record<OrderStatus, keyof OrderRow>> = {
-  paid: "paid_at", shipped: "shipped_at", cancelled: "cancelled_at", refunded: "refunded_at",
+  paid: "paid_at", shipped: "shipped_at", cancelled: "cancelled_at", refunded: "refunded_at", deposit_paid: "deposit_paid_at",
 };
 
 export async function createPendingOrder(input: {
   customerId: string; email: string; ship: ShipAddress; priced: PricedOrder;
   partner?: { partnerId: string; attributedBy: "code" | "link" } | null;
   storeCreditCents?: number; taxCents?: number; taxCalculationId?: string | null;
+  newAccountDiscount?: boolean;
+  discountCode?: { id: string; discountCents: number } | null;
 }): Promise<{ id: string; orderNumber: string }> {
   const { customerId, email, ship, priced } = input;
   const taxCents = input.taxCents ?? 0;
@@ -41,7 +57,8 @@ export async function createPendingOrder(input: {
     subtotal_cents: priced.subtotalCents, shipping_cents: priced.shippingCents, insurance_cents: priced.insuranceCents, tax_cents: taxCents,
     total_cents: priced.totalBeforeTaxCents + taxCents,
     partner_id: input.partner?.partnerId ?? null, attributed_by: input.partner?.attributedBy ?? null,
-    partner_discount_cents: priced.partnerDiscountCents, store_credit_cents: input.storeCreditCents ?? 0,
+    partner_discount_cents: priced.partnerDiscountCents, new_account_discount: input.newAccountDiscount ?? false, store_credit_cents: input.storeCreditCents ?? 0,
+    discount_code_id: input.discountCode?.id ?? null, code_discount_cents: input.discountCode?.discountCents ?? 0,
     tax_calculation_id: input.taxCalculationId ?? null,
     ruo_confirmed_at: now.toISOString(),
     expires_at: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
@@ -49,6 +66,42 @@ export async function createPendingOrder(input: {
   if (error || !data) throw new Error(`order insert failed: ${JSON.stringify(error)}`);
   const order = data as { id: string; order_number: string };
   const { error: itemsError } = await db().from("order_items").insert(priced.items.map((i) => ({
+    order_id: order.id, compound_slug: i.compoundSlug, compound_name: i.compoundName, variant_id: i.variantId,
+    strength: i.strength, pack_qty: i.packQty, quantity: i.quantity, unit_price_cents: i.unitPriceCents,
+    line_total_cents: i.lineTotalCents, lot_number: i.lotNumber,
+  })));
+  if (itemsError) {
+    await db().from("orders").delete().eq("id", order.id);
+    throw new Error(`order_items insert failed: ${JSON.stringify(itemsError)}`);
+  }
+  return { id: order.id, orderNumber: order.order_number };
+}
+
+// A wholesale order (made to order): kits at tier prices, the run it joins,
+// the deposit charged now and the balance (rest of goods + shipping +
+// insurance + the tax quoted now) charged when the lot passes. No partner,
+// no discounts, no stock hold.
+export async function createPendingWholesaleOrder(input: {
+  customerId: string; email: string; ship: ShipAddress; quote: WholesaleQuote; cutoffOn: string;
+  taxCents: number; taxCalculationId: string; kitBoxCents: number;
+}): Promise<{ id: string; orderNumber: string }> {
+  const { customerId, email, ship, quote } = input;
+  const total = quote.totalBeforeTaxCents + input.taxCents;
+  const now = new Date();
+  const { data, error } = await db().from("orders").insert({
+    customer_id: customerId, email, status: "awaiting_payment", channel: "wholesale", wholesale_cutoff_on: input.cutoffOn,
+    ship_name: ship.name, ship_line1: ship.line1, ship_line2: ship.line2, ship_city: ship.city, ship_state: ship.state, ship_zip: ship.zip,
+    subtotal_cents: quote.subtotalCents, shipping_cents: quote.shippingCents, insurance_cents: quote.insuranceCents,
+    tax_cents: input.taxCents, total_cents: total,
+    partner_id: null, attributed_by: null, partner_discount_cents: 0, new_account_discount: false, store_credit_cents: 0,
+    deposit_cents: quote.depositCents, balance_cents: total - quote.depositCents, tax_calculation_id: input.taxCalculationId,
+    packaging_cents: quote.kits * input.kitBoxCents,
+    ruo_confirmed_at: now.toISOString(),
+    expires_at: new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
+  }).select("id, order_number").single();
+  if (error || !data) throw new Error(`wholesale order insert failed: ${JSON.stringify(error)}`);
+  const order = data as { id: string; order_number: string };
+  const { error: itemsError } = await db().from("order_items").insert(quote.items.map((i) => ({
     order_id: order.id, compound_slug: i.compoundSlug, compound_name: i.compoundName, variant_id: i.variantId,
     strength: i.strength, pack_qty: i.packQty, quantity: i.quantity, unit_price_cents: i.unitPriceCents,
     line_total_cents: i.lineTotalCents, lot_number: i.lotNumber,
@@ -86,7 +139,11 @@ export async function transitionOrder(
     .update({ ...patch, status: to, ...(stamp ? { [stamp]: new Date().toISOString() } : {}) })
     .eq("id", id).eq("status", from).select("id");
   if (error) throw new Error(`transition failed: ${JSON.stringify(error)}`);
-  return Array.isArray(data) && data.length === 1;
+  const moved = Array.isArray(data) && data.length === 1;
+  // Cancels release held vials; a refund before shipping returns sold ones
+  // (settle_holds_on_order_status). Either way availability went up.
+  if (moved && (to === "cancelled" || to === "refunded")) catalogStockChanged();
+  return moved;
 }
 
 export async function getOrderById(id: string): Promise<OrderRow | null> {
@@ -94,8 +151,16 @@ export async function getOrderById(id: string): Promise<OrderRow | null> {
   return (data as OrderRow | null) ?? null;
 }
 
+export async function getOrderByNumber(orderNumber: string): Promise<OrderRow | null> {
+  const { data } = await db().from("orders").select(ORDER_WITH_ITEMS).eq("order_number", orderNumber).maybeSingle();
+  return (data as OrderRow | null) ?? null;
+}
+
+// Retail orders have one payment; a wholesale order has a deposit and a balance.
 export async function getOrderByPaymentIntent(paymentIntent: string): Promise<OrderRow | null> {
-  const { data } = await db().from("orders").select(ORDER_WITH_ITEMS).eq("stripe_payment_intent", paymentIntent).maybeSingle();
+  const { data } = await db().from("orders").select(ORDER_WITH_ITEMS)
+    .or(`stripe_payment_intent.eq.${paymentIntent},deposit_payment_intent.eq.${paymentIntent},balance_payment_intent.eq.${paymentIntent}`)
+    .maybeSingle();
   return (data as OrderRow | null) ?? null;
 }
 
@@ -107,15 +172,35 @@ export async function getOrderForCustomer(orderNumber: string, customerId: strin
 
 export async function listOrdersForCustomer(customerId: string): Promise<OrderRow[]> {
   const { data } = await db().from("orders").select(ORDER_WITH_ITEMS)
-    .eq("customer_id", customerId).neq("status", "awaiting_payment").order("created_at", { ascending: false });
+    .eq("customer_id", customerId).neq("status", "awaiting_payment")
+    // A no-charge attempt that failed is cancelled at once; the customer never knew of it.
+    .or("kind.eq.sale,status.neq.cancelled")
+    .order("created_at", { ascending: false });
   return (data as OrderRow[] | null) ?? [];
 }
 
-export async function listOrdersForOwner(status: OrderStatus | "all"): Promise<OrderRow[]> {
+// oldestFirst: Today's "Orders to ship" needs the longest-waiting orders, so
+// they never fall past the 200-row limit.
+export async function listOrdersForOwner(status: OrderStatus | "all", opts: { oldestFirst?: boolean } = {}): Promise<OrderRow[]> {
   let q = db().from("orders").select(ORDER_WITH_ITEMS).neq("status", "awaiting_payment");
   if (status !== "all") q = q.eq("status", status);
-  const { data } = await q.order("created_at", { ascending: false }).limit(200);
+  const { data, error } = await q.order("created_at", { ascending: !!opts.oldestFirst }).limit(200);
+  if (error) throw new Error(`owner orders select failed: ${JSON.stringify(error)}`);
   return (data as OrderRow[] | null) ?? [];
+}
+
+// The owner Orders list: one tab, or a search across every paid-stage order.
+// `q` must already be cleaned (cleanOrderSearch). To ship is oldest first.
+export async function searchOrdersForOwner(o: { tab: OrderTab; q: string; page: number }): Promise<{ rows: OrderRow[]; total: number }> {
+  const start = (o.page - 1) * ORDER_PAGE_SIZE;
+  let qb = db().from("orders").select(ORDER_WITH_ITEMS, { count: "exact" }).in("status", [...TAB_STATUSES[o.q ? "all" : o.tab]]);
+  if (o.q) {
+    const p = `%${o.q}%`;
+    qb = qb.or(`order_number.ilike.${p},email.ilike.${p},ship_name.ilike.${p},tracking_number.ilike.${p}`);
+  }
+  const { data, error, count } = await qb.order("created_at", { ascending: !o.q && o.tab === "to_ship" }).order("id").range(start, start + ORDER_PAGE_SIZE - 1);
+  if (error) throw new Error(`owner orders search failed: ${JSON.stringify(error)}`);
+  return { rows: (data as OrderRow[] | null) ?? [], total: count ?? 0 };
 }
 
 export type OpenOrder = { id: string; order_number: string; stripe_session_id: string | null; created_at: string; store_credit_cents: number };
@@ -150,13 +235,16 @@ export async function listOrphanedPendingOrders(olderThanIso: string): Promise<{
   return (data as { id: string; order_number: string }[] | null) ?? [];
 }
 
-// Tab counts for the owner orders page (same scope as listOrdersForOwner).
-export async function countOrdersForOwner(): Promise<{ paid: number; processing: number; shipped: number; all: number }> {
-  const { data } = await db().from("orders").select("status").neq("status", "awaiting_payment");
-  const rows = (data as { status: OrderStatus }[] | null) ?? [];
-  const n = (s: OrderStatus) => rows.filter((r) => r.status === s).length;
-  return { paid: n("paid"), processing: n("processing"), shipped: n("shipped"), all: rows.length };
-}
+// Tab counts for the owner Orders page and the nav badge (To ship). Both read
+// it on the same request; `cache` shares the one set of queries between them.
+export const countOrderTabs = cache(async (): Promise<Record<OrderTab, number>> => {
+  const counts = await Promise.all(ORDER_TABS.map(async (t) => {
+    const { count, error } = await db().from("orders").select("id", { count: "exact", head: true }).in("status", [...TAB_STATUSES[t]]);
+    if (error) throw new Error(`order tab count failed: ${JSON.stringify(error)}`);
+    return count ?? 0;
+  }));
+  return Object.fromEntries(ORDER_TABS.map((t, i) => [t, counts[i]])) as Record<OrderTab, number>;
+});
 
 export async function saveShipAddress(customerId: string, ship: ShipAddress): Promise<void> {
   const { error } = await db().from("customers").update({
@@ -169,6 +257,24 @@ export async function saveShipAddress(customerId: string, ship: ShipAddress): Pr
 export async function saveStripeCustomerId(customerId: string, stripeCustomerId: string): Promise<void> {
   const { error } = await db().from("customers").update({ stripe_customer_id: stripeCustomerId }).eq("id", customerId);
   if (error) throw new Error(`save Stripe customer failed: ${JSON.stringify(error)}`);
+}
+
+// A wholesale cancel whose transitionOrder lost the race to the
+// charge.refunded webhook: the order is already refunded, but the refund
+// details the webhook doesn't know (it's a card refund the customer asked
+// for) still need recording. A plain metadata update, never a status change;
+// only fires once (stripe_refund_id is still null).
+// The latest Stripe page for a wholesale balance (an earlier one is expired before a new one opens).
+export async function saveBalanceSession(orderId: string, sessionId: string): Promise<void> {
+  const { error } = await db().from("orders").update({ balance_session_id: sessionId }).eq("id", orderId).eq("status", "balance_due");
+  if (error) throw new Error(`balance session save failed: ${JSON.stringify(error)}`);
+}
+
+export async function stampWholesaleCancel(orderId: string, refundId: string): Promise<void> {
+  const { error } = await db().from("orders")
+    .update({ refund_destination: "card", refund_reason: "customer_cancelled", stripe_refund_id: refundId })
+    .eq("id", orderId).eq("status", "refunded").is("stripe_refund_id", null);
+  if (error) throw new Error(`wholesale cancel stamp failed: ${JSON.stringify(error)}`);
 }
 
 // Idempotency ledger: "process" for new events and for earlier attempts that

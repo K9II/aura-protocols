@@ -106,6 +106,18 @@ export const IDENTITY: Record<string, Identity> = {
     "molecularWeight": "848.8 g/mol",
     "source": "https://pubchem.ncbi.nlm.nih.gov/compound/68816"
   },
+  "semax": {
+    "cas": "80714-61-0",
+    "formula": "C37H51N9O10S",
+    "molecularWeight": "813.9 g/mol",
+    "source": "https://pubchem.ncbi.nlm.nih.gov/compound/9811102"
+  },
+  "selank": {
+    "cas": "129954-34-3",
+    "formula": "C33H57N11O9",
+    "molecularWeight": "751.9 g/mol",
+    "source": "https://pubchem.ncbi.nlm.nih.gov/compound/11765600"
+  },
   "pt-141": {
     "cas": "189691-06-3",
     "formula": "C50H68N14O10",

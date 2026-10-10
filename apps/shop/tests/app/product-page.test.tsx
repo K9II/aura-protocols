@@ -1,22 +1,71 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { liveFixture } from "../helpers/live-catalog";
 import { render, screen, within } from "@testing-library/react";
 import ProductPage from "@/app/products/[slug]/page";
 import { CartProvider } from "@/components/store/CartProvider";
 
+const { live } = vi.hoisted(() => ({ live: vi.fn() }));
+vi.mock("@/lib/catalog-live", () => ({ getLiveCatalogOrNull: live, getLiveCatalog: live }));
 vi.mock("@/components/store/MoleculeViewer", () => ({
   default: ({ structure }: { structure: { label: string } }) => <div data-testid="mol">{structure.label}</div>,
 }));
 
 async function renderSlug(slug: string) {
   const ui = await ProductPage({ params: Promise.resolve({ slug }) });
-  return render(<CartProvider>{ui}</CartProvider>);
+  return render(<CartProvider catalog={liveFixture()}>{ui}</CartProvider>);
 }
 
 describe("product page", () => {
-  it("orders sections: hero, About this compound, Material & testing, Compound data, Researchers also added", async () => {
+  beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [] }); });
+
+  it("fails closed when the live catalog can't be read: Unavailable, no price", async () => {
+    live.mockResolvedValue(null);
+    const { container } = await renderSlug("bpc-157");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Unavailable right now");
+    expect(container.textContent).not.toMatch(/\$\d/);
+    expect(screen.queryByRole("button", { name: /add to cart/i })).toBeNull();
+  });
+
+  it("404s a product the live catalog doesn't show", async () => {
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture().filter((c) => c.slug !== "bpc-157"), lots: [] });
+    await expect(ProductPage({ params: Promise.resolve({ slug: "bpc-157" }) })).rejects.toThrow();
+  });
+
+  it("carries the processor's research-only line next to the RUO label", async () => {
+    await renderSlug("bpc-157");
+    expect(screen.getByText("All products currently listed on this site are for research purposes only.")).toBeInTheDocument();
+  });
+
+  it("shows the COA tag and the selected strength's lot", async () => {
+    const { container } = await renderSlug("bpc-157");
+    expect(container.querySelector(".s-media")).toHaveTextContent("◇ COA on file");
+    expect(screen.getByText("BPC-2609-01")).toBeInTheDocument();
+  });
+
+  it("orders sections: hero, About this compound, Compound data, Researchers also added (no Material & testing)", async () => {
     await renderSlug("bpc-157");
     const h2s = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
-    expect(h2s).toEqual(["About this compound", "Material & testing", "Compound data", "Researchers also added"]);
+    expect(h2s).toEqual(["About this compound", "Compound data", "Researchers also added"]);
+  });
+
+  it("monograph placard carries the identity; Compound data has the Made by row", async () => {
+    const { container } = await renderSlug("bpc-157");
+    const placard = container.querySelector(".s-pdp-placard")!;
+    expect(placard.textContent).toContain("Monograph · Peptide Fragments");
+    expect(placard.textContent).toContain("137525-51-0");
+    expect(container.querySelector(".s-ghost")?.textContent).toBe("BPC-157");
+    const data = screen.getByRole("heading", { name: "Compound data" }).closest("section")!;
+    expect(within(data).getByText("Made by")).toBeInTheDocument();
+    expect(within(data).getByText("Solid-phase synthesis, HPLC-purified")).toBeInTheDocument();
+  });
+
+  it("buy panel holds the pack choice, Add to cart and shipping line; trust row sits above it", async () => {
+    const { container } = await renderSlug("bpc-157");
+    const buy = container.querySelector(".s-buy")!;
+    expect(buy.querySelector(".s-atc")).not.toBeNull();
+    expect(buy.querySelector(".s-ship")?.textContent).toContain("Ships from the US");
+    const trust = container.querySelector(".s-trust--pdp")!;
+    expect(trust.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("About band shows the description, caption, legend and source link", async () => {

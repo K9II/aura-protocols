@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
 import { signUpAction, type AuthFormState } from "@/app/auth/actions";
+import { MARKETING_NOTICE } from "@/lib/gate-shared";
+import PasswordField, { FIELD } from "@/components/account/PasswordField";
+import AgreementText from "@/components/account/AgreementText";
 
-const field = "w-full border border-[color:var(--ink)] bg-[color:var(--paper)] px-3.5 py-3 text-sm mb-4";
+const field = `${FIELD} mb-4`;
 
 export default function SignUpForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState<AuthFormState, FormData>(signUpAction, undefined);
@@ -27,15 +29,14 @@ export default function SignUpForm({ next }: { next: string }) {
       <label htmlFor="su-email" className="s-micro block mb-1.5">Email</label>
       <input id="su-email" name="email" type="email" autoComplete="email" required className={field} />
       <label htmlFor="su-password" className="s-micro block mb-1.5">Password</label>
-      <input id="su-password" name="password" type="password" autoComplete="new-password" minLength={10} required className={field} />
+      <PasswordField id="su-password" autoComplete="new-password" minLength={10} />
       <label htmlFor="su-org" className="s-micro block mb-1.5">Organization (optional)</label>
       <input id="su-org" name="organization" autoComplete="organization" className={field} />
-      <label className="s-chk"><input type="checkbox" name="age21" /><span>I confirm I am <b>21 years of age or older</b>.</span></label>
-      <label className="s-chk"><input type="checkbox" name="ruo" /><span>I agree these products are <b>for research use only</b> — not for human or animal consumption, and not for medical, veterinary, or diagnostic use.</span></label>
-      <label className="s-chk"><input type="checkbox" name="dispute" /><span>I&apos;ve read the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms</Link> and <Link href="/refund-policy" target="_blank" rel="noopener noreferrer">Refund &amp; Dispute Policy</Link>, and will contact support before filing a payment dispute.</span></label>
+      <label className="s-chk"><input type="checkbox" name="agree" required /><AgreementText /></label>
+      <p className="text-[12.5px] text-[color:var(--ink-soft)] mb-4">{MARKETING_NOTICE}</p>
       {state?.error && <p role="alert" className="text-sm text-[color:var(--specimen)] mb-3">{state.error}</p>}
       <button type="submit" className="s-atc" disabled={pending}>Create account →</button>
-      <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-3">We&apos;ll email a link to verify your address before your first order.</p>
+      <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-3">We&apos;ll email a link to confirm your address before your first order.</p>
     </form>
   );
 }

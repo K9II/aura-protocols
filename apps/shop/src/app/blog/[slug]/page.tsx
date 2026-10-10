@@ -38,7 +38,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 
-  const related = posts.filter((p) => p.slug !== post.slug).slice(0, 2);
+  // Only research-summary guides are suggested, same category first.
+  const related = posts
+    .filter((p) => p.ruo && p.slug !== post.slug)
+    .sort((a, b) => Number(b.category === post.category) - Number(a.category === post.category))
+    .slice(0, 2);
 
   const jsonLd = {
     "@context": "https://schema.org",

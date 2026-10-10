@@ -6,16 +6,33 @@ import { getCustomer } from "@/lib/dal";
 import { priceOrder, type PricedOrder, type Rejection } from "@/lib/pricing";
 import { shipAddressSchema } from "@/lib/ship-address";
 import {
-  attachCheckoutSession, createPendingOrder, listOpenOrdersForCustomer, willReleaseOnNewCheckout, saveShipAddress, saveStripeCoupon, saveStripeCustomerId, transitionOrder,
+  attachCheckoutSession, createPendingOrder, saveShipAddress, saveStripeCoupon, saveStripeCustomerId, transitionOrder,
 } from "@/lib/orders";
 import { getCommerceAdapter, STRIPE_MIN_CHARGE_CENTS, type CommerceAdapter } from "@/lib/commerce";
+import { closeOpenCheckouts } from "@/lib/checkout-close";
 import { siteUrl } from "@/lib/supabase/env";
 import { resolveAttribution } from "@/lib/partners/attribution";
-import { applyPartnerCode } from "@/lib/partners/discounts";
+import { offerForCustomer } from "@/lib/account/offer-data";
+import { discountPct, type FirstOrderOffer } from "@/lib/account/offer";
 import { creditBalance, spendCredit } from "@/lib/partners/ledger";
 import { REF_COOKIE } from "@/lib/partners/ref-cookie";
 import { afterOrderPaid } from "@/lib/order-paid";
 import { alertOwner } from "@/lib/notify";
+import { applyDiscounts } from "@/lib/discounts/engine";
+import { claimCode, codeAttemptAllowed, getDiscountCap, recordCodeFailure } from "@/lib/discounts/data";
+import { lookupDiscountCode } from "@/lib/discounts/redeem";
+import { CLAIM_MESSAGE, CODE_MESSAGES, outcomeMessage, type ClaimResult } from "@/lib/discounts/messages";
+import type { CodeTerms } from "@/lib/discounts/rules";
+import { catalogStockChanged, getLiveCatalog } from "@/lib/catalog-live";
+import { bookkeep, requestIp, requestIpHash } from "@/lib/checkout-shared";
+import { holdVials, type HoldResult } from "@/lib/catalog-ops/data";
+import { soldOutMessage } from "@/lib/catalog-ops/rules";
+import { verifyHumanCheck } from "@/lib/turnstile";
+import { HUMAN_CHECK_FAILED, HUMAN_CHECK_UNAVAILABLE } from "@/lib/human-check";
+import { RESEARCH_FIELDS, RESEARCH_ORG_MAX, RESEARCH_REQUIRED, RESEARCH_SAVE_FAILED } from "@/lib/account/research";
+import { saveResearchVerification } from "@/lib/account/research-data";
+
+const OFFER_CHECK_FAILED = "We couldn't check your new-account discount — please try again.";
 
 export type StartCheckoutResult = { url?: string; error?: string; rejected?: Rejection[]; codeError?: string };
 
@@ -28,52 +45,74 @@ const schema = z.object({
   ruoConfirmed: z.literal(true),
   partnerCode: z.string().max(40).optional(),
   useCredit: z.boolean().optional(),
+  humanToken: z.string().max(4096).optional(),
+  research: z.object({ field: z.enum(RESEARCH_FIELDS), org: z.string().trim().min(1).max(RESEARCH_ORG_MAX) }).optional(),
 });
 
-// No rate limiter is applied here: none exists anywhere in this codebase
-// today (the /api/gate and /api/inquiry routes have none either) to reuse
-// per customer, and this is a signed-in server action, not an anonymous
-// public endpoint.
+type TypedCode =
+  | { kind: "discount"; id: string; code: string; terms: CodeTerms }
+  | { kind: "partner"; typed: string }
+  | { kind: "error"; message: string };
+
+// One code box: a discount code (lib/discounts) or a partner code. Wrong
+// codes count toward 10 tries per 10 minutes per account and per network.
+async function readTypedCode(typed: string, customer: { id: string; email: string }, ipHash: string): Promise<TypedCode> {
+  try {
+    if (!(await codeAttemptAllowed(customer.id, ipHash))) return { kind: "error", message: CODE_MESSAGES.tooMany };
+    const r = await lookupDiscountCode(typed, customer);
+    if (r.kind === "discount") return r;
+    if (r.kind === "error") { await noteFailedCode(customer.id, ipHash); return r; }
+    return { kind: "partner", typed };
+  } catch (err) {
+    console.error("discount code check failed:", err);
+    return { kind: "error", message: CODE_MESSAGES.couldntCheck };
+  }
+}
+
+async function noteFailedCode(customerId: string, ipHash: string): Promise<void> {
+  await bookkeep("recording a failed code try", () => recordCodeFailure(customerId, ipHash));
+}
+
+export type CodeCheckResult =
+  | { ok: true; kind: "partner"; code: string }
+  | { ok: true; kind: "discount"; code: string; terms: CodeTerms; capPct: number }
+  | { ok: false; message: string; needsSignIn?: true };
+
 // needsSignIn: the code wasn't refused, the shopper just isn't signed in and
 // verified yet (codes are only checked for verified accounts). The cart then
 // keeps the code and checkout applies it.
-export async function checkPartnerCodeAction(code: string): Promise<{ ok: true; code: string } | { ok: false; message: string; needsSignIn?: true }> {
+export async function checkCodeAction(code: string): Promise<CodeCheckResult> {
   const customer = await getCustomer();
   if (!customer) return { ok: false, message: "Please sign in.", needsSignIn: true };
-  if (!customer.emailConfirmed) return { ok: false, message: "Please verify your email first — check your inbox for the link.", needsSignIn: true };
-  const { attribution, codeError } = await resolveAttribution({ typedCode: String(code).slice(0, 40), buyerCustomerId: customer.id });
-  if (!attribution) return { ok: false, message: codeError ?? "This code can't be used." };
-  return { ok: true, code: attribution.code };
-}
-
-// Saves that only keep records tidy (saved address, coupon id, Stripe
-// customer id) must never cancel a checkout the customer can pay; a failure
-// is reported to the owner instead.
-async function bookkeep(what: string, save: () => Promise<void>): Promise<void> {
-  try {
-    await save();
-  } catch (err) {
-    console.error(`${what} failed:`, err);
-    await alertOwner(`Checkout: ${what} failed`, String(err));
+  if (!customer.emailConfirmed) return { ok: false, message: CODE_MESSAGES.confirmEmail, needsSignIn: true };
+  const typed = String(code).slice(0, 40); // server action: the argument is untrusted
+  const ipHash = await requestIpHash();
+  const r = await readTypedCode(typed, customer, ipHash);
+  if (r.kind === "error") return { ok: false, message: r.message };
+  if (r.kind === "discount") {
+    try {
+      return { ok: true, kind: "discount", code: r.code, terms: r.terms, capPct: await getDiscountCap() };
+    } catch (err) {
+      console.error("discount cap read failed:", err);
+      return { ok: false, message: CODE_MESSAGES.couldntCheck };
+    }
   }
+  const { attribution, codeError } = await resolveAttribution({ typedCode: typed, buyerCustomerId: customer.id });
+  if (!attribution) { await noteFailedCode(customer.id, ipHash); return { ok: false, message: codeError ?? CODE_MESSAGES.invalid }; }
+  return { ok: true, kind: "partner", code: attribution.code };
 }
 
 // A customer who goes back from Stripe (or closes the tab) leaves an order
 // awaiting payment for up to 23 h, holding any store credit it reserved.
-// Starting a new checkout closes those first: expire the Stripe page, cancel
-// the order, and the release_credit_on_cancel trigger hands the credit back.
-// An order with no Stripe page yet may belong to another tab that's still
-// starting, so it's only cancelled once it's 10 minutes old (willReleaseOnNewCheckout).
+// Starting a new checkout closes those first (lib/checkout-close.ts): expire
+// the Stripe page, cancel the order, and the release_credit_on_cancel trigger
+// hands the credit back. An order with no Stripe page yet may belong to another
+// tab that's still starting, so it's only cancelled once it's 10 minutes old.
 async function releaseAbandonedCheckouts(customerId: string, adapter: CommerceAdapter): Promise<void> {
-  for (const o of await listOpenOrdersForCustomer(customerId)) {
-    try {
-      if (!willReleaseOnNewCheckout(o)) continue;
-      if (o.stripe_session_id && (await adapter.expireCheckout(o.stripe_session_id)) === "complete") continue; // paid; the webhook records it
-      await transitionOrder(o.id, "awaiting_payment", "cancelled");
-    } catch (err) {
-      await alertOwner(`Couldn't close an earlier checkout (${o.order_number})`,
-        `Starting a new checkout for customer ${customerId}, order ${o.order_number} (${o.id}, session ${o.stripe_session_id ?? "none"}) could not be closed: ${String(err)}. Any store credit it holds stays held until it expires.`);
-    }
+  const { failed } = await closeOpenCheckouts(customerId, adapter, { all: false });
+  for (const f of failed) {
+    await alertOwner("Couldn't close an earlier checkout",
+      `Starting a new checkout for customer ${customerId}, order ${f.orderNumber} (${f.id}, session ${f.sessionId ?? "none"}) could not be closed: ${f.error}. Any vials, discount-code use or store credit it holds stay held until it expires or the reconcile cron cancels it.`);
   }
 }
 
@@ -83,26 +122,96 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   if (!customer.emailConfirmed) return { error: "Please verify your email first — check your inbox for the link." };
 
   const parsed = schema.safeParse(input);
-  if (!parsed.success) return { error: "Please complete the shipping address and confirm research use." };
-  const { lines, ship, partnerCode, useCredit } = parsed.data;
+  if (!parsed.success) return { error: "Please complete the shipping address, your research details and the research-use confirmation." };
+  const { lines, ship, partnerCode, useCredit, humanToken, research } = parsed.data;
 
-  let priced: PricedOrder = priceOrder(lines);
+  // The human check (Cloudflare Turnstile) comes before any work: no code
+  // lookup, stock hold or order for a bot. "unavailable" is our problem
+  // (no secret, Cloudflare down) — refuse, and tell the owner.
+  const human = await verifyHumanCheck(humanToken, await requestIp(), new URL(siteUrl()).hostname);
+  if (!human.ok) {
+    if (human.reason === "unavailable") {
+      await alertOwner("Checkout: human check unavailable", `Customer ${customer.id}: ${human.detail}. No checkout can start until this is fixed.`);
+      return { error: HUMAN_CHECK_UNAVAILABLE };
+    }
+    return { error: HUMAN_CHECK_FAILED };
+  }
+  // Research verification is asked once, on the first order (processor rules).
+  const needsResearch = !customer.research;
+  if (needsResearch && !research) return { error: RESEARCH_REQUIRED };
+
+  let live;
+  try {
+    live = await getLiveCatalog();
+  } catch (err) {
+    console.error("live catalog read failed:", err);
+    return { error: "The store is briefly unavailable — please try again." };
+  }
+  let priced: PricedOrder = priceOrder(lines, live.shown);
   if (priced.rejected.length) return { error: "Some items can't be ordered right now — they've been flagged below.", rejected: priced.rejected };
   if (priced.items.length === 0) return { error: "Your cart is empty." };
 
-  const refCookie = (await cookies()).get(REF_COOKIE)?.value;
-  const { attribution, codeError } = await resolveAttribution({ typedCode: partnerCode, refCookie, buyerCustomerId: customer.id });
-  if (codeError) return { error: codeError, codeError };
-  let lineDiscountsCents = priced.items.map(() => 0);
-  if (attribution?.via === "code") {
-    const discounted = applyPartnerCode(priced);
-    priced = discounted;
-    lineDiscountsCents = discounted.lineDiscounts.map((d) => d.savingCents);
-  }
-
-  await bookkeep("saving the shipping address", () => saveShipAddress(customer.id, ship));
+  // Close earlier unfinished checkouts first: cancelling them releases any
+  // code use they hold, so the code check below doesn't count the customer's
+  // own abandoned order against them. Only for a valid, priceable cart.
   const adapter = getCommerceAdapter();
   await releaseAbandonedCheckouts(customer.id, adapter);
+
+  let capPct: number;
+  try {
+    capPct = await getDiscountCap();
+  } catch (err) {
+    console.error("discount cap read failed:", err);
+    return { error: CODE_MESSAGES.couldntCheck };
+  }
+
+  const ipHash = await requestIpHash();
+  const typed = partnerCode?.trim();
+  let discountCode: { id: string; code: string; terms: CodeTerms } | null = null;
+  let partnerTyped: string | undefined;
+  if (typed) {
+    const r = await readTypedCode(typed, customer, ipHash);
+    if (r.kind === "error") return { error: r.message, codeError: r.message };
+    if (r.kind === "discount") discountCode = r; else partnerTyped = r.typed;
+  }
+
+  const refCookie = (await cookies()).get(REF_COOKIE)?.value;
+  const { attribution, codeError } = await resolveAttribution({ typedCode: partnerTyped, refCookie, buyerCustomerId: customer.id });
+  if (codeError) {
+    await noteFailedCode(customer.id, ipHash);
+    return { error: codeError, codeError };
+  }
+  // Discounts (lib/discounts/engine.ts): per item the larger of pack, the
+  // automatic percent (new-account offer or a partner code, whichever is
+  // larger — discountPct) or an item-% code; then an order code; then the
+  // store-wide cap. A partner code or link still attributes the order to the
+  // partner for commission.
+  let offer: FirstOrderOffer = null;
+  try {
+    offer = await offerForCustomer(customer);
+  } catch (err) {
+    console.error("new-account offer check failed:", err);
+    return { error: OFFER_CHECK_FAILED };
+  }
+  const result = applyDiscounts(priced, { auto: discountPct(!!offer, attribution?.via === "code"), code: discountCode?.terms ?? null, capPct });
+  if (discountCode && (result.codeOutcome === "below_min" || result.codeOutcome === "no_eligible_items")) {
+    const m = outcomeMessage(result, discountCode.code, discountCode.terms, capPct)!.text;
+    return { error: m, codeError: m };
+  }
+  const codeApplied = !!discountCode && result.codeOutcome === "applied";
+  priced = result;
+  const lineDiscountsCents = result.lineDiscounts.map((d) => d.savingCents);
+  const newAccountDiscount = result.newAccount;
+
+  await bookkeep("saving the shipping address", () => saveShipAddress(customer.id, ship));
+  if (needsResearch) {
+    try {
+      await saveResearchVerification(customer.id, research!);
+    } catch (err) {
+      console.error("research verification save failed:", err);
+      return { error: RESEARCH_SAVE_FAILED };
+    }
+  }
 
   // Store credit is a payment, not a discount: tax is computed on the full
   // price first, then credit covers as much of the total as it can.
@@ -128,7 +237,67 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     customerId: customer.id, email: customer.email, ship, priced,
     partner: attribution ? { partnerId: attribution.partnerId, attributedBy: attribution.via } : null,
     storeCreditCents: credit?.creditCents ?? 0, taxCents: credit?.taxCents ?? 0, taxCalculationId: credit?.calculationId ?? null,
+    newAccountDiscount,
+    discountCode: codeApplied ? { id: discountCode!.id, discountCents: result.codeDiscountCents } : null,
   });
+
+  // The customer still gets the message if the cancel itself fails; the
+  // owner is told, and the reconcile cron cancels the orphan later.
+  const cancelPending = async (why: string): Promise<void> => {
+    try {
+      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    } catch (err) {
+      console.error(`cancel order after ${why} failed:`, err);
+      await alertOwner("Couldn't cancel an order after a failed checkout",
+        `Order ${order.orderNumber} (${order.id}) could not be cancelled after ${why}: ${String(err)}. Held vials, code uses or credit stay held until the reconcile cron cancels the order.`);
+    }
+  };
+
+  // Vials are held the moment the order exists, oldest live lot first
+  // (hold_vials). Payment sells them; any cancel releases them
+  // (settle_holds_on_order_status). Never continue without a hold.
+  let hold: HoldResult;
+  try {
+    hold = await holdVials(order.id);
+  } catch (err) {
+    console.error("hold_vials failed:", err);
+    await cancelPending("a failed stock hold");
+    return { error: "We couldn't reserve your items — please try again." };
+  }
+  if (!hold.ok) {
+    await cancelPending("a stock shortfall");
+    if (hold.reason === "sold_out") {
+      catalogStockChanged();
+      const rejected: Rejection[] = hold.short.map((s) => ({ slug: s.slug, variantId: s.variantId, reason: "sold_out" }));
+      // Names come from the priced lines (what the order stored), so a
+      // strength archived or hidden meanwhile still reads right.
+      const named = hold.short.map((s) => {
+        const it = priced.items.find((i) => i.compoundSlug === s.slug && i.variantId === s.variantId);
+        return { name: it?.compoundName ?? s.slug, strength: it?.strength ?? s.variantId };
+      });
+      return { error: soldOutMessage(named), rejected };
+    }
+    return { error: "Something changed with your order — please try again." };
+  }
+  catalogStockChanged();
+
+  // A use is held the moment the order exists; payment marks it used and any
+  // cancel releases it (settle_code_on_order_status trigger). A claim that
+  // can't be confirmed stops checkout — never silently full price.
+  if (codeApplied) {
+    let claim: ClaimResult;
+    try {
+      claim = await claimCode({ codeId: discountCode!.id, orderId: order.id, customerId: customer.id, discountCents: result.codeDiscountCents, cappedCents: result.cappedCents });
+    } catch (err) {
+      console.error("discount code claim failed:", err);
+      await cancelPending("a failed discount-code claim");
+      return { error: CODE_MESSAGES.couldntCheck, codeError: CODE_MESSAGES.couldntCheck };
+    }
+    if (claim !== "ok") {
+      await cancelPending("a failed discount-code claim");
+      return { error: CLAIM_MESSAGE[claim], codeError: CLAIM_MESSAGE[claim] };
+    }
+  }
 
   // Credit is held (spent) the moment we commit to it, even for a partial
   // amount — before Stripe ever sees a checkout, so nothing is discounted
@@ -138,8 +307,16 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   // the release_credit_on_cancel trigger (partners.sql) returns the held
   // amount automatically — no extra app code needed.
   if (credit) {
-    if (!(await spendCredit(customer.id, credit.creditCents, order.id))) {
-      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    let spent: boolean;
+    try {
+      spent = await spendCredit(customer.id, credit.creditCents, order.id);
+    } catch (err) {
+      console.error("spend store credit failed:", err);
+      await cancelPending("a failed store-credit hold");
+      return { error: "We couldn't apply your store credit — please try again." };
+    }
+    if (!spent) {
+      await cancelPending("a store-credit balance change");
       return { error: "Your store credit balance changed — please review your order again." };
     }
     if (credit.creditCents === priced.totalBeforeTaxCents + credit.taxCents) {
@@ -184,14 +361,15 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
       ...(credit ? { credit: { creditCents: credit.creditCents, taxCents: credit.taxCents } } : {}),
     });
     if (result.kind === "unavailable") {
-      await transitionOrder(order.id, "awaiting_payment", "cancelled");
+      // cancelPending never throws, so the catch below can't cancel a second time.
+      await cancelPending("Stripe was unavailable");
       return { error: result.message };
     }
     sessionId = result.sessionId;
     await attachCheckoutSession(order.id, result.sessionId);
     const couponId = result.couponId, stripeCustomerId = result.stripeCustomerId;
-    if (couponId) await bookkeep(`saving coupon ${couponId} on ${order.orderNumber}`, () => saveStripeCoupon(order.id, couponId));
-    if (!customer.stripeCustomerId) await bookkeep(`saving Stripe customer ${stripeCustomerId}`, () => saveStripeCustomerId(customer.id, stripeCustomerId));
+    if (couponId) await bookkeep("saving the Stripe coupon", () => saveStripeCoupon(order.id, couponId), `coupon ${couponId} on ${order.orderNumber}`);
+    if (!customer.stripeCustomerId) await bookkeep("saving the Stripe customer id", () => saveStripeCustomerId(customer.id, stripeCustomerId), `Stripe customer ${stripeCustomerId} for customer ${customer.id}`);
     return { url: result.url };
   } catch (err) {
     console.error("checkout start failed:", err);
@@ -201,11 +379,11 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
       try {
         await adapter.expireCheckout(sessionId);
       } catch (expireErr) {
-        await alertOwner(`Couldn't close the Stripe page for ${order.orderNumber}`,
+        await alertOwner("Couldn't close the Stripe page for a failed checkout",
           `Checkout failed after Stripe created session ${sessionId} for order ${order.orderNumber} (${order.id}); expiring it also failed: ${String(expireErr)}. If the customer pays it, the order is already cancelled - refund or recreate it.`);
       }
     }
-    await transitionOrder(order.id, "awaiting_payment", "cancelled");
+    await cancelPending("a failed payment start");
     return { error: "We couldn't start payment — please try again." };
   }
 }

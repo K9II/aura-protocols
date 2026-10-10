@@ -3,16 +3,31 @@ import { getOrderById, saveTaxTransactionId } from "@/lib/orders";
 import { getPartnerById } from "@/lib/partners/data";
 import { createCommission, markCommissionClearing, spendCredit } from "@/lib/partners/ledger";
 import { getCommerceAdapter } from "@/lib/commerce";
-import { orderConfirmationEmail, ownerNewOrderEmail } from "@/lib/emails";
+import { noChargeEmail, orderConfirmationEmail, ownerNewOrderEmail, wholesaleBalanceReceivedEmail } from "@/lib/emails";
+import { getWholesaleSettings } from "@/lib/wholesale/data";
+import { estimatedDates } from "@/lib/wholesale/rules";
 import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
+import { logOversold, orderHoldShortfall } from "@/lib/catalog-ops/data";
+import type { OrderRow } from "@/lib/orders";
 
 // Runs once, right after an order moves to paid (webhook, reconciler, or a
 // fully store-credit order). Each step below is independent and wrapped in
 // its own try/catch with a named owner alert — one step failing must never
 // stop the others, and the confirmation + owner emails always go out.
-export async function afterOrderPaid(orderId: string): Promise<void> {
+// A no-charge order has no money steps (no commission, credit or tax) and no
+// receipt or owner new-order email; it only checks held vials and, when the
+// owner ticked the box, sends the "on its way soon" email.
+// `emailed` = the customer email (receipt, or "on its way soon") actually
+// went; false when it failed (sendOrAlert has alerted the owner) or wasn't asked for.
+export async function afterOrderPaid(orderId: string, opts: { notify?: boolean } = {}): Promise<{ emailed: boolean }> {
   const order = await getOrderById(orderId);
   if (!order) throw new Error(`order ${orderId} not found after payment`);
+
+  if (order.kind === "no_charge") {
+    await checkHeldVials(order);
+    if (!opts.notify) return { emailed: false };
+    return { emailed: await sendOrAlert({ to: order.email, ...noChargeEmail(order) }, `no-charge order ${order.order_number}`) };
+  }
 
   if (order.partner_id && order.attributed_by) {
     try {
@@ -35,17 +50,17 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
         }
       }
     } catch (err) {
-      await alertOwner(`Commission not recorded for ${order.order_number}`, String(err));
+      await alertOwner("Commission not recorded", `${order.order_number}: ${String(err)}`);
     }
   }
 
   if (order.store_credit_cents > 0) {
     try {
       if (!(await spendCredit(order.customer_id, order.store_credit_cents, order.id))) {
-        await alertOwner(`Store credit not taken for ${order.order_number}`, `${order.store_credit_cents} cents of store credit could not be taken from ${order.customer_id}.`);
+        await alertOwner("Store credit not taken", `${order.order_number}: ${order.store_credit_cents} cents of store credit could not be taken from ${order.customer_id}.`);
       }
     } catch (err) {
-      await alertOwner(`Store credit not taken for ${order.order_number}`, String(err));
+      await alertOwner("Store credit not taken", `${order.order_number}: ${String(err)}`);
     }
   }
 
@@ -57,14 +72,55 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
       } else {
         // Stripe reports the reference was already used (a retried call),
         // but without the transaction id a later refund can't reverse it.
-        await alertOwner(`Sales tax not recorded for ${order.order_number}`, "tax recorded earlier; transaction id unknown — reversal will be manual");
+        await alertOwner("Sales tax not recorded", `${order.order_number}: tax recorded earlier; transaction id unknown — reversal will be manual`);
       }
     } catch (err) {
-      await alertOwner(`Sales tax not recorded for ${order.order_number}`, String(err));
+      await alertOwner("Sales tax not recorded", `${order.order_number}: ${String(err)}`);
     }
   }
 
-  await sendOrAlert({ to: order.email, ...orderConfirmationEmail(order) }, `order ${order.order_number}`);
+  await checkHeldVials(order);
+
+  // Wholesale: this was the balance — the buyer gets "balance received" with the ship estimate.
+  if (order.channel === "wholesale") {
+    let shipsAbout: string | null = null;
+    try {
+      if (order.wholesale_cutoff_on) shipsAbout = estimatedDates(order.wholesale_cutoff_on, (await getWholesaleSettings()).leadDays).shipsAbout;
+    } catch (err) {
+      console.error("wholesale settings read failed:", err);   // the date is an estimate; the email goes without it
+    }
+    const sent = await sendOrAlert({ to: order.email, ...wholesaleBalanceReceivedEmail(order, { shipsAbout }) }, `wholesale balance ${order.order_number}`);
+    const ownerTo = alertAddress();
+    if (ownerTo) await sendOrAlert({ to: ownerTo, ...ownerNewOrderEmail(order) }, `owner alert ${order.order_number}`);
+    return { emailed: sent };
+  }
+
+  const emailed = await sendOrAlert({ to: order.email, ...orderConfirmationEmail(order) }, `order ${order.order_number}`);
   const owner = alertAddress();
   if (owner) await sendOrAlert({ to: owner, ...ownerNewOrderEmail(order) }, `owner alert ${order.order_number}`);
+  return { emailed };
+}
+
+// Paid but not fully held (it was paid after its holds were released): the
+// order still ships but stock is short. Tell the owner. Never throws.
+async function checkHeldVials(order: OrderRow): Promise<void> {
+  try {
+    const short = await orderHoldShortfall(order.id);
+    if (short.length) {
+      // The owner hears about the shortfall first; logging it in the catalog
+      // history comes after, so a failed log never hides the list.
+      await alertOwner("Oversold: paid without enough held vials",
+        `Order ${order.order_number} was paid without enough held vials:\n${short.map((s) => `${s.compound_slug} ${s.variant_id}: ${s.need} ordered, ${s.covered} held`).join("\n")}\nCheck stock in Catalog & lots and correct counts once you know what you can ship.`);
+    }
+    for (const s of short) {
+      try {
+        await logOversold(s.compound_slug, s.variant_id, order.order_number, s.need, s.covered);
+      } catch (err) {
+        console.error("oversold event log failed:", err);
+        await alertOwner("Oversold event not logged", `${order.order_number} · ${s.compound_slug} ${s.variant_id}: ${String(err)}`);
+      }
+    }
+  } catch (err) {
+    await alertOwner("Stock check failed after payment", `${order.order_number}: ${String(err)}`);
+  }
 }

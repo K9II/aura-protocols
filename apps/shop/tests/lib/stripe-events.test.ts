@@ -10,12 +10,26 @@ const reverseCommission = vi.fn();
 const refundCredit = vi.fn();
 const reverseTax = vi.fn();
 const getPartnerById = vi.fn();
+const recordDispute = vi.fn();
+const recordDisputeCard = vi.fn();
+const recordFunds = vi.fn();
+const logDisputeEvent = vi.fn();
+const recordWarning = vi.fn();
+const resolveWarningsForCharge = vi.fn();
+const hasDisputeForCharge = vi.fn();
+const fetchChargeInfo = vi.fn();
+const afterDepositPaid = vi.fn();
+vi.mock("@/lib/wholesale/after-deposit", () => ({ afterDepositPaid }));
 vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/orders", () => ({ getOrderById, getOrderByPaymentIntent, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
 vi.mock("@/lib/order-paid", () => ({ afterOrderPaid }));
+const recordPaymentFee = vi.hoisted(() => vi.fn(async () => true));
+vi.mock("@/lib/payment-fees", () => ({ recordPaymentFee }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: () => ({ reverseTax }) }));
 vi.mock("@/lib/partners/ledger", () => ({ reverseCommission, refundCredit }));
+vi.mock("@/lib/disputes/data", () => ({ recordDispute, recordDisputeCard, recordFunds, logDisputeEvent, recordWarning, resolveWarningsForCharge, hasDisputeForCharge }));
+vi.mock("@/lib/disputes/stripe", () => ({ fetchChargeInfo }));
 
 const order = (status: string, over: Record<string, unknown> = {}) => ({ id: "o1", order_number: "AP-1001", customer_id: "u1", email: "j@lab.org", status, order_items: [], total_cents: 11850,
   ship_name: "J", ship_line1: "1", ship_line2: null, ship_city: "A", ship_state: "TX", ship_zip: "78701", subtotal_cents: 9800, shipping_cents: 1500, insurance_cents: 550, tax_cents: 0,
@@ -27,8 +41,12 @@ const ev = (type: string, object: unknown) => ({ id: "evt_1", type, data: { obje
 describe("handleStripeEvent", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [getOrderById, getOrderByPaymentIntent, transitionOrder, sendOrAlert, alertOwner, afterOrderPaid, reverseCommission, refundCredit, reverseTax, getPartnerById]) f.mockReset();
+    for (const f of [getOrderById, getOrderByPaymentIntent, transitionOrder, sendOrAlert, alertOwner, afterOrderPaid, reverseCommission, refundCredit, reverseTax, getPartnerById,
+      recordDispute, recordDisputeCard, recordFunds, logDisputeEvent, recordWarning, resolveWarningsForCharge, hasDisputeForCharge, fetchChargeInfo, afterDepositPaid]) f.mockReset();
     transitionOrder.mockResolvedValue(true);
+    recordDispute.mockResolvedValue("d1");
+    hasDisputeForCharge.mockResolvedValue(false);
+    fetchChargeInfo.mockResolvedValue({ cardBrand: "visa", cardLast4: "4242", billingAddress: null, paymentIntent: "pi_1" });
   });
 
   it("card payment completed → paid with Stripe's tax and total, then the after-payment steps", async () => {
@@ -36,6 +54,7 @@ describe("handleStripeEvent", () => {
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("checkout.session.completed", session()));
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "paid", { tax_cents: 808, total_cents: 12658, stripe_payment_intent: "pi_1" });
+    expect(recordPaymentFee).toHaveBeenCalledWith("o1", "order", "pi_1");
     expect(afterOrderPaid).toHaveBeenCalledWith("o1");
   });
 
@@ -109,7 +128,7 @@ describe("handleStripeEvent", () => {
     reverseTax.mockRejectedValue(new Error("stripe down"));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await expect(handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }))).resolves.toBeUndefined();
-    expect(alertOwner).toHaveBeenCalledWith("Tax transaction not reversed for AP-1001", expect.stringContaining("stripe down"));
+    expect(alertOwner).toHaveBeenCalledWith("Tax transaction not reversed", expect.stringMatching(/^AP-1001: [\s\S]*stripe down/));
   });
 
   it("a failed commission reversal alerts by name and still runs the credit and tax steps", async () => {
@@ -117,7 +136,7 @@ describe("handleStripeEvent", () => {
     reverseCommission.mockRejectedValue(new Error("db down"));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await expect(handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }))).resolves.toBeUndefined();
-    expect(alertOwner).toHaveBeenCalledWith("Commission not reversed for AP-1001", expect.stringContaining("db down"));
+    expect(alertOwner).toHaveBeenCalledWith("Commission not reversed", expect.stringMatching(/^AP-1001: [\s\S]*db down/));
     expect(refundCredit).toHaveBeenCalledWith("u1", 5000, "o1");
     expect(reverseTax).toHaveBeenCalledWith("tax_txn_1");
   });
@@ -139,6 +158,23 @@ describe("handleStripeEvent", () => {
     expect(reverseCommission).toHaveBeenCalledWith("o1", "refund");
     expect(refundCredit).toHaveBeenCalledWith("u1", 5000, "o1");
     expect(reverseTax).toHaveBeenCalledWith("tax_txn_1");
+  });
+
+  it("refunded to store credit here, then the card refunded in Stripe → 'Refunded twice' alert", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("refunded", { refund_destination: "store_credit", stripe_payment_intent: "pi_1", store_credit_cents: 1000 }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
+    expect(alertOwner).toHaveBeenCalledWith("Refunded twice", "AP-1001: refunded to store credit here and to the card in Stripe — take the store credit back in Customers.");
+    expect(reverseCommission).toHaveBeenCalledWith("o1", "refund");
+  });
+
+  it("no 'Refunded twice' for a card refund made here, or a store-credit refund with no card part", async () => {
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    getOrderByPaymentIntent.mockResolvedValue(order("refunded", { refund_destination: "card", stripe_payment_intent: "pi_1" }));
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
+    getOrderByPaymentIntent.mockResolvedValue(order("refunded", { refund_destination: "store_credit", stripe_payment_intent: "pi_1", store_credit_cents: 11850 }));
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", refunded: true, payment_intent: "pi_1" }));
+    expect(alertOwner).not.toHaveBeenCalledWith("Refunded twice", expect.anything());
   });
 
   it("chargeback opened → commission reversed and the owner alerted; order status unchanged", async () => {
@@ -171,7 +207,7 @@ describe("handleStripeEvent", () => {
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("checkout.session.completed", session()));
     expect(transitionOrder).not.toHaveBeenCalled();
-    expect(alertOwner).toHaveBeenCalledWith(expect.stringMatching(/cancelled order/i), expect.stringContaining("AP-1001"));
+    expect(alertOwner).toHaveBeenCalledWith("Payment received for a closed order", expect.stringMatching(/AP-1001[\s\S]*is cancelled/));
   });
 
   it("throws for a dispute whose order isn't matched yet, so Stripe retries it", async () => {
@@ -205,5 +241,163 @@ describe("handleStripeEvent", () => {
     getOrderById.mockResolvedValue(null);
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await expect(handleStripeEvent(ev("checkout.session.completed", session()))).rejects.toThrow(/order o1 not found/);
+  });
+
+  // ---------- wholesale: deposit paid / deposit refunded (Part 1) ----------
+  it("a wholesale deposit → deposit_paid with the deposit payment intent; no retail after-payment steps", async () => {
+    getOrderById.mockResolvedValue(order("awaiting_payment", { channel: "wholesale", tax_calculation_id: "taxcalc_1" }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("checkout.session.completed", session({ metadata: { order_id: "o1", payment: "deposit" }, payment_intent: "pi_dep" })));
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "deposit_paid", { deposit_payment_intent: "pi_dep" });
+    expect(afterDepositPaid).toHaveBeenCalledWith("o1");
+    expect(afterOrderPaid).not.toHaveBeenCalled();
+  });
+
+  it("a fully refunded deposit → refunded", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("deposit_paid", { channel: "wholesale" }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("charge.refunded", { object: "charge", payment_intent: "pi_dep", refunded: true, amount_refunded: 60600 }));
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "deposit_paid", "refunded");
+  });
+
+  // ---------- disputes and early fraud warnings (Part 6) ----------
+  const dispute = (o: Record<string, unknown> = {}) => ({
+    object: "dispute", id: "dp_1", amount: 41200, currency: "usd", reason: "product_not_received", status: "needs_response",
+    charge: "ch_1", payment_intent: "pi_1", created: 1790892720,
+    evidence_details: { due_by: 1791590399, submission_count: 0 }, balance_transactions: [{ fee: 1500 }], ...o,
+  });
+  const at = (type: string, object: unknown) => ({ id: "evt_2", type, created: 1790892725, data: { object } }) as never;
+
+  it("chargeback opened → recorded, logged once, card details kept, its early warning closed, alert with reason, amount and deadline", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("charge.dispute.created", dispute()));
+    expect(recordDispute).toHaveBeenCalledWith(expect.objectContaining({ p_stripe_id: "dp_1", p_order: "o1", p_status: "needs_response", p_event_at: "2026-10-01T22:12:05.000Z" }));
+    expect(logDisputeEvent).toHaveBeenCalledWith({ disputeId: "d1", action: "opened", note: "product_not_received", key: "opened:dp_1" });
+    expect(fetchChargeInfo).toHaveBeenCalledWith("ch_1");
+    expect(recordDisputeCard).toHaveBeenCalledWith("d1", { cardBrand: "visa", cardLast4: "4242", billingAddress: null, paymentIntent: "pi_1" });
+    expect(resolveWarningsForCharge).toHaveBeenCalledWith("ch_1");
+    expect(alertOwner).toHaveBeenCalledWith("Chargeback opened", "Order AP-1001 · Not received · $412.00 · respond by Oct 9. The evidence is ready in Disputes: review it, then submit it to Stripe before the deadline.");
+  });
+
+  it("a replayed chargeback event writes the same keyed rows (no duplicates)", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("charge.dispute.created", dispute()));
+    await handleStripeEvent(at("charge.dispute.created", dispute()));
+    expect(recordDispute.mock.calls[0]).toEqual(recordDispute.mock.calls[1]);
+    expect(logDisputeEvent.mock.calls.map((c) => c[0].key)).toEqual(["opened:dp_1", "opened:dp_1"]);
+  });
+
+  it("dispute updated → refreshed only; closed → logged once and the owner alerted with the outcome", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("charge.dispute.updated", dispute({ status: "under_review", evidence_details: { due_by: 1791590399, submission_count: 1 } })));
+    expect(recordDispute).toHaveBeenCalledWith(expect.objectContaining({ p_status: "under_review", p_submitted: true }));
+    expect(logDisputeEvent).not.toHaveBeenCalled();
+    expect(alertOwner).not.toHaveBeenCalled();
+    await handleStripeEvent(at("charge.dispute.closed", dispute({ status: "won" })));
+    expect(logDisputeEvent).toHaveBeenCalledWith({ disputeId: "d1", action: "closed", note: "Won · $412.00 returned", key: "closed:dp_1" });
+    expect(alertOwner).toHaveBeenCalledWith("Chargeback decided", "Order AP-1001 · Won · $412.00 returned. See it in Disputes.");
+    expect(reverseCommission).not.toHaveBeenCalled();
+  });
+
+  it("funds withdrawn / reinstated are recorded once with the event time", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("charge.dispute.funds_withdrawn", dispute()));
+    expect(recordFunds).toHaveBeenCalledWith("d1", "withdrawn", "2026-10-01T22:12:05.000Z");
+    expect(logDisputeEvent).toHaveBeenCalledWith({ disputeId: "d1", action: "funds_withdrawn", note: "$412.00 + $15.00 fee", key: "funds_withdrawn:dp_1" });
+    await handleStripeEvent(at("charge.dispute.funds_reinstated", dispute()));
+    expect(recordFunds).toHaveBeenCalledWith("d1", "reinstated", "2026-10-01T22:12:05.000Z");
+  });
+
+  it("a dispute update whose order isn't matched yet throws, so Stripe retries it", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(null);
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await expect(handleStripeEvent(at("charge.dispute.closed", dispute()))).rejects.toThrow(/pi_1/);
+    expect(recordDispute).not.toHaveBeenCalled();
+  });
+
+  it("early fraud warning → recorded and the owner told the next step; an update doesn't alert again", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("paid", { total_cents: 18450 }));
+    const w = { object: "radar.early_fraud_warning", id: "issfr_1", charge: "ch_2", payment_intent: "pi_2", fraud_type: "unauthorized_use_of_card", actionable: true, created: 1790892725 };
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("radar.early_fraud_warning.created", w));
+    expect(getOrderByPaymentIntent).toHaveBeenCalledWith("pi_2");
+    expect(recordWarning).toHaveBeenCalledWith({ stripe_efw_id: "issfr_1", order_id: "o1", charge_id: "ch_2", fraud_type: "unauthorized_use_of_card", actionable: true, created_at: "2026-10-01T22:12:05.000Z" });
+    expect(alertOwner).toHaveBeenCalledWith("Early fraud warning", "Order AP-1001 · Unauthorized use of card · $184.50 · Not shipped yet: cancel and refund it in Disputes to avoid a chargeback.");
+    alertOwner.mockClear();
+    await handleStripeEvent(at("radar.early_fraud_warning.updated", { ...w, actionable: false }));
+    expect(recordWarning).toHaveBeenLastCalledWith(expect.objectContaining({ actionable: false }));
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("a warning without a payment intent is matched through its charge; unmatched throws", async () => {
+    fetchChargeInfo.mockResolvedValue({ cardBrand: null, cardLast4: null, billingAddress: null, paymentIntent: "pi_3" });
+    getOrderByPaymentIntent.mockResolvedValue(null);
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await expect(handleStripeEvent(at("radar.early_fraud_warning.created", { id: "issfr_2", charge: "ch_3", fraud_type: "misc", actionable: true, created: 1790892725 })))
+      .rejects.toThrow(/early fraud warning on pi_3: no order matched yet/);
+    expect(fetchChargeInfo).toHaveBeenCalledWith("ch_3");
+    expect(recordWarning).not.toHaveBeenCalled();
+  });
+
+  it("a dispute with no payment intent at all alerts the owner (a stable title) instead of silently dropping it", async () => {
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("charge.dispute.created", dispute({ payment_intent: null })));
+    expect(alertOwner).toHaveBeenCalledWith("Chargeback has no payment intent", expect.stringContaining("dp_1"));
+    expect(recordDispute).not.toHaveBeenCalled();
+    expect(getOrderByPaymentIntent).not.toHaveBeenCalled();
+  });
+
+  it("an early fraud warning with no payment intent (and no charge info to find one) alerts the owner instead of silently dropping it", async () => {
+    fetchChargeInfo.mockResolvedValue({ cardBrand: null, cardLast4: null, billingAddress: null, paymentIntent: null });
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("radar.early_fraud_warning.created", { id: "issfr_3", charge: "ch_4", fraud_type: "misc", actionable: true, created: 1790892725 }));
+    expect(alertOwner).toHaveBeenCalledWith("Early fraud warning has no payment intent", expect.stringContaining("issfr_3"));
+    expect(recordWarning).not.toHaveBeenCalled();
+  });
+
+  it("an early fraud warning arriving after its charge already has a dispute resolves it as disputed instead of leaving a refund button", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("shipped"));
+    hasDisputeForCharge.mockResolvedValue(true);
+    const w = { object: "radar.early_fraud_warning", id: "issfr_4", charge: "ch_5", payment_intent: "pi_4", fraud_type: "misc", actionable: true, created: 1790892725 };
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(at("radar.early_fraud_warning.created", w));
+    expect(recordWarning).toHaveBeenCalled();
+    expect(hasDisputeForCharge).toHaveBeenCalledWith("ch_5");
+    expect(resolveWarningsForCharge).toHaveBeenCalledWith("ch_5");
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  // ---------- wholesale: balance (Part 2) ----------
+  it("a wholesale balance → paid with the balance payment intent, then the after-payment steps", async () => {
+    getOrderById.mockResolvedValue(order("balance_due", { channel: "wholesale" }));
+    transitionOrder.mockResolvedValue(true);
+    const { applyPaid } = await import("@/lib/stripe-events");
+    expect(await applyPaid((await getOrderById())!, { id: "cs_b", metadata: { order_id: "o1", payment: "balance" }, payment_intent: "pi_b" } as never)).toBe(true);
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "balance_due", "paid", { balance_payment_intent: "pi_b" });
+    expect(recordPaymentFee).toHaveBeenCalledWith("o1", "balance", "pi_b");
+    expect(afterOrderPaid).toHaveBeenCalledWith("o1");
+  });
+
+  it("a balance paid while the order isn't due alerts the owner; a retried one does nothing", async () => {
+    const { applyPaid } = await import("@/lib/stripe-events");
+    const sess = { id: "cs_b", metadata: { order_id: "o1", payment: "balance" }, payment_intent: "pi_b" } as never;
+    expect(await applyPaid(order("deposit_paid", { channel: "wholesale" }) as never, sess)).toBe(false);
+    expect(alertOwner).toHaveBeenCalledWith("Wholesale payment not handled", expect.stringContaining("deposit_paid"));
+    alertOwner.mockClear();
+    expect(await applyPaid(order("paid", { channel: "wholesale" }) as never, sess)).toBe(false);
+    expect(alertOwner).not.toHaveBeenCalled();
+    expect(transitionOrder).not.toHaveBeenCalled();
+  });
+
+  it("one charge of a paid wholesale order refunded in Stripe alerts instead of refunding the order", async () => {
+    getOrderByPaymentIntent.mockResolvedValue(order("paid", { channel: "wholesale" }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent({ type: "charge.refunded", data: { object: { payment_intent: "pi_d", refunded: true, amount_refunded: 126400 } } } as never);
+    expect(transitionOrder).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledWith("Wholesale payment refunded in Stripe", expect.stringContaining("refund the order from Orders"));
   });
 });

@@ -24,6 +24,8 @@ const QUERIES = {
   epithalon: "epitalon",
   pinealon: "pinealon",
   dsip: "delta sleep-inducing peptide",
+  semax: "semax",
+  selank: "selank",
   "pt-141": "bremelanotide",
   "ghk-cu": "prezatide copper",
   "nad-plus": "nicotinamide adenine dinucleotide",

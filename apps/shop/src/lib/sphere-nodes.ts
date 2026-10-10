@@ -1,9 +1,8 @@
-import { compounds as listedCompounds } from "@/data/catalog";
 import type { Compound } from "@/data/catalog";
 
 // Compounds around the homepage sphere. Only active (listed) SKUs ever
 // render, each linking to its product page: names and classes come from the
-// catalog, and a slug that stops being listed drops off the ring along with
+// live shown catalog (passed in), and a slug that stops being listed drops off the ring along with
 // any pair that uses it. Order matters — index 0 sits at the top of the
 // ring, then clockwise from there.
 export const SPHERE_SLUGS = [
@@ -25,7 +24,7 @@ export const SPHERE_PAIRS: [string, string][] = [
 export type SphereNode = { key: string; name: string; cls: string; href: string };
 export type SpherePair = { a: string; b: string; text: string };
 
-export function sphereNodes(list: Compound[] = listedCompounds): SphereNode[] {
+export function sphereNodes(list: Compound[]): SphereNode[] {
   return SPHERE_SLUGS.flatMap((slug) => {
     const c = list.find((x) => x.slug === slug);
     return c ? [{ key: c.slug, name: c.name, cls: c.chemicalClass, href: `/products/${c.slug}` }] : [];

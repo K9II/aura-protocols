@@ -1,0 +1,38 @@
+# Aura daily check: reads ops.daily_check_summary() through the read-only
+# daily_check login (apps/shop/supabase/daily-check.sql) and emails the owner
+# when something needs attention, plus a Monday all-clear. 14:00 UTC = 7:00 am
+# Phoenix (no daylight saving). The repo is public, so the script logs counts
+# only; details go in the email. Settings are repository secrets.
+name: Daily check
+
+on:
+  schedule:
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: ops/daily-check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run the check
+        working-directory: ops/daily-check
+        env:
+          DAILY_CHECK_DB_URL: ${{ secrets.DAILY_CHECK_DB_URL }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SES_FROM_EMAIL: ${{ secrets.SES_FROM_EMAIL }}
+          DAILY_CHECK_TO: ${{ secrets.DAILY_CHECK_TO }}
+        run: |
+          npm install --no-save --no-audit --no-fund pg@8 @aws-sdk/client-sesv2@3
+          node daily-check.mjs

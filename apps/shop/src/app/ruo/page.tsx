@@ -22,7 +22,7 @@ export default function RuoPage() {
           <p>We don&apos;t provide instructions for use, preparation guidance, or any claim about effects in humans or animals, and we don&apos;t answer questions seeking them. Our affiliate and wholesale partners agree to the same rules.</p>
         ) },
         { id: "who-can-buy", heading: "Who can buy", body: (
-          <p>Buyers must be 21 or older, confirm research use before entering the Site, and make the buyer representations in our <Link href="/terms#eligibility" className="p-link">Terms of Service</Link>. We refuse or cancel orders when there is reason to believe a product is intended for any other purpose.</p>
+          <p>Buyers must be 21 or older, confirm research use when they create an account and again with each order, and make the buyer representations in our <Link href="/terms#eligibility" className="p-link">Terms of Service</Link>. We refuse or cancel orders when there is reason to believe a product is intended for any other purpose.</p>
         ) },
         { id: "responsibility", heading: "Your responsibility", body: (
           <p>Buyers are responsible for handling, storing, and disposing of every product in accordance with all applicable laws and their institution&apos;s policies.</p>

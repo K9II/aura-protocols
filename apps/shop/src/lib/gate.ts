@@ -1,6 +1,5 @@
 import "server-only";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
-import { TERMS_VERSION } from "@/lib/gate-shared";
 
 function secret(): string {
   const s = process.env.GATE_COOKIE_SECRET;
@@ -8,26 +7,29 @@ function secret(): string {
   return s;
 }
 
-function sig(payload: string): string {
-  return createHmac("sha256", secret()).update(payload).digest("base64url");
-}
-
-export function signGateToken(termsVersion: string, attestationId: string): string {
-  // "." separator: cookie values are URL-encoded by Next, "|" would not round-trip.
-  const payload = `${termsVersion}.${attestationId}`;
-  return `${payload}.${sig(payload)}`;
-}
-
-export function verifyGateToken(token: string, currentVersion: string = TERMS_VERSION): boolean {
-  const parts = token.split(".");
-  if (parts.length !== 3) return false;
-  const [version, id, given] = parts;
-  if (version !== currentVersion || !id) return false;
-  const expected = Buffer.from(sig(`${version}.${id}`));
-  const actual = Buffer.from(given);
-  return expected.length === actual.length && timingSafeEqual(expected, actual);
-}
+const sig = (payload: string) => createHmac("sha256", secret()).update(payload).digest("base64url");
 
 export function hashIp(ip: string): string {
   return createHash("sha256").update(`${secret()}:${ip}`).digest("hex");
+}
+
+// Set on a browser that has been told to verify its email (a flagged
+// account): new accounts made from it must verify before browsing too.
+export const DEVICE_FLAG_COOKIE = "aura_dev";
+export const DEVICE_FLAG_MAX_AGE_S = 60 * 60 * 24 * 365;
+
+export function signDeviceFlag(nowMs: number = Date.now()): string {
+  const payload = String(nowMs);
+  return `${payload}.${sig(`dev:${payload}`)}`;
+}
+
+export function verifyDeviceFlag(value: string | undefined): boolean {
+  if (!value) return false;
+  const parts = value.split(".");
+  if (parts.length !== 2) return false;
+  const [payload, given] = parts;
+  if (!payload || !given) return false;
+  const expected = Buffer.from(sig(`dev:${payload}`));
+  const actual = Buffer.from(given);
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
 }

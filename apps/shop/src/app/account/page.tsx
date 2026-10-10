@@ -5,6 +5,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { signOutAction } from "@/app/auth/actions";
 import OrderCard from "@/components/account/OrderCard";
 import AddressForm from "@/components/account/AddressForm";
+import ResendVerify from "@/components/account/ResendVerify";
 
 export const metadata: Metadata = { title: "My account", robots: { index: false, follow: false } };
 
@@ -22,9 +23,9 @@ export default async function AccountPage() {
           <form action={signOutAction} className="flex"><button type="submit" className="s-micro underline bg-transparent border-0 cursor-pointer text-[color:var(--specimen)]">Sign out</button></form>
         </div>
         <h1 className="s-h1 mb-8" style={{ fontSize: 48 }}>My <em>orders.</em></h1>
-        {!customer.emailConfirmed && <p role="alert" className="text-sm text-[color:var(--specimen)] mb-6">Please verify your email address — we sent a link to {customer.email}.</p>}
-        {orders.length === 0 ? <p className="text-[color:var(--ink-soft)]">No orders yet.</p> : orders.map((o) => <OrderCard key={o.id} order={o} />)}
-        <div className="border-t border-[color:var(--line)] pt-6 mt-6" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+        {!customer.emailConfirmed && <p role="alert" className="text-sm text-[color:var(--specimen)] mb-6">Please verify your email address — we sent a link to {customer.email}.<ResendVerify /></p>}
+        {orders.length === 0 ? <p className="text-[color:var(--ink-soft)]">No orders yet.</p> : orders.map((o) => <OrderCard key={o.id} order={o} link />)}
+        <div className="border-t border-[color:var(--line)] pt-6 mt-6" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 32 }}>
           <div><p className="s-micro mb-2">Shipping address</p><AddressForm ship={customer.ship} /></div>
           <div><p className="s-micro mb-2">Agreements on file</p>
             <p className="text-sm leading-relaxed">21+ · Research use only · Dispute policy<br />

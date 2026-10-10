@@ -1,27 +1,34 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import { compounds } from "@/data/catalog";
-import { findCompound, fromPackPriceUsd, isPendingLot, materialTestingRows, relatedCompounds, toPackPriceUsd, vialCap, vialLabel } from "@/lib/catalog";
+import { catalogContent } from "@/data/catalog";
+import { getLiveCatalogOrNull } from "@/lib/catalog-live";
+import { findCompound, fromPackPriceUsd, isPendingLot, madeBy, relatedCompounds, toPackPriceUsd, vialCap, vialLabel } from "@/lib/catalog";
+import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import Vial from "@/components/store/Vial";
-import SpecBoxes from "@/components/store/SpecBoxes";
+import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
+import LotRecord from "@/components/store/LotRecord";
+import ResearchSummary from "@/components/store/ResearchSummary";
+import { currentMs } from "@/lib/clock";
+import { productRecord } from "@/lib/lot-record";
 import BeforeOrdering from "@/components/store/BeforeOrdering";
 import CompoundCard from "@/components/store/CompoundCard";
 import MoleculeViewer from "@/components/store/MoleculeViewer";
 import MoleculeGrid from "@/components/store/MoleculeGrid";
 import { ELEMENT_COLORS, ELEMENT_NAMES, legendElements, structureCaption, structurePanels } from "@/lib/structure";
-import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 const BASE_URL = "https://auraprotocols.com";
 
+// Every content product; hidden ones 404 at render (the live catalog decides).
 export function generateStaticParams() {
-  return compounds.map((c) => ({ slug: c.slug }));
+  return catalogContent.map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const c = findCompound(slug);
+  const c = catalogContent.find((x) => x.slug === slug);
   if (!c) return {};
   const description = c.description
     ?? `${c.name} — ${c.chemicalClass}. Lot-tested research compound with certificate of analysis. For research use only.`;
@@ -36,13 +43,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const c = findCompound(slug);
+  const live = await getLiveCatalogOrNull();
+  if (!live) return <Unavailable />;
+  const c = findCompound(slug, live.shown);
   if (!c) notFound();
-  const lot = c.currentLot;
-  const pending = isPendingLot(lot);
+  const hasCertificate = c.variants.some((v) => !isPendingLot(v.lot) && v.lot.coaFile);
+  const allOut = c.variants.every((v) => v.stock === "out");
+  const anyLow = c.variants.some((v) => v.stock === "low");
+  const placardRows: Array<[string, string | undefined]> = [
+    ["CAS", c.identity.cas],
+    ["Formula", c.identity.formula],
+    ["Mol. wt", c.identity.molecularWeight],
+    ["Form", c.form],
+  ];
   const strengths = c.variants.map((v) => v.strength.replace(/\s/g, " ")).join(" / ");
   const componentNames = (c.components ?? [])
-    .map((s) => findCompound(s)?.name)
+    .map((s) => catalogContent.find((x) => x.slug === s)?.name)
     .filter((n): n is string => Boolean(n));
   const panels = structurePanels(c.slug);
   const blend = panels.length > 1;
@@ -75,33 +91,44 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ["Sequence", c.identity.sequence, true],
     ["Components", componentNames.length ? componentNames.join(" · ") : undefined],
     ["Form", c.form],
+    ["Made by", madeBy(c)],
     ["Storage", c.storage],
   ];
 
   return (
-    <div className="pharmacopoeia">
+    <div className="pharmacopoeia" style={{ "--cls": CLASS_COLOR[c.chemicalClass] } as CSSProperties}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="p-container">
         <section className="s-pdp">
           <div className="s-ghost" aria-hidden>{c.name}</div>
+          {/* Monograph placard (approved 2026-10-10): identity card behind an upright
+              vial on a raised tile; the tile is slightly see-through so the ghost name shows. */}
           <div className="s-media">
-            {!pending && lot.coaFile && <span className="s-coa-tag">◇ COA on file</span>}
-            <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} cap={vialCap(c)} strength={c.variants[0].strength} tilt={-12} width={270} />
+            <div className="s-pdp-tile">
+              {hasCertificate && <span className="s-coa-tag">◇ COA on file</span>}
+              {allOut ? <span className="s-flag s-flag--out s-micro">Out of stock</span> : anyLow ? <span className="s-flag s-micro">Low stock</span> : null}
+              <div className="s-pdp-placard" aria-hidden>
+                <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass)}</span>
+                <span className="s-pdp-placard-n">{vialLabel(c)}</span>
+                <dl>
+                  {placardRows.filter(([, v]) => v).map(([k, v]) => <div key={k} className={k === "Form" ? "s-pdp-form" : k === "Mol. wt" ? "s-pdp-mw" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
+                </dl>
+                <span className="s-placard-r">Research use only · Not for human use</span>
+              </div>
+              <div className="s-pdp-vial">
+                <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} cap={vialCap(c)} rule={CLASS_COLOR[c.chemicalClass]} strength={c.variants[0].strength} tilt={0} />
+              </div>
+            </div>
+            <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} />
           </div>
           <div className="relative">
-            <p className="s-micro text-[color:var(--ink-soft)] mb-3.5">
-              <Link href={`/products?cat=${encodeURIComponent(c.chemicalClass)}`}>{c.chemicalClass}</Link> · {c.vialMl} mL vial · {strengths}
+            <p className="s-micro s-pdp-kick">
+              <Link href={`/products?cat=${encodeURIComponent(c.chemicalClass)}`}><i />{c.chemicalClass}</Link><span>· {c.vialMl} mL vial · {strengths}</span>
             </p>
             <h1 className="s-pdp-h1">{c.name}</h1>
-            <SpecBoxes lot={lot} />
-            {!pending && lot.coaFile ? (
-              <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
-            ) : (
-              <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
-            )}
             <VariantPicker compound={c} />
-            <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders of ${FREE_SHIPPING_THRESHOLD_USD} or more</div>
             <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
+            <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-1.5">All products currently listed on this site are for research purposes only.</p>
             <BeforeOrdering />
           </div>
         </section>
@@ -133,19 +160,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </section>
 
       <div className="p-container">
-        <section className="s-data">
-          <div>
-            <h2 className="s-h2">Material &amp; <em>testing</em></h2>
-            <p>How this material is made and checked. The lot certificate is the authority for the vial you receive.</p>
-          </div>
-          <table>
-            <tbody>
-              {materialTestingRows(c).map((r) => (
-                <tr key={r.label}><td className="s-micro">{r.label}</td><td>{r.value}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        <ResearchSummary productSlug={c.slug} name={c.name} />
 
         <section className="s-data">
           <div>
@@ -155,7 +170,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <a className="p-link text-xs" href={c.identity.source} target="_blank" rel="noopener noreferrer">Identity source ↗</a>
             )}
           </div>
-          <table>
+          <table className="s-panel">
             <tbody>
               {rows.filter(([, v]) => v).map(([k, v, mono]) => (
                 <tr key={k}><td className="s-micro">{k}</td><td className={mono ? "s-mono" : undefined}>{v}</td></tr>
@@ -167,7 +182,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <section className="pt-18 pb-11">
           <h2 className="s-h2 mb-6">Researchers also <em>added</em></h2>
           <div className="s-grid">
-            {relatedCompounds(c, 4).map((r, i) => <CompoundCard key={r.slug} compound={r} index={i} />)}
+            {relatedCompounds(c, 4, live.shown).map((r, i) => <CompoundCard key={r.slug} compound={r} index={i} />)}
           </div>
         </section>
       </div>

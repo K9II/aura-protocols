@@ -48,12 +48,16 @@ export async function getApprovedPartnerByCode(code: string): Promise<PartnerRow
   return (p as PartnerRow | null) ?? null;
 }
 
+// Partner codes share one namespace with discount codes (lib/discounts).
 export async function isCodeTaken(code: string): Promise<boolean> {
   const c = normalizeCode(code);
   const { data } = await db().from("partners").select("id").eq("code", c).maybeSingle();
   if (data) return true;
   const { data: alias } = await db().from("partner_code_aliases").select("code").eq("code", c).maybeSingle();
-  return !!alias;
+  if (alias) return true;
+  const { data: discount, error } = await db().from("discount_codes").select("id").eq("code", c).maybeSingle();
+  if (error) throw new Error(`discount code check failed: ${JSON.stringify(error)}`);
+  return !!discount;
 }
 
 // Issues a random code that no partner uses (current or old). 31^8 ≈ 8.5e11
@@ -120,7 +124,8 @@ export async function setPartnerStatus(id: string, from: PartnerStatus, to: Part
 }
 
 export async function listPartners(status: PartnerStatus): Promise<PartnerRow[]> {
-  const { data } = await db().from("partners").select(WITH_CUSTOMER).eq("status", status).order("created_at", { ascending: false }).limit(200);
+  const { data, error } = await db().from("partners").select(WITH_CUSTOMER).eq("status", status).order("created_at", { ascending: false }).limit(200);
+  if (error) throw new Error(`partners select failed: ${JSON.stringify(error)}`);
   return (data as PartnerRow[] | null) ?? [];
 }
 

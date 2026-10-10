@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk, Newsreader, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -6,7 +6,9 @@ import { CartProvider } from "@/components/store/CartProvider";
 import SiteNav from "@/components/store/SiteNav";
 import SiteFooter from "@/components/store/SiteFooter";
 import CartDrawer from "@/components/store/CartDrawer";
-import EntryGate from "@/components/store/EntryGate";
+import AccountGate from "@/components/store/gate/AccountGate";
+import HideOnAdmin from "@/components/store/HideOnAdmin";
+import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const spaceGrotesk = Space_Grotesk({
@@ -25,6 +27,10 @@ const newsreader = Newsreader({
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jetbrains" });
 
 const BASE_URL = "https://auraprotocols.com";
+
+// Android: when the keyboard opens, shrink the page to the space above it so
+// the account gate's fields stay visible (iOS is handled in AccountGate).
+export const viewport: Viewport = { width: "device-width", initialScale: 1, interactiveWidget: "resizes-content" };
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -60,18 +66,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Live catalog for the cart and footer. Empty while the DB can't be read
+  // (pages show "Unavailable"; the cart keeps stored lines until it's back).
+  const live = await getLiveCatalogOrNull();
+  const shown = live?.shown ?? [];
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable} ${jetbrains.variable}`}>
       <body className="min-h-screen flex flex-col bg-[#EDE9E0]">
-        <CartProvider>
-          <SiteNav />
+        <CartProvider catalog={shown}>
+          <HideOnAdmin><SiteNav /></HideOnAdmin>
           <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <HideOnAdmin><SiteFooter catalog={shown} /></HideOnAdmin>
           <CartDrawer />
-          <EntryGate />
+          <AccountGate />
         </CartProvider>
         <Analytics />
       </body>

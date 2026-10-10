@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { applyPartnerCode } from "@/lib/partners/discounts";
+import { applyCodeDiscount, applyPartnerCode } from "@/lib/partners/discounts";
 import { withCharges, type PricedItem, type PricedOrder } from "@/lib/pricing";
 
 function item(over: Partial<PricedItem>): PricedItem {
   return {
-    compoundSlug: "x", compoundName: "X", variantId: "10mg", strength: "10 mg", packQty: 1, quantity: 1,
+    compoundSlug: "x", compoundName: "X", chemicalClass: "Peptide Fragments", variantId: "10mg", strength: "10 mg", packQty: 1, quantity: 1,
     listUnitCents: 6900, packPct: 0, unitPriceCents: 6900, lineTotalCents: 6900, lotNumber: "AP-0001", ...over,
   };
 }
@@ -50,5 +50,25 @@ describe("applyPartnerCode", () => {
     const twoPack = item({ packQty: 2, listUnitCents: 9800, packPct: 5, unitPriceCents: 9310, lineTotalCents: 9310 });
     const r = applyPartnerCode(order([twoPack]));
     expect(r.lineDiscounts[0]).toEqual({ index: 0, source: "code", savingCents: 490 }); // 9310 − 8820
+  });
+});
+
+describe("applyCodeDiscount", () => {
+  it("is what applyPartnerCode does at 10%", () => {
+    const priced = order([
+      item({ quantity: 2, lineTotalCents: 13800 }),
+      item({ packQty: 3, listUnitCents: 23700, packPct: 10, unitPriceCents: 21330, lineTotalCents: 21330 }),
+    ]);
+    expect(applyCodeDiscount(priced, 10)).toEqual(applyPartnerCode(priced));
+  });
+
+  it("uses the given percentage, still never stacking on a better pack price", () => {
+    const priced = order([
+      item({}),
+      item({ packQty: 10, listUnitCents: 79000, packPct: 20, unitPriceCents: 63200, lineTotalCents: 63200 }),
+    ]);
+    const r = applyCodeDiscount(priced, 15);
+    expect(r.lineDiscounts).toEqual([{ index: 0, source: "code", savingCents: 1035 }, { index: 1, source: "pack", savingCents: 0 }]);
+    expect(r.partnerDiscountCents).toBe(1035);
   });
 });

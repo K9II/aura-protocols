@@ -2,11 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { query, fromQueue, callArgs } from "../helpers/supabase-mock";
 
 let from: ReturnType<typeof fromQueue>;
+const catalogStockChanged = vi.fn();
+vi.mock("@/lib/catalog-live", () => ({ catalogStockChanged }));
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
 
 const ship = { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX" as const, zip: "78701" };
 const priced = {
-  items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", variantId: "5mg", strength: "5 mg", packQty: 1, quantity: 2,
+  items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide Fragments", variantId: "5mg", strength: "5 mg", packQty: 1, quantity: 2,
     listUnitCents: 4900, packPct: 0, unitPriceCents: 4900, lineTotalCents: 9800, lotNumber: "AP-0001" }],
   rejected: [], subtotalCents: 9800, partnerDiscountCents: 0, shippingCents: 1500, insuranceCents: 550, totalBeforeTaxCents: 11850,
 };
@@ -28,12 +30,95 @@ describe("orders", () => {
     expect(callArgs(itemsQ, "insert")?.[0]).toEqual([expect.objectContaining({ order_id: "o1", lot_number: "AP-0001", quantity: 2, line_total_cents: 9800 })]);
   });
 
-  it("countOrdersForOwner tallies each status and all, skipping unpaid checkouts", async () => {
-    const q = query({ data: [{ status: "paid" }, { status: "paid" }, { status: "shipped" }, { status: "cancelled" }] });
+  it("listOrdersForCustomer hides unfinished checkouts and no-charge attempts that were cancelled", async () => {
+    const q = query({ data: [] });
     from = fromQueue({ orders: [q] });
-    const { countOrdersForOwner } = await import("@/lib/orders");
-    expect(await countOrdersForOwner()).toEqual({ paid: 2, processing: 0, shipped: 1, all: 4 });
+    const { listOrdersForCustomer } = await import("@/lib/orders");
+    await listOrdersForCustomer("u1");
     expect(callArgs(q, "neq")).toEqual(["status", "awaiting_payment"]);
+    expect(callArgs(q, "or")).toEqual(["kind.eq.sale,status.neq.cancelled"]);
+  });
+
+  it("records the discount code and its share", async () => {
+    const orderQ = query({ data: { id: "o1", order_number: "AP-1001" } });
+    const itemsQ = query({});
+    from = fromQueue({ orders: [orderQ], order_items: [itemsQ] });
+    const { createPendingOrder } = await import("@/lib/orders");
+    await createPendingOrder({ customerId: "u1", email: "j@lab.org", ship, priced, discountCode: { id: "c1", discountCents: 7900 } });
+    expect(callArgs(orderQ, "insert")?.[0]).toMatchObject({ discount_code_id: "c1", code_discount_cents: 7900 });
+  });
+
+  it("createPendingWholesaleOrder stores the channel, cutoff, deposit/balance, tax and 10-vial kit lines; no partner", async () => {
+    const ins = query({ data: { id: "o1", order_number: "AP-1050" } }), items = query({});
+    from = fromQueue({ orders: [ins], order_items: [items] });
+    const { createPendingWholesaleOrder } = await import("@/lib/orders");
+    const quote = { items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide", variantId: "10mg", strength: "10 mg", packQty: 10, quantity: 2,
+      listUnitCents: 68000, packPct: 25, unitPriceCents: 51000, lineTotalCents: 102000, lotNumber: "" }],
+      rejected: [], kits: 2, tier: { minKits: 5, pct: 20 }, belowMinimum: true, kitsToMinimum: 3,
+      subtotalCents: 102000, shippingCents: 0, insuranceCents: 550,
+      depositCents: 40800, balanceBeforeTaxCents: 61750, totalBeforeTaxCents: 102550 };
+    const r = await createPendingWholesaleOrder({ customerId: "c1", email: "j@lab.org", ship, quote, cutoffOn: "2026-10-19", taxCents: 8000, taxCalculationId: "taxcalc_1", kitBoxCents: 450 });
+    expect(r).toEqual({ id: "o1", orderNumber: "AP-1050" });
+    expect(callArgs(ins, "insert")?.[0]).toMatchObject({
+      channel: "wholesale", status: "awaiting_payment", wholesale_cutoff_on: "2026-10-19", partner_id: null, partner_discount_cents: 0,
+      subtotal_cents: 102000, shipping_cents: 0, insurance_cents: 550, tax_cents: 8000, total_cents: 110550,
+      deposit_cents: 40800, balance_cents: 69750, tax_calculation_id: "taxcalc_1", packaging_cents: 900,
+    });
+    expect(callArgs(items, "insert")?.[0]).toEqual([expect.objectContaining({ pack_qty: 10, quantity: 2, unit_price_cents: 51000, lot_number: "" })]);
+  });
+
+  it("getOrderByPaymentIntent matches the retail, deposit or balance payment", async () => {
+    const q = query({ data: { id: "o1" } });
+    from = fromQueue({ orders: [q] });
+    const { getOrderByPaymentIntent } = await import("@/lib/orders");
+    await getOrderByPaymentIntent("pi_9");
+    expect(callArgs(q, "or")?.[0]).toBe("stripe_payment_intent.eq.pi_9,deposit_payment_intent.eq.pi_9,balance_payment_intent.eq.pi_9");
+  });
+
+  it("getOrderByNumber finds the order by its order_number", async () => {
+    const q = query({ data: { id: "o1", order_number: "AP-1001" } });
+    from = fromQueue({ orders: [q] });
+    const { getOrderByNumber } = await import("@/lib/orders");
+    expect(await getOrderByNumber("AP-1001")).toEqual({ id: "o1", order_number: "AP-1001" });
+    expect(callArgs(q, "eq")).toEqual(["order_number", "AP-1001"]);
+  });
+
+  it("searchOrdersForOwner pages a tab: To ship oldest first, statuses from the tab", async () => {
+    const q = query({ data: [{ id: "o1" }], count: 73 });
+    from = fromQueue({ orders: [q] });
+    const { searchOrdersForOwner } = await import("@/lib/orders");
+    expect(await searchOrdersForOwner({ tab: "to_ship", q: "", page: 2 })).toEqual({ rows: [{ id: "o1" }], total: 73 });
+    expect(callArgs(q, "in")).toEqual(["status", ["paid"]]);
+    expect(q.calls.filter(([m]) => m === "order").map(([, a]) => a)).toEqual([["created_at", { ascending: true }], ["id"]]);
+    expect(callArgs(q, "range")).toEqual([50, 99]);
+  });
+
+  it("searchOrdersForOwner searches every paid-stage order, newest first, ignoring the tab", async () => {
+    const q = query({ data: [], count: 0 });
+    from = fromQueue({ orders: [q] });
+    const { searchOrdersForOwner } = await import("@/lib/orders");
+    await searchOrdersForOwner({ tab: "to_ship", q: "whitfield", page: 1 });
+    expect(callArgs(q, "in")).toEqual(["status", ["processing", "deposit_paid", "balance_due", "paid", "shipped", "cancelled", "refunded"]]);
+    expect(callArgs(q, "or")).toEqual(["order_number.ilike.%whitfield%,email.ilike.%whitfield%,ship_name.ilike.%whitfield%,tracking_number.ilike.%whitfield%"]);
+    expect(q.calls.filter(([m]) => m === "order").map(([, a]) => a)).toEqual([["created_at", { ascending: false }], ["id"]]);
+  });
+
+  it("searchOrdersForOwner throws on a read error", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "down" } })] });
+    const { searchOrdersForOwner } = await import("@/lib/orders");
+    await expect(searchOrdersForOwner({ tab: "all", q: "", page: 1 })).rejects.toThrow(/owner orders search failed/);
+  });
+
+  it("countOrderTabs counts each tab with a head count", async () => {
+    from = fromQueue({ orders: [query({ count: 5 }), query({ count: 1 }), query({ count: 4 }), query({ count: 184 }), query({ count: 9 }), query({ count: 203 })] });
+    const { countOrderTabs } = await import("@/lib/orders");
+    expect(await countOrderTabs()).toEqual({ to_ship: 5, processing: 1, wholesale: 4, shipped: 184, closed: 9, all: 203 });
+  });
+
+  it("countOrderTabs throws on a read error", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "x" } }), query({}), query({}), query({}), query({}), query({})] });
+    const { countOrderTabs } = await import("@/lib/orders");
+    await expect(countOrderTabs()).rejects.toThrow(/order tab count failed/);
   });
 
   it("createPendingOrder removes the order if the items insert fails", async () => {
@@ -75,6 +160,20 @@ describe("orders", () => {
     expect(q.calls.filter(([m]) => m === "eq").map(([, a]) => a)).toEqual([["id", "o1"], ["status", "paid"]]);
   });
 
+  it("cancelling or refunding expires the live catalog (vials went back on the shelf)", async () => {
+    catalogStockChanged.mockReset();
+    from = fromQueue({ orders: [query({ data: [{ id: "o1" }] }), query({ data: [{ id: "o1" }] }), query({ data: [{ id: "o1" }] }), query({ data: [] })] });
+    const { transitionOrder } = await import("@/lib/orders");
+    await transitionOrder("o1", "awaiting_payment", "cancelled");
+    await transitionOrder("o1", "paid", "refunded");
+    expect(catalogStockChanged).toHaveBeenCalledTimes(2);
+    await transitionOrder("o1", "awaiting_payment", "paid");
+    expect(catalogStockChanged).toHaveBeenCalledTimes(2);
+    // A cancel that didn't move anything (already moved elsewhere) changes no stock.
+    await transitionOrder("o1", "awaiting_payment", "cancelled");
+    expect(catalogStockChanged).toHaveBeenCalledTimes(2);
+  });
+
   it("transitionOrder returns false when another process already moved the order", async () => {
     from = fromQueue({ orders: [query({ data: [] })] });
     const { transitionOrder } = await import("@/lib/orders");
@@ -98,6 +197,28 @@ describe("orders", () => {
     await expect(saveShipAddress("u1", ship)).rejects.toThrow();
     await expect(saveStripeCustomerId("u1", "cus_1")).rejects.toThrow();
     await expect(saveStripeCoupon("o1", "co_1")).rejects.toThrow();
+  });
+
+  it("listOrdersForOwner throws on a read error (Today shows Couldn't load, not an empty list)", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "down" } })] });
+    const { listOrdersForOwner } = await import("@/lib/orders");
+    await expect(listOrdersForOwner("paid")).rejects.toThrow(/owner orders select failed/);
+  });
+
+  it("stampWholesaleCancel records the refund details without changing status, only once", async () => {
+    const q = query({ data: [] });
+    from = fromQueue({ orders: [q] });
+    const { stampWholesaleCancel } = await import("@/lib/orders");
+    await stampWholesaleCancel("o1", "re_1");
+    expect(callArgs(q, "update")?.[0]).toEqual({ refund_destination: "card", refund_reason: "customer_cancelled", stripe_refund_id: "re_1" });
+    expect(q.calls.filter(([m]) => m === "eq").map(([, a]) => a)).toEqual([["id", "o1"], ["status", "refunded"]]);
+    expect(callArgs(q, "is")).toEqual(["stripe_refund_id", null]);
+  });
+
+  it("stampWholesaleCancel throws on a write error", async () => {
+    from = fromQueue({ orders: [query({ error: { message: "down" } })] });
+    const { stampWholesaleCancel } = await import("@/lib/orders");
+    await expect(stampWholesaleCancel("o1", "re_1")).rejects.toThrow(/wholesale cancel stamp failed/);
   });
 });
 

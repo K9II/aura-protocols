@@ -1,90 +1,142 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireOwner } from "@/lib/dal";
+import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { getPayoutDetails, listPartners, listW9sAwaitingCheck } from "@/lib/partners/data";
-import { formatRunDate, latestRunSummary, listQueuedPayouts, payoutRunWarning } from "@/lib/partners/ledger";
+import { PAYOUT_PAGE_SIZE, countPayoutHistory, formatRunDate, latestRunSummary, listPayoutHistory, listQueuedPayouts, payoutRunWarning } from "@/lib/partners/ledger";
+import { CASH_MIN_CENTS, CREDIT_MULTIPLIER } from "@/lib/partners/tiers";
+import { shortDate } from "@/lib/discounts/time";
 import { usd } from "@/lib/html";
 import { markPayoutPaidAction, markW9CheckedAction, openW9Action } from "@/app/admin/payouts/actions";
+import { Crumbs, Icon, Kpis, Tabs } from "@/components/admin/ui";
 
 export const metadata: Metadata = { title: "Payouts", robots: { index: false, follow: false } };
 
-const box: React.CSSProperties = { border: "1px solid var(--line)", padding: "16px 18px" };
-const warnBox: React.CSSProperties = { border: "1px solid var(--specimen)", padding: "14px 18px", marginBottom: 24 };
-const th: React.CSSProperties = { textAlign: "left", padding: "0 18px 8px 0" };
-const td: React.CSSProperties = { padding: "13px 18px 13px 0", verticalAlign: "top" };
-const primary: React.CSSProperties = { padding: "8px 14px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: 0 };
-const outline: React.CSSProperties = { padding: "7px 13px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: "1px solid var(--ink)", background: "transparent", color: "var(--ink)" };
-
-function Stat({ label, value, note }: { label: string; value: string; note: string }) {
-  return <div style={box}><p className="s-micro mb-1.5">{label}</p><p className="p-serif text-[28px] leading-none">{value}</p><div className="text-[12.5px] text-[color:var(--ink-soft)] mt-1">{note}</div></div>;
-}
-
-export default async function AdminPayoutsPage() {
-  await requireOwner();
-  const [queued, run, approved, w9s] = await Promise.all([listQueuedPayouts(), latestRunSummary(), listPartners("approved"), listW9sAwaitingCheck()]);
-  const details = await Promise.all(queued.map((p) => getPayoutDetails(p.partner_id)));
+export default async function PayoutsPage({ searchParams }: { searchParams: Promise<{ tab?: string; page?: string }> }) {
+  const staff = await requirePermission("payouts.view");
+  const canSeeMethod = can(staff, "partners.payout_details");
+  const canMarkPaid = can(staff, "payouts.mark_paid");
+  const canOpenW9 = can(staff, "w9.open");
+  const sp = await searchParams;
+  const tab = sp.tab === "history" ? "history" : "send";
+  const pageRaw = Number(sp.page);
+  const page = Number.isFinite(pageRaw) && pageRaw >= 1 ? Math.trunc(pageRaw) : 1;
+  const [queued, run, approved, w9s, history, historyCountOnSend] = await Promise.all([
+    listQueuedPayouts(), latestRunSummary(), listPartners("approved"), listW9sAwaitingCheck(),
+    tab === "history" ? listPayoutHistory(page) : Promise.resolve(null),
+    tab === "send" ? countPayoutHistory() : Promise.resolve(null),
+  ]);
+  const details = tab === "send" && canSeeMethod ? await Promise.all(queued.map((p) => getPayoutDetails(p.partner_id))) : [];
   const cashTotal = queued.reduce((s, p) => s + p.cash_cents, 0);
   const carried = approved.filter((p) => p.cash_carry_cents > 0);
   const warning = payoutRunWarning(run);
+  const historyTotal = tab === "history" ? history!.total : historyCountOnSend!;
+  const lastPage = history ? Math.max(1, Math.ceil(history.total / PAYOUT_PAGE_SIZE)) : 1;
+  const histHref = (n: number) => `/admin/payouts?tab=history${n > 1 ? `&page=${n}` : ""}`;
 
   return (
-    <div className="pharmacopoeia">
-      <div className="p-container py-14">
-        <p className="s-micro text-[color:var(--specimen)] mb-2.5">Owner · {run ? `latest payout run ${formatRunDate(run.runDate)}` : "no payout run yet"}</p>
-        <h1 className="s-h1 mb-6" style={{ fontSize: 48 }}>Payouts <em>to send.</em></h1>
-        {warning && (
-          <div role="alert" style={warnBox}>
-            <p className="s-micro mb-1.5" style={{ color: "var(--specimen)" }}>Payout run needs attention</p>
-            <p className="text-sm" style={{ color: "var(--specimen)" }}>{warning}</p>
-          </div>
-        )}
-        <p className="mb-6 text-[12.5px]"><Link className="p-link" href="/admin/partners">← Partners</Link></p>
-        <div className="s-calc-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
-          <Stat label="Cash to send" value={usd(cashTotal)} note={`${queued.length} partner${queued.length === 1 ? "" : "s"} · send by ACH or Zelle`} />
-          <Stat label="Store credit issued" value={usd(run?.creditCents ?? 0)} note={`${run?.creditPartners ?? 0} partners · added automatically (1.3×)`} />
-          <Stat label="Carried to next run" value={`${carried.length} partner${carried.length === 1 ? "" : "s"}`} note="under $100 or awaiting a W-9 check" />
-        </div>
-        {queued.length === 0 ? <p className="text-[color:var(--ink-soft)] mb-10">No cash payouts waiting.</p> : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead><tr className="s-micro text-[color:var(--ink-soft)]"><th style={th}>Partner</th><th style={th}>Send to</th><th style={{ ...th, textAlign: "right" }}>Amount</th><th /></tr></thead>
-              <tbody>
-                {queued.map((p, i) => {
-                  const d = details[i];
-                  const current = p.partners?.payout_details_hint ?? null;
-                  const changed = !!p.details_hint && p.details_hint !== current;
-                  return (
-                    <tr key={p.id} style={{ borderTop: "1px solid var(--line)" }}>
-                      <td style={td}><span className="p-serif text-[17px]">{p.partners?.code}</span><div className="s-micro text-[color:var(--ink-soft)] mt-1">Run {p.run_date}</div></td>
-                      <td style={td} className="text-sm">{current ?? "No payout method on file"}
-                        {changed && <p role="alert" className="text-[12.5px] mt-1" style={{ color: "var(--specimen)" }}>Changed since this payout was queued (was {p.details_hint}). Confirm with the partner before sending.</p>}
-                        {d && <details className="mt-1"><summary className="underline cursor-pointer text-[color:var(--specimen)]">Show full details</summary>
-                          <p className="mt-1 text-[12.5px]">{d.kind === "ach" ? `Routing ${d.routing} · Account ${d.account} · ${d.bank}` : `Zelle ${d.handle}`}</p></details>}
-                      </td>
-                      <td style={{ ...td, textAlign: "right" }}><span className="p-serif text-[17px]">{usd(p.cash_cents)}</span></td>
-                      <td style={{ padding: "10px 0", textAlign: "right", verticalAlign: "top" }}>
-                        <form action={markPayoutPaidAction} style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                          <input type="hidden" name="payoutId" value={p.id} />
-                          <input name="reference" required placeholder="Reference" aria-label="Payment reference" style={{ width: 150, border: "1px solid var(--ink)", background: "var(--paper)", padding: "8px 10px", font: "13px Georgia,serif" }} />
-                          <button type="submit" className="p-btn-primary" style={primary}>Mark paid</button>
-                        </form>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-3 mb-10">Send the money from your bank or Zelle, then enter its reference and mark it paid. The partner gets an email receipt. Nothing is sent automatically.</p>
-          </div>
-        )}
-        <p className="s-micro mb-3">W-9s waiting for your check</p>
-        {w9s.length === 0 ? <p className="text-[12.5px] text-[color:var(--ink-soft)]">None.</p> : w9s.map((p) => (
-          <div key={p.id} className="s-cart-line" style={{ gridTemplateColumns: "1fr auto", maxWidth: 760 }}>
-            <div><span className="p-serif text-[17px]">{p.code}</span><div className="text-[12.5px] text-[color:var(--ink-soft)] mt-1">Uploaded {p.w9_uploaded_at ? new Date(p.w9_uploaded_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}{p.cash_carry_cents > 0 ? ` · ${usd(p.cash_carry_cents)} cash waiting` : ""}</div></div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <form action={openW9Action}><input type="hidden" name="partnerId" value={p.id} /><button type="submit" style={outline}>Open W-9</button></form>
-              <form action={markW9CheckedAction}><input type="hidden" name="partnerId" value={p.id} /><button type="submit" className="p-btn-primary" style={primary}>Mark checked</button></form>
+    <div className="a-page">
+      <Crumbs items={[{ label: "Payouts" }]} />
+      <div className="a-ph"><div><h1>Payouts</h1><p>{run ? `Latest run ${formatRunDate(run.runDate)}. ` : "No payout run yet. "}Send cash from your bank or Zelle, then mark it paid with the reference — the partner gets a receipt. Store credit is added automatically.</p></div></div>
+      {warning && <div className="a-banner" role="alert"><Icon name="warn" /><span><b>Payout run needs attention.</b> {warning}</span></div>}
+
+      <Kpis items={[
+        { label: "Cash to send", value: usd(cashTotal), sub: `${queued.length} partner${queued.length === 1 ? "" : "s"} · ACH or Zelle` },
+        { label: "Store credit issued", value: usd(run?.creditCents ?? 0), sub: `${run?.creditPartners ?? 0} partner${run?.creditPartners === 1 ? "" : "s"} · latest run · ${CREDIT_MULTIPLIER}× value` },
+        { label: "Carried to next run", value: `${carried.length} partner${carried.length === 1 ? "" : "s"}`, sub: `under ${usd(CASH_MIN_CENTS)} or awaiting a W-9 check` },
+      ]} />
+
+      <div className="a-toolbar"><Tabs items={[
+        { href: "/admin/payouts", label: "To send", n: queued.length, on: tab === "send" },
+        { href: "/admin/payouts?tab=history", label: "History", n: historyTotal, on: tab === "history" },
+      ]} /></div>
+
+      {tab === "send" ? (queued.length === 0 ? <div className="a-empty">No cash payouts waiting.</div> : <>
+        <table className="a-t a-only-desk">
+          <thead><tr><th>Partner</th><th>Send to</th><th className="num">Amount</th><th /></tr></thead>
+          <tbody>{queued.map((p, i) => {
+            const d = details[i];
+            const current = p.partners?.payout_details_hint ?? null;
+            const changed = !!p.details_hint && p.details_hint !== current;
+            return (
+              <tr key={p.id}>
+                <td><Link className="a-ord" href={`/admin/partners/${p.partner_id}`}>{p.partners?.code}</Link><span className="sub">Run {formatRunDate(p.run_date)}</span></td>
+                <td>{canSeeMethod ? <>{current ?? "No payout method on file"}
+                  {changed && <div className="a-err" role="alert">Changed since this payout was queued (was {p.details_hint}). Confirm with the partner first.</div>}
+                  {d && <details style={{ fontSize: 12 }}><summary className="a-ulink">Show full details</summary>
+                    <p style={{ marginTop: 4 }}>{d.kind === "ach" ? `Routing ${d.routing} · Account ${d.account} · ${d.bank}` : `Zelle ${d.handle}`}</p></details>}</> : <span className="muted">Owner only</span>}</td>
+                <td className="num" style={{ font: "400 17px var(--serif)" }}>{usd(p.cash_cents)}</td>
+                <td>{canMarkPaid && <form action={markPayoutPaidAction} className="a-acts">
+                  <input type="hidden" name="payoutId" value={p.id} />
+                  <div className="a-input" style={{ width: 170, height: 28 }}><input name="reference" required minLength={2} maxLength={80} placeholder="Reference" aria-label={`Payment reference for ${p.partners?.code}`} /></div>
+                  <button type="submit" className="a-btn sm primary">Mark paid</button>
+                </form>}</td>
+              </tr>
+            );
+          })}</tbody>
+        </table>
+        <div className="a-plist a-only-phone">{queued.map((p, i) => {
+          const d = details[i];
+          const current = p.partners?.payout_details_hint ?? null;
+          const changed = !!p.details_hint && p.details_hint !== current;
+          return (
+            <div key={p.id} className="a-pord">
+              <span><Link className="a-ord" href={`/admin/partners/${p.partner_id}`}>{p.partners?.code}</Link><span className="sub">Run {formatRunDate(p.run_date)}</span></span>
+              <span className="tot">{usd(p.cash_cents)}</span>
+              {canSeeMethod ? <><span className="nm">{current ?? "No payout method on file"}</span>
+              {changed && <div className="a-err" role="alert">Changed since this payout was queued (was {p.details_hint}). Confirm with the partner first.</div>}
+              {d && <details style={{ fontSize: 12 }}><summary className="a-ulink">Show full details</summary>
+                <p style={{ marginTop: 4 }}>{d.kind === "ach" ? `Routing ${d.routing} · Account ${d.account} · ${d.bank}` : `Zelle ${d.handle}`}</p></details>}</> : <span className="nm muted">Owner only</span>}
+              {canMarkPaid && <form action={markPayoutPaidAction} className="row2">
+                <input type="hidden" name="payoutId" value={p.id} />
+                <div className="a-input" style={{ flex: 1, height: 28 }}><input name="reference" required minLength={2} maxLength={80} placeholder="Reference" aria-label={`Payment reference for ${p.partners?.code}`} /></div>
+                <button type="submit" className="a-btn sm primary">Mark paid</button>
+              </form>}
             </div>
+          );
+        })}</div>
+        <div className="a-tfoot">Nothing is sent automatically</div>
+      </>) : (!history || history.rows.length === 0 ? (
+        <div className="a-empty">{history && history.total > 0
+          ? <>No rows on this page. <Link className="a-ulink" href={histHref(1)}>Back to page 1</Link></>
+          : "No payouts yet."}</div>
+      ) : <>
+        <table className="a-t a-only-desk">
+          <thead><tr><th>Paid</th><th>Partner</th><th className="num">Cash</th><th className="num">Store credit</th><th className="a-only-desk">Method</th><th>Reference</th></tr></thead>
+          <tbody>{history.rows.map((y) => (
+            <tr key={y.id}>
+              <td>{shortDate(y.paid_at ?? `${y.run_date}T12:00:00Z`)}</td>
+              <td><Link className="a-ord" href={`/admin/partners/${y.partner_id}`}>{y.partners?.code}</Link></td>
+              <td className="num">{usd(y.cash_cents)}</td><td className="num">{usd(y.credit_cents)}</td>
+              <td className="a-only-desk">{y.status === "credited" ? "Store credit" : (y.method ?? "").toUpperCase() || "—"}</td>
+              <td className="a-mono">{y.reference ?? <span className="muted">—</span>}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+        <div className="a-plist a-only-phone">{history.rows.map((y) => (
+          <div key={y.id} className="a-pord">
+            <span><Link className="a-ord" href={`/admin/partners/${y.partner_id}`}>{y.partners?.code}</Link></span>
+            <span className="tot">{usd(y.cash_cents)}</span>
+            <span className="nm">{shortDate(y.paid_at ?? `${y.run_date}T12:00:00Z`)}</span>
+            <div className="row2">
+              <span>{y.status === "credited" ? `${usd(y.credit_cents)} credit` : (y.method ?? "").toUpperCase() || "—"}</span>
+              <span className="a-mono">{y.reference ?? <span className="muted">—</span>}</span>
+            </div>
+          </div>
+        ))}</div>
+        <div className="a-tfoot">{`${(page - 1) * PAYOUT_PAGE_SIZE + 1}–${(page - 1) * PAYOUT_PAGE_SIZE + history.rows.length} of ${history.total}`}
+          <div className="r">{page > 1 && <Link className="a-btn sm" href={histHref(page - 1)}>Previous</Link>}{page < lastPage && <Link className="a-btn sm" href={histHref(page + 1)}>Next</Link>}</div></div>
+      </>)}
+
+      <div className="a-card" style={{ marginTop: 22 }}>
+        <div className="a-card-h"><h3>W-9s waiting for your check</h3><span className="sub">cash is carried until checked</span></div>
+        {w9s.length === 0 ? <div className="a-card-b muted">None.</div> : w9s.map((p) => (
+          <div key={p.id} className="a-trow" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
+            <div><Link className="a-ord" href={`/admin/partners/${p.id}`}>{p.code}</Link><div className="t2">Uploaded {p.w9_uploaded_at ? shortDate(p.w9_uploaded_at) : "—"}{p.cash_carry_cents > 0 ? ` · ${usd(p.cash_carry_cents)} cash waiting` : ""}</div></div>
+            {canOpenW9 && <div className="a-acts">
+              <form action={openW9Action}><input type="hidden" name="partnerId" value={p.id} /><button type="submit" className="a-btn sm">Open W-9</button></form>
+              <form action={markW9CheckedAction}><input type="hidden" name="partnerId" value={p.id} /><button type="submit" className="a-btn sm primary">Mark checked</button></form>
+            </div>}
           </div>
         ))}
       </div>

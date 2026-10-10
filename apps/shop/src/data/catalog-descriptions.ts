@@ -61,6 +61,14 @@ export const DESCRIPTIONS: Record<string, Description> = {
     text: `Pinealon is a synthetic tripeptide, Glu-Asp-Arg. ${SUPPLIED}`,
     source: PUBCHEM(10273502),
   },
+  "semax": {
+    text: `Semax is a synthetic heptapeptide, Met-Glu-His-Phe-Pro-Gly-Pro: residues 4–7 of adrenocorticotropic hormone (ACTH) with a C-terminal Pro-Gly-Pro extension. ${SUPPLIED}`,
+    source: PUBCHEM(9811102),
+  },
+  "selank": {
+    text: `Selank is a synthetic heptapeptide, Thr-Lys-Pro-Arg-Pro-Gly-Pro. ${SUPPLIED}`,
+    source: PUBCHEM(11765600),
+  },
   "dsip": {
     text: `DSIP (delta sleep-inducing peptide) is a nonapeptide, Trp-Ala-Gly-Gly-Asp-Ala-Ser-Gly-Glu. ${SUPPLIED}`,
     source: PUBCHEM(68816),

@@ -132,10 +132,12 @@ alter table store_credit_ledger enable row level security;
 
 -- Re-runnable widen for a table already created before 'order_cancel'
 -- existed (the inline check above only applies on first create).
+-- superseded by refunds.sql
 alter table store_credit_ledger drop constraint if exists store_credit_ledger_reason_check;
 alter table store_credit_ledger add constraint store_credit_ledger_reason_check
   check (reason in ('payout','order_spend','order_refund','owner_adjust','order_cancel'));
 
+-- superseded by refunds.sql
 drop index if exists store_credit_ledger_order_once;
 create unique index store_credit_ledger_order_once on store_credit_ledger (reason, ref_id)
   where reason in ('order_spend','order_refund','payout','order_cancel');

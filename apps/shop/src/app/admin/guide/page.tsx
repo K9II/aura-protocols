@@ -1,0 +1,50 @@
+import type { Metadata } from "next";
+import { requireStaff } from "@/lib/dal";
+import { getDiscountCap } from "@/lib/discounts/data";
+import GuideNav from "@/components/admin/guide/GuideNav";
+import StartHere from "@/components/admin/guide/StartHere";
+import Today from "@/components/admin/guide/Today";
+import Discounts from "@/components/admin/guide/Discounts";
+import Orders from "@/components/admin/guide/Orders";
+import Wholesale from "@/components/admin/guide/Wholesale";
+import Customers from "@/components/admin/guide/Customers";
+import Disputes from "@/components/admin/guide/Disputes";
+import Activity from "@/components/admin/guide/Activity";
+import Catalog from "@/components/admin/guide/Catalog";
+import Email from "@/components/admin/guide/Email";
+import Inquiries from "@/components/admin/guide/Inquiries";
+import Partners from "@/components/admin/guide/Partners";
+import Payouts from "@/components/admin/guide/Payouts";
+import Team from "@/components/admin/guide/Team";
+
+export const metadata: Metadata = { title: "Guide", robots: { index: false, follow: false } };
+
+// The owner's manual for the command center (spec 2026-10-04-admin-guide-design.md).
+// Every module ships with its chapter (components/admin/guide/chapters.ts).
+export default async function AdminGuidePage() {
+  await requireStaff();
+  const capPct = await getDiscountCap();
+  return (
+    <div className="a-guide">
+      <GuideNav />
+      <article>
+        <div className="a-ph" style={{ marginBottom: 10 }}><div><h1>Guide</h1></div></div>
+        <p className="a-g-intro">How the command center works, written for anyone running the store. Each page in the menu has a chapter here, and its <span className="a-ui">How this works</span> link opens it.</p>
+        <StartHere />
+        <Today />
+        <Discounts capPct={capPct} />
+        <Orders />
+        <Wholesale />
+        <Customers />
+        <Disputes />
+        <Catalog />
+        <Email />
+        <Inquiries />
+        <Partners />
+        <Payouts />
+        <Activity />
+        <Team />
+      </article>
+    </div>
+  );
+}

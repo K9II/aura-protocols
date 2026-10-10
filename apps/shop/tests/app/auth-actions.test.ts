@@ -1,13 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { query, fromQueue, callArgs } from "../helpers/supabase-mock";
 
-const auth = { signUp: vi.fn(), signInWithPassword: vi.fn(), signOut: vi.fn(), resetPasswordForEmail: vi.fn(), updateUser: vi.fn() };
-const deleteUser = vi.fn();
-let from: ReturnType<typeof fromQueue>;
+const auth = { signInWithPassword: vi.fn(), signOut: vi.fn(), resetPasswordForEmail: vi.fn(), updateUser: vi.fn() };
+const createAccount = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: async () => ({ auth }) }));
-vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t), auth: { admin: { deleteUser } } }) }));
-vi.mock("@/lib/gate", () => ({ hashIp: (ip: string) => `h:${ip}` }));
-vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-forwarded-for": "1.2.3.4", "user-agent": "UA" }) }));
+vi.mock("@/lib/account/create", () => ({ createAccount }));
+vi.mock("@/lib/gate", () => ({ hashIp: (ip: string) => `h:${ip}`, DEVICE_FLAG_COOKIE: "aura_dev", verifyDeviceFlag: (v?: string) => v === "flag" }));
+vi.mock("@/lib/partners/ref-cookie", () => ({ REF_COOKIE: "aura_ref", readRef: () => null }));
+let cookieJar: Record<string, string> = {};
+const cookieDelete = vi.fn();
+vi.mock("next/headers", () => ({
+  headers: async () => new Headers({ "x-forwarded-for": "1.2.3.4", "user-agent": "UA" }),
+  cookies: async () => ({ get: (n: string) => (n in cookieJar ? { value: cookieJar[n] } : undefined), delete: cookieDelete }),
+}));
 vi.mock("next/navigation", () => ({ redirect: (u: string) => { throw new Error(`REDIRECT:${u}`); } }));
 
 function fd(values: Record<string, string>) {
@@ -15,70 +19,79 @@ function fd(values: Record<string, string>) {
   for (const [k, v] of Object.entries(values)) f.set(k, v);
   return f;
 }
-const signup = { fullName: "Jane Rivera", email: "Jane@Lab.org", password: "correct horse battery", organization: "", age21: "on", ruo: "on", dispute: "on", next: "/checkout" };
+const signup = { fullName: "Jane Rivera", email: "Jane@Lab.org", password: "correct horse battery", organization: "", agree: "on", next: "/checkout" };
 
 describe("auth actions", () => {
-  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); deleteUser.mockReset(); });
+  beforeEach(() => { vi.resetModules(); for (const f of Object.values(auth)) f.mockReset(); createAccount.mockReset(); cookieDelete.mockReset(); cookieJar = {}; });
 
-  it("sign-up requires all three agreements", async () => {
+  it("sign-up requires the combined agreement", async () => {
     const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd({ ...signup, ruo: "" }));
-    expect(r?.error).toMatch(/three/i);
-    expect(auth.signUp).not.toHaveBeenCalled();
+    expect((await signUpAction(undefined, fd({ ...signup, agree: "" })))?.error).toMatch(/agree/i);
+    expect(createAccount).not.toHaveBeenCalled();
   });
 
-  it("sign-up creates the auth user, the customer row and the agreements record", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    const customersQ = query({}); const agreementsQ = query({});
-    from = fromQueue({ customers: [customersQ], account_agreements: [agreementsQ] });
+  it("sign-up passes the form, IP, user agent and partner ref to createAccount, with marketing on by default", async () => {
+    createAccount.mockResolvedValue({ ok: true, customerId: "u1", verifyRequired: false });
     const { signUpAction } = await import("@/app/auth/actions");
     const r = await signUpAction(undefined, fd(signup));
-    expect(r).toEqual({ ok: true, message: expect.stringMatching(/verify/i) });
-    expect(auth.signUp).toHaveBeenCalledWith(expect.objectContaining({ email: "jane@lab.org", password: "correct horse battery" }));
-    expect(callArgs(customersQ, "insert")?.[0]).toEqual({ id: "u1", full_name: "Jane Rivera", organization: null });
-    expect(callArgs(agreementsQ, "insert")?.[0]).toMatchObject({ customer_id: "u1", age_21: true, ruo: true, dispute_policy: true, ip_hash: "h:1.2.3.4", user_agent: "UA" });
+    expect(r).toEqual({ ok: true, message: expect.stringMatching(/confirm/i) });
+    expect(createAccount).toHaveBeenCalledWith({ fullName: "Jane Rivera", email: "jane@lab.org", password: "correct horse battery", organization: null, optIn: true, ip: "1.2.3.4", userAgent: "UA", deviceFlagged: false, partnerRef: null });
   });
 
-  it("sign-up removes the auth user if the records can't be saved (no half-created accounts)", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    from = fromQueue({ customers: [query({ error: { message: "down" } })] });
-    vi.spyOn(console, "error").mockImplementation(() => {});
+  it("sign-up from a flagged device tells createAccount so", async () => {
+    cookieJar = { aura_dev: "flag" };
+    createAccount.mockResolvedValue({ ok: true, customerId: "u1", verifyRequired: true });
     const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd(signup));
-    expect(r?.error).toBeTruthy();
-    expect(deleteUser).toHaveBeenCalledWith("u1");
+    await signUpAction(undefined, fd(signup));
+    expect(createAccount).toHaveBeenCalledWith(expect.objectContaining({ deviceFlagged: true }));
   });
 
-  it("sign-up for an already-verified email says so (Supabase returns a user with no identities)", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "fake", identities: [] } }, error: null });
-    from = fromQueue({});
+  it("sign-up shows createAccount's error", async () => {
+    createAccount.mockResolvedValue({ ok: false, error: "Please use an email address you can receive mail at." });
     const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd(signup));
-    expect(r?.error).toMatch(/already exists/i);
-    expect(deleteUser).not.toHaveBeenCalled();
-  });
-
-  it("a repeat sign-up of an unverified email never deletes that existing account", async () => {
-    auth.signUp.mockResolvedValue({ data: { user: { id: "u1", identities: [{ id: "i1" }] } }, error: null });
-    from = fromQueue({ customers: [query({ error: { code: "23505", message: "duplicate key" } })] });
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    const { signUpAction } = await import("@/app/auth/actions");
-    const r = await signUpAction(undefined, fd(signup));
-    expect(deleteUser).not.toHaveBeenCalled();
-    expect(r).toEqual({ ok: true, message: expect.stringMatching(/verify/i) });
+    expect((await signUpAction(undefined, fd(signup)))?.error).toBe("Please use an email address you can receive mail at.");
   });
 
   it("sign-in redirects to a safe next path, or reports bad credentials", async () => {
     auth.signInWithPassword.mockResolvedValueOnce({ error: { message: "Invalid login credentials" } });
     const { signInAction } = await import("@/app/auth/actions");
     expect((await signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "/checkout" })))?.error).toMatch(/email or password/i);
+    expect(cookieDelete).not.toHaveBeenCalled();
     auth.signInWithPassword.mockResolvedValueOnce({ error: null });
     await expect(signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "//evil" }))).rejects.toThrow("REDIRECT:/account");
+  });
+
+  it("a blocked (banned) account is told it's closed", async () => {
+    auth.signInWithPassword.mockResolvedValueOnce({ error: { code: "user_banned", message: "User is banned" } });
+    const { signInAction } = await import("@/app/auth/actions");
+    expect((await signInAction(undefined, fd({ email: "x@y.co", password: "pw", next: "/account" })))?.error).toMatch(/This account is closed/);
+  });
+
+  it("sign-in clears a leftover session-only marker on success", async () => {
+    auth.signInWithPassword.mockResolvedValueOnce({ error: null });
+    const { signInAction } = await import("@/app/auth/actions");
+    await expect(signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "/account" }))).rejects.toThrow("REDIRECT:/account");
+    expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
   });
 
   it("password reset never reveals whether an account exists", async () => {
     auth.resetPasswordForEmail.mockResolvedValue({ error: { message: "User not found" } });
     const { requestPasswordResetAction } = await import("@/app/auth/actions");
     expect(await requestPasswordResetAction(undefined, fd({ email: "nobody@lab.org" }))).toEqual({ ok: true, message: expect.stringMatching(/if an account exists/i) });
+  });
+
+  it("sign-out clears the session-only marker before redirecting", async () => {
+    auth.signOut.mockResolvedValue({ error: null });
+    const { signOutAction } = await import("@/app/auth/actions");
+    await expect(signOutAction()).rejects.toThrow("REDIRECT:/");
+    expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
+  });
+
+  it("\"Not you?\" signs out and goes back to sign-in", async () => {
+    auth.signOut.mockResolvedValue({ error: null });
+    const { signOutToSignInAction } = await import("@/app/auth/actions");
+    await expect(signOutToSignInAction()).rejects.toThrow("REDIRECT:/sign-in");
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(cookieDelete).toHaveBeenCalledWith("aura_session_only");
   });
 });

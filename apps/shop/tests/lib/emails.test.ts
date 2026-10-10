@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, trackingUrl } from "@/lib/emails";
+import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl, orderRefundedEmail, orderRefundedAfterShipEmail, noChargeEmail } from "@/lib/emails";
 import type { OrderRow } from "@/lib/orders";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 const order = {
   order_number: "AP-1042", email: "j@lab.org", ship_name: "Jane <b>", ship_line1: "1 A St", ship_line2: null,
@@ -45,5 +46,147 @@ describe("emails", () => {
     for (const { html } of [orderConfirmationEmail(order), shippedEmail(order), ownerNewOrderEmail(order)]) {
       expect(findViolations(html.replace(/<[^>]+>/g, " "))).toEqual([]);
     }
+  });
+
+  it("labels a new-account discount in the order email", () => {
+    const html = orderConfirmationEmail({ ...order, partner_discount_cents: 735, new_account_discount: true } as OrderRow).html;
+    expect(html).toContain(`New-account ${OFFER_PCT_TEXT}`);
+  });
+
+  it("verify email links to the token URL and passes the scan", async () => {
+    const { verifyEmail } = await import("@/lib/emails");
+    const { findViolations, visibleText } = await import("../../scripts/compliance-scan.mjs");
+    const m = verifyEmail("https://auraprotocols.com/auth/verify?token=abc");
+    expect(m.subject).toBe("Confirm your email");
+    expect(m.html).toContain("https://auraprotocols.com/auth/verify?token=abc");
+    expect(findViolations(`${m.subject} ${visibleText(m.html)}`)).toEqual([]);
+  });
+
+  it("cancelled-and-refunded email: the card amount, any store credit back, compliance-clean", () => {
+    const { subject, html } = orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 2000 } as OrderRow);
+    expect(subject).toBe("Order AP-1042 was cancelled and refunded");
+    expect(html).toContain("$164.50 back to your original payment method and $20.00 back to your store credit");
+    expect(orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 0 } as OrderRow).html).not.toContain("store credit");
+    expect(findViolations(html)).toEqual([]);
+    const creditOnly = orderRefundedEmail({ ...order, total_cents: 18450, store_credit_cents: 18450 } as OrderRow).html;
+    expect(creditOnly).toContain("refunded in full: $184.50 back to your store credit.");
+    expect(creditOnly).not.toContain("original payment method");
+    expect(creditOnly).not.toContain("Card refunds");
+  });
+
+  it("refunded-after-shipping email: store credit or card, never 'cancelled', compliance-clean", () => {
+    const o = { ...order, order_number: "AP-1047" } as OrderRow;
+    const credit = orderRefundedAfterShipEmail(o, { cardCents: 0, creditBackCents: 0, cardToCreditCents: 26800, totalCents: 26800 });
+    expect(credit.subject).toBe("Order AP-1047 was refunded");
+    expect(credit.html).toContain("$268.00");
+    expect(credit.html).toContain("store credit");
+    expect(credit.html).not.toContain("cancelled");
+    expect(findViolations(`${credit.subject} ${credit.html}`)).toEqual([]);
+    const card = orderRefundedAfterShipEmail(o, { cardCents: 22800, creditBackCents: 4000, cardToCreditCents: 0, totalCents: 26800 });
+    expect(card.html).toContain("$228.00 back to your original payment method");
+    expect(card.html).toContain("5–10 business days");
+    expect(card.html).toContain("$40.00 to your store credit");
+    expect(findViolations(card.html)).toEqual([]);
+  });
+});
+
+describe("noChargeEmail", () => {
+  const nc = {
+    ...order, order_number: "AP-1061", kind: "no_charge", subtotal_cents: 0, total_cents: 0, tax_cents: 0, insurance_cents: 0,
+    order_items: [
+      { compound_name: "BPC-157", strength: "10 mg", pack_qty: 1, quantity: 2, line_total_cents: 0, lot_number: "AP-0001" },
+      { compound_name: "MOTS-c", strength: "40 mg", pack_qty: 1, quantity: 1, line_total_cents: 0, lot_number: "AP-0002" },
+    ],
+  } as unknown as OrderRow;
+
+  it("lists the items and the ship-to block, with no prices, compliance-clean", () => {
+    const { subject, html } = noChargeEmail(nc);
+    expect(subject).toBe("Order AP-1061 is on its way soon");
+    expect(html).toContain("BPC-157 · 10 mg × 2");
+    expect(html).toContain("MOTS-c · 40 mg × 1");
+    expect(html).toContain("Ship to:");
+    expect(html).toContain("Jane &lt;b&gt;");
+    expect(html).not.toContain("$");
+    expect(findViolations(`${subject} ${html}`)).toEqual([]);
+  });
+});
+
+describe("wholesale emails", () => {
+  const ws = { ...order, channel: "wholesale", order_number: "AP-1050", deposit_cents: 60600, balance_cents: 99450, tax_cents: 8000,
+    wholesale_cutoff_on: "2026-10-19", order_items: [{ compound_name: "BPC-157", strength: "10 mg", pack_qty: 10, quantity: 2, line_total_cents: 102000 }] } as never;
+
+  it("wholesale deposit email: kits, deposit paid, balance, dates, cancel note", async () => {
+    const { wholesaleDepositEmail } = await import("@/lib/emails");
+    const m = wholesaleDepositEmail(ws, { testedAbout: "2026-11-11", shipsAbout: "2026-11-16" });
+    expect(m.subject).toBe("Order AP-1050 — deposit received");
+    expect(m.html).toContain("BPC-157");
+    expect(m.html).toContain("2 kits");
+    expect(m.html).toContain("$606.00");
+    expect(m.html).toContain("$994.50");
+    expect(m.html).toMatch(/refundable until/i);
+  });
+
+  it("wholesale deposit email shows the APro designation with the scientific name", async () => {
+    const { wholesaleDepositEmail } = await import("@/lib/emails");
+    const reta = { ...(ws as Record<string, unknown>), order_items: [
+      { compound_slug: "retatrutide", compound_name: "Retatrutide", strength: "10 mg", pack_qty: 10, quantity: 5, line_total_cents: 500000 },
+      { compound_slug: "bpc-157", compound_name: "BPC-157", strength: "10 mg", pack_qty: 10, quantity: 5, line_total_cents: 272000 },
+    ] } as never;
+    const m = wholesaleDepositEmail(reta, { testedAbout: "2026-11-11", shipsAbout: "2026-11-16" });
+    expect(m.html).toContain("APro-G3RT (Retatrutide) · 10 mg");
+    expect(m.html).toContain("BPC-157 · 10 mg");
+    expect(m.html).not.toMatch(/lot test ·/i);
+    expect(findViolations(`${m.subject} ${m.html}`)).toEqual([]);
+  });
+
+  it("balance due: amount, due date, link to the order page", async () => {
+    const { wholesaleBalanceDueEmail } = await import("@/lib/emails");
+    const m = wholesaleBalanceDueEmail(ws, { dueOn: "2026-11-19", siteUrl: "https://auraprotocols.com" });
+    expect(m.subject).toBe("Order AP-1050 — your kits passed testing");
+    expect(m.html).toContain("$994.50");
+    expect(m.html).toContain("Nov 19");
+    expect(m.html).toContain("https://auraprotocols.com/order/AP-1050");
+    expect(findViolations(`${m.subject} ${m.html}`)).toEqual([]);
+  });
+  it("reminder, lot failed, forfeit and balance received", async () => {
+    const e = await import("@/lib/emails");
+    expect(e.wholesaleBalanceReminderEmail(ws, { dueOn: "2026-11-19", siteUrl: "https://x" }).subject).toBe("Order AP-1050 — balance due Nov 19");
+    const f = e.wholesaleLotFailedEmail(ws, { strengths: ["APro-G3RT (Retatrutide) 10 mg"], newShipsAbout: "2026-12-14", siteUrl: "https://x" });
+    expect(f.html).toContain("APro-G3RT (Retatrutide) 10 mg");
+    expect(f.html).toContain("Dec 14");
+    expect(f.html).toMatch(/cancel.*full refund/i);
+    expect(e.wholesaleForfeitEmail(ws).subject).toBe("Order AP-1050 cancelled — balance not received");
+    expect(e.wholesaleBalanceReceivedEmail(ws, { shipsAbout: "2026-11-16" }).subject).toBe("Order AP-1050 — balance received");
+    for (const m of [f, e.wholesaleForfeitEmail(ws)]) expect(findViolations(`${m.subject} ${m.html}`)).toEqual([]);
+  });
+  it("wholesale cancelled email names the refunded deposit", async () => {
+    const { wholesaleCancelledEmail } = await import("@/lib/emails");
+    const m = wholesaleCancelledEmail(ws);
+    expect(m.subject).toBe("Order AP-1050 cancelled — deposit refunded");
+    expect(m.html).toContain("$606.00");
+  });
+
+  it("wholesale deposit email with no run cutoff yet drops the dates sentence and uses generic refundable copy", async () => {
+    const { wholesaleDepositEmail } = await import("@/lib/emails");
+    const noCutoff = { ...(ws as Record<string, unknown>), wholesale_cutoff_on: null } as never;
+    const m = wholesaleDepositEmail(noCutoff, null);
+    expect(m.html).not.toContain("Order-by date");
+    expect(m.html).toContain("Your deposit is refundable until the order-by date — we'll confirm it by email.");
+    expect(m.html).not.toMatch(/  /);
+  });
+});
+
+describe("storeCreditAddedEmail", () => {
+  it("states amount and balance, tells them to tick Apply store credit, and escapes the message", () => {
+    const m = storeCreditAddedEmail(5_000, 17_000, "Thanks <b>so</b> much", "https://auraprotocols.com");
+    expect(m.subject).toBe("$50.00 store credit added to your account");
+    expect(m.html).toContain("$170.00");
+    expect(m.html).toContain("Apply store credit");
+    expect(m.html).toContain("Thanks &lt;b&gt;so&lt;/b&gt; much");
+    expect(m.html).toContain('href="https://auraprotocols.com/account"');
+    expect(findViolations(m.html.replace(/<[^>]+>/g, " "))).toEqual([]);
+  });
+  it("leaves the message out when there isn't one", () => {
+    expect(storeCreditAddedEmail(5_000, 5_000, null, "https://x.test").html).not.toContain("border-left");
   });
 });

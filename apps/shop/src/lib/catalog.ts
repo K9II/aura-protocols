@@ -1,16 +1,18 @@
 // RELATIVE IMPORTS ONLY (reachable from next.config.ts).
-import { CHEMICAL_CLASSES, compounds as listedCompounds } from "../data/catalog";
+import { CHEMICAL_CLASSES, catalogContent } from "../data/catalog";
 import type { ChemicalClass, Compound, Lot, PendingLot } from "../data/catalog";
 
-export function findCompound(slug: string, list: Compound[] = listedCompounds): Compound | undefined {
+// The catalog is always a parameter: storefront callers pass the live
+// catalog (lib/catalog-live.ts); there are no code prices to fall back to.
+export function findCompound(slug: string, list: Compound[]): Compound | undefined {
   return list.find((c) => c.slug === slug);
 }
 
-export function compoundsInClass(cls: ChemicalClass, list: Compound[] = listedCompounds): Compound[] {
+export function compoundsInClass(cls: ChemicalClass, list: Compound[]): Compound[] {
   return list.filter((c) => c.chemicalClass === cls);
 }
 
-export function relatedCompounds(c: Compound, count = 4, list: Compound[] = listedCompounds): Compound[] {
+export function relatedCompounds(c: Compound, count: number, list: Compound[]): Compound[] {
   const others = list.filter((o) => o.slug !== c.slug);
   const same = others.filter((o) => o.chemicalClass === c.chemicalClass);
   const rest = others.filter((o) => o.chemicalClass !== c.chemicalClass);
@@ -46,13 +48,23 @@ export function strengthMg(strength: string): number {
   return m[2].toLowerCase() === "mcg" ? amount / 1000 : amount;
 }
 
+// The unit a strength is priced per: mass strengths per mg (mcg ÷ 1000),
+// IU strengths per IU. Every unit the admin can store (mg, mcg, IU) reads;
+// anything else throws so a typo can never print a wrong unit price.
+export type PriceUnit = "mg" | "IU";
+export function strengthInPriceUnit(strength: string): { amount: number; unit: PriceUnit } {
+  const iu = strength.match(/^\s*([\d.]+)\s*IU\s*$/i);
+  if (iu) return { amount: parseFloat(iu[1]), unit: "IU" };
+  return { amount: strengthMg(strength), unit: "mg" };
+}
+
 export type PackOption = {
   qty: number;          // vials in the pack
   pct: number;          // pack discount
   packUsd: number;      // what the pack costs (same math as the cart line)
   listUsd: number;      // before the pack discount
   perVialUsd: number;
-  perMgUsd: number;
+  perMgUsd: number;     // per mg — or per IU for an IU strength (strengthInPriceUnit)
   totalLabel: string;   // material in the pack, in the vial's unit: "20 mg", "500 mcg"
 };
 
@@ -61,7 +73,7 @@ export function packOptions(c: Compound, variantId: string): PackOption[] {
   const v = c.variants.find((x) => x.id === variantId);
   if (!v) return [];
   const [, amount, unit] = v.strength.match(/([\d.]+)\s*(\w+)/)!;
-  const mg = strengthMg(v.strength);
+  const { amount: per } = strengthInPriceUnit(v.strength);
   return c.packDiscounts.map(({ qty, pct }) => {
     const packUsd = round2(v.priceUsd * qty * (1 - pct / 100));
     return {
@@ -70,7 +82,7 @@ export function packOptions(c: Compound, variantId: string): PackOption[] {
       packUsd,
       listUsd: round2(v.priceUsd * qty),
       perVialUsd: perVialUsd(v.priceUsd, qty, c),
-      perMgUsd: round2(packUsd / (mg * qty)),
+      perMgUsd: round2(packUsd / (per * qty)),
       totalLabel: `${round2(parseFloat(amount) * qty)} ${unit}`,
     };
   });
@@ -80,64 +92,57 @@ export function isPendingLot(lot: Lot | PendingLot): lot is PendingLot {
   return "pending" in lot;
 }
 
-export function findLot(
-  lotNo: string,
-  list: Compound[] = listedCompounds,
-): { compound: Compound; lot: Lot } | undefined {
-  const needle = lotNo.trim().toUpperCase();
-  for (const compound of list) {
-    const lot = compound.currentLot;
-    if (!isPendingLot(lot) && lot.lot.toUpperCase() === needle) return { compound, lot };
-  }
-  return undefined;
+// APro designation of a compound (catalog content), or null. Shown with the
+// scientific name, never instead of it: "APro-G3RT (Retatrutide)".
+export function designationFor(slug: string): string | null {
+  return catalogContent.find((c) => c.slug === slug)?.designation ?? null;
+}
+
+export function compoundTitle(c: { slug: string; name: string }): string {
+  const d = designationFor(c.slug);
+  return d ? `${d} (${c.name})` : c.name;
 }
 
 // Vial labels fit ~11 characters at the smallest name size (see Vial.tsx).
 // Parenthetical synonyms drop ("PT-141 (Bremelanotide)" → "PT-141"); long
 // blends show their first component plus "+".
-export function vialLabel(c: Compound): string {
+export function vialLabel(c: { name: string }): string {
   const name = c.name.replace(/\s*\([^)]*\)\s*$/, "");
   if (name.length <= 11 || !name.includes(" / ")) return name;
   return `${name.split(" / ")[0]} +`;
 }
 
-// Cap colors rotate through the listed catalog for variety; a compound keeps
-// the same cap on its card and its product page.
+// Cap colors rotate through the content catalog for variety; a compound keeps
+// the same cap on its card and its product page, whatever is shown or hidden.
 export type VialCap = "red" | "black" | "white";
 const CAP_ROTATION: VialCap[] = ["red", "black", "white"];
 
-export function vialCap(c: Compound): VialCap {
-  const i = listedCompounds.findIndex((o) => o.slug === c.slug);
+export function vialCap(c: { slug: string }): VialCap {
+  const i = catalogContent.findIndex((o) => o.slug === c.slug);
   return i < 0 ? "red" : CAP_ROTATION[i % CAP_ROTATION.length];
 }
 
-export function classCounts(list: Compound[] = listedCompounds): Array<{ cls: ChemicalClass; count: number }> {
+export function classCounts(list: Compound[]): Array<{ cls: ChemicalClass; count: number }> {
   return CHEMICAL_CLASSES.map((cls) => ({ cls, count: list.filter((c) => c.chemicalClass === cls).length }))
     .filter((x) => x.count > 0);
 }
 
-// Material & testing (spec §4). PLACEHOLDER until sourcing confirms the
-// supplier's process and our lab's panel — the release check fails while true.
-export const MATERIAL_TESTING_PLACEHOLDER = true;
+// "Made by" row in Compound data (the Material & testing section was removed
+// 2026-10-10; testing is shown by the lot boxes, certificate and trust row).
+// PLACEHOLDER until sourcing confirms each supplier's process — the release
+// check fails while true.
+export const MADE_BY_PLACEHOLDER = true;
 
-export type MaterialRow = { label: string; value: string };
-
-const NON_PEPTIDE = new Set(["nad-plus", "slu-pp-332"]);
-const SYNTHESIS: Record<string, string> = {
+const NOT_HPLC_PURIFIED = new Set(["nad-plus", "slu-pp-332"]);
+const PROCESS: Record<string, string> = {
   "nad-plus": "Chemical synthesis",
   "slu-pp-332": "Chemical synthesis",
   "igf-1-lr3": "Recombinant expression",
   "glutathione": "Fermentation",
-  "ghk-cu": "Solid-phase peptide synthesis (SPPS), then copper complexation",
+  "ghk-cu": "Solid-phase synthesis, then copper complexation",
 };
 
-export function materialTestingRows(c: Compound): MaterialRow[] {
-  const rows: MaterialRow[] = [{ label: "Synthesis", value: SYNTHESIS[c.slug] ?? "Solid-phase peptide synthesis (SPPS)" }];
-  if (!NON_PEPTIDE.has(c.slug)) rows.push({ label: "Purification", value: "Preparative HPLC" });
-  rows.push(
-    { label: "Identity", value: "Mass spectrometry, every lot" },
-    { label: "Purity", value: "Analytical HPLC, every lot" },
-    { label: "Certificate", value: "Posted for each lot before it ships" },
-  );
-  return rows;
+export function madeBy(c: { slug: string }): string {
+  const process = PROCESS[c.slug] ?? "Solid-phase synthesis";
+  return NOT_HPLC_PURIFIED.has(c.slug) ? process : `${process}, HPLC-purified`;
 }

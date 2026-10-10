@@ -1,6 +1,9 @@
 import { escapeHtml as e, usd } from "@/lib/html";
 import type { OrderRow } from "@/lib/orders";
 import { SUPPORT_EMAIL } from "@/lib/constants";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
+import { dateLabel } from "@/lib/today/time";
+import { compoundTitle } from "@/lib/catalog";
 
 export const CARRIERS = ["usps", "ups", "fedex", "dhl"] as const;
 export type Carrier = (typeof CARRIERS)[number];
@@ -30,7 +33,7 @@ function itemsTable(o: OrderRow): string {
   ).join("");
   return `<table style="width:100%;border-collapse:collapse;font-size:14px">${rows}
 <tr><td style="padding-top:10px">Subtotal</td><td style="text-align:right">${usd(o.subtotal_cents)}</td></tr>
-${o.partner_discount_cents > 0 ? `<tr><td>Discount code</td><td style="text-align:right">−${usd(o.partner_discount_cents)}</td></tr>` : ""}
+${o.partner_discount_cents > 0 ? `<tr><td>${o.new_account_discount ? `New-account ${OFFER_PCT_TEXT}` : "Discount code"}</td><td style="text-align:right">−${usd(o.partner_discount_cents)}</td></tr>` : ""}
 <tr><td>Shipping</td><td style="text-align:right">${o.shipping_cents ? usd(o.shipping_cents) : "Free"}</td></tr>
 <tr><td>Shipping insurance</td><td style="text-align:right">${usd(o.insurance_cents)}</td></tr>
 <tr><td>Sales tax</td><td style="text-align:right">${usd(o.tax_cents)}</td></tr>
@@ -47,6 +50,16 @@ export function orderConfirmationEmail(o: OrderRow) {
   return {
     subject: `Order ${o.order_number} confirmed`,
     html: shell(`Order ${o.order_number} confirmed`, `<p>Thank you — your payment was received. Each item lists the lot it ships from; the certificate for every lot is on our COA lookup.</p>${itemsTable(o)}${shipTo(o)}`),
+  };
+}
+
+// No-charge order (seeding, replacement, sample): items, no prices. The usual
+// shipped email follows on Ship.
+export function noChargeEmail(o: OrderRow) {
+  const items = (o.order_items ?? []).map((i) => `<li>${e(i.compound_name)} · ${e(i.strength)} × ${i.pack_qty * i.quantity}</li>`).join("");
+  return {
+    subject: `Order ${o.order_number} is on its way soon`,
+    html: shell(`Order ${o.order_number}`, `<p>We're sending you the items below at no charge. You'll get a tracking email when they ship. Each item ships from a lot whose certificate is on our COA lookup.</p><ul>${items}</ul>${shipTo(o)}`),
   };
 }
 
@@ -73,6 +86,140 @@ export function achFailedEmail(o: OrderRow) {
   };
 }
 
+// An early fraud warning refunded before shipping (Disputes, Cancel and refund).
+export function orderRefundedEmail(o: OrderRow) {
+  const charged = o.total_cents - o.store_credit_cents;
+  const parts = [
+    charged > 0 ? `${usd(charged)} back to your original payment method` : null,
+    o.store_credit_cents > 0 ? `${usd(o.store_credit_cents)} back to your store credit` : null,
+  ].filter(Boolean).join(" and ");
+  return {
+    subject: `Order ${o.order_number} was cancelled and refunded`,
+    html: shell(`Order ${o.order_number} cancelled`, `<p>Order ${e(o.order_number)} was cancelled before it shipped and refunded in full: ${parts}.${charged > 0 ? " Card refunds usually appear within 5–10 business days, depending on your bank." : ""}</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
+  };
+}
+
+// A shipped order refunded as a recorded exception (admin Refund…): card part
+// back to the card, store credit, or both. Never says "cancelled".
+export function orderRefundedAfterShipEmail(o: OrderRow, s: { cardCents: number; creditBackCents: number; cardToCreditCents: number; totalCents: number }) {
+  const parts = [
+    s.cardCents > 0 ? `${usd(s.cardCents)} back to your original payment method (usually 5–10 business days, depending on your bank)` : null,
+    s.creditBackCents + s.cardToCreditCents > 0 ? `${usd(s.creditBackCents + s.cardToCreditCents)} to your store credit, available right away` : null,
+  ].filter(Boolean).join(" and ");
+  return {
+    subject: `Order ${o.order_number} was refunded`,
+    html: shell(`Order ${o.order_number} refunded`, `<p>We've refunded order ${e(o.order_number)}: ${parts}.</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
+  };
+}
+
+function kitsTable(o: OrderRow): string {
+  const items = o.order_items ?? [];
+  const title = (i: (typeof items)[number]) => `${e(compoundTitle({ slug: i.compound_slug, name: i.compound_name }))} · ${e(i.strength)}`;
+  const rows = items.map((i) =>
+    `<tr><td>${title(i)}</td><td>${i.quantity} kit${i.quantity === 1 ? "" : "s"} (${i.pack_qty * i.quantity} vials)</td><td style="text-align:right">${usd(i.line_total_cents)}</td></tr>`).join("");
+  return `<table style="width:100%;border-collapse:collapse">${rows}</table>`;
+}
+
+// Wholesale (made to order): deposit received, the run's dates, the balance
+// to come. `d` (and the cutoff itself) can be missing — a run not yet set —
+// in which case the dates sentence is dropped and the refundable line stays
+// generic rather than showing an empty date.
+export function wholesaleDepositEmail(o: OrderRow, d: { testedAbout: string; shipsAbout: string } | null) {
+  const cutoff = o.wholesale_cutoff_on ? dateLabel(o.wholesale_cutoff_on) : null;
+  const datesLine = cutoff && d
+    ? `<p>Order-by date: <b>${e(cutoff)}</b> · lot tested about ${e(dateLabel(d.testedAbout))} · ships about <b>${e(dateLabel(d.shipsAbout))}</b>.</p>`
+    : "";
+  const refundableLine = cutoff
+    ? `<p>Your deposit is refundable until ${e(cutoff)} — cancel from your order page.</p>`
+    : `<p>Your deposit is refundable until the order-by date — we'll confirm it by email.</p>`;
+  return {
+    subject: `Order ${o.order_number} — deposit received`,
+    html: shell(`Order ${o.order_number} — deposit received`,
+      `<p>Thank you — your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was received. Your kits are made to order with this production run.</p>${kitsTable(o)}${datesLine}<p>Balance when your lot passes testing: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax). We'll email you a link to pay it; it's due within 7 days.</p>${refundableLine}${shipTo(o)}`),
+  };
+}
+
+export function wholesaleCancelledEmail(o: OrderRow) {
+  return {
+    subject: `Order ${o.order_number} cancelled — deposit refunded`,
+    html: shell(`Order ${o.order_number} cancelled`,
+      `<p>Your wholesale order was cancelled before its order-by date. Your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> is being refunded to the way you paid; it can take 5–10 business days to appear.</p>${kitsTable(o)}`),
+  };
+}
+
+export function ownerNewWholesaleOrderEmail(o: OrderRow) {
+  return {
+    subject: `New wholesale order ${o.order_number} — deposit ${usd(o.deposit_cents ?? 0)}`,
+    html: shell(`New wholesale order ${o.order_number}`, `<p>${e(o.email)} · run ${e(o.wholesale_cutoff_on ?? "")} · total ${usd(o.total_cents)}</p>${kitsTable(o)}${shipTo(o)}`),
+  };
+}
+
+const orderLink = (siteUrl: string, n: string) => `${siteUrl}/order/${encodeURIComponent(n)}`;
+
+export function wholesaleBalanceDueEmail(o: OrderRow, d: { dueOn: string; siteUrl: string }) {
+  const link = orderLink(d.siteUrl, o.order_number);
+  return {
+    subject: `Order ${o.order_number} — your kits passed testing`,
+    html: shell(`Your kits passed testing`,
+      `<p>Your production lot passed independent testing and your kits are set aside for you.</p>${kitsTable(o)}<p>Balance: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax), due by <b>${e(dateLabel(d.dueOn))}</b>.</p><p><a href="${e(link)}">Pay your balance</a> on your order page. Unpaid orders are cancelled after the due date and the deposit is kept.</p>`),
+  };
+}
+
+export function wholesaleBalanceReminderEmail(o: OrderRow, d: { dueOn: string; siteUrl: string }) {
+  return {
+    subject: `Order ${o.order_number} — balance due ${dateLabel(d.dueOn)}`,
+    html: shell(`Balance due ${e(dateLabel(d.dueOn))}`,
+      `<p>A reminder: the balance of <b>${usd(o.balance_cents ?? 0)}</b> for order ${e(o.order_number)} is due by <b>${e(dateLabel(d.dueOn))}</b>. <a href="${e(orderLink(d.siteUrl, o.order_number))}">Pay it on your order page</a>. After that date the order is cancelled and the deposit is kept.</p>`),
+  };
+}
+
+export function wholesaleLotFailedEmail(o: OrderRow, d: { strengths: string[]; newShipsAbout: string; siteUrl: string }) {
+  const list = d.strengths.map((s) => `<li>${e(s)}</li>`).join("");
+  return {
+    subject: `Order ${o.order_number} — a lot needs re-sourcing`,
+    html: shell(`A lot needs re-sourcing`,
+      `<p>The production lot for the following did not pass our independent testing, so it will not be sold:</p><ul>${list}</ul><p>We are re-sourcing it. New estimated ship date: <b>${e(dateLabel(d.newShipsAbout))}</b>. Nothing is needed from you to keep your order. If you would rather not wait, <a href="${e(orderLink(d.siteUrl, o.order_number))}">cancel on your order page for a full refund of your deposit</a>.</p>`),
+  };
+}
+
+export function wholesaleForfeitEmail(o: OrderRow) {
+  return {
+    subject: `Order ${o.order_number} cancelled — balance not received`,
+    html: shell(`Order ${o.order_number} cancelled`,
+      `<p>We did not receive the balance for order ${e(o.order_number)} by its due date, so the order was cancelled and the deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was kept, as set out in the wholesale terms.</p>`),
+  };
+}
+
+export function wholesaleBalanceReceivedEmail(o: OrderRow, d: { shipsAbout: string | null }) {
+  return {
+    subject: `Order ${o.order_number} — balance received`,
+    html: shell(`Balance received`,
+      `<p>Thank you — your balance of <b>${usd(o.balance_cents ?? 0)}</b> was received.</p>${kitsTable(o)}${d.shipsAbout ? `<p>Your kits ship about <b>${e(dateLabel(d.shipsAbout))}</b>, with the lot's certificate. We'll email tracking when they ship.</p>` : ""}${shipTo(o)}`),
+  };
+}
+
 export function opsAlertEmail(title: string, detail: string) {
   return { subject: `[Aura shop] ${title}`, html: shell(title, `<pre style="white-space:pre-wrap;font-size:13px">${e(detail)}</pre>`) };
+}
+
+export function verifyEmail(url: string) {
+  return {
+    subject: "Confirm your email",
+    html: shell("Confirm your email",
+      `<p style="font-size:15px;line-height:1.6">Confirm this address to finish setting up your Aura Protocols account. You'll need it confirmed before your first order.</p>
+<p style="font-size:15px"><a href="${e(url)}" style="color:#A32B1F">Confirm my email →</a></p>
+<p style="font-size:13px;color:#4A4438">Didn't create an account? Ignore this email.</p>`),
+  };
+}
+
+// Owner added store credit (admin Customers → Adjust credit, "Email the customer").
+export function storeCreditAddedEmail(amountCents: number, balanceCents: number, message: string | null, site: string) {
+  const title = `${usd(amountCents)} has been added to your account`;
+  return {
+    subject: `${usd(amountCents)} store credit added to your account`,
+    html: shell(title,
+      `<p style="font-size:15px;line-height:1.6">Your store credit balance is now <b>${usd(balanceCents)}</b>. To use it, tick <b>Apply store credit</b> at checkout.</p>
+${message ? `<p style="font-size:15px;line-height:1.6;border-left:2px solid #C9C2AE;padding-left:12px;color:#4A4438;font-style:italic">${e(message)}</p>` : ""}
+<p style="font-size:15px"><a href="${e(site)}/account" style="color:#A32B1F">View your account →</a></p>`),
+  };
 }

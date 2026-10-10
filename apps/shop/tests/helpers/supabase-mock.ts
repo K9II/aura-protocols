@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-type Result = { data?: unknown; error?: unknown };
+type Result = { data?: unknown; error?: unknown; count?: number };
 
 // A chainable stand-in for a Supabase query builder: every method call
 // (select, eq, insert, update, order, single, ...) is recorded and returns the
@@ -11,7 +11,7 @@ export function query(result: Result = {}) {
     get(_target, prop) {
       if (prop === "then") {
         return (resolve: (v: unknown) => unknown, reject: (e: unknown) => unknown) =>
-          Promise.resolve({ data: result.data ?? null, error: result.error ?? null }).then(resolve, reject);
+          Promise.resolve({ data: result.data ?? null, error: result.error ?? null, count: result.count ?? null }).then(resolve, reject);
       }
       if (prop === "calls") return calls;
       return (...args: unknown[]) => {

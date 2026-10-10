@@ -56,6 +56,8 @@ MOLECULES = {
     "pinealon":     {"label": "Pinealon", "how": "smiles", "cid": 10273502},
     "dsip":         {"label": "DSIP", "how": "smiles", "cid": 68816},
     "pt-141":       {"label": "PT-141", "how": "smiles", "cid": 9941379},
+    "semax":        {"label": "Semax", "how": "smiles", "cid": 9811102},
+    "selank":       {"label": "Selank", "how": "smiles", "cid": 11765600},
     "ghk-cu":       {"label": "GHK-Cu", "how": "ghkcu",
                      "ref": "https://www.sciencedirect.com/science/article/pii/S002016930082544X"},
     "nad-plus":     {"label": "NAD+", "how": "pubchem3d", "cid": 5892},

@@ -22,7 +22,7 @@ const req = {
   orderId: "o1", orderNumber: "AP-1001", siteUrl: "https://auraprotocols.com",
   customer: { email: "j@lab.org", fullName: "Jane", stripeCustomerId: null },
   ship: { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX" as const, zip: "78701" },
-  items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", variantId: "5mg", strength: "5 mg", packQty: 3, quantity: 2,
+  items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide Fragments", variantId: "5mg", strength: "5 mg", packQty: 3, quantity: 2,
     listUnitCents: 14700, packPct: 10, unitPriceCents: 13230, lineTotalCents: 26460, lotNumber: "AP-0001" }],
   shippingCents: 0,
   insuranceCents: 550,
@@ -178,6 +178,34 @@ describe("commerce adapter", () => {
     await expect(getCommerceAdapter().reverseTax("tax_txn_1")).resolves.toBeUndefined();
     expect(taxTxCreate).not.toHaveBeenCalled();
     expect(taxTxCreateReversal).not.toHaveBeenCalled();
+  });
+
+  const pay = { orderId: "o9", orderNumber: "AP-1050", siteUrl: "https://auraprotocols.com",
+    customer: { email: "j@lab.org", fullName: "Jane", stripeCustomerId: "cus_1" }, ship: req.ship,
+    payment: "deposit" as const, label: "Deposit (40%) — order AP-1050 · 3 kits", amountCents: 60600, cancelPath: "/wholesale" };
+
+  it("createPaymentCheckout charges one fixed amount, no automatic tax, tagged with the payment kind", async () => {
+    process.env.STRIPE_SECRET_KEY = "sk_test_x";
+    sessionsCreate.mockResolvedValue({ id: "cs_9", url: "https://stripe/cs_9" });
+    const { getCommerceAdapter } = await import("@/lib/commerce");
+    const r = await getCommerceAdapter().createPaymentCheckout(pay);
+    expect(r).toEqual({ kind: "redirect", url: "https://stripe/cs_9", sessionId: "cs_9", stripeCustomerId: "cus_1", couponId: null });
+    const [params, opts] = sessionsCreate.mock.calls[0];
+    expect(params).toMatchObject({
+      mode: "payment", customer: "cus_1", client_reference_id: "AP-1050",
+      metadata: { order_id: "o9", payment: "deposit" }, payment_intent_data: { metadata: { order_id: "o9", payment: "deposit" } },
+      automatic_tax: { enabled: false }, cancel_url: "https://auraprotocols.com/wholesale",
+      success_url: "https://auraprotocols.com/order/AP-1050?session_id={CHECKOUT_SESSION_ID}",
+    });
+    expect(params.line_items).toEqual([{ quantity: 1, price_data: { currency: "usd", unit_amount: 60600, tax_behavior: "exclusive", product_data: { name: pay.label } } }]);
+    expect(params.shipping_options).toBeUndefined();
+    expect(opts).toEqual({ idempotencyKey: "deposit-session-o9-0" });
+  });
+
+  it("createPaymentCheckout is unavailable without a Stripe key", async () => {
+    delete process.env.STRIPE_SECRET_KEY;
+    const { getCommerceAdapter, CHECKOUT_UNAVAILABLE_MESSAGE } = await import("@/lib/commerce");
+    expect(await getCommerceAdapter().createPaymentCheckout(pay)).toEqual({ kind: "unavailable", message: CHECKOUT_UNAVAILABLE_MESSAGE });
   });
 
   it("expireCheckout closes an open Stripe page and reports a page that was already paid", async () => {

@@ -1,26 +1,48 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import AuraLockup from "@/components/AuraLockup";
 import AuthLinks from "@/components/store/AuthLinks";
 import { useCart } from "@/components/store/CartProvider";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
+import { useLotNews } from "@/lib/lot-news";
 
 export default function SiteNav() {
   const { totals, setOpen } = useCart();
+  const pathname = usePathname();
+  const news = useLotNews();
+  if (pathname?.startsWith("/admin")) return null;
+  // Returning visitor with lots released since their last visit (set by the home lot record).
+  const [newsLead, ...newsItems] = news ? news.split(" · ") : [];
   return (
     <header className="pharmacopoeia sticky top-0 z-50">
       <div className="s-topbar">
+        {news ? (
+          <span>
+            <em>{newsLead}</em>
+            {newsItems.map((t) => <span key={t}>{" · "}<span className="whitespace-nowrap">{t}</span></span>)}
+            {" · "}<span className="whitespace-nowrap">COA on every lot</span>
+          </span>
+        ) : <>
         {/* Narrow screens wrap between phrases; each dot stays at the end of the
-            phrase before it, so no line starts with one. Only the long lab phrase
-            may wrap inside itself (320px phones). */}
-        <span>Tested by an ISO/IEC 17025-accredited US lab ·</span>{" "}
-        <span className="whitespace-nowrap">COA on every lot ·</span>{" "}
-        <span className="whitespace-nowrap"><em>Fast domestic shipping</em> ·</span>{" "}
-        <span className="whitespace-nowrap">Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
+            phrase before it, so no line starts with one. Phones get the short
+            wording so the bar is two lines, not four (2026-10-10). */}
+        <span className="s-topbar-wide">
+          <span>Tested by an ISO/IEC 17025-accredited US lab ·</span>{" "}
+          <span className="whitespace-nowrap">COA on every lot ·</span>{" "}
+          <span className="whitespace-nowrap"><em>Fast domestic shipping</em> ·</span>{" "}
+          <span className="whitespace-nowrap">Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
+        </span>
+        <span className="s-topbar-phone">
+          <span className="whitespace-nowrap">Accredited US lab ·</span>{" "}
+          <span className="whitespace-nowrap">COA every lot ·</span>{" "}
+          <span className="whitespace-nowrap"><em>Free shipping over ${FREE_SHIPPING_THRESHOLD_USD}</em></span>
+        </span>
+        </>}
       </div>
       <div className="p-container pt-3.5 pb-2 bg-[color:var(--paper)]">
-        {/* Logo left · links centered · Shop + Cart right (Kearney, option A, 2026-09-28).
+        {/* Logo left · links centered (Shop first, 2026-10-09) · account + Cart right.
             Phones: logo + actions on one row, links centered on a second row. */}
         <nav className="s-nav" aria-label="Main">
           <Link href="/" aria-label="Aura Protocols home" className="s-nav-logo"><AuraLockup size={58} mode="loop" /></Link>
@@ -31,7 +53,6 @@ export default function SiteNav() {
             <Link href="/affiliates">Affiliate Program</Link>
           </div>
           <div className="s-nav-actions">
-            <Link href="/products" className="s-nav-shop">Shop</Link>
             <AuthLinks />
             <button type="button" className={totals.itemCount > 0 ? "s-nav-cart s-nav-cart-full" : "s-nav-cart"} onClick={() => setOpen(true)}>
               Cart ({totals.itemCount})

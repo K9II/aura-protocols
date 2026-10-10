@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { compounds } from "@/data/catalog";
+import type { Compound } from "@/data/catalog";
 import { addLine, cartTotals, removeLine, setQuantity, type CartLine } from "@/lib/cart";
 
 export const CART_STORAGE_KEY = "aura_cart_v1";
@@ -9,9 +9,12 @@ export const CART_STORAGE_KEY = "aura_cart_v1";
 export const CART_CODE_KEY = "aura_cart_code_v1";
 
 type CartContextValue = {
+  catalog: Compound[]; // the live, shown catalog (from the root layout)
   lines: CartLine[];
   add: (line: CartLine) => void;
   remove: (index: number) => void;
+  // Drops every line of these strengths (all pack sizes) in one state update.
+  removeStrengths: (keys: Array<{ slug: string; variantId: string }>) => void;
   setQty: (index: number, quantity: number) => void;
   clear: () => void;
   code: string;
@@ -25,23 +28,25 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 
 // Drops lines for products, sizes or pack sizes the catalog no longer offers
-// (e.g. single vials and 3-packs, retired 2026-10-01).
-function isKnown(line: CartLine): boolean {
-  const c = compounds.find((x) => x.slug === line.slug);
+// (e.g. single vials and 3-packs, retired 2026-10-01). While the catalog is
+// empty (the live catalog couldn't be read) stored lines are kept, not dropped.
+function isKnown(line: CartLine, catalog: Compound[]): boolean {
+  if (!catalog.length) return true;
+  const c = catalog.find((x) => x.slug === line.slug);
   return !!c && c.variants.some((v) => v.id === line.variantId) && c.packDiscounts.some((p) => p.qty === line.packQty);
 }
 
-function readStored(): CartLine[] {
+function readStored(catalog: Compound[]): CartLine[] {
   try {
     const raw = window.localStorage.getItem(CART_STORAGE_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? (parsed as CartLine[]).filter(isKnown) : [];
+    return Array.isArray(parsed) ? (parsed as CartLine[]).filter((l) => isKnown(l, catalog)) : [];
   } catch {
     return [];
   }
 }
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({ catalog, children }: { catalog: Compound[]; children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
@@ -52,9 +57,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // or the first client render, so the initial render stays an empty cart
     // and there is no hydration mismatch.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above
-    setLines(readStored());
+    setLines(readStored(catalog));
     try { setCodeState(window.localStorage.getItem(CART_CODE_KEY) ?? ""); } catch { /* storage unavailable */ }
     setLoaded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once, with the catalog the page was rendered with
   }, []);
 
   useEffect(() => {
@@ -71,6 +77,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setOpen(true);
   }, []);
   const remove = useCallback((i: number) => setLines((prev) => removeLine(prev, i)), []);
+  const removeStrengths = useCallback((keys: Array<{ slug: string; variantId: string }>) =>
+    setLines((prev) => prev.filter((l) => !keys.some((k) => k.slug === l.slug && k.variantId === l.variantId))), []);
   const setQty = useCallback((i: number, q: number) => setLines((prev) => setQuantity(prev, i, q)), []);
   const setCode = useCallback((next: string) => {
     const v = next.trim().toUpperCase();
@@ -97,8 +105,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ lines, add, remove, setQty, clear, code, setCode, ready: loaded, totals: cartTotals(lines), open, setOpen }),
-    [lines, add, remove, setQty, clear, code, setCode, loaded, open],
+    () => ({ catalog, lines, add, remove, removeStrengths, setQty, clear, code, setCode, ready: loaded, totals: cartTotals(lines, catalog), open, setOpen }),
+    [catalog, lines, add, remove, removeStrengths, setQty, clear, code, setCode, loaded, open],
   );
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

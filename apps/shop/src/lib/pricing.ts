@@ -1,7 +1,7 @@
 // Server-authoritative order pricing. The browser's cart is only a list of
 // (slug, variant, pack, quantity); every price, discount and shipping charge
-// is rebuilt here from the catalog. Pure — safe to import on client and server.
-import { compounds as listedCompounds, type Compound } from "@/data/catalog";
+// is rebuilt here from the live catalog (passed in). Pure — safe to import on client and server.
+import type { Compound } from "@/data/catalog";
 import { FLAT_SHIPPING_USD, FREE_SHIPPING_THRESHOLD_USD, SHIPPING_INSURANCE_USD, type CartLine } from "@/lib/cart";
 import { isPendingLot } from "@/lib/catalog";
 
@@ -13,6 +13,7 @@ export const MAX_PACKS_PER_LINE = 50;
 export type PricedItem = {
   compoundSlug: string;
   compoundName: string;
+  chemicalClass: string;  // for include/exclude rules on discount codes
   variantId: string;
   strength: string;
   packQty: number;
@@ -24,20 +25,22 @@ export type PricedItem = {
   lotNumber: string;
 };
 
-export type RejectReason = "unknown" | "pending_lot" | "out_of_stock" | "bad_pack" | "bad_quantity";
+// "sold_out": set by checkout when hold_vials finds a strength short.
+export type RejectReason = "unknown" | "pending_lot" | "out_of_stock" | "sold_out" | "bad_pack" | "bad_quantity";
 export type Rejection = { slug: string; variantId: string; reason: RejectReason };
 
 export type PricedOrder = {
   items: PricedItem[];
   rejected: Rejection[];
   subtotalCents: number;         // items at pack prices
-  partnerDiscountCents: number;  // extra discount from a partner code (set by lib/partners/discounts.ts; 0 here)
-  shippingCents: number;         // decided on subtotal − partner discount
+  partnerDiscountCents: number;  // every discount beyond pack price (partner code, new-account percent, discount code), after the store-wide cap — set by lib/discounts/engine.ts; 0 here. Legacy name (orders.partner_discount_cents).
+  freeShipping?: boolean;        // a free-shipping discount code applies
+  shippingCents: number;         // decided on subtotal − partner discount, or 0 with freeShipping
   insuranceCents: number;
   totalBeforeTaxCents: number;   // subtotal − partner discount + shipping + insurance
 };
 
-export function priceOrder(lines: CartLine[], list: Compound[] = listedCompounds): PricedOrder {
+export function priceOrder(lines: CartLine[], list: Compound[]): PricedOrder {
   const items: PricedItem[] = [];
   const rejected: Rejection[] = [];
   for (const line of lines) {
@@ -45,17 +48,16 @@ export function priceOrder(lines: CartLine[], list: Compound[] = listedCompounds
     const c = list.find((x) => x.slug === line.slug);
     const v = c?.variants.find((x) => x.id === line.variantId);
     if (!c || !v) { reject("unknown"); continue; }
-    if (isPendingLot(c.currentLot)) { reject("pending_lot"); continue; }
-    if (v.stock === "out") { reject("out_of_stock"); continue; }
+    if (v.stock === "out") { reject(isPendingLot(v.lot) ? "pending_lot" : "out_of_stock"); continue; }
     const pack = c.packDiscounts.find((p) => p.qty === line.packQty);
     if (!pack) { reject("bad_pack"); continue; }
     if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > MAX_PACKS_PER_LINE) { reject("bad_quantity"); continue; }
     const listUnitCents = Math.round(v.priceUsd * 100 * line.packQty);
     const unitPriceCents = Math.round(listUnitCents * (1 - pack.pct / 100));
     items.push({
-      compoundSlug: c.slug, compoundName: c.name, variantId: v.id, strength: v.strength,
+      compoundSlug: c.slug, compoundName: c.name, chemicalClass: c.chemicalClass, variantId: v.id, strength: v.strength,
       packQty: line.packQty, quantity: line.quantity, listUnitCents, packPct: pack.pct, unitPriceCents,
-      lineTotalCents: unitPriceCents * line.quantity, lotNumber: c.currentLot.lot,
+      lineTotalCents: unitPriceCents * line.quantity, lotNumber: isPendingLot(v.lot) ? "" : v.lot.lot, // hold_vials overwrites it with the real allocation
     });
   }
   const subtotalCents = items.reduce((s, i) => s + i.lineTotalCents, 0);
@@ -66,7 +68,7 @@ export function priceOrder(lines: CartLine[], list: Compound[] = listedCompounds
 // discount. Exported so lib/partners/discounts.ts applies the same rule.
 export function withCharges(o: PricedOrder): PricedOrder {
   const goods = o.subtotalCents - o.partnerDiscountCents;
-  const shippingCents = o.items.length === 0 || goods >= FREE_SHIPPING_MIN_CENTS ? 0 : SHIPPING_FLAT_CENTS;
+  const shippingCents = o.items.length === 0 || o.freeShipping || goods >= FREE_SHIPPING_MIN_CENTS ? 0 : SHIPPING_FLAT_CENTS;
   const insuranceCents = o.items.length === 0 ? 0 : INSURANCE_CENTS;
   return { ...o, shippingCents, insuranceCents, totalBeforeTaxCents: goods + shippingCents + insuranceCents };
 }

@@ -3,8 +3,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import CoaLookup, { type LotRow } from "@/components/store/CoaLookup";
 
 const rows: LotRow[] = [
-  { lot: "AP-0001", name: "BPC-157", slug: "bpc-157", purityPct: 99.6, method: "HPLC", testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" },
-  { lot: "AP-0002", name: "TB-500", slug: "tb-500", purityPct: 99.2, method: "HPLC+MS", testedOn: "2026-09-03", coaFile: "" },
+  { lot: "AP-0001", name: "BPC-157", slug: "bpc-157", strength: "10 mg", status: "Current", purityPct: 99.6, method: "HPLC", testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" },
+  { lot: "AP-0002", name: "TB-500", slug: "tb-500", strength: "10 mg", status: "Sold out", purityPct: 99.2, method: "HPLC+MS", testedOn: "2026-09-03", coaFile: "" },
 ];
 
 describe("CoaLookup", () => {

@@ -45,6 +45,10 @@ const FILES = [
   ...tsxUnder("components", "partners"), ...tsxUnder("app", "partners"), ...tsxUnder("app", "affiliates"),
   ...tsxUnder("app", "partner-agreement"), join(SRC, "lib", "emails-partners.ts"),
   join(SRC, "lib", "emails.ts"),
+  // Dispute evidence goes to banks (Part 6).
+  join(SRC, "lib", "disputes", "evidence.ts"), ...tsxUnder("components", "admin", "disputes"),
+  // Inquiries (Part 7): the contact page is dynamic; our inquiry emails.
+  ...tsxUnder("app", "contact"), join(SRC, "lib", "inquiries", "emails.ts"),
 ];
 
 describe("compliance scan — client-only and dynamic source copy", () => {

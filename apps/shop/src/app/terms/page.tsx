@@ -12,7 +12,7 @@ export default function TermsPage() {
     <PolicyPage
       policy="terms"
       title={<>Terms of <em>Service.</em></>}
-      updated="October 2, 2026"
+      updated="October 4, 2026"
       summary={{
         headline: <>Research use only. Cancel any time before your order ships &mdash; once it ships, the sale is final.</>,
         detail: <>Lost or damaged in transit? Your shipping insurance covers a replacement. Report damage with photos within 48 hours of delivery.</>,
@@ -32,9 +32,10 @@ export default function TermsPage() {
         { id: "accounts", heading: "Accounts", body: (
           <p>An account is required to check out. The agreements you accept when you create it are recorded on your account with the version of these Terms and the time you accepted. Keep your password private &mdash; you are responsible for orders placed from your account.</p>
         ) },
-        { id: "orders", heading: "Orders, pricing, and payment", body: (
+        { id: "orders", heading: "Orders, pricing, and payment", body: (<>
           <p>Prices are in US dollars and may change without notice. Payment is taken when you place an order, and the total &mdash; including shipping and shipping insurance &mdash; is shown before you pay. We may correct pricing or listing errors and cancel any affected order with a full refund.</p>
-        ) },
+          <p><b>Discounts.</b> Each order takes one discount code. Pack pricing, account offers, partner codes and discount codes combine only up to a store-wide maximum percentage of list price; the current maximum and your exact discount are shown at checkout before you pay. A code that would take an order past that maximum applies only up to it. Promotions may change or end at any time, have no cash value, and can&apos;t be applied to past orders.</p>
+        </>) },
         { id: "finality", heading: "Cancellations and order finality", body: (
           <p>You may cancel for a full refund at any time until your order ships. Once an order has shipped it cannot be cancelled, returned, or refunded. Loss or damage in transit is covered by shipping insurance, as set out in our <Link href="/refund-policy#transit-loss" className="p-link">Refund &amp; Dispute Policy</Link>.</p>
         ) },
@@ -49,11 +50,11 @@ export default function TermsPage() {
           <p>The Site&apos;s text, graphics, marks, and artwork belong to Aura Protocols LLC. You may not copy, mirror, republish, or redistribute them without our written consent. We may suspend or change access to the Site at any time.</p>
         ) },
         { id: "privacy", heading: "Privacy and communications", body: (
-          <p>Order, shipping, and account emails are part of every purchase. Marketing email is sent only if you opt in, and every marketing email has an unsubscribe link. How we handle your information is described in our <Link href="/privacy" className="p-link">Privacy Policy</Link>.</p>
+          <p>Order, shipping, and account emails are part of every purchase. Account holders also receive marketing email (promotions, research news and new lots) once their address is confirmed; every marketing email has an unsubscribe link. How we handle your information is described in our <Link href="/privacy" className="p-link">Privacy Policy</Link>.</p>
         ) },
         { id: "law", heading: "Governing law and disputes", body: (<>
           <p>If a dispute arises, you agree to contact us first at {mail} and to attempt in good faith to resolve it with us. These Terms are governed by the laws of the State of {GOVERNING_STATE ?? <mark className="s-pending">[State — pending]</mark>}, without regard to conflict-of-law rules, and any unresolved dispute will be heard in the courts of that state.</p>
-          <p>You and Aura Protocols are independent parties; nothing in these Terms creates a partnership, agency, or employment relationship. If any provision is found unenforceable, the rest remain in effect. These Terms, with the policies they reference, are the entire agreement between us about the Site and your purchases. We may update them; material changes will ask you to confirm again when you next enter the Site.</p>
+          <p>You and Aura Protocols are independent parties; nothing in these Terms creates a partnership, agency, or employment relationship. If any provision is found unenforceable, the rest remain in effect. These Terms, with the policies they reference, are the entire agreement between us about the Site and your purchases. We may update them; material changes are posted here with a new effective date, and each order is governed by the Terms in effect when you place it.</p>
         </>) },
       ]}
       closing={<p>By using the Site or placing an order you confirm that you have read and accepted these Terms, together with our Shipping, Refund &amp; Dispute, Privacy, and Research Use Only policies.</p>}
