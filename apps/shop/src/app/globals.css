@@ -1348,3 +1348,11 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 @media (max-width: 360px) { .pharmacopoeia .s-kc-row > span { padding: 7px 5px 9px; } .pharmacopoeia .s-kc-row small { letter-spacing: .1em; } }
 .pharmacopoeia .s-kc-row { width: auto; justify-self: stretch; min-width: 0; }
 @media (max-width: 340px) { .pharmacopoeia .s-kc-tag { width: 100%; } .pharmacopoeia .s-kc-row { font-size: 12px; } }
+/* equal tags across a row (Alvester 2026-10-10): cards stretch to the row's height, the tag
+   takes the rest, and the Kit / Volume price strip sits on its bottom edge */
+.pharmacopoeia .s-kc-card, .pharmacopoeia .s-kc-link { align-content: stretch; grid-template-rows: auto 1fr; }
+.pharmacopoeia .s-kc-card:has(> .s-kc-link) { grid-template-rows: 1fr; }
+.pharmacopoeia .s-kc-tag { grid-template-rows: auto auto 1fr; align-content: stretch; }
+.pharmacopoeia .s-kc-nm { align-self: start; }
+.pharmacopoeia .s-kc-row { align-self: end; }
+.pharmacopoeia .s-kc-grid { grid-auto-rows: 1fr; } /* every row as tall as the tallest */
