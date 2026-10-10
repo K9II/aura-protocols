@@ -42,6 +42,10 @@ export type Post = {
   // (e.g. ?category=Stacks) — scoped to that category only, unlike `pinned`,
   // which is sitewide and also affects the homepage "From the Blog" section.
   categoryLead?: boolean;
+  // Rewritten to the research-summary template (2026-10-10): tests/data/posts-ruo.test.ts
+  // holds it to the RUO rules (no amounts, human outcomes, benefit words, sourcing or
+  // product buttons; chemical-class category; RUO disclaimer).
+  ruo?: boolean;
 };
 
 export const posts: Post[] = [
@@ -907,28 +911,27 @@ export const posts: Post[] = [
   },
   {
     slug: "semaglutide-vs-tirzepatide",
-    title: "Semaglutide vs. Tirzepatide: What the Research Shows",
+    ruo: true,
+    title: "Semaglutide and Tirzepatide: How the Two Molecules Differ",
     excerpt:
-      "Comparing two of the most researched GLP-1 receptor agonists for body composition and metabolic health.",
-    category: "Weight Management",
+      "A single-receptor GLP-1 analog and a dual GIP/GLP-1 receptor agonist. How their structures differ, and what receptor-pharmacology studies show about how each engages its targets.",
+    category: "Incretin & Amylin Analogs",
     date: "March 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "GLP-1 receptor agonists have fundamentally changed the metabolic research landscape. Semaglutide and tirzepatide are the two most studied compounds in this class — but they work through meaningfully different mechanisms. Here's what the literature actually shows.",
+        text: "Semaglutide and tirzepatide are both fatty-acid-modified peptides that act on incretin receptors, but they are built differently and engage different receptors. This summary compares their structures and what laboratory pharmacology studies have measured about each. It does not cover clinical literature.",
       },
-      {
-        type: "h2",
-        text: "Mechanism of Action",
-      },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "h3",
         text: "Semaglutide",
       },
       {
         type: "p",
-        text: "Semaglutide is a GLP-1 (glucagon-like peptide-1) receptor agonist. It mimics the endogenous GLP-1 hormone, which is released after eating. Its primary effects include slowing gastric emptying, stimulating insulin secretion in a glucose-dependent manner, and suppressing glucagon release. The net result is reduced appetite, improved glycemic control, and significant reductions in body weight.",
+        text: "Semaglutide (C187H291N45O59, 4114.0 g/mol, CAS 910463-68-2) is an analog of human glucagon-like peptide-1 (GLP-1). It has two amino-acid substitutions relative to GLP-1, aminoisobutyric acid (Aib) at position 8 and arginine at position 34, and it is derivatized at lysine 26 with a fatty-acid side chain through a linker (Lau et al., 2015).",
       },
       {
         type: "h3",
@@ -936,60 +939,94 @@ export const posts: Post[] = [
       },
       {
         type: "p",
-        text: "Tirzepatide is a dual GIP/GLP-1 receptor agonist — it activates both the glucose-dependent insulinotropic polypeptide (GIP) receptor and the GLP-1 receptor. This dual agonism appears to produce synergistic effects on insulin secretion, fat metabolism, and appetite suppression, which may explain its more pronounced effects in head-to-head comparisons.",
+        text: "Tirzepatide (C225H348N48O68, 4813.0 g/mol, CAS 2023788-19-2), developed as LY3298176, is a fatty-acid-modified synthetic peptide with agonist activity at both the glucose-dependent insulinotropic polypeptide (GIP) receptor and the GLP-1 receptor (Coskun et al., 2018).",
       },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
-        type: "h2",
-        text: "Head-to-Head: What Studies Show",
-      },
-      {
-        type: "ul",
-        items: [
-          "SURMOUNT-5 trial: Tirzepatide produced ~20% greater weight loss than semaglutide in people with obesity",
-          "Semaglutide (STEP trials): Average 15–17% body weight reduction over 68 weeks",
-          "Tirzepatide (SURMOUNT trials): Average 20–22% body weight reduction over 72 weeks",
-          "Both show significant cardiovascular risk reduction in large outcome trials",
-          "Tirzepatide shows stronger HbA1c reduction in T2D populations",
-        ],
-      },
-      {
-        type: "h2",
-        text: "Side Effect Profiles",
+        type: "p",
+        text: "Semaglutide was designed, starting from the earlier analog liraglutide, to raise albumin affinity and secure full stability against metabolic degradation. Lau and colleagues (Journal of Medicinal Chemistry, 2015) reported that the fatty-acid moiety and its linking chemistry were the key features for albumin affinity and GLP-1 receptor potency. Compared with liraglutide, semaglutide's GLP-1 receptor affinity was about three-fold lower and its albumin affinity higher; its plasma half-life in mini-pigs was 46.1 hours after intravenous administration.",
       },
       {
         type: "p",
-        text: "Both compounds share a similar GI side effect profile — nausea, vomiting, and diarrhea are the most commonly reported, particularly during dose escalation. These effects typically diminish over time. Tirzepatide's GIP activity may modulate some of the GI tolerability seen with pure GLP-1 agonists, though clinical differences are modest.",
+        text: "Tirzepatide activates both GIP and GLP-1 receptor signaling in cell lines expressing those receptors (Coskun et al., 2018). Willard and colleagues (JCI Insight, 2020) characterised it further as an imbalanced and biased agonist: it engages the GIP receptor more than the GLP-1 receptor, mimics native GIP at the GIP receptor, and at the GLP-1 receptor favours cAMP generation over β-arrestin recruitment, with weaker receptor internalisation than GLP-1. In primary islets, β-arrestin-1 limited the insulin response to GLP-1 but not to GIP or tirzepatide.",
       },
       {
-        type: "h2",
-        text: "Which Is Right for Research?",
+        type: "callout",
+        text: "These findings come from receptor and signaling assays, isolated islets and animal pharmacokinetics. They describe how each molecule engages its receptors in those systems.",
+      },
+      { type: "h2", text: "The Differences at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Receptors: semaglutide acts at the GLP-1 receptor; tirzepatide at both the GIP and GLP-1 receptors",
+          "Balance: tirzepatide engages the GIP receptor more than the GLP-1 receptor (Willard et al., 2020)",
+          "Signaling at the GLP-1 receptor: tirzepatide favours cAMP over β-arrestin recruitment (Willard et al., 2020)",
+          "Half-life extension: both carry a fatty-acid modification; for semaglutide, albumin binding through the fatty-acid side chain and its linker was the design lever (Lau et al., 2015)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Which part of tirzepatide's activity comes from GIP receptor agonism and which from its biased GLP-1 receptor signaling is still being separated experimentally.",
+          "Receptor occupancy and signaling bias can differ between recombinant cell lines and native tissue, so assay choice matters when comparing the two.",
+          "Much of the characterisation is published by the developers' own scientists, as is usual for drug candidates; independent pharmacology is thinner.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Semaglutide and tirzepatide are active ingredients of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Aura Protocols supplies both as research chemicals for laboratory use only.",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "What is the main structural difference?",
+            a: "Semaglutide is a GLP-1 analog with two substitutions and a fatty-acid side chain on lysine 26. Tirzepatide is a separate synthetic peptide, also fatty-acid modified, built to act at both the GIP and GLP-1 receptors.",
+          },
+          {
+            q: "What does \"biased agonist\" mean for tirzepatide?",
+            a: "At the GLP-1 receptor it favours one signaling route (cAMP generation) over another (β-arrestin recruitment), compared with native GLP-1 (Willard et al., 2020).",
+          },
+          {
+            q: "Does this summary cover clinical trials?",
+            a: "No. It covers structure and laboratory pharmacology only.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Lau J, Bloch P, Schäffer L, et al. \"Discovery of the Once-Weekly Glucagon-Like Peptide-1 (GLP-1) Analogue Semaglutide.\" Journal of Medicinal Chemistry. 2015;58(18):7370-7380. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/26308095/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
       },
       {
         type: "p",
         parts: [
-          "The choice between ",
-          { href: "/products/semaglutide", text: "semaglutide" },
-          " and ",
-          { href: "/products/tirzepatide", text: "tirzepatide" },
-          " for research purposes depends on the specific question being studied. Semaglutide has a longer research track record and more published data — see the ",
-          { href: "/products/retatrutide", text: "retatrutide" },
-          " page for how the newer triple-agonist class compares on trial results. Tirzepatide represents the current frontier of dual-agonist research and shows greater magnitude of effect in weight-focused studies.",
+          "2. Coskun T, Sloop KW, Loghin C, et al. \"LY3298176, a novel dual GIP and GLP-1 receptor agonist for the treatment of type 2 diabetes mellitus: From discovery to clinical proof of concept.\" Molecular Metabolism. 2018;18:3-14. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/30473097/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
-        type: "callout",
-        text: "Neither semaglutide nor tirzepatide is approved for general use outside of specific medical indications. Research applications require appropriate institutional oversight.",
+        type: "p",
+        parts: [
+          "3. Willard FS, Douros JD, Gabe MB, et al. \"Tirzepatide is an imbalanced and biased dual GIP and GLP-1 receptor agonist.\" JCI Insight. 2020;5(17):e140532. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/32730231/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
       },
       {
-        type: "cta",
-        text: "View Semaglutide Vendors",
-        productSlug: "semaglutide",
-        vendor: "American Peptides",
-        affiliateUrl: "https://www.americanpeptides.us/discount/AURAPRO10?ref=ngEbqLb06k&redirect=/products/semaglutide",
+        type: "p",
+        parts: [
+          "4. PubChem. Semaglutide (CID 56843331) and Tirzepatide (CID 166567236). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/56843331", text: "pubchem.ncbi.nlm.nih.gov", external: true },
+        ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -1301,94 +1338,74 @@ export const posts: Post[] = [
   },
   {
     slug: "how-to-read-a-peptide-coa",
+    ruo: true,
     title: "How to Read a Peptide Certificate of Analysis",
     excerpt:
-      "A plain-English breakdown of what's in a COA, what to look for, and red flags to avoid.",
-    category: "Buyer's Guide",
+      "What a certificate of analysis contains, what HPLC and mass spectrometry each establish, and what to check before a lot goes into an experiment.",
+    category: "Testing & Analysis",
     date: "February 2026",
+    lastUpdated: "October 2026",
     readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "A Certificate of Analysis (COA) is the single most important document when evaluating a peptide vendor. It's the paper trail between a manufacturer's claims and independent verification. Yet most buyers don't know how to read one. This guide breaks it down.",
+        text: "A certificate of analysis (COA) is the laboratory's record of what was measured in one specific lot of material. For a research peptide, it is how you confirm that what is in the vial is the molecule on the label, at the purity stated, before it goes into an experiment. This guide explains what a COA contains and how to read it.",
       },
-      {
-        type: "h2",
-        text: "What a COA Should Include",
-      },
+      { type: "h2", text: "What a COA Should Include" },
       {
         type: "ul",
         items: [
-          "Product name and lot/batch number",
-          "Testing laboratory name and accreditation (look for ISO 17025)",
-          "Test date (should be recent — within 12 months of purchase)",
-          "HPLC purity result (High-Performance Liquid Chromatography)",
-          "Mass spectrometry (MS) confirmation of molecular identity",
-          "Amino acid composition or sequence confirmation",
-          "Moisture content and residual solvent analysis (for lyophilized peptides)",
+          "Compound name and the lot (batch) number tested",
+          "The testing laboratory's name, and its accreditation (for example ISO/IEC 17025)",
+          "The date the sample was tested",
+          "HPLC purity result, with the method",
+          "Mass spectrometry result confirming molecular identity",
+          "For some compounds, additional tests such as peptide content, moisture or residual solvents",
         ],
       },
+      { type: "h2", text: "HPLC: How Pure the Sample Is" },
       {
-        type: "h2",
-        text: "The Most Important Number: HPLC Purity",
+        type: "p",
+        text: "High-performance liquid chromatography (HPLC) separates the components of a sample and reports what share of the detected material is the target compound. The rest is impurities: shorter or modified sequences left over from synthesis, degradation products, or unrelated material. A chromatogram with one dominant peak and small, well-separated minor peaks is what a clean lot looks like.",
       },
       {
         type: "p",
-        text: "HPLC purity tells you what percentage of the sample is actually the peptide you ordered. Everything else is impurities — which could be related peptide fragments, synthesis byproducts, or in worst cases, entirely different compounds.",
+        text: "HPLC purity is relative: it measures the target against the other components the detector sees. It does not by itself confirm what the main peak is. That is the job of mass spectrometry.",
       },
-      {
-        type: "ul",
-        items: [
-          "≥99% purity — pharmaceutical grade, ideal for sensitive research",
-          "≥98% purity — research grade, acceptable for most applications",
-          "95–98% purity — lower grade, use with caution",
-          "Below 95% — do not use for any serious research application",
-        ],
-      },
-      {
-        type: "h2",
-        text: "Mass Spectrometry: Confirming Identity",
-      },
+      { type: "h2", text: "Mass Spectrometry: What the Molecule Is" },
       {
         type: "p",
-        text: "HPLC tells you how pure the sample is, but mass spectrometry (MS) tells you what it actually is. A COA with both HPLC and MS data is significantly more trustworthy than one with HPLC alone. Look for the reported molecular weight to match the theoretical molecular weight of the compound within a small margin (typically ±0.5 Da).",
+        text: "Mass spectrometry (MS) measures the mass of the molecules in the sample. The observed mass should match the compound's theoretical molecular weight within the instrument's stated tolerance. A COA with both HPLC and MS shows that the material is the right molecule and how pure it is; HPLC alone shows only the second.",
       },
-      {
-        type: "h2",
-        text: "Red Flags to Watch For",
-      },
+      { type: "h2", text: "Red Flags" },
       {
         type: "ul",
         items: [
-          "No third-party lab — in-house testing only means the vendor is grading their own work",
-          "No lab name or accreditation on the COA",
-          "COA older than 18 months — peptides degrade, testing should be recent",
-          "Purity reported without a specific method (HPLC, MS, etc.)",
-          "Generic COA not tied to a specific batch number",
-          "COA available only on request — reputable vendors post them publicly",
+          "No laboratory name, or testing done in-house by the seller",
+          "A certificate not tied to a specific lot number, or a lot number that doesn't match the vial",
+          "Purity reported without a method",
+          "HPLC without any identity test",
+          "No test date, or a certificate that cannot be checked against the laboratory's own records",
         ],
       },
-      {
-        type: "h2",
-        text: "How Aura Protocols Vets Vendors",
-      },
+      { type: "h2", text: "How Aura Protocols Certificates Work" },
       {
         type: "p",
         parts: [
-          "Every vendor we feature on Aura Protocols must provide batch-specific COAs from accredited third-party laboratories. We manually review these documents before listing any product. If a vendor's documentation doesn't meet our standards, they don't appear on this site. See our full ",
-          { href: "/about", text: "vendor vetting methodology" },
-          " for the complete criteria, or browse the ",
-          { href: "/products", text: "full compound catalog" },
-          " to see which vendors carry a specific peptide.",
+          "Every Aura Protocols lot is tested by a third-party laboratory before it is listed: mass spectrometry for identity and HPLC for purity, with a 99% purity floor. The lot number on the certificate matches the lot number on the vial. Certificates are on each product page and in the ",
+          { href: "/coa", text: "COA Lookup" },
+          " by lot number; a product marked \"COA pending\" cannot be ordered until its certificate is posted. See ",
+          { href: "/quality-standards", text: "Quality Standards" },
+          " for the full criteria.",
         ],
       },
       {
         type: "callout",
-        text: "When in doubt, email the vendor and ask for the COA for the specific batch you're purchasing. A trustworthy vendor will respond promptly with complete documentation.",
+        text: "Before a lot goes into an experiment, match three things: the compound name, the lot number on the vial, and the lot number on the certificate.",
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This guide explains laboratory documentation. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -2673,69 +2690,75 @@ export const posts: Post[] = [
   },
   {
     slug: "igf-1-lr3-research-guide",
-    title: "IGF-1 LR3: The Complete Research Guide",
+    ruo: true,
+    title: "IGF-1 LR3: A Research Literature Summary",
     excerpt:
-      "An engineered analog built to outlast native IGF-1 in circulation — and the same mitogenic signaling that makes it interesting for muscle research is the reason it deserves a genuinely honest safety section.",
-    category: "Growth & Performance",
+      "An engineered 83-residue analog of insulin-like growth factor 1. What laboratory studies have measured — IGF-binding-protein escape and potency in cultured cells — and what is still unknown.",
+    category: "GH-Axis Peptides",
     date: "July 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "IGF-1 LR3 is not a naturally occurring peptide — it's an engineered analog, built specifically to solve a stability problem native IGF-1 has. That engineering choice is also directly connected to why this compound needs a more careful safety conversation than most on this site.",
+        text: "IGF-1 LR3 (Long R3 IGF-I) is not a natural peptide. It was engineered in Adelaide in the early 1990s as a laboratory reagent for studying how insulin-like growth factor 1 (IGF-1) acts, and it is still used that way in cell culture. This summary covers how it was designed, what laboratory studies have measured, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is IGF-1 LR3?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "IGF-1 LR3 (Long R3 IGF-1) is a synthetic analog of insulin-like growth factor 1, first characterized by Francis et al. in 1992. It carries two modifications from native IGF-1: an arginine substitution at position 3 (replacing glutamic acid), and a 13-amino-acid N-terminal extension.",
+        text: "IGF-1 LR3 is an 83-residue polypeptide (molecular formula C400H625N111O115S9, molecular weight 9117.6 g/mol, CAS 143045-27-6). It is the 70-residue human IGF-1 sequence with arginine in place of glutamic acid at position 3, preceded by a 13-residue N-terminal extension: the first 11 residues of methionyl porcine growth hormone followed by Val-Asn. Its developers named it Long [Arg3]-IGF-I.",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "Native IGF-1 is tightly bound by IGF binding proteins (IGFBPs) in circulation, which limits its free, active concentration and its functional half-life to minutes. LR3's structural modifications reduce IGFBP binding by roughly 100- to 1,000-fold while preserving full affinity for the IGF-1 receptor — extending its functional half-life from minutes to approximately 20–30 hours. Receptor activation triggers two major downstream pathways: PI3K/Akt, which drives protein synthesis, and MAPK/ERK, which drives cell proliferation.",
+        text: "In circulation and in many cell cultures, IGF-1 is held by IGF-binding proteins (IGFBPs), which limit how much of it can reach the IGF-1 receptor. King and colleagues (1992) showed that replacing Glu-3 with Arg or Gly made IGF-1 bind very poorly to IGF-binding protein-2 while binding the type-1 receptor only slightly less well, and concluded that reduced IGFBP binding explains the analogs' greater potency.",
       },
-      { type: "h2", text: "What the Research Shows" },
+      {
+        type: "p",
+        text: "Francis and colleagues (1992) added the N-terminal extension and compared the resulting \"Long\" analogs. In L6 rat myoblasts, all of them were more potent than IGF-1 at stimulating protein and DNA synthesis and at inhibiting protein breakdown. In cell lines that secrete IGFBPs, Long [Arg3]-IGF-I was the most potent; in chicken embryo fibroblasts, which secrete no detectable IGFBPs, it was less potent than IGF-1. That pattern is the evidence that its potency comes from escaping the binding proteins, not from a stronger receptor interaction.",
+      },
+      {
+        type: "callout",
+        text: "These findings come from cultured cell lines and binding assays. They describe how IGF-1 LR3 behaves in those systems. They are not evidence of any effect in people.",
+      },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "Reduced IGFBP binding and extended half-life relative to native IGF-1, its defining engineered property",
-          "PI3K/Akt/mTOR pathway activation linked to increased muscle protein synthesis in preclinical models",
-          "MAPK/ERK pathway activation, associated with cell proliferation broadly, not muscle tissue specifically",
+          "Arg-3 and Gly-3 substitutions: very poor binding to IGF-binding protein-2, near-normal receptor binding, in rat L6 myoblasts (King et al., 1992)",
+          "Long analogs more potent than IGF-1 at protein and DNA synthesis and at inhibiting protein breakdown in L6 myoblasts (Francis et al., 1992)",
+          "Potency advantage present in IGFBP-secreting cell lines and absent in chicken embryo fibroblasts, which secrete none (Francis et al., 1992)",
+          "The IGF-1 receptor is described as crucial for tumour transformation and malignant-cell survival, and only partly involved in normal cell growth (Larsson et al., 2005, review)",
         ],
       },
+      { type: "h2", text: "Open Questions" },
       {
-        type: "callout",
-        text: "The same MAPK/ERK proliferative signaling that makes IGF-1 LR3 interesting for muscle-growth research is not muscle-specific — it's a general cell-proliferation pathway. This is the mechanistic basis for the safety section below, not a separate concern.",
+        type: "ul",
+        items: [
+          "Tumour biology: the IGF-1 receptor is central to tumour transformation and malignant-cell survival in the cancer literature (Larsson et al., 2005), and IGF-1 LR3 was built to reach that receptor more easily. That needs weighing in any experimental system that includes transformed cells.",
+          "Tissue selectivity: the receptor is widely expressed, so effects measured in one cell type say little about others.",
+          "Most of the primary characterisation is from the original 1990s work; later papers mostly use IGF-1 LR3 as a reagent rather than studying it directly.",
+        ],
       },
-      { type: "h2", text: "Safety Context: IGF-1 Signaling and Cancer Risk" },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "IGF-1 stimulates mitosis and inhibits apoptosis (programmed cell death) — a combination that, in epidemiological research, is associated with increased risk of several cancers. Pooled analyses of prospective studies have linked circulating IGF-1 levels to prostate, pre-menopausal breast, colorectal, uterine, bladder, and ovarian cancer risk. Signaling through the IGF-1 receptor is also directly implicated in tumor cell proliferation in laboratory cancer models.",
-      },
-      {
-        type: "callout",
-        text: "This is a real, literature-documented signal about the IGF-1 pathway itself — not a claim that IGF-1 LR3 specifically causes cancer, which hasn't been studied. LR3 was engineered to be more potent and longer-lasting than native IGF-1, which is exactly the property that makes this pathway-level safety signal relevant to it, not less relevant.",
-      },
-      { type: "h2", text: "Where to Source IGF-1 LR3 for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the IGF-1 LR3 product page",
-        productSlug: "igf-1-lr3",
+        text: "IGF-1 LR3 is not approved by the FDA for any use, and it was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies IGF-1 LR3 as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Why is IGF-1 LR3 more potent than regular IGF-1?",
-            a: "Its structural modifications reduce binding to IGF binding proteins (IGFBPs) by roughly 100- to 1,000-fold while keeping full receptor affinity, extending its functional half-life from minutes to 20–30 hours — a stability advantage, not a different mechanism.",
+            q: "What does \"LR3\" mean?",
+            a: "\"Long\" for the 13-residue N-terminal extension, and \"R3\" for arginine at position 3 of the IGF-1 sequence, where human IGF-1 has glutamic acid.",
           },
           {
-            q: "Does using IGF-1 LR3 increase cancer risk?",
-            a: "This hasn't been directly studied for IGF-1 LR3 specifically. What is well-documented is that the IGF-1 signaling pathway itself — mitosis stimulation and apoptosis inhibition — is epidemiologically associated with several cancers. That's a pathway-level finding worth taking seriously, not a proven outcome for this specific analog.",
+            q: "Why is IGF-1 LR3 more potent than IGF-1 in cell culture?",
+            a: "Because it binds IGF-binding proteins very poorly, more of it reaches the IGF-1 receptor. Where cells secrete no binding proteins, the advantage disappears (Francis et al., 1992).",
+          },
+          {
+            q: "What kind of evidence exists for IGF-1 LR3?",
+            a: "Binding assays and cell-culture potency studies from the original development work, and its use as a laboratory reagent since. No laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -2743,26 +2766,34 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Francis GL, et al. \"Novel recombinant fusion protein analogues of insulin-like growth factor (IGF)-I indicate the relative importance of IGF-binding protein and receptor binding for enhanced biological potency.\" J Mol Endocrinol, 1992. PMID 1601853.",
+          "1. Francis GL, Ross M, Ballard FJ, et al. \"Novel recombinant fusion protein analogues of insulin-like growth factor (IGF)-I indicate the relative importance of IGF-binding protein and receptor binding for enhanced biological potency.\" Journal of Molecular Endocrinology. 1992;8(3):213-223. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/1378742/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. \"Insulin-like growth factor 1 (IGF1), IGF binding protein 3 (IGFBP3), and breast cancer risk: pooled individual data analysis of 17 prospective studies.\" PMC. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3113287/", text: "ncbi.nlm.nih.gov", external: true },
+          "2. King R, Wells JR, Krieg P, et al. \"Production and characterization of recombinant insulin-like growth factor-I (IGF-I) and potent analogues of IGF-I, with Gly or Arg substituted for Glu3, following their expression in Escherichia coli as fusion proteins.\" Journal of Molecular Endocrinology. 1992;8(1):29-41. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/1311930/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"Role of insulin-like growth factor 1 receptor signalling in cancer.\" PMC. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2361813/", text: "ncbi.nlm.nih.gov", external: true },
+          "3. Larsson O, Girnita A, Girnita L. \"Role of insulin-like growth factor 1 receptor signalling in cancer.\" British Journal of Cancer. 2005;92:2097-2101. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/15956962/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. PubChem. Substance record for IGF-1 LR3 (SID 381123731). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/substance/381123731", text: "pubchem.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -3175,71 +3206,76 @@ export const posts: Post[] = [
   },
   {
     slug: "mots-c-research-guide",
-    title: "MOTS-c: The Complete Research Guide",
+    ruo: true,
+    title: "MOTS-c: A Research Literature Summary",
     excerpt:
-      "A peptide hidden inside mitochondrial DNA itself, studied for AMPK-driven metabolic effects — and one of six peptides a July 2026 FDA panel voted to expand access to.",
-    category: "Longevity & Wellness",
+      "A 16-residue peptide encoded in mitochondrial DNA. What laboratory studies have measured — folate-cycle inhibition, AICAR accumulation and AMPK activation in cells and mice — and what is still unknown.",
+    category: "Mitochondrial & Metabolic",
     date: "July 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "MOTS-c has an unusual origin story among research peptides: it isn't encoded in nuclear DNA at all. It's produced from a small open reading frame hidden inside the mitochondrial 12S rRNA gene — a discovery that reframed mitochondria as more than an energy factory.",
+        text: "MOTS-c is unusual among research peptides because it is encoded in mitochondrial DNA rather than in the cell nucleus. It was described in 2015 by Changhan Lee, Pinchas Cohen and colleagues at the University of Southern California. This summary covers what laboratory studies have measured, how strong the evidence is, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is MOTS-c?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "MOTS-c (mitochondrial open reading frame of the 12S rRNA-c) is a 16-amino-acid peptide encoded within mitochondrial DNA rather than the cell nucleus, giving it a direct structural link to cellular energy status.",
+        text: "MOTS-c (mitochondrial open reading frame of the 12S rRNA-c) is the 16-residue peptide Met-Arg-Trp-Gln-Glu-Met-Gly-Tyr-Ile-Phe-Tyr-Pro-Arg-Lys-Leu-Arg (MRWQEMGYIFYPRKLR; molecular formula C101H152N28O22S2, molecular weight 2174.6 g/mol, CAS 1627580-64-6). Its sequence sits inside a short open reading frame in the mitochondrial 12S rRNA gene, MT-RNR1.",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "The foundational 2015 Cell Metabolism study found MOTS-c inhibits the folate cycle and its linked de novo purine biosynthesis pathway, which drives a greater than 20-fold increase in endogenous AICAR — a natural AMPK activator. That AMPK activation upregulates GLUT4 expression in skeletal muscle, improving glucose uptake. In treated mice, this prevented high-fat-diet-induced weight gain and insulin resistance, and separately prevented age-dependent insulin resistance.",
+        text: "The founding study (Lee et al., Cell Metabolism, 2015) reported that MOTS-c inhibits the folate cycle and the de novo purine synthesis tethered to it, which leads to activation of AMPK, a cellular energy sensor. In HEK293 cells engineered to overexpress MOTS-c, the purine intermediate AICAR, itself an AMPK activator, accumulated to more than 20 times control levels. The authors identified skeletal muscle as its main target organ.",
       },
-      { type: "h2", text: "What the Preclinical Research Shows" },
       {
-        type: "ul",
-        items: [
-          "AMPK-pathway activation via a >20-fold increase in endogenous AICAR",
-          "GLUT4 upregulation in skeletal muscle, improving glucose uptake",
-          "Prevention of high-fat-diet-induced obesity and insulin resistance in mouse models",
-          "Prevention of age-dependent insulin resistance in aging mouse models",
-          "Reduced sphingolipid, monoacylglycerol, and dicarboxylate metabolism pathways — pathways normally elevated in obesity and type 2 diabetes",
-        ],
+        type: "p",
+        text: "In the same paper, mice fed a high-fat diet and given MOTS-c showed AMPK activation and higher GLUT4 expression in skeletal muscle. The authors also reported effects on diet-induced weight gain and on insulin sensitivity in those mice, and on age-dependent insulin sensitivity in older mice.",
       },
       {
         type: "callout",
-        text: "MOTS-c's mechanism is well-characterized at the molecular and animal-model level. Human trial data remains early — the metabolic effects described above have not been established in human clinical trials.",
+        text: "These findings come from cultured cells and mice. They describe what MOTS-c does to metabolic pathways and measurements in those models. They are not evidence of any effect in people.",
+      },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Folate-cycle and de novo purine synthesis inhibition, leading to AMPK activation (Lee et al., 2015)",
+          "AICAR above 20 times control levels in HEK293 cells overexpressing MOTS-c (Lee et al., 2015)",
+          "AMPK activation and GLUT4 expression in skeletal muscle of high-fat-diet mice (Lee et al., 2015)",
+          "Diet-induced weight gain and insulin sensitivity measured in high-fat-diet and aging mouse models (Lee et al., 2015)",
+          "Later reviews summarise its role in muscle and fat metabolism across rodent studies (Lee et al., 2016; Gao et al., 2023)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Receptor: how MOTS-c acts on cells, and whether it has a receptor at the cell surface, is not established.",
+          "Model gap: the core findings come from cell lines and mice; how well they carry over to other species is unknown.",
+          "Endogenous role: how much circulating MOTS-c normally varies, and what controls its release from mitochondria, are still being worked out.",
+        ],
       },
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "MOTS-c was one of seven peptides FDA's Pharmacy Compounding Advisory Committee (PCAC) reviewed on July 23–24, 2026 for the Section 503A Bulk Drug Substances List — the same meeting that reviewed BPC-157, TB-500, and Epitalon. FDA staff recommended against all seven; the committee voted narrowly to recommend MOTS-c anyway, one of six peptides the panel backed — only Emideltide was voted down.",
-      },
-      {
-        type: "callout",
-        text: "This is a non-binding recommendation, not an approval. Formal rulemaking, if FDA pursues it, could take until 2027 or 2028. MOTS-c remains not FDA-approved for any human use today.",
-      },
-      { type: "h2", text: "Where to Source MOTS-c for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the MOTS-c product page",
-        productSlug: "mots-c",
+        text: "MOTS-c is not approved by the FDA for any use. MOTS-c-related bulk drug substances were reviewed at the FDA Pharmacy Compounding Advisory Committee meeting on July 23, 2026, as candidates for the 503A bulk drug substances list, and the committee voted to recommend it. The vote is advisory and not binding, and FDA had taken no final action as of this writing. Aura Protocols supplies MOTS-c as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "How is MOTS-c different from other metabolic peptides on this site?",
-            a: "It's encoded directly in mitochondrial DNA rather than the cell nucleus — a structurally distinct origin from peptides like GHK-Cu or the GH secretagogues. Its studied mechanism (AMPK activation via AICAR) is also distinct from GLP-1 appetite-suppression pathways.",
+            q: "Where is MOTS-c encoded?",
+            a: "In mitochondrial DNA, inside a short open reading frame of the 12S rRNA gene (MT-RNR1), rather than in the cell nucleus.",
+          },
+          {
+            q: "What kind of evidence exists for MOTS-c?",
+            a: "Cell-culture and mouse studies of metabolic pathways, led by the 2015 Cell Metabolism paper, plus reviews of that work. No laboratory result here shows an effect in people.",
           },
           {
             q: "Is MOTS-c FDA-approved?",
-            a: "No. A July 2026 FDA advisory committee voted to recommend it for the compounding-eligible substances list, over FDA staff's own objection, but that's a non-binding recommendation, not an approval.",
+            a: "No. A July 2026 FDA advisory committee voted to recommend it for the 503A bulk drug substances list; that vote is advisory and is not an approval.",
           },
         ],
       },
@@ -3247,34 +3283,43 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Lee C, et al. \"The Mitochondrial-Derived Peptide MOTS-c Promotes Metabolic Homeostasis and Reduces Obesity and Insulin Resistance.\" Cell Metabolism, 2015. ",
-          { href: "https://www.cell.com/cell-metabolism/fulltext/S1550-4131(15)00061-3", text: "cell.com", external: true },
+          "1. Lee C, Zeng J, Drew BG, et al. \"The mitochondrial-derived peptide MOTS-c promotes metabolic homeostasis and reduces obesity and insulin resistance.\" Cell Metabolism. 2015;21(3):443-454. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/25738459/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. \"MOTS-c: A novel mitochondrial-derived peptide regulating muscle and fat metabolism.\" PubMed. ",
+          "2. Lee C, Kim KH, Cohen P. \"MOTS-c: A novel mitochondrial-derived peptide regulating muscle and fat metabolism.\" Free Radical Biology and Medicine. 2016;100:182-187. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/27216708/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"MOTS-c Functionally Prevents Metabolic Disorders.\" PubMed. ",
+          "3. Gao Y, Wei X, Wei P, et al. \"MOTS-c Functionally Prevents Metabolic Disorders.\" Metabolites. 2023;13. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/36677050/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "4. Stone W. \"FDA panel supports broadening access to peptides popular on the gray market.\" NPR, July 23–24, 2026. ",
+          "4. UniProt. Mitochondrial-derived peptide MOTS-c (A0A0C5B5G6). ",
+          { href: "https://www.uniprot.org/uniprotkb/A0A0C5B5G6/entry", text: "uniprot.org", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. FDA. \"July 23-24, 2026: Meeting of the Pharmacy Compounding Advisory Committee.\" ",
+          { href: "https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026", text: "fda.gov", external: true },
+          " Vote reported by NPR, July 23, 2026: ",
           { href: "https://www.npr.org/2026/07/23/nx-s1-5903202/fda-peptides-restrictions", text: "npr.org", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -4010,6 +4055,7 @@ export const posts: Post[] = [
   // to animals or people, no human outcomes, no product links, no sourcing section.
   {
     slug: "semax-research-guide",
+    ruo: true,
     title: "Semax: A Research Literature Summary",
     excerpt:
       "A synthetic heptapeptide built from the ACTH(4–7) fragment plus a Pro-Gly-Pro tail. What laboratory studies have measured — neurotrophin gene expression, monoamine turnover and ischemia transcriptomics in rodents — and what is still unknown.",
@@ -4146,6 +4192,7 @@ export const posts: Post[] = [
   },
   {
     slug: "selank-research-guide",
+    ruo: true,
     title: "Selank: A Research Literature Summary",
     excerpt:
       "A synthetic heptapeptide: the tetrapeptide tuftsin extended with Pro-Gly-Pro. What laboratory studies have measured — GABAergic gene expression, GABA receptor binding and immune-gene expression in rodents — and what is still unknown.",
