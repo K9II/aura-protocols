@@ -1,5 +1,5 @@
 import { Chapter, Example, P, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
-import { EXAMPLE_CODE, EXAMPLE_CODE_PCT, vipExample } from "@/components/admin/guide/example";
+import { EXAMPLE_CODE, EXAMPLE_CODE_PCT, EXAMPLE_PACK_PCT, vipExample } from "@/components/admin/guide/example";
 import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
 import { CAP_MAX_PCT, CAP_MIN_PCT } from "@/lib/discounts/rules";
 import { CODE_DISCOUNT_PCT } from "@/lib/partners/tiers";
@@ -55,7 +55,7 @@ export default function Discounts({ capPct }: { capPct: number }) {
             </tbody>
           </table>
           <P>
-            The 10-pack gets {EXAMPLE_CODE_PCT}% <b>instead of</b> its 20% pack price, not {EXAMPLE_CODE_PCT + 20}%.{" "}
+            The 10-pack gets {EXAMPLE_CODE_PCT}% <b>instead of</b> its {EXAMPLE_PACK_PCT}% pack price, not {EXAMPLE_CODE_PCT + EXAMPLE_PACK_PCT}%.{" "}
             {ex.capped
               ? <>That would be {EXAMPLE_CODE_PCT}% off list, over the {capPct}% maximum, so checkout trims it and shows &quot;capped at {capPct}%&quot;.</>
               : <>The total discount is {ex.offPct}% of list, under the {capPct}% maximum.</>}

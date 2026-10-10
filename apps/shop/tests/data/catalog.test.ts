@@ -44,9 +44,9 @@ describe("catalog integrity", () => {
     }
   });
 
-  it("offers 2 / 5 / 10-vial packs at 5 / 10 / 20% off, and no single vial", () => {
+  it("offers 2 / 5 / 10-vial packs at 5 / 10 / 15% off, and no single vial", () => {
     for (const c of compounds) {
-      expect(c.packDiscounts, c.slug).toEqual([{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }]);
+      expect(c.packDiscounts, c.slug).toEqual([{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 15 }]);
     }
   });
 

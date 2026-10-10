@@ -90,7 +90,7 @@ describe("catalog helpers", () => {
     expect(packOptions(bpc, "10mg")).toEqual([
       { qty: 2, pct: 5, packUsd: 150.1, listUsd: 158, perVialUsd: 75.05, perMgUsd: 7.51, totalLabel: "20 mg" },
       { qty: 5, pct: 10, packUsd: 355.5, listUsd: 395, perVialUsd: 71.1, perMgUsd: 7.11, totalLabel: "50 mg" },
-      { qty: 10, pct: 20, packUsd: 632, listUsd: 790, perVialUsd: 63.2, perMgUsd: 6.32, totalLabel: "100 mg" },
+      { qty: 10, pct: 15, packUsd: 671.5, listUsd: 790, perVialUsd: 67.15, perMgUsd: 6.72, totalLabel: "100 mg" },
     ]);
   });
 

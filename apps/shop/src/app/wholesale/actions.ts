@@ -17,7 +17,7 @@ import { RESEARCH_FIELDS, RESEARCH_ORG_MAX, RESEARCH_REQUIRED, RESEARCH_SAVE_FAI
 import { saveResearchVerification } from "@/lib/account/research-data";
 import { bookkeep, requestIp, requestIpHash } from "@/lib/checkout-shared";
 import { enableWholesale, getWholesaleSettings } from "@/lib/wholesale/data";
-import { canCancelWholesale, cutoffFor, kitRows, MAX_KITS_PER_LINE, priceWholesale, type WholesaleSettings } from "@/lib/wholesale/rules";
+import { canCancelWholesale, cutoffFor, kitRows, MAX_KITS_PER_LINE, MIN_KITS_PER_STRENGTH, priceWholesale, type WholesaleSettings } from "@/lib/wholesale/rules";
 import { refundCard } from "@/lib/refunds/stripe";
 import { orderHasFailedStrength } from "@/lib/wholesale/runs";
 import { runByCutoff, runLines } from "@/lib/wholesale/runs-data";
@@ -82,6 +82,8 @@ const startSchema = z.object({
   humanToken: z.string().max(4096).optional(),
 });
 
+const PER_STRENGTH_ERROR = `Each strength needs at least ${MIN_KITS_PER_STRENGTH} kits — add a kit or remove that strength.`;
+
 export type StartWholesaleResult = { url?: string; error?: string; rejected?: Rejection[] };
 
 export async function startWholesaleCheckoutAction(input: unknown): Promise<StartWholesaleResult> {
@@ -98,6 +100,9 @@ export async function startWholesaleCheckoutAction(input: unknown): Promise<Star
   const { lines, ship, humanToken } = parsed.data;
   const kitCount = lines.reduce((n, l) => n + l.kits, 0);
   if (kitCount < s.minKits) return { error: `Wholesale orders need at least ${s.minKits} kits — add ${s.minKits - kitCount} more.` };
+  const perStrength = new Map<string, number>();
+  for (const l of lines) perStrength.set(`${l.slug}/${l.variantId}`, (perStrength.get(`${l.slug}/${l.variantId}`) ?? 0) + l.kits);
+  if ([...perStrength.values()].some((n) => n < MIN_KITS_PER_STRENGTH)) return { error: PER_STRENGTH_ERROR };
 
   const human = await verifyHumanCheck(humanToken, await requestIp(), new URL(siteUrl()).hostname);
   if (!human.ok) {
@@ -119,6 +124,7 @@ export async function startWholesaleCheckoutAction(input: unknown): Promise<Star
   if (quote.rejected.length) return { error: "Some kits can't be ordered right now — they've been flagged below.", rejected: quote.rejected };
   if (quote.items.length === 0) return { error: "Add at least one kit." };
   if (quote.belowMinimum) return { error: `Wholesale orders need at least ${s.minKits} kits — add ${quote.kitsToMinimum} more.` };
+  if (quote.short.length) return { error: PER_STRENGTH_ERROR };
 
   const adapter = getCommerceAdapter();
   const { failed } = await closeOpenCheckouts(customer.id, adapter, { all: false });

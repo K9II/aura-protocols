@@ -2,7 +2,7 @@
 // order earns at each volume tier, from the live catalog price, the supplier box
 // prices synced from AIOS, the lot-cost defaults in shop_settings and the AIOS
 // reference figures (3PL, GLP-1 processor, lab price per strength, competitors). Pure.
-import { KIT_VIALS, tierFor, type KitRow, type Tier } from "@/lib/wholesale/rules";
+import { KIT_VIALS, MIN_KITS_PER_STRENGTH, tierFor, type KitRow, type Tier } from "@/lib/wholesale/rules";
 
 // Card fees on the two wholesale charges (deposit + balance).
 export const CARD_PCT = 0.029;
@@ -61,7 +61,7 @@ export function kitCostCents(boxCents: number, c: CostInputs): number {
 export const labFor = (key: string, c: Pick<CostInputs, "labPerStrength" | "lotTestCents">) => c.labPerStrength?.[key] ?? c.lotTestCents;
 
 // Per kit, with the 3PL for the smallest order shared by its kits (and, for
-// `worst`, the strength's whole lot test).
+// `worst`, the strength's lot test shared by the fewest kits allowed per strength).
 function tierMargin(pct: number, kitListCents: number, costCents: number, glp: boolean, c: CostInputs, extraCents = 0): TierMargin {
   const revenueCents = Math.round(kitListCents * (1 - pct / 100));
   const shipShare = orderFulfillmentCents(c.minKits, c) / Math.max(1, c.minKits);
@@ -75,7 +75,7 @@ function supplierCase(supplier: string, boxCents: number, kitListCents: number, 
   return {
     supplier, boxCents, costCents,
     tiers: c.tiers.map((t) => tierMargin(t.pct, kitListCents, costCents, glp, c)),
-    worst: tierMargin(lowestDiscount, kitListCents, costCents, glp, c, labCents),
+    worst: tierMargin(lowestDiscount, kitListCents, costCents, glp, c, labCents / MIN_KITS_PER_STRENGTH),
   };
 }
 

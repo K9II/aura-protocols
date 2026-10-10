@@ -1,5 +1,5 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
-import { KIT_VIALS } from "@/lib/wholesale/rules";
+import { KIT_VIALS, MIN_KITS_PER_STRENGTH } from "@/lib/wholesale/rules";
 import { BALANCE_REMINDER_DAY, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS } from "@/lib/wholesale/runs";
 
 const days = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
@@ -35,7 +35,7 @@ export default function Wholesale() {
           <Step>In <Ui>Customers</Ui>, open the customer and choose <Ui>Turn off wholesale…</Ui> with a reason. Orders already placed carry on. <Ui>Allow wholesale again</Ui> undoes it.</Step>
         </Task>
         <Task title="Change prices, the minimum or the schedule">
-          <Step>In <Ui>Wholesale</Ui> choose <Ui>Settings</Ui>: ordering on or off, the minimum kits, the volume tiers, the deposit, the balance days, how often runs close, the next order-by date and the ship estimate. Orders already placed keep their prices.</Step>
+          <Step>In <Ui>Wholesale</Ui> choose <Ui>Settings</Ui>: ordering on or off, the minimum kits per order, the volume tiers, the deposit, the balance days, how often runs close, the next order-by date and the ship estimate. Orders already placed keep their prices.</Step>
           <Step>Which strengths are offered as kits is set in <Ui>Catalog &amp; lots</Ui>: the strength&apos;s ⋯ menu, <Ui>Sell as a wholesale kit</Ui> or <Ui>Stop selling as a kit</Ui>.</Step>
         </Task>
       </>}
@@ -53,7 +53,7 @@ export default function Wholesale() {
       watch={[
         <>Link the right lot: check the lot number on the certificate against the boxes before choosing <Ui>Pass</Ui>. Passing can&apos;t be undone.</>,
         <>If one payment of a wholesale order is refunded in the Stripe dashboard you get an alert; refund the order from <Ui>Orders</Ui> so both payments and the stock are handled.</>,
-        <>The minimum is per order, not per strength: an order at the minimum can be all different strengths, each paying its own lot test. <Ui>Margins</Ui> with the slider at 1 shows that worst case.</>,
+        <>Every strength in an order needs at least {MIN_KITS_PER_STRENGTH} kits, so no lot test is carried by a single kit; the order sheet adds and removes kits of a strength in steps that respect it. An order at the minimum can still be several strengths at {MIN_KITS_PER_STRENGTH} kits each, each paying its own lot test. <Ui>Margins</Ui> with the slider at {MIN_KITS_PER_STRENGTH} shows that worst case.</>,
         <>Keep ordering off in <Ui>Settings</Ui> until the payment processor approves the deposit and balance charges.</>,
       ]}
     />

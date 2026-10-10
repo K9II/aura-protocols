@@ -75,7 +75,7 @@ describe("VariantPicker", () => {
     expect(two).toHaveTextContent("$150.10");
     expect(two).toHaveTextContent(/save 5%/i);
     expect(screen.getByRole("button", { name: /^5 vials × 10 mg/ })).toHaveTextContent("$355.50");
-    expect(screen.getByRole("button", { name: /^10 vials × 10 mg/ })).toHaveTextContent("$632.00");
+    expect(screen.getByRole("button", { name: /^10 vials × 10 mg/ })).toHaveTextContent("$671.50");
   });
 
   it("shows the selected pack's price large, with per-vial and per-mg, and the total on the button", () => {
@@ -89,8 +89,8 @@ describe("VariantPicker", () => {
     fireEvent.click(screen.getByRole("button", { name: /^10 vials × 10 mg/ }));
     expect(screen.getByRole("button", { name: /^10 vials × 10 mg/ })).toHaveAttribute("aria-pressed", "true");
     expect(sel).toHaveTextContent("100 mg pack");
-    expect(sel).toHaveTextContent("$63.20/vial");              // 79 × 0.80
-    expect(screen.getByRole("button", { name: /add to cart — \$632\.00/i })).toBeInTheDocument();
+    expect(sel).toHaveTextContent("$67.15/vial");              // 79 × 0.85
+    expect(screen.getByRole("button", { name: /add to cart — \$671\.50/i })).toBeInTheDocument();
   });
 
   it("prices an IU strength per IU", () => {
