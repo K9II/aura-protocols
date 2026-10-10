@@ -36,5 +36,7 @@ describe("KitCards (wholesale option C)", () => {
     // featured order first: BPC-157, then Retatrutide
     expect([...container.querySelectorAll(".s-kc-nm")].slice(0, 2).map((n) => n.textContent)).toEqual(["BPC-157", "APro-G3RT (Retatrutide)"]);
     expect(screen.getByRole("link", { name: "See all 7 kits →" }).getAttribute("href")).toBe("/wholesale?step=order");
+    // each card links there too (and moves on hover, like the shop cards)
+    expect([...container.querySelectorAll(".s-kc-card a.s-kc-link")].map((l) => l.getAttribute("href"))).toEqual(Array(5).fill("/wholesale?step=order"));
   });
 });

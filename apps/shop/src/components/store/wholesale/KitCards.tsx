@@ -43,8 +43,8 @@ export default function KitCards({ rows, tiers, seeAllHref }: { rows: KitSheetRo
       <ul className={short ? "s-kc-grid s-kc-feat" : "s-kc-grid"}>
         {shown.map((r) => {
           const t = kitTitle(r);
-          return (
-            <li key={`${r.slug}/${r.variantId}`} className="s-kc-card" style={{ "--cls": color(r.chemicalClass) } as CSSProperties}>
+          const body = (
+            <>
               <div className="s-kc-tile"><KitBox title={t.title} strength={r.strength} art={r.art} width={220} /></div>
               <div className="s-kc-tag">
                 <span className="s-kc-c">{r.chemicalClass}</span>
@@ -54,6 +54,12 @@ export default function KitCards({ rows, tiers, seeAllHref }: { rows: KitSheetRo
                   <span><small>Volume price</small>{range}</span>
                 </span>
               </div>
+            </>
+          );
+          // With a destination the card is a link and moves on hover like the shop cards.
+          return (
+            <li key={`${r.slug}/${r.variantId}`} className="s-kc-card" style={{ "--cls": color(r.chemicalClass) } as CSSProperties}>
+              {seeAllHref ? <Link href={seeAllHref} className="s-kc-link">{body}</Link> : body}
             </li>
           );
         })}
