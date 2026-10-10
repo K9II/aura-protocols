@@ -148,6 +148,17 @@ export default function MoleculeViewer({ structure, className = "s-mol-stage" }:
       }
     };
 
+    // Size is fixed (Alvester, 2026-10-10): no wheel or pinch zoom. Stop those
+    // events before 3Dmol sees them; one-finger drag still rotates, and a wheel
+    // over the model scrolls the page instead of being swallowed.
+    const blockZoom = (e: Event) => {
+      if (e.type.startsWith("touch") && (e as TouchEvent).touches.length < 2) return;
+      e.stopImmediatePropagation();
+      e.stopPropagation();
+    };
+    const ZOOM_EVENTS = ["wheel", "DOMMouseScroll", "touchstart", "touchmove"] as const;
+    for (const t of ZOOM_EVENTS) el.addEventListener(t, blockZoom, { capture: true, passive: true });
+
     let started = false;
     const io = new IntersectionObserver((entries) => {
       inView = entries.some((e) => e.isIntersecting);
@@ -160,6 +171,7 @@ export default function MoleculeViewer({ structure, className = "s-mol-stage" }:
       cancelled = true;
       io.disconnect();
       document.removeEventListener("visibilitychange", syncSpin);
+      for (const t of ZOOM_EVENTS) el.removeEventListener(t, blockZoom, { capture: true });
       if (raf) cancelAnimationFrame(raf);
       viewer?.clear();
       // 3Dmol has no dispose() API and never removes the <canvas> it appends,

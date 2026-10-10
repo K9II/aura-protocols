@@ -756,6 +756,8 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-atc { display: block; width: 100%; text-align: center; margin-top: 24px; background: var(--ink); color: var(--paper); padding: 15px; font: 14px Georgia, serif; letter-spacing: .06em; text-transform: uppercase; border: 0; cursor: pointer; transition: background .25s; }
 .pharmacopoeia .s-atc:hover:not(:disabled) { background: var(--specimen); }
 .pharmacopoeia .s-atc:disabled { background: #8a8475; cursor: not-allowed; }
+/* cart: Continue shopping sits under Checkout, same size, outline style */
+.pharmacopoeia .s-cart-continue { display: block; width: 100%; text-align: center; margin-top: 10px; background: transparent; padding: 14px; font: 14px Georgia, serif; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
 /* Buy box: quantity stepper beside Add to cart (2026-10-02, option A) */
 .pharmacopoeia .s-buyrow { display: flex; gap: 10px; }
 .pharmacopoeia .s-buyrow .s-atc { margin-top: 0; flex: 1; }

@@ -53,7 +53,7 @@ export default async function HomePage() {
         </section>
 
         {/* last lot releases; hidden until the first lot is released */}
-        <LotRecord lots={homeRecord(live.lots)} variant="home" nowMs={currentMs()} />
+        <LotRecord lots={homeRecord(live.lots, new Set(featured.map((c) => c.slug)))} variant="home" nowMs={currentMs()} />
 
         <FromTheRecord />
 

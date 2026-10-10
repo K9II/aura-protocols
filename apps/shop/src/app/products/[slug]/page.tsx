@@ -146,7 +146,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <span key={e}><i style={{ background: ELEMENT_COLORS[e] }} />{ELEMENT_NAMES[e]}</span>
               ))}
             </p>
-            <p className="s-micro s-mol-hint">Drag to rotate · scroll to zoom</p>
+            <p className="s-micro s-mol-hint">Drag to rotate</p>
             <p className="s-about-refs">
               {panels.map((p) => (
                 <a key={p.id} className="p-link text-xs" href={p.ref} target="_blank" rel="noopener noreferrer">

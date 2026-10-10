@@ -143,6 +143,21 @@ describe("MoleculeViewer", () => {
     expect(rotate).toHaveBeenCalledWith(expect.any(Number), "y");
   });
 
+  it("size is fixed: wheel and two-finger pinch never reach the 3D viewer; one finger still does", async () => {
+    const { container } = render(<MoleculeViewer structure={bpc} />);
+    await waitFor(() => expect(viewer.render).toHaveBeenCalled());
+    const canvas = container.querySelector("canvas")!;
+    const seen = vi.fn();
+    for (const t of ["wheel", "touchstart"]) canvas.addEventListener(t, seen);
+    canvas.dispatchEvent(new Event("wheel", { bubbles: true }));
+    const pinch = new Event("touchstart", { bubbles: true }); Object.defineProperty(pinch, "touches", { value: [{}, {}] });
+    canvas.dispatchEvent(pinch);
+    expect(seen).not.toHaveBeenCalled();
+    const drag = new Event("touchstart", { bubbles: true }); Object.defineProperty(drag, "touches", { value: [{}] });
+    canvas.dispatchEvent(drag);
+    expect(seen).toHaveBeenCalledTimes(1);
+  });
+
   it("releases the WebGL context and removes the canvas on unmount", async () => {
     const loseContext = vi.fn();
     const glContext = { getExtension: vi.fn(() => ({ loseContext })) };

@@ -49,6 +49,6 @@ describe("LotRecord", () => {
     expect(document.querySelector(".s-rec-first")).toBeNull();
     unmount();
     render(<LotRecord lots={LOTS.slice(0, 1)} variant="product" nowMs={NOW} compoundName="Semax" />);
-    expect(screen.getByText(/Semax's first lot/)).toBeInTheDocument();
+    expect(screen.getByText(/The first Semax lot\./)).toBeInTheDocument();
   });
 });
