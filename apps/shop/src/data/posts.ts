@@ -590,98 +590,75 @@ export const posts: Post[] = [
   },
   {
     slug: "bpc-157-complete-guide",
-    title: "BPC-157: The Complete Research Guide",
+    ruo: true,
+    title: "BPC-157: A Research Literature Summary",
     excerpt:
-      "Mechanism of action, preclinical evidence, and regulatory status — every claim linked to its source.",
-    category: "Recovery",
+      "A synthetic 15-residue peptide from a sequence first found in gastric juice. What laboratory studies have measured — VEGFR2 signaling, tendon-fibroblast migration and growth hormone receptor expression — and what is still unknown.",
+    category: "Peptide Fragments",
     date: "July 2026",
-    readTime: "9 min read",
+    lastUpdated: "October 2026",
+    readTime: "6 min read",
     content: [
       {
         type: "intro",
-        text: "BPC-157 is one of the most searched research peptides for tissue repair. Here's what the preclinical literature actually shows — mechanism, evidence by tissue type, and current regulatory status — with the primary source for every claim.",
+        text: "BPC-157 has been studied since the 1990s, almost entirely in animal and cell-culture models. This summary covers what those laboratory studies measured, how strong the evidence is, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is BPC-157?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "BPC-157 (Body Protection Compound-157) is a synthetic pentadecapeptide — a 15-amino-acid sequence — derived from a partial sequence of a protective protein identified in human gastric juice. It has been studied since the 1990s, almost entirely in animal and cell-culture models.",
+        text: "BPC-157 is a synthetic pentadecapeptide, Gly-Glu-Pro-Pro-Pro-Gly-Lys-Pro-Ala-Asp-Asp-Ala-Gly-Leu-Val (molecular formula C62H98N16O22, molecular weight 1419.5 g/mol, CAS 137525-51-0). Its sequence is a partial sequence of a protein, \"body protection compound\", reported in human gastric juice.",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "The most consistently reproduced mechanism across the literature is activation of the VEGFR2 pathway, which drives angiogenesis — new blood vessel formation — through downstream Akt–eNOS signaling and nitric oxide production.",
+        text: "Angiogenesis signaling: Hsieh and colleagues (Journal of Molecular Medicine, 2017) reported that BPC-157 increased vessel density in the chick chorioallantoic membrane assay and in endothelial tube-formation assays, and increased blood-vessel number and VEGFR2 expression in a rat hind-limb ischemia model. In human vascular endothelial cells it raised VEGFR2 mRNA and protein (but not VEGF-A), promoted VEGFR2 internalisation, and activated VEGFR2–Akt–eNOS signaling; blocking endocytosis with dynasore suppressed those effects.",
       },
       {
         type: "p",
-        text: "In tendon fibroblasts specifically, BPC-157 activates the FAK–paxillin pathway, linked to increased fibroblast outgrowth from tendon explants, better cell survival under stress, and increased fibroblast migration — a proposed mechanism for its studied effects on tendon repair.",
+        text: "Tendon fibroblasts: Chang and colleagues (Journal of Applied Physiology, 2011) found that BPC-157 accelerated outgrowth of fibroblasts from rat Achilles tendon explants, increased their survival under hydrogen-peroxide stress and their migration, without directly changing proliferation, and increased FAK and paxillin phosphorylation. A follow-up (Molecules, 2014) found growth hormone receptor among the most up-regulated genes in those fibroblasts, with downstream JAK2 activation when growth hormone was added.",
       },
       {
         type: "callout",
-        text: "A 2025 paper proposes a further upstream mechanism — BPC-157 binding SH3 domains on Src-family kinases — based on computational modeling rather than lab experiments. Worth knowing this exists, but it hasn't been confirmed experimentally.",
+        text: "These findings come from cell culture, explants and animal models. They describe what BPC-157 does to signaling pathways and tissue measurements in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "What the Preclinical Research Shows" },
-      {
-        type: "p",
-        text: "All of the following is animal and cell-culture data. By tissue type, per a 2025 systematic review of the orthopaedic sports-medicine literature:",
-      },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "Tendon — accelerated fibroblast outgrowth and migration; increased growth hormone receptor expression in tendon fibroblasts",
-          "Muscle — improved healing outcomes reported across multiple animal injury models",
-          "Skin / wound healing — accelerated closure in both acute and chronic wound models",
-          "Gastrointestinal mucosa — restoration of blood supply and vascular perfusion in colitis models, the tissue BPC-157 was originally isolated from",
+          "VEGFR2 expression, internalisation and VEGFR2–Akt–eNOS activation in endothelial cells; vessel density in CAM and rat hind-limb models (Hsieh et al., 2017)",
+          "Tendon-fibroblast outgrowth, survival under oxidative stress and migration, with FAK–paxillin activation (Chang et al., 2011)",
+          "Growth hormone receptor up-regulation in tendon fibroblasts (Chang et al., 2014)",
+          "A 2025 systematic review of the orthopaedic literature found 36 eligible studies, 35 of them preclinical, and reported a half-life under 30 minutes with liver metabolism and renal clearance (Vasireddi et al., 2025)",
         ],
       },
-      { type: "h2", text: "Regulatory & Safety Status" },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Primary target: the receptor or binding partner through which BPC-157 starts these signaling changes has not been identified experimentally.",
+          "Stability: a reported half-life under 30 minutes sits awkwardly with effects measured hours or days later; what species is active in vivo is unresolved.",
+          "Concentration of authorship: much of the animal literature comes from a small number of groups, and independent replication is limited.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "BPC-157 was nominated in September 2023 for FDA's Category 2 list of bulk drug substances — the category for substances the agency says \"may present significant safety risks.\" That nomination was later withdrawn, which is what cleared the way for the review below: the substance became eligible to be formally evaluated for the opposite outcome — legal inclusion on FDA's list of substances compounding pharmacies can prepare.",
-      },
-      {
-        type: "h3",
-        text: "The July 23–24, 2026 FDA Advisory Vote",
-      },
-      {
-        type: "p",
-        text: "Over two days, FDA's Pharmacy Compounding Advisory Committee (PCAC) reviewed seven peptides — including BPC-157 — for possible addition to the Section 503A Bulk Drug Substances List, the roster licensed compounding pharmacies can legally prepare against a prescription. The specific use under review for BPC-157 was treating ulcerative colitis, an inflammatory bowel disease. FDA's own scientific staff told the committee there is a \"lack of evidence\" to support that use and noted the agency has already approved multiple drugs for ulcerative colitis. The committee voted in favor of expanding access anyway — one of six peptides (of seven reviewed) the panel backed; only Emideltide was voted down.",
-      },
-      {
-        type: "callout",
-        text: "This is a non-binding recommendation, not a rule change or an approval. FDA isn't required to follow PCAC's vote, though it typically does. If FDA moves forward, it happens through formal rulemaking that could take until 2027 or 2028 — this is not something that makes BPC-157 legally compoundable today. NPR's reporting on the vote is direct on this point: \"the decision to place the products on the FDA's official list for compounding doesn't come close to the standards for drug approval.\" As of this writing (July 26, 2026), nothing about BPC-157's actual legal status has changed — it remains not FDA-approved for any human use.",
-      },
-      {
-        type: "p",
-        text: "Worth knowing before weighting this vote too heavily: NPR reported that eight new PCAC members were seated ahead of this meeting, most with ties to the peptide industry, and that they voted almost uniformly to loosen restrictions — while FDA's own scientists recommended against all seven substances, citing a lack of reliable human safety and efficacy data. At least one panelist voted no specifically over that dynamic, saying she was \"concerned that we are responding to market induced demand rather than a decision based in solid science.\" We're reporting the vote as real news, not as new evidence that BPC-157 works or is safe for human use — those are separate questions the vote doesn't resolve.",
-      },
-      {
-        type: "p",
-        text: "None of this changes the underlying legal basis for \"Research Use Only\" labeling today: BPC-157 has never been reviewed or approved by FDA as a drug for any human use, and selling an unapproved drug for human use can implicate misbranding and adulteration law independent of its bulk-substance list status.",
-      },
-      {
-        type: "callout",
-        text: "FDA rulemaking and advisory outcomes change over time — this status was verified directly against fda.gov, NPR, and U.S. News reporting on 2026-07-26. If you're making a decision based on current regulatory status, re-verify it directly rather than relying on this page's snapshot.",
-      },
-      {
-        type: "p",
-        text: "Separately, a preclinical review reports no lethal dose was reached across the animal toxicity studies it surveyed. That's animal toxicology, not a human safety guarantee.",
-      },
-      { type: "h2", text: "Where to Source BPC-157 for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the BPC-157 product page",
-        productSlug: "bpc-157",
+        text: "BPC-157 is not approved by the FDA for any use. BPC-157-related bulk drug substances were reviewed at the FDA Pharmacy Compounding Advisory Committee meeting on July 23, 2026, as candidates for the 503A bulk drug substances list, and the committee voted to recommend it. The vote is advisory and not binding, and FDA had taken no final action as of this writing. Aura Protocols supplies BPC-157 as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is BPC-157 approved by the FDA for human use?",
-            a: "No. On July 23, 2026, an FDA advisory committee voted to recommend adding BPC-157 to the list of substances compounding pharmacies can legally prepare — specifically for treating ulcerative colitis, over FDA staff's own objection that the evidence doesn't support it. That's a non-binding recommendation, not an approval; formal FDA rulemaking, if it happens, could take until 2027 or 2028. As of today, BPC-157 remains not FDA-approved for any human use.",
+            q: "Where does the BPC-157 sequence come from?",
+            a: "It is a 15-residue partial sequence of \"body protection compound\", a protein reported in human gastric juice. The research material is made by peptide synthesis.",
+          },
+          {
+            q: "What kind of evidence exists for BPC-157?",
+            a: "Cell-culture, explant and animal studies; the 2025 systematic review counted 35 preclinical studies among 36 it included. No laboratory result here shows an effect in people.",
+          },
+          {
+            q: "Is BPC-157 FDA-approved?",
+            a: "No. A July 2026 FDA advisory committee voted to recommend it for the 503A bulk drug substances list; that vote is advisory and is not an approval.",
           },
         ],
       },
@@ -689,167 +666,117 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Vasireddi N, et al. \"Emerging Use of BPC-157 in Orthopaedic Sports Medicine.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/40756949/", text: "PubMed", external: true },
+          "1. Hsieh MJ, Liu HT, Wang CN, et al. \"Therapeutic potential of pro-angiogenic BPC157 is associated with VEGFR2 activation and up-regulation.\" Journal of Molecular Medicine. 2017;95(3):323-333. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/27847966/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Chang CH, et al. \"The promoting effect of pentadecapeptide BPC 157 on tendon fibroblasts.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/21030672/", text: "PubMed", external: true },
+          "2. Chang CH, Tsai WC, Lin MS, et al. \"The promoting effect of pentadecapeptide BPC 157 on tendon healing involves tendon outgrowth, cell survival, and cell migration.\" Journal of Applied Physiology. 2011;110(3):774-780. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/21030672/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"Gastric pentadecapeptide body protection compound BPC 157 and its role in accelerating musculoskeletal soft tissue healing.\" ",
-          { href: "https://link.springer.com/article/10.1007/s00441-019-03016-8", text: "Cell and Tissue Research", external: true },
+          "3. Chang CH, Tsai WC, Hsu YH, Pang JH. \"Pentadecapeptide BPC 157 enhances the growth hormone receptor expression in tendon fibroblasts.\" Molecules. 2014;19(11):19066-19077. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/25415472/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "4. \"BPC-157 and GHK-Cu in Wound Healing and Tissue Repair: A Review of Clinical Efficacy and Safety.\" ",
-          { href: "https://www.researchgate.net/publication/404069524", text: "ResearchGate", external: true },
+          "4. Vasireddi N, Hahamyan H, Salata MJ, et al. \"Emerging Use of BPC-157 in Orthopaedic Sports Medicine: A Systematic Review.\" HSS Journal. 2025;21(4):485-495. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/40756949/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "5. \"BPC-157 Binding to SH3 Domains and Activation of Src Family Kinases: In Silico Modeling.\" Preprint, not peer-reviewed. ",
-          { href: "https://www.researchgate.net/publication/398398323", text: "ResearchGate", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. \"Pentadecapeptide BPC 157 enhances the growth hormone receptor expression in tendon fibroblasts.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/25415472/", text: "PubMed", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "7. FDA. \"Substances in Compounding that May Present Significant Safety Risks.\" ",
-          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "FDA.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "8. Stone W. \"FDA panel supports broadening access to peptides popular on the gray market.\" NPR, July 23–24, 2026. ",
+          "5. FDA. \"July 23-24, 2026: Meeting of the Pharmacy Compounding Advisory Committee.\" ",
+          { href: "https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026", text: "fda.gov", external: true },
+          " Vote reported by NPR, July 23, 2026: ",
           { href: "https://www.npr.org/2026/07/23/nx-s1-5903202/fda-peptides-restrictions", text: "npr.org", external: true },
         ],
       },
       {
-        type: "p",
-        parts: [
-          "9. Smith-Schoenwalder C. \"FDA Committee Votes on These 7 Peptides.\" U.S. News & World Report, July 24, 2026. ",
-          { href: "https://www.usnews.com/news/national-news/articles/2026-07-24/fda-committee-votes-on-7-peptides-what-are-they", text: "usnews.com", external: true },
-        ],
-      },
-      {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "tb-500-complete-guide",
-    title: "TB-500 (Thymosin Beta-4): The Complete Research Guide",
+    ruo: true,
+    title: "TB-500 (Thymosin Beta-4 17–23): A Research Literature Summary",
     excerpt:
-      "Mechanism of action, preclinical evidence by tissue type, and current regulatory status — the actin-binding peptide most often paired with BPC-157 in recovery research.",
-    category: "Recovery",
+      "An N-acetylated heptapeptide matching the actin-binding region of thymosin beta-4. What laboratory studies of the fragment and of the full protein have measured, and why the two shouldn't be confused.",
+    category: "Peptide Fragments",
     date: "July 2026",
-    readTime: "8 min read",
+    lastUpdated: "October 2026",
+    readTime: "6 min read",
     content: [
       {
         type: "intro",
-        text: "TB-500 is the synthetic research fragment of Thymosin Beta-4, a naturally occurring 43-amino-acid peptide present in nearly every human cell. Unlike BPC-157's gastric origin, Thymosin Beta-4's native role is as an actin-regulating protein — and that mechanism is what the tendon, muscle, and cardiac repair literature keeps coming back to.",
+        text: "TB-500 is a short synthetic fragment of thymosin beta-4 (Tβ4), a 43-residue protein found in most cell types. Most of the published research is on full-length Tβ4, not on the fragment, and the two are often treated as the same thing. This summary keeps them apart: what the fragment is, what studies of Tβ4 and of its fragments have measured, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is TB-500?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "TB-500 refers to the synthetic version of the biologically active region of Thymosin Beta-4 (Tβ4), a peptide first isolated from thymus tissue and now known to be expressed across most cell types, particularly at sites of tissue injury. It is not a novel discovery so much as a synthesized fragment of a protein the body already produces and upregulates during wound repair.",
+        text: "TB-500 is the N-acetylated heptapeptide Ac-Leu-Lys-Lys-Thr-Glu-Thr-Gln (Ac-LKKTETQ; molecular formula C38H68N10O14, molecular weight 889.0 g/mol, CAS 885340-08-9). The sequence LKKTETQ is residues 17–23 of thymosin beta-4, the segment described as its central actin-binding site (Ho et al., 2012).",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "Thymosin Beta-4's core, most-replicated mechanism is actin regulation: it binds monomeric G-actin and prevents its polymerization into filaments, which governs cell migration, lamellipodia formation, and cytokinesis. Because nearly every form of tissue repair depends on cells migrating into the injury site, this single mechanism plausibly explains its broad footprint across tendon, muscle, skin, and cardiac research.",
+        text: "Thymosin beta-4 is a major intracellular G-actin-sequestering protein: it binds actin monomers and holds them out of filaments, which bears on cell migration. Studies of the full protein report extracellular effects as well. Tokura and colleagues (Journal of Biochemistry, 2011) found Tβ4 mRNA up-regulated early in regenerating mouse skeletal muscle, and Tβ4 and its sulphoxide form increased chemotaxis and wound closure of C2C12 myoblasts. Srivastava and colleagues (2007) reported that Tβ4 formed a complex with PINCH and integrin-linked kinase, activating Akt in cardiomyocytes, and measured myocyte survival and cardiac function after coronary artery ligation in mice.",
       },
+      {
+        type: "p",
+        text: "Work on fragments is thinner. Dettin and colleagues (Cellular Immunology, 2011) synthesised three Tβ4 fragments overlapping the central actin-binding site and found that each kept the native conformation and showed pro-angiogenic effects in vitro and in vivo, with activity modulated by the N-terminal region of the protein. Ho and colleagues (2012) developed a mass-spectrometry method that detects Ac-LKKTETQ and its metabolites in horse plasma and urine, the first measurement of the fragment in post-administration samples.",
+      },
+      {
+        type: "callout",
+        text: "These findings come from cell culture, mouse models and equine analytical work, and most of them are about full-length thymosin beta-4 rather than the TB-500 fragment. They are not evidence of any effect in people.",
+      },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "Actin-binding — regulates the cytoskeletal dynamics that drive cell migration into injured tissue",
-          "VEGF and angiopoietin-1 induction — promotes angiogenesis, new blood vessel formation to meet healing tissue's metabolic demand",
-          "NF-κB downregulation — a proposed anti-inflammatory pathway relevant to chronic joint and soft-tissue injury",
-          "Akt/mTOR activation — linked to cell survival and reduced apoptosis in injured tissue",
+          "Full-length Tβ4: up-regulated in regenerating mouse muscle; chemotaxis and wound closure of C2C12 myoblasts (Tokura et al., 2011)",
+          "Full-length Tβ4: PINCH–ILK complex and Akt activation in cardiomyocytes; cardiac measurements after coronary ligation in mice (Srivastava et al., 2007)",
+          "Tβ4 fragments overlapping the actin-binding site: native conformation and pro-angiogenic activity in vitro and in vivo (Dettin et al., 2011)",
+          "Ac-LKKTETQ and its metabolites detected by LC-MS in equine plasma and urine (Ho et al., 2012)",
         ],
       },
-      { type: "h2", text: "What the Preclinical Research Shows" },
-      {
-        type: "p",
-        text: "As with most peptides in this category, the evidence base is preclinical — animal and cell-culture models, not human trials. By tissue type:",
-      },
+      { type: "h2", text: "Open Questions" },
       {
         type: "ul",
         items: [
-          "Muscle — a directly cited mechanism: muscle-injury-induced Thymosin Beta-4 acts as a chemoattractant for myoblasts, drawing muscle precursor cells to the injury site",
-          "Tendon & ligament — accelerated cell migration and wound closure attributed to the same actin-regulation mechanism, alongside reduced scar-tissue formation in animal models",
-          "Cardiac — the deepest literature outside of tendon/muscle: reduced infarct size and preserved cardiac function after coronary artery ligation in mouse models, via a proposed two-phase mechanism — an acute anti-apoptotic/anti-inflammatory phase, followed by a chronic phase activating vascular and cardiac progenitor cell growth",
-          "Skin / wound healing — accelerated closure attributed to the same angiogenesis and cell-migration pathways studied in tendon and cardiac models",
+          "Fragment versus protein: how much of full-length Tβ4's measured activity the 17–23 fragment reproduces is largely untested; Dettin and colleagues found the N-terminal region modulates fragment activity.",
+          "Extracellular mechanism: Tβ4 is mainly intracellular, and how it acts from outside the cell is not fully worked out.",
+          "Metabolism: the fragment is broken down into smaller metabolites (Ho et al., 2012), which matters for interpreting any in vivo result.",
         ],
       },
-      {
-        type: "callout",
-        text: "All cardiac findings above come from ischemic-injury animal models (primarily mouse), not human cardiology research. TB-500 is not a treatment for cardiovascular disease and none of this literature should be read as clinical evidence.",
-      },
-      { type: "h2", text: "Regulatory & Safety Status" },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "TB-500 was one of seven peptides FDA's Pharmacy Compounding Advisory Committee (PCAC) formally reviewed on July 23–24, 2026 for possible addition to the Section 503A Bulk Drug Substances List — the same meeting that reviewed BPC-157 (see our BPC-157 guide for the fuller regulatory background). FDA's own scientific staff recommended against adding any of the seven peptides under review, citing insufficient safety and efficacy evidence. The committee voted narrowly to recommend TB-500 anyway, one of six peptides (of seven reviewed) the panel backed — only Emideltide was voted down.",
-      },
-      {
-        type: "callout",
-        text: "This is a non-binding recommendation, not a rule change or an approval. FDA is not required to follow PCAC's vote. If FDA moves forward, it happens through formal rulemaking that could take until 2027 or 2028 — this is not something that makes TB-500 legally compoundable today. As of this writing, TB-500 remains not FDA-approved for any human use, and nothing about its actual legal status has changed as a result of this vote.",
-      },
-      {
-        type: "p",
-        text: "Separately from the bulk-substance list question, selling an unapproved drug for human use can implicate misbranding and adulteration law regardless of Category 2/503A status — the same caveat that applies to every research peptide discussed on this site.",
-      },
-      {
-        type: "callout",
-        text: "FDA rulemaking and advisory outcomes change over time — this status was verified against FDA and news reporting as of 2026-07-31. If you're making a decision based on current regulatory status, re-verify it directly rather than relying on this page's snapshot.",
-      },
-      { type: "h2", text: "Where to Source TB-500 for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the TB-500 product page",
-        productSlug: "tb-500",
+        text: "TB-500 is not approved by the FDA for any use. TB-500-related bulk drug substances were reviewed at the FDA Pharmacy Compounding Advisory Committee meeting on July 23, 2026, as candidates for the 503A bulk drug substances list, and the committee voted to recommend it. The vote is advisory and not binding, and FDA had taken no final action as of this writing. Aura Protocols supplies TB-500 as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is TB-500 the same thing as Thymosin Beta-4?",
-            a: "TB-500 is a synthetic version of a biologically active fragment of Thymosin Beta-4 (Tβ4). The names are often used interchangeably in the research-peptide market, but TB-500 specifically refers to the synthesized research compound, not the full native protein.",
+            q: "Is TB-500 the same as thymosin beta-4?",
+            a: "No. TB-500 is a seven-residue fragment (residues 17–23, N-acetylated) of the 43-residue thymosin beta-4 protein. Most published research is on the full protein.",
           },
           {
-            q: "Is TB-500 approved by the FDA for human use?",
-            a: "No. On July 23, 2026, an FDA advisory committee voted to recommend adding TB-500 to the list of substances compounding pharmacies can legally prepare, over FDA staff's own objection that the evidence doesn't support it. That's a non-binding recommendation, not an approval; formal FDA rulemaking, if it happens, could take until 2027 or 2028. TB-500 remains not FDA-approved for any human use today.",
+            q: "Why the actin-binding region?",
+            a: "LKKTETQ is the part of thymosin beta-4 described as its central actin-binding site, the property most of the protein's biology is attributed to.",
           },
           {
-            q: "Why is TB-500 often paired with BPC-157?",
-            a: "The two compounds are frequently studied together because their proposed mechanisms are complementary rather than redundant — BPC-157's evidence base centers on angiogenesis and gut-mucosal repair via VEGFR2/Akt-eNOS signaling, while TB-500's centers on actin-mediated cell migration. Aura's Wolverine Stack pairs the two for exactly this reason.",
-          },
-          {
-            q: "Does the cardiac research mean TB-500 has cardiovascular applications?",
-            a: "No — the cardiac literature is entirely preclinical, ischemic-injury animal models. It's relevant to researchers studying cardiac repair mechanisms, not evidence of any human cardiovascular benefit.",
+            q: "What kind of evidence exists for TB-500?",
+            a: "For the fragment itself: synthesis and conformation studies, angiogenesis assays on overlapping fragments, and analytical detection work. For full-length Tβ4: cell-culture and mouse studies. No laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -857,55 +784,43 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. \"Thymosin Beta-4 and TB-500 in Tissue Healing, Regeneration, and Musculoskeletal Repair: A Scoping Review.\" ",
-          { href: "https://www.mdpi.com/2076-3417/16/12/6202", text: "MDPI Applied Sciences", external: true },
+          "1. Ho EN, Kwok WH, Lau MY, et al. \"Doping control analysis of TB-500, a synthetic version of an active region of thymosin β4, in equine urine and plasma by liquid chromatography-mass spectrometry.\" Journal of Chromatography A. 2012;1265:57-69. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/23084823/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. \"Muscle injury-induced thymosin β4 acts as a chemoattractant for myoblasts.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/20880960/", text: "PubMed", external: true },
+          "2. Tokura Y, Nakayama Y, Fukada S, et al. \"Muscle injury-induced thymosin β4 acts as a chemoattractant for myoblasts.\" Journal of Biochemistry. 2011;149(1):43-48. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/20880960/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"Cardioprotection by Thymosin Beta 4.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/27450736/", text: "PubMed", external: true },
+          "3. Srivastava D, Saxena A, Michael Dimaio J, et al. \"Thymosin beta4 is cardioprotective after myocardial infarction.\" Annals of the New York Academy of Sciences. 2007;1112:161-170. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/17600280/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "4. \"Thymosin beta4 is cardioprotective after myocardial infarction.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/17600280/", text: "PubMed", external: true },
+          "4. Dettin M, Ghezzo F, Conconi MT, et al. \"In vitro and in vivo pro-angiogenic effects of thymosin-β4-derived peptides.\" Cellular Immunology. 2011;271(2):299-307. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/21872226/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "5. \"Cardioprotection by systemic dosing of thymosin beta four following ischemic myocardial injury.\" ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3843122/", text: "PMC", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. \"Thymosin β4 and cardiac regeneration: are we missing a beat?\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/22628110/", text: "PubMed", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "7. Stone W. \"FDA panel supports broadening access to peptides popular on the gray market.\" NPR, July 23–24, 2026. ",
-          { href: "https://www.npr.org/2026/07/23/nx-s1-5903202/fda-peptides-restrictions", text: "npr.org", external: true },
+          "5. FDA. \"July 23-24, 2026: Meeting of the Pharmacy Compounding Advisory Committee.\" ",
+          { href: "https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026", text: "fda.gov", external: true },
+          " Vote reported by NCPA, July 31, 2026: ",
+          { href: "https://ncpa.org/newsroom/qam/2026/07/31/fda-advisory-committee-nominates-six-peptides-pharmacies-compound", text: "ncpa.org", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -1525,65 +1440,75 @@ export const posts: Post[] = [
   },
   {
     slug: "slu-pp-332-research-guide",
-    title: "SLU-PP-332: The Complete Research Guide",
+    ruo: true,
+    title: "SLU-PP-332: A Research Literature Summary",
     excerpt:
-      "A pan-ERR agonist developed at Saint Louis University that reproduces the gene-expression signature of aerobic exercise — without exercise.",
-    category: "Longevity & Wellness",
+      "A synthetic small-molecule agonist of the estrogen-related receptors ERRα, β and γ. What laboratory studies have measured — mitochondrial respiration in muscle cells and an ERRα-dependent exercise gene program in mice — and what is still unknown.",
+    category: "Mitochondrial & Metabolic",
     date: "July 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "SLU-PP-332 is a research tool compound in the most literal sense — it was built at Saint Louis University to answer a specific scientific question: what happens if you pharmacologically switch on the transcriptional program that exercise normally triggers? The published research is entirely preclinical, but it's real, peer-reviewed, and mechanistically specific.",
+        text: "SLU-PP-332 was developed at Saint Louis University as a chemical tool for switching on the estrogen-related receptors (ERRs) in living animals. It is a small molecule, not a peptide, and its published research comes from one group. This summary covers what it is, what those studies measured, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is SLU-PP-332?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "SLU-PP-332 is a synthetic pan-agonist of the estrogen-related receptor family — ERRα, ERRβ, and ERRγ — with preferential potency at ERRα. ERRs are orphan nuclear receptors (no known endogenous hormone ligand) that sit downstream of PGC-1α, the master regulator of mitochondrial biogenesis.",
+        text: "SLU-PP-332 is 4-hydroxy-N′-[(E)-naphthalen-2-ylmethylidene]benzohydrazide (molecular formula C18H14N2O2, molecular weight 290.3 g/mol, CAS 303760-60-3), a synthetic small molecule. It is an agonist of all three estrogen-related receptors, ERRα, ERRβ and ERRγ, with the highest potency at ERRα (Billon et al., 2023). The ERRs are orphan nuclear receptors: no natural hormone ligand is known.",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "Activating ERRα with SLU-PP-332 induces an acute aerobic-exercise gene-expression program in skeletal muscle in an ERRα-dependent manner — meaning the effect is lost when the receptor is knocked out, direct evidence the mechanism runs through this receptor and not an off-target pathway. In C2C12 muscle cells, treatment substantially induced mitochondrial biogenesis (confirmed via MitoTracker staining) and increased cellular respiration, consistent with the exercise-program interpretation.",
+        text: "Billon and colleagues (ACS Chemical Biology, 2023) reported that SLU-PP-332 increased mitochondrial function and cellular respiration in a skeletal-muscle cell line, and that it had pharmacokinetic properties suitable for use in mice. In mice it increased type IIa oxidative muscle fibres and induced an acute aerobic-exercise gene program that depended on ERRα, and ERRα activation was required for the endurance changes the authors measured.",
       },
-      { type: "h2", text: "What the Preclinical Research Shows" },
       {
         type: "p",
-        text: "The published studies span in vitro respiration assays and in vivo mouse metabolic models:",
-      },
-      {
-        type: "ul",
-        items: [
-          "Increased mitochondrial biogenesis and cellular respiration in C2C12 myoblasts",
-          "Enhanced exercise capacity in mouse models, without the animals actually exercising",
-          "In diet-induced obese and ob/ob (genetically obese) mice: increased energy expenditure and fatty-acid oxidation",
-          "Progressive weight loss and decreased adipocyte size in high-fat-diet-induced obesity models",
-        ],
+        text: "A 2024 follow-up from the same group (Billon et al., 2024) gave SLU-PP-332 to diet-induced obese and ob/ob mice and measured whole-body metabolism. The authors reported increased energy expenditure and fatty-acid oxidation, with lower fat-mass accumulation and changes in insulin sensitivity in those models.",
       },
       {
         type: "callout",
-        text: "Every finding above is from mouse models and cell culture. There are no published human trials of SLU-PP-332. It has no approved pharmaceutical analog and has not been reviewed by FDA for any bulk-substance or compounding pathway — a narrower regulatory footprint than BPC-157 or TB-500, not a safer one.",
+        text: "These findings come from a muscle cell line and mouse models. They describe what SLU-PP-332 does to receptor activity, gene programs and metabolic measurements in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Where to Source SLU-PP-332 for Research" },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Pan-ERR agonist with highest potency at ERRα (Billon et al., 2023)",
+          "Mitochondrial function and cellular respiration increased in a skeletal-muscle cell line (Billon et al., 2023)",
+          "ERRα-dependent acute aerobic-exercise gene program and more type IIa oxidative fibres in mice (Billon et al., 2023)",
+          "Energy expenditure, fatty-acid oxidation, fat mass and insulin sensitivity measured in diet-induced obese and ob/ob mice (Billon et al., 2024)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Independent replication: both papers come from the developing group, and several authors hold stock in a company working on ERR-based compounds, as the 2023 paper discloses.",
+          "Selectivity: SLU-PP-332 acts on all three ERRs, and which receptor drives each measured effect beyond the ERRα-dependent exercise program is not fully mapped.",
+          "Model gap: all in vivo data are from mice, including genetically obese ob/ob mice; how the findings carry over to other species is unknown.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the SLU-PP-332 product page",
-        productSlug: "slu-pp-332",
+        text: "SLU-PP-332 is not approved by the FDA for any use, and it was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies SLU-PP-332 as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is SLU-PP-332 an 'exercise pill' that's been tested in humans?",
-            a: "No. The exercise-mimetic effects — increased mitochondrial biogenesis, energy expenditure, and exercise capacity — are documented in mouse and cell-culture models only. No published human trial exists.",
+            q: "Is SLU-PP-332 a peptide?",
+            a: "No. It is a synthetic small molecule, a benzohydrazide.",
           },
           {
-            q: "How is SLU-PP-332 different from GLP-1 drugs for weight loss?",
-            a: "GLP-1 agonists work primarily by suppressing appetite. SLU-PP-332's studied mechanism increases energy expenditure and fatty-acid oxidation — the metabolic side of the equation exercise normally drives — rather than reducing food intake.",
+            q: "What are estrogen-related receptors?",
+            a: "ERRα, ERRβ and ERRγ are nuclear receptors that regulate genes for mitochondrial and energy metabolism. Despite the name, they do not bind estrogen, and no natural ligand is known.",
+          },
+          {
+            q: "What kind of evidence exists for SLU-PP-332?",
+            a: "Cell-line and mouse studies from the group that developed it. No laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -1591,20 +1516,27 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. \"Synthetic ERRα/β/γ Agonist Induces an ERRα-Dependent Acute Aerobic Exercise Response.\" PubMed. ",
+          "1. Billon C, Sitaula S, Banerjee S, et al. \"Synthetic ERRα/β/γ Agonist Induces an ERRα-Dependent Acute Aerobic Exercise Response and Enhances Exercise Capacity.\" ACS Chemical Biology. 2023;18(4):756-771. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/36988910/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. \"A Synthetic ERR Agonist Alleviates Metabolic Syndrome.\" Journal of Pharmacology and Experimental Therapeutics, PubMed. ",
+          "2. Billon C, Schoepke E, Avdagic A, et al. \"A Synthetic ERR Agonist Alleviates Metabolic Syndrome.\" Journal of Pharmacology and Experimental Therapeutics. 2024;388(2):232-240. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/37739806/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
+        type: "p",
+        parts: [
+          "3. PubChem. SLU-PP-332 (CID 5338394). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/5338394", text: "pubchem.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -2368,83 +2300,75 @@ export const posts: Post[] = [
   },
   {
     slug: "epithalon-research-guide",
-    title: "Epithalon: The Complete Research Guide",
+    ruo: true,
+    title: "Epithalon: A Research Literature Summary",
     excerpt:
-      "The telomerase-activation data is real and specific to this peptide. The dramatic mortality-reduction numbers you'll see cited alongside it are not — they belong to a different, related substance.",
-    category: "Longevity & Wellness",
+      "A synthetic tetrapeptide, Ala-Glu-Asp-Gly, modelled on a pineal-gland extract. What laboratory studies have measured — telomerase activity and telomere length in cultured fibroblasts — and what is still unknown.",
+    category: "Short Peptides & Neuropeptides",
     date: "July 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "Epithalon (also spelled Epitalon) is a synthetic tetrapeptide (Ala-Glu-Asp-Gly) developed by Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology as a simplified analog of Epithalamin — a polypeptide fraction extracted from bovine pineal glands. That relationship matters, because the two get conflated constantly in how this compound is marketed, and the evidence quality is not the same for both.",
+        text: "Epithalon (also written Epitalon) comes from Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology. It is often confused with Epithalamin, the extract it was modelled on, and the evidence for the two is not interchangeable. This summary covers what Epithalon is, what laboratory studies have measured, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is Epithalon?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Epithalon is the specific four-amino-acid sequence Khavinson's team identified as the minimal active fragment of Epithalamin. It's studied for telomerase activation, pineal/melatonin regulation, and longevity in preclinical models.",
+        text: "Epithalon is the synthetic tetrapeptide Ala-Glu-Asp-Gly (AEDG; molecular formula C14H22N4O9, molecular weight 390.4 g/mol, CAS 307297-39-8). It was synthesised based on the amino-acid composition of Epithalamin, a polypeptide extract of bovine pineal glands (Araj et al., 2025). Epithalamin is a mixture; Epithalon is one defined molecule.",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "The most specific, most-cited finding is direct: adding Epithalon to cultures of telomerase-negative human fetal fibroblasts induced expression of the telomerase catalytic subunit (hTERT), increased telomerase enzymatic activity, and was associated with telomere elongation over the culture period. A companion study from the same group found Epithalon-treated fibroblast cultures exceeded the conventional Hayflick division limit by roughly ten additional population doublings versus untreated controls.",
+        text: "The most specific findings are on telomerase. Khavinson and colleagues (Bulletin of Experimental Biology and Medicine, 2003) reported that adding Epithalon to telomerase-negative human fetal fibroblast cultures induced expression of the telomerase catalytic subunit, telomerase enzymatic activity and telomere elongation. In a follow-up (2004), fetal lung fibroblasts that stopped dividing at passage 34 regained telomere length comparable to early passages after Epithalon was added, and went on to 44 passages, ten more than controls.",
+      },
+      {
+        type: "p",
+        text: "A 2025 review (Araj et al., International Journal of Molecular Sciences) summarises other reported activities across in vitro, in vivo and in silico work: an influence on melatonin synthesis, changes in interleukin-2 mRNA, modulation of murine thymocyte mitogenic activity, and increased activity of enzymes including acetylcholinesterase, butyrylcholinesterase and telomerase. The reviewers note it is uncertain whether these are its only mechanisms, and that physico-chemical and structural studies of the peptide remain limited.",
       },
       {
         type: "callout",
-        text: "This telomerase work is cell-culture data (human fetal fibroblasts), not a human clinical trial. It demonstrates the mechanism is real in vitro, not that taking Epithalon extends telomeres in a living person.",
+        text: "These findings come from cultured human cells and animal models, and studies of Epithalamin, the extract, are a separate literature. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "The Epithalon vs. Epithalamin Distinction" },
-      {
-        type: "p",
-        text: "This is the single most important thing to get right about this compound. Khavinson's group separately ran a long-term human study — 266 elderly patients over six to eight years — testing Epithalamin (the original pineal-gland extract) and Thymalin (a related thymus extract), and reported striking results: Epithalamin alone associated with a 1.6–1.8-fold mortality reduction, combined Epithalamin+Thymalin with a 2.5-fold reduction, and annual combined treatment over six years with a 4.1-fold reduction.",
-      },
-      {
-        type: "callout",
-        text: "Those mortality numbers are for Epithalamin, the natural pineal extract — not Epithalon, the synthetic single-peptide research compound sold by vendors. They are related substances from the same research program, not the same thing. The mortality study also was not randomized, double-blind, or placebo-controlled to Western trial standards, which is a separate limitation on top of the substance mismatch. Citing this mortality data as evidence for Epithalon specifically is a common but real error in how this compound gets marketed.",
-      },
-      { type: "h2", text: "What the Broader Research Shows" },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "Telomerase (hTERT) induction and telomere elongation in human fibroblast cultures",
-          "Extended replicative lifespan past the Hayflick limit in the same cell-culture model",
-          "Stimulation of melatonin production, studied in connection with pineal gland regulation",
-          "Lifespan-extension effects reported in rodent models",
+          "Telomerase catalytic-subunit expression, telomerase activity and telomere elongation in telomerase-negative fetal fibroblasts (Khavinson et al., 2003)",
+          "Telomere length restored and ten extra passages in fetal lung fibroblasts past their division limit (Khavinson et al., 2004)",
+          "Reported effects on melatonin synthesis, IL-2 mRNA, thymocyte mitogenic activity and several enzymes, by review (Araj et al., 2025)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Independent replication: the telomerase findings come from one research group and have not been widely reproduced elsewhere.",
+          "Mechanism: how a four-residue peptide would switch on the telomerase gene is not established.",
+          "Structure: physico-chemical and structural characterisation of the peptide is limited (Araj et al., 2025).",
+          "Epithalon and Epithalamin are often cited interchangeably; results for the extract should not be read as results for the synthetic peptide.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Epitalon was one of seven peptides FDA's Pharmacy Compounding Advisory Committee (PCAC) reviewed on July 23–24, 2026 for the Section 503A Bulk Drug Substances List — the same meeting that reviewed BPC-157 and TB-500 (see our BPC-157 guide for the fuller background). FDA staff recommended against all seven; the committee voted narrowly to recommend Epitalon anyway, one of six peptides the panel backed — only Emideltide was voted down.",
-      },
-      {
-        type: "callout",
-        text: "This is a non-binding recommendation, not an approval. Formal rulemaking, if FDA pursues it, could take until 2027 or 2028. Epithalon remains not FDA-approved for any human use today.",
-      },
-      { type: "h2", text: "Where to Source Epithalon for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the Epithalon product page",
-        productSlug: "epithalon",
+        text: "Epithalon is not approved by the FDA for any use. Epitalon-related bulk drug substances were reviewed at the FDA Pharmacy Compounding Advisory Committee meeting on July 24, 2026, as candidates for the 503A bulk drug substances list, and the committee voted to recommend it. The vote is advisory and not binding, and FDA had taken no final action as of this writing. Aura Protocols supplies Epithalon as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is Epithalon the same thing as Epithalamin?",
-            a: "No. Epithalamin is the original polypeptide extract from bovine pineal glands. Epithalon is a synthetic four-amino-acid analog Khavinson's group identified as its active fragment. The dramatic elderly-mortality data widely cited for this compound family is from Epithalamin trials, not Epithalon.",
+            q: "Is Epithalon the same as Epithalamin?",
+            a: "No. Epithalamin is a polypeptide extract of bovine pineal glands. Epithalon is a synthetic tetrapeptide, Ala-Glu-Asp-Gly, designed from Epithalamin's amino-acid composition.",
           },
           {
-            q: "Has Epithalon been shown to extend telomeres in humans?",
-            a: "No published human trial has tested this. The telomerase-activation and telomere-elongation findings are from human fibroblast cell cultures, not living human subjects.",
+            q: "What kind of evidence exists for Epithalon?",
+            a: "Cell-culture work on telomerase and telomere length in human fibroblasts, and animal and in silico studies summarised in reviews. No laboratory result here shows an effect in people.",
           },
           {
             q: "Is Epithalon FDA-approved?",
-            a: "No. A July 2026 FDA advisory committee voted to recommend adding it to the compounding-eligible substances list, over FDA staff's own objection, but that's a non-binding recommendation, not an approval. It remains not FDA-approved for any human use.",
+            a: "No. A July 2026 FDA advisory committee voted to recommend it for the 503A bulk drug substances list; that vote is advisory and is not an approval.",
           },
         ],
       },
@@ -2452,102 +2376,110 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Khavinson VK, Bondarev IE, Butyugov AA. \"Epithalon peptide induces telomerase activity and telomere elongation in human somatic cells.\" Bulletin of Experimental Biology and Medicine, 2003. ",
+          "1. Khavinson VK, Bondarev IE, Butyugov AA. \"Epithalon peptide induces telomerase activity and telomere elongation in human somatic cells.\" Bulletin of Experimental Biology and Medicine. 2003;135(6):590-592. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/12937682/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. \"Peptide promotes overcoming of the division limit in human somatic cells.\" PubMed. ",
+          "2. Khavinson VK, Bondarev IE, Butyugov AA, Smirnova TD. \"Peptide promotes overcoming of the division limit in human somatic cell.\" Bulletin of Experimental Biology and Medicine. 2004;137(5):503-506. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/15455129/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. Stone W. \"FDA panel supports broadening access to peptides popular on the gray market.\" NPR, July 23–24, 2026. ",
-          { href: "https://www.npr.org/2026/07/23/nx-s1-5903202/fda-peptides-restrictions", text: "npr.org", external: true },
+          "3. Araj SK, Brzezik J, Mądra-Gackowska K, et al. \"Overview of Epitalon—Highly Bioactive Pineal Tetrapeptide with Promising Properties.\" International Journal of Molecular Sciences. 2025;26(6):2691. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/40141333/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. FDA. \"July 23-24, 2026: Meeting of the Pharmacy Compounding Advisory Committee.\" ",
+          { href: "https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026", text: "fda.gov", external: true },
+          " Vote reported by NCPA, July 31, 2026: ",
+          { href: "https://ncpa.org/newsroom/qam/2026/07/31/fda-advisory-committee-nominates-six-peptides-pharmacies-compound", text: "ncpa.org", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "tesamorelin-research-guide",
-    title: "Tesamorelin: The Complete Research Guide",
+    ruo: true,
+    title: "Tesamorelin: A Research Literature Summary",
     excerpt:
-      "A genuinely FDA-approved GHRH analogue — but the approval covers one narrow HIV-related indication, not general body composition. Here's exactly what it does and doesn't cover.",
-    category: "Body Composition",
+      "Full-length GHRH(1–44) amide with a trans-3-hexenoyl group on Tyr1. What non-clinical studies have measured — resistance to DPP-IV, slower breakdown in plasma, and GH and IGF-1 responses in animals — and what is still unknown.",
+    category: "GH-Axis Peptides",
     date: "July 2026",
-    readTime: "8 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "Tesamorelin is one of the few compounds on this site with a real, standing FDA approval. That approval is also much narrower than the way tesamorelin gets discussed in most research-peptide circles — and getting that distinction right is the entire point of this guide.",
+        text: "Tesamorelin, developed as TH9507, is a growth hormone–releasing hormone (GHRH) analog with one small change to the native sequence. It was designed to resist the enzyme that inactivates native GHRH. This summary covers its chemistry, what non-clinical studies have measured, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is Tesamorelin?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Tesamorelin is a synthetic growth hormone-releasing hormone (GHRH) analogue, sold under the brand names Egrifta and Egrifta WR.",
+        text: "Tesamorelin is the full 44-residue human GHRH sequence, amidated at the C-terminus (hGRF1–44NH2), with a trans-3-hexenoyl group added to the N-terminal tyrosine (molecular formula C221H366N72O67S, molecular weight 5136.0 g/mol, CAS 218949-48-5). Sermorelin, by comparison, is only residues 1–29 and has no N-terminal modification.",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "Tesamorelin doesn't act on fat tissue directly — it works two steps upstream, by restoring a signal the body normally sends to itself. Growth hormone (GH) is released from the pituitary gland in pulses, triggered by GHRH from the hypothalamus. Tesamorelin is a stabilized version of that same GHRH signal, so it amplifies the body's own pulsatile GH release rather than delivering GH directly. That distinction matters for two reasons:",
+        text: "Native GHRH is inactivated by dipeptidyl aminopeptidase-IV (DPP-IV), which cleaves its first two residues. Ferdinandi and colleagues (Basic & Clinical Pharmacology & Toxicology, 2007), from the developer Theratechnologies, reported that the trans-3-hexenoyl group made TH9507 resistant to DPP-IV deactivation, slowed its in vitro degradation in rat, dog and human plasma compared with natural hGRF1–44NH2, and prolonged its plasma elimination in vivo.",
       },
+      {
+        type: "p",
+        text: "In the same non-clinical programme, plasma growth hormone and IGF-1 rose markedly in pigs, rats and dogs given repeated TH9507. In subchronic studies of up to four months in rats and dogs, the authors reported body-weight gain alongside the biomarker response, and in dogs reversible liver, kidney and blood findings that they attributed to sustained supraphysiological GH and IGF-1. The apparent elimination half-life in dogs was 21 to 45 minutes.",
+      },
+      {
+        type: "callout",
+        text: "These findings come from plasma stability assays and animal pharmacology and toxicology studies. They describe how tesamorelin behaves in those systems. They are not evidence of any effect in people.",
+      },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "It preserves the natural feedback loop. GH released this way still triggers the liver to produce IGF-1, which signals back to suppress further GH release — the same brake that keeps GH regulated in healthy physiology. Direct GH injection can override that feedback; a GHRH analogue is designed to work within it.",
-          "GH's downstream effect on fat is the actual lipolytic step. Once GH reaches fat tissue, it stimulates hormone-sensitive lipase, the enzyme that breaks down stored fat into free fatty acids. Visceral fat — the metabolically active fat around organs, as opposed to fat just under the skin — is disproportionately responsive to this GH-driven lipolysis, which is why the drug's effect concentrates there.",
+          "Resistant to DPP-IV deactivation because of the N-terminal trans-3-hexenoyl group (Ferdinandi et al., 2007)",
+          "Slower in vitro degradation than natural GHRH(1–44) in rat, dog and human plasma (Ferdinandi et al., 2007)",
+          "Marked plasma GH and IGF-1 increases in pigs, rats and dogs (Ferdinandi et al., 2007)",
+          "Reversible organ and blood findings in dogs with prolonged exposure, attributed to sustained high GH and IGF-1 (Ferdinandi et al., 2007)",
         ],
       },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Source of the data: the non-clinical characterisation was published by the developer; independent laboratory pharmacology is limited.",
+          "Species differences: dogs showed more pronounced effects than rats in the same studies, so the choice of species matters when interpreting results.",
+          "Downstream effects: tesamorelin acts through GH and IGF-1, so effects measured in an experiment may reflect either hormone, or both.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "One honest caveat worth keeping: a clinical-policy review of the approval data still calls the full mechanism \"unclear\" beyond this GH/IGF-1 chain — the GHRH-to-GH-to-visceral-fat pathway is well-supported, but not every step is fully mapped.",
-      },
-      { type: "h2", text: "FDA Approval — Read the Indication Carefully" },
-      {
-        type: "callout",
-        text: "Real approval, narrow scope. Tesamorelin is FDA-approved as Egrifta (2010) and the reformulated Egrifta WR (approved March 2025) — but specifically for the reduction of excess abdominal fat in HIV-infected adult patients with lipodystrophy. It is not approved for general-population body composition or weight loss.",
-      },
-      {
-        type: "p",
-        text: "Approval was supported by trials showing reductions in visceral adipose tissue, triglycerides, and non-HDL cholesterol, plus increases in lean body mass — in the HIV-lipodystrophy population specifically. Those results don't automatically generalize to a healthy adult using it for general fat loss; that's simply a different population than the one studied.",
-      },
-      { type: "h2", text: "Regulatory Status for Research Use" },
-      {
-        type: "p",
-        text: "What's sold by research-peptide vendors as tesamorelin is not the approved Egrifta pharmaceutical product — it's compounded material intended for research use, outside the approved indication and outside FDA's review of Egrifta's manufacturing and formulation.",
-      },
-      {
-        type: "p",
-        text: "Checked directly against FDA's bulk drug substances list for compounding (fetched July 2026): tesamorelin does not appear in either the active Category 2 table or the nominated-but-withdrawn table.",
-      },
-      { type: "h2", text: "Where to Source Tesamorelin for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the Tesamorelin product page",
-        productSlug: "tesamorelin",
+        text: "Tesamorelin is the active ingredient of an FDA-approved prescription medicine. Research-grade material sold for laboratory use is not that approved product and is not for human use. Tesamorelin was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies tesamorelin as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is tesamorelin FDA-approved?",
-            a: "Yes, but only for one narrow indication: reduction of excess abdominal fat in HIV-infected adults with lipodystrophy (brand names Egrifta / Egrifta WR). It is not approved for general fat loss or body composition.",
+            q: "How does tesamorelin differ from sermorelin?",
+            a: "Tesamorelin is the full 44-residue GHRH sequence with a trans-3-hexenoyl group on Tyr1. Sermorelin is the 29-residue fragment with no N-terminal modification.",
           },
           {
-            q: "Can I use tesamorelin for general fat loss?",
-            a: "That use falls outside the approved indication. What's sold as tesamorelin by research vendors is a research compound, not the approved Egrifta pharmaceutical product, and hasn't been evaluated by FDA for that purpose.",
+            q: "Why the trans-3-hexenoyl group?",
+            a: "It protects the N-terminus from DPP-IV, the enzyme that inactivates native GHRH, which slowed breakdown in plasma in the developer's studies (Ferdinandi et al., 2007).",
+          },
+          {
+            q: "What kind of evidence is summarised here?",
+            a: "Plasma stability assays and animal pharmacology and toxicology studies. This summary does not cover clinical literature, and no laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -2555,108 +2487,94 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. EATG / Theratechnologies. \"FDA approval for EGRIFTA WR (tesamorelin F8),\" March 2025. ",
-          { href: "https://www.eatg.org/hiv-news/theratechnologies-receives-fda-approval-for-egrifta-wr-tesamorelin-f8-to-treat-excess-visceral-abdominal-fat-in-adults-with-hiv-and-lipodystrophy/", text: "eatg.org", external: true },
+          "1. Ferdinandi ES, Brazeau P, High K, et al. \"Non-clinical pharmacology and safety evaluation of TH9507, a human growth hormone-releasing factor analogue.\" Basic & Clinical Pharmacology & Toxicology. 2007;100(1):49-58. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/17214611/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Molina Healthcare Clinical Policy 131 (Egrifta/Tesamorelin), citing FDA prescribing information and NDA review documents. ",
-          { href: "https://www.molinahealthcare.com/providers/wa/medicaid/resource/PDF/egrifta-tesamorelin-mcp131.pdf", text: "molinahealthcare.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "3. EGRIFTA WR official HCP site — indication statement. ",
-          { href: "https://hcp.egriftawr.com/moa/", text: "hcp.egriftawr.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. Stanley TL, Grinspoon SK. \"Effects of growth hormone-releasing hormone on visceral fat...\" ",
-          { href: "https://www.sciencedirect.com/science/article/abs/pii/S1096637414001208", text: "sciencedirect.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. Vijayakumar A, et al. \"Biological effects of growth hormone on carbohydrate and lipid metabolism,\" 2010. ",
-          { href: "https://www.sciencedirect.com/science/article/abs/pii/S1096637409001178", text: "sciencedirect.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. FDA. \"Certain Bulk Drug Substances for Use in Compounding that May Present Significant Safety Risks.\" ",
-          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "fda.gov", external: true },
+          "2. PubChem. Tesamorelin (CID 16137828). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/16137828", text: "pubchem.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "ghk-cu-research-guide",
-    title: "GHK-Cu (Copper Peptide): The Complete Research Guide",
+    ruo: true,
+    title: "GHK-Cu (Copper Peptide): A Research Literature Summary",
     excerpt:
-      "Discovered in human plasma in 1973, studied for its effect on thousands of genes — from wound healing to hair follicles to the visible signs of skin aging.",
-    category: "Longevity & Wellness",
+      "The tripeptide Gly-His-Lys bound to copper(II), first reported in human serum in 1973. What laboratory studies have measured — extracellular-matrix synthesis, cell recruitment and gene-expression shifts — and what is still unknown.",
+    category: "Cofactors & Conjugates",
     date: "July 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "GHK-Cu has a longer research history than almost anything else on this site — it was first isolated from human plasma in 1973 by Loren Pickart, decades before most peptides now sold for research were synthesized. That history is also why its research base is unusually broad, spanning wound healing, skin regeneration, and hair-follicle biology.",
+        text: "GHK has one of the longest research histories of any compound we carry: Loren Pickart reported it in human serum in 1973. Most of the literature since then studies it as its copper complex, GHK-Cu. This summary covers what it is, what laboratory studies have measured, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is GHK-Cu?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "GHK is a naturally occurring tripeptide (glycyl-L-histidyl-L-lysine) with a strong binding affinity for copper ions, forming the complex GHK-Cu. Circulating GHK-Cu levels are known to decline with age.",
+        text: "GHK-Cu is the tripeptide glycyl-L-histidyl-L-lysine (Gly-His-Lys) bound to a copper(II) ion, which is held by the glycine amino nitrogen, the glycine–histidine amide nitrogen and a histidine ring nitrogen (molecular formula C14H23CuN6O4+, molecular weight 402.9 g/mol, CAS 89030-95-5). GHK occurs naturally in human plasma, saliva and urine (Pickart et al., 2015).",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "GHK-Cu's copper-binding structure enhances copper transport into and out of cells, which underlies several related downstream effects: anti-inflammatory and antioxidant activity, and suppression of the acute-phase inflammatory response that drives excess scarring during wound repair. A 2015 broad gene-expression analysis found GHK-Cu modulates over 4,000 human genes, with significant effects concentrated in extracellular-matrix, Wnt, and TGF-β signaling pathways — a scope well beyond a single-pathway mechanism.",
+        text: "The original 1973 work (Pickart and Thaler, Nature New Biology) described a tripeptide in human serum that prolonged the survival of normal liver cells in culture. Later laboratory work summarised in a 2015 review by Pickart and colleagues reports that GHK stimulates both synthesis and breakdown of collagen and glycosaminoglycans, increases collagen, dermatan sulfate, chondroitin sulfate and the proteoglycan decorin, modulates matrix metalloproteinases and their inhibitors, and attracts immune and endothelial cells in injury models in rats, mice, pigs and dogs.",
       },
-      { type: "h2", text: "What the Research Shows" },
       {
-        type: "ul",
-        items: [
-          "Stimulates synthesis of collagen, elastin, and glycosaminoglycans in skin",
-          "Restores function of damaged fibroblasts and reduces scarring in wound models",
-          "Accelerates wound healing in skin, and separately in stomach-tissue models",
-          "Hair-follicle sub-analyses of the gene-expression data suggest upregulation of anagen (growth-phase)-promoting gene clusters",
-        ],
+        type: "p",
+        text: "A second line uses gene-expression data. Pickart's group reports that GHK shifts the expression of at least 4,000 human genes (Pickart et al., 2015), and has described changes in genes of the ubiquitin–proteasome system, DNA repair, antioxidant systems and TGF-β superfamily signaling (Pickart et al., 2014).",
       },
       {
         type: "callout",
-        text: "The 4,000-gene modulation finding is a broad genomic association study, not a clinical trial with a measured outcome — it identifies which genes shift, not a guaranteed physiological result. The hair-follicle findings specifically are a sub-analysis of that same gene-expression data, not a dedicated hair-growth clinical trial.",
+        text: "These findings come from cell culture, animal injury models and analyses of gene-expression datasets. A shift in gene expression is not a measured physiological result, and none of this is evidence of any effect in people.",
       },
-      { type: "h2", text: "Where to Source GHK-Cu for Research" },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Tripeptide in human serum prolonged survival of normal liver cells in culture (Pickart and Thaler, 1973)",
+          "Collagen, glycosaminoglycan and decorin synthesis, and metalloproteinase modulation, by review (Pickart et al., 2015)",
+          "Recruitment of immune and endothelial cells in rat, mouse, pig and dog injury models, by review (Pickart et al., 2015)",
+          "Expression changes reported in at least 4,000 human genes (Pickart et al., 2015)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Concentration of authorship: the main reviews come from Loren Pickart's group, which works for a skin-care company (Skin Biology, Bellevue, Washington); independent reviews are fewer.",
+          "Copper versus peptide: how much of each effect comes from the peptide and how much from copper delivery is not fully separated.",
+          "Gene data: the gene-expression figures come from the same group and describe expression changes, not tested mechanisms.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the GHK-Cu product page",
-        productSlug: "ghk-cu",
+        text: "GHK-Cu is not approved by the FDA as a drug, and it was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies GHK-Cu as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is GHK-Cu proven to regrow hair?",
-            a: "Not via a dedicated clinical trial. The hair-follicle evidence is a sub-analysis of a broader gene-expression study, suggesting upregulation of growth-phase gene clusters — a mechanistic signal, not a measured hair-regrowth outcome in a trial.",
+            q: "What is the difference between GHK and GHK-Cu?",
+            a: "GHK is the tripeptide Gly-His-Lys. GHK-Cu is that tripeptide bound to a copper(II) ion; most of the research literature studies the copper complex.",
           },
           {
-            q: "How long has GHK-Cu been studied?",
-            a: "It was first isolated from human plasma in 1973, giving it one of the longest research histories of any compound on this site — decades longer than most synthetic research peptides.",
+            q: "How long has GHK been studied?",
+            a: "Since 1973, when Pickart and Thaler reported a tripeptide in human serum that prolonged the survival of liver cells in culture.",
+          },
+          {
+            q: "What kind of evidence exists for GHK-Cu?",
+            a: "Cell-culture and animal injury studies, and gene-expression analyses, mostly reviewed by one research group. No laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -2664,27 +2582,34 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Pickart L, et al. \"GHK Peptide as a Natural Modulator of Multiple Cellular Pathways in Skin Regeneration.\" BioMed Research International, 2015. PMC. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508379/", text: "ncbi.nlm.nih.gov", external: true },
+          "1. Pickart L, Thaler MM. \"Tripeptide in human serum which prolongs survival of normal liver cells and stimulates growth in neoplastic liver.\" Nature New Biology. 1973;243:85-87. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/4349963/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. \"Skin Regenerative and Anti-Cancer Actions of Copper Peptides.\" MDPI Cosmetics. ",
-          { href: "https://www.mdpi.com/2079-9284/5/2/29", text: "mdpi.com", external: true },
+          "2. Pickart L, Vasquez-Soltero JM, Margolina A. \"GHK Peptide as a Natural Modulator of Multiple Cellular Pathways in Skin Regeneration.\" BioMed Research International. 2015;2015:648108. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/26236730/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"Expression of Glycosaminoglycans and Small Proteoglycans in Wounds: Modulation by the Tripeptide–Copper Complex Glycyl-L-Histidyl-L-Lysine-Cu2+.\" ScienceDirect. ",
-          { href: "https://www.sciencedirect.com/science/article/pii/S0022202X1541067X", text: "sciencedirect.com", external: true },
+          "3. Pickart L, Vasquez-Soltero JM, Margolina A. \"GHK and DNA: resetting the human genome to health.\" BioMed Research International. 2014;2014:151479. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/25302294/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Copper(II) coordination of GHK (crystal structure). Inorganica Chimica Acta. ",
+          { href: "https://www.sciencedirect.com/science/article/pii/S002016930082544X", text: "sciencedirect.com", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -2906,60 +2831,71 @@ export const posts: Post[] = [
   },
   {
     slug: "sermorelin-research-guide",
-    title: "Sermorelin: The Complete Research Guide",
+    ruo: true,
+    title: "Sermorelin: A Research Literature Summary",
     excerpt:
-      "A GHRH analog that was actually FDA-approved for over a decade — withdrawn for business reasons, not safety, which is why it can still be legally compounded today.",
-    category: "Growth & Performance",
+      "GHRH(1–29) amide, the shortest synthetic fragment with the full activity of growth hormone–releasing hormone. What laboratory studies of the GHRH receptor have measured, its regulatory history, and what is still unknown.",
+    category: "GH-Axis Peptides",
     date: "July 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "Sermorelin has a regulatory history most compounds on this site don't: it was a real, approved drug for over a decade. What happened after its approval — and specifically why it was withdrawn — is the reason it occupies a stronger legal position today than research-only peptides like BPC-157 or Retatrutide.",
+        text: "Sermorelin is the N-terminal 29-residue fragment of human growth hormone–releasing hormone (GHRH), amidated at the C-terminus. Its fragment, GRF(1–29)-NH2, became the standard scaffold for laboratory work on the GHRH receptor in the 1980s. This summary covers its chemistry, what receptor studies have measured, its regulatory history and the questions that remain open.",
       },
-      { type: "h2", text: "What Is Sermorelin?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Sermorelin is a 29-amino-acid analog of human growth hormone-releasing hormone (GHRH), representing the fully bioactive fragment of the native hormone.",
+        text: "Sermorelin is a synthetic 29-residue peptide whose sequence matches residues 1–29 of human GHRH, amidated at the C-terminus (molecular formula C149H246N44O42S, molecular weight 3357.9 g/mol, CAS 86168-78-7). It is described as the shortest synthetic peptide with the full biological activity of GHRH (Prakash and Goa, 1999).",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "Sermorelin binds the GHRH receptor on pituitary somatotroph cells, stimulating them to synthesize and release growth hormone. Its half-life is short — roughly 11–12 minutes after IV or subcutaneous dosing — meaning it stimulates a natural GH pulse rather than sustaining elevated GH the way exogenous HGH does. Studies specifically found no significant change in prolactin, LH, FSH, insulin, cortisol, glucose, glucagon, or thyroid hormone levels alongside the GH increase — a selectivity profile that supported its original approval.",
-      },
-      { type: "h2", text: "Regulatory History — Why This One Is Different" },
-      {
-        type: "p",
-        text: "Sermorelin was FDA-approved in 1997 (brand names Geref and Geref Diagnostic) for growth hormone deficiency, including in children. In 2008, the manufacturer (EMD Serono) voluntarily discontinued the product and requested withdrawal of its approval — not for safety or efficacy reasons, but because of manufacturing difficulties.",
+        text: "GHRH and its fragment act on the GHRH receptor of anterior pituitary somatotroph cells, where they stimulate growth hormone secretion. Robberecht and colleagues (Peptides, 1986) tested 30 synthetic GRF(1–29)-NH2 analogs on membranes from rat adenopituitary, liver and pancreas. In pituitary membranes the analogs acted on specific GRF receptors; in liver and pancreas they acted on VIP receptors instead. The C-terminal part of the peptide was responsible for receptor recognition, while the N-terminal part (positions 1–10) was critical for activating adenylate cyclase, and single substitutions there produced antagonists.",
       },
       {
         type: "callout",
-        text: "This distinction has real legal weight: FDA's own Federal Register determination explicitly states GEREF was not withdrawn from sale for reasons of safety or effectiveness. That specific finding is what allows sermorelin to still be legally compounded today by licensed 503A/503B pharmacies under a valid prescription — a materially stronger legal footing than compounds like BPC-157, which were never approved at all.",
+        text: "These findings come from rat tissue membranes and adenylate cyclase assays. They describe how the peptide interacts with receptors in those preparations.",
       },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Shortest synthetic fragment with the full biological activity of GHRH (Prakash and Goa, 1999, review)",
+          "GRF receptors in rat adenopituitary membranes; VIP receptors in liver and pancreas (Robberecht et al., 1986)",
+          "C-terminal region for receptor recognition, N-terminal residues 1–10 for adenylate cyclase activation (Robberecht et al., 1986)",
+          "N-terminal substitutions such as N-Ac-Tyr1, D-Arg2 turn the fragment into a receptor antagonist (Robberecht et al., 1986)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Receptor cross-talk: GRF(1–29) analogs also act on VIP receptors outside the pituitary, so tissue choice affects which receptor a result reflects.",
+          "Stability: native GHRH fragments are broken down quickly in biological media, which has driven decades of analog design; results with the unmodified fragment have to be read with that in mind.",
+          "Much of the receptor pharmacology dates from the 1980s and 1990s; modern structural data on the GHRH receptor are newer and still being connected to the older analog work.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "That compounding-pharmacy pathway is distinct from unprescribed sermorelin sold online as a research chemical. A licensed pharmacy dispensing under prescription and medical supervision is a different legal channel than an unlicensed vendor selling bulk peptide labeled research-use-only — both trace back to the same molecule, but only one involves a prescriber and regulatory oversight.",
-      },
-      { type: "h2", text: "Where to Source Sermorelin for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the Sermorelin product page",
-        productSlug: "sermorelin",
+        text: "Sermorelin acetate was previously an FDA-approved prescription drug. The manufacturer discontinued it, and in 2013 FDA determined that the product was not withdrawn from sale for reasons of safety or effectiveness. Research-grade material sold for laboratory use is not an approved drug. Aura Protocols supplies sermorelin as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Was sermorelin pulled from the market for safety reasons?",
-            a: "No. FDA's own Federal Register determination states explicitly that GEREF (sermorelin) was not withdrawn for reasons of safety or effectiveness — the manufacturer discontinued it in 2008 over manufacturing difficulties. That finding is part of why it remains legally compoundable today.",
+            q: "How is sermorelin related to GHRH?",
+            a: "It is residues 1–29 of the 44-residue human hormone, with a C-terminal amide. That fragment keeps the hormone's full activity.",
           },
           {
-            q: "Is research-vendor sermorelin the same as a compounding pharmacy's prescription version?",
-            a: "No. A compounding pharmacy dispenses under a valid prescription with medical oversight. Sermorelin sold online as a research chemical is unprescribed and not intended for human use — same molecule, different legal channel.",
+            q: "Which part of the peptide does what?",
+            a: "In rat pituitary membranes, the C-terminal region was needed for receptor recognition and the N-terminal residues for activating adenylate cyclase (Robberecht et al., 1986).",
+          },
+          {
+            q: "What kind of evidence is summarised here?",
+            a: "Receptor and enzyme assays on rat tissue membranes, a review of the molecule and FDA's regulatory record. No laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -2967,79 +2903,101 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. \"Sermorelin: a review of its use in the diagnosis and treatment of children with idiopathic growth hormone deficiency.\" PubMed. ",
+          "1. Robberecht P, Waelbroeck M, Coy D, et al. \"Comparative structural requirements of thirty GRF analogs for interaction with GRF- and VIP receptors and coupling to adenylate cyclase in rat adenopituitary, liver and pancreas.\" Peptides. 1986;7 Suppl 1:53-59. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/3018703/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Prakash A, Goa KL. \"Sermorelin: a review of its use in the diagnosis and treatment of children with idiopathic growth hormone deficiency.\" BioDrugs. 1999;12(2):139-157. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/18031173/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Federal Register. \"Determination That GEREF (Sermorelin Acetate) Injection... Were Not Withdrawn From Sale for Reasons of Safety or Effectiveness.\" ",
+          "3. FDA, Federal Register, March 4, 2013: determination that sermorelin acetate injection was not withdrawn from sale for reasons of safety or effectiveness. ",
           { href: "https://www.federalregister.gov/documents/2013/03/04/2013-04827/determination-that-geref-sermorelin-acetate-injection-05-milligrams-basevial-and-10-milligrams", text: "federalregister.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "nad-plus-research-guide",
-    title: "NAD+: The Complete Research Guide",
+    ruo: true,
+    title: "NAD+: A Research Literature Summary",
     excerpt:
-      "The coenzyme every cell depends on for energy and DNA repair — and a real, current human study on whether injecting it directly actually works better than the alternatives.",
-    category: "Longevity & Wellness",
+      "A dinucleotide coenzyme, not a peptide. What laboratory research has established about its roles as a redox cofactor and as the substrate of sirtuins and PARPs, how cells take up its precursors, and what is still unknown.",
+    category: "Cofactors & Conjugates",
     date: "July 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "NAD+ is not a novel research peptide — it's a coenzyme present in every living cell, required for energy metabolism and DNA repair. What's actually being studied and debated is the delivery question: whether administering NAD+ itself, rather than the precursor molecules it's normally built from, is the better way to raise it.",
+        text: "NAD+ is present in every living cell. It is not a peptide but a dinucleotide coenzyme, and it is one of the most studied molecules in cell metabolism. This summary covers its chemistry, the enzyme systems that depend on it, what laboratory work shows about how cells take up NAD+ precursors, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is NAD+?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Nicotinamide adenine dinucleotide (NAD+) is a coenzyme central to mitochondrial energy production and cellular signaling. Levels decline systemically with age across multiple tissues, a pattern linked in the literature to age-associated metabolic and neurodegenerative conditions.",
+        text: "NAD+ (nicotinamide adenine dinucleotide, oxidized form; molecular formula C21H27N7O14P2, molecular weight 663.4 g/mol, CAS 53-84-9) is a dinucleotide: an adenine nucleotide and a nicotinamide nucleotide joined through their phosphate groups. It cycles between the oxidized form, NAD+, and the reduced form, NADH.",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "NAD+ is a required substrate for two major classes of enzymes: PARPs (poly-ADP-ribose polymerases), which use it to repair DNA damage, and sirtuins, which use it to remove regulatory chemical tags from histones and other proteins — controlling gene expression, DNA repair, mitochondrial function, and inflammatory signaling. Both pathways consume NAD+ directly, which is part of why levels fall under sustained cellular stress.",
-      },
-      { type: "h2", text: "The Delivery Question — Does Direct NAD+ Even Work That Way?" },
-      {
-        type: "p",
-        text: "This is the least-marketed and most important part of the mechanism. At the concentrations used in IV/subcutaneous administration, NAD+ itself is largely hydrolyzed into nicotinamide mononucleotide (NMN) and converted to nicotinamide riboside (NR) before cells actually take it up — meaning the precursor pathway does the intracellular work regardless of which molecule you start with. NAD+'s poor ability to cross cell membranes directly is exactly why NMN and NR are argued by some researchers to be more efficient at raising intracellular NAD+ than administering NAD+ itself.",
+        text: "NAD+ has two kinds of roles. As a redox cofactor it carries electrons in energy metabolism. It is also consumed as a substrate by several enzyme families, including the sirtuins and the poly(ADP-ribose) polymerases (PARPs) (Ratajczak et al., 2016). Sirtuins couple the breakdown of NAD+ to the removal of acyl groups from proteins, which links cellular energy status to protein regulation (Imai and Guarente, 2016). Reviews describe a systemic decrease in NAD+ with age across multiple tissues (Johnson and Imai, 2018).",
       },
       {
         type: "p",
-        text: "A 2026 retrospective real-world tolerability study directly compared four consecutive days of IV NAD+ against IV NR with 30-day follow-up — a rare head-to-head data point in a space that mostly relies on precursor-only research. Oral NMN and NR separately have been shown to roughly double circulating NAD+ after two weeks of supplementation, peaking 3–8 hours after intake.",
+        text: "Cellular uptake is a central research question. Using genetic models and stable-isotope-labelled compounds, Ratajczak and colleagues (Nature Communications, 2016) showed that nicotinamide riboside kinase 1 (NRK1) is necessary and rate-limiting for cells to use external nicotinamide riboside (NR) and nicotinamide mononucleotide (NMN), and that extracellular NMN is first converted to NR, which cells then take up and turn into NAD+.",
       },
       {
         type: "callout",
-        text: "As of this writing, there is no trial directly comparing clinical outcomes — not just NAD+ blood levels — between injectable NAD+ and its precursors. The tolerability comparison exists; the outcome comparison doesn't yet.",
+        text: "These findings come from cell biology, biochemistry and animal models. They describe how NAD+ and its precursors behave in those systems. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Where to Source NAD+ for Research" },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Redox cofactor and substrate for sirtuins and PARPs (Ratajczak et al., 2016; Imai and Guarente, 2016)",
+          "Sirtuin activity coupled to NAD+ breakdown and protein deacylation (Imai and Guarente, 2016)",
+          "Systemic decrease in NAD+ with age across multiple tissues, by review (Johnson and Imai, 2018)",
+          "NRK1 required for cells to use external NR and NMN; extracellular NMN converted to NR before uptake (Ratajczak et al., 2016)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Extracellular NAD+: whether NAD+ supplied outside the cell is used intact or first broken down to smaller precursors such as NMN and NR is a live research question, and it matters for any experiment that adds NAD+ to the medium.",
+          "Compartments: NAD+ pools in the nucleus, cytoplasm and mitochondria are regulated separately, and whole-cell measurements can hide shifts between them.",
+          "Competition: sirtuins, PARPs and other NAD+-consuming enzymes draw on the same pool, so changing NAD+ availability can affect several systems at once.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the NAD+ product page",
-        productSlug: "nad-plus",
+        text: "NAD+ was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies NAD+ as a research chemical for laboratory use only; it is not sold as a drug or a dietary supplement.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is injectable NAD+ actually better than NMN or NR supplements?",
-            a: "Not established. At the doses typically used, injected NAD+ is largely broken down into NMN and converted to NR before cells absorb it — meaning the precursor pathway is doing the work either way. A 2026 study compared tolerability between IV NAD+ and IV NR directly, but no trial has yet compared their actual physiological outcomes.",
+            q: "Is NAD+ a peptide?",
+            a: "No. It is a dinucleotide coenzyme: two nucleotides joined through their phosphate groups.",
           },
           {
-            q: "Why does NAD+ decline with age?",
-            a: "NAD+ is consumed as a substrate by PARPs (DNA repair) and sirtuins (gene regulation) — both pathways draw it down under sustained cellular stress, which compounds with age-related increases in DNA damage and metabolic strain.",
+            q: "How do cells take up NAD+ precursors?",
+            a: "In the work of Ratajczak and colleagues (2016), extracellular NMN was converted to NR before uptake, and the enzyme NRK1 was required to turn NR into NAD+ inside the cell.",
+          },
+          {
+            q: "What kind of evidence is summarised here?",
+            a: "Cell biology, biochemistry and animal-model research, and reviews of that work. No laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -3047,27 +3005,34 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. \"NAD+ biosynthesis, aging, and disease.\" PMC. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5795269/", text: "ncbi.nlm.nih.gov", external: true },
+          "1. Ratajczak J, Joffraud M, Trammell SA, et al. \"NRK1 controls nicotinamide mononucleotide and nicotinamide riboside metabolism in mammalian cells.\" Nature Communications. 2016;7:13103. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/27725675/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. \"It takes two to tango: NAD+ and sirtuins in aging/longevity control.\" PMC. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5514996/", text: "ncbi.nlm.nih.gov", external: true },
+          "2. Imai SI, Guarente L. \"It takes two to tango: NAD+ and sirtuins in aging/longevity control.\" NPJ Aging and Mechanisms of Disease. 2016;2:16017. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/28721271/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"Intravenous infusion of nicotinamide adenine dinucleotide (NAD+) versus nicotinamide riboside (NR): a retrospective tolerability pilot study in a real-world setting.\" Frontiers in Aging, 2026. PMC. ",
-          { href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12907335/", text: "pmc.ncbi.nlm.nih.gov", external: true },
+          "3. Johnson S, Imai SI. \"NAD+ biosynthesis, aging, and disease.\" F1000Research. 2018;7:132. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/29744033/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. PubChem. Nicotinamide adenine dinucleotide (CID 5892). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/5892", text: "pubchem.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -3416,56 +3381,73 @@ export const posts: Post[] = [
   },
   {
     slug: "glow-blend-research-guide",
-    title: "GLOW Blend: What GHK-Cu Adds to the Wolverine Stack",
+    ruo: true,
+    title: "BPC-157 / TB-500 / GHK-Cu: A Research Literature Summary",
     excerpt:
-      "GLOW takes the Wolverine Stack's BPC-157 and TB-500 and adds a third peptide studied for a different job entirely: collagen and gene-expression research.",
-    category: "Stacks",
+      "A three-component blend: BPC-157, TB-500 and the copper tripeptide GHK-Cu in one vial. What each component's laboratory literature covers, and why no study has examined the combination.",
+    category: "Blends",
     date: "July 2026",
-    readTime: "6 min read",
+    lastUpdated: "October 2026",
+    readTime: "4 min read",
     content: [
       {
         type: "intro",
-        text: "GLOW is the Wolverine Stack — BPC-157 and TB-500 — plus GHK-Cu, a copper-binding tripeptide, co-lyophilized into a single vial. Where Wolverine's two peptides both center on tissue-repair signaling, GHK-Cu's studied mechanism is different: gene expression and collagen remodeling.",
+        text: "This blend combines three compounds that each have their own laboratory literature: BPC-157, TB-500 and GHK-Cu. No published study has examined the three together. This summary sets out what each component is, what its own research covers, and what that does and does not tell you about the blend.",
       },
-      { type: "h2", text: "The Third Peptide: GHK-Cu" },
+      { type: "h2", text: "Components" },
+      {
+        type: "ul",
+        items: [
+          "BPC-157: a synthetic 15-residue peptide, Gly-Glu-Pro-Pro-Pro-Gly-Lys-Pro-Ala-Asp-Asp-Ala-Gly-Leu-Val",
+          "TB-500: the N-acetylated heptapeptide Ac-LKKTETQ, residues 17–23 of thymosin beta-4",
+          "GHK-Cu: the tripeptide Gly-His-Lys bound to a copper(II) ion",
+        ],
+      },
+      { type: "h2", text: "What Each Component's Literature Covers" },
       {
         type: "p",
-        text: "GHK-Cu (glycyl-L-histidyl-L-lysine bound to copper) was first isolated from human plasma in 1973. A 1988 study established that at very low, nontoxic concentrations, it stimulates both synthesis and breakdown of collagen and glycosaminoglycans in fibroblast cultures — the foundational finding behind most of the skin- and tissue-remodeling research that followed.",
-      },
-      { type: "h2", text: "What the Literature Shows" },
-      {
-        type: "p",
-        text: "A 2018 review by Pickart and Margolina in the International Journal of Molecular Sciences surveys the gene-expression data: GHK-Cu applied to skin over 12 weeks improved collagen production in a majority of subjects tested, outperforming both a vitamin C cream and a retinoic acid comparator in the same study, and increased expression of matrix metalloproteinase genes involved in tissue remodeling.",
-      },
-      { type: "h2", text: "Why Add It to Wolverine" },
-      {
-        type: "p",
-        text: "BPC-157 and TB-500 are studied for tissue survival, fibroblast activity, and cell migration at an injury site — the mechanics of repair. GHK-Cu's literature sits one layer up: the quality and composition of the collagen matrix being rebuilt, plus broader gene-expression effects that extend into skin and follicular research. Combining the three is a bet that repair signaling and matrix-remodeling signaling are complementary layers, not that either compound changes how the other works.",
+        text: "BPC-157's laboratory work centres on VEGFR2–Akt–eNOS signaling in endothelial cells and on tendon-fibroblast migration and growth hormone receptor expression. TB-500's literature is mostly about full-length thymosin beta-4 and its role as an actin-sequestering protein, with thinner work on the fragment itself. GHK-Cu's covers extracellular-matrix synthesis: Maquart and colleagues (FEBS Letters, 1988) found it stimulated collagen synthesis in fibroblast cultures independently of any change in cell number.",
       },
       {
         type: "callout",
-        text: "What's not established: as with Wolverine, no study tests the three-peptide combination directly. Each compound's evidence comes from studies where it was administered alone or, for GHK-Cu, most often applied topically rather than injected alongside BPC-157/TB-500.",
+        text: "No published study tests BPC-157, TB-500 and GHK-Cu together. Each component's findings come from studies of that compound alone, in cell culture and animal models, and none of them is evidence of any effect in people.",
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Interaction: whether the three compounds affect each other's stability or activity when combined in one solution has not been studied.",
+          "Copper: GHK-Cu brings a bound copper(II) ion into the mixture, and its effect on the other two peptides in solution is uncharacterised.",
+          "Attribution: in any experiment with the blend, an observed effect cannot be assigned to one component without single-compound controls.",
+        ],
       },
       {
         type: "p",
         parts: [
-          "For the BPC-157 and TB-500 mechanisms this blend builds on, see the ",
-          { href: "/blog/wolverine-stack-research-guide", text: "Wolverine Stack research guide" },
+          "Component summaries: ",
+          { href: "/blog/bpc-157-complete-guide", text: "BPC-157" },
+          ", ",
+          { href: "/blog/tb-500-complete-guide", text: "TB-500" },
+          ", ",
+          { href: "/blog/ghk-cu-research-guide", text: "GHK-Cu" },
           ".",
         ],
       },
-      { type: "h2", text: "Sourcing GLOW" },
+      { type: "h2", text: "Regulatory Status" },
       {
-        type: "button",
-        text: "View the GLOW Stack product page",
-        productSlug: "glow-stack",
+        type: "p",
+        text: "None of the three components is approved by the FDA for any use, and the blend has not been reviewed as a product. Aura Protocols supplies this blend as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is GLOW just Wolverine with an extra ingredient, or a different formulation?",
-            a: "It's the same BPC-157/TB-500 pairing found in Wolverine, with GHK-Cu added in the same vial — not a reformulation of the first two. Vendors typically keep the BPC-157/TB-500 ratio consistent with their standalone Wolverine product and add GHK-Cu on top.",
+            q: "Has this combination been studied?",
+            a: "No. Each component has its own laboratory literature, but no published study examines the three together.",
+          },
+          {
+            q: "Was this blend called something else before?",
+            a: "Yes. It was sold under the name GLOW; blends are now named by composition.",
           },
         ],
       },
@@ -3473,77 +3455,98 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Maquart FX, Pickart L, Laurent M, et al. \"Stimulation of collagen synthesis in fibroblast cultures by the tripeptide-copper complex glycyl-L-histidyl-L-lysine-Cu2+.\" FEBS Lett, 1988. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/3169264/", text: "PubMed", external: true },
+          "1. Maquart FX, Pickart L, Laurent M, et al. \"Stimulation of collagen synthesis in fibroblast cultures by the tripeptide-copper complex glycyl-L-histidyl-L-lysine-Cu2+.\" FEBS Letters. 1988;238(2):343-346. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/3169264/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Pickart L, Margolina A. \"Regenerative and Protective Actions of the GHK-Cu Peptide in the Light of the New Gene Data.\" Int J Mol Sci, 2018. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/29986520/", text: "PubMed", external: true },
+          "2. Hsieh MJ, Liu HT, Wang CN, et al. \"Therapeutic potential of pro-angiogenic BPC157 is associated with VEGFR2 activation and up-regulation.\" Journal of Molecular Medicine. 2017;95(3):323-333. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/27847966/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Ho EN, Kwok WH, Lau MY, et al. \"Doping control analysis of TB-500, a synthetic version of an active region of thymosin β4, in equine urine and plasma by liquid chromatography-mass spectrometry.\" Journal of Chromatography A. 2012;1265:57-69. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/23084823/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "klow-blend-research-guide",
-    title: "KLOW Blend: What KPV Adds to GLOW",
+    ruo: true,
+    title: "BPC-157 / TB-500 / GHK-Cu / KPV: A Research Literature Summary",
     excerpt:
-      "KLOW is GLOW plus a fourth peptide studied for a different pathway entirely: NF-κB inflammatory signaling and gut-lining research.",
-    category: "Stacks",
+      "A four-component blend: BPC-157, TB-500, GHK-Cu and the tripeptide KPV in one vial. What each component's laboratory literature covers, and why no study has examined the combination.",
+    category: "Blends",
     date: "July 2026",
-    readTime: "5 min read",
+    lastUpdated: "October 2026",
+    readTime: "4 min read",
     content: [
       {
         type: "intro",
-        text: "KLOW is the GLOW blend — BPC-157, TB-500, and GHK-Cu — plus KPV, a tripeptide studied for anti-inflammatory signaling. It's the broadest of the three pre-blended stacks on this site, and the only one that adds an inflammatory-pathway mechanism to the repair-and-remodeling base the other two share.",
+        text: "This blend is the BPC-157 / TB-500 / GHK-Cu blend with a fourth component, KPV. Each of the four has its own laboratory literature; no published study has examined them together. This summary sets out what KPV adds, what each component's research covers, and what that does and does not tell you about the blend.",
       },
-      { type: "h2", text: "The Fourth Peptide: KPV" },
+      { type: "h2", text: "Components" },
+      {
+        type: "ul",
+        items: [
+          "BPC-157: a synthetic 15-residue peptide, Gly-Glu-Pro-Pro-Pro-Gly-Lys-Pro-Ala-Asp-Asp-Ala-Gly-Leu-Val",
+          "TB-500: the N-acetylated heptapeptide Ac-LKKTETQ, residues 17–23 of thymosin beta-4",
+          "GHK-Cu: the tripeptide Gly-His-Lys bound to a copper(II) ion",
+          "KPV: the tripeptide Lys-Pro-Val, residues 11–13 of alpha-melanocyte-stimulating hormone (α-MSH)",
+        ],
+      },
+      { type: "h2", text: "What KPV's Literature Covers" },
       {
         type: "p",
-        text: "KPV (Lys-Pro-Val) is the C-terminal tripeptide fragment of alpha-MSH, studied independently of alpha-MSH's pigmentation and appetite effects. Its own product guide on this site covers its full profile; the summary relevant to KLOW is its mechanism of action.",
-      },
-      { type: "h2", text: "What the Literature Shows" },
-      {
-        type: "p",
-        text: "A 2008 study in Gastroenterology found that KPV's anti-inflammatory effect is PepT1-mediated — the tripeptide is taken up by the PepT1 transporter in intestinal epithelial and immune cells, where nanomolar concentrations inhibit NF-κB and MAP kinase inflammatory signaling and reduce pro-inflammatory cytokine secretion. In the same study, oral KPV reduced the severity of colitis in two separate mouse models.",
-      },
-      { type: "h2", text: "Why Add It to GLOW" },
-      {
-        type: "p",
-        text: "BPC-157, TB-500, and GHK-Cu are studied for tissue repair and matrix remodeling — three angles on the same broad process. KPV's NF-κB and cytokine-signaling research sits on a separate axis: inflammatory regulation and gut-lining research, distinct from the repair mechanisms of the other three. Researchers extending Glow to Klow are typically adding inflammatory-pathway coverage the base three peptides don't address, not intensifying the repair effect itself.",
+        text: "Dalmasso and colleagues (Gastroenterology, 2008) found that KPV is taken up into human intestinal epithelial cells and T cells by PepT1, a di- and tripeptide transporter, and that nanomolar concentrations inhibited NF-κB and MAP kinase inflammatory signaling and reduced pro-inflammatory cytokine secretion in those cells. In two mouse colitis models (DSS and TNBS), KPV given in drinking water lowered pro-inflammatory cytokine expression. The other three components are covered in the BPC-157 / TB-500 / GHK-Cu summary.",
       },
       {
         type: "callout",
-        text: "What's not established: the four-peptide combination hasn't been studied as a unit. Each compound's evidence, including KPV's, comes from studies where it was administered alone.",
+        text: "No published study tests these four compounds together. Each component's findings come from studies of that compound alone, in cell culture and animal models, and none of them is evidence of any effect in people.",
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Interaction: whether the four compounds affect each other's stability or activity when combined in one solution has not been studied.",
+          "Transport: KPV's activity in the 2008 study depended on PepT1 uptake, which other components may or may not share or compete for.",
+          "Attribution: in any experiment with the blend, an observed effect cannot be assigned to one component without single-compound controls.",
+        ],
       },
       {
         type: "p",
         parts: [
-          "For the full KPV profile, see the ",
-          { href: "/blog/kpv-research-guide", text: "KPV research guide" },
-          "; for BPC-157, TB-500, and GHK-Cu, see the ",
-          { href: "/blog/glow-blend-research-guide", text: "GLOW Blend guide" },
+          "Component summaries: ",
+          { href: "/blog/kpv-research-guide", text: "KPV" },
+          ", and ",
+          { href: "/blog/glow-blend-research-guide", text: "BPC-157 / TB-500 / GHK-Cu" },
           ".",
         ],
       },
-      { type: "h2", text: "Sourcing KLOW" },
+      { type: "h2", text: "Regulatory Status" },
       {
-        type: "button",
-        text: "View the KLOW Stack product page",
-        productSlug: "klow-stack",
+        type: "p",
+        text: "None of the four components is approved by the FDA for any use, and the blend has not been reviewed as a product. Aura Protocols supplies this blend as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is KLOW better than GLOW, or just different?",
-            a: "Different, not strictly better — they share the same BPC-157/TB-500/GHK-Cu base. KPV's evidence is specifically about NF-κB inflammatory signaling and gut-lining research, a mechanism the other three peptides don't address. Whether that's relevant depends on what the research protocol is actually studying.",
+            q: "Has this combination been studied?",
+            a: "No. Each component has its own laboratory literature, but no published study examines the four together.",
+          },
+          {
+            q: "Was this blend called something else before?",
+            a: "Yes. It was sold under the name KLOW; blends are now named by composition.",
           },
         ],
       },
@@ -3551,13 +3554,20 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Dalmasso G, et al. \"PepT1-Mediated Tripeptide KPV Uptake Reduces Intestinal Inflammation.\" Gastroenterology, 2008. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/18061177/", text: "PubMed", external: true },
+          "1. Dalmasso G, Charrier-Hisamuddin L, Nguyen HT, et al. \"PepT1-mediated tripeptide KPV uptake reduces intestinal inflammation.\" Gastroenterology. 2008;134(1):166-178. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/18061177/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Maquart FX, Pickart L, Laurent M, et al. \"Stimulation of collagen synthesis in fibroblast cultures by the tripeptide-copper complex glycyl-L-histidyl-L-lysine-Cu2+.\" FEBS Letters. 1988;238(2):343-346. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/3169264/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
