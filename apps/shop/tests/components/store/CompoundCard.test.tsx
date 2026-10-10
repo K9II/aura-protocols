@@ -6,7 +6,7 @@ import type { Compound } from "@/data/catalog";
 
 const lot = { lot: "AP-0001", purityPct: 99.6, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
 const c: Compound = {
-  slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: {},
+  slug: "bpc-157", name: "BPC-157", chemicalClass: "Peptide Fragments", identity: { cas: "137525-51-0", formula: "C62H98N16O22" },
   form: "x", storage: "x", vialMl: 3,
   variants: [{ id: "5mg", strength: "5 mg", shown: true, priceUsd: 49, stock: "in", lot, wholesale: true }, { id: "10mg", strength: "10 mg", shown: true, priceUsd: 79, stock: "in", lot, wholesale: true }],
   packDiscounts: [{ qty: 2, pct: 5 }, { qty: 5, pct: 10 }, { qty: 10, pct: 20 }],
@@ -19,7 +19,25 @@ describe("CompoundCard", () => {
     expect(screen.getByText("Peptide Fragments")).toBeInTheDocument();
     expect(screen.getByText("from $93.10")).toBeInTheDocument();
     expect(screen.getByText("99.6% · tested")).toBeInTheDocument();
-    expect(screen.getByText("◇ COA on file")).toBeInTheDocument();
+    expect(document.querySelector(".s-coa-tag")?.textContent).toBe("◇ COA on file");
+  });
+
+  it("shows the monograph placard with the CAS number, and Price / Certificate labels", () => {
+    render(<CompoundCard compound={c} />);
+    expect(document.querySelector(".s-placard-id")?.textContent).toBe("CAS 137525-51-0");
+    expect(screen.getByText("Monograph · Peptide Fragments")).toBeInTheDocument();
+    expect(screen.getByText("Price")).toBeInTheDocument();
+    expect(screen.getByText("Certificate")).toBeInTheDocument();
+  });
+
+  it("falls back to the formula when there is no CAS number", () => {
+    render(<CompoundCard compound={{ ...c, identity: { formula: "C62H98N16O22" } }} />);
+    expect(screen.getByText("C62H98N16O22")).toBeInTheDocument();
+  });
+
+  it("colours the card with its chemical class", () => {
+    render(<CompoundCard compound={c} />);
+    expect(screen.getByRole("link").getAttribute("style")).toContain("--cls: #A32B1F");
   });
 
   it("shows a plain price when there is one variant", () => {
@@ -30,7 +48,7 @@ describe("CompoundCard", () => {
   it("shows COA pending instead of the tag and purity", () => {
     render(<CompoundCard compound={{ ...c, variants: c.variants.map((v) => ({ ...v, stock: "out" as const, lot: { pending: true as const } })) }} />);
     expect(screen.getByText("COA pending")).toBeInTheDocument();
-    expect(screen.queryByText("◇ COA on file")).toBeNull();
+    expect(document.querySelector(".s-coa-tag")).toBeNull();
   });
 
   it("takes the lot line from the first strength with a released lot", () => {

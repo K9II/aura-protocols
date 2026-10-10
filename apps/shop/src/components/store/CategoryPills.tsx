@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ChemicalClass, Compound } from "@/data/catalog";
 import { classCounts } from "@/lib/catalog";
+import { CLASS_COLOR } from "@/lib/class-colors";
 
 export default function CategoryPills({ catalog, active }: { catalog: Compound[]; active?: ChemicalClass }) {
   return (
@@ -10,7 +11,7 @@ export default function CategoryPills({ catalog, active }: { catalog: Compound[]
       </Link>
       {classCounts(catalog).map(({ cls, count }) => (
         <Link key={cls} href={`/products?cat=${encodeURIComponent(cls)}`} aria-current={active === cls ? "page" : undefined}>
-          {cls}<span>{count}</span>
+          <i aria-hidden style={{ background: CLASS_COLOR[cls] }} />{cls}<span>{count}</span>
         </Link>
       ))}
     </nav>

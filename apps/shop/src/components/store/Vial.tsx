@@ -20,9 +20,12 @@ type VialProps = {
   tilt?: number;         // degrees
   width?: number;        // rendered width; height keeps the 120:200 ratio
   cap?: keyof typeof CAPS;
+  rule?: string;         // label hairlines: the chemical class colour (lib/class-colors.ts); specimen red by default
 };
 
-export default function Vial({ id, label, strength, tilt = -10, width = 160, cap: capColor = "red" }: VialProps) {
+export default function Vial({ id, label, strength, tilt = -10, width = 160, cap: capColor = "red", rule = "#A32B1F" }: VialProps) {
+  // A class colour reads as a band, so it draws a little heavier than the red hairline.
+  const ruleWidth = rule === "#A32B1F" ? 0.8 : 1.6;
   const nameSize = label.length > 9 ? 10.5 : label.length > 7 ? 12.5 : 14;
   const glass = `vial-glass-${id}`;
   const alu = `vial-alu-${id}`;
@@ -97,8 +100,8 @@ export default function Vial({ id, label, strength, tilt = -10, width = 160, cap
 
       {/* Paper label */}
       <rect x="20" y="66" width="80" height="94" fill="#FBFAF7" />
-      <line x1="20" y1="66.4" x2="100" y2="66.4" stroke="#A32B1F" strokeWidth=".8" />
-      <line x1="20" y1="159.6" x2="100" y2="159.6" stroke="#A32B1F" strokeWidth=".8" />
+      <line x1="20" y1="66.4" x2="100" y2="66.4" stroke={rule} strokeWidth={ruleWidth} />
+      <line x1="20" y1="159.6" x2="100" y2="159.6" stroke={rule} strokeWidth={ruleWidth} />
       <g transform="translate(23,66) scale(.175)" fill="none" stroke="#1C1A15" strokeLinecap="round" strokeWidth="8">
         <g transform="translate(6,4) skewX(-7)">
           <path d="M30,128 L63,23" />

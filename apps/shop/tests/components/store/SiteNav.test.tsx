@@ -66,10 +66,18 @@ describe("SiteNav", () => {
 
   it("shows the banner: ISO/IEC 17025-accredited US lab, COA on every lot, fast domestic shipping, free-shipping threshold", () => {
     render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
-    const bar = document.querySelector(".s-topbar") as HTMLElement;
+    const bar = document.querySelector(".s-topbar .s-topbar-wide") as HTMLElement;
     expect(bar.textContent?.replace(/\s+/g, " ").trim()).toBe(
       `Tested by an ISO/IEC 17025-accredited US lab · COA on every lot · Fast domestic shipping · Free over $${FREE_SHIPPING_THRESHOLD_USD}`,
     );
     expect(within(bar).getByText("Fast domestic shipping").tagName).toBe("EM");
+  });
+
+  it("phones get the short banner wording", () => {
+    render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
+    const phone = document.querySelector(".s-topbar .s-topbar-phone") as HTMLElement;
+    expect(phone.textContent?.replace(/\s+/g, " ").trim()).toBe(
+      `Accredited US lab · COA every lot · Free shipping over $${FREE_SHIPPING_THRESHOLD_USD}`,
+    );
   });
 });
