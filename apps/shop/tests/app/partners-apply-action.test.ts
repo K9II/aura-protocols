@@ -43,6 +43,15 @@ describe("applyPartnerAction", () => {
     expect(createApplication).not.toHaveBeenCalled();
   });
 
+  it("refuses a blank or whitespace-only \"How you'll share Aura\" with its own message", async () => {
+    getCustomer.mockResolvedValue(customer);
+    const { applyPartnerAction } = await import("@/app/partners/actions");
+    for (const promotion of ["", "   ", "\n\t ", "ok"]) {
+      expect((await applyPartnerAction(undefined, fd({ ...valid, promotion })))?.error).toBe("Tell us how you'll share Aura — a sentence or two is enough.");
+    }
+    expect(createApplication).not.toHaveBeenCalled();
+  });
+
   it("needs at least one channel with its handle; Other needs a description", async () => {
     getCustomer.mockResolvedValue(customer);
     const { applyPartnerAction } = await import("@/app/partners/actions");
