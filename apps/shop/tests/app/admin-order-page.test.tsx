@@ -64,6 +64,14 @@ describe("/admin/orders/[number]", () => {
     expect(screen.getByText(/Shipping labels and 3PL fees aren.t included yet/)).toBeInTheDocument();
   });
 
+  it("a wholesale order links to its production run and lists kits", async () => {
+    m.getOrderDetail.mockResolvedValue({ ...detail, run: { id: "r1", number: "R-1004" }, order: { ...order, status: "paid", shipped_at: null, channel: "wholesale",
+      order_items: (order.order_items ?? []).map((i) => ({ ...i, pack_qty: 10 })) } });
+    render(await OrderPage({ params: Promise.resolve({ number: "AP-1029" }) }));
+    expect(screen.getByRole("link", { name: /Run R-1004/ })).toHaveAttribute("href", "/admin/wholesale/runs/r1");
+    expect(screen.getAllByText(/kit \(10 vials\)/).length).toBeGreaterThan(0);
+  });
+
   it("profit that can't be read says so instead of showing a number", async () => {
     m.orderProfit.mockRejectedValueOnce(new Error("db down"));
     vi.spyOn(console, "error").mockImplementation(() => {});

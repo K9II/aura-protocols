@@ -16,7 +16,10 @@ export type TimelineSources = {
     carrier: string | null; tracking_number: string | null; stripe_payment_intent: string | null; store_credit_cents: number; total_cents: number;
     // Stamped by a refund made here (refundOrderAction); null for a Stripe-dashboard refund.
     refund_reason?: string | null; refund_note?: string | null;
+    channel?: string; deposit_cents?: number | null; balance_cents?: number | null; deposit_paid_at?: string | null; balance_due_at?: string | null;
   };
+  // A wholesale order: its production run and that run's entries for it.
+  wholesale?: { run: { id: string; number: string } | null; events: Array<{ kind: string; at: string; detail: string | null }> } | null;
   adminEvents: Array<{ action: string; at: string; actorName: string | null; detail: string | null }>;
   commission: { amount_cents: number; rate_pct: number; state: CommissionState; created_at: string; clears_at: string | null; voided_at: string | null; partnerCode: string } | null;
   disputes: Array<{ id: string; status: string; reason: string; amount_cents: number; opened_at: string; closed_at: string | null; outcome: string | null }>;
@@ -31,6 +34,27 @@ export type TimelineSources = {
 const words = (s: string) => s.replace(/_/g, " ");
 const INQUIRY_STATUS: Record<string, string> = { new: "New", needs_reply: "Needs reply", waiting: "Waiting on customer", closed: "Closed" };
 const RESOLVED: Record<string, string> = { refunded: "cancelled and refunded", watching: "marked watching", disputed: "became a chargeback", closed: "closed" };
+
+const WS_EVENT: Record<string, { title: string; tone: TimelineEntry["tone"] }> = {
+  lot_failed_emailed: { title: "A lot failed testing · re-source notice emailed", tone: "red" },
+  reminder_sent: { title: "Balance reminder emailed", tone: "plain" },
+  overdue_alerted: { title: "Balance overdue", tone: "red" },
+  forfeited: { title: "Cancelled — balance not paid, deposit kept", tone: "red" },
+};
+
+// Wholesale: deposit paid (joined the run) → kits passed, balance requested →
+// reminders → balance paid, plus the run's notices for this order.
+function wholesaleEntries(o: TimelineSources["order"], w: NonNullable<TimelineSources["wholesale"]>, out: TimelineEntry[]) {
+  const run = w.run;
+  const link = run ? { href: `/admin/wholesale/runs/${run.id}`, hrefLabel: run.number } : {};
+  if (o.deposit_paid_at) out.push({ key: "deposit", at: o.deposit_paid_at, tone: "ok", title: `Deposit paid · ${usd(o.deposit_cents ?? 0)}`, detail: run ? `joined run ${run.number}` : undefined, ...link });
+  if (o.balance_due_at) out.push({ key: "balance-due", at: o.balance_due_at, tone: "plain", title: `Kits passed · balance of ${usd(o.balance_cents ?? 0)} requested`, detail: "buyer emailed a link to pay", ...link });
+  for (const [i, e] of w.events.entries()) {
+    const m = WS_EVENT[e.kind];
+    if (m) out.push({ key: `ws-${e.kind}-${i}`, at: e.at, tone: m.tone, title: m.title, detail: e.detail ?? undefined, ...link });
+  }
+  if (o.paid_at) out.push({ key: "paid", at: o.paid_at, tone: "ok", title: `Balance paid · ${usd(o.balance_cents ?? 0)}`, detail: "ready to ship" });
+}
 
 export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
   const o = s.order;
@@ -51,7 +75,8 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
     if (e && email === "failed") out.push({ key: "email", at: e.at, tone: "red", title: "Email failed", sub: "“On its way soon”", detail: `to ${nc.email}` });
   } else {
     out.push({ key: "placed", at: o.created_at, tone: "plain", title: "Placed", detail: "checkout started · research use confirmed" });
-    if (o.paid_at) out.push({ key: "paid", at: o.paid_at, tone: "ok", title: "Paid", detail: o.stripe_payment_intent ? "Stripe payment" : "paid in store credit" });
+    if (s.wholesale) wholesaleEntries(o, s.wholesale, out);
+    else if (o.paid_at) out.push({ key: "paid", at: o.paid_at, tone: "ok", title: "Paid", detail: o.stripe_payment_intent ? "Stripe payment" : "paid in store credit" });
   }
   if (s.commission) {
     const c = s.commission;

@@ -9,7 +9,8 @@ const m = vi.hoisted(() => ({
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: m.getWholesaleSettings }));
 vi.mock("@/lib/wholesale/runs-data", () => ({ listRuns: m.listRuns, runLines: m.runLines, runOrders: m.runOrders, getRun: m.getRun, runEvents: m.runEvents, draftLotsFor: m.draftLotsFor, pastSuppliers: m.pastSuppliers, supplierPricesFor: m.supplierPricesFor }));
-vi.mock("@/lib/catalog-ops/data", () => ({ lotById: m.lotById }));
+vi.mock("@/lib/catalog-ops/data", () => ({ lotById: m.lotById, lotDefaults: async () => ({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 }) }));
+vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn() }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-30T16:00:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound, useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/app/admin/wholesale/actions", () => ({
@@ -70,6 +71,18 @@ describe("Admin → Wholesale pages", () => {
     const opts = [...container.querySelectorAll("select[name=supplier] option")].map((o) => o.textContent);
     expect(opts).toEqual(["Choose a supplier…", "LKZ · in this run", "Uther", "Reta-Peptide", "EHZ", "BFF Chem", "Nana · $52.00/box", "HK Peptides", "Other…"]);
     expect(screen.getByDisplayValue("Claim filed with Uther")).toBeTruthy();
+  });
+
+  it("run page: an ordered line offers Receive lot (pre-filled from the supplier order) and Link lot when drafts exist", async () => {
+    m.runOrders.mockResolvedValue([order()]);
+    m.runLines.mockResolvedValue([line({ lot_id: null })]);
+    m.draftLotsFor.mockResolvedValue([{ id: "d1", lot_number: "X-1", counted_qty: 50, damaged_qty: 0, coa_path: null, received_at: "x" }]);
+    const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
+    expect(screen.getByRole("button", { name: "Receive lot" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Link lot" })).toBeTruthy();
+    expect((container.querySelector("input[name=runLineId]") as HTMLInputElement).value).toBe("l1");
+    expect((container.querySelector("input[name=cost]") as HTMLInputElement).value).toBe("1140");
   });
 
   it("run page: the Assistant sees everything and no controls", async () => {
