@@ -19,7 +19,7 @@ import {
 } from "@/lib/wholesale/runs-data";
 import { afterLineFailed, releaseReadyOrders } from "@/lib/wholesale/balance";
 import { parseSettingsForm } from "@/lib/wholesale/rules";
-import { saveWholesaleSettings } from "@/lib/wholesale/data";
+import { markWholesaleReviewed, saveWholesaleSettings } from "@/lib/wholesale/data";
 
 // Admin → Wholesale (spec 2026-10-08-wholesale-kits-design.md, Part 2). Every
 // action asks for wholesale.manage first (owner only).
@@ -206,6 +206,19 @@ export async function cancelDepositAction(_prev: ActionState, f: FormData): Prom
   }
   revalidatePath(`/admin/orders/${order.order_number}`);
   return { ok: `${order.order_number} cancelled — deposit refunded.` };
+}
+
+// New-buyer review (spec 2026-10-10): owner only. Idempotent — a second click is a no-op.
+export async function markWholesaleReviewedAction(f: FormData): Promise<void> {
+  const owner = await requirePermission("wholesale.manage");
+  const id = uuid(f, "customerId");
+  if (!id) throw new Error("That buyer couldn't be found — reload the page.");
+  const r = await markWholesaleReviewed(id, owner.id);
+  if (r === "missing") throw new Error("That buyer couldn't be found — reload the page.");
+  revalidatePath("/admin");
+  revalidatePath("/admin/wholesale");
+  revalidatePath("/admin/wholesale/runs/[id]", "page");
+  revalidatePath(`/admin/customers/${id}`);
 }
 
 export async function saveWholesaleSettingsAction(_prev: ActionState, f: FormData): Promise<ActionState> {
