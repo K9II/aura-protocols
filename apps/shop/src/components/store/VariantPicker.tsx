@@ -3,9 +3,10 @@
 import { useState } from "react";
 import type { Compound } from "@/data/catalog";
 import { isPendingLot, packOptions, strengthInPriceUnit } from "@/lib/catalog";
-import { linePriceUsd } from "@/lib/cart";
+import { FREE_SHIPPING_THRESHOLD_USD, linePriceUsd } from "@/lib/cart";
 import { useCart } from "@/components/store/CartProvider";
 import SpecBoxes from "@/components/store/SpecBoxes";
+import TrustRow from "@/components/store/TrustRow";
 
 const MAX_PACKS = 20;
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -15,7 +16,8 @@ const STOCK_LABEL = { in: "In stock", low: "Low stock", out: "Out of stock" } as
 // Pack list: every pack shows its price, the material it holds and $/mg ($/IU
 // for an IU strength), so
 // the total and the bulk saving are visible before anything is clicked. The
-// lot boxes and certificate link follow the selected strength.
+// lot boxes and certificate link follow the selected strength. Everything you
+// choose sits on one raised panel (s-buy, class-colour top edge; 2026-10-10).
 export default function VariantPicker({ compound: c }: { compound: Compound }) {
   const { add } = useCart();
   const [variantId, setVariantId] = useState(c.variants[0].id);
@@ -39,55 +41,60 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
       ) : (
         <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
       )}
-      {c.variants.length > 1 && (
-        <>
-          <div className="s-optlabel s-micro">Size</div>
-          <div className="s-seg">
-            {c.variants.map((v) => (
-              <button key={v.id} type="button" aria-pressed={v.id === variantId} onClick={() => setVariantId(v.id)}>{v.strength}</button>
-            ))}
+      <TrustRow className="s-trust--pdp" />
+      <div className="s-buy">
+        {c.variants.length > 1 && (
+          <>
+            <div className="s-optlabel s-micro">Size</div>
+            <div className="s-seg">
+              {c.variants.map((v) => (
+                <button key={v.id} type="button" aria-pressed={v.id === variantId} onClick={() => setVariantId(v.id)}>{v.strength}</button>
+              ))}
+            </div>
+          </>
+        )}
+        {/* Pending-lot strengths are always "out" but keep the existing COA-pending copy above — don't duplicate it here. */}
+        {!pending && <p className={`s-stock s-stock--${variant.stock}`}>{STOCK_LABEL[variant.stock]}</p>}
+        <div className="s-optlabel s-micro s-optlabel--split"><span>Choose pack</span><span>Pack price</span></div>
+        <div className="s-packs">
+          {packs.map((p) => (
+            <button key={p.qty} type="button" className="s-pack" aria-pressed={p.qty === packQty} onClick={() => setPackQty(p.qty)}>
+              <span>
+                <b>{p.qty} vials × {variant.strength}</b>
+                <span className="s-pack-math">{p.totalLabel} total · {usd(p.perMgUsd)}{per}</span>
+              </span>
+              <span className="s-pack-price">
+                <b>{usd(p.packUsd)}</b>
+                {p.pct > 0 && <span className="s-micro">save {p.pct}%</span>}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="s-packsel" data-testid="selected-pack">
+          <div>
+            <div className="s-micro">Selected pack</div>
+            <div className="s-packsel-name">{sel.totalLabel} pack</div>
+            <span className="s-pack-math">{sel.qty} vials × {variant.strength} · {usd(sel.perVialUsd)}/vial · {usd(sel.perMgUsd)}{per}</span>
           </div>
-        </>
-      )}
-      {/* Pending-lot strengths are always "out" but keep the existing COA-pending copy above — don't duplicate it here. */}
-      {!pending && <p className={`s-stock s-stock--${variant.stock}`}>{STOCK_LABEL[variant.stock]}</p>}
-      <div className="s-optlabel s-micro s-optlabel--split"><span>Choose pack</span><span>Pack price</span></div>
-      <div className="s-packs">
-        {packs.map((p) => (
-          <button key={p.qty} type="button" className="s-pack" aria-pressed={p.qty === packQty} onClick={() => setPackQty(p.qty)}>
-            <span>
-              <b>{p.qty} vials × {variant.strength}</b>
-              <span className="s-pack-math">{p.totalLabel} total · {usd(p.perMgUsd)}{per}</span>
-            </span>
-            <span className="s-pack-price">
-              <b>{usd(p.packUsd)}</b>
-              {p.pct > 0 && <span className="s-micro">save {p.pct}%</span>}
-            </span>
+          <div className="s-packsel-price">
+            <div className="s-micro">Pack price</div>
+            <b>{usd(sel.packUsd)}</b>
+          </div>
+        </div>
+        <div className="s-optlabel s-micro">Quantity</div>
+        <div className="s-buyrow">
+          <div className="s-stepper" role="group" aria-label="Quantity">
+            <button type="button" aria-label="Decrease quantity" disabled={quantity <= 1} onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
+            <span aria-live="polite">{quantity}</span>
+            <button type="button" aria-label="Increase quantity" disabled={quantity >= MAX_PACKS} onClick={() => setQuantity((q) => Math.min(MAX_PACKS, q + 1))}>+</button>
+          </div>
+          <button type="button" className="s-atc" disabled={out} onClick={() => add(line)}>
+            {pending ? "COA pending — available soon" : out ? "Out of stock" : <>Add to cart — <span className="whitespace-nowrap">${total.toFixed(2)} →</span></>}
           </button>
-        ))}
-      </div>
-      <div className="s-packsel" data-testid="selected-pack">
-        <div>
-          <div className="s-micro">Selected pack</div>
-          <div className="s-packsel-name">{sel.totalLabel} pack</div>
-          <span className="s-pack-math">{sel.qty} vials × {variant.strength} · {usd(sel.perVialUsd)}/vial · {usd(sel.perMgUsd)}{per}</span>
         </div>
-        <div className="s-packsel-price">
-          <div className="s-micro">Pack price</div>
-          <b>{usd(sel.packUsd)}</b>
-        </div>
-      </div>
-      <div className="s-optlabel s-micro">Quantity</div>
-      <div className="s-buyrow">
-        <div className="s-stepper" role="group" aria-label="Quantity">
-          <button type="button" aria-label="Decrease quantity" disabled={quantity <= 1} onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
-          <span aria-live="polite">{quantity}</span>
-          <button type="button" aria-label="Increase quantity" disabled={quantity >= MAX_PACKS} onClick={() => setQuantity((q) => Math.min(MAX_PACKS, q + 1))}>+</button>
-        </div>
-        <button type="button" className="s-atc" disabled={out} onClick={() => add(line)}>
-          {pending ? "COA pending — available soon" : out ? "Out of stock" : <>Add to cart — <span className="whitespace-nowrap">${total.toFixed(2)} →</span></>}
-        </button>
+        <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders of ${FREE_SHIPPING_THRESHOLD_USD} or more</div>
       </div>
     </div>
   );
 }
+
