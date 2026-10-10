@@ -23,11 +23,10 @@ function texts(s: Section): string[] {
   return [s.text ?? "", ...(s.items ?? []), ...(s.faq ?? []).flatMap((f) => [f.q, f.a]),
     ...(s.parts ?? []).map((p) => (typeof p === "string" ? p : p.text))];
 }
-// Reference entries (a paragraph with an external link) cite paper titles verbatim;
-// titles are checked by hand, not by word rules.
-const isReference = (s: Section) => s.type === "p" && !!s.parts?.some((p) => typeof p !== "string" && p.external);
+// Everything on the page is checked, references included: the build's scan reads the
+// whole rendered page, so a paper title with a banned word is shortened with "…".
 function bodyText(p: Post): string {
-  return [p.title, p.excerpt, ...p.content.filter((s) => !isReference(s)).flatMap(texts)].join(" \n ");
+  return [p.title, p.excerpt, ...p.content.flatMap(texts)].join(" \n ");
 }
 
 const ruo = posts.filter((p) => p.ruo);

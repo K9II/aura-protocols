@@ -410,181 +410,103 @@ export const posts: Post[] = [
   },
   {
     slug: "pt-141-melanocortin-bremelanotide-guide",
-    title:
-      "PT-141 (Bremelanotide): Hypothalamic Activation, the Brain-to-Spine Arousal Cascade, and Post-RARP Research",
+    ruo: true,
+    title: "PT-141 (Bremelanotide): A Research Literature Summary",
     excerpt:
-      "How PT-141 binds MC3R and MC4R to initiate arousal centrally, why this matters for post-prostatectomy ED research, and the full melanocortin analog family from α-MSH to setmelanotide.",
-    category: "Wellness",
+      "A cyclic heptapeptide analog of alpha-MSH that acts at the central melanocortin receptors MC3R and MC4R. What laboratory studies have measured about its receptor activity and hypothalamic neuron activation, and what is still unknown.",
+    category: "Short Peptides & Neuropeptides",
     date: "June 2026",
-    readTime: "12 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "PT-141, generically known as bremelanotide, occupies a distinct position in the peptide research landscape. Unlike the PDE5 inhibitors that dominate mainstream erectile dysfunction treatment, PT-141 doesn't act on vascular smooth muscle at all. It acts on the brain. This central mechanism — binding melanocortin receptors in the hypothalamus to initiate a neurological cascade rather than dilating blood vessels — is what makes PT-141 relevant to researchers studying populations where peripheral interventions consistently underperform. Among the most studied: men who have undergone radical prostatectomy for prostate cancer. This guide covers PT-141's mechanism of action at the receptor level, the clinical rationale for its use in post-surgical ED research, and where it sits within the broader melanocortin peptide family.",
+        text: "PT-141 (bremelanotide) belongs to the melanocortin peptide family, the group of ligands derived from or modelled on alpha-melanocyte-stimulating hormone (α-MSH). This summary covers its structure, the receptor system it acts on, what laboratory studies have measured, and the questions that remain open. It does not cover clinical literature.",
       },
-      {
-        type: "h2",
-        text: "How PT-141 Works: Melanocortin Receptor Binding",
-      },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "The melanocortin system is a network of five G-protein-coupled receptors (MC1R through MC5R), each with distinct tissue distribution and physiological roles. PT-141 demonstrates binding affinity primarily at MC3R and MC4R — the two subtypes most implicated in sexual function and autonomic regulation.",
+        text: "PT-141 is the synthetic cyclic heptapeptide Ac-Nle-cyclo[Asp-His-D-Phe-Arg-Trp-Lys]-OH, closed by a lactam bond between residues 2 and 7, aspartic acid and lysine (molecular formula C50H68N14O10, molecular weight 1025.2 g/mol, CAS 189691-06-3). It is a synthetic analog of α-MSH (Molinoff et al., 2003).",
       },
-      {
-        type: "h3",
-        text: "MC4R: The Key Receptor for Sexual Function",
-      },
+      { type: "h2", text: "The Melanocortin Receptor System" },
       {
         type: "p",
-        text: "MC4R is expressed densely in the paraventricular nucleus (PVN) of the hypothalamus, one of the brain's primary integration centers for sexual arousal, autonomic output, and hormone regulation. When PT-141 binds MC4R in the PVN, it triggers a downstream cascade involving activation of oxytocinergic neurons, dopaminergic pathway stimulation, and spinal cord signal propagation to the sacral parasympathetic nerves.",
+        text: "There are five melanocortin receptors, MC1R to MC5R. MC3R and MC4R are expressed mainly in the central nervous system and are called the neural melanocortin receptors; the central melanocortin system has major roles in regulating energy homeostasis (Yuan and Tao, 2022). MC1R, by contrast, mediates α-MSH's effects on pigment cells.",
       },
-      {
-        type: "ul",
-        items: [
-          "Activation of oxytocinergic neurons, which project to the spinal cord and influence penile erection and sexual motivation",
-          "Dopaminergic pathway stimulation in the mesolimbic system, contributing to desire and arousal",
-          "Spinal cord signal propagation to the sacral parasympathetic nerves, which ultimately drive engorgement",
-        ],
-      },
-      {
-        type: "h3",
-        text: "The Critical Mechanistic Difference",
-      },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "Sildenafil (Viagra) and tadalafil (Cialis) inhibit phosphodiesterase type 5, an enzyme that breaks down cGMP in vascular smooth muscle. The result: vasodilation and increased blood flow to erectile tissue. But this mechanism depends entirely on an intact nerve signal arriving first. Without a functioning nerve pathway delivering nitric oxide to the tissue, there is no cGMP to preserve. PDE5 inhibitors have nothing to amplify. PT-141 bypasses this requirement. The signal originates above the peripheral nervous system — meaning it may retain efficacy in neurogenic ED where the downstream pathway is compromised, provided sufficient central connectivity remains.",
-      },
-      {
-        type: "h2",
-        text: "PT-141 in Post-RARP Research",
-      },
-      {
-        type: "h3",
-        text: "What RARP Does to Erectile Function",
-      },
-      {
-        type: "p",
-        text: "Robot-Assisted Radical Prostatectomy is the gold standard surgical intervention for localized prostate cancer. The procedure removes the prostate gland entirely, and in doing so, places the neurovascular bundles running alongside the prostate — the cavernous nerves — at significant risk. Even in nerve-sparing techniques, traction, thermal injury, and inflammation during surgery cause neurapraxia — a temporary (and sometimes permanent) disruption of nerve conduction.",
-      },
-      {
-        type: "ul",
-        items: [
-          "Bilateral nerve-sparing: 54–70% ED rate at 12 months",
-          "Unilateral nerve-sparing: 70–80% ED rate",
-          "Non-nerve-sparing: >90% ED rate",
-        ],
-      },
-      {
-        type: "h3",
-        text: "Why PDE5 Inhibitors Underperform Post-RARP",
-      },
-      {
-        type: "p",
-        text: "In the early post-RARP window, cavernous nerve conduction is impaired. The nitric oxide signal that PDE5 inhibitors depend on is absent or severely diminished. Multiple clinical studies have found that on-demand PDE5 inhibitor use produces a meaningful erection in only 30–40% of post-RP patients in the first year — significantly below the 60–80% response rates seen in vasculogenic ED.",
-      },
-      {
-        type: "h3",
-        text: "The Central Mechanism Argument",
-      },
-      {
-        type: "p",
-        text: "Because PT-141 initiates arousal centrally — via MC4R in the hypothalamus, projecting down through spinal cord pathways — it does not require an intact cavernous nerve signal at the peripheral level. Research on MC4R agonists in animal models of cavernous nerve injury has demonstrated that centrally-mediated erections can occur even after bilateral cavernous nerve resection, suggesting the spinal pathway retains independent function. Note: No large-scale RCTs have been published specifically evaluating PT-141 in post-RARP patients as of mid-2026. The mechanistic rationale is well-grounded, and melanocortin agonist research in neurogenic ED is an active area.",
-      },
-      {
-        type: "h3",
-        text: "Beyond Erection — Orgasmic Dysfunction Post-RARP",
-      },
-      {
-        type: "p",
-        text: "Prostatectomy eliminates ejaculation, but orgasm — the neurological event — persists in most patients, often described as qualitatively different. PT-141's dopaminergic and oxytocinergic effects on the reward pathway may be relevant to orgasm quality independent of erection. This remains a research-stage hypothesis.",
-      },
-      {
-        type: "h2",
-        text: "The Melanocortin Peptide Analog Family",
-      },
-      {
-        type: "p",
-        text: "α-MSH is a 13-amino acid peptide derived from pro-opiomelanocortin (POMC). It has broad melanocortin receptor affinity and regulates skin pigmentation (MC1R), energy homeostasis, inflammation, and sexual function (MC3R/MC4R). Its short half-life makes it impractical as a therapeutic agent — all synthetic analogs in this family were developed to address this limitation.",
-      },
-      {
-        type: "h3",
-        text: "Melanotan I — Afamelanotide (Scenesse)",
-      },
-      {
-        type: "p",
-        text: "MC1R-selective synthetic analog. FDA-approved 2019 for erythropoietic protoporphyria (EPP), a rare genetic disorder causing extreme sun sensitivity. Produces skin darkening with minimal sexual side effects due to MC1R selectivity. Not studied for sexual function.",
-      },
-      {
-        type: "h3",
-        text: "Melanotan II (MT-II)",
-      },
-      {
-        type: "p",
-        text: "Non-selective cyclic analog developed in the early 1990s at the University of Arizona. Binds MC1R, MC3R, MC4R, and MC5R simultaneously — producing tanning, appetite suppression, and spontaneous erections as simultaneous effects. Researchers observed erection effects in clinical subjects before tanning was visible. High side effect burden (nausea, facial flushing, spontaneous erections) limited clinical viability. The foundational research compound from which PT-141 was derived.",
-      },
-      {
-        type: "h3",
-        text: "PT-141 / Bremelanotide (Vyleesi)",
-      },
-      {
-        type: "p",
-        text: "Derived from MT-II with modified structure to retain MC3R/MC4R selectivity while reducing MC1R activity. Substantially less tanning effect, preserved sexual arousal effects. FDA-approved 2019 as Vyleesi for hypoactive sexual desire disorder (HSDD) in premenopausal women — the first centrally-acting FDA-approved treatment for female sexual dysfunction. RECONNECT trials (1,200+ women): statistically significant improvement in satisfying sexual events and distress reduction vs placebo.",
-      },
-      {
-        type: "h3",
-        text: "Setmelanotide (Imcivree)",
-      },
-      {
-        type: "p",
-        text: "Highly MC4R-selective. FDA-approved 2020 for chronic weight management in genetic obesity caused by POMC, PCSK1, or LEPR deficiency. Demonstrates the MC4R pathway's established role in energy and appetite — the same pathway PT-141 engages for sexual function.",
-      },
-      {
-        type: "h2",
-        text: "PT-141 in Women's Research",
-      },
-      {
-        type: "p",
-        text: "The FDA approval of bremelanotide as Vyleesi for HSDD in premenopausal women is the clearest clinical validation of the melanocortin pathway in human sexual function to date. Most common adverse effects in trials: nausea (40%), flushing (20%), injection site reactions, transient blood pressure increases. These mirror the MT-II side effect profile and inform dosing caution in research contexts.",
+        text: "Molinoff and colleagues (Annals of the New York Academy of Sciences, 2003) describe PT-141 as an agonist at melanocortin receptors including MC3R and MC4R. In rats, systemic administration activated hypothalamic neurons, shown as increased c-Fos immunoreactivity, and neuronal tracing with pseudorabies virus linked the same hypothalamic region to peripheral targets of the response studied. PT-141 is one of several clinically developed ligands discussed in reviews of the neural melanocortin receptors, alongside setmelanotide (Yuan and Tao, 2022).",
       },
       {
         type: "callout",
-        text: "PT-141 (bremelanotide) is available through research vendors for laboratory and investigational use only. It is not approved for the indications described above outside of the FDA-approved Vyleesi formulation, which requires a prescription. Nothing in this article constitutes medical advice. Consult a qualified physician for any therapeutic application.",
+        text: "These findings come from receptor pharmacology and rat and nonhuman-primate studies. They describe how PT-141 acts on melanocortin receptors and hypothalamic neurons in those models. They are not evidence of any effect in people.",
       },
+      { type: "h2", text: "Published Research at a Glance" },
       {
-        type: "cta",
-        text: "View PT-141 at PSPeptides",
-        productSlug: "pt-141",
-        vendor: "PSPeptides",
-        affiliateUrl: "https://pspeptides.com/product/buy-pt-141/?ref=aurapro",
+        type: "ul",
+        items: [
+          "Synthetic α-MSH analog; agonist at melanocortin receptors including MC3R and MC4R (Molinoff et al., 2003)",
+          "Hypothalamic neuron activation (c-Fos immunoreactivity) after systemic administration in rats (Molinoff et al., 2003)",
+          "MC3R and MC4R as the neural melanocortin receptors; the system's role in energy homeostasis (Yuan and Tao, 2022, review)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Receptor contribution: PT-141 acts at more than one melanocortin receptor, and how much each contributes to a given measured response is not fully separated.",
+          "Other receptors: how strongly PT-141 acts at MC1R, MC5R and the other melanocortin receptors in a given tissue matters for interpreting any in vivo experiment.",
+          "Much of the early pharmacology was published by the developing company's scientists; independent receptor-level work is thinner.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Bremelanotide is the active ingredient of an FDA-approved prescription medicine. Research-grade material sold for laboratory use is not that approved product and is not for human use. PT-141 was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies PT-141 as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Why doesn't PT-141 cause tanning like Melanotan II?",
-            a: "PT-141 has significantly reduced activity at MC1R — the receptor responsible for melanin production. This was a deliberate modification from MT-II, which stimulated all four receptor subtypes including MC1R. PT-141 retains functional selectivity toward MC3R and MC4R with minimal pigmentation effect.",
+            q: "How is PT-141 related to α-MSH?",
+            a: "It is a synthetic cyclic analog of α-MSH that acts at melanocortin receptors, including the central receptors MC3R and MC4R.",
           },
           {
-            q: "Can PT-141 work if Viagra doesn't?",
-            a: "The mechanistic argument is yes — specifically in neurogenic ED where the peripheral nerve signal is compromised. PDE5 inhibitors require an intact nitric oxide signal from the cavernous nerve; PT-141 initiates arousal centrally and may bypass a damaged peripheral pathway. This is not established in large RCTs for post-prostatectomy patients specifically, but the physiological rationale is supported by preclinical and mechanistic research.",
+            q: "What are the neural melanocortin receptors?",
+            a: "MC3R and MC4R, the two of the five melanocortin receptors expressed mainly in the central nervous system (Yuan and Tao, 2022).",
           },
           {
-            q: "What's the difference between PT-141 and Vyleesi?",
-            a: "Vyleesi is the FDA-approved, pharmaceutical-grade injectable formulation of bremelanotide for HSDD in premenopausal women. Research-grade PT-141 from peptide vendors is the same molecule produced for laboratory use. Purity, sterility, and dosing consistency vary significantly between pharmaceutical and research-grade sources.",
+            q: "What kind of evidence is summarised here?",
+            a: "Receptor pharmacology and animal studies, and reviews of the melanocortin system. This summary does not cover clinical literature, and no laboratory result here shows an effect in people.",
           },
-          {
-            q: "How does PT-141 compare to other post-RARP options?",
-            a: "Current standard-of-care includes oral PDE5 inhibitors, intracavernosal injections (alprostadil), penile rehabilitation programs, and vacuum erection devices. PT-141 is not part of standard urological practice post-RARP; its potential relevance lies in its different mechanism of action for patients who don't respond adequately to PDE5 inhibitors. Any post-surgical sexual health protocol should be managed by a urologist.",
-          },
-          {
-            q: "Is PT-141 being studied for prostate cancer survivors specifically?",
-            a: "As of mid-2026, there are no published large-scale RCTs specifically evaluating PT-141 in post-RARP patients. The mechanistic rationale exists and melanocortin agonists are actively discussed in sexual medicine research, but dedicated prostate cancer survivor trials remain a gap in the published literature.",
-          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Molinoff PB, Shadiack AM, Earle D, et al. \"PT-141: a melanocortin agonist…\" Annals of the New York Academy of Sciences. 2003;994:96-102. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/12851303/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Yuan XC, Tao YX. \"Ligands for Melanocortin Receptors: Beyond Melanocyte-Stimulating Hormones and Adrenocorticotropin.\" Biomolecules. 2022;12(10):1407. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/36291616/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. PubChem. Bremelanotide (CID 9941379). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/9941379", text: "pubchem.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -666,7 +588,7 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Hsieh MJ, Liu HT, Wang CN, et al. \"Therapeutic potential of pro-angiogenic BPC157 is associated with VEGFR2 activation and up-regulation.\" Journal of Molecular Medicine. 2017;95(3):323-333. ",
+          "1. Hsieh MJ, Liu HT, Wang CN, et al. \"…pro-angiogenic BPC157 is associated with VEGFR2 activation and up-regulation.\" Journal of Molecular Medicine. 2017;95(3):323-333. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/27847966/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
@@ -921,7 +843,7 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "2. Coskun T, Sloop KW, Loghin C, et al. \"LY3298176, a novel dual GIP and GLP-1 receptor agonist for the treatment of type 2 diabetes mellitus: From discovery to clinical proof of concept.\" Molecular Metabolism. 2018;18:3-14. ",
+          "2. Coskun T, Sloop KW, Loghin C, et al. \"LY3298176, a novel dual GIP and GLP-1 receptor agonist…\" Molecular Metabolism. 2018;18:3-14. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/30473097/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
@@ -1416,7 +1338,7 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "3. Szeto HH. \"First-in-class cardiolipin-protective compound as a therapeutic agent to restore mitochondrial bioenergetics.\" British Journal of Pharmacology. 2014;171(8):2029-2050. ",
+          "3. Szeto HH. \"First-in-class cardiolipin-protective compound…\" British Journal of Pharmacology. 2014;171(8):2029-2050. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/24117165/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
@@ -1518,7 +1440,7 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "2. Billon C, Schoepke E, Avdagic A, et al. \"A Synthetic ERR Agonist Alleviates Metabolic Syndrome.\" Journal of Pharmacology and Experimental Therapeutics. 2024;388(2):232-240. ",
+          "2. Billon C, Schoepke E, Avdagic A, et al. \"A Synthetic ERR Agonist Alleviates Metabolic Syndrome.\" J Pharmacol Exp Ther. 2024;388(2):232-240. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/37739806/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
@@ -1537,88 +1459,70 @@ export const posts: Post[] = [
   },
   {
     slug: "retatrutide-research-guide",
-    title: "Retatrutide: The Complete Research Guide",
+    ruo: true,
+    title: "Retatrutide: A Research Literature Summary",
     excerpt:
-      "The triple GIP/GLP-1/glucagon agonist with the strongest weight-loss data of any compound in its class — and a regulatory status well behind the science.",
-    category: "Body Composition",
+      "A single peptide that acts at three receptors: glucagon, GIP and GLP-1. What laboratory studies have measured about its receptor activity profile, and what is still unknown.",
+    category: "Incretin & Amylin Analogs",
     date: "July 2026",
-    readTime: "9 min read",
+    lastUpdated: "October 2026",
+    readTime: "4 min read",
     content: [
       {
         type: "intro",
-        text: "Retatrutide is a single molecule that activates three separate metabolic receptors at once. Its Phase 3 data is the strongest of anything in this category — and it is also, as of this writing, not approved for any use and not legal to distribute for human consumption. Both things are true at the same time, and this guide treats them that way.",
+        text: "Retatrutide, developed at Eli Lilly as LY3437943, extends the dual-agonist idea behind tirzepatide to a third receptor, the glucagon receptor. This summary covers its chemistry, what the discovery work measured in vitro and in mice, and the questions that remain open. It does not cover clinical literature.",
       },
-      { type: "h2", text: "What Is Retatrutide?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Retatrutide is an investigational, once-weekly triple hormone receptor agonist developed by Eli Lilly, activating receptors for GIP (glucose-dependent insulinotropic polypeptide), GLP-1 (glucagon-like peptide-1), and glucagon in a single molecule.",
+        text: "Retatrutide (molecular formula C221H342N46O68, molecular weight 4731.0 g/mol, CAS 2381089-83-2) is a synthetic peptide agonist at the glucagon receptor (GCGR), the glucose-dependent insulinotropic polypeptide receptor (GIPR) and the glucagon-like peptide-1 receptor (GLP-1R) (Coskun et al., 2022).",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "The reason a triple agonist outperforms a single agonist isn't simply \"three times the appetite suppression\" — it's that the glucagon receptor works through a fundamentally different lever than the other two.",
+        text: "Coskun and colleagues (Cell Metabolism, 2022) reported that in vitro retatrutide has balanced activity at the glucagon and GLP-1 receptors and greater activity at the GIP receptor. In obese mice, they attributed the measured changes to two receptor-specific components: glucagon-receptor-mediated increases in energy expenditure, and GIP- and GLP-1-receptor-driven reductions in calorie intake.",
       },
+      {
+        type: "callout",
+        text: "These findings come from receptor assays and mouse models. They describe how retatrutide engages its three receptors in those systems. They are not evidence of any effect of research material in people.",
+      },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "GLP-1 and GIP receptors reduce calories in — the same appetite-suppression and satiety mechanism behind drugs like semaglutide.",
-          "The glucagon receptor increases calories out. Glucagon is usually thought of as insulin's counter-hormone that raises blood sugar, but separately from that, activating its receptor increases energy expenditure and stimulates lipolysis and thermogenesis — the body burning more energy at rest.",
+          "Agonist at the glucagon, GIP and GLP-1 receptors (Coskun et al., 2022)",
+          "In vitro: balanced glucagon and GLP-1 receptor activity, greater GIP receptor activity (Coskun et al., 2022)",
+          "In obese mice: energy expenditure attributed to the glucagon receptor, calorie intake to the GIP and GLP-1 receptors (Coskun et al., 2022)",
         ],
       },
-      {
-        type: "p",
-        text: "The drug's own discovery paper states the rationale directly: body weight loss is \"augmented by the addition of GCGR-mediated increases in energy expenditure to GIPR- and GLP-1R-driven calorie intake reduction.\" In head-to-head comparisons, triple and dual agonists produced similar reductions in food intake, but only the triple agonist showed markedly elevated energy expenditure — the actual reason retatrutide has outperformed semaglutide in trials, not simply a bigger dose of the same mechanism. Separate Phase 2a data also found significant liver fat reduction in participants with fatty liver disease, attributed to the same triple-receptor activity beyond what caloric restriction alone would explain.",
-      },
-      { type: "h2", text: "Human Evidence" },
-      {
-        type: "p",
-        text: "Phase 2 data is peer-reviewed and published in NEJM. Phase 3 topline results (TRIUMPH-1 for obesity; TRANSCEND-T2D-1 for type 2 diabetes) were announced by Lilly in 2026, but as of this writing are press-release results, not yet published in a peer-reviewed journal.",
-      },
+      { type: "h2", text: "Open Questions" },
       {
         type: "ul",
         items: [
-          "TRIUMPH-1, 12 mg dose, 80 weeks: −28.3% body weight vs. −2.2% for placebo.",
-          "TRIUMPH-1, 4 mg dose (single dose-escalation step), 80 weeks: −19.0% vs. −2.2% for placebo.",
-          "Common adverse events were gastrointestinal (nausea, diarrhea, constipation, vomiting — dose-dependent) and dysesthesia; discontinuation due to adverse events ranged 4.1%–11.3% across doses vs. 4.9% for placebo.",
+          "Receptor contributions: separating the effects of three receptor activities in one molecule needs receptor-selective controls, and the laboratory literature on this is still small.",
+          "Glucagon receptor: glucagon signaling acts on liver metabolism among other tissues, and how the glucagon component behaves across experimental systems is less characterised than the incretin components.",
+          "The discovery and pharmacology work was published by the developer's scientists; independent laboratory studies are few.",
         ],
-      },
-      {
-        type: "p",
-        text: "An independent 2026 comparative analysis of 26 randomized trials across 12 GLP-1 drugs and co-agonists projected retatrutide's 12 mg efficacy (24.2% weight loss) ahead of tirzepatide and semaglutide at their evaluated doses — the strongest head-to-head positioning of any compound in this category.",
       },
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Retatrutide is investigational. It has not been approved by FDA for any indication, and current federal policy treats it as research-only: it cannot be legally manufactured or distributed for human use, only for investigational research purposes.",
-      },
-      {
-        type: "callout",
-        text: "A 2026 investigation found clinics and med spas prescribing retatrutide despite its non-approved, research-only status, with some providers acknowledging to patients that it isn't FDA-approved while still marketing it as effective. That practice does not change the compound's actual regulatory status.",
-      },
-      {
-        type: "p",
-        text: "Retatrutide does not appear on FDA's bulk-substances Category 2 or withdrawn-nomination lists at all — unlike BPC-157, it was never eligible for that compounding-eligibility process to begin with, since it has no approved reference drug and no completed marketing application. That's a narrower regulatory status than BPC-157's, not a safer one.",
-      },
-      { type: "h2", text: "Where to Source Retatrutide for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the Retatrutide product page",
-        productSlug: "retatrutide",
+        text: "Retatrutide is an investigational compound and is not approved by the FDA for any use. It was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies retatrutide as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is retatrutide FDA-approved?",
-            a: "No. As of this writing it has not been approved for any indication and remains investigational — legally, it can only be manufactured or distributed for research use, not sold as a finished product for human use.",
+            q: "How does retatrutide differ from tirzepatide?",
+            a: "Tirzepatide acts at the GIP and GLP-1 receptors. Retatrutide adds a third, the glucagon receptor.",
           },
           {
-            q: "Why does retatrutide outperform other GLP-1 drugs in trials?",
-            a: "It's the only compound in wide comparison that also activates the glucagon receptor, which increases energy expenditure rather than just suppressing appetite — a different mechanism than single or dual agonists rely on.",
+            q: "Is its activity equal at all three receptors?",
+            a: "No. In vitro it showed balanced glucagon and GLP-1 receptor activity and greater GIP receptor activity (Coskun et al., 2022).",
+          },
+          {
+            q: "Does this summary cover clinical trials?",
+            a: "No. It covers chemistry and laboratory pharmacology only.",
           },
         ],
       },
@@ -1626,350 +1530,89 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Eli Lilly. \"About retatrutide\" (TRANSCEND-T2D-1 release), March 2026. ",
-          { href: "https://lilly.gcs-web.com/news-releases/news-release-details/lillys-triple-agonist-retatrutide-demonstrated-significant", text: "lilly.gcs-web.com", external: true },
+          "1. Coskun T, Urva S, Roell WC, et al. \"LY3437943, a novel triple glucagon, GIP, and GLP-1 receptor agonist…\" Cell Metabolism. 2022;34(9):1234-1247. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/35985340/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Jastreboff AM, et al. \"Triple–Hormone-Receptor Agonist Retatrutide for Obesity — A Phase 2 Trial.\" NEJM. ",
-          { href: "https://www.nejm.org/doi/full/10.1056/NEJMoa2301972", text: "nejm.org", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "3. Eli Lilly. TRIUMPH-1 Phase 3 topline results, May 2026 (press release, not yet peer-reviewed). ",
-          { href: "https://investor.lilly.com/news-releases/news-release-details/lillys-triple-agonist-retatrutide-delivered-powerful-weight-loss", text: "investor.lilly.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. AJMC. \"Retatrutide Achieves Up to 30.3% Average Weight Loss in Phase 3 TRIUMPH-1 Trial,\" citing Annals of Internal Medicine 26-trial comparative analysis. ",
-          { href: "https://www.ajmc.com/view/retatrutide-achieves-up-to-30-3-average-weight-loss-in-phase-3-triumph-1-trial", text: "ajmc.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. CBS News. \"This weight-loss drug hasn't been approved by the FDA. Doctors are prescribing it anyway.\" 2026 investigation. ",
-          { href: "https://www.cbsnews.com/projects/2026/experimental-weight-loss-drug/", text: "cbsnews.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. IUPHAR review. \"From foe to friend: Repurposing glucagon to treat obesity and type 2 diabetes.\" ",
-          { href: "https://www.sciencedirect.com/science/article/pii/S104366182500502X", text: "sciencedirect.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "7. Coskun T, et al. \"LY3437943, a novel triple glucagon, GIP, and GLP-1 receptor agonist... from discovery to clinical proof of concept.\" Cell Metabolism, 2022. ",
-          { href: "https://www.sciencedirect.com/science/article/pii/S1550413122003126", text: "sciencedirect.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "8. \"Triple hormone receptor agonist retatrutide for metabolic dysfunction-associated steatotic liver disease: a randomized phase 2a trial.\" Nature Medicine. ",
-          { href: "https://www.nature.com/articles/s41591-024-03018-2", text: "nature.com", external: true },
+          "2. PubChem. Retatrutide (CID 171390338). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/171390338", text: "pubchem.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "retatrutide-cagrilintide-research-guide",
-    title: "Retatrutide + Cagrilintide: The Complete Research Guide",
+    ruo: true,
+    title: "Retatrutide / Cagrilintide: A Research Literature Summary",
     excerpt:
-      "A co-formulated blend of two investigational, unapproved metabolic peptides — pairing the strongest weight-loss agonist in development with a long-acting amylin analog. Neither is FDA-approved, the combination has never been tested in a human trial, and retatrutide is the single highest-legal-risk compound we index.",
-    category: "Stacks",
+      "A two-component blend: the triple glucagon/GIP/GLP-1 receptor agonist retatrutide and the amylin analog cagrilintide in one vial. What each component's laboratory literature covers, and why no study has examined the pair.",
+    category: "Incretin & Amylin Analogs",
     date: "August 2026",
-    readTime: "8 min read",
-    content: [
-      {
-        type: "disclaimer",
-        text: "Research use only. This guide describes two investigational compounds and a combination of them that is not approved by the FDA or any regulator for any use, has never been evaluated in a human clinical trial as a combination, and is sold strictly as a chemical reagent for in-vitro and laboratory research. Nothing here is medical advice, dosing guidance, or an endorsement of human or veterinary use. Do not use these compounds on humans or animals.",
-      },
-      {
-        type: "intro",
-        text: "This product pairs retatrutide, a triple GIP/GLP-1/glucagon receptor agonist, with cagrilintide, a long-acting amylin analog, in a single vial (typically 12.5 mg retatrutide / 2.5 mg cagrilintide). The individual compounds each have real, published metabolic science behind them. The combination does not: there is no human trial of retatrutide plus cagrilintide, no approved reference product, and — in retatrutide's case — an active, aggressive enforcement environment. This guide covers the science and is unusually direct about the legal status, because that status is the most important thing to understand before sourcing either compound for research.",
-      },
-      {
-        type: "callout",
-        text: "Legal status, up front: Retatrutide is investigational and has NOT been approved by the FDA for any indication. Because it has no approved reference drug and no completed marketing application, federal policy treats it as impossible to legally compound or distribute for human use — only for investigational research. Cagrilintide is likewise investigational and has never been approved as a standalone product. The combination of the two has no approval, no reference product, and no published human data of any kind.",
-      },
-      { type: "h2", text: "What Each Compound Does" },
-      {
-        type: "p",
-        text: "Retatrutide is an investigational once-weekly triple hormone receptor agonist developed by Eli Lilly. It activates the GIP, GLP-1, and glucagon receptors in a single molecule. The GLP-1 and GIP arms reduce calorie intake through appetite suppression and satiety; the glucagon arm is the differentiator, increasing energy expenditure, lipolysis, and thermogenesis. In Phase 2 (published in NEJM) and Phase 3 topline data (TRIUMPH-1, announced 2026 but not yet peer-reviewed), it produced the largest weight reductions of any compound in its class.",
-      },
-      {
-        type: "p",
-        text: "Cagrilintide is a long-acting analog of amylin, a pancreatic hormone co-secreted with insulin that signals satiety and slows gastric emptying through a mechanism entirely separate from the GLP-1 axis. It has been studied primarily in combination with semaglutide (as CagriSema), where the amylin pathway is thought to complement GLP-1 signaling. On its own it remains investigational, with no approved indication.",
-      },
-      { type: "h2", text: "Why Combine Them?" },
-      {
-        type: "p",
-        text: "The theoretical rationale for a retatrutide + cagrilintide blend is that it stacks two non-overlapping satiety systems — incretin/glucagon signaling (retatrutide) and amylin signaling (cagrilintide) — on the hypothesis that engaging distinct pathways could produce additive effects. This is a hypothesis, not a finding. We want to be explicit: no peer-reviewed human trial has tested this specific combination. Any claim that the pairing is more effective or better tolerated than either compound alone is, at this time, unsupported by clinical evidence.",
-      },
-      { type: "h2", text: "Regulatory and Enforcement Status" },
-      {
-        type: "p",
-        text: "Retatrutide is the single highest-legal-risk compound indexed on this site, and researchers sourcing it should understand why. In 2026, Eli Lilly launched a coordinated enforcement campaign specifically targeting retatrutide — which, unlike approved semaglutide or tirzepatide, cannot be legally compounded because it has no approved reference drug. That campaign has included multiple lawsuits against peptide sellers and compounding operations, a large volume of referrals to regulators and licensing boards, and thousands of listings reported to online platforms and payment processors across numerous countries.",
-      },
-      {
-        type: "callout",
-        text: "What this means practically: expect retatrutide product names, URLs, and availability to change without notice as vendors respond to enforcement pressure. Certificates of Analysis and third-party purity testing are more important here than for almost any other compound, precisely because the market is volatile. None of this changes the bottom line — retatrutide and cagrilintide are unapproved investigational substances, and this blend is sold for laboratory research use only, not for human or veterinary administration.",
-      },
-      {
-        type: "p",
-        text: "Cagrilintide's status is simpler but no more permissive: it is investigational, has never been approved as a finished product for any use, and is sold only as a research chemical.",
-      },
-      { type: "h2", text: "Sourcing for Research" },
-      {
-        type: "p",
-        text: "For legitimate laboratory research, purity and accurate dual-compound dosing are critical — a co-formulated blend adds analytical complexity, since both peptides must be independently verified. We only surface vendors that provide third-party HPLC testing and batch-specific Certificates of Analysis. As of this writing, this specific co-formulation is carried by a single vendor in our index.",
-      },
-      {
-        type: "button",
-        text: "View the Retatrutide / Cagrilintide product page",
-        productSlug: "retatrutide-cagrilintide",
-      },
-      {
-        type: "faq",
-        faq: [
-          {
-            q: "Is the retatrutide + cagrilintide combination FDA-approved?",
-            a: "No. Neither compound is approved, and the combination specifically has no approval, no reference product, and no published human trial. It is an investigational research chemical only.",
-          },
-          {
-            q: "Is there human data on this specific blend?",
-            a: "No. The individual compounds have published trial data, but retatrutide combined with cagrilintide has not been evaluated in any peer-reviewed human study. Claims of additive benefit are hypothetical.",
-          },
-          {
-            q: "Why is retatrutide considered higher legal-risk than other GLP-1 compounds?",
-            a: "Because it has no approved reference drug, it cannot be legally compounded at all, and its developer has an active enforcement campaign specifically targeting sellers. That makes it more legally exposed than approved compounds like semaglutide or tirzepatide.",
-          },
-        ],
-      },
-      { type: "h2", text: "References" },
-      {
-        type: "p",
-        parts: [
-          "1. Jastreboff AM, et al. \"Triple–Hormone-Receptor Agonist Retatrutide for Obesity — A Phase 2 Trial.\" NEJM, 2023. ",
-          { href: "https://www.nejm.org/doi/full/10.1056/NEJMoa2301972", text: "nejm.org", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "2. Coskun T, et al. \"LY3437943 (retatrutide), a novel triple glucagon, GIP, and GLP-1 receptor agonist... from discovery to clinical proof of concept.\" Cell Metabolism, 2022. ",
-          { href: "https://www.sciencedirect.com/science/article/pii/S1550413122003126", text: "sciencedirect.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "3. Enebo LB, et al. \"Safety, tolerability, pharmacokinetics, and pharmacodynamics of concomitant cagrilintide and semaglutide (amylin analog + GLP-1) in adults with overweight or obesity.\" The Lancet, 2021. ",
-          { href: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)01751-7/fulltext", text: "thelancet.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. Eli Lilly. TRIUMPH-1 Phase 3 topline results, 2026 (press release, not yet peer-reviewed). ",
-          { href: "https://investor.lilly.com/news-releases/news-release-details/lillys-triple-agonist-retatrutide-delivered-powerful-weight-loss", text: "investor.lilly.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. FDA. Information on compounding and bulk drug substances (Category 2 / 503A–503B framework; retatrutide has no approved reference product). ",
-          { href: "https://www.fda.gov/drugs/human-drug-compounding/bulk-drug-substances-used-compounding-under-section-503a-fdc-act", text: "fda.gov", external: true },
-        ],
-      },
-      {
-        type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds referenced are unapproved, investigational substances sold for laboratory research use only — not for human or veterinary use.",
-      },
-    ],
-  },
-  {
-    slug: "cagrisema-research-guide",
-    title: "CagriSema (Cagrilintide + Semaglutide): The Complete Research Guide",
-    excerpt:
-      "The dual amylin-plus-GLP-1 combination behind Novo Nordisk's Phase 3 REDEFINE program — and the important distinction between an approved finished drug, its bulk research-grade peptide, and an unapproved co-formulation.",
-    category: "Stacks",
-    date: "August 2026",
-    readTime: "8 min read",
-    content: [
-      {
-        type: "disclaimer",
-        text: "Research use only. CagriSema as a combination product is investigational and not FDA-approved. While semaglutide is approved as a specific finished drug, the bulk research-grade peptide and any cagrilintide-plus-semaglutide co-formulation sold as a research chemical are NOT the approved medicine and have not been evaluated for safety, purity, or bioavailability as sold. Nothing here is medical advice or dosing guidance. Do not use these compounds on humans or animals.",
-      },
-      {
-        type: "intro",
-        text: "CagriSema is a fixed-dose combination of cagrilintide (a long-acting amylin analog) and semaglutide (a GLP-1 receptor agonist), developed by Novo Nordisk and studied in the Phase 3 REDEFINE program. The pairing engages two distinct satiety systems at once. This guide covers what the combination is, the trial evidence behind it, and — critically — the difference between the approved drug semaglutide, the bulk peptide sold for research, and this unapproved co-formulation.",
-      },
-      {
-        type: "callout",
-        text: "Legal status, up front: CagriSema as a combination is investigational and NOT approved for any use. Cagrilintide has never been approved as a standalone product. Semaglutide IS approved — but only as specific finished drugs (e.g., Ozempic, Wegovy) manufactured to defined standards. Bulk semaglutide peptide sold for research, and any research-chemical cagrilintide+semaglutide blend, are not those approved products and are sold strictly for laboratory research use only.",
-      },
-      { type: "h2", text: "What Is CagriSema?" },
-      {
-        type: "p",
-        text: "Semaglutide reduces appetite and food intake through the GLP-1 receptor — the mechanism behind the well-known weight-management and glycemic-control drugs. Cagrilintide works through the amylin/calcitonin receptor system, a satiety pathway that is separate from and complementary to GLP-1. The rationale for combining them is that engaging two independent satiety systems may produce a greater effect than either alone.",
-      },
-      { type: "h2", text: "Human Evidence" },
-      {
-        type: "p",
-        text: "The combination has genuine clinical data behind it, which distinguishes it from many research blends. A Phase 2 study of concomitant cagrilintide and semaglutide was published in The Lancet in 2021. The combination then advanced to Novo Nordisk's Phase 3 REDEFINE program in obesity, with topline results reported in which CagriSema produced greater average weight reduction than either cagrilintide or semaglutide monotherapy and placebo.",
-      },
-      {
-        type: "callout",
-        text: "Important caveat on the research-grade version: published trial data describes a specific manufactured, dose-controlled formulation studied under clinical conditions. It does not validate the safety, purity, dosing, or bioavailability of a research-chemical blend sold in a vial. Trial results should not be read as evidence about any particular vendor's product.",
-      },
-      { type: "h2", text: "Regulatory and Enforcement Context" },
-      {
-        type: "p",
-        text: "Because CagriSema as a combination is still investigational, it has no approval as a finished product. And while semaglutide itself is approved, its manufacturer has actively pursued sellers of compounded and bulk semaglutide — including litigation against multiple distributors — as approved-drug supply normalized. Researchers should treat semaglutide-containing research products as a category under active brand and regulatory scrutiny, and prioritize vendors with third-party testing and batch-specific Certificates of Analysis.",
-      },
-      { type: "h2", text: "Sourcing for Research" },
-      {
-        type: "p",
-        text: "As a two-peptide co-formulation, CagriSema requires independent verification of both components' identity and purity. We only surface vendors that provide third-party HPLC testing and batch-specific Certificates of Analysis. This combination is currently carried by two vendors in our index.",
-      },
-      {
-        type: "button",
-        text: "View the CagriSema product page",
-        productSlug: "cagrisema",
-      },
-      {
-        type: "faq",
-        faq: [
-          {
-            q: "Is CagriSema FDA-approved?",
-            a: "No. As a combination it is investigational and not approved for any use. Semaglutide alone is approved as specific finished drugs, but neither cagrilintide nor the combination is approved, and research-grade material is not the approved medicine.",
-          },
-          {
-            q: "How is CagriSema different from semaglutide alone?",
-            a: "It adds cagrilintide, an amylin analog, to semaglutide's GLP-1 action — engaging a second, independent satiety pathway. In the REDEFINE program the combination produced greater weight reduction than either component alone.",
-          },
-          {
-            q: "Does clinical trial data apply to research-chemical CagriSema?",
-            a: "No. Trial data describes a specific manufactured formulation under clinical conditions. It says nothing about the purity, dosing, or safety of a research-chemical blend, which is sold for laboratory use only.",
-          },
-        ],
-      },
-      { type: "h2", text: "References" },
-      {
-        type: "p",
-        parts: [
-          "1. Enebo LB, et al. \"Safety, tolerability, pharmacokinetics, and pharmacodynamics of concomitant administration of multiple doses of cagrilintide with semaglutide 2.4 mg for weight management: a randomised, controlled, phase 1b trial.\" The Lancet, 2021. ",
-          { href: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)01751-7/fulltext", text: "thelancet.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "2. Novo Nordisk. REDEFINE Phase 3 program in obesity (cagrilintide 2.4 mg + semaglutide 2.4 mg), topline results. ",
-          { href: "https://www.novonordisk.com/news-and-media/news-and-ir-materials.html", text: "novonordisk.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "3. Lau DCW, et al. \"Once-weekly cagrilintide for weight management in people with overweight and obesity: a multicentre, randomised, double-blind, placebo-controlled and active-controlled, dose-finding phase 2 trial.\" The Lancet, 2021. ",
-          { href: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)01751-7/fulltext", text: "thelancet.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. FDA. Medications containing semaglutide — approved drug products and compounding risk alerts. ",
-          { href: "https://www.fda.gov/drugs/postmarket-drug-safety-information-patients-and-providers/medications-containing-semaglutide-marketed-type-2-diabetes-or-weight-loss", text: "fda.gov", external: true },
-        ],
-      },
-      {
-        type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. The combination described is an unapproved, investigational research chemical sold for laboratory research use only — not for human or veterinary use.",
-      },
-    ],
-  },
-  {
-    slug: "tirzepatide-research-guide",
-    title: "Tirzepatide: The Complete Research Guide",
-    excerpt:
-      "The dual GIP/GLP-1 agonist behind Mounjaro and Zepbound — and the gap between the approved drug and what's actually sold as a research compound.",
-    category: "Body Composition",
-    date: "July 2026",
-    readTime: "8 min read",
+    lastUpdated: "October 2026",
+    readTime: "4 min read",
     content: [
       {
         type: "intro",
-        text: "Tirzepatide is one of the few compounds on this site with a completed, FDA-approved drug behind it — twice over, under two different brand names for two different indications. That makes its research-vendor version a different story than BPC-157 or Retatrutide: the question isn't whether the molecule works, it's whether what a research vendor ships is the same thing the trials were run on.",
+        text: "This blend pairs retatrutide, a single peptide that acts at the glucagon, GIP and GLP-1 receptors, with cagrilintide, an amylin analog that acts at the amylin and calcitonin receptors. The two come from different developers, and no published study has examined them together. This summary sets out what each component's laboratory literature covers.",
       },
-      { type: "h2", text: "What Is Tirzepatide?" },
-      {
-        type: "p",
-        text: "Tirzepatide is a synthetic peptide that activates two separate incretin receptors in one molecule: the GIP (glucose-dependent insulinotropic polypeptide) receptor and the GLP-1 (glucagon-like peptide-1) receptor. It was developed by Eli Lilly and is marketed as Mounjaro (type 2 diabetes) and Zepbound (chronic weight management).",
-      },
-      { type: "h2", text: "Mechanism of Action" },
-      {
-        type: "p",
-        text: "Structural and signaling studies describe tirzepatide as an imbalanced, biased dual agonist — it engages the GIP receptor more like native GIP itself, while at the GLP-1 receptor it's biased toward cAMP generation over β-arrestin recruitment. In practical terms: it isn't simply \"semaglutide plus a second appetite hormone.\" The dual-receptor engagement pattern is qualitatively different from a single-agonist GLP-1 drug, which researchers point to as the mechanistic explanation for its larger effect size in head-to-head trials.",
-      },
-      { type: "h2", text: "Human Evidence" },
-      {
-        type: "p",
-        text: "Unlike most compounds on this site, tirzepatide's evidence base is Phase 3, peer-reviewed, and the basis for an actual FDA approval — not preclinical or press-release data.",
-      },
+      { type: "h2", text: "Components" },
       {
         type: "ul",
         items: [
-          "SURMOUNT-1 (n=2,539, no diabetes): mean weight reduction of 15.0% (5mg), 19.5% (10mg), and 20.9% (15mg) vs. 3.1% for placebo at 72 weeks",
-          "SURMOUNT-5 (head-to-head vs. semaglutide): 20.2% weight loss vs. 13.7% — roughly 47% greater reduction than semaglutide at 72 weeks",
-          "SURMOUNT-1 also recorded significant reductions in systolic and diastolic blood pressure at 72 weeks",
-          "Post hoc SURMOUNT-1 analysis found improvements in both β-cell function and insulin sensitivity in participants with prediabetes",
+          "Retatrutide: a synthetic peptide agonist at the glucagon, GIP and GLP-1 receptors",
+          "Cagrilintide: a stable, lipidated long-acting amylin analog; agonist at the amylin receptors and the calcitonin receptor",
+        ],
+      },
+      { type: "h2", text: "What Each Component's Literature Covers" },
+      {
+        type: "p",
+        text: "Retatrutide: Coskun and colleagues (2022) report balanced in vitro activity at the glucagon and GLP-1 receptors and greater activity at the GIP receptor, and in obese mice attributed energy-expenditure changes to the glucagon receptor and calorie-intake changes to the GIP and GLP-1 receptors. Cagrilintide: Kruse and colleagues (2021) describe its design against amylin's tendency to form amyloid fibrils, and Cao and colleagues (2025) determined its receptor-bound structures.",
+      },
+      {
+        type: "callout",
+        text: "No published study tests retatrutide and cagrilintide together. Each component's findings come from studies of that compound alone, and none of them is evidence of any effect of research material in people.",
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Interaction: whether the two peptides affect each other's stability or activity when combined in one solution has not been studied.",
+          "Receptor attribution: the blend touches five receptor types (glucagon, GIP, GLP-1, amylin and calcitonin), so any measured effect needs single-compound controls to interpret.",
+          "Both components are recent; independent laboratory literature on either is limited.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "Component summaries: ",
+          { href: "/blog/retatrutide-research-guide", text: "Retatrutide" },
+          " and ",
+          { href: "/blog/cagrilintide-research-guide", text: "Cagrilintide" },
+          ".",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Tirzepatide has two FDA approvals: Mounjaro (May 13, 2022) for glycemic control in type 2 diabetes, and Zepbound (November 8, 2023) for chronic weight management in adults with a BMI of 30+, or 27+ with a weight-related comorbidity. Both are real, completed approvals — not an investigational or bulk-substance question like BPC-157 or TB-500.",
-      },
-      {
-        type: "callout",
-        text: "The gap is on the supply side, not the science. Tirzepatide sold by research vendors is not Mounjaro or Zepbound — it is unapproved bulk peptide material, has not been established as equivalent to the approved drug in purity, formulation, or bioavailability, and is not legally sold for human use or consumption.",
-      },
-      { type: "h2", text: "Where to Source Tirzepatide for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the Tirzepatide product page",
-        productSlug: "tirzepatide",
+        text: "Neither retatrutide nor cagrilintide is approved by the FDA for any use, and the blend has not been reviewed as a product. Aura Protocols supplies this blend as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is the tirzepatide sold by research vendors the same as Mounjaro or Zepbound?",
-            a: "No. Mounjaro and Zepbound are specific FDA-approved manufactured products. Tirzepatide sold for research use is unapproved bulk peptide material and has not been established as equivalent to the approved drug in purity, formulation, or bioavailability.",
+            q: "Has this combination been studied?",
+            a: "No. Each component has its own laboratory literature, but no published study examines the two together.",
           },
           {
-            q: "Why does tirzepatide outperform semaglutide in trials?",
-            a: "It engages both the GIP and GLP-1 receptors with an imbalanced, biased signaling profile rather than simply adding a second appetite-suppressing pathway — SURMOUNT-5 recorded roughly 47% greater weight loss than semaglutide at matched follow-up (20.2% vs. 13.7% at 72 weeks).",
+            q: "Does this summary cover clinical trials?",
+            a: "No. It covers each component's chemistry and laboratory pharmacology only.",
           },
         ],
       },
@@ -1977,133 +1620,300 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. \"Tirzepatide is an imbalanced and biased dual GIP and GLP-1 receptor agonist.\" PMC. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7526454/", text: "ncbi.nlm.nih.gov", external: true },
+          "1. Coskun T, Urva S, Roell WC, et al. \"LY3437943, a novel triple glucagon, GIP, and GLP-1 receptor agonist…\" Cell Metabolism. 2022;34(9):1234-1247. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/35985340/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. \"Structural determinants of dual incretin receptor agonism by tirzepatide.\" PMC. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9060465/", text: "ncbi.nlm.nih.gov", external: true },
+          "2. Kruse T, Hansen JL, Dahl K, et al. \"Development of Cagrilintide, a Long-Acting Amylin Analogue.\" Journal of Medicinal Chemistry. 2021;64(15):11183-11194. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/34288673/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"Efficacy and safety of once-weekly tirzepatide for weight management... including the latest SURMOUNT-2 trial.\" PMC. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11445313/", text: "ncbi.nlm.nih.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. \"Tirzepatide Treatment and Associated Changes in β-Cell Function and Insulin Sensitivity... A Post Hoc Analysis From the SURMOUNT-1 Trial.\" Diabetes Care. ",
-          { href: "https://diabetesjournals.org/care/article/48/9/1622/163002/Tirzepatide-Treatment-and-Associated-Changes-in", text: "diabetesjournals.org", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. Mounjaro FDA Approval History. Drugs.com. ",
-          { href: "https://www.drugs.com/history/mounjaro.html", text: "drugs.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. Zepbound FDA Approval History. Drugs.com. ",
-          { href: "https://www.drugs.com/history/zepbound.html", text: "drugs.com", external: true },
+          "3. Cao J, Belousoff MJ, Johnson RM, et al. \"Structural and dynamic features of cagrilintide binding to calcitonin and amylin receptors.\" Nature Communications. 2025;16(1):3389. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/40204768/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
+      },
+    ],
+  },
+  {
+    slug: "cagrisema-research-guide",
+    ruo: true,
+    title: "Cagrilintide / Semaglutide: A Research Literature Summary",
+    excerpt:
+      "A two-component blend: the amylin analog cagrilintide and the GLP-1 analog semaglutide in one vial. What each component's laboratory literature covers, and what is not known about the pair.",
+    category: "Incretin & Amylin Analogs",
+    date: "August 2026",
+    lastUpdated: "October 2026",
+    readTime: "4 min read",
+    content: [
+      {
+        type: "intro",
+        text: "This blend pairs two long-acting analogs that act on different receptor families: cagrilintide on the amylin and calcitonin receptors, and semaglutide on the GLP-1 receptor. Both were developed at Novo Nordisk. This summary sets out what each component is and what its laboratory literature covers. It does not cover clinical literature.",
+      },
+      { type: "h2", text: "Components" },
+      {
+        type: "ul",
+        items: [
+          "Cagrilintide: a stable, lipidated long-acting amylin analog; agonist at the amylin receptors AMY1R, AMY2R, AMY3R and the calcitonin receptor",
+          "Semaglutide: a GLP-1 analog with Aib-8 and Arg-34 substitutions and a fatty-acid side chain on Lys-26; agonist at the GLP-1 receptor",
+        ],
+      },
+      { type: "h2", text: "What Each Component's Literature Covers" },
+      {
+        type: "p",
+        text: "Cagrilintide: Kruse and colleagues (2021) describe its design as a stable, long-acting analog of amylin, a hormone prone to forming amyloid fibrils, and Cao and colleagues (2025) determined its structures bound to the amylin and calcitonin receptors, where it binds in an amylin-like mode with distinct conformational dynamics. Semaglutide: Lau and colleagues (2015) found that the fatty-acid moiety and its linker set its albumin affinity and GLP-1 receptor potency, with a 46.1-hour plasma half-life in mini-pigs.",
+      },
+      {
+        type: "callout",
+        text: "The laboratory literature summarised here is for each component on its own. The two act on separate receptor families, and none of these findings is evidence of any effect of research material in people.",
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Interaction: whether the two peptides affect each other's stability or activity when combined in one solution is not characterised in the laboratory literature summarised here.",
+          "Receptor attribution: an effect measured with the blend cannot be assigned to the amylin/calcitonin or the GLP-1 receptor system without single-compound controls.",
+          "Albumin binding: both are lipidated, and the protein content of a medium affects how much of each is free in vitro.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "Component summaries: ",
+          { href: "/blog/cagrilintide-research-guide", text: "Cagrilintide" },
+          " and ",
+          { href: "/blog/semaglutide-research-guide", text: "Semaglutide" },
+          ".",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Cagrilintide is an investigational compound and is not approved by the FDA for any use; semaglutide is the active ingredient of FDA-approved prescription medicines. Research-grade material, including this blend, is not an approved drug and is not for human use. Aura Protocols supplies this blend as a research chemical for laboratory use only.",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Do the two components act on the same receptor?",
+            a: "No. Cagrilintide acts at the amylin and calcitonin receptors; semaglutide acts at the GLP-1 receptor.",
+          },
+          {
+            q: "Does this summary cover clinical trials?",
+            a: "No. It covers each component's chemistry and laboratory pharmacology only.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Kruse T, Hansen JL, Dahl K, et al. \"Development of Cagrilintide, a Long-Acting Amylin Analogue.\" Journal of Medicinal Chemistry. 2021;64(15):11183-11194. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/34288673/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Cao J, Belousoff MJ, Johnson RM, et al. \"Structural and dynamic features of cagrilintide binding to calcitonin and amylin receptors.\" Nature Communications. 2025;16(1):3389. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/40204768/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Lau J, Bloch P, Schäffer L, et al. \"Discovery of the Once-Weekly Glucagon-Like Peptide-1 (GLP-1) Analogue Semaglutide.\" Journal of Medicinal Chemistry. 2015;58(18):7370-7380. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/26308095/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
+      },
+    ],
+  },
+  {
+    slug: "tirzepatide-research-guide",
+    ruo: true,
+    title: "Tirzepatide: A Research Literature Summary",
+    excerpt:
+      "A fatty-acid-modified peptide that acts at both the GIP and GLP-1 receptors. What receptor-pharmacology studies have measured — imbalanced, biased dual agonism — and what is still unknown.",
+    category: "Incretin & Amylin Analogs",
+    date: "July 2026",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Tirzepatide, developed at Eli Lilly as LY3298176, acts at two incretin receptors rather than one. Most of what is known about how it engages those receptors comes from cell-based signaling assays and isolated islets. This summary covers its chemistry, those laboratory findings and the questions that remain open. It does not cover clinical literature.",
+      },
+      { type: "h2", text: "Chemical Identity" },
+      {
+        type: "p",
+        text: "Tirzepatide (molecular formula C225H348N48O68, molecular weight 4813.0 g/mol, CAS 2023788-19-2) is a fatty-acid-modified synthetic peptide with agonist activity at both the glucose-dependent insulinotropic polypeptide (GIP) receptor and the glucagon-like peptide-1 (GLP-1) receptor (Coskun et al., 2018).",
+      },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
+      {
+        type: "p",
+        text: "Coskun and colleagues (Molecular Metabolism, 2018) characterised tirzepatide in cell lines expressing recombinant or native incretin receptors and found it activated signaling at both the GIP and GLP-1 receptors; in mice it showed glucose-dependent insulin secretion acting through both receptors.",
+      },
+      {
+        type: "p",
+        text: "Willard and colleagues (JCI Insight, 2020) described it as an imbalanced and biased agonist. It engages the GIP receptor more than the GLP-1 receptor. At the GIP receptor it mimics native GIP; at the GLP-1 receptor it favours cAMP generation over β-arrestin recruitment and drives less receptor internalisation than GLP-1. In primary islets, β-arrestin-1 limited the insulin response to GLP-1 but not to GIP or tirzepatide.",
+      },
+      {
+        type: "callout",
+        text: "These findings come from receptor-signaling assays, isolated islets and mice. They describe how tirzepatide engages its receptors in those systems. They are not evidence of any effect of research material in people.",
+      },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Agonist activity at both GIP and GLP-1 receptors in cell lines; glucose-dependent insulin secretion through both receptors in mice (Coskun et al., 2018)",
+          "Greater engagement of the GIP receptor than the GLP-1 receptor (Willard et al., 2020)",
+          "At the GLP-1 receptor: cAMP favoured over β-arrestin recruitment; weaker internalisation than GLP-1 (Willard et al., 2020)",
+          "β-arrestin-1 limited the islet insulin response to GLP-1 but not to tirzepatide (Willard et al., 2020)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Which part of tirzepatide's activity comes from GIP receptor agonism and which from its biased GLP-1 receptor signaling is still being separated experimentally.",
+          "Receptor occupancy and signaling bias can differ between recombinant cell lines and native tissue, so assay choice matters.",
+          "Most of the pharmacology was published by the developer's scientists, as is usual for a drug candidate; independent work is thinner.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Tirzepatide is the active ingredient of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Tirzepatide was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies tirzepatide as a research chemical for laboratory use only.",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "What does \"imbalanced\" mean for tirzepatide?",
+            a: "It engages the GIP receptor more than the GLP-1 receptor (Willard et al., 2020).",
+          },
+          {
+            q: "What does \"biased\" mean?",
+            a: "At the GLP-1 receptor it favours one signaling route, cAMP generation, over another, β-arrestin recruitment, compared with native GLP-1.",
+          },
+          {
+            q: "Does this summary cover clinical trials?",
+            a: "No. It covers chemistry and laboratory receptor pharmacology only.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Coskun T, Sloop KW, Loghin C, et al. \"LY3298176, a novel dual GIP and GLP-1 receptor agonist…\" Molecular Metabolism. 2018;18:3-14. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/30473097/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Willard FS, Douros JD, Gabe MB, et al. \"Tirzepatide is an imbalanced and biased dual GIP and GLP-1 receptor agonist.\" JCI Insight. 2020;5(17):e140532. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/32730231/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. PubChem. Tirzepatide (CID 166567236). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/166567236", text: "pubchem.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "semaglutide-research-guide",
-    title: "Semaglutide: The Complete Research Guide",
+    ruo: true,
+    title: "Semaglutide: A Research Literature Summary",
     excerpt:
-      "The GLP-1 agonist behind Ozempic and Wegovy has the deepest evidence base of any compound on the site — and the widest gap between the approved drug and what's actually sold as a research compound.",
-    category: "Body Composition",
+      "A fatty-acid-modified analog of glucagon-like peptide-1. What laboratory and discovery research has established about its design, albumin binding and GLP-1 receptor activity, and what is still unknown.",
+    category: "Incretin & Amylin Analogs",
     date: "July 2026",
-    readTime: "10 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "Semaglutide has more human trial data behind it than every other compound on this site combined — ten completed Phase 3 trials, an FDA approval, and a cardiovascular-outcomes trial on top of that. It's also the compound where the line between \"what the evidence supports\" and \"what's actually in the vial\" matters most. This guide keeps those two facts separate on purpose.",
+        text: "Semaglutide was designed at Novo Nordisk as a longer-lasting analog of the gut hormone glucagon-like peptide-1 (GLP-1), building on the earlier analog liraglutide. This summary covers its chemistry, what the discovery and receptor research established, and the questions that remain open. It does not cover clinical literature.",
       },
-      { type: "h2", text: "What Is Semaglutide?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Semaglutide is a modified version of human GLP-1 (94% sequence homology) engineered to resist the enzyme, DPP-4, that normally breaks native GLP-1 down within minutes. That structural change is what turns a hormone with a half-life under two minutes into a once-weekly injection.",
+        text: "Semaglutide (molecular formula C187H291N45O59, molecular weight 4114.0 g/mol, CAS 910463-68-2) is an analog of human GLP-1 with two amino-acid substitutions, aminoisobutyric acid (Aib) at position 8 and arginine at position 34, and a fatty-acid side chain attached through a linker to lysine 26 (Lau et al., 2015).",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "Semaglutide acts on three separate physiological systems, and each contributes differently to the weight-loss result:",
-      },
-      {
-        type: "ul",
-        items: [
-          "Pancreas — glucose-dependent insulin release. GLP-1 receptor activation on pancreatic beta cells amplifies insulin secretion, but only when blood glucose is already elevated. This \"glucose-dependent\" qualifier is why the drug carries a comparatively low hypoglycemia risk on its own.",
-          "Stomach — delayed gastric emptying. Slower stomach emptying extends the feeling of fullness after a meal and blunts the post-meal blood sugar spike.",
-          "Brain — appetite suppression via the vagus nerve and hypothalamus. This does most of the weight-loss work. GLP-1 signals reach appetite-control centers largely through vagal afferent neurons carrying signals from the gut to the brainstem, with further modulation of hypothalamic neurons involved in hunger and food reward.",
-        ],
+        text: "Design: the aim was a GLP-1 analog with higher albumin affinity and full stability against metabolic degradation. Lau and colleagues (Journal of Medicinal Chemistry, 2015) found the fatty-acid moiety and its linking chemistry were the key features for albumin affinity and GLP-1 receptor potency. Compared with liraglutide, semaglutide's GLP-1 receptor affinity was about three-fold lower and its albumin affinity higher; its plasma half-life in mini-pigs was 46.1 hours after intravenous administration.",
       },
       {
         type: "p",
-        text: "In plain terms: semaglutide doesn't burn fat directly. It reduces how much food you want to eat and how quickly your body processes each meal — the weight loss is a downstream consequence of reduced intake, which is also why the STEP trials paired it with behavioral and dietary counseling rather than testing the drug in isolation.",
+        text: "Receptor: GLP-1 receptor agonists act through the GLP-1 receptor, which is expressed in the pancreas, gastrointestinal tract, heart, lungs, kidneys and brain. Reversible binding to albumin is the mechanism used to extend the circulation time of both liraglutide and semaglutide (Knudsen and Lau, 2019).",
       },
-      { type: "h2", text: "Human Evidence" },
-      {
-        type: "p",
-        text: "This is the strongest evidence base of any compound on the site. The STEP trial program — ten completed Phase 3 randomized controlled trials plus a teen trial — is the basis for FDA approval of Wegovy (2.4 mg/week) for chronic weight management:",
-      },
-      {
-        type: "ul",
-        items: [
-          "STEP 1 (obesity/overweight, no diabetes, 68 weeks): −14.9% body weight vs. −2.4% for placebo.",
-          "STEP 3 (added intensive behavioral therapy, 68 weeks): −16.0% vs. −5.7% for placebo.",
-          "STEP 5 (long-term maintenance, 2 years): −15.2% vs. −2.6% for placebo.",
-          "STEP 8 (head-to-head vs. liraglutide): −15.8% for semaglutide; both semaglutide and liraglutide outperformed placebo.",
-        ],
-      },
-      {
-        type: "p",
-        text: "STEP 1's extension found that weight regain resumed after stopping the drug — participants gained back a majority of the lost weight by 120 weeks. That's directly relevant to anyone expecting a \"cycle on, cycle off\" research protocol to hold results.",
-      },
-      { type: "h2", text: "The Line Between the Approved Drug and What's Sold as \"Research\" Semaglutide" },
       {
         type: "callout",
-        text: "This is the compliance-relevant distinction. The evidence above is for FDA-approved Ozempic and Wegovy — specific manufactured pharmaceutical products. What research-peptide vendors sell as \"semaglutide\" is compounded material, and FDA has specifically warned that some compounded products use salt forms — semaglutide sodium or semaglutide acetate — which are chemically different active ingredients than the approved drug, with no evidence they're equivalent. FDA also documented patients self-administering 5–20x the intended dose due to compounded-product measuring errors, and issued 25 warning letters to telehealth companies over false or misleading compounded-GLP-1 marketing.",
+        text: "These findings come from medicinal-chemistry, receptor and animal pharmacokinetic studies. They describe how semaglutide was designed and how it engages its receptor. They are not evidence of any effect of research material in people.",
       },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Two substitutions (Aib-8, Arg-34) and a fatty-acid side chain on Lys-26 (Lau et al., 2015)",
+          "Fatty acid and linker chemistry set albumin affinity and receptor potency (Lau et al., 2015)",
+          "About three-fold lower GLP-1 receptor affinity than liraglutide, higher albumin affinity; 46.1-hour plasma half-life in mini-pigs (Lau et al., 2015)",
+          "GLP-1 receptor expressed in pancreas, gut, heart, lungs, kidneys and brain (Knudsen and Lau, 2019)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Tissue targets: the GLP-1 receptor is expressed in many tissues, and which receptor population accounts for a given measured effect depends on the experimental system.",
+          "Albumin binding: because semaglutide is held by albumin, its free concentration in a culture medium depends on the medium's protein content, which matters for in vitro work.",
+          "Most of the design and pharmacology literature comes from the developer's own scientists, as is usual for a drug candidate.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "The STEP trials are real evidence for the molecule's mechanism and effect — but they were conducted with the approved pharmaceutical product, not a compounded research-vial version. The two are not established as equivalent, and nothing on this page should be read as a claim that they are.",
-      },
-      { type: "h2", text: "Where to Source Semaglutide for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the Semaglutide product page",
-        productSlug: "semaglutide",
+        text: "Semaglutide is the active ingredient of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Semaglutide was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies semaglutide as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is the semaglutide sold by research vendors the same as Ozempic or Wegovy?",
-            a: "No. Ozempic and Wegovy are specific FDA-approved manufactured products. Semaglutide sold for research use is compounded material, sometimes in a different salt form, and has not been established as equivalent to the approved drug.",
+            q: "How is semaglutide different from native GLP-1?",
+            a: "It carries two amino-acid substitutions (Aib at position 8, Arg at 34) and a fatty-acid side chain on lysine 26, designed for albumin binding and stability against degradation.",
           },
           {
-            q: "Does the weight loss last after stopping semaglutide?",
-            a: "The STEP 1 trial extension found that most participants regained a majority of the lost weight within about a year of stopping the drug — the effect appears to require continued use, not a one-time reset.",
+            q: "Why does albumin binding matter?",
+            a: "Reversible binding to albumin extends how long the molecule circulates (Knudsen and Lau, 2019). In laboratory work it also means the protein content of the medium affects how much semaglutide is free.",
+          },
+          {
+            q: "Does this summary cover clinical trials?",
+            a: "No. It covers chemistry, receptor pharmacology and animal pharmacokinetics only.",
           },
         ],
       },
@@ -2111,136 +1921,100 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Semaglutide, Mechanism of Action. StatPearls / NCBI Bookshelf. ",
-          { href: "https://www.ncbi.nlm.nih.gov/books/NBK603723/", text: "ncbi.nlm.nih.gov", external: true },
+          "1. Lau J, Bloch P, Schäffer L, et al. \"Discovery of the Once-Weekly Glucagon-Like Peptide-1 (GLP-1) Analogue Semaglutide.\" Journal of Medicinal Chemistry. 2015;58(18):7370-7380. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/26308095/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Chao AM, et al. \"Semaglutide for the treatment of overweight and obesity: A review.\" PMC. ",
-          { href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10092086/", text: "pmc.ncbi.nlm.nih.gov", external: true },
+          "2. Knudsen LB, Lau J. \"The Discovery and Development of Liraglutide and Semaglutide.\" Frontiers in Endocrinology. 2019;10:155. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/31031702/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. FDA. \"FDA's Concerns with Unapproved GLP-1 Drugs Used for Weight Loss.\" ",
-          { href: "https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss", text: "fda.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. Reuters. \"US FDA warns online vendors selling unapproved weight-loss drugs,\" Dec 2024. ",
-          { href: "https://www.reuters.com/business/healthcare-pharmaceuticals/us-fda-warns-online-vendors-selling-unapproved-weight-loss-drugs-2024-12-17/", text: "reuters.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. Schirra J, Göke B. \"The physiological role of GLP-1 in human: incretin, ileal brake or what?\" PubMed, 2005. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/15780430/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. Moiz A, et al. \"Mechanisms of GLP-1 Receptor Agonist-Induced Weight Loss,\" 2025. ",
-          { href: "https://www.sciencedirect.com/science/article/pii/S0002934325000592", text: "sciencedirect.com", external: true },
+          "3. PubChem. Semaglutide (CID 56843331). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/56843331", text: "pubchem.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "cagrilintide-research-guide",
-    title: "Cagrilintide: The Complete Research Guide",
+    ruo: true,
+    title: "Cagrilintide: A Research Literature Summary",
     excerpt:
-      "An amylin analog studied on its own and — more compellingly — alongside semaglutide, where combination data shows an effect neither compound produces by itself. Unlike semaglutide, no form of this compound has ever been FDA-approved.",
-    category: "Body Composition",
+      "A lipidated, long-acting analog of the pancreatic hormone amylin. What laboratory studies have measured — its design against amyloid formation and its binding to amylin and calcitonin receptors — and what is still unknown.",
+    category: "Incretin & Amylin Analogs",
     date: "August 2026",
-    readTime: "8 min read",
+    lastUpdated: "October 2026",
+    readTime: "4 min read",
     content: [
       {
         type: "intro",
-        text: "Cagrilintide is easy to mistake for another entry in the GLP-1 family because it's almost always discussed alongside semaglutide. It isn't one. It works through an entirely separate hormone system — amylin, not incretin — and that distinction is the reason researchers pair the two rather than picking one.",
+        text: "Cagrilintide was developed at Novo Nordisk as a stable, long-acting analog of amylin, a hormone that is notoriously hard to work with because it forms amyloid fibrils. This summary covers its chemistry, what structural and receptor studies have measured, and the questions that remain open. It does not cover clinical literature.",
       },
-      { type: "h2", text: "What Is Cagrilintide?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Cagrilintide is a synthetic long-acting analog of amylin, a hormone co-secreted with insulin from pancreatic beta cells after meals. Like semaglutide, it uses a fatty-acid side-chain modification to bind albumin in the bloodstream, extending its half-life enough to support once-weekly dosing — but the receptor it acts on is different. Structurally, cagrilintide is classified as a dual amylin and calcitonin receptor agonist (DACRA), engineered for higher potency at both receptors than natural amylin.",
+        text: "Cagrilintide (molecular formula C194H312N54O59S2, molecular weight 4409.0 g/mol, CAS 1415456-99-3) is a stable, lipidated analog of amylin (Kruse et al., 2021). It is an agonist at both the amylin receptors and the calcitonin receptor (Cao et al., 2025).",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "Amylin signaling and GLP-1 signaling both suppress appetite, but through largely non-overlapping pathways:",
-      },
-      {
-        type: "ul",
-        items: [
-          "Area postrema (hindbrain) — amylin receptors are concentrated in this brainstem region, which lacks a full blood-brain barrier and receives signals directly from circulating hormones. Activation here drives satiety and slows gastric emptying independent of the vagal/hypothalamic circuit GLP-1 relies on.",
-          "Glucagon suppression — amylin analogs blunt post-meal glucagon release, complementing (rather than duplicating) GLP-1's glucose-dependent insulin effect.",
-          "Calcitonin receptor co-activation — cagrilintide's dual-receptor binding is what distinguishes it from earlier amylin analogs like pramlintide, and is credited with its improved potency in structural studies.",
-        ],
+        text: "Design: Kruse and colleagues (Journal of Medicinal Chemistry, 2021) describe the structure–activity work behind cagrilintide. Native amylin has a high propensity to form amyloid fibrils, and the earlier analog pramlintide has a short half-life; cagrilintide was designed to be both stable and long-acting, with lipidation as part of that design.",
       },
       {
         type: "p",
-        text: "Because the two pathways are largely separate, combining an amylin analog with a GLP-1 agonist has produced greater appetite suppression in trials than either compound alone at comparable doses — the basis for Novo Nordisk's combination candidate, CagriSema.",
-      },
-      { type: "h2", text: "Human Evidence" },
-      {
-        type: "p",
-        text: "Cagrilintide has been studied both as a standalone compound and in combination with semaglutide:",
-      },
-      {
-        type: "ul",
-        items: [
-          "Phase 2 monotherapy (Lau et al., 2021): 706 participants randomized across cagrilintide doses (0.3–4.5 mg), liraglutide 3.0 mg, and placebo. Cagrilintide produced significant, dose-dependent weight reduction and was well tolerated.",
-          "Phase 1b combination (Enebo et al., 2021): 96 adults received ascending cagrilintide doses plus semaglutide 2.4 mg for 20 weeks. Cagrilintide 2.4 mg + semaglutide produced −17.1% weight loss vs. −9.8% for placebo + semaglutide alone — the first human data showing the combination outperforms semaglutide by itself.",
-          "Phase 3 REDEFINE 1 (CagriSema, topline Dec 2024, published in NEJM): 3,417 adults with obesity/overweight. CagriSema produced 22.7% mean weight reduction on-treatment (20.4% under the intent-to-treat estimand, vs. 3.0% placebo) at 68 weeks — outperforming both the cagrilintide-alone arm (6.0% achieving ≥25% loss) and the semaglutide-alone arm (16.2% achieving ≥25% loss) on that threshold.",
-        ],
-      },
-      {
-        type: "p",
-        text: "REDEFINE 1's result was also notable for falling short of the roughly 25%+ weight loss some analysts had expected based on earlier-phase data — only 57% of participants reached the highest CagriSema dose during the trial, which affected the topline number. That gap between anticipated and delivered results became significant enough to draw shareholder litigation against Novo Nordisk in 2026, which is a useful reminder that even well-funded Phase 3 programs can undershoot expectations built on smaller earlier trials.",
-      },
-      { type: "h2", text: "Cagrilintide Alone vs. CagriSema" },
-      {
-        type: "p",
-        text: "It's worth being precise about what the strongest evidence actually supports. The most dramatic weight-loss numbers in the research literature — REDEFINE 1's 20–23% range — describe cagrilintide combined with semaglutide, not cagrilintide by itself. Monotherapy data (the Lau 2021 trial) shows real, dose-dependent effect, but the combination is where the larger, more clinically meaningful results live. Anyone researching cagrilintide as a single compound should calibrate expectations against the monotherapy trials, not the CagriSema headlines.",
+        text: "Receptor structures: Cao and colleagues (Nature Communications, 2025) determined structures of cagrilintide bound to the active, Gs-coupled amylin receptors AMY1R, AMY2R and AMY3R and to the calcitonin receptor. Cagrilintide binds in an amylin-like mode, but compared with rat amylin, salmon calcitonin and other amylin-based peptides it induces distinct conformational dynamics at these receptors.",
       },
       {
         type: "callout",
-        text: "Regulatory status is the most important distinction between cagrilintide and semaglutide. Semaglutide is FDA-approved in specific manufactured forms (Ozempic, Wegovy). Cagrilintide — alone or as CagriSema — has never been FDA-approved in any form; Novo Nordisk filed a New Drug Application for CagriSema, but it remains investigational. Everything currently sold as \"research cagrilintide\" is synthesized/compounded material with no approved reference product to even compare it to, not a compounded copy of an approved drug the way research-grade semaglutide is.",
+        text: "These findings come from medicinal chemistry and structural biology. They describe how cagrilintide was designed and how it binds its receptors. They are not evidence of any effect of research material in people.",
       },
-      { type: "h2", text: "Where to Source Cagrilintide for Research" },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Stable, lipidated long-acting amylin analog, designed against amylin's tendency to form amyloid fibrils (Kruse et al., 2021)",
+          "Agonist at amylin receptors AMY1R, AMY2R, AMY3R and the calcitonin receptor (Cao et al., 2025)",
+          "Amylin-like binding mode with distinct receptor conformational dynamics, from cryo-EM structures (Cao et al., 2025)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Receptor balance: cagrilintide acts at both amylin and calcitonin receptors, and how much each contributes to a measured response is not fully separated.",
+          "Dynamics: Cao and colleagues suggest the distinct conformational dynamics could matter functionally; that link has not been tested directly.",
+          "Both papers involve the developer's scientists or funding, as each discloses.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the Cagrilintide product page",
-        productSlug: "cagrilintide",
+        text: "Cagrilintide is an investigational compound and is not approved by the FDA for any use. It was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies cagrilintide as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is cagrilintide the same thing as semaglutide or part of the GLP-1 family?",
-            a: "No. Cagrilintide is an amylin analog acting on amylin and calcitonin receptors — a separate hormone system from GLP-1. It's frequently studied alongside semaglutide because the two pathways are complementary, not because they're the same mechanism.",
+            q: "What is amylin?",
+            a: "A pancreatic hormone. It readily forms amyloid fibrils, which makes it difficult to develop as a drug (Kruse et al., 2021).",
           },
           {
-            q: "Is cagrilintide FDA-approved?",
-            a: "No, in any form. Unlike semaglutide (approved as Ozempic/Wegovy), cagrilintide and the CagriSema combination remain investigational — an NDA has been filed for CagriSema, but nothing has been approved.",
+            q: "Which receptors does cagrilintide act on?",
+            a: "The three amylin receptors (AMY1R, AMY2R, AMY3R) and the calcitonin receptor (Cao et al., 2025).",
           },
           {
-            q: "Does cagrilintide alone produce the same weight loss as CagriSema?",
-            a: "No. The largest weight-loss figures reported (20–23% at 68 weeks) come from CagriSema, the semaglutide combination. Cagrilintide monotherapy trials show real but more modest dose-dependent effects.",
+            q: "Does this summary cover clinical trials?",
+            a: "No. It covers chemistry and structural and receptor biology only.",
           },
         ],
       },
@@ -2248,48 +2022,27 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Lau DCW, et al. \"Once-weekly cagrilintide for weight management in people with overweight and obesity: a multicentre, randomised, double-blind, placebo-controlled and active-controlled, dose-finding phase 2 trial.\" The Lancet, 2021. ",
-          { href: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(21)01751-7/abstract", text: "thelancet.com", external: true },
+          "1. Kruse T, Hansen JL, Dahl K, et al. \"Development of Cagrilintide, a Long-Acting Amylin Analogue.\" Journal of Medicinal Chemistry. 2021;64(15):11183-11194. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/34288673/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Enebo LB, et al. \"Safety, tolerability, pharmacokinetics, and pharmacodynamics of concomitant administration of multiple doses of cagrilintide with semaglutide 2·4 mg for weight management: a randomised, controlled, phase 1b trial.\" PubMed, 2021. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/33894838/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+          "2. Cao J, Belousoff MJ, Johnson RM, et al. \"Structural and dynamic features of cagrilintide binding to calcitonin and amylin receptors.\" Nature Communications. 2025;16(1):3389. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/40204768/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"CagriSema 2.4 mg/2.4 mg demonstrated 22.7% mean weight reduction in adults with overweight or obesity in REDEFINE 1, published in NEJM.\" PR Newswire, Dec 2024. ",
-          { href: "https://www.prnewswire.com/news-releases/cagrisema-2-4-mg--2-4-mg-demonstrated-22-7-mean-weight-reduction-in-adults-with-overweight-or-obesity-in-redefine-1--published-in-nejm-302487770.html", text: "prnewswire.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. Structural and mechanistic insights into dual activation of cagrilintide in amylin and calcitonin receptors. Acta Pharmacologica Sinica / Nature, 2025. ",
-          { href: "https://www.nature.com/articles/s41401-025-01635-2", text: "nature.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. Novo Nordisk Submits NDA to FDA for CagriSema. PharmExec. ",
-          { href: "https://www.pharmexec.com/view/novo-nordisk-submits-nda-fda-cagrisema", text: "pharmexec.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. \"Why shareholders are suing Novo Nordisk over next-generation weight-loss drug.\" CNBC, Jul 2026. ",
-          { href: "https://www.cnbc.com/2026/07/29/novo-nordisk-lawsuit-cagrisema-weight-loss-drug.html", text: "cnbc.com", external: true },
+          "3. PubChem. Cagrilintide (CID 171397054). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/171397054", text: "pubchem.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -2795,7 +2548,7 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Heffernan M, Summers RJ, Thorburn A, et al. \"The effects of human GH and its lipolytic fragment (AOD9604) on lipid metabolism following chronic treatment in obese mice and β3-AR knock-out mice.\" Endocrinology. 2001;142(12):5182-5189. ",
+          "1. Heffernan M, Summers RJ, Thorburn A, et al. \"The effects of human GH and its lipolytic fragment (AOD9604) on lipid metabolism…\" Endocrinology. 2001;142(12):5182-5189. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/11713213/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
@@ -2893,14 +2646,14 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "2. Prakash A, Goa KL. \"Sermorelin: a review of its use in the diagnosis and treatment of children with idiopathic growth hormone deficiency.\" BioDrugs. 1999;12(2):139-157. ",
+          "2. Prakash A, Goa KL. \"Sermorelin: a review of its use in the diagnosis…\" BioDrugs. 1999;12(2):139-157. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/18031173/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. FDA, Federal Register, March 4, 2013: determination that sermorelin acetate injection was not withdrawn from sale for reasons of safety or effectiveness. ",
+          "3. FDA, Federal Register, March 4, 2013: determination that sermorelin acetate was not withdrawn from sale for reasons of safety or effectiveness. ",
           { href: "https://www.federalregister.gov/documents/2013/03/04/2013-04827/determination-that-geref-sermorelin-acetate-injection-05-milligrams-basevial-and-10-milligrams", text: "federalregister.gov", external: true },
         ],
       },
@@ -3111,7 +2864,7 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "3. Viennois E, Ingersoll SA, Ayyadurai S, et al. \"Critical role of PepT1 in promoting colitis-associated cancer and therapeutic benefits of the anti-inflammatory PepT1-mediated tripeptide KPV in a murine model.\" Cellular and Molecular Gastroenterology and Hepatology. 2016;2(3):340-357. ",
+          "3. Viennois E, Ingersoll SA, Ayyadurai S, et al. \"Critical role of PepT1 in promoting colitis-associated cancer…\" Cellular and Molecular Gastroenterology and Hepatology. 2016;2(3):340-357. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/27458604/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
@@ -3251,64 +3004,70 @@ export const posts: Post[] = [
   },
   {
     slug: "wolverine-stack-research-guide",
-    title: "Wolverine Stack: BPC-157 + TB-500 Research Guide",
+    ruo: true,
+    title: "BPC-157 / TB-500: A Research Literature Summary",
     excerpt:
-      "Why these two peptides are combined, what the literature shows for each, and what's actually established about the pair versus each compound alone.",
-    category: "Stacks",
+      "A two-component blend: BPC-157 and TB-500 in one vial. What each component's laboratory literature covers, and why no study has examined the combination.",
+    category: "Blends",
     date: "July 2026",
-    readTime: "6 min read",
+    lastUpdated: "October 2026",
+    readTime: "4 min read",
     content: [
       {
         type: "intro",
-        text: "The Wolverine Stack pairs BPC-157 and TB-500 in a single vial — the two most commonly co-administered peptides in tissue-repair research, and the base every other blend on this site builds on. Here's what each compound contributes, and what's confirmed versus assumed about combining them.",
+        text: "This blend combines BPC-157 and TB-500, two peptides that each have their own laboratory literature. No published study has examined them together. This summary sets out what each component is, what its research covers, and what that does and does not tell you about the blend.",
       },
-      { type: "h2", text: "What's in a Wolverine Stack" },
+      { type: "h2", text: "Components" },
+      {
+        type: "ul",
+        items: [
+          "BPC-157: a synthetic 15-residue peptide, Gly-Glu-Pro-Pro-Pro-Gly-Lys-Pro-Ala-Asp-Asp-Ala-Gly-Leu-Val",
+          "TB-500: the N-acetylated heptapeptide Ac-LKKTETQ, residues 17–23 of thymosin beta-4",
+        ],
+      },
+      { type: "h2", text: "What Each Component's Literature Covers" },
       {
         type: "p",
-        text: "A standard vial is BPC-157 and TB-500 co-lyophilized in a 1:1 ratio — commonly 10mg of each, 20mg total. Reconstitution and dosing math work the same as for either compound alone; the calculator on this site handles mixed-vial concentration the same way.",
-      },
-      { type: "h2", text: "Two Different Mechanisms in One Vial" },
-      {
-        type: "p",
-        text: "BPC-157 is a synthetic pentadecapeptide first identified from a protective protein in gastric juice. In tendon fibroblasts, it activates the FAK–paxillin pathway, which researchers have linked to increased fibroblast outgrowth, better cell survival under stress, and increased migration from tendon explants.",
-      },
-      {
-        type: "p",
-        text: "TB-500 is a synthetic version of a fragment of thymosin beta-4, a naturally occurring protein your cells use during repair. Its defining mechanism is different from BPC-157's: it binds actin, and the original 1997 study showed it acts as a chemoattractant for endothelial cells — stimulating migration four- to six-fold in vitro. A later review describes thymosin beta-4 more broadly as promoting the mobilization, migration, and differentiation of stem and progenitor cells that go on to form new blood vessels.",
-      },
-      { type: "h2", text: "Why the Two Are Paired" },
-      {
-        type: "p",
-        text: "The two mechanisms are complementary rather than redundant: BPC-157's studied effects center on local tissue survival and fibroblast activity at the injury site, while TB-500's studied effect is recruiting and moving the cells that populate the surrounding area. Vendors and researchers who stack the two are, in effect, targeting the repair site and the cell-migration pipeline feeding it in the same reconstitution.",
+        text: "BPC-157: in rat tendon explants and fibroblasts, Chang and colleagues (2011) found increased fibroblast outgrowth, survival under oxidative stress and migration, with FAK–paxillin activation; other work links it to VEGFR2–Akt–eNOS signaling in endothelial cells. TB-500: most of the literature is on full-length thymosin beta-4. Malinda and colleagues (FASEB Journal, 1997) showed that thymosin beta-4 is a chemoattractant for human umbilical vein endothelial cells, increasing their migration four- to six-fold in Boyden chambers and into scratch wounds, and stimulating cell migration into Matrigel implants in vivo.",
       },
       {
         type: "callout",
-        text: "What's not established: neither compound's studies were designed to test the combination. Each peptide's evidence base comes from studies where it was administered alone. Combining two well-studied peptides is not the same as having a study of the combination — that's a real gap, not a technicality.",
+        text: "No published study tests BPC-157 and TB-500 together, and most TB-500-related findings are for full-length thymosin beta-4 rather than the fragment. Each finding comes from cell culture or animal models and is not evidence of any effect in people.",
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Interaction: whether the two peptides affect each other's stability or activity when combined in one solution has not been studied.",
+          "Fragment versus protein: how much of thymosin beta-4's measured activity the 17–23 fragment reproduces is largely untested.",
+          "Attribution: in any experiment with the blend, an observed effect cannot be assigned to one component without single-compound controls.",
+        ],
       },
       {
         type: "p",
         parts: [
-          "For the full mechanism and regulatory-status writeup on BPC-157 specifically, see the ",
-          { href: "/blog/bpc-157-complete-guide", text: "complete BPC-157 research guide" },
+          "Component summaries: ",
+          { href: "/blog/bpc-157-complete-guide", text: "BPC-157" },
+          " and ",
+          { href: "/blog/tb-500-complete-guide", text: "TB-500" },
           ".",
         ],
       },
-      { type: "h2", text: "Sourcing the Wolverine Stack" },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis for the finished blend, not just the individual peptides.",
-      },
-      {
-        type: "button",
-        text: "View the Wolverine Stack product page",
-        productSlug: "bpc-157-tb-500-blend",
+        text: "Neither component is approved by the FDA for any use, and the blend has not been reviewed as a product. BPC-157 and TB-500 were each reviewed separately at the FDA Pharmacy Compounding Advisory Committee meeting on July 23, 2026, and the committee voted to recommend both; the votes are advisory. Aura Protocols supplies this blend as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Has the BPC-157 + TB-500 combination itself been studied, or just each peptide separately?",
-            a: "Just each peptide separately, as far as the published literature shows. BPC-157's evidence and TB-500's evidence both come from studies administering each compound alone. No co-administration trial for the specific combination was found in the literature reviewed for this guide.",
+            q: "Has this combination been studied?",
+            a: "No. Each component has its own laboratory literature, but no published study examines the two together.",
+          },
+          {
+            q: "Was this blend called something else before?",
+            a: "Yes. It was sold under the name Wolverine; blends are now named by composition.",
           },
         ],
       },
@@ -3316,27 +3075,27 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Chang CH, et al. \"The promoting effect of pentadecapeptide BPC 157 on tendon fibroblasts.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/21030672/", text: "PubMed", external: true },
+          "1. Chang CH, Tsai WC, Lin MS, et al. \"The promoting effect of pentadecapeptide BPC 157 on tendon healing involves tendon outgrowth, cell survival, and cell migration.\" Journal of Applied Physiology. 2011;110(3):774-780. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/21030672/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Malinda KM, Goldstein AL, Kleinman HK. \"Thymosin beta 4 stimulates directional migration of human umbilical vein endothelial cells.\" FASEB J, 1997. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/9194528/", text: "PubMed", external: true },
+          "2. Malinda KM, Goldstein AL, Kleinman HK. \"Thymosin beta 4 stimulates directional migration of human umbilical vein endothelial cells.\" FASEB Journal. 1997;11(6):474-481. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/9194528/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"Thymosin β4: a multi-functional regenerative peptide. Basic properties and clinical applications.\" ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/22074294/", text: "PubMed", external: true },
+          "3. Hsieh MJ, Liu HT, Wang CN, et al. \"…pro-angiogenic BPC157 is associated with VEGFR2 activation and up-regulation.\" Journal of Molecular Medicine. 2017;95(3):323-333. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/27847966/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -3423,7 +3182,7 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "2. Hsieh MJ, Liu HT, Wang CN, et al. \"Therapeutic potential of pro-angiogenic BPC157 is associated with VEGFR2 activation and up-regulation.\" Journal of Molecular Medicine. 2017;95(3):323-333. ",
+          "2. Hsieh MJ, Liu HT, Wang CN, et al. \"…pro-angiogenic BPC157 is associated with VEGFR2 activation and up-regulation.\" Journal of Molecular Medicine. 2017;95(3):323-333. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/27847966/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
