@@ -764,7 +764,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Chemical Identity" },
       {
         type: "h3",
-        text: "Semaglutide",
+        text: "Semaglutide (APro-G1SM)",
       },
       {
         type: "p",
@@ -772,7 +772,7 @@ export const posts: Post[] = [
       },
       {
         type: "h3",
-        text: "Tirzepatide",
+        text: "Tirzepatide (APro-G2TRZ)",
       },
       {
         type: "p",
@@ -813,7 +813,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Semaglutide and tirzepatide are active ingredients of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Aura Protocols supplies both as research chemicals for laboratory use only.",
+        text: "Semaglutide and tirzepatide are active ingredients of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Aura Protocols supplies both, as APro-G1SM and APro-G2TRZ, as research chemicals for laboratory use only.",
       },
       {
         type: "faq",
@@ -1460,7 +1460,7 @@ export const posts: Post[] = [
   {
     slug: "retatrutide-research-guide",
     ruo: true,
-    title: "Retatrutide: A Research Literature Summary",
+    title: "APro-G3RT (Retatrutide): A Research Literature Summary",
     excerpt:
       "A single peptide that acts at three receptors: glucagon, GIP and GLP-1. What laboratory studies have measured about its receptor activity profile, and what is still unknown.",
     category: "Incretin & Amylin Analogs",
@@ -1475,7 +1475,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Retatrutide (molecular formula C221H342N46O68, molecular weight 4731.0 g/mol, CAS 2381089-83-2) is a synthetic peptide agonist at the glucagon receptor (GCGR), the glucose-dependent insulinotropic polypeptide receptor (GIPR) and the glucagon-like peptide-1 receptor (GLP-1R) (Coskun et al., 2022).",
+        text: "Retatrutide (molecular formula C221H342N46O68, molecular weight 4731.0 g/mol, CAS 2381089-83-2) is a synthetic peptide agonist at the glucagon receptor (GCGR), the glucose-dependent insulinotropic polypeptide receptor (GIPR) and the glucagon-like peptide-1 receptor (GLP-1R) (Coskun et al., 2022). Aura Protocols lists it as APro-G3RT.",
       },
       { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
@@ -1507,7 +1507,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Retatrutide is an investigational compound and is not approved by the FDA for any use. It was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies retatrutide as a research chemical for laboratory use only.",
+        text: "Retatrutide is an investigational compound and is not approved by the FDA for any use. It was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies retatrutide (APro-G3RT) as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
@@ -1744,7 +1744,7 @@ export const posts: Post[] = [
   {
     slug: "tirzepatide-research-guide",
     ruo: true,
-    title: "Tirzepatide: A Research Literature Summary",
+    title: "APro-G2TRZ (Tirzepatide): A Research Literature Summary",
     excerpt:
       "A fatty-acid-modified peptide that acts at both the GIP and GLP-1 receptors. What receptor-pharmacology studies have measured — imbalanced, biased dual agonism — and what is still unknown.",
     category: "Incretin & Amylin Analogs",
@@ -1759,7 +1759,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Tirzepatide (molecular formula C225H348N48O68, molecular weight 4813.0 g/mol, CAS 2023788-19-2) is a fatty-acid-modified synthetic peptide with agonist activity at both the glucose-dependent insulinotropic polypeptide (GIP) receptor and the glucagon-like peptide-1 (GLP-1) receptor (Coskun et al., 2018).",
+        text: "Tirzepatide (molecular formula C225H348N48O68, molecular weight 4813.0 g/mol, CAS 2023788-19-2) is a fatty-acid-modified synthetic peptide with agonist activity at both the glucose-dependent insulinotropic polypeptide (GIP) receptor and the glucagon-like peptide-1 (GLP-1) receptor (Coskun et al., 2018). Aura Protocols lists it as APro-G2TRZ.",
       },
       { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
@@ -1796,7 +1796,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Tirzepatide is the active ingredient of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Tirzepatide was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies tirzepatide as a research chemical for laboratory use only.",
+        text: "Tirzepatide is the active ingredient of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Tirzepatide was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies tirzepatide (APro-G2TRZ) as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
@@ -1846,7 +1846,7 @@ export const posts: Post[] = [
   {
     slug: "semaglutide-research-guide",
     ruo: true,
-    title: "Semaglutide: A Research Literature Summary",
+    title: "APro-G1SM (Semaglutide): A Research Literature Summary",
     excerpt:
       "A fatty-acid-modified analog of glucagon-like peptide-1. What laboratory and discovery research has established about its design, albumin binding and GLP-1 receptor activity, and what is still unknown.",
     category: "Incretin & Amylin Analogs",
@@ -1861,7 +1861,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Semaglutide (molecular formula C187H291N45O59, molecular weight 4114.0 g/mol, CAS 910463-68-2) is an analog of human GLP-1 with two amino-acid substitutions, aminoisobutyric acid (Aib) at position 8 and arginine at position 34, and a fatty-acid side chain attached through a linker to lysine 26 (Lau et al., 2015).",
+        text: "Semaglutide (molecular formula C187H291N45O59, molecular weight 4114.0 g/mol, CAS 910463-68-2) is an analog of human GLP-1 with two amino-acid substitutions, aminoisobutyric acid (Aib) at position 8 and arginine at position 34, and a fatty-acid side chain attached through a linker to lysine 26 (Lau et al., 2015). Aura Protocols lists it as APro-G1SM.",
       },
       { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
@@ -1898,7 +1898,7 @@ export const posts: Post[] = [
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Semaglutide is the active ingredient of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Semaglutide was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies semaglutide as a research chemical for laboratory use only.",
+        text: "Semaglutide is the active ingredient of FDA-approved prescription medicines. Research-grade material sold for laboratory use is not an approved drug and is not for human use. Semaglutide was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies semaglutide (APro-G1SM) as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
