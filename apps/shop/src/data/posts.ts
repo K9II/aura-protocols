@@ -1326,80 +1326,75 @@ export const posts: Post[] = [
   },
   {
     slug: "ss-31-elamipretide-research-guide",
-    title: "SS-31 (Elamipretide): The Complete Research Guide",
+    ruo: true,
+    title: "SS-31 (Elamipretide): A Research Literature Summary",
     excerpt:
-      "The mitochondria-targeted peptide behind a real FDA accelerated approval — for a narrow rare-disease indication most research use has nothing to do with.",
-    category: "Longevity & Wellness",
+      "The tetrapeptide D-Arg-Dmt-Lys-Phe-NH₂. What laboratory studies have measured — cardiolipin binding, cytochrome c peroxidase inhibition, cristae structure and membrane electrostatics — and what is still unknown.",
+    category: "Mitochondrial & Metabolic",
     date: "July 2026",
-    readTime: "8 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "SS-31 has a rarer distinction on this site: it's an FDA-approved drug, under a different name, for a specific rare disease — while the vast majority of research and consumer interest in it has nothing to do with that approved use. Both facts matter, and this guide treats them separately.",
+        text: "SS-31 is one of the Szeto–Schiller (SS) peptides, a class of small amphipathic tetrapeptides that target the inner mitochondrial membrane; much of the work on them comes from H. H. Szeto's group at Weill Cornell Medical College. Its laboratory literature centres on one lipid, cardiolipin. This summary covers what SS-31 is, what those studies measured, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is SS-31?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "SS-31 is a synthetic tetrapeptide with an alternating cationic/aromatic amino acid motif that allows it to cross the plasma membrane without a transporter and accumulate 1,000–5,000-fold at the mitochondrial inner membrane. There, it selectively binds cardiolipin, a phospholipid unique to the inner mitochondrial membrane.",
+        text: "SS-31 (elamipretide) is the synthetic tetrapeptide D-Arg-Dmt-Lys-Phe-NH₂, where Dmt is 2′,6′-dimethyltyrosine (molecular formula C32H49N9O5, molecular weight 639.8 g/mol, CAS 736992-21-5). Its alternating basic and aromatic residues make it polybasic and amphipathic.",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "By binding cardiolipin, SS-31 stabilizes the folded cristae structure of the inner mitochondrial membrane — where the electron transport chain complexes are physically organized. Cell-culture studies found the peptide reduces oxidative cell death, lowers intracellular reactive oxygen species, and preserves membrane potential, all in a dose-dependent manner, which supports the model that cristae stabilization directly protects ATP production capacity during oxidative stress.",
-      },
-      { type: "h2", text: "What the Preclinical Research Shows" },
-      {
-        type: "p",
-        text: "Multiple independent research groups have reported efficacy across a wide range of disease models sharing mitochondrial dysfunction as a common root cause:",
-      },
-      {
-        type: "ul",
-        items: [
-          "Cardiomyopathy and heart failure models",
-          "Skeletal muscle injury and atrophy models",
-          "Ischemia and ischemia-reperfusion injury",
-          "Kidney injury and disease models",
-          "Neurodegenerative disease models",
-          "Friedreich's ataxia (a heritable mitochondrial disease)",
-        ],
-      },
-      { type: "h2", text: "Human Evidence and Regulatory Status" },
-      {
-        type: "p",
-        text: "Unlike most compounds on this site, SS-31 has gone through real human trials and a real FDA approval — for one specific, ultra-rare indication. The TAZPOWER trial (28-week randomized, placebo-controlled, followed by a 168-week open-label extension) tested elamipretide in Barth syndrome, an X-linked genetic disorder that weakens cardiac and skeletal muscle. The 12-week randomized phase missed its primary endpoints, but the open-label extension found significant improvement on the 6-minute walk test (79.7m difference at week 64, 91.0m at week 76) and cardiac outcomes.",
+        text: "Cardiolipin binding: cardiolipin is a phospholipid found only in the inner mitochondrial membrane, where it shapes the cristae and organises the respiratory complexes. Using a fluorescent analog, Birk and colleagues (Journal of the American Society of Nephrology, 2013) showed that SS-31 binds cardiolipin with high affinity, and that the SS-31–cardiolipin complex inhibited the peroxidase activity of cytochrome c, which drives cardiolipin peroxidation. In a rat renal ischemia model, pretreatment preserved cristae membranes and prevented mitochondrial swelling, and ATP recovered faster on reperfusion.",
       },
       {
         type: "p",
-        text: "In September 2025, the FDA granted accelerated approval to elamipretide — brand name Forzinity — for muscle strength in Barth syndrome, in adult and pediatric patients, dosed at 40mg subcutaneously once daily. It's the first FDA-approved mitochondrial disease therapy.",
+        text: "Membrane physics: Mitchell and colleagues (Journal of Biological Chemistry, 2020) found that SS-31 partitions into the membrane interface with an affinity and binding density tied to surface charge. It did not destabilise lipid bilayers even at the highest concentrations tested, caused saturable changes in lipid packing, modulated the surface electrostatics of model and mitochondrial membranes, and altered the calcium burden of isolated mitochondria under calcium stress.",
       },
       {
         type: "callout",
-        text: "This approval is narrow: Barth syndrome muscle strength, at a specific dose, under medical supervision. It is not a general approval for mitochondrial health, aging, or any of the broader uses SS-31 is studied for elsewhere. SS-31 sold by research vendors is not Forzinity — it is unapproved bulk peptide material, not established as equivalent in purity or formulation, and not legal to sell for human use outside that approved product.",
+        text: "These findings come from model membranes, isolated mitochondria and animal models. They describe how SS-31 interacts with mitochondrial membranes in those systems. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Where to Source SS-31 for Research" },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "High-affinity cardiolipin binding; inhibition of cytochrome c peroxidase activity (Birk et al., 2013)",
+          "Cristae preserved and mitochondrial swelling prevented in rat renal ischemia (Birk et al., 2013)",
+          "Membrane binding tied to surface charge; surface electrostatics modulated without bilayer disruption (Mitchell et al., 2020)",
+          "Altered calcium burden in isolated mitochondria under calcium stress (Mitchell et al., 2020)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Mechanism: cardiolipin binding and membrane-electrostatics effects are both proposed, and Mitchell and colleagues describe them as non-exclusive; how much each contributes is unresolved.",
+          "Conflicts of interest: the peptides' inventor, H. H. Szeto, is an author on much of the work and founded the company that licensed them, as the 2020 paper discloses.",
+          "Selectivity: reviews report little effect on normal mitochondria (Zhu et al., 2022), and how SS-31 distinguishes stressed from normal membranes is not fully explained.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the SS-31 product page",
-        productSlug: "ss-31",
+        text: "Elamipretide is the active ingredient of an FDA-approved prescription medicine. Research-grade material sold for laboratory use is not that approved product and is not for human use. SS-31 was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies SS-31 as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Is SS-31 FDA-approved?",
-            a: "Yes, but only for one narrow use: as Forzinity, for muscle strength in Barth syndrome, approved via the FDA's accelerated approval pathway in September 2025. It is not approved for general mitochondrial health, longevity, or any use outside that specific rare-disease indication.",
+            q: "What is cardiolipin?",
+            a: "A phospholipid found only in the inner mitochondrial membrane, where it shapes the cristae and organises the respiratory complexes (Szeto, 2014).",
           },
           {
-            q: "Is the SS-31 sold by research vendors the same as Forzinity?",
-            a: "No. Forzinity is a specific FDA-approved manufactured product for a specific indication and dose. SS-31 sold for research use is unapproved bulk peptide material and has not been established as equivalent in purity, formulation, or bioavailability.",
+            q: "What does \"Dmt\" mean in the sequence?",
+            a: "2′,6′-dimethyltyrosine, a modified tyrosine. The first residue, D-arginine, is the D form of the amino acid.",
           },
           {
-            q: "Does the Barth syndrome approval mean SS-31 is proven for mitochondrial aging or general energy?",
-            a: "No. The approved indication is narrow — muscle strength in a specific genetic disease. The broader mitochondrial-function research (cardiac, kidney, neurodegenerative models) is real but preclinical, and hasn't been tested in the general population the way it was in Barth syndrome patients.",
+            q: "What kind of evidence is summarised here?",
+            a: "Biophysical studies on model membranes and isolated mitochondria, and animal ischemia models. This summary does not cover clinical literature, and no laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -1407,34 +1402,34 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. \"The mitochondria-targeted peptide SS-31 binds lipid bilayers and modulates surface electrostatics as a key component of its mechanism of action.\" PMC. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7247319/", text: "ncbi.nlm.nih.gov", external: true },
+          "1. Birk AV, Liu S, Soong Y, et al. \"The mitochondrial-targeted compound SS-31 re-energizes ischemic mitochondria by interacting with cardiolipin.\" Journal of the American Society of Nephrology. 2013;24(8):1250-1261. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/23813215/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. \"SS-31, a Mitochondria-Targeting Peptide, Ameliorates Kidney Disease.\" PMC. ",
-          { href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9192202/", text: "pmc.ncbi.nlm.nih.gov", external: true },
+          "2. Mitchell W, Ng EA, Tamucci JD, et al. \"The mitochondria-targeted peptide SS-31 binds lipid bilayers and modulates surface electrostatics as a key component of its mechanism of action.\" Journal of Biological Chemistry. 2020;295(21):7452-7469. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/32273339/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. \"Long-term efficacy and safety of elamipretide in patients with Barth syndrome: 168-week open-label extension results of TAZPOWER.\" PubMed. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/38602181/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+          "3. Szeto HH. \"First-in-class cardiolipin-protective compound as a therapeutic agent to restore mitochondrial bioenergetics.\" British Journal of Pharmacology. 2014;171(8):2029-2050. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/24117165/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "4. \"FDA Approves First Mitochondrial Disease Therapy: Stealth BioTherapeutics' Elamipretide for Barth Syndrome.\" United Mitochondrial Disease Foundation. ",
-          { href: "https://umdf.org/fda-approves-elamipretide/", text: "umdf.org", external: true },
+          "4. Zhu Y, Luo M, Bai X, et al. \"SS-31, a Mitochondria-Targeting Peptide, Ameliorates Kidney Disease.\" Oxidative Medicine and Cellular Longevity. 2022;2022:1295509. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/35707274/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -2724,66 +2719,75 @@ export const posts: Post[] = [
   },
   {
     slug: "aod-9604-research-guide",
-    title: "AOD-9604: The Complete Research Guide",
+    ruo: true,
+    title: "AOD-9604: A Research Literature Summary",
     excerpt:
-      "A growth-hormone fragment marketed on a mechanism its own foundational study didn't confirm — and the one time it was tested for its main proposed use in humans, it failed.",
-    category: "Body Composition",
+      "A 16-residue C-terminal fragment of human growth hormone. What laboratory studies have measured about its effects on lipid metabolism in mice, why its β3-adrenergic mechanism is often misstated, and what is still unknown.",
+    category: "Peptide Fragments",
     date: "July 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "4 min read",
     content: [
       {
         type: "intro",
-        text: "AOD-9604 gets a very different treatment in this guide than the rest of the Body Composition category. Its one completed human efficacy trial did not work, and its most commonly cited mechanism doesn't hold up against the primary literature it's supposedly based on. Both of those facts lead this guide instead of trailing it.",
+        text: "AOD-9604 is a synthetic fragment from the C-terminal end of human growth hormone (hGH). It was developed to study the lipid-metabolism activity of that region separately from the rest of the hormone. This summary covers what it is, what its main laboratory study found, a common misreading of that study, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is AOD-9604?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "AOD-9604 is a fragment of human growth hormone — just amino acids 176–191, the tail end of the full molecule. Full hGH does two things at once: it promotes fat breakdown (lipolysis), and it drives tissue growth and raises blood sugar, the \"diabetogenic\" effects that make GH itself unsuitable as a casual fat-loss agent. The 176–191 fragment was identified as the region associated with lipolytic activity, with the hope that it would keep the fat-burning effect while dropping the growth and glucose side effects.",
+        text: "AOD-9604 is a synthetic 16-residue peptide: residues 177–191 of human growth hormone with an added N-terminal tyrosine (molecular formula C78H123N23O23S2, molecular weight 1815.1 g/mol, CAS 221231-10-3).",
       },
-      { type: "h2", text: "Mechanism of Action — More Contested Than Most Guides Let On" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
+      {
+        type: "p",
+        text: "The main mechanistic study is Heffernan and colleagues (Endocrinology, 2001). In obese mice, 14 days of hGH or AOD-9604 changed body weight and body fat and raised expression of β3-adrenergic receptor (β3-AR) RNA, the main lipolytic receptor in fat cells, back toward lean-mouse levels. In β3-AR knockout mice, long-term administration of either compound did not produce the changes in body weight and lipolysis seen in normal mice. In a short experiment, however, AOD-9604 still increased energy expenditure and fat oxidation in the knockout mice.",
+      },
+      {
+        type: "p",
+        text: "The authors concluded that the lipolytic actions of hGH and AOD-9604 are not mediated directly through the β3-AR, even though both raise β3-AR expression, which may then add to lipolytic sensitivity. AOD-9604 is often described as a β3-adrenergic agonist; the study that tested that idea does not support it.",
+      },
       {
         type: "callout",
-        text: "Nearly every vendor and \"peptide guide\" site states as settled fact that AOD-9604 works via the beta-3 adrenergic receptor pathway. That claim traces back to a 2001 study that set out to test exactly that hypothesis — but the peer-reviewed, published version of that same study, in Endocrinology, concluded the opposite of what gets repeated: \"the lipolytic actions of both hGH and AOD9604 are not mediated directly through the β3-AR.\" We don't repeat the beta-3-receptor claim as established fact. The honest statement is that a specific mechanism was hypothesized and tested, and the primary research available did not confirm it.",
+        text: "These findings come from mouse models, including receptor-knockout mice. They describe what AOD-9604 does to lipid-metabolism measurements in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "Preclinical Signal" },
+      { type: "h2", text: "Published Research at a Glance" },
       {
-        type: "p",
-        text: "A 2001 study found AOD-9604 reduced body weight and body fat in obese mice over 14 days of chronic administration, comparable to effects seen with full hGH.",
+        type: "ul",
+        items: [
+          "Body weight, body fat and β3-AR RNA expression changed in obese mice after 14 days (Heffernan et al., 2001)",
+          "Long-term changes absent in β3-AR knockout mice (Heffernan et al., 2001)",
+          "Short-term energy expenditure and fat oxidation still increased in knockout mice (Heffernan et al., 2001)",
+          "Conclusion: lipolytic action not mediated directly through the β3-AR (Heffernan et al., 2001)",
+        ],
       },
-      { type: "h2", text: "Human Evidence" },
+      { type: "h2", text: "Open Questions" },
       {
-        type: "callout",
-        text: "AOD-9604 was tested in a Phase 2b human obesity trial — roughly 536 participants, 24 weeks, run by Metabolic Pharmaceuticals. The sponsor's own ASX filing states plainly that results \"do not support the commercial viability of the drug as a treatment for obesity.\" This is a completed, primary-source-confirmed negative result, not an absence of data — an actual failure to beat placebo.",
-      },
-      {
-        type: "p",
-        text: "That's meaningfully different framing than BPC-157, where preclinical work is promising and human trials simply haven't happened yet, or Retatrutide, where the compound isn't approved yet but the data so far is strong. For AOD-9604, the one time it was tested properly in humans for its main proposed use, it didn't work.",
+        type: "ul",
+        items: [
+          "Receptor: if not the β3-AR directly, what AOD-9604 binds to start its lipolytic effect is not identified.",
+          "Short versus long term: the short-term knockout result and the long-term knockout result point in different directions, and how they fit together is unresolved.",
+          "Breadth: the mechanistic picture rests mainly on one mouse study, and independent laboratory work is limited.",
+        ],
       },
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "AOD-9604 appears in FDA's \"nominated but withdrawn\" table, not the active Category 2 table — the same status as BPC-157. That means it isn't currently restricted via that specific compounding mechanism, but it has never been approved for any indication, and its one completed efficacy trial failed.",
-      },
-      { type: "h2", text: "Where to Source AOD-9604 for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the AOD-9604 product page",
-        productSlug: "aod-9604",
+        text: "AOD-9604 is not approved by the FDA for any use, and it was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies AOD-9604 as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Does AOD-9604 work for weight loss?",
-            a: "Its one completed human efficacy trial — a Phase 2b obesity study of roughly 536 participants — failed to support its use as an obesity treatment, according to the sponsor's own filing. Preclinical (animal) data was more promising, but that hasn't translated into a positive human trial result.",
+            q: "Is AOD-9604 a β3-adrenergic agonist?",
+            a: "The study that tested this concluded its lipolytic action is not mediated directly through the β3-adrenergic receptor, although it raises that receptor's expression (Heffernan et al., 2001).",
           },
           {
-            q: "Is AOD-9604 FDA-approved?",
-            a: "No. It has never been approved for any indication, and its nomination for FDA's compounding bulk-substances list was withdrawn.",
+            q: "Which part of growth hormone is it?",
+            a: "Residues 177–191 of the C-terminal end, with a tyrosine added at the N-terminus.",
+          },
+          {
+            q: "What kind of evidence is summarised here?",
+            a: "Mouse studies, including knockout mice. This summary does not cover clinical literature, and no laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -2791,41 +2795,20 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Metabolic Pharmaceuticals. ASX announcement, \"Obesity Drug — Phase 2b Clinical Trial Results,\" Feb 21, 2007 (primary source, sponsor's own filing). ",
-          { href: "https://announcements.asx.com.au/asxpdf/20070221/pdf/3111t0ww55jr72.pdf", text: "announcements.asx.com.au", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "2. Heffernan M, et al. \"The effects of human GH and its lipolytic fragment (AOD9604) on lipid metabolism...\" PubMed, 2001. ",
+          "1. Heffernan M, Summers RJ, Thorburn A, et al. \"The effects of human GH and its lipolytic fragment (AOD9604) on lipid metabolism following chronic treatment in obese mice and β3-AR knock-out mice.\" Endocrinology. 2001;142(12):5182-5189. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/11713213/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. Heffernan M, et al. Full peer-reviewed publication. Endocrinology 142(12):5182 — conclusion: lipolytic action \"not mediated directly through the β3-AR.\" ",
-          { href: "https://academic.oup.com/endo/article-abstract/142/12/5182/2988749", text: "academic.oup.com", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. SEC/ASX filing archive, corroborating dose-group primary endpoint data. ",
-          { href: "https://www.sec.gov/Archives/edgar/vprr/0702/07021963.pdf", text: "sec.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. FDA. \"Certain Bulk Drug Substances for Use in Compounding that May Present Significant Safety Risks\" — nominated-but-withdrawn table. ",
-          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "fda.gov", external: true },
+          "2. PubChem. AOD-9604 (CID 71300630). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/71300630", text: "pubchem.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -3038,85 +3021,75 @@ export const posts: Post[] = [
   },
   {
     slug: "kpv-research-guide",
-    title: "KPV: The Complete Research Guide",
+    ruo: true,
+    title: "KPV: A Research Literature Summary",
     excerpt:
-      "A three-amino-acid fragment of alpha-MSH studied almost entirely in colitis models and human cell lines — with no completed human trials, and a fresh non-binding FDA compounding vote as of July 2026.",
-    category: "Recovery",
+      "The tripeptide Lys-Pro-Val, the C-terminal end of alpha-MSH. What laboratory studies have measured — PepT1 uptake, NF-κB inhibition in intestinal and immune cells, and inflammation markers in mouse colitis models — and what is still unknown.",
+    category: "Peptide Fragments",
     date: "July 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "KPV is one of the smallest peptides on this site — just three amino acids — and one of the most consistently studied for anti-inflammatory activity outside a human body. The evidence base here is real but narrow: strong, repeated preclinical signal, zero completed human trials, and a regulatory status that moved twice in the last few months. This guide keeps all three of those facts in view at once.",
+        text: "KPV is a three-residue fragment of alpha-melanocyte-stimulating hormone (α-MSH). Its laboratory literature is small and focused: how it enters cells, what it does to inflammatory signaling, and how it behaves in mouse models of intestinal inflammation. This summary covers those studies and the questions that remain open.",
       },
-      { type: "h2", text: "What Is KPV?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "KPV (Lysine-Proline-Valine) is a synthetic tripeptide corresponding to residues 11–13 of alpha-melanocyte-stimulating hormone (alpha-MSH) — the C-terminal fragment of the same hormone system that gives rise to compounds like PT-141 and Melanotan II. Unlike those relatives, KPV's research interest isn't in the melanocortin receptor's pigmentation or appetite pathway at all — it's in an anti-inflammatory effect that shows up even when that receptor pathway is blocked.",
+        text: "KPV is the tripeptide Lys-Pro-Val (molecular formula C16H30N4O4, molecular weight 342.4 g/mol, CAS 67727-97-3), residues 11–13 of α-MSH, written α-MSH(11–13).",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "The core finding across the KPV literature is that its anti-inflammatory activity is largely independent of the melanocortin-1 receptor (MC1R) that mediates most of alpha-MSH's other effects — one of the original studies found KPV rescued MC1R-deficient mice from colitis just as effectively as normal mice, direct evidence the receptor isn't required for the effect.",
-      },
-      {
-        type: "ul",
-        items: [
-          "PepT1-mediated uptake. KPV is a substrate for PepT1, a di/tripeptide transporter expressed in the small intestine and specifically upregulated in the colon during inflammatory bowel disease — meaning KPV is preferentially taken up exactly where gut inflammation is already active, in both epithelial and immune cells.",
-          "NF-κB and MAPK inhibition. Once inside the cell, nanomolar concentrations of KPV inhibit activation of the NF-κB and MAP kinase pathways — two of the central signaling routes that turn on production of pro-inflammatory cytokines like TNF-α, IL-1β, and IL-6.",
-        ],
+        text: "Uptake and signaling: Dalmasso and colleagues (Gastroenterology, 2008) showed that KPV enters human intestinal epithelial cells (Caco2-BBE, HT29-Cl.19A) and T cells (Jurkat) through PepT1, a di- and tripeptide transporter. At nanomolar concentrations it inhibited activation of NF-κB and MAP kinase inflammatory signaling and reduced pro-inflammatory cytokine secretion in cells stimulated with cytokines.",
       },
       {
         type: "p",
-        text: "In plain terms: KPV doesn't work by activating a hormone receptor the way its parent molecule alpha-MSH does. It gets pulled into inflamed tissue by a transporter that inflammation itself switches on, then quiets the intracellular signaling that keeps the inflammatory response running.",
+        text: "Mouse colitis models: in the same paper, KPV in drinking water lowered pro-inflammatory cytokine expression in DSS- and TNBS-induced colitis. Kannengiesser and colleagues (Inflammatory Bowel Diseases, 2008) measured body weight, colon histology and myeloperoxidase activity in DSS and transfer colitis, and found reduced inflammatory infiltrates and myeloperoxidase activity with KPV. Mice lacking a functional melanocortin-1 receptor still responded, so the authors concluded the effect is at least partly independent of MC1R, the receptor through which α-MSH acts.",
       },
-      { type: "h2", text: "Research Evidence" },
       {
         type: "callout",
-        text: "Every completed KPV efficacy study to date is preclinical — animal models or isolated human cell lines, not human clinical trials. There is no published human trial demonstrating KPV works as a treatment for any condition.",
+        text: "These findings come from human cell lines and mouse models. They describe what KPV does to signaling pathways and inflammation markers in those systems. They are not evidence of any effect in people.",
       },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "Murine colitis models. KPV showed significant anti-inflammatory effects in two distinct mouse models of inflammatory bowel disease (DSS colitis and CD45RBhi transfer colitis), reducing inflammatory infiltrates and myeloperoxidase activity, and rescuing MC1R-deficient mice from death during DSS colitis.",
-          "Oral dosing via PepT1. A separate study found oral KPV reduced disease severity, colonic inflammation, and pro-inflammatory cytokine expression in both DSS- and TNBS-induced colitis in mice — notable because it demonstrated an oral route working through the PepT1 transporter, not just injection.",
-          "Colitis-associated cancer model. A 2016 follow-up found KPV reduced colonic tumor formation in a mouse model of colitis-driven cancer, attributed to the same PepT1-mediated anti-inflammatory activity.",
-          "Human cell lines (not human trials). The mechanism work confirming NF-κB/MAPK inhibition and PepT1 uptake was done in human intestinal epithelial cell lines (Caco2-BBE, HT29-CL.19A) and human Jurkat T cells — real human tissue, but isolated cells in a dish, not a human clinical trial.",
+          "PepT1-mediated uptake into intestinal epithelial and T cells; NF-κB and MAP kinase inhibition at nanomolar concentrations (Dalmasso et al., 2008)",
+          "Lower pro-inflammatory cytokine expression in DSS and TNBS mouse colitis (Dalmasso et al., 2008)",
+          "Reduced inflammatory infiltrates and myeloperoxidase activity in DSS and transfer colitis; effect partly independent of MC1R (Kannengiesser et al., 2008)",
+          "In a mouse colitis-associated tumour model, KPV changed tumour formation in wild-type mice but not in PepT1-knockout mice, tying its activity to PepT1 (Viennois et al., 2016)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Receptor: KPV's activity is at least partly independent of MC1R, and the intracellular target through which it inhibits NF-κB is not identified.",
+          "Transport dependence: PepT1 is expressed at low levels in healthy colon and rises with inflammation (Viennois et al., 2016), so results may depend on the inflammatory state of the tissue.",
+          "Breadth: most work is in intestinal models from a few groups; other tissues are much less studied.",
         ],
       },
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "KPV is not FDA-approved for any use. Checked directly against FDA's bulk drug substances page for compounding (fetched July 2026): KPV currently sits in the \"nominated but withdrawn\" table, not the active Category 2 restricted table — the same status as BPC-157 and AOD-9604. FDA's own stated reason for flagging it in the first place remains on record: \"FDA has not identified any human exposure data on drug products containing KPV administered via any route of administration... the agency lacks sufficient information to know whether the drug would cause harm when administered to humans.\"",
-      },
-      {
-        type: "callout",
-        text: "On July 23, 2026, an FDA Pharmacy Compounding Advisory Committee (PCAC) panel voted to recommend allowing compounding pharmacies to manufacture KPV, alongside BPC-157, TB-500, and MOTS-c. That vote is non-binding — FDA makes the final call, and it's unusual but not unheard of for the agency to go against a PCAC recommendation. Reporting on the panel noted that a majority of the members who voted yes have ties to the peptide industry, which is worth keeping in mind when weighing how much signal to take from the vote itself.",
-      },
-      {
-        type: "p",
-        text: "FDA's own briefing materials for that panel noted that KPV is commonly sold pre-mixed with BPC-157, TB-500, AOD-9604, and Follistatin-344 as a \"regenerative combo\" for muscle, joint, and cartilage repair — a combination-product framing that isn't itself backed by any human trial data for the blend.",
-      },
-      { type: "h2", text: "Where to Source KPV for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party HPLC testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the KPV product page",
-        productSlug: "kpv",
+        text: "KPV is not approved by the FDA for any use. KPV-related bulk drug substances were reviewed at the FDA Pharmacy Compounding Advisory Committee meeting on July 23, 2026, as candidates for the 503A bulk drug substances list, and the committee voted to recommend it. The vote is advisory and not binding, and FDA had taken no final action as of this writing. Aura Protocols supplies KPV as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Has KPV been tested in humans?",
-            a: "Not in a completed clinical trial. The evidence base is mouse models of colitis and isolated human cell lines (intestinal epithelial cells and T cells) — real biology, but not a human trial demonstrating the peptide works as a treatment.",
+            q: "How is KPV related to α-MSH?",
+            a: "It is the C-terminal tripeptide of α-MSH, residues 11–13 (Lys-Pro-Val).",
           },
           {
-            q: "Is KPV legal to buy?",
-            a: "It's sold as a research-use-only compound, not approved by FDA for human use. A July 2026 FDA advisory panel voted to recommend allowing compounding pharmacies to manufacture it, but that vote is non-binding and FDA has not made a final decision.",
+            q: "Does KPV act through the melanocortin receptor?",
+            a: "Not only. In mice without a functional MC1R, KPV still reduced colitis measures, so its effect appears at least partly independent of that receptor (Kannengiesser et al., 2008).",
+          },
+          {
+            q: "What kind of evidence exists for KPV?",
+            a: "Human cell-line and mouse studies, mostly of intestinal inflammation. No laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -3124,48 +3097,36 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Kannengiesser K, Maaser C, Heidemann J, et al. \"Melanocortin-derived tripeptide KPV has anti-inflammatory potential in murine models of inflammatory bowel disease.\" Inflamm Bowel Dis. 2008;14(3):324-31. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/18092346/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "2. Dalmasso G, et al. \"PepT1-mediated tripeptide KPV uptake reduces intestinal inflammation.\" Gastroenterology, 2008. ",
+          "1. Dalmasso G, Charrier-Hisamuddin L, Nguyen HT, et al. \"PepT1-mediated tripeptide KPV uptake reduces intestinal inflammation.\" Gastroenterology. 2008;134(1):166-178. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/18061177/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. Dalmasso G, Nguyen HTT, Yan Y, et al. \"Critical role of PepT1 in promoting colitis-associated cancer and therapeutic benefits of the anti-inflammatory PepT1-mediated tripeptide KPV in a murine model.\" Cell Mol Gastroenterol Hepatol. 2016;2(3):340-357. ",
+          "2. Kannengiesser K, Maaser C, Heidemann J, et al. \"Melanocortin-derived tripeptide KPV has anti-inflammatory potential in murine models of inflammatory bowel disease.\" Inflammatory Bowel Diseases. 2008;14(3):324-331. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/18092346/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Viennois E, Ingersoll SA, Ayyadurai S, et al. \"Critical role of PepT1 in promoting colitis-associated cancer and therapeutic benefits of the anti-inflammatory PepT1-mediated tripeptide KPV in a murine model.\" Cellular and Molecular Gastroenterology and Hepatology. 2016;2(3):340-357. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/27458604/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "4. FDA. Pharmacy Compounding Advisory Committee Briefing Document — KPV (Free Base) and KPV Acetate, July 2026. ",
-          { href: "https://www.fda.gov/media/193346/download", text: "fda.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. FDA. \"Certain Bulk Drug Substances for Use in Compounding that May Present Significant Safety Risks\" — nominated-but-withdrawn table. ",
-          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "fda.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. Todd S, Lawrence L. \"In win for RFK Jr., FDA advisory panel narrowly votes to allow compounding of unapproved peptides.\" STAT News, July 23, 2026. ",
-          { href: "https://www.statnews.com/2026/07/23/fda-panel-okays-peptides-compound-pharmacies-bpc-157-kpv/", text: "statnews.com", external: true },
+          "4. FDA. \"July 23-24, 2026: Meeting of the Pharmacy Compounding Advisory Committee.\" ",
+          { href: "https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026", text: "fda.gov", external: true },
+          " Vote reported by NCPA, July 31, 2026: ",
+          { href: "https://ncpa.org/newsroom/qam/2026/07/31/fda-advisory-committee-nominates-six-peptides-pharmacies-compound", text: "ncpa.org", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
@@ -3675,101 +3636,74 @@ export const posts: Post[] = [
   },
   {
     slug: "dsip-research-guide",
-    title: "DSIP (Delta Sleep-Inducing Peptide): The Complete Research Guide",
+    ruo: true,
+    title: "DSIP (Delta Sleep-Inducing Peptide): A Research Literature Summary",
     excerpt:
-      "A nine-amino-acid peptide studied since the 1970s for slow-wave sleep and opioid-withdrawal effects — with no identified receptor to this day, and the sole peptide a July 2026 FDA panel voted to reject rather than approve.",
-    category: "Longevity & Wellness",
+      "A nonapeptide isolated from rabbit cerebral venous blood in 1977. What laboratory studies have measured, why its receptor, gene and natural source are still unknown, and what remains open.",
+    category: "Short Peptides & Neuropeptides",
     date: "August 2026",
-    readTime: "8 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "DSIP has one of the longest research histories of any peptide on this site — over 50 years — and one of the least resolved. It was isolated chasing a specific hypothesis (a circulating factor that induces sleep), and decades later that hypothesis still hasn't been confirmed or closed out. This guide covers what's actually been studied, and treats the unresolved parts as unresolved rather than smoothing them over.",
+        text: "DSIP has a research history of almost fifty years and a mechanism that is still unresolved. It was isolated while testing the idea that a circulating factor in the blood promotes slow-wave sleep, and its name records that hypothesis rather than an established function. This summary covers what DSIP is, what laboratory work has measured, and why so much remains open.",
       },
-      { type: "h2", text: "What Is DSIP?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Delta Sleep-Inducing Peptide (DSIP) is a synthetic nonapeptide (Trp-Ala-Gly-Gly-Asp-Ala-Ser-Gly-Glu) first isolated in 1977 by the Swiss Schoenenberger-Monnier group from the cerebral venous blood of rabbits during slow-wave sleep. The name describes the original hypothesis, not a settled mechanism: infusing the isolated material into rabbit brain ventricles produced spindle and delta EEG activity alongside reduced motor activity — the signature of deep, slow-wave sleep.",
+        text: "DSIP is the nonapeptide Trp-Ala-Gly-Gly-Asp-Ala-Ser-Gly-Glu (molecular formula C35H48N10O15, molecular weight 848.8 g/mol, CAS 62568-57-4). Its compounding name is emideltide. The Schoenenberger–Monnier group in Basel isolated it from rabbit cerebral venous blood and compared the original and synthetic peptide in 1977 (Monnier et al., 1977). Its structure is unlike that of any other known peptide family (Kovalzon and Strekalova, 2006).",
+      },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
+      {
+        type: "p",
+        text: "Early animal work reported mainly delta-sleep effects in rabbits, rats and mice, with a more pronounced REM effect in cats, and a U-shaped relationship between the amount given and the response. DSIP-like material was detected by radioimmunoassay and immunohistochemistry in rat brain and peripheral organs and in the plasma of several mammals. Studies also reported effects on electrophysiological activity, brain neurotransmitter levels, circadian and locomotor patterns and hormone levels (Graf and Kastin, 1984).",
       },
       {
         type: "p",
-        text: "The peptide is also notably unstable in vitro, with a reported half-life around 15 minutes due to rapid enzymatic degradation — a practical constraint that shows up throughout the dosing and study-design literature.",
+        text: "What has never been found is as important. Kovalzon and Strekalova (Journal of Neurochemistry, 2006) note that the DSIP gene, a precursor protein and a receptor have not been isolated, so the link to sleep was never characterised further. They propose that one or more related \"DSIP-like\" peptides may account at least partly for DSIP-like immunoreactivity and activity, citing its distribution in hypothalamic neurosecretory nuclei, the sleep-promoting activity of certain synthetic analogs, and a structurally similar peptide, dermorphin-decapeptide, studied in rabbits.",
       },
-      { type: "h2", text: "Mechanism of Action" },
       {
         type: "callout",
-        text: "After nearly 50 years of research, DSIP has no confirmed receptor, no identified precursor gene, and no confirmed endogenous source — a 2006 review by two of the field's own researchers calls it \"a still unresolved riddle.\"",
+        text: "These findings come from animal studies, tissue assays and reviews. They describe what DSIP and DSIP-like material do in those systems. They are not evidence of any effect in people.",
       },
-      {
-        type: "p",
-        text: "That doesn't mean nothing is known — it means the observed effects are better documented than the mechanism producing them:",
-      },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "Broad neuroendocrine activity. DSIP-like immunoreactive material has been detected in brain tissue and peripheral organs via radioimmunoassay and immunohistochemistry, and the compound has been reported to affect electrophysiological activity, brain neurotransmitter levels, circadian and locomotor patterns, and hormonal output — not a single, narrow sleep switch.",
-          "Proposed but unconfirmed receptor targets. Researchers have hypothesized interaction with NMDA receptors and alpha-1 adrenergic pathways, but no receptor has been definitively identified or cloned for DSIP.",
-          "U-shaped dose-response. Early reviews describe a U-shaped dose-and-timing curve for activity — more isn't simply better, which complicates both study design and any research dosing protocol.",
+          "Isolated from rabbit cerebral venous blood; original and synthetic nonapeptide compared (Monnier et al., 1977)",
+          "Delta-sleep effects in rabbits, rats and mice; U-shaped response curve; DSIP-like immunoreactivity in brain, peripheral organs and plasma (Graf and Kastin, 1984)",
+          "No gene, precursor protein or receptor isolated; DSIP-like peptides proposed as the source of its activity (Kovalzon and Strekalova, 2006)",
         ],
       },
-      {
-        type: "p",
-        text: "The leading alternative explanation in the literature — proposed by Kovalzon and Strekalova — is that a broader family of \"DSIP-like peptides,\" not DSIP itself, may account for the effects attributed to it, based on their distribution in neurosecretory brain regions and the activity of related natural and synthetic analogues.",
-      },
-      { type: "h2", text: "Research Evidence" },
-      {
-        type: "callout",
-        text: "The human evidence for DSIP is real but old: a handful of small, non-blinded studies from the early-to-mid 1980s, not replicated since, and no modern registered clinical trial.",
-      },
+      { type: "h2", text: "Open Questions" },
       {
         type: "ul",
         items: [
-          "Insomnia (Kaeser, 1984). Seven patients with severe insomnia received 10 injections of DSIP; sleep was reported normalized at 3–7 month follow-up in 6 of the 7 cases, with improved daytime mood and performance. Pre-existing substance dependency was noted as a complicating factor.",
-          "Opiate and alcohol withdrawal (Dick, Grandjean & Tissot, 1983). DSIP was given intravenously as the sole treatment to 67 withdrawal patients (39 opiate, 28 alcohol); of 49 evaluable patients, 48 showed a beneficial effect, with rapid onset and lasting resolution of somatic withdrawal symptoms — anxiety resolved more slowly, over hours. No major adverse effects were reported.",
-          "Broader neurobiological reviews. Later reviews (Graf & Kastin, 1984; Kovalzon & Strekalova, 2006) catalog DSIP's reported effects on sleep, stress hormones, and locomotor activity, while explicitly flagging the absence of a confirmed receptor or gene as an open problem, not a settled footnote.",
+          "Receptor and gene: neither has been identified, which leaves every functional result without a defined mechanism.",
+          "Natural source: whether DSIP itself, or a related DSIP-like peptide, is the endogenous molecule is unresolved.",
+          "Age of the evidence: much of the primary work dates from the 1970s and 1980s, and modern replication is limited.",
         ],
-      },
-      {
-        type: "p",
-        text: "There is no DSIP entry in ClinicalTrials.gov with modern controlled-trial data. The studies above are real, published, peer-reviewed clinical reports — but small, unblinded, decades old, and never independently replicated at scale.",
       },
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "DSIP is not FDA-approved for any use. Under the compounding name \"Emideltide,\" it was originally nominated for the 503A bulk drug substances list by Wells Pharmacy Network and LDT Health Solutions on behalf of the International Peptide Society — a nomination the sponsors later withdrew. FDA proceeded to evaluate the substance anyway, convening a Pharmacy Compounding Advisory Committee (PCAC) meeting on July 23–24, 2026 to consider Emideltide alongside six other peptides, including BPC-157, TB-500, KPV, and MOTS-c.",
-      },
-      {
-        type: "callout",
-        text: "Unlike those four — all recommended for the 503A list by the same panel — Emideltide (DSIP) was the one compound the July 2026 PCAC voted to reject, 6 in favor to 7 against with 1 abstention. Epitalon and Semax, reviewed the same day, were both approved. DSIP is the outlier in this cohort, not part of the same regulatory tailwind.",
-      },
-      {
-        type: "p",
-        text: "Committee members voting against cited low-quality and outdated efficacy evidence (\"the last study on this was 30 years old\"), poor characterization and possible peptide-related impurities, ambiguity between emideltide free base and emideltide acetate as distinct substances under one nomination, and the existence of already-approved therapies for insomnia and opioid withdrawal. As with every PCAC vote, this is a non-binding recommendation to FDA, not a final agency decision — but it points the opposite direction from BPC-157, TB-500, KPV, and MOTS-c's recommendations at the same meeting.",
-      },
-      { type: "h2", text: "Where to Source DSIP for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the DSIP product page",
-        productSlug: "dsip",
+        text: "DSIP is not approved by the FDA for any use. Emideltide-related bulk drug substances were reviewed at the FDA Pharmacy Compounding Advisory Committee meeting on July 24, 2026, as candidates for the 503A bulk drug substances list, and the vote failed, 6 in favor to 7 against with 1 abstention. It was the only one of the seven substances reviewed at that meeting that the committee did not recommend. Aura Protocols supplies DSIP as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Does DSIP have a known mechanism?",
-            a: "Not a confirmed one. Despite effects reported since the 1970s, DSIP has no identified receptor and no identified precursor gene — a 2006 peer-reviewed review by researchers in the field calls it \"a still unresolved riddle,\" and that remains the state of the literature.",
+            q: "Does DSIP have a known receptor?",
+            a: "No. Its gene, precursor protein and receptor have not been isolated (Kovalzon and Strekalova, 2006).",
           },
           {
-            q: "Has DSIP been tested in humans?",
-            a: "Yes, but only in small, unblinded studies from the early-to-mid 1980s — an insomnia trial (7 patients) and a withdrawal-symptom trial (67 patients, 49 evaluable). Both reported largely positive results, but neither has been replicated in a modern controlled trial, and there's no current ClinicalTrials.gov entry for DSIP.",
+            q: "Where was DSIP first found?",
+            a: "In rabbit cerebral venous blood, by the Schoenenberger–Monnier group in Basel, reported in 1977.",
           },
           {
-            q: "Is DSIP legal to buy?",
-            a: "It's sold as a research-use-only compound, not approved by FDA for human use. A July 2026 FDA advisory panel voted 6-7 (with 1 abstention) to reject adding it to the 503A compounding list — the only one of seven peptides reviewed at that meeting to be voted down rather than recommended.",
+            q: "What kind of evidence is summarised here?",
+            a: "Animal studies, tissue assays and reviews. This summary does not cover clinical literature, and no laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -3777,143 +3711,110 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Monnier M, Dudler L, Gächter R, et al. \"The delta sleep inducing peptide (DSIP): comparative properties of the original and synthetic nonapeptide.\" Experientia. 1977;33(4):548-52. ",
+          "1. Monnier M, Dudler L, Gächter R, et al. \"The delta sleep inducing peptide (DSIP). Comparative properties of the original and synthetic nonapeptide.\" Experientia. 1977;33(4):548-552. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/862769/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Kovalzon VM, Strekalova TV. \"Delta sleep-inducing peptide (DSIP): a still unresolved riddle.\" J Neurochem. 2006;97(2):303-309. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/16539679/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "3. Graf MV, Kastin AJ. \"Delta-sleep-inducing peptide (DSIP): an update.\" Neurosci Biobehav Rev. 1984;8(1):83-93. ",
+          "2. Graf MV, Kastin AJ. \"Delta-sleep-inducing peptide (DSIP): a review.\" Neuroscience and Biobehavioral Reviews. 1984;8(1):83-93. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/6145137/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "4. Dick P, Grandjean ME, Tissot R. \"Successful treatment of withdrawal symptoms with delta sleep-inducing peptide, a neuropeptide with potential agonistic activity on opiate receptors.\" Neuropsychobiology. 1983;10(4):205-8. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/6328354/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+          "3. Kovalzon VM, Strekalova TV. \"Delta sleep-inducing peptide (DSIP): a still unresolved riddle.\" Journal of Neurochemistry. 2006;97(2):303-309. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/16539679/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "5. Kaeser HE. \"A clinical trial with DSIP.\" Eur Neurol. 1984;23(5):386-8. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/6391926/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "6. FDA. \"Certain Bulk Drug Substances for Use in Compounding that May Present Significant Safety Risks\" — nominated-but-withdrawn table (Emideltide/DSIP). ",
-          { href: "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks", text: "fda.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "7. \"The PEPTIDE-L Wave Rolls On! PCAC Adds Two More Bulk Drug Substances for the 503A List.\" The FDA Law Blog, July 2026. ",
+          "4. FDA. \"July 23-24, 2026: Meeting of the Pharmacy Compounding Advisory Committee.\" ",
+          { href: "https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026", text: "fda.gov", external: true },
+          " Vote reported by the FDA Law Blog, July 2026: ",
           { href: "https://www.thefdalawblog.com/2026/07/the-peptide-l-wave-rolls-on-pcac-adds-two-more-bulk-drug-substances-for-the-503a-list/", text: "thefdalawblog.com", external: true },
         ],
       },
       {
-        type: "p",
-        parts: [
-          "8. \"FDA advisory committee backs two more peptides, rejects one for compounding list.\" Regulatory Affairs Professionals Society (RAPS), July 2026. ",
-          { href: "https://www.raps.org/resource/fda-advisory-committee-backs-two-more-peptides-rejects-one-for-compounding-list.html", text: "raps.org", external: true },
-        ],
-      },
-      {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "glutathione-research-guide",
-    title: "Glutathione (GSH): The Complete Research Guide",
+    ruo: true,
+    title: "Glutathione (GSH): A Research Literature Summary",
     excerpt:
-      "The body's master antioxidant — a tripeptide at the center of cellular redox balance and phase-II detoxification. Strong biochemistry, a genuinely contested delivery question, and a clear line between supplement, off-label injection, and research reagent.",
-    category: "Longevity & Wellness",
+      "The tripeptide γ-glutamyl-cysteinyl-glycine, the most abundant low-molecular-weight thiol in animal cells. What biochemistry has established about its synthesis and its GSH/GSSG redox couple, and what is still unknown.",
+    category: "Cofactors & Conjugates",
     date: "August 2026",
-    readTime: "7 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "Glutathione is one of the few compounds on this site whose core biochemistry is not in dispute — it's a foundational molecule in every human cell. What is contested is delivery: how much of an administered dose actually reaches the tissues that matter, and by what route. This guide separates the well-established biochemistry from the parts that are genuinely unsettled, and is explicit about the difference between an oral supplement, an off-label injection, and a research-grade vial.",
+        text: "Glutathione is one of the best-characterised molecules in cell biochemistry. It sits at the centre of cellular redox balance and of the detoxification of many foreign compounds. This summary covers its chemistry, how cells make it, what laboratory research has established about its roles, and the questions that remain open.",
       },
-      { type: "h2", text: "What Is Glutathione?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Glutathione (GSH) is a tripeptide of glutamate, cysteine, and glycine, distinguished by an unusual gamma-peptide bond between glutamate and cysteine that makes it resistant to ordinary peptidase breakdown. It is the most abundant intracellular antioxidant in the body, present in millimolar concentrations in most cells, and functions as the cell's primary redox buffer — the reserve that keeps the intracellular environment in a reduced, protected state.",
+        text: "Glutathione (GSH) is the tripeptide γ-glutamyl-cysteinyl-glycine (molecular formula C10H17N3O6S, molecular weight 307.3 g/mol, CAS 70-18-8). The bond between glutamate and cysteine runs through glutamate's side-chain (γ) carboxyl group rather than the usual α-carboxyl, and the cysteine thiol is its reactive group. Two GSH molecules oxidise to glutathione disulfide (GSSG).",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "Glutathione works through a reduced (GSH) / oxidized (GSSG) cycle. The ratio of the two is one of the most-used biochemical markers of oxidative stress in research:",
+        text: "Synthesis: GSH is made in the cytosol from glutamate, cysteine and glycine by two enzymes in sequence, glutamate-cysteine ligase (GCL, also called γ-glutamylcysteine synthetase) and GSH synthetase. Its rate is set mainly by GCL activity, cysteine availability and feedback inhibition by GSH itself (Wu et al., 2004). GCL has catalytic (GCLC) and modifier (GCLM) subunits, and the genes for GCL and GSH synthetase are regulated by transcription factors including Nrf2 through the antioxidant response element, AP-1 and NF-κB (Lu, 2013).",
       },
+      {
+        type: "p",
+        text: "Roles: GSH/GSSG is the major redox couple in animal cells (Wu et al., 2004). Glutathione takes part in antioxidant defence, in the detoxification of xenobiotics, and in regulating gene expression, cell proliferation and apoptosis, signal transduction and protein glutathionylation (Wu et al., 2004; Lu, 2013).",
+      },
+      {
+        type: "callout",
+        text: "These are findings of cell biochemistry and enzymology. They describe how glutathione is made and what it does inside cells. They are not evidence of any effect of adding glutathione in people.",
+      },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "Direct antioxidant defense. Glutathione peroxidase uses GSH to neutralize hydrogen peroxide and lipid peroxides, converting them to water while GSH is oxidized to GSSG; glutathione reductase then regenerates GSH using NADPH.",
-          "Regeneration of other antioxidants. GSH recycles oxidized vitamin C and vitamin E back to their active forms, making it a hub of the broader antioxidant network rather than a standalone scavenger.",
-          "Phase-II detoxification. Glutathione-S-transferases conjugate GSH onto electrophilic xenobiotics, drugs, and reactive metabolites, tagging them for excretion via the mercapturic acid pathway — a central mechanism of hepatic detoxification.",
-          "Redox signaling and protein protection. Reversible glutathionylation of protein thiols regulates enzyme activity and shields cysteine residues from irreversible oxidative damage.",
+          "Most abundant low-molecular-weight thiol; GSH/GSSG the major redox couple in animal cells (Wu et al., 2004)",
+          "Two-step cytosolic synthesis by glutamate-cysteine ligase and GSH synthetase, limited by GCL activity and cysteine (Wu et al., 2004; Lu, 2013)",
+          "Synthesis genes regulated by Nrf2/ARE, AP-1 and NF-κB (Lu, 2013)",
+          "Roles in antioxidant defence, xenobiotic detoxification and cell signalling (Wu et al., 2004; Lu, 2013)",
         ],
       },
-      { type: "h2", text: "Research Evidence — and the Delivery Debate" },
+      { type: "h2", text: "Open Questions" },
       {
-        type: "callout",
-        text: "The central research question with glutathione is not whether it matters — it plainly does — but whether supplementing it actually raises tissue levels. Orally administered glutathione is substantially broken down in the gut, and early studies questioned whether it meaningfully raised body stores at all.",
-      },
-      {
-        type: "p",
-        text: "A frequently-cited randomized controlled trial (Richie et al., 2015) found that sustained daily oral glutathione did raise body stores of glutathione in blood and tissues over 6 months, partially countering the older assumption that oral dosing is futile — though effect sizes and the best route remain actively debated. Liposomal, sublingual, intravenous, and precursor-based strategies (e.g., N-acetylcysteine to supply cysteine, the rate-limiting substrate) all exist precisely because the delivery question is unresolved.",
-      },
-      {
-        type: "p",
-        text: "Beyond redox biology, glutathione has been studied in hepatic conditions, Parkinson's disease (small IV trials), and dermatology, where it inhibits tyrosinase and has been marketed for skin lightening — an application with weak, contested evidence and real safety concerns around unregulated injectables.",
+        type: "ul",
+        items: [
+          "Uptake: intact glutathione added outside cells is not simply taken up; how much enters cells intact, versus being broken down and resynthesised, depends on the cell type and conditions.",
+          "Oxidation in handling: GSH oxidises to GSSG in solution, so the GSH/GSSG ratio measured in an experiment can reflect sample handling as well as biology.",
+          "Compartments: glutathione pools in the cytosol, mitochondria and nucleus are regulated separately, and whole-cell measurements can hide shifts between them.",
+        ],
       },
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Oral glutathione is sold as a dietary supplement. Injectable and IV glutathione are not FDA-approved drug products for antioxidant, detoxification, or skin-lightening use, and are frequently compounded. The FDA and international regulators have specifically warned about injectable skin-lightening products containing glutathione, citing unknown purity, sterility, and safety — adverse events have been reported with unregulated injectables.",
-      },
-      {
-        type: "callout",
-        text: "Research-grade glutathione sold in vials is a chemical reagent for laboratory use, not an approved medicine or a supplement. It has not been evaluated for the purity, sterility, or dosing of a finished pharmaceutical product, and nothing in this guide is medical advice or a recommendation for human or veterinary use.",
-      },
-      { type: "h2", text: "Where to Source Glutathione for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical — glutathione is also oxidation-sensitive, so batch handling and testing matter. We only list vendors who provide third-party testing and batch-specific Certificates of Analysis.",
-      },
-      {
-        type: "button",
-        text: "View the Glutathione product page",
-        productSlug: "glutathione",
+        text: "Glutathione was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies glutathione as a research chemical for laboratory use only; it is not sold as a drug or a dietary supplement.",
       },
       {
         type: "faq",
         faq: [
           {
-            q: "Why is glutathione called the \"master antioxidant\"?",
-            a: "Because it's the most abundant intracellular antioxidant and sits at the center of the antioxidant network — it directly neutralizes reactive oxygen species and also regenerates other antioxidants like vitamins C and E back to their active forms.",
+            q: "What makes glutathione's structure unusual?",
+            a: "The glutamate–cysteine bond uses glutamate's side-chain (γ) carboxyl group rather than the α-carboxyl group of an ordinary peptide bond.",
           },
           {
-            q: "Does oral glutathione actually work?",
-            a: "It's debated. Glutathione is largely broken down in the gut, which led to early skepticism, but a 2015 randomized controlled trial found sustained daily oral dosing raised body glutathione stores over 6 months. The optimal route (oral, liposomal, IV, or precursor-based) remains an open research question.",
+            q: "What is the difference between GSH and GSSG?",
+            a: "GSH is reduced glutathione. GSSG is glutathione disulfide, formed when two GSH molecules are oxidised and joined through their cysteine sulfur atoms.",
           },
           {
-            q: "Is injectable glutathione FDA-approved?",
-            a: "No. Injectable and IV glutathione are not FDA-approved drug products, and regulators have specifically warned about unregulated injectable skin-lightening products containing glutathione due to purity and safety concerns. Research-grade glutathione is a laboratory reagent, not a medicine.",
+            q: "What kind of evidence is summarised here?",
+            a: "Biochemistry and enzymology reviews. No laboratory result here shows an effect in people.",
           },
         ],
       },
@@ -3921,114 +3822,101 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Wu G, Fang YZ, Yang S, et al. \"Glutathione metabolism and its implications for health.\" J Nutr. 2004;134(3):489-92. ",
+          "1. Wu G, Fang YZ, Yang S, et al. \"Glutathione metabolism and its implications for health.\" Journal of Nutrition. 2004;134(3):489-492. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/14988435/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Pizzorno J. \"Glutathione!\" Integr Med (Encinitas). 2014;13(1):8-12. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4684116/", text: "ncbi.nlm.nih.gov", external: true },
+          "2. Lu SC. \"Glutathione synthesis.\" Biochimica et Biophysica Acta. 2013;1830(5):3143-3153. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/22995213/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "3. Richie JP Jr, Nichenametla S, Neidig W, et al. \"Randomized controlled trial of oral glutathione supplementation on body stores of glutathione.\" Eur J Nutr. 2015;54(2):251-63. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/24791752/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "4. Sonthalia S, Daulatabad D, Sarkar R. \"Glutathione as a skin whitening agent: Facts, myths, evidence and controversies.\" Indian J Dermatol Venereol Leprol. 2016;82(3):262-72. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/26924401/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "5. U.S. FDA. \"Certain compounded and injectable skin-lightening products (including glutathione) — safety concerns.\" FDA compounding risk information. ",
-          { href: "https://www.fda.gov/drugs/human-drug-compounding/compounding-and-drug-shortages", text: "fda.gov", external: true },
+          "3. PubChem. Glutathione (CID 124886). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/124886", text: "pubchem.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only — not for human or veterinary use.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
   {
     slug: "pinealon-research-guide",
-    title: "Pinealon: The Complete Research Guide",
+    ruo: true,
+    title: "Pinealon: A Research Literature Summary",
     excerpt:
-      "A synthetic tripeptide from the same Khavinson bioregulator research program as Epithalon — with real cell-culture and rodent neuroprotection data, and a single small human observational study, not a clinical trial.",
-    category: "Longevity & Wellness",
+      "The synthetic tripeptide Glu-Asp-Arg (EDR). What laboratory studies have measured — reactive oxygen species and cell death in three cell types, dendritic spines in a mouse model, and DNA docking — and what is still unknown.",
+    category: "Short Peptides & Neuropeptides",
     date: "August 2026",
-    readTime: "6 min read",
+    lastUpdated: "October 2026",
+    readTime: "5 min read",
     content: [
       {
         type: "intro",
-        text: "Pinealon is a synthetic tripeptide developed by Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology — the same research program behind Epithalon and DSIP's regulatory cousin compounds. It's studied for neuroprotection and gene-expression regulation, with a research base that's real but early: mostly cell-culture and rodent work, plus one small human observational report.",
+        text: "Pinealon is one of the short \"bioregulator\" peptides from Vladimir Khavinson's group at the Saint Petersburg Institute of Bioregulation and Gerontology, the same program behind Epithalon. Published work measures oxidative-stress markers, cell survival and gene-related endpoints in cell-culture and rodent models. This summary covers those studies and the questions that remain open.",
       },
-      { type: "h2", text: "What Is Pinealon?" },
+      { type: "h2", text: "Chemical Identity" },
       {
         type: "p",
-        text: "Pinealon is a synthetic tripeptide (Glu-Asp-Arg, sequence code EDR) — one of a family of short peptide \"bioregulators\" Khavinson's group has produced since the 1970s, each intended to target a specific tissue system. Pinealon is the one associated with pineal and neural tissue, alongside related compounds like Vesugen (vascular), Cortagen (cerebral cortex), and Epithalon (also pineal-linked, but a different four-amino-acid sequence and a separate compound — see our Epithalon guide for that distinction).",
+        text: "Pinealon is the synthetic tripeptide Glu-Asp-Arg (EDR; molecular formula C15H26N6O8, molecular weight 418.4 g/mol, CAS 175175-23-2). It is a different molecule from Epithalon (Ala-Glu-Asp-Gly), although both come from the same research program.",
       },
-      { type: "h2", text: "Mechanism of Action" },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
       {
         type: "p",
-        text: "The best-characterized finding is a 2011 in vitro study (Khavinson et al., Rejuvenation Research) showing Pinealon dose-dependently suppressed reactive oxygen species (ROS) accumulation and reduced necrotic cell death across three different cell models — cerebellar granule neurons, neutrophils, and PC12 pheochromocytoma cells — under induced oxidative stress. The same paper reported Pinealon increasing ERK1/2 kinase activation in neurons, a signaling pathway tied to neuronal survival and synaptic plasticity, and proposed that beyond antioxidant activity, the peptide interacts directly with the cell genome to influence gene expression.",
+        text: "Khavinson and colleagues (Rejuvenation Research, 2011) reported that Pinealon reduced reactive oxygen species (ROS) accumulation in a concentration-dependent way in cerebellar granule cells, neutrophils and PC12 cells under induced oxidative stress, and decreased necrotic cell death. The effect came with delayed ERK1/2 activation and changes in the cell cycle. Because the ROS and cell-death effects plateaued at lower concentrations while cell-cycle changes continued at higher ones, the authors proposed that Pinealon also interacts directly with the cell genome.",
+      },
+      {
+        type: "p",
+        text: "A 2021 study from the same group (Pharmaceuticals) examined EDR and the related tripeptide KED in 5xFAD mice, a transgenic Alzheimer's disease model. Dendritic spine loss seen in those mice was not seen with either peptide. Molecular docking found binding sites for EDR in the promoter regions of several genes, including CASP3, GAP43, APOE and SOD2.",
       },
       {
         type: "callout",
-        text: "This is cell-culture data — isolated neurons and cell lines in a dish under induced oxidative stress, not a living human brain. It establishes a plausible mechanism, not a demonstrated effect in people.",
+        text: "These findings come from cell culture, a transgenic mouse model and computer docking. They describe what Pinealon does to those endpoints in those models. They are not evidence of any effect in people.",
       },
-      { type: "h2", text: "What the Broader Research Shows" },
+      { type: "h2", text: "Published Research at a Glance" },
       {
         type: "ul",
         items: [
-          "ROS suppression and reduced necrotic cell death across three cell-culture models under oxidative stress (Khavinson et al., 2011)",
-          "ERK1/2 signaling activation in neurons, linked to survival and synaptic plasticity in the same study",
-          "Prevented dendritic-spine loss in the 5xFAD transgenic Alzheimer's mouse model when given alongside the related tripeptide KED, daily for 8 weeks (Khavinson et al., Pharmaceuticals, 2021)",
-          "One small human observational report (32 patients, ages 41–83, chronic polymorbidity with organic brain syndrome in remission) describing anabolic and CNS-activity effects from Pinealon and Vesugen — not a randomized or placebo-controlled trial",
+          "Concentration-dependent reduction of ROS and necrotic cell death in cerebellar granule cells, neutrophils and PC12 cells (Khavinson et al., 2011)",
+          "Delayed ERK1/2 activation and cell-cycle changes in the same study (Khavinson et al., 2011)",
+          "Dendritic spine loss not seen in 5xFAD mice given EDR or KED (Khavinson et al., 2021)",
+          "Docking predicts EDR binding sites in gene promoter regions (Khavinson et al., 2021)",
         ],
       },
+      { type: "h2", text: "Open Questions" },
       {
-        type: "callout",
-        text: "The evidence base is almost entirely from one research group. Independent replication by labs outside the Khavinson program is essentially absent from the peer-reviewed literature, and there is no registered human clinical trial of Pinealon on ClinicalTrials.gov. Treat the mouse and cell-culture findings as mechanistic groundwork, not proof of a human effect.",
+        type: "ul",
+        items: [
+          "Independent replication: the literature comes almost entirely from one research group.",
+          "Genome interaction: the proposal that a tripeptide binds DNA rests on indirect evidence and docking, and has not been shown experimentally.",
+          "Specificity: how much of the effect is specific to the EDR sequence, rather than shared by related short peptides such as KED, is not settled.",
+        ],
       },
       { type: "h2", text: "Regulatory Status" },
       {
         type: "p",
-        text: "Pinealon is not FDA-approved for any use and was not among the peptides reviewed at FDA's July 2026 Pharmacy Compounding Advisory Committee meeting (which covered BPC-157, TB-500, KPV, MOTS-c, Epitalon, Semax, and DSIP/Emideltide — see our BPC-157 and DSIP guides). It is sold exclusively as a research chemical for laboratory use, not as a dietary supplement or drug.",
-      },
-      { type: "h2", text: "Where to Source Pinealon for Research" },
-      {
-        type: "p",
-        text: "For legitimate research applications, purity and accurate dosing are critical. We only list vendors who provide third-party testing and batch-specific Certificates of Analysis. As of this writing, Pinealon is carried by a single vendor in our index.",
-      },
-      {
-        type: "button",
-        text: "View the Pinealon product page",
-        productSlug: "pinealon",
+        text: "Pinealon is not approved by the FDA for any use, and it was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies Pinealon as a research chemical for laboratory use only.",
       },
       {
         type: "faq",
         faq: [
           {
             q: "Is Pinealon the same as Epithalon?",
-            a: "No. Both come from the same Khavinson research program and are both associated with pineal-tissue research, but they're different sequences — Pinealon is the tripeptide Glu-Asp-Arg, Epithalon is the tetrapeptide Ala-Glu-Asp-Gly — studied for different mechanisms (neuroprotection/ROS suppression vs. telomerase activation).",
+            a: "No. Pinealon is the tripeptide Glu-Asp-Arg; Epithalon is the tetrapeptide Ala-Glu-Asp-Gly. They come from the same research program but are different molecules.",
           },
           {
-            q: "Has Pinealon been tested in humans?",
-            a: "Only in one small observational report of 32 geriatric patients, describing general anabolic and CNS-activity effects alongside the related peptide Vesugen. It was not randomized, blinded, or placebo-controlled, and there's no registered clinical trial of Pinealon.",
+            q: "What kind of evidence exists for Pinealon?",
+            a: "Cell-culture and transgenic-mouse studies and computer docking, almost all from one research group. No laboratory result here shows an effect in people.",
           },
           {
-            q: "What's the strongest evidence behind Pinealon?",
-            a: "A 2011 cell-culture study showing dose-dependent suppression of oxidative stress and reduced cell death across neuron, neutrophil, and PC12 cell models, plus a 2021 mouse study showing it preserved dendritic spines in an Alzheimer's model. Both are preclinical — not human data.",
+            q: "What does EDR stand for?",
+            a: "The one-letter codes of its three amino acids: E (glutamic acid), D (aspartic acid), R (arginine).",
           },
         ],
       },
@@ -4036,27 +3924,20 @@ export const posts: Post[] = [
       {
         type: "p",
         parts: [
-          "1. Khavinson VK, Ribakova Y, Kulebiakin K, Vladychenskaya E, Kozina L, Arutjunyan A, Boldyrev A. \"Pinealon Increases Cell Viability by Suppression of Free Radical Levels and Activating Proliferative Processes.\" Rejuvenation Research. 2011;14(5):551-557. ",
+          "1. Khavinson V, Ribakova Y, Kulebiakin K, et al. \"Pinealon increases cell viability by suppression of free radical levels and activating proliferative processes.\" Rejuvenation Research. 2011;14(5):535-541. ",
           { href: "https://pubmed.ncbi.nlm.nih.gov/21978084/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "p",
         parts: [
-          "2. Khavinson VK, et al. \"Neuroprotective Effects of Tripeptides—Epigenetic Regulators in Mouse Model of Alzheimer's Disease.\" Pharmaceuticals (Basel). 2021;14(6):515. ",
-          { href: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8227791/", text: "ncbi.nlm.nih.gov", external: true },
-        ],
-      },
-      {
-        type: "p",
-        parts: [
-          "3. Khavinson VK, et al. \"[Effect of synthetic peptides on aging of patients with chronic polymorbidity and organic brain syndrome of the central nervous system in remission].\" Advances in Gerontology. 2015. ",
-          { href: "https://pubmed.ncbi.nlm.nih.gov/26390612/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+          "2. Khavinson V, Ilina A, Kraskovskaya N, et al. \"Neuroprotective Effects of Tripeptides-Epigenetic Regulators in Mouse Model of Alzheimer's Disease.\" Pharmaceuticals. 2021;14(6):515. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/34071923/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
         ],
       },
       {
         type: "disclaimer",
-        text: "This article contains affiliate links. Aura Protocols may earn a commission if you purchase through these links at no additional cost to you. All compounds are for research use only — not for human or veterinary use.",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
       },
     ],
   },
