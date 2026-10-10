@@ -15,12 +15,19 @@ export default function SiteNav() {
     <header className="pharmacopoeia sticky top-0 z-50">
       <div className="s-topbar">
         {/* Narrow screens wrap between phrases; each dot stays at the end of the
-            phrase before it, so no line starts with one. Only the long lab phrase
-            may wrap inside itself (320px phones). */}
-        <span>Tested by an ISO/IEC 17025-accredited US lab ·</span>{" "}
-        <span className="whitespace-nowrap">COA on every lot ·</span>{" "}
-        <span className="whitespace-nowrap"><em>Fast domestic shipping</em> ·</span>{" "}
-        <span className="whitespace-nowrap">Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
+            phrase before it, so no line starts with one. Phones get the short
+            wording so the bar is two lines, not four (2026-10-10). */}
+        <span className="s-topbar-wide">
+          <span>Tested by an ISO/IEC 17025-accredited US lab ·</span>{" "}
+          <span className="whitespace-nowrap">COA on every lot ·</span>{" "}
+          <span className="whitespace-nowrap"><em>Fast domestic shipping</em> ·</span>{" "}
+          <span className="whitespace-nowrap">Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
+        </span>
+        <span className="s-topbar-phone">
+          <span className="whitespace-nowrap">Accredited US lab ·</span>{" "}
+          <span className="whitespace-nowrap">COA every lot ·</span>{" "}
+          <span className="whitespace-nowrap"><em>Free shipping over ${FREE_SHIPPING_THRESHOLD_USD}</em></span>
+        </span>
       </div>
       <div className="p-container pt-3.5 pb-2 bg-[color:var(--paper)]">
         {/* Logo left · links centered (Shop first, 2026-10-09) · account + Cart right.

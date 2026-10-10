@@ -470,6 +470,10 @@ main:has(> .pharmacopoeia) {
 /* announcement bar + nav */
 .s-topbar { background: #1C1A15; color: #EDE9E0; font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 13px; line-height: 1; letter-spacing: .14em; text-transform: uppercase; text-align: center; padding: 10px 16px; }
 .s-topbar em { font-style: normal; color: #E8A79E; }
+/* phones get the short wording (2 lines, not 4); each phrase stays whole */
+.s-topbar-phone { display: none; }
+@media (max-width: 640px) { .s-topbar { line-height: 1.45; padding-block: 8px; } .s-topbar-wide { display: none; } .s-topbar-phone { display: inline; } }
+@media (max-width: 360px) { .s-topbar { letter-spacing: .08em; padding-inline: 10px; } }
 /* Header: logo left · links centered · Shop + Cart right. Equal side columns
    keep the links on the true center of the bar. */
 .pharmacopoeia .s-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "logo links actions"; align-items: center; column-gap: 18px; padding: 10px 14px; background: transparent; }
@@ -636,8 +640,9 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-stats { display: flex; gap: 28px; color: var(--ink-soft); }
 .pharmacopoeia .s-stats b { display: block; font-family: var(--font-newsreader), Georgia, serif; font-size: 30px; letter-spacing: 0; color: var(--ink); font-weight: 400; text-transform: none; }
 .pharmacopoeia .s-search { display: flex; max-width: 440px; }
-.pharmacopoeia .s-search input { flex: 1; border: 1px solid var(--ink); background: var(--paper); padding: 11px 14px; font: 16px Georgia, serif; color: var(--ink); }
-.pharmacopoeia .s-search button { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 0 18px; font: 13px Georgia, serif; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
+.pharmacopoeia .s-search input { flex: 1; min-width: 0; border: 1px solid var(--ink); background: var(--paper); padding: 11px 14px; font: 16px Georgia, serif; color: var(--ink); }
+.pharmacopoeia .s-search button { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 0 18px; font: 13px Georgia, serif; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+@media (max-width: 400px) { .pharmacopoeia .s-search button { padding: 0 12px; } }
 .pharmacopoeia .s-pills { display: flex; gap: 8px; flex-wrap: wrap; }
 .pharmacopoeia .s-pills a { border: 1px solid var(--line); padding: 8px 13px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
 .pharmacopoeia .s-pills a i { width: 9px; height: 9px; display: inline-block; flex-shrink: 0; }
