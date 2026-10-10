@@ -10,6 +10,7 @@ import Vial from "@/components/store/Vial";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
 import LotRecord from "@/components/store/LotRecord";
+import ResearchSummary from "@/components/store/ResearchSummary";
 import { currentMs } from "@/lib/clock";
 import { productRecord } from "@/lib/lot-record";
 import BeforeOrdering from "@/components/store/BeforeOrdering";
@@ -159,6 +160,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </section>
 
       <div className="p-container">
+        <ResearchSummary productSlug={c.slug} name={c.name} />
+
         <section className="s-data">
           <div>
             <h2 className="s-h2">Compound <em>data</em></h2>
