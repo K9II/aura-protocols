@@ -4005,4 +4005,277 @@ export const posts: Post[] = [
       },
     ],
   },
+  // Research-literature summaries (RUO template, 2026-10-10): identity, laboratory
+  // findings by model, open questions, regulatory status, references. No amounts given
+  // to animals or people, no human outcomes, no product links, no sourcing section.
+  {
+    slug: "semax-research-guide",
+    title: "Semax: A Research Literature Summary",
+    excerpt:
+      "A synthetic heptapeptide built from the ACTH(4–7) fragment plus a Pro-Gly-Pro tail. What laboratory studies have measured — neurotrophin gene expression, monoamine turnover and ischemia transcriptomics in rodents — and what is still unknown.",
+    category: "Short Peptides & Neuropeptides",
+    date: "October 2026",
+    readTime: "6 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Semax is a synthetic heptapeptide developed at the Institute of Molecular Genetics of the Russian Academy of Sciences. Its published research base is large for a short peptide but concentrated: most of it is rodent and cell work from a small network of Moscow laboratories. This summary covers what those laboratory studies measured, how strong the evidence is, and the questions that remain open.",
+      },
+      { type: "h2", text: "Chemical Identity" },
+      {
+        type: "p",
+        text: "Semax is the heptapeptide Met-Glu-His-Phe-Pro-Gly-Pro (molecular formula C37H51N9O10S, molecular weight 813.9 g/mol, CAS 80714-61-0). Its first four residues are residues 4–7 of adrenocorticotropic hormone (ACTH); the C-terminal Pro-Gly-Pro (PGP) tripeptide was added in place of ACTH residues 8–10. The literature often calls it an ACTH(4–10) analog for that reason.",
+      },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
+      {
+        type: "p",
+        text: "The most-cited line of work concerns brain-derived neurotrophic factor (BDNF). Dolotov and colleagues (Brain Research, 2006) reported that Semax raised BDNF protein and trkB receptor phosphorylation in the rat hippocampus, along with BDNF exon III and trkB mRNA, and proposed that the hippocampal BDNF/trkB system mediates its activity in that model.",
+      },
+      {
+        type: "p",
+        text: "A second line looks at monoamines. Eremin and colleagues (Neurochemical Research, 2005) found that Semax alone increased striatal levels of the serotonin metabolite 5-HIAA in rodents without changing dopamine or its metabolites, but enhanced the striatal dopamine release produced by D-amphetamine.",
+      },
+      {
+        type: "p",
+        text: "A third uses whole-transcriptome methods in a rat model of focal cerebral ischemia (permanent middle cerebral artery occlusion). Medvedeva and colleagues (BMC Genomics, 2014) reported that Semax mainly shifted the expression of immune-system genes, notably immunoglobulins and chemokines, plus a smaller set of vascular-system genes. Dmitrieva and colleagues (Cellular and Molecular Neurobiology, 2010) found that Semax and its PGP fragment both changed transcription of neurotrophins and their receptors in the same model, with Semax acting selectively in ischemic cortex and PGP largely non-specifically.",
+      },
+      {
+        type: "callout",
+        text: "These findings come from rodent models and tissue measurements: gene expression, protein levels and neurotransmitter metabolites. They describe what Semax does to those endpoints in those models. They are not evidence of any effect in people.",
+      },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Hippocampal BDNF protein, trkB phosphorylation and BDNF/trkB mRNA increased in rats (Dolotov et al., 2006)",
+          "Striatal 5-HIAA increased; dopamine release from D-amphetamine enhanced; dopamine alone unchanged, in rodents (Eremin et al., 2005)",
+          "Immune- and vascular-gene expression shifted in rat cortex after focal ischemia, by genome-wide analysis (Medvedeva et al., 2014)",
+          "Neurotrophin and receptor transcription changed by Semax and by its PGP fragment in the same model (Dmitrieva et al., 2010)",
+          "In vitro, Semax inhibited enkephalin-degrading enzymes from human serum (IC50 about 10 µM), as did its pentapeptide fragment (Kost et al., 2001)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Independent replication: nearly all of the work comes from one Moscow research network, and outside replication is sparse.",
+          "Active species: the PGP fragment is active by itself in some assays, so how much of each result comes from the intact heptapeptide and how much from its fragments is unresolved.",
+          "Stability: how fast Semax breaks down in biological media is an active research topic (Shevchenko et al., 2013), and it affects how every in vivo result should be read.",
+          "Many of the primary papers are in Russian-language journals with English abstracts only, which limits independent review of methods.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Semax is not approved by the FDA for any use. Semax (free base) and Semax acetate were reviewed at the FDA Pharmacy Compounding Advisory Committee meeting on July 24, 2026, as candidates for the 503A bulk drug substances list; the committee voted 8–5 in favor. The vote is advisory and not binding, and FDA had taken no final action as of this writing. Aura Protocols supplies Semax as a research chemical for laboratory use only.",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "How is Semax related to ACTH?",
+            a: "Its first four residues, Met-Glu-His-Phe, are residues 4–7 of adrenocorticotropic hormone. The Pro-Gly-Pro tail is not part of ACTH; it replaces residues 8–10.",
+          },
+          {
+            q: "What kind of evidence exists for Semax?",
+            a: "Mostly rodent studies measuring gene expression, protein levels and neurotransmitter metabolites, plus in vitro enzyme work. This summary does not cover clinical literature, and no laboratory result here shows an effect in people.",
+          },
+          {
+            q: "Is the Pro-Gly-Pro fragment active on its own?",
+            a: "In some assays, yes. Dmitrieva and colleagues (2010) found PGP alone changed neurotrophin transcription in ischemic rat cortex, though less selectively than Semax.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Dolotov OV, Karpenko EA, Inozemtseva LS, et al. \"Semax, an analog of ACTH(4-10) with cognitive effects, regulates BDNF and trkB expression in the rat hippocampus.\" Brain Research. 2006;1117(1):54-60. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/16996037/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Eremin KO, Kudrin VS, Saransaari P, et al. \"Semax, an ACTH(4-10) analogue with nootropic properties, activates dopaminergic and serotoninergic brain systems in rodents.\" Neurochemical Research. 2005;30(12):1493-1500. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/16362768/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Medvedeva EV, Dmitrieva VG, Povarova OV, et al. \"The peptide semax affects the expression of genes related to the immune and vascular systems in rat brain focal ischemia: genome-wide transcriptional analysis.\" BMC Genomics. 2014;15:228. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/24661604/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Dmitrieva VG, Povarova OV, Skvortsova VI, et al. \"Semax and Pro-Gly-Pro activate the transcription of neurotrophins and their receptor genes after cerebral ischemia.\" Cellular and Molecular Neurobiology. 2010;30(1):71-79. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/19633950/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. Kost NV, Sokolov OIu, Gabaeva MV, et al. \"Semax and selank inhibit the enkephalin-degrading enzymes from human serum.\" Bioorganicheskaia Khimiia. 2001;27(3):180-183. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/11443939/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. Shevchenko KV, Nagaev IY, Andreeva LA, et al. \"Stability of Semax acetyl to proteolysis in various biological media.\" Doklady Biological Sciences. 2013;449:110-112. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/23652441/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "7. FDA. \"July 23-24, 2026: Meeting of the Pharmacy Compounding Advisory Committee.\" ",
+          { href: "https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026", text: "fda.gov", external: true },
+          " Vote reported by RAPS, 24 July 2026: ",
+          { href: "https://www.raps.org/resource/fda-advisory-committee-backs-two-more-peptides-rejects-one-for-compounding-list.html", text: "raps.org", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
+      },
+    ],
+  },
+  {
+    slug: "selank-research-guide",
+    title: "Selank: A Research Literature Summary",
+    excerpt:
+      "A synthetic heptapeptide: the tetrapeptide tuftsin extended with Pro-Gly-Pro. What laboratory studies have measured — GABAergic gene expression, GABA receptor binding and immune-gene expression in rodents — and what is still unknown.",
+    category: "Short Peptides & Neuropeptides",
+    date: "October 2026",
+    readTime: "6 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Selank is a synthetic heptapeptide from the same Moscow research community as Semax (the Institute of Molecular Genetics and the Zakusov Institute of Pharmacology). Its laboratory literature centres on two themes: the GABA system and immune-gene expression. This summary covers what those studies measured, how strong the evidence is, and the questions that remain open.",
+      },
+      { type: "h2", text: "Chemical Identity" },
+      {
+        type: "p",
+        text: "Selank is the heptapeptide Thr-Lys-Pro-Arg-Pro-Gly-Pro (molecular formula C33H57N11O9, molecular weight 751.9 g/mol, CAS 129954-34-3). Its first four residues are tuftsin (Thr-Lys-Pro-Arg), a naturally occurring tetrapeptide; the C-terminal Pro-Gly-Pro is the same tail used in Semax. Papers usually describe it as a tuftsin analog.",
+      },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
+      {
+        type: "p",
+        text: "The main mechanistic hypothesis involves the GABA system. In receptor-binding experiments on isolated brain-cell membranes, Vyunova and colleagues (Protein & Peptide Letters, 2018) reported that Selank acted on [3H]GABA binding as a positive allosteric modulator, and that combining it with diazepam or olanzapine changed binding in a non-additive way. Volkova and colleagues (Frontiers in Pharmacology, 2016) measured 84 neurotransmission genes in rat frontal cortex and found Selank and GABA altered the expression of many of the same genes, with correlated changes one hour after administration.",
+      },
+      {
+        type: "p",
+        text: "A behavioral line uses standard rodent stress models. Kasian and colleagues (Behavioural Neurology, 2017) compared Selank, diazepam and the two together in rats under unpredictable chronic mild stress, scoring anxiety-related behavior in the elevated plus maze. Earlier work by Kozlovskaya and colleagues (2003) compared Selank with ten tuftsin-family peptides in rodent conflict-stress tests.",
+      },
+      {
+        type: "p",
+        text: "A third line concerns immune-gene expression. Kolomin and colleagues (Molecular Immunology, 2014) tracked complement C3, Casp1, Il2rg and Xcr1 mRNA in mouse spleen after Selank or its Gly-Pro fragment, and found the two produced largely matching expression profiles.",
+      },
+      {
+        type: "callout",
+        text: "These findings come from membrane preparations, rodent tissue and rodent behavior tests. They describe what Selank does to those endpoints in those models. They are not evidence of any effect in people.",
+      },
+      { type: "h2", text: "Published Research at a Glance" },
+      {
+        type: "ul",
+        items: [
+          "Positive allosteric modulation of [3H]GABA binding in brain-cell membranes (Vyunova et al., 2018)",
+          "Expression of neurotransmission genes in rat frontal cortex changed, correlating with GABA's own pattern (Volkova et al., 2016)",
+          "Anxiety-related elevated plus maze measures compared for Selank, diazepam and both, in rats under chronic mild stress (Kasian et al., 2017)",
+          "Inflammation-related gene expression in mouse spleen changed by Selank and its Gly-Pro fragment (Kolomin et al., 2014)",
+          "In vitro, Selank inhibited enkephalin-degrading enzymes from human serum (IC50 about 20 µM) (Kost et al., 2001)",
+        ],
+      },
+      { type: "h2", text: "Open Questions" },
+      {
+        type: "ul",
+        items: [
+          "Independent replication: almost all of the literature comes from one Moscow research network.",
+          "Binding site: the receptor-binding work suggests Selank's site on the GABA receptor complex differs from diazepam's, but it has not been identified.",
+          "Active species: the Gly-Pro fragment reproduces several of the gene-expression results, so the contribution of the intact heptapeptide versus its fragments is unresolved.",
+          "Many of the primary papers are in Russian-language journals with English abstracts only.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Selank is not approved by the FDA for any use, and it was not among the substances reviewed at the FDA Pharmacy Compounding Advisory Committee meeting of July 23–24, 2026. Aura Protocols supplies Selank as a research chemical for laboratory use only.",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "How are Selank and Semax related?",
+            a: "Both are heptapeptides that end in Pro-Gly-Pro and come from the same research community. They start differently: Selank with tuftsin (Thr-Lys-Pro-Arg), Semax with the ACTH(4–7) fragment (Met-Glu-His-Phe).",
+          },
+          {
+            q: "What kind of evidence exists for Selank?",
+            a: "Receptor-binding work on brain membranes, gene-expression studies in rodent tissue and rodent behavior tests, plus in vitro enzyme work. This summary does not cover clinical literature, and no laboratory result here shows an effect in people.",
+          },
+          {
+            q: "What is tuftsin?",
+            a: "A naturally occurring tetrapeptide, Thr-Lys-Pro-Arg. Selank's first four residues are tuftsin.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Vyunova TV, Andreeva L, Shevchenko K, Myasoedov N. \"Peptide-based Anxiolytics: The Molecular Aspects of Heptapeptide Selank Biological Activity.\" Protein & Peptide Letters. 2018;25(10):914-923. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/30255741/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. Volkova A, Shadrina M, Kolomin T, et al. \"Selank Administration Affects the Expression of Some Genes Involved in GABAergic Neurotransmission.\" Frontiers in Pharmacology. 2016;7:31. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/26924987/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "3. Kasian A, Kolomin T, Andreeva L, et al. \"Peptide Selank Enhances the Effect of Diazepam in Reducing Anxiety in Unpredictable Chronic Mild Stress Conditions in Rats.\" Behavioural Neurology. 2017;2017:5091027. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/28280289/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "4. Kozlovskaya MM, Kozlovskii II, Val'dman EA, Seredenin SB. \"Selank and short peptides of the tuftsin family in the regulation of adaptive behavior in stress.\" Neuroscience and Behavioral Physiology. 2003;33(9):853-860. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/14969422/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "5. Kolomin T, Morozova M, Volkova A, et al. \"The temporary dynamics of inflammation-related genes expression under tuftsin analog Selank action.\" Molecular Immunology. 2014;58(1):50-55. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/24291245/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "6. Kost NV, Sokolov OIu, Gabaeva MV, et al. \"Semax and selank inhibit the enkephalin-degrading enzymes from human serum.\" Bioorganicheskaia Khimiia. 2001;27(3):180-183. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/11443939/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "7. PubChem. Selank (CID 11765600) and Tuftsin (CID 156080). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/11765600", text: "pubchem.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
+      },
+    ],
+  },
 ];
