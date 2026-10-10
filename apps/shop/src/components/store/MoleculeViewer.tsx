@@ -31,10 +31,55 @@ function drawCopperCoordination(v: CoordViewer): void {
 function hasWebGL(): boolean {
   try {
     const c = document.createElement("canvas");
-    return !!(c.getContext("webgl2") || c.getContext("webgl"));
+    const gl = c.getContext("webgl2") || c.getContext("webgl");
+    // Free the probe context right away: browsers cap live WebGL contexts,
+    // and phones hit that cap fast.
+    gl?.getExtension("WEBGL_lose_context")?.loseContext();
+    return !!gl;
   } catch {
     return false;
   }
+}
+
+// Same pace as the 3Dmol spin("y", 0.6) it replaces: 0.6° every 25 ms.
+const SPIN_DEG_PER_S = 24;
+// At most ~60 redraws a second, even on 120 Hz phone screens.
+const MIN_FRAME_MS = 15;
+// Touch screens render at no more than this pixel density.
+const TOUCH_MAX_DPR = 1.5;
+
+type Renderer = {
+  setSize: (w: number, h: number) => void;
+  devicePixelRatio: number;
+  rows?: number;
+  isLost: () => boolean;
+  initFrameBuffer: () => void;
+  _canvas: HTMLCanvasElement;
+  _gl: WebGLRenderingContext;
+  _viewportWidth: number;
+  _viewportHeight: number;
+};
+
+// 3Dmol always renders at the full screen density (3x on iPhones: nine
+// times the pixels of the box) and has no option to lower it. Redo the tail
+// of its Renderer.setSize (3dmol 2.5.5, single viewport) at a capped ratio.
+// If 3Dmol's internals change, this quietly does nothing.
+function capPixelRatio(viewer: { renderer?: Renderer; resize: () => void }, max: number): void {
+  const r = viewer.renderer;
+  if (!r?.setSize || !r._canvas || !r._gl) return;
+  const original = r.setSize.bind(r);
+  r.setSize = (w, h) => {
+    original(w, h);
+    if (r.devicePixelRatio <= max || r.rows !== undefined) return;
+    r.devicePixelRatio = max;
+    r._canvas.width = w * max;
+    r._canvas.height = h * max;
+    r._viewportWidth = r._canvas.width;
+    r._viewportHeight = r._canvas.height;
+    if (!r.isLost()) r._gl.viewport(0, 0, r._gl.drawingBufferWidth, r._gl.drawingBufferHeight);
+    r.initFrameBuffer();
+  };
+  viewer.resize();
 }
 
 // One rotating ball-and-stick model. 3Dmol loads only when the stage scrolls
@@ -47,7 +92,28 @@ export default function MoleculeViewer({ structure, className = "s-mol-stage" }:
     const el = ref.current;
     if (!el) return;
     let cancelled = false;
-    let viewer: { clear: () => void; spin: (axis: string | boolean, speed?: number) => void } | null = null;
+    let viewer: { clear: () => void; rotate: (angle: number, axis: string) => void } | null = null;
+    let inView = false;
+    let spins = false;
+    let raf = 0;
+    let lastT = 0;
+
+    // Spin on the screen's own refresh, by elapsed time. 3Dmol's spin() is a
+    // 25 ms timer: out of step with 60/120 Hz screens (visible stutter) and
+    // re-rendering forever, on screen or not.
+    const step = (t: number) => {
+      raf = requestAnimationFrame(step);
+      const dt = t - lastT;
+      if (dt < MIN_FRAME_MS) return;
+      lastT = t;
+      viewer?.rotate((Math.min(dt, 50) / 1000) * SPIN_DEG_PER_S, "y");
+    };
+    // Run it only while the model is visible and the tab is in front.
+    const syncSpin = () => {
+      const on = !!viewer && spins && inView && !document.hidden;
+      if (on && !raf) { lastT = performance.now(); raf = requestAnimationFrame(step); }
+      if (!on && raf) { cancelAnimationFrame(raf); raf = 0; }
+    };
 
     const start = async () => {
       if (!hasWebGL()) { setStatus("unavailable"); return; }
@@ -57,8 +123,12 @@ export default function MoleculeViewer({ structure, className = "s-mol-stage" }:
           fetch(structure.file).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.text(); }),
         ]);
         if (cancelled) return;
-        const v = createViewer(el, { backgroundColor: "#E2DCCC" });
+        // Antialiasing costs a lot of GPU on phones and their dense screens
+        // don't need it.
+        const coarse = window.matchMedia?.("(pointer: coarse)").matches;
+        const v = createViewer(el, { backgroundColor: "#E2DCCC", antialias: !coarse });
         if (!v) { setStatus("unavailable"); return; }
+        if (coarse) capPixelRatio(v as unknown as Parameters<typeof capPixelRatio>[0], TOUCH_MAX_DPR);
         v.addModel(text, "sdf");
         const colorscheme = { prop: "elem", map: ELEMENT_COLORS };
         v.setStyle({}, { stick: { radius: 0.14, colorscheme: colorscheme as never }, sphere: { scale: 0.22, colorscheme: colorscheme as never } });
@@ -68,23 +138,29 @@ export default function MoleculeViewer({ structure, className = "s-mol-stage" }:
         // inside the stage as it spins about y.
         v.zoom(0.8);
         const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-        if (!reduced) v.spin("y", 0.6);
+        spins = !reduced;
         v.render();
         viewer = v as unknown as typeof viewer;
+        syncSpin();
         setStatus("ready");
       } catch {
         if (!cancelled) setStatus("unavailable");
       }
     };
 
-    const io = new IntersectionObserver((entries, obs) => {
-      if (entries.some((e) => e.isIntersecting)) { obs.disconnect(); void start(); }
+    let started = false;
+    const io = new IntersectionObserver((entries) => {
+      inView = entries.some((e) => e.isIntersecting);
+      if (inView && !started) { started = true; void start(); }
+      syncSpin();
     }, { rootMargin: "200px" });
     io.observe(el);
+    document.addEventListener("visibilitychange", syncSpin);
     return () => {
       cancelled = true;
       io.disconnect();
-      viewer?.spin(false);
+      document.removeEventListener("visibilitychange", syncSpin);
+      if (raf) cancelAnimationFrame(raf);
       viewer?.clear();
       // 3Dmol has no dispose() API and never removes the <canvas> it appends,
       // so without this a client-routed browsing session leaks a WebGL

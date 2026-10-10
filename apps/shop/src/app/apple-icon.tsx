@@ -3,7 +3,8 @@ import { ImageResponse } from "next/og";
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
-// iOS home-screen icon: the Aura mark (A + pulse) in white on the brand dark.
+// iOS home-screen icon: the Aura mark (A + pulse) in ink on paper, matching
+// icon.svg and the Pharmacopoeia palette.
 export default function AppleIcon() {
   return new ImageResponse(
     (
@@ -14,7 +15,7 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0d1117",
+          background: "#EDE9E0",
         }}
       >
         <svg
@@ -22,7 +23,7 @@ export default function AppleIcon() {
           height="112"
           viewBox="0 0 160 150"
           fill="none"
-          stroke="#ffffff"
+          stroke="#1C1A15"
           strokeLinecap="round"
           strokeLinejoin="miter"
           strokeMiterlimit={9}

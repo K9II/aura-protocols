@@ -1171,3 +1171,29 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-rs-ft a { font-size: 16px; color: var(--specimen); border-bottom: 1px solid var(--specimen); }
 .pharmacopoeia .s-rs-disc { margin: 10px 0 0; font-size: 13px; color: var(--ink-soft); }
 @media (max-width: 480px) { .pharmacopoeia .s-rs-t { padding: 16px 14px 4px; font-size: 21px; } .pharmacopoeia .s-rs-ex, .pharmacopoeia .s-rs-list, .pharmacopoeia .s-rs-ft { padding-left: 14px; padding-right: 14px; } }
+
+/* Touch screens: grow the tappable area of small links and buttons to at
+   least 24px (WCAG 2.5.8) without changing how they look. The invisible
+   ::after extends each hit box into the surrounding gap; footer links sit
+   10px apart, so 5px each way never overlaps a neighbour; z-index keeps
+   the box above elements that come after it. */
+@media (pointer: coarse) {
+  .pharmacopoeia .s-nav a,
+  .pharmacopoeia .s-nav-cart,
+  .pharmacopoeia .p-biosig-peptide,
+  .pharmacopoeia .p-see-all,
+  .pharmacopoeia .s-record a,
+  .pharmacopoeia .p-link,
+  .pharmacopoeia details > summary,
+  footer.pharmacopoeia li > a { position: relative; }
+  .pharmacopoeia .s-nav a::after,
+  .pharmacopoeia .s-nav-cart::after,
+  .pharmacopoeia .p-biosig-peptide::after,
+  .pharmacopoeia .p-see-all::after,
+  .pharmacopoeia .s-record a::after,
+  .pharmacopoeia .p-link::after,
+  .pharmacopoeia details > summary::after,
+  footer.pharmacopoeia li > a::after { content: ""; position: absolute; inset: -5px -4px; z-index: 1; }
+  .pharmacopoeia .s-nav-links a::after,
+  .pharmacopoeia .s-nav-cart::after { inset: -10px -6px; }
+}
