@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/dal";
+import { can } from "@/lib/staff/roles";
 import { currentMs } from "@/lib/clock";
 import { dateLabel, daysBetween, localDate } from "@/lib/today/time";
 import { usd } from "@/lib/html";
@@ -38,7 +39,7 @@ function nextStep(status: RunStatus, lines: RunLine[], orders: RunOrderRow[], ne
 // Runs: the collecting one on top with kits per strength, then every run with
 // its derived status and next step (mock a1).
 export default async function WholesalePage() {
-  await requirePermission("wholesale.view");
+  const staff = await requirePermission("wholesale.view");
   const nowMs = currentMs(), today = localDate(nowMs);
   const [s, runs] = await Promise.all([getWholesaleSettings(), listRuns()]);
   const cutoff = cutoffFor(today, { runDays: s.runDays, override: s.nextCutoffOverride });
@@ -57,7 +58,7 @@ export default async function WholesalePage() {
     <div className="a-page">
       <Crumbs items={[{ label: "Wholesale" }]} />
       <div className="a-ph"><div><h1>Wholesale</h1><p>Made-to-order research kits. Orders collect until each run&apos;s order-by date; then you order from the supplier, test the lot and release the balances.</p></div>
-        <div className="actions"><Link className="a-btn" href="/admin/wholesale/settings">Settings</Link></div></div>
+        <div className="actions">{can(staff, "wholesale.margins") && <Link className="a-btn" href="/admin/wholesale/margins">Margins</Link>}<Link className="a-btn" href="/admin/wholesale/settings">Settings</Link></div></div>
       {!s.open && <div className="a-callout info" style={{ marginBottom: 14 }}><span>Wholesale ordering is <b>off</b> — /wholesale shows the inquiry form. Turn it on in Settings when you&apos;re ready.</span></div>}
 
       <div className="a-card">

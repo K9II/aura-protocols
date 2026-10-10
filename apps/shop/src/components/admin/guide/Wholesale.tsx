@@ -25,6 +25,10 @@ export default function Wholesale() {
         <Task title="Cancel a deposit">
           <Step>On the run, choose <Ui>Cancel deposit…</Ui> on the order, pick a reason and choose <Ui>Cancel and refund</Ui>. The deposit goes back to the card and the buyer is emailed.</Step>
         </Task>
+        <Task title="Check what a kit earns">
+          <Step>In <Ui>Wholesale</Ui> choose <Ui>Margins</Ui> (owner only). Every strength offered as a kit shows its margin at the lowest and highest volume tier, worked out from today&apos;s retail price, the supplier box prices synced from AIOS and your lot-cost settings.</Step>
+          <Step>Use <Ui>Cheapest on file</Ui> or <Ui>Highest on file</Ui> to switch supplier, and <Ui>Kits of each strength in the run</Ui> to see the margin as more kits share that strength&apos;s lot test. Hover a row for the dollars.</Step>
+        </Task>
         <Task title="Turn wholesale off for a customer">
           <Step>In <Ui>Customers</Ui>, open the customer and choose <Ui>Turn off wholesale…</Ui> with a reason. Orders already placed carry on. <Ui>Allow wholesale again</Ui> undoes it.</Step>
         </Task>
@@ -39,12 +43,14 @@ export default function Wholesale() {
           ["The balance", <>Asked for when every strength in the order passes. The buyer pays from their order page; a fresh payment page opens each time. A reminder goes on day {BALANCE_REMINDER_DAY}. On the last day you get an alert that the order cancels tomorrow; the day after, it&apos;s cancelled, the deposit is kept and its vials go back to retail stock.</>],
           ["Paid orders", <>A paid balance moves the order to <Ui>To ship</Ui> in <Ui>Orders</Ui> with its lot already allocated. Ship it as usual. Wholesale orders have their own <Ui>Wholesale</Ui> tab while they&apos;re in production or owe a balance.</>],
           ["Refunds", <>After the balance, <Ui>Refund…</Ui> in <Ui>Orders</Ui> refunds both payments, the deposit and the balance. Sales tax is recorded when the balance is paid.</>],
+          ["Margins", <>The page recalculates on every visit. Kit price is the retail vial price × {KIT_VIALS}, less the tier; cost is the supplier box, inbound freight and customs, labels and card fees on both charges. The lot test is absorbed and shared by every kit of that strength in the run; 3PL packing and postage aren&apos;t counted.</>],
           ["Alerts", <>A run still not ordered {days(PAST_CUTOFF_ALERT_DAYS)} after its order-by date, a lot too short to cover its orders, an overdue balance and every forfeit alert you once each.</>],
         ]} />
       }
       watch={[
         <>Link the right lot: check the lot number on the certificate against the boxes before choosing <Ui>Pass</Ui>. Passing can&apos;t be undone.</>,
         <>If one payment of a wholesale order is refunded in the Stripe dashboard you get an alert; refund the order from <Ui>Orders</Ui> so both payments and the stock are handled.</>,
+        <>The minimum is per order, not per strength: an order at the minimum can be all different strengths, each paying its own lot test. <Ui>Margins</Ui> with the slider at 1 shows that worst case.</>,
         <>Keep ordering off in <Ui>Settings</Ui> until the payment processor approves the deposit and balance charges.</>,
       ]}
     />

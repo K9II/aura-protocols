@@ -1432,3 +1432,35 @@
 .adm .a-ws-tiers { width: 100%; }
 .adm .a-ws-tiers td { padding: 6px 8px; }
 .adm .a-ws-tiers input { width: 90px; }
+
+/* ---------- wholesale kit margins (owner-only, 2026-10-10) ---------- */
+.adm .a-km { display: grid; gap: 14px; }
+.adm .a-km .a-kpis { margin-bottom: 0; }
+.adm .a-km-controls { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+.adm .a-km .l { font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
+.adm .a-km-seg { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.adm .a-km-seg button { height: 30px; padding: 0 12px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); font: 500 13px var(--sans); cursor: pointer; }
+.adm .a-km-seg button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #F4F1EA; }
+.adm .a-km-kits { display: flex; align-items: center; gap: 10px; }
+.adm .a-km-kits input { width: 180px; accent-color: var(--ink); }
+.adm .a-km-kits b { font: 400 20px var(--serif); min-width: 22px; }
+.adm .a-km-help { margin: -4px 0 0; color: var(--ink-soft); max-width: 92ch; }
+.adm .a-km-legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--ink-soft); font-size: 12px; }
+.adm .a-km-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.adm .a-km-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.adm .a-km-legend i.ring { border: 2px solid #eb6834; }
+.adm .a-km-plot { position: relative; overflow-x: auto; }
+.adm .a-km-plot svg { display: block; width: 100%; min-width: 620px; height: auto; font-family: var(--sans); }
+.adm .a-km-row { cursor: default; outline: none; }
+.adm .a-km-row:focus-visible rect { stroke: var(--specimen); }
+.adm .a-km-tip { position: absolute; right: 90px; pointer-events: none; background: var(--ink); color: #F4F1EA; padding: 10px 12px; width: max-content; max-width: 320px; font-size: 12.5px; box-shadow: 0 8px 20px -10px rgba(0,0,0,.5); z-index: 2; }
+.adm .a-km-tip b { display: block; font: 500 15px var(--serif); margin-bottom: 4px; }
+.adm .a-km-tip td { padding: 1px 0; white-space: nowrap; } .adm .a-km-tip td + td { text-align: right; padding-left: 14px; }
+.adm .a-km-notes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.adm .a-km-notes h3 { font: 600 13px var(--sans); margin: 0 0 6px; }
+.adm .a-km-notes ul { margin: 0; padding-left: 16px; display: grid; gap: 4px; color: var(--ink-soft); }
+.adm .a-km-table summary { cursor: pointer; font-weight: 600; margin-bottom: 8px; }
+.adm .a-km-table { overflow-x: auto; }
+@media (max-width: 760px) { .adm .a-km-notes { grid-template-columns: minmax(0, 1fr); } .adm .a-km .a-kpis { grid-template-columns: 1fr 1fr !important; } }
+.adm .a-km > * { min-width: 0; }
+.adm .a-km .a-card, .adm .a-km .a-card-b { min-width: 0; }

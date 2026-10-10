@@ -25,7 +25,7 @@ export const CAN_GROUPS: readonly PermGroup[] = [
 export const CANT_GROUPS: readonly PermGroup[] = [
   { text: "Send email, replies or campaigns", perms: ["email.send", "email.pause", "inquiries.reply", "inquiries.saved_replies"] },
   { text: "Ship, refund, cancel or create orders", perms: ["orders.ship", "orders.refund", "orders.no_charge"] },
-  { text: "Run wholesale production runs or change wholesale settings", perms: ["wholesale.manage"] },
+  { text: "Run wholesale production runs, change wholesale settings or see kit costs and margins", perms: ["wholesale.manage", "wholesale.margins"] },
   {
     text: "Change store credit, prices, stock, lots or discount codes",
     perms: ["credit.adjust", "catalog.edit", "stock.correct", "stock.owner_withdrawal", "lots.receive", "lots.put_live", "discounts.edit", "discounts.settings"],
