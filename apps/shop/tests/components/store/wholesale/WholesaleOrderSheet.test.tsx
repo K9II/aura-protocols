@@ -24,7 +24,7 @@ describe("WholesaleOrderSheet", () => {
 
   it("groups strengths by class, shows the APro designation with the scientific name, and no lot-test charge", async () => {
     await sheet();
-    expect(screen.getByText("— Incretin & Amylin Analogs")).toBeTruthy();
+    expect(screen.getByText("Incretin & Amylin Analogs")).toBeTruthy();
     expect(screen.getByText("APro-G3RT", { selector: ".s-ws-nm" })).toBeTruthy();
     expect(screen.getByText("· Retatrutide · 10 mg")).toBeTruthy();
     expect(screen.queryByText(/lot test/i)).toBeNull();

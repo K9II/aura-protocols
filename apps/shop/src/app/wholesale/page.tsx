@@ -3,7 +3,8 @@ import Link from "next/link";
 import InquiryForm from "@/components/store/InquiryForm";
 import RunStrip from "@/components/store/wholesale/RunStrip";
 import TierTable from "@/components/store/wholesale/TierTable";
-import FeaturedKits from "@/components/store/wholesale/FeaturedKits";
+import KitCards from "@/components/store/wholesale/KitCards";
+import TrustRow from "@/components/store/TrustRow";
 import MinimumKits from "@/components/store/wholesale/MinimumKits";
 import WholesaleOrderSheet from "@/components/store/wholesale/WholesaleOrderSheet";
 import WholesaleTurnOn from "@/components/store/wholesale/WholesaleTurnOn";
@@ -61,7 +62,8 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
   }
   if (!s.open) return <ClosedPage />;
 
-  const cutoff = cutoffFor(localDate(currentMs()), { runDays: s.runDays, override: s.nextCutoffOverride });
+  const today = localDate(currentMs());
+  const cutoff = cutoffFor(today, { runDays: s.runDays, override: s.nextCutoffOverride });
   const dates = estimatedDates(cutoff, s.leadDays);
   const { customer } = await getAccountState();
   const live = await getLiveCatalogOrNull();
@@ -81,7 +83,8 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
           <li>Pay the balance when your lot passes.</li>
           <li>Your kits ship with the lot&apos;s certificate.</li>
         </ol>
-        {rows && rows.length > 0 && <FeaturedKits rows={rows} />}
+        {rows && rows.length > 0 && <KitCards rows={rows} tiers={s.tiers} />}
+        <TrustRow className="s-ws-trust" />
         {customer
           ? <Link href={ORDER_HREF} className="s-ws-btn">Start an order →</Link>
           : <Link href={`/sign-in?next=${encodeURIComponent(ORDER_HREF)}`} className="s-ws-btn">Sign in to order →</Link>}
@@ -103,7 +106,7 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
         <p className="s-micro s-eyebrow">Wholesale · made to order</p>
         <h1 className="s-h1 mb-5">Research <em>kits.</em></h1>
         <p className="s-ws-lede">10 vials of one strength per kit. Each production run is made and tested as one lot, and you receive its certificate.</p>
-        <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} />
+        <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} today={today} />
         {body}
         <div className="s-ws-inq">
           <h2 className="s-h2 mt-6 mb-3">Custom or larger <em>requests.</em></h2>

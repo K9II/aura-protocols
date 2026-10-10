@@ -136,7 +136,7 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
             </> : <>
               <div className="s-ws-ln"><span>Balance when your lot passes testing</span><span>{balance}</span></div>
               <p className="s-ws-note" style={{ margin: "2px 0 12px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} insurance and sales tax. We&apos;ll email you a link; it&apos;s due within {settings?.balanceDays ?? 7} days.</p>
-              {cutoff && dates && <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0, background: "var(--paper)" }} />}
+              {cutoff && dates && <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0 }} />}
             </>}
           </div>
         )}
@@ -154,7 +154,7 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
             <div className="s-ws-ln"><span>Deposit</span><span>{deposit}</span></div>
             <div className="s-ws-ln"><span>Balance</span><span>{balance}</span></div>
             <div className="s-ws-ln b t"><span>Paid</span><span>{usd(order.total_cents)}</span></div>
-            {cutoff && dates && <div style={{ marginTop: 10 }}><RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0, background: "var(--paper)" }} /></div>}
+            {cutoff && dates && <div style={{ marginTop: 10 }}><RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0 }} /></div>}
           </div>
         )}
         {cutoff && canCancelWholesale(order, today, { failed: failed.length > 0 }) && (
