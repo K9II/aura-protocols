@@ -175,9 +175,14 @@ describe("MoleculeViewer", () => {
 });
 
 describe("MoleculeGrid", () => {
-  it("renders one labelled panel per component", () => {
+  it("one full-size stage with a button per component; the first is shown, a button switches", () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
-    render(<MoleculeGrid structures={structurePanels("bpc-157-tb-500-ghk-cu-kpv")} />);
-    for (const name of ["BPC-157", "TB-500", "GHK-Cu", "KPV"]) expect(screen.getByText(name)).toBeInTheDocument();
+    const { container } = render(<MoleculeGrid structures={structurePanels("bpc-157-tb-500-ghk-cu-kpv")} />);
+    const buttons = ["BPC-157", "TB-500", "GHK-Cu", "KPV"].map((name) => screen.getByRole("button", { name }));
+    expect(buttons.map((b) => b.getAttribute("aria-pressed"))).toEqual(["true", "false", "false", "false"]);
+    expect(container.querySelectorAll(".s-mol-stage")).toHaveLength(1);
+    act(() => { buttons[3].click(); });
+    expect(screen.getByRole("button", { name: "KPV" }).getAttribute("aria-pressed")).toBe("true");
+    expect(container.querySelectorAll(".s-mol-stage")).toHaveLength(1);
   });
 });
