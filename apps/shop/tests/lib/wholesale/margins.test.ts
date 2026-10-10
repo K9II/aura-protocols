@@ -3,7 +3,7 @@ import { kitMargins, median } from "@/lib/wholesale/margins";
 import type { KitRow } from "@/lib/wholesale/rules";
 
 const TIERS = [{ minKits: 5, pct: 20 }, { minKits: 10, pct: 25 }, { minKits: 20, pct: 30 }];
-const COSTS = { tiers: TIERS, lotTestCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 };
+const COSTS = { tiers: TIERS, minKits: 5, lotTestCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40, kitBoxCents: 0, fulfillment: null, insuranceChargedCents: 0, glpPct: null };
 const row = (slug: string, priceUsd: number, designation: string | null = null): KitRow => ({
   slug, name: slug.toUpperCase(), designation, chemicalClass: "Peptide Fragments", variantId: "10mg", strength: "10 mg", priceUsd,
 });

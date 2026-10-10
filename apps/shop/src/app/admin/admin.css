@@ -1464,3 +1464,22 @@
 @media (max-width: 760px) { .adm .a-km-notes { grid-template-columns: minmax(0, 1fr); } .adm .a-km .a-kpis { grid-template-columns: 1fr 1fr !important; } }
 .adm .a-km > * { min-width: 0; }
 .adm .a-km .a-card, .adm .a-km .a-card-b { min-width: 0; }
+/* Margins: try an order + competitor check */
+.adm .a-km-mini { height: 28px; padding: 0 10px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); font: 500 12.5px var(--sans); cursor: pointer; }
+.adm .a-km-mini:hover { border-color: var(--ink); }
+.adm .a-km-mini.ghost { border-color: transparent; background: transparent; color: var(--ink-soft); }
+.adm .a-km-order .a-card-h .r { display: flex; gap: 6px; flex-wrap: wrap; }
+.adm .a-km-order-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.adm .a-km-order input[type="number"] { width: 58px; height: 28px; padding: 0 6px; border: 1px solid var(--line-strong); background: var(--surface); font: 500 13px var(--sans); text-align: right; }
+.adm .a-km-add { display: flex; gap: 8px; margin-top: 10px; }
+.adm .a-km-add select { flex: 1; min-width: 0; height: 28px; border: 1px solid var(--line-strong); background: var(--surface); font: 13px var(--sans); }
+.adm .a-km-flag { margin-left: 6px; font: 500 9.5px var(--mono); letter-spacing: .08em; padding: 1px 5px; border: 1px solid var(--line-strong); color: var(--ink-soft); vertical-align: 1px; }
+.adm .a-km-sum { margin: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.adm .a-km-sum > div { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.adm .a-km-sum dt { color: var(--ink-soft); } .adm .a-km-sum dd { margin: 0; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adm .a-km-sum .tot dt { color: var(--ink); font-weight: 600; } .adm .a-km-sum .tot dd { font: 400 20px var(--serif); }
+.adm .a-km-order .a-km-help { margin-top: 12px; }
+.adm .a-km-comp .num .under { color: #1c5cab; font-weight: 600; } .adm .a-km-comp .num .over { color: var(--specimen); font-weight: 600; }
+.adm .a-km-comp .sub { display: block; color: var(--muted); font-size: 11.5px; }
+.adm .a-km-scroll { overflow-x: auto; }
+@media (max-width: 860px) { .adm .a-km-order-grid { grid-template-columns: minmax(0, 1fr); } }

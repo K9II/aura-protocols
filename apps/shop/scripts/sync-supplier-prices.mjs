@@ -2,6 +2,8 @@
 //   AIOS → store: supplier box prices (supplier_prices; replaces the AIOS-sourced
 //     set) and the default lab fee (shop_settings.lot_test_cents) — Record order
 //     and Receive lot pre-fill from them.
+//   AIOS → store: the reference figures for the owner's wholesale margins page
+//     (aios_reference: default 3PL fees + postage, GLP-1 processor %, competitor prices).
 //   store → AIOS: retail price per vial for every product the store sells,
 //     written to store-prices.json next to the AIOS file; AIOS overlays it on
 //     read and shows those prices read-only (they're changed in Admin → Catalog).
@@ -15,7 +17,7 @@ import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname as dirOf } from "node:path";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defaultLabFeeCents, landedDefaultsCents, mapSupplierPrices, storePricesFor } from "./supplier-prices-map.mjs";
+import { defaultLabFeeCents, landedDefaultsCents, mapSupplierPrices, referenceFor, storePricesFor } from "./supplier-prices-map.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -60,6 +62,8 @@ async function main() {
   console.log(`store → AIOS: ${Object.keys(retail.prices).length} retail prices from the store, ${retail.changes.length} differ from AIOS's own`);
   for (const c of retail.changes) console.log(`  ${c.id}: ${c.from == null ? "—" : "$" + c.from} → $${c.to}`);
   console.log(labCents == null ? "default lab: no flat fee in AIOS — lab fee pre-fill unchanged" : `default lab (${sheet.defaults.lab}): $${(labCents / 100).toFixed(2)} per lot`);
+  const reference = referenceFor(sheet, variants ?? []);
+  console.log(`margins reference: ${reference.map((r) => r.kind).join(", ") || "none"}${reference.find((r) => r.kind === "competitors") ? ` (competitor prices for ${Object.keys(reference.find((r) => r.kind === "competitors").data).length} strengths)` : ""}`);
   if (dryRun) { console.log("dry run — nothing written"); return; }
   if (rows.length === 0) throw new Error("nothing to sync — refusing to clear the table");
 
@@ -80,6 +84,10 @@ async function main() {
     const { error: setErr } = await db.from("shop_settings").update(settings).eq("id", true);
     if (setErr) throw new Error(`receive-lot defaults update failed: ${setErr.message}`);
     console.log(`receive-lot defaults: ${JSON.stringify(settings)}`);
+  }
+  if (reference.length) {
+    const { error: refErr } = await db.from("aios_reference").upsert(reference.map((r) => ({ ...r, synced_at: syncedAt })), { onConflict: "kind" });
+    if (refErr) throw new Error(`margins reference update failed: ${refErr.message}`);
   }
   // Written to a temp file then renamed, so AIOS never reads half a file.
   const out = join(dirOf(jsonPath), "store-prices.json");

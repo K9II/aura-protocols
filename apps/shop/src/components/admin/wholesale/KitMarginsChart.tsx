@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { KitMargin, SupplierCase } from "@/lib/wholesale/margins";
-import { median } from "@/lib/wholesale/margins";
+import type { CostInputs, KitMargin, SupplierCase } from "@/lib/wholesale/margins";
+import { median, orderFulfillmentCents } from "@/lib/wholesale/margins";
 import type { Tier } from "@/lib/wholesale/rules";
-
-type Costs = { lotTestCents: number; inboundPerBoxCents: number; labelPerVialCents: number };
+import OrderMargins from "@/components/admin/wholesale/OrderMargins";
+import CompetitorCheck from "@/components/admin/wholesale/CompetitorCheck";
 const usd = (c: number) => `$${Math.round(c / 100).toLocaleString("en-US")}`;
 const pct = (n: number) => `${n.toFixed(1)}%`;
 
@@ -20,7 +20,8 @@ function withTest(sc: SupplierCase, tierIdx: number, testCents: number, kits: nu
 // Dot plot, one row per kit strength: lowest and highest volume tier as dots joined
 // by a short bar, and a ring for the margin once this strength's lot test is shared
 // by the chosen number of kits. Colours validated (dataviz checks, light surface).
-export default function KitMarginsChart({ rows, missing, tiers, costs }: { rows: KitMargin[]; missing: string[]; tiers: Tier[]; costs: Costs }) {
+export default function KitMarginsChart({ rows, missing, costs, labName, syncedAt }: { rows: KitMargin[]; missing: string[]; costs: CostInputs; labName: string | null; syncedAt: string | null }) {
+  const tiers = costs.tiers, f = costs.fulfillment;
   const [mode, setMode] = useState<"low" | "high">("low");
   const [kits, setKits] = useState(1);
   const [hover, setHover] = useState<number | null>(null);
@@ -29,7 +30,9 @@ export default function KitMarginsChart({ rows, missing, tiers, costs }: { rows:
   if (!rows.length) return <div className="a-card"><div className="a-card-b">No kit strengths have supplier prices yet.</div></div>;
 
   const at = (r: KitMargin) => r[mode];
-  const shared = (r: KitMargin) => withTest(at(r), first, costs.lotTestCents, kits);
+  const shared = (r: KitMargin) => withTest(at(r), first, r.labCents, kits);
+  const labs = rows.map((r) => r.labCents), labLo = Math.min(...labs), labHi = Math.max(...labs);
+  const labRange = labLo === labHi ? usd(labLo) : `${usd(labLo)}–${usd(labHi)}`;
   const lowest = sorted.reduce((a, r) => (at(r).tiers[last].marginPct < at(a).tiers[last].marginPct ? r : a));
   const W = 1000, L = 280, R = 66, rowH = 26, top = 26, H = top + sorted.length * rowH + 30;
   const x = (v: number) => L + (Math.max(0, Math.min(100, v)) / 100) * (W - L - R);
@@ -56,7 +59,7 @@ export default function KitMarginsChart({ rows, missing, tiers, costs }: { rows:
           <b>{kits}</b>
         </label>
       </div>
-      <p className="a-km-help" id="km-kits-help">Each run tests every strength once ({usd(costs.lotTestCents)} lab fee, absorbed). Kits of the same strength share it, from all buyers in the run, so the ring moves right as more kits share the test. At 1, a lone kit pays the whole test: the worst case.</p>
+      <p className="a-km-help" id="km-kits-help">Each run tests every strength once ({labName ?? "lab"}, {labRange} per strength, absorbed). Kits of the same strength share it, from all buyers in the run, so the ring moves right as more kits share the test. At 1, a lone kit pays the whole test: the worst case.</p>
 
       <div className="a-card">
         <div className="a-card-h"><h3>Margin by strength</h3>
@@ -100,7 +103,8 @@ export default function KitMarginsChart({ rows, missing, tiers, costs }: { rows:
                 <table><tbody>
                   <tr><td>Kit at list</td><td>{usd(r.kitListCents)}</td></tr>
                   <tr><td>Box ({sc.supplier})</td><td>{usd(sc.boxCents)}</td></tr>
-                  <tr><td>Landed cost</td><td>{usd(sc.costCents)}</td></tr>
+                  <tr><td>Kit cost</td><td>{usd(sc.costCents)}</td></tr>
+                  <tr><td>Lab test</td><td>{usd(r.labCents)}</td></tr>
                   {sc.tiers.map((t) => <tr key={t.pct}><td>{t.pct}% off</td><td>{pct(t.marginPct)} · {usd(t.profitCents)}</td></tr>)}
                   <tr><td>{kits === 1 ? "Lone kit + test" : `${kits} kits share test`}</td><td>{pct(s.margin)} · {usd(s.profit)}</td></tr>
                 </tbody></table>
@@ -110,17 +114,24 @@ export default function KitMarginsChart({ rows, missing, tiers, costs }: { rows:
         </div>
       </div>
 
+      <OrderMargins rows={rows} mode={mode} costs={costs} />
+      <CompetitorCheck rows={rows} tiers={tiers} />
+
       <div className="a-km-notes">
         <div><h3>Counted</h3><ul>
           <li>Kit price: today&apos;s retail vial price × 10, less the tier discount.</li>
-          <li>Landed cost: supplier box + {usd(costs.inboundPerBoxCents)} inbound freight and customs per box + labels at ${(costs.labelPerVialCents / 100).toFixed(2)} per vial (your lot-cost settings).</li>
-          <li>Card fees: 2.9% plus 30¢ on the deposit and on the balance.</li>
-          <li>Lot test: {usd(costs.lotTestCents)} per strength per run, shared by that strength&apos;s kits (slider).</li>
+          <li>Kit cost: supplier box + {usd(costs.inboundPerBoxCents)} inbound freight and customs per box + labels at ${(costs.labelPerVialCents / 100).toFixed(2)} printed{f ? ` and $${(f.labelApplyPerVialCents / 100).toFixed(2)} applied` : ""} per vial + the ${(costs.kitBoxCents / 100).toFixed(2)} kit box.</li>
+          <li>Processor: card fees of 2.9% plus 30¢ on the deposit and on the balance; GLP-1 kits {costs.glpPct != null ? `${costs.glpPct}% on the GLP-1 processor (never Stripe)` : "at card rates until the GLP-1 processor is synced"}.</li>
+          <li>Lot test: {labName ?? "the lab"}&apos;s price for each strength ({labRange}), once per strength per run, shared by that strength&apos;s kits (slider).</li>
+          {f ? <li>3PL: {f.vendor} pick and pack, {f.postageLabel}, insurance, less the buyer&apos;s insurance: {usd(orderFulfillmentCents(costs.minKits, costs))} for a {costs.minKits}-kit order, split across its kits on the chart.{f.estimates.length > 0 && ` Still estimates in AIOS: ${f.estimates.join(", ").replaceAll("_", " ")}.`}</li>
+            : <li>3PL and postage: not synced from AIOS yet, so left out.</li>}
         </ul></div>
         <div><h3>Not counted</h3><ul>
-          <li>3PL packing and outbound postage (per order; a 5-kit order spreads them across 50 vials).</li>
+          <li>Monthly 3PL fees (storage, software, the monthly minimum) and receiving.</li>
+          <li>Postage for a bigger box: a {costs.minKits}-kit order may not ship at the one-rate price; confirm with the 3PL.</li>
           <li>Supplier prices come from AIOS; &quot;Highest on file&quot; is the safe view while a supplier is unverified.</li>
           {missing.length > 0 && <li>No supplier price yet: {missing.join(", ")}.</li>}
+          {syncedAt && <li>AIOS figures last synced {new Date(syncedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}.</li>}
         </ul></div>
       </div>
 
