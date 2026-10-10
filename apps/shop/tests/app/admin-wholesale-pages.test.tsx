@@ -125,6 +125,17 @@ describe("Admin → Wholesale pages", () => {
     expect(screen.getByRole("button", { name: "Pass" })).toBeTruthy();
   });
 
+  it("run page: a failed new-buyer read shows a note and keeps the page (Pass still there)", async () => {
+    m.runOrders.mockResolvedValue([order()]);
+    m.runLines.mockResolvedValue([line()]);
+    m.unreviewedBuyers.mockRejectedValue(new Error("down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
+    expect(container.querySelector(".a-review-note")!.textContent).toMatch(/Couldn.t check for new buyers/);
+    expect(screen.getByRole("button", { name: "Pass" })).toBeTruthy();
+  });
+
   it("run page: an unknown run is a 404", async () => {
     m.getRun.mockResolvedValue(null);
     const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");

@@ -123,13 +123,13 @@ describe("markWholesaleReviewedAction", () => {
   const CUST = "55555555-5555-4555-8555-555555555555";
   beforeEach(() => { m.requirePermission.mockReset(); m.markWholesaleReviewed.mockReset(); m.revalidatePath.mockReset(); m.requirePermission.mockResolvedValue({ id: "owner1" }); });
 
-  it("asks for wholesale.manage, marks the buyer reviewed as the owner and refreshes Today, wholesale and the customer page", async () => {
+  it("asks for wholesale.manage, marks the buyer reviewed as the owner and refreshes every admin page (Today, nav count, run, customer)", async () => {
     m.markWholesaleReviewed.mockResolvedValue("ok");
     const { markWholesaleReviewedAction } = await import("@/app/admin/wholesale/actions");
     await markWholesaleReviewedAction(fd({ customerId: CUST }));
     expect(m.requirePermission).toHaveBeenCalledWith("wholesale.manage");
     expect(m.markWholesaleReviewed).toHaveBeenCalledWith(CUST, "owner1");
-    expect(m.revalidatePath.mock.calls.map((c) => c[0])).toEqual(expect.arrayContaining(["/admin", "/admin/wholesale", `/admin/customers/${CUST}`]));
+    expect(m.revalidatePath).toHaveBeenCalledWith("/admin", "layout");
   });
 
   it("a second click is fine (already reviewed); a bad or unknown id throws", async () => {

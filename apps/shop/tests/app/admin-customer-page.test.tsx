@@ -121,6 +121,13 @@ describe("/admin/customers/[id]", () => {
     expect(screen.getByRole("button", { name: `Mark ${detail.fullName} reviewed` })).toBeTruthy();
   });
 
+  it("wholesale card: turned off and never reviewed — Not reviewed yet, no Reviewed button", async () => {
+    getCustomerDetail.mockResolvedValue({ ...detail, wholesale: { enabledAt: "2026-10-09T16:14:00Z", disabledAt: "2026-10-10T16:00:00Z", disabledReason: "Reseller", terms: null, reviewedAt: null, reviewedBy: null } });
+    const { container } = render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(container.textContent).toMatch(/Not reviewed yet/);
+    expect(screen.queryByRole("button", { name: /reviewed$/ })).toBeNull();
+  });
+
   it("wholesale card: reviewed shows the date and who, with no Reviewed button", async () => {
     getCustomerDetail.mockResolvedValue({ ...detail, wholesale: { enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: null, reviewedAt: "2026-10-12T17:00:00Z", reviewedBy: "Alvester" } });
     const { container } = render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));

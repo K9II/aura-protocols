@@ -215,10 +215,7 @@ export async function markWholesaleReviewedAction(f: FormData): Promise<void> {
   if (!id) throw new Error("That buyer couldn't be found — reload the page.");
   const r = await markWholesaleReviewed(id, owner.id);
   if (r === "missing") throw new Error("That buyer couldn't be found — reload the page.");
-  revalidatePath("/admin");
-  revalidatePath("/admin/wholesale");
-  revalidatePath("/admin/wholesale/runs/[id]", "page");
-  revalidatePath(`/admin/customers/${id}`);
+  revalidatePath("/admin", "layout");   // Today, the nav count, the run and customer pages
 }
 
 export async function saveWholesaleSettingsAction(_prev: ActionState, f: FormData): Promise<ActionState> {

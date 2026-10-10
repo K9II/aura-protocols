@@ -43,8 +43,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   if (!run) notFound();
   const manage = can(staff, "wholesale.manage");
   const today = localDate(currentMs());
-  const [s, lines, orders, events, pending] = await Promise.all([getWholesaleSettings(), runLines(run.id), runOrders([run.cutoff_on]), runEvents(run.id), unreviewedBuyers()]);
-  const newBuyers = reviewLines(pending.filter((p) => p.cutoffOn === run.cutoff_on), today);
+  // The new-buyer note is information only: a failed read shows a note, never
+  // takes the page (and Record order) down with it.
+  const [s, lines, orders, events, pending] = await Promise.all([getWholesaleSettings(), runLines(run.id), runOrders([run.cutoff_on]), runEvents(run.id),
+    unreviewedBuyers().catch((err) => { console.error("unreviewed wholesale buyers read failed:", err); return null; })]);
+  const newBuyers = pending ? reviewLines(pending.filter((p) => p.cutoffOn === run.cutoff_on), today) : [];
   const live = orders.filter((o) => LIVE.has(o.status));
   const needed = kitsByStrength(live);
   const status = runStatus(run.cutoff_on, today, lines, orders);
@@ -87,15 +90,21 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
 
       {newBuyers.length > 0 && (
         <div className="a-review-note" role="note">
-          <b>{newBuyers.length === 1 ? "1 new buyer" : `${newBuyers.length} new buyers`} not reviewed:</b>{" "}
+          <b>{newBuyers.length === 1 ? "1 new buyer" : `${newBuyers.length} new buyers`} not reviewed:</b>
           {newBuyers.map((b, k) => (
             <span key={b.customerId} className="who">
-              {k > 0 && ", "}<Link href={`/admin/customers/${b.customerId}`}>{b.name}</Link>
-              {" ("}{b.orders.map((n, j) => <Fragment key={n}>{j > 0 && ", "}<Link className="a-ord" href={`/admin/orders/${n}`}>{n}</Link></Fragment>)}{")"}
-              {manage && <> <ReviewedButton customerId={b.customerId} name={b.name} /></>}
+              <span>{k > 0 && ", "}<Link href={`/admin/customers/${b.customerId}`}>{b.name}</Link>
+                {" ("}{b.orders.map((n, j) => <Fragment key={n}>{j > 0 && ", "}<Link className="a-ord" href={`/admin/orders/${n}`}>{n}</Link></Fragment>)}{")"}</span>
+              {manage && <ReviewedButton customerId={b.customerId} name={b.name} />}
             </span>
           ))}
           <span className="sub">You can still record supplier orders. Cancel a deposit below if something looks off.</span>
+        </div>
+      )}
+      {!pending && (
+        <div className="a-review-note" role="note">
+          <b>Couldn&apos;t check for new buyers.</b>
+          <span className="sub">Reload the page. You can still record supplier orders.</span>
         </div>
       )}
 

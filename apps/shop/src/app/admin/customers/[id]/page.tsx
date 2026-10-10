@@ -197,7 +197,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                 <dt>Orders</dt><dd>{c.orders.filter((o) => o.channel === "wholesale" && o.status !== "awaiting_payment" && o.status !== "cancelled").length || <span className="muted">—</span>}</dd>
                 <dt>Reviewed</dt><dd>{c.wholesale.reviewedAt
                   ? <>{shortDate(c.wholesale.reviewedAt)}{c.wholesale.reviewedBy ? ` by ${c.wholesale.reviewedBy}` : ""}</>
-                  : c.wholesale.enabledAt ? <><span className="muted">Not reviewed yet</span>{can(staff, "wholesale.manage") && <div style={{ marginTop: 6 }}><ReviewedButton customerId={c.id} name={c.fullName} /></div>}</>
+                  : c.wholesale.enabledAt ? <><span className="muted">Not reviewed yet</span>{can(staff, "wholesale.manage") && !c.wholesale.disabledAt && <div style={{ marginTop: 6 }}><ReviewedButton customerId={c.id} name={c.fullName} /></div>}</>
                   : <span className="muted">—</span>}</dd>
               </dl>
               {can(staff, "wholesale.manage") && (c.wholesale.enabledAt || c.wholesale.disabledAt) && (
