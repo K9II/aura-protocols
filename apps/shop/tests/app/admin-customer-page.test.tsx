@@ -8,6 +8,7 @@ vi.mock("@/lib/disputes/data", () => ({ customersWithDisputes }));
 vi.mock("@/lib/staff/data", () => ({ readStaffRow }));
 vi.mock("next/navigation", () => ({ notFound: () => { throw new Error("NOT_FOUND"); } }));
 vi.mock("@/app/admin/customers/actions", () => ({ setCustomerWholesaleAction: vi.fn(), adjustCreditAction: vi.fn(), blockAction: vi.fn(), unblockAction: vi.fn(), resendVerifyAdminAction: vi.fn() }));
+vi.mock("@/app/admin/wholesale/actions", () => ({ markWholesaleReviewedAction: vi.fn() }));
 import CustomerPage from "@/app/admin/customers/[id]/page";
 
 const ID = "3f1e2d4c-5b6a-4789-8abc-def012345678";
@@ -23,7 +24,7 @@ const detail = {
   attestations: [], ledger: [{ id: "l1", amount_cents: 15_000, reason: "owner_adjust", ref_id: "e1", note: "late shipment", created_at: "2026-10-02T22:12:00Z" }],
   events: [{ id: "e1", kind: "credit_added", amount_cents: 15_000, reason: "goodwill", note: "late shipment", actor_id: "owner", created_at: "2026-10-02T22:12:00Z", actorName: "Kearney" }],
   isPartner: false, referrer: null, blockedBy: null,
-  wholesale: { enabledAt: null, disabledAt: null, disabledReason: null, terms: null },
+  wholesale: { enabledAt: null, disabledAt: null, disabledReason: null, terms: null, reviewedAt: null, reviewedBy: null },
 };
 
 describe("/admin/customers/[id]", () => {
@@ -105,11 +106,33 @@ describe("/admin/customers/[id]", () => {
   });
 
   it("wholesale card: on since + terms, and the owner can turn it off", async () => {
-    getCustomerDetail.mockResolvedValue({ ...detail, wholesale: { enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: { version: "2026-10-08", at: "2026-10-09T16:14:00Z" } } });
+    getCustomerDetail.mockResolvedValue({ ...detail, wholesale: { enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: { version: "2026-10-08", at: "2026-10-09T16:14:00Z" }, reviewedAt: null, reviewedBy: null } });
     const { default: Page } = await import("@/app/admin/customers/[id]/page");
     const { container } = render(await Page({ params: Promise.resolve({ id: detail.id }) }));
     expect(container.textContent).toMatch(/On since Oct 9/);
     expect(container.textContent).toMatch(/2026-10-08 · accepted/);
     expect(screen.getByRole("button", { name: "Turn off wholesale…" })).toBeTruthy();
+  });
+
+  it("wholesale card: not reviewed yet with Reviewed for the owner", async () => {
+    getCustomerDetail.mockResolvedValue({ ...detail, wholesale: { enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: null, reviewedAt: null, reviewedBy: null } });
+    const { container } = render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(container.textContent).toMatch(/Not reviewed yet/);
+    expect(screen.getByRole("button", { name: `Mark ${detail.fullName} reviewed` })).toBeTruthy();
+  });
+
+  it("wholesale card: reviewed shows the date and who, with no Reviewed button", async () => {
+    getCustomerDetail.mockResolvedValue({ ...detail, wholesale: { enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: null, reviewedAt: "2026-10-12T17:00:00Z", reviewedBy: "Alvester" } });
+    const { container } = render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(container.textContent).toMatch(/Oct 12 by Alvester/);
+    expect(screen.queryByRole("button", { name: /reviewed$/i })).toBeNull();
+  });
+
+  it("wholesale card: the Assistant sees 'Not reviewed yet' but no Reviewed button", async () => {
+    requirePermission.mockResolvedValueOnce((await import("../helpers/staff")).assistantStaff());
+    getCustomerDetail.mockResolvedValueOnce({ ...detail, wholesale: { enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: null, reviewedAt: null, reviewedBy: null } });
+    const { container } = render(await CustomerPage({ params: Promise.resolve({ id: ID }) }));
+    expect(container.textContent).toMatch(/Not reviewed yet/);
+    expect(screen.queryByRole("button", { name: /reviewed$/i })).toBeNull();
   });
 });
