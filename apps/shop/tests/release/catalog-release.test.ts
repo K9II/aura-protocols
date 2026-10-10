@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { catalogContent } from "../../src/data/catalog";
 import { catalogReleaseProblems, type CatalogOps } from "../../src/lib/catalog-merge";
-import { MATERIAL_TESTING_PLACEHOLDER } from "../../src/lib/catalog";
+import { MADE_BY_PLACEHOLDER } from "../../src/lib/catalog";
 
 // Run before unpausing Vercel:  RELEASE_CHECK=1 pnpm --filter @aura/shop test
 // Reads Aura Store with the service key from .env.local (or the environment).
@@ -33,7 +33,7 @@ describe.skipIf(!process.env.RELEASE_CHECK)("release check", () => {
     expect(catalogReleaseProblems(catalogContent, ops, (path) => path)).toEqual([]);
   });
 
-  it("Material & testing values are confirmed by sourcing (not placeholders)", () => {
-    expect(MATERIAL_TESTING_PLACEHOLDER, "confirm supplier process + lab panel, then set to false in lib/catalog.ts").toBe(false);
+  it("\"Made by\" values are confirmed by sourcing (not placeholders)", () => {
+    expect(MADE_BY_PLACEHOLDER, "confirm each supplier's process, then set MADE_BY_PLACEHOLDER to false in lib/catalog.ts").toBe(false);
   });
 });

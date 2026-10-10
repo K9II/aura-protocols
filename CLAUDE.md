@@ -55,7 +55,7 @@ apps/shop/src/
 - Research use only. No dosing, protocols, reconstitution, benefits, "studied for", or human-outcome language anywhere. Scientific names only; chemical-class categories; no "stack".
 - `pnpm --filter @aura/shop build` runs `scripts/compliance-scan.mjs` and FAILS on banned phrases. Fix copy, don't widen the allowlist.
 - Account gate: browsing needs an account; the sign-up agreement (21+, RUO, dispute policy) is recorded in `account_agreements` (`gate_attestations` kept for history). The gate fails closed (a failed status check shows it).
-- Before unpausing Vercel: `RELEASE_CHECK=1 pnpm --filter @aura/shop test` must pass (every strength on the store has a live certified lot; no placeholder material/testing).
+- Before unpausing Vercel: `RELEASE_CHECK=1 pnpm --filter @aura/shop test` must pass (every strength on the store has a live certified lot; no placeholder "Made by" process values — `MADE_BY_PLACEHOLDER` in `lib/catalog.ts`).
 
 ## Conventions
 - **Relative imports only** in anything reachable from `next.config.ts` (`data/catalog*.ts`, `lib/catalog.ts`, `lib/redirects.ts`, `lib/constants.ts`). Always verify with a real `next build`.

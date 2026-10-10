@@ -42,10 +42,30 @@ describe("product page", () => {
     expect(screen.getByText("BPC-2609-01")).toBeInTheDocument();
   });
 
-  it("orders sections: hero, About this compound, Material & testing, Compound data, Researchers also added", async () => {
+  it("orders sections: hero, About this compound, Compound data, Researchers also added (no Material & testing)", async () => {
     await renderSlug("bpc-157");
     const h2s = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
-    expect(h2s).toEqual(["About this compound", "Material & testing", "Compound data", "Researchers also added"]);
+    expect(h2s).toEqual(["About this compound", "Compound data", "Researchers also added"]);
+  });
+
+  it("monograph placard carries the identity; Compound data has the Made by row", async () => {
+    const { container } = await renderSlug("bpc-157");
+    const placard = container.querySelector(".s-pdp-placard")!;
+    expect(placard.textContent).toContain("Monograph · Peptide Fragments");
+    expect(placard.textContent).toContain("137525-51-0");
+    expect(container.querySelector(".s-ghost")?.textContent).toBe("BPC-157");
+    const data = screen.getByRole("heading", { name: "Compound data" }).closest("section")!;
+    expect(within(data).getByText("Made by")).toBeInTheDocument();
+    expect(within(data).getByText("Solid-phase synthesis, HPLC-purified")).toBeInTheDocument();
+  });
+
+  it("buy panel holds the pack choice, Add to cart and shipping line; trust row sits above it", async () => {
+    const { container } = await renderSlug("bpc-157");
+    const buy = container.querySelector(".s-buy")!;
+    expect(buy.querySelector(".s-atc")).not.toBeNull();
+    expect(buy.querySelector(".s-ship")?.textContent).toContain("Ships from the US");
+    const trust = container.querySelector(".s-trust--pdp")!;
+    expect(trust.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("About band shows the description, caption, legend and source link", async () => {
