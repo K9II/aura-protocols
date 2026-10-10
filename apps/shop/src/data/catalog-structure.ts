@@ -219,6 +219,33 @@ export const STRUCTURES: Record<string, Structure> = {
     ],
     "ref": "https://pubchem.ncbi.nlm.nih.gov/compound/9941379"
   },
+  "semax": {
+    "id": "semax",
+    "label": "Semax",
+    "file": "/structures/semax.sdf",
+    "source": "computed",
+    "heavyAtoms": 57,
+    "elements": [
+      "C",
+      "N",
+      "O",
+      "S"
+    ],
+    "ref": "https://pubchem.ncbi.nlm.nih.gov/compound/9811102"
+  },
+  "selank": {
+    "id": "selank",
+    "label": "Selank",
+    "file": "/structures/selank.sdf",
+    "source": "computed",
+    "heavyAtoms": 53,
+    "elements": [
+      "C",
+      "N",
+      "O"
+    ],
+    "ref": "https://pubchem.ncbi.nlm.nih.gov/compound/11765600"
+  },
   "ghk-cu": {
     "id": "ghk-cu",
     "label": "GHK-Cu",
@@ -358,6 +385,12 @@ export const STRUCTURE_PANELS: Record<string, string[]> = {
   ],
   "pt-141": [
     "pt-141"
+  ],
+  "semax": [
+    "semax"
+  ],
+  "selank": [
+    "selank"
   ],
   "ghk-cu": [
     "ghk-cu"

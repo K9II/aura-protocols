@@ -23,6 +23,8 @@ export const SEED_STRENGTHS: Record<string, string[]> = {
   "epithalon": ["10 mg"],
   "pinealon": ["10 mg"],
   "dsip": ["5 mg"],
+  "semax": ["10 mg"],
+  "selank": ["10 mg"],
   "pt-141": ["10 mg"],
   "ghk-cu": ["50 mg"],
   "nad-plus": ["500 mg"],
