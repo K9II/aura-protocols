@@ -29,10 +29,12 @@ describe("CartView", () => {
     expect(btn).toHaveClass("p-btn-outline");
   });
 
-  it("cart drawer: Continue shopping just closes the drawer", async () => {
+  it("cart drawer: Continue shopping goes to the shop page too, and closes the drawer", async () => {
     const close = vi.fn();
     render(<CartProvider catalog={liveFixture()}><CartView onNavigate={close} /></CartProvider>);
-    fireEvent.click(await screen.findByRole("button", { name: "Continue shopping" }));
+    const btn = await screen.findByRole("link", { name: "Continue shopping" });
+    expect(btn).toHaveAttribute("href", "/products");
+    fireEvent.click(btn);
     expect(close).toHaveBeenCalledTimes(1);
   });
 
