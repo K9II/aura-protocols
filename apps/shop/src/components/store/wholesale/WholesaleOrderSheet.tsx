@@ -1,6 +1,9 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
+import { CLASS_COLOR } from "@/lib/class-colors";
+import type { ChemicalClass } from "@/data/catalog";
 import HumanCheck from "@/components/account/HumanCheck";
 import KitBox from "@/components/store/wholesale/KitBox";
 import TierTable from "@/components/store/wholesale/TierTable";
@@ -97,12 +100,13 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
         <MinimumKits minKits={pricing.minKits} />
         {error && <p role="alert" className="mb-3 text-sm text-[color:var(--specimen)]">{error}</p>}
         <div className="s-ws-grid">
+          <div className="s-ws-sheet-panel">
           <table className="s-ws-sheet">
             <thead><tr><th /><th /><th>Compound</th><th className="s-ws-kp">Kit · {KIT_VIALS} vials</th><th>Kits</th></tr></thead>
             <tbody>
               {classes.map((c) => (
                 <Fragment key={c}>
-                  <tr className="grp"><td colSpan={5}><span className="s-ws-cls">— {c}</span></td></tr>
+                  <tr className="grp" style={{ "--cls": CLASS_COLOR[c as ChemicalClass] ?? "var(--ink)" } as CSSProperties}><td colSpan={5}><span className="s-ws-cls"><i />{c}</span></td></tr>
                   {rows.filter((r) => r.chemicalClass === c).map((r) => {
                     const n = kits[key(r)] ?? 0;
                     const t = kitTitle(r);
@@ -110,7 +114,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
                     const flagged = rejected.some((x) => x.slug === r.slug && x.variantId === r.variantId);
                     const label = `${t.title} ${r.strength}`;
                     return (
-                      <tr key={key(r)} className={n ? "on" : "off"}>
+                      <tr key={key(r)} className={n ? "on" : "off"} style={{ "--cls": CLASS_COLOR[r.chemicalClass as ChemicalClass] ?? "var(--ink)" } as CSSProperties}>
                         <td className="cbx"><input type="checkbox" className="s-ws-cb" checked={n > 0} aria-label={`Order ${label} kits`}
                           onChange={(e) => setN(r, e.target.checked ? 1 : 0)} /></td>
                         <td className="pic"><KitBox title={t.title} strength={r.strength} art={r.art} width={92} /></td>
@@ -135,6 +139,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
               ))}
             </tbody>
           </table>
+          </div>
           {summary}
         </div>
       </>

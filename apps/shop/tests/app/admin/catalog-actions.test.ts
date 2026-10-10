@@ -6,7 +6,10 @@ const data = {
   receiveLot: vi.fn(), updateDraftLot: vi.fn(), putLotLive: vi.fn(), correctCount: vi.fn(), retireLot: vi.fn(),
   replaceCertificate: vi.fn(), setVariantField: vi.fn(), setShown: vi.fn(), createCoaUpload: vi.fn(), coaUploaded: vi.fn(), lotById: vi.fn(),
   variantRow: vi.fn(), addVariant: vi.fn(), setVariantShown: vi.fn(), archiveVariant: vi.fn(), restoreVariant: vi.fn(), deleteVariant: vi.fn(),
+  lotDefaults: vi.fn(async () => ({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 })),
 };
+const runs = { lineById: vi.fn(), linkLot: vi.fn(), fillLotCostFromLine: vi.fn() };
+vi.mock("@/lib/wholesale/runs-data", () => runs);
 const catalogChangedByOwner = vi.fn(), alertOwner = vi.fn();
 vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/catalog-ops/data", () => data);
@@ -20,7 +23,8 @@ const receive = { slug: "bpc-157", variantId: "10mg", lotNumber: "BPC-2610-03", 
 
 describe("catalog actions", () => {
   beforeEach(() => {
-    vi.resetModules(); Object.values(data).forEach((f) => f.mockReset()); catalogChangedByOwner.mockReset(); alertOwner.mockReset();
+    vi.resetModules(); Object.values(data).forEach((f) => f.mockReset()); Object.values(runs).forEach((f) => f.mockReset()); catalogChangedByOwner.mockReset(); alertOwner.mockReset();
+    data.lotDefaults.mockResolvedValue({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 });
     data.variantRow.mockResolvedValue({ strength: "10 mg", shown: true, archived_at: null });
   });
 
@@ -32,6 +36,29 @@ describe("catalog actions", () => {
     expect(r).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
     expect(alertOwner).toHaveBeenCalledWith("A lot arrived short or damaged", expect.stringContaining("ordered 200, counted 196, damaged 2"));
     expect(catalogChangedByOwner).toHaveBeenCalled();
+  });
+
+  it("received from a run page: saved as a draft and linked to that run's line (owner-only), cost copied", async () => {
+    data.coaUploaded.mockResolvedValue(true);
+    data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
+    runs.lineById.mockResolvedValue({ id: VALID_UUID, run_id: "r1", slug: "bpc-157", variant_id: "10mg", supplier: "Nana", cost_cents: 5200 });
+    runs.linkLot.mockResolvedValue(true);
+    const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+    const r = await receiveLotAction(null, fd({ ...receive, counted: "200", damaged: "0", note: "", intent: "draft", runLineId: VALID_UUID }));
+    expect(r).toEqual({ ok: "Saved BPC-2610-03 and linked it to the run. Pass it there once the certificate checks out." });
+    expect(requirePermission).toHaveBeenCalledWith("wholesale.manage");
+    expect(runs.linkLot).toHaveBeenCalledWith(VALID_UUID, "l9", "owner");
+    expect(runs.fillLotCostFromLine).toHaveBeenCalledWith("l9", expect.objectContaining({ supplier: "Nana" }), expect.objectContaining({ inboundPerBoxCents: 1500 }));
+    expect(data.putLotLive).not.toHaveBeenCalled();
+  });
+
+  it("a run line for a different strength is refused", async () => {
+    data.coaUploaded.mockResolvedValue(true);
+    data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
+    runs.lineById.mockResolvedValue({ id: VALID_UUID, run_id: "r1", slug: "tb-500", variant_id: "10mg" });
+    const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+    await expect(receiveLotAction(null, fd({ ...receive, counted: "200", damaged: "0", note: "", intent: "draft", runLineId: VALID_UUID }))).rejects.toThrow();
+    expect(runs.linkLot).not.toHaveBeenCalled();
   });
 
   it("receive + put live goes live in the same step", async () => {

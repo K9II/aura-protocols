@@ -22,7 +22,7 @@ vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-09T18:00:00
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/headers", () => ({ headers: async () => new Map([["user-agent", "UA"]]) }));
 
-const settings = { open: true, tiers: [{ minKits: 5, pct: 20 }, { minKits: 10, pct: 25 }, { minKits: 20, pct: 30 }], depositPct: 40, balanceDays: 7, runDays: 14, leadDays: 28, nextCutoffOverride: null,
+const settings = { open: true, tiers: [{ minKits: 5, pct: 25 }, { minKits: 10, pct: 30 }, { minKits: 20, pct: 35 }], depositPct: 40, balanceDays: 7, runDays: 14, leadDays: 28, nextCutoffOverride: null,
   minKits: 5 };
 const customer = (o: Record<string, unknown> = {}) => ({ id: "c1", email: "j@lab.org", fullName: "Jane", emailConfirmed: true, stripeCustomerId: null,
   research: { field: "independent", org: "Lab", verifiedAt: "x" }, wholesale: { enabledAt: "2026-10-01T00:00:00Z", disabledAt: null }, ...o });
@@ -58,8 +58,8 @@ describe("wholesale actions", () => {
     expect(await startWholesaleCheckoutAction(input)).toEqual({ url: "https://stripe/cs" });
     // 3 x $544 + 2 x $528 at 20% off = $2,688; deposit 40%
     expect(createPendingWholesaleOrder).toHaveBeenCalledWith(expect.objectContaining({ customerId: "c1", cutoffOn: "2026-10-19", taxCents: 8000, taxCalculationId: "taxcalc_1",
-      quote: expect.objectContaining({ subtotalCents: 268800, depositCents: 107520 }) }));
-    expect(createPaymentCheckout).toHaveBeenCalledWith(expect.objectContaining({ orderId: "o1", payment: "deposit", amountCents: 107520, cancelPath: "/wholesale?step=order" }));
+      quote: expect.objectContaining({ subtotalCents: 252000, depositCents: 100800 }) }));
+    expect(createPaymentCheckout).toHaveBeenCalledWith(expect.objectContaining({ orderId: "o1", payment: "deposit", amountCents: 100800, cancelPath: "/wholesale?step=order" }));
     expect(attachCheckoutSession).toHaveBeenCalledWith("o1", "cs_1");
   });
 
@@ -85,6 +85,7 @@ describe("wholesale actions", () => {
     expect(verifyHumanCheck).not.toHaveBeenCalled();
     expect(createPendingWholesaleOrder).not.toHaveBeenCalled();
   });
+
 
   it("start: a failed human check creates nothing", async () => {
     getCustomer.mockResolvedValue(customer());

@@ -13,7 +13,7 @@ export const ROLE_LABEL: Record<RoleId, string> = { owner: "Owner", assistant: "
 export const NEVER_FOR_ASSISTANT: ReadonlySet<Permission> = new Set<Permission>([
   "staff.manage", "w9.open", "partners.payout_details", "payouts.mark_paid", "credit.adjust",
   "customers.block", "orders.refund", "disputes.submit", "disputes.warnings", "stock.owner_withdrawal",
-  "orders.no_charge",
+  "orders.no_charge", "wholesale.margins",
 ]);
 
 // Claude drafts; Alvester sends. Read everything except partner payout details and W-9s.

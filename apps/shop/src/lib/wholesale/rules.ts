@@ -10,10 +10,11 @@ export const CUTOFF_ANCHOR = "2026-10-05";   // a Monday; runs close every whole
 export const TESTED_BEFORE_SHIP_DAYS = 5;
 export const WHOLESALE_TERMS_VERSION = "2026-10-08";
 
-// Pricing (2026-10-08): the first tier starts at the order minimum. Each batch's
-// independent lot test is absorbed in the kit price — never shown as a charge.
+// Pricing (2026-10-10): minimum 5 kits, mixed any way; 5-9 30%, 10-19 35%, 20+ 40% —
+// every tier beats every retail offer (10-pack STD_PACKS, new-account %). The first tier starts at the order
+// minimum. Each batch's independent lot test is absorbed in the kit price — never shown.
 export type Tier = { minKits: number; pct: number };
-export const DEFAULT_TIERS: Tier[] = [{ minKits: 5, pct: 20 }, { minKits: 10, pct: 25 }, { minKits: 20, pct: 30 }];
+export const DEFAULT_TIERS: Tier[] = [{ minKits: 5, pct: 30 }, { minKits: 10, pct: 35 }, { minKits: 20, pct: 40 }];
 
 export type WholesaleSettings = {
   open: boolean; tiers: Tier[]; depositPct: number; balanceDays: number; runDays: number; leadDays: number; nextCutoffOverride: string | null;

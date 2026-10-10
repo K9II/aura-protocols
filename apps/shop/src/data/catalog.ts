@@ -22,10 +22,11 @@ export type Compound = LiveCompound<ChemicalClass>;
 export type Variant = LiveVariant;
 
 // Packs of 2, 5 or 10 vials; no single vial (2026-10-01 decision, spec D8).
-const STD_PACKS: PackDiscount[] = [
+// 10-pack 15% (was 20%, 2026-10-10): wholesale's first tier (25%) must be the better deal.
+export const STD_PACKS: PackDiscount[] = [
   { qty: 2, pct: 5 },
   { qty: 5, pct: 10 },
-  { qty: 10, pct: 20 },
+  { qty: 10, pct: 15 },
 ];
 const LYO = "Lyophilized powder";
 const COLD = "−20 °C, desiccated, protected from light";

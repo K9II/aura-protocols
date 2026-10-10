@@ -96,6 +96,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
         <h1 className="bigcode">{o.order_number}</h1>
         <OrderStatusChip status={o.status} kind={o.kind} /><Markers list={orderMarkers(o, d.flags)} />
         <div className="actions">
+          {d.run && <Link className="a-btn" href={`/admin/wholesale/runs/${d.run.id}`}>Run {d.run.number} <Icon name="arrow" /></Link>}
           {nc && o.status === "paid" && can(staff, "orders.no_charge") && <ConfirmDialog label="Cancel order" title={`Cancel ${o.order_number}?`} confirmLabel="Cancel order" tone="danger" action={cancelNoChargeOrderAction} fields={{ orderId: o.id }}>
             The {vials} vial{vials === 1 ? "" : "s"} go{vials === 1 ? "es" : ""} back to stock. Nothing is emailed.
           </ConfirmDialog>}
@@ -131,7 +132,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
                 const l = d.lots.get(i.id);
                 return (
                   <tr key={i.id}>
-                    <td><b>{i.compound_name} · {i.strength}</b> <span className="muted">· {i.pack_qty === 1 ? "single vial" : `pack of ${i.pack_qty}`}</span>
+                    <td><b>{i.compound_name} · {i.strength}</b> <span className="muted">· {o.channel === "wholesale" ? `kit (${i.pack_qty} vials)` : i.pack_qty === 1 ? "single vial" : `pack of ${i.pack_qty}`}</span>
                       <Lots allocated={l?.allocated ?? []} shipped={l?.shipped ?? []} returned={l?.returned ?? []} />
                       {!l?.allocated.length && !l?.shipped.length && !l?.returned?.length && <div className="lots">Lot <span className="a-lotpill">{i.lot_number}</span></div>}</td>
                     <td className="num a-only-desk">{usd(nc ? i.retail_unit_cents ?? 0 : i.unit_price_cents)}</td>

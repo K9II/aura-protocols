@@ -22,6 +22,22 @@ describe("CartView", () => {
     expect(await screen.findByRole("link", { name: /checkout/i })).toHaveAttribute("href", "/checkout");
   });
 
+  it("cart page: a Continue shopping button goes back to the lineup", async () => {
+    render(<CartProvider catalog={liveFixture()}><CartView /></CartProvider>);
+    const btn = await screen.findByRole("link", { name: "Continue shopping" });
+    expect(btn).toHaveAttribute("href", "/products");
+    expect(btn).toHaveClass("p-btn-outline");
+  });
+
+  it("cart drawer: Continue shopping goes to the shop page too, and closes the drawer", async () => {
+    const close = vi.fn();
+    render(<CartProvider catalog={liveFixture()}><CartView onNavigate={close} /></CartProvider>);
+    const btn = await screen.findByRole("link", { name: "Continue shopping" });
+    expect(btn).toHaveAttribute("href", "/products");
+    fireEvent.click(btn);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
   it("applies a discount code in the cart and shows the saving", async () => {
     checkCodeAction.mockResolvedValue({ ok: true, kind: "partner", code: "SMITHLAB" });
     render(<CartProvider catalog={liveFixture()}><CartView /></CartProvider>);

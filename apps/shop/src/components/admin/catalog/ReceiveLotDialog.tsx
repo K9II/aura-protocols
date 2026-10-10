@@ -18,19 +18,23 @@ const OTHER = "__other";
 // prices: this strength's supplier box prices (supplier_prices, from AIOS);
 // defaults: lab fee per lot, freight per box, labels per vial (AIOS rates).
 // They pre-fill the cost fields until the owner types their own.
-export default function ReceiveLotDialog({ slug, variantId, title, draft, small, prices = {}, defaults }: {
+// runLine: received from a wholesale run page — pre-filled from the run's
+// supplier order and saved as a draft linked to that line (no "put live").
+export default function ReceiveLotDialog({ slug, variantId, title, draft, small, prices = {}, defaults, runLine, primary }: {
   slug: string; variantId: string; title: string; draft?: DraftLot; small?: boolean; prices?: Record<string, number>;
   defaults?: { testCents: number; inboundPerBoxCents: number; labelPerVialCents: number };
+  runLine?: { id: string; supplier: string; cost: string; vials: number }; primary?: boolean;
 }) {
   const testCents = defaults?.testCents;
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState(receiveLotAction, null);
-  const initial = () => draft ?? { id: "", ...EMPTY, testCost: testCents != null ? (testCents / 100).toFixed(testCents % 100 ? 2 : 0) : "" };
+  const initial = () => draft ?? { id: "", ...EMPTY, testCost: testCents != null ? (testCents / 100).toFixed(testCents % 100 ? 2 : 0) : "",
+    ...(runLine ? { supplier: runLine.supplier, ordered: String(runLine.vials) } : {}) };
   const [v, setV] = useState(initial);
-  const options = supplierOptions(draft?.supplier ? [draft.supplier] : [], Object.keys(prices)).options;
+  const options = supplierOptions(draft?.supplier ? [draft.supplier] : runLine?.supplier ? [runLine.supplier] : [], Object.keys(prices)).options;
   const [other, setOther] = useState(!!draft?.supplier && !options.includes(draft.supplier));
   // The cost follows supplier box price × boxes until the owner types their own.
-  const [costTyped, setCostTyped] = useState<string | null>(draft?.cost ? draft.cost : null);
+  const [costTyped, setCostTyped] = useState<string | null>(draft?.cost ? draft.cost : runLine?.cost ? runLine.cost : null);
   const [freightTyped, setFreightTyped] = useState<string | null>(draft?.freight ? draft.freight : null);
   const [labelsTyped, setLabelsTyped] = useState<string | null>(draft?.labels ? draft.labels : null);
   // Two dialogs can sit on the same product page (one strength per card, plus
@@ -41,7 +45,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
     if (state?.ok) {
       ref.current?.close();
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
-      setV(initial()); setCostTyped(null); setFreightTyped(null); setLabelsTyped(null); setOther(false);
+      setV(initial()); setCostTyped(runLine?.cost ? runLine.cost : null); setFreightTyped(null); setLabelsTyped(null); setOther(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only reacts to a fresh action result
   }, [state]);
@@ -63,14 +67,15 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
   const labels = labelsTyped ?? prefillTotal(defaults?.labelPerVialCents, labelVials);
   return (
     <>
-      <button type="button" className={`a-btn${small ? " sm" : ""}`} onClick={() => ref.current?.showModal()}>
-        {draft ? <><Icon name="edit" />Edit</> : <><Icon name="plus" />Receive <span className="a-only-desk">a lot</span></>}
+      <button type="button" className={`a-btn${small ? " sm" : ""}${primary ? " primary" : ""}`} onClick={() => ref.current?.showModal()}>
+        {draft ? <><Icon name="edit" />Edit</> : runLine ? <>Receive lot</> : <><Icon name="plus" />Receive <span className="a-only-desk">a lot</span></>}
       </button>
       <dialog ref={ref} className="a-modal wide" aria-labelledby={`recv-${scope}`}>
         <form action={action}>
           <input type="hidden" name="slug" value={slug} />
           <input type="hidden" name="variantId" value={variantId} />
           {draft && <input type="hidden" name="lotId" value={draft.id} />}
+          {runLine && <input type="hidden" name="runLineId" value={runLine.id} />}
           <input type="hidden" name="coaPath" value={v.coaPath} />
           {!other && <input type="hidden" name="supplier" value={v.supplier} />}
           <div className="a-modal-h"><h2 id={`recv-${scope}`}>{draft ? "Edit draft lot" : "Receive a lot"} · {title}</h2><button type="button" className="x" aria-label="Close" onClick={() => ref.current?.close()}>×</button></div>
@@ -133,8 +138,12 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
           <div className="a-modal-f"><span className="muted a-only-desk" style={{ fontSize: 12 }}>Logged as received by you, now</span>
             <div className="r">
               <button type="button" className="a-btn" onClick={() => ref.current?.close()}>Cancel</button>
-              <button type="submit" name="intent" value="draft" className="a-btn" disabled={pending}>Save as draft</button>
-              <button type="submit" name="intent" value="live" className="a-btn primary" disabled={pending || !canLive}>Save and put live</button>
+              {runLine
+                ? <button type="submit" name="intent" value="draft" className="a-btn primary" disabled={pending}>Save and link to the run</button>
+                : <>
+                  <button type="submit" name="intent" value="draft" className="a-btn" disabled={pending}>Save as draft</button>
+                  <button type="submit" name="intent" value="live" className="a-btn primary" disabled={pending || !canLive}>Save and put live</button>
+                </>}
             </div>
           </div>
         </form>

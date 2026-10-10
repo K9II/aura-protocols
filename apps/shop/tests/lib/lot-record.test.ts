@@ -19,6 +19,16 @@ describe("lot record", () => {
     expect(rec.map((l) => l.lot)).toEqual(["L9", "L8", "L7", "L6", "L5", "L4", "L3", "L2"]);
   });
 
+  it("launch day: lots released the same day as the newest put featured products first", () => {
+    const day = (slug: string, t: string, lotNo: string) => lot({ lot: lotNo, slug, liveAt: `2026-12-01T${t}:00Z` });
+    const lots = [
+      day("tb-500", "20:00", "TB"), day("ss-31", "19:00", "SS"), day("bpc-157", "18:00", "BP"), day("mots-c", "17:00", "MC"),
+      lot({ lot: "OLD", slug: "kpv", liveAt: "2026-11-20T12:00:00Z" }),
+    ];
+    expect(homeRecord(lots, new Set(["bpc-157", "mots-c"])).map((l) => l.lot)).toEqual(["BP", "MC", "TB", "SS", "OLD"]);
+    expect(homeRecord(lots).map((l) => l.lot)).toEqual(["TB", "SS", "BP", "MC", "OLD"]);
+  });
+
   it("product: all of this compound's released lots, sold-out ones included", () => {
     const rec = productRecord([
       lot({ lot: "A", liveAt: "2026-06-01T00:00:00Z", status: "sold_out" }),

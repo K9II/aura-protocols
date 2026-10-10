@@ -60,3 +60,50 @@ export function mapSupplierPrices(products, variants) {
   }
   return { rows: [...rows.values()], skipped };
 }
+
+// AIOS → aios_reference rows for the owner's wholesale margins page (all cents):
+//   fulfillment: the default 3PL's per-order fees (AIOS seFulCost), its postage
+//     option and which figures AIOS still marks as estimates;
+//   processor: the GLP-1 processor's percent (defaults.partner_pct);
+//   competitors: competitors' single-vial prices per store strength ("slug/variant");
+//   lab: the default lab's test price per store strength (rates.labs[lab].prices), with its flat price.
+// A part AIOS doesn't have is left out (the page says it isn't synced).
+export function referenceFor(sheet, variants) {
+  const d = sheet?.defaults ?? {};
+  const c = (v) => (typeof v === "number" && v >= 0 ? Math.round(v * 100) : null);
+  const out = [];
+  const v = (sheet?.fulfillment?.vendors ?? []).find((x) => x.key === d.threepl);
+  const po = v && ((v.postage_options ?? []).find((o) => o.key === d.postage) ?? (v.postage_options ?? []).find((o) => o.key === v.postage_default));
+  if (v && po && c(v.pick_first) != null && c(po.postage) != null) {
+    const fields = ["pick_first", "pick_additional", "insert_per_order", "label_apply_per_vial", "insurance_per_order", "postage", "packaging"];
+    out.push({ kind: "fulfillment", data: {
+      vendor: v.short ?? v.name, postageLabel: po.label,
+      pickFirstCents: c(v.pick_first), pickAdditionalCents: c(v.pick_additional) ?? 0, insertCents: c(v.insert_per_order) ?? 0,
+      packagingCents: c(po.packaging) ?? 0, postageCents: c(po.postage), insuranceCents: c(v.insurance_per_order) ?? 0,
+      labelApplyPerVialCents: c(v.label_apply_per_vial) ?? 0,
+      estimates: fields.filter((f) => v.status?.[f] && v.status[f] !== "confirmed"),
+    } });
+  }
+  if (typeof d.partner_pct === "number" && d.partner_pct >= 0) out.push({ kind: "processor", data: { glpPct: d.partner_pct } });
+  const known = new Set(variants.map((x) => `${x.slug}/${x.variant_id}`));
+  const competitors = {};
+  for (const p of sheet?.products ?? []) {
+    const key = p.shop ? `${p.shop}/${variantIdOf(p.size)}` : null;
+    if (!key || !known.has(key) || competitors[key] || !(p.mg > 0)) continue;
+    const rows = (p.competitors ?? []).filter((x) => x?.who && x.mg > 0 && x.price > 0)
+      .map((x) => ({ who: x.who, mg: x.mg, priceCents: Math.round(x.price * 100), sameStrengthCents: Math.round((x.price * p.mg / x.mg) * 100) }));
+    if (rows.length) competitors[key] = rows;
+  }
+  if (Object.keys(competitors).length) out.push({ kind: "competitors", data: competitors });
+  const lab = sheet?.rates?.labs?.[d.lab];
+  if (lab) {
+    const perStrength = {};
+    for (const p of sheet?.products ?? []) {
+      const key = p.shop ? `${p.shop}/${variantIdOf(p.size)}` : null;
+      const cents = c(lab.prices?.[p.id]);
+      if (key && known.has(key) && cents != null && perStrength[key] == null) perStrength[key] = cents;
+    }
+    out.push({ kind: "lab", data: { name: lab.label ?? d.lab, flatCents: c(lab.price), perStrength } });
+  }
+  return out;
+}

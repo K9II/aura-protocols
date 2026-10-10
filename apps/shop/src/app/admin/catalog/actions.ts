@@ -5,10 +5,8 @@ import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
 import { catalogContent } from "@/data/catalog";
-import {
-  addVariant, archiveVariant, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot,
-  replaceCertificate, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, setVariantWholesale, updateDraftLot, variantRow,
-} from "@/lib/catalog-ops/data";
+import { addVariant, archiveVariant, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot, replaceCertificate, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, setVariantWholesale, updateDraftLot, variantRow, lotDefaults } from "@/lib/catalog-ops/data";
+import { fillLotCostFromLine, lineById, linkLot } from "@/lib/wholesale/runs-data";
 import {
   isCoaPathFor, isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku, parseStrength,
 } from "@/lib/catalog-ops/rules";
@@ -91,6 +89,21 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
   if (countsChanged && isDiscrepancy(val.orderedQty, val.countedQty, val.damagedQty)) {
     await alertOwner("A lot arrived short or damaged",
       `${c.name} ${v.strength}, lot ${val.lotNumber}: ordered ${val.orderedQty}, counted ${val.countedQty}, damaged ${val.damagedQty}. Note: ${val.discrepancyNote}`);
+  }
+  // Received from a wholesale run page: link the new draft to that run's line
+  // (the lot goes live when the owner passes it there).
+  const runLineId = str(f, "runLineId");
+  if (runLineId && !editing) {
+    await requirePermission("wholesale.manage");
+    const line = await lineById(uuid(f, "runLineId"));
+    if (!line || line.slug !== slug || line.variant_id !== variantId) throw new Error(STALE);
+    if (!(await linkLot(line.id, id, owner.id))) return { error: `Saved ${val.lotNumber} as a draft, but the run's line changed — link it from the run page.` };
+    try { await fillLotCostFromLine(id, line, await lotDefaults()); } catch (err) {
+      await alertOwner("Lot cost not recorded", `${slug} ${variantId} lot ${val.lotNumber}: the run order's cost wasn't copied onto the lot. ${String(err)}`);
+    }
+    refresh(slug);
+    revalidatePath(`/admin/wholesale/runs/${line.run_id}`);
+    return { ok: `Saved ${val.lotNumber} and linked it to the run. Pass it there once the certificate checks out.` };
   }
   if (str(f, "intent") === "live") {
     const r = await putLotLive(id, owner.id);

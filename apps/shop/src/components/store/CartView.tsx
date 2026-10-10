@@ -104,6 +104,9 @@ export default function CartView({ onNavigate }: { onNavigate?: () => void }) {
           {totals.freeShipping ? "Free shipping unlocked" : `${usd(totals.remainingForFreeShippingUsd)} from free shipping`}
         </p>
         <Link href="/checkout" onClick={onNavigate} className="s-atc block text-center">Checkout →</Link>
+        {/* Continue shopping (Alvester, 2026-10-10): a button, not a link, and it
+            always goes to the shop page (from the drawer too, which then closes). */}
+        <Link href="/products" onClick={onNavigate} className="s-cart-continue p-btn-outline">Continue shopping</Link>
         <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
       </div>
     </div>

@@ -4,7 +4,7 @@ import {
   featuredKits, kitTitle, parseSettingsForm,
 } from "@/lib/wholesale/rules";
 
-// 2026-10-08: minimum 5 kits; 5-9 20%, 10-19 25%, 20+ 30%; lot tests absorbed (no fee).
+// 2026-10-10: minimum 5 kits (mixed any way); 5-9 30%, 10-19 35%, 20+ 40%; lot tests absorbed (no fee).
 const S = { tiers: DEFAULT_TIERS, depositPct: 40, minKits: 5 };
 const settingsRow = { wholesale_open: true, wholesale_tiers: DEFAULT_TIERS, wholesale_deposit_pct: 40, wholesale_balance_days: 7, wholesale_run_days: 14,
   wholesale_lead_days: 28, wholesale_next_cutoff: null, wholesale_min_kits: 5 };
@@ -19,10 +19,10 @@ const live = [
 ] as never;
 
 describe("wholesale rules", () => {
-  it("tiers: 5-9 20%, 10-19 25%, 20+ 30%; under the minimum prices at the first tier", () => {
-    expect([1, 4, 5, 9, 10, 19, 20, 60].map((k) => tierFor(k, DEFAULT_TIERS).pct)).toEqual([20, 20, 20, 20, 25, 25, 30, 30]);
-    expect(nextTier(7, DEFAULT_TIERS)).toEqual({ pct: 25, kitsNeeded: 3 });
-    expect(nextTier(3, DEFAULT_TIERS)).toEqual({ pct: 25, kitsNeeded: 7 });
+  it("tiers: 5-9 30%, 10-19 35%, 20+ 40%; under the minimum prices at the first tier", () => {
+    expect([1, 4, 5, 9, 10, 19, 20, 60].map((k) => tierFor(k, DEFAULT_TIERS).pct)).toEqual([30, 30, 30, 30, 35, 35, 40, 40]);
+    expect(nextTier(7, DEFAULT_TIERS)).toEqual({ pct: 35, kitsNeeded: 3 });
+    expect(nextTier(3, DEFAULT_TIERS)).toEqual({ pct: 35, kitsNeeded: 7 });
     expect(nextTier(25, DEFAULT_TIERS)).toBeNull();
   });
 
@@ -39,24 +39,29 @@ describe("wholesale rules", () => {
     expect(q.rejected).toEqual([]);
     expect(q.kits).toBe(7);
     expect(q.belowMinimum).toBe(false);
-    expect(q.tier.pct).toBe(20);
-    expect(q.items.map((i) => [i.packQty, i.listUnitCents, i.unitPriceCents, i.lineTotalCents])).toEqual([[KIT_VIALS, 68000, 54400, 272000], [KIT_VIALS, 66000, 52800, 105600]]);
-    expect(q.subtotalCents).toBe(377600);
+    expect(q.tier.pct).toBe(30);
+    expect(q.items.map((i) => [i.packQty, i.listUnitCents, i.unitPriceCents, i.lineTotalCents])).toEqual([[KIT_VIALS, 68000, 47600, 238000], [KIT_VIALS, 66000, 46200, 92400]]);
+    expect(q.subtotalCents).toBe(330400);
     expect(q.shippingCents).toBe(0);           // $300+ ships free
     expect(q.insuranceCents).toBe(550);
-    expect(q.depositCents).toBe(151040);           // 40% of kits
-    expect(q.totalBeforeTaxCents).toBe(377600 + 550);
+    expect(q.depositCents).toBe(132160);           // 40% of kits
+    expect(q.totalBeforeTaxCents).toBe(330400 + 550);
     expect(q).not.toHaveProperty("lotFeeCents");
-    expect(q.balanceBeforeTaxCents).toBe(377600 - 151040 + 550);
+    expect(q.balanceBeforeTaxCents).toBe(330400 - 132160 + 550);
   });
 
   it("flags an order under the minimum (prices still shown at the first tier)", () => {
     const q = priceWholesale([{ slug: "bpc-157", variantId: "10mg", kits: 3 }], kitRows(live), S);
     expect(q.belowMinimum).toBe(true);
     expect(q.kitsToMinimum).toBe(2);
-    expect(q.tier.pct).toBe(20);
+    expect(q.tier.pct).toBe(30);
     const ok = priceWholesale([{ slug: "bpc-157", variantId: "10mg", kits: 5 }], kitRows(live), S);
     expect([ok.belowMinimum, ok.kitsToMinimum]).toEqual([false, 0]);
+  });
+
+  it("an order at the minimum can mix single kits of different strengths", () => {
+    const q = priceWholesale([{ slug: "bpc-157", variantId: "10mg", kits: 3 }, { slug: "tb-500", variantId: "10mg", kits: 1 }, { slug: "retatrutide", variantId: "10mg", kits: 1 }], kitRows(live), S);
+    expect([q.kits, q.belowMinimum, q.tier.pct, q.rejected.length]).toEqual([5, false, 30, 0]);
   });
 
   it("rejects unknown, non-wholesale and bad quantities; merges duplicate lines", () => {
@@ -67,7 +72,7 @@ describe("wholesale rules", () => {
     const m = priceWholesale([{ slug: "bpc-157", variantId: "10mg", kits: 6 }, { slug: "bpc-157", variantId: "10mg", kits: 4 }], kitRows(live), S);
     expect(m.items).toHaveLength(1);
     expect(m.kits).toBe(10);
-    expect(m.tier.pct).toBe(25);
+    expect(m.tier.pct).toBe(35);
   });
 
   it("rejects a merged line over MAX_KITS_PER_LINE and drops it from items", () => {
@@ -102,7 +107,7 @@ describe("wholesale rules", () => {
     const s = parseWholesaleSettings(settingsRow);
     expect(s).toMatchObject({ open: true, depositPct: 40, runDays: 14, leadDays: 28, nextCutoffOverride: null, minKits: 5 });
     expect(() => parseWholesaleSettings({ ...settingsRow, wholesale_tiers: [{ minKits: 1, pct: 20 }, { minKits: 10, pct: 25 }] })).toThrow();
-    expect(() => parseWholesaleSettings({ ...settingsRow, wholesale_tiers: [{ minKits: 5, pct: 20 }, { minKits: 4, pct: 25 }] })).toThrow();
+    expect(() => parseWholesaleSettings({ ...settingsRow, wholesale_tiers: [{ minKits: 4, pct: 25 }, { minKits: 3, pct: 30 }] })).toThrow();
   });
 
   it("featured kits: the five on the signed-out page in order; one not offered is replaced by the next kit", () => {

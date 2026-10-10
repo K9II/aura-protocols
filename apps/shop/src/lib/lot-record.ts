@@ -8,6 +8,9 @@ export const HOME_RECORD_SIZE = 8;
 // Pace of the build: a new run starts every STAGGER ms and takes DRAW ms to draw.
 export const RECORD_STAGGER_MS = 450;
 export const RECORD_DRAW_MS = 1400;
+// Live pulse: a trace sweeps the live run in PULSE_SWEEP_MS, once every PULSE_CYCLE_MS.
+export const PULSE_SWEEP_MS = 2400;
+export const PULSE_CYCLE_MS = 3600;
 
 export type RecordStatus = "live" | "sold_out";
 
@@ -37,9 +40,21 @@ function toRecord(l: PublicLot): RecordLot | null {
 }
 
 // Home: the last N releases across the store (strengths selling now only).
-export function homeRecord(lots: PublicLot[], size = HOME_RECORD_SIZE): RecordLot[] {
-  return lots.filter((l) => l.onStore).sort(newestFirst).map(toRecord).filter((l): l is RecordLot => l !== null).slice(0, size);
+// Lots released on the same shop day as the newest one put featured products
+// first (Alvester, 2026-10-10: at launch every lot goes live the same day, and the
+// record should show the featured lineup, not whichever lots went live last).
+export function homeRecord(lots: PublicLot[], featured: ReadonlySet<string> = new Set(), size = HOME_RECORD_SIZE): RecordLot[] {
+  const released = lots.filter((l) => l.onStore).sort(newestFirst).map(toRecord).filter((l): l is RecordLot => l !== null);
+  if (!released.length) return [];
+  const day = shopDay(released[0].liveAt);
+  const latest = released.filter((l) => shopDay(l.liveAt) === day);
+  const earlier = released.filter((l) => shopDay(l.liveAt) !== day);
+  const isFeatured = (l: RecordLot) => featured.has(l.slug);
+  return [...latest.filter(isFeatured), ...latest.filter((l) => !isFeatured(l)), ...earlier].slice(0, size);
 }
+
+// Calendar day in shop time (America/Denver).
+const shopDay = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Denver", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
 
 // Product page: every released lot of this compound, newest first.
 export function productRecord(lots: PublicLot[], slug: string): RecordLot[] {

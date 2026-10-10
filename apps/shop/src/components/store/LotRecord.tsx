@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  RECORD_DRAW_MS, RECORD_STAGGER_MS, easeInOut, newSince, newsLine, recordGeo, runY, shortDate,
+  PULSE_CYCLE_MS, PULSE_SWEEP_MS, RECORD_DRAW_MS, RECORD_STAGGER_MS, easeInOut, newSince, newsLine, recordGeo, runY, shortDate,
   type RecordLot,
 } from "@/lib/lot-record";
 import { setLotNews, visitBaseline } from "@/lib/lot-news";
@@ -31,8 +31,13 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
   const [sel, setSel] = useState(0);
   const [hover, setHover] = useState(-1);
   const [size, setSize] = useState({ W: 0, H: 0 });
-  const state = useRef({ start: 0, raf: 0 });
+  const state = useRef({ start: 0, raf: 0, begun: false, inView: false });
   const [started, setStarted] = useState(false);
+  // Live pulse (Alvester, 2026-10-10: "I would like for the pulse to continue"):
+  // after the build-in, a bright trace keeps sweeping along the live run — the
+  // newest release on the home page, the in-stock lot on a product page. Runs
+  // only while on screen and the tab is in front; never with reduced motion.
+  const [live, setLive] = useState(false);
   const n = lots.length;
   const product = variant === "product";
 
@@ -47,6 +52,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
   }, [lots, product]);
 
   const reduce = useMemo(() => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches, []);
+
+  const pulseIndex = product ? lots.findIndex((l) => l.status === "live") : 0;
 
   const draw = useCallback((now: number): boolean => {
     const cv = canvasRef.current;
@@ -96,8 +103,28 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
         ctx.beginPath(); ctx.moveTo(ox + g.tw, by + 0.5); ctx.lineTo(ox + g.tw + 10, by + 0.5); ctx.stroke();
       }
     }
-    return !reduce && t < (n - 1) * RECORD_STAGGER_MS + RECORD_DRAW_MS + 40;
-  }, [size, n, lots, hover, sel, fresh, reduce]);
+    // the live pulse, once the build-in has finished
+    const built = (n - 1) * RECORD_STAGGER_MS + RECORD_DRAW_MS;
+    const pi = pulseIndex;
+    if (!reduce && live && pi >= 0 && t > built) {
+      const ph = ((t - built) % PULSE_CYCLE_MS) / PULSE_SWEEP_MS;
+      if (ph <= 1) {
+        const L = lots[pi], ox = pi * g.dx, by = g.y0 - pi * g.dy;
+        const head = easeInOut(ph), tail = Math.max(0, head - 0.09);
+        const grad = ctx.createLinearGradient(ox + tail * g.tw, 0, ox + head * g.tw, 0);
+        grad.addColorStop(0, "rgba(47,107,58,0)"); grad.addColorStop(1, "rgba(47,107,58,.95)");
+        ctx.beginPath();
+        for (let k = Math.floor(tail * steps); k <= Math.ceil(head * steps); k++) {
+          const u = k / steps, x = ox + u * g.tw, y = by + runY(L.lot, L.purityPct, u, g.amp);
+          if (k === Math.floor(tail * steps)) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = grad; ctx.lineWidth = 2.4; ctx.stroke();
+        const hx = ox + head * g.tw, hy = by + runY(L.lot, L.purityPct, head, g.amp);
+        ctx.beginPath(); ctx.arc(hx, hy, 2.6, 0, Math.PI * 2); ctx.fillStyle = "rgba(47,107,58,.95)"; ctx.fill();
+      }
+    }
+    return (!reduce && t < built + 40) || (!reduce && live && pi >= 0);
+  }, [size, n, lots, hover, sel, fresh, reduce, live, pulseIndex]);
 
   // Canvas size follows its box (device pixels capped at 2x).
   useEffect(() => {
@@ -115,16 +142,21 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
     return () => ro.disconnect();
   }, []);
 
-  // Draws once, the first time it comes into view; redraws on hover/selection.
+  // Builds in the first time it comes into view; the live pulse then runs while it
+  // stays in view; redraws on hover/selection.
   useEffect(() => {
     const cv = canvasRef.current;
     if (!cv) return;
     if (typeof IntersectionObserver === "undefined") { state.current.start = performance.now(); setStarted(true); return; }
     const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { state.current.start = performance.now(); setStarted(true); io.disconnect(); }
+      if (e.isIntersecting && !state.current.begun) { state.current.begun = true; state.current.start = performance.now(); setStarted(true); }
+      state.current.inView = e.isIntersecting;
+      setLive(e.isIntersecting && !document.hidden);
     }, { threshold: 0.3 });
     io.observe(cv);
-    return () => io.disconnect();
+    const onVis = () => setLive(state.current.inView && !document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    return () => { io.disconnect(); document.removeEventListener("visibilitychange", onVis); };
   }, []);
   useEffect(() => {
     if (!started) return;
@@ -217,7 +249,7 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
         </div>
         <div className="s-rec-cap s-micro"><span>{capLeft}</span><span>{n === 1 ? "1 lot" : "Newest in front"}</span></div>
         {product && n === 1 && (
-          <p className="s-rec-first">{compoundName}&apos;s first lot. Each new lot joins the record here, in front, with its own certificate.</p>
+          <p className="s-rec-first">The first {compoundName} lot. Each new lot joins the record here, in front, with its own certificate.</p>
         )}
       </div>
       <div className="s-rec-detail" aria-live="polite">

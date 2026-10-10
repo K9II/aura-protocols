@@ -11,7 +11,7 @@ const rows = [
   { slug: "bpc-157", name: "BPC-157", designation: null, chemicalClass: "Peptide Fragments", variantId: "10mg", strength: "10 mg", priceUsd: 65, art },
   { slug: "tb-500", name: "TB-500", designation: null, chemicalClass: "Peptide Fragments", variantId: "10mg", strength: "10 mg", priceUsd: 90, art },
 ];
-const pricing = { tiers: [{ minKits: 5, pct: 20 }, { minKits: 10, pct: 25 }, { minKits: 20, pct: 30 }], depositPct: 40, minKits: 5 };
+const pricing = { tiers: [{ minKits: 5, pct: 25 }, { minKits: 10, pct: 30 }, { minKits: 20, pct: 35 }], depositPct: 40, minKits: 5 };
 const ship = { name: "Dana", line1: "1 Elm", line2: null, city: "Boulder", state: "CO", zip: "80302" };
 
 async function sheet() {
@@ -24,7 +24,7 @@ describe("WholesaleOrderSheet", () => {
 
   it("groups strengths by class, shows the APro designation with the scientific name, and no lot-test charge", async () => {
     await sheet();
-    expect(screen.getByText("— Incretin & Amylin Analogs")).toBeTruthy();
+    expect(screen.getByText("Incretin & Amylin Analogs")).toBeTruthy();
     expect(screen.getByText("APro-G3RT", { selector: ".s-ws-nm" })).toBeTruthy();
     expect(screen.getByText("· Retatrutide · 10 mg")).toBeTruthy();
     expect(screen.queryByText(/lot test/i)).toBeNull();
@@ -37,13 +37,14 @@ describe("WholesaleOrderSheet", () => {
     expect(screen.getByTestId("ws-count").textContent).toBe("1 kit · 10 vials");
     expect(screen.getByText("4 more kits to reach the 5-kit minimum")).toBeTruthy();
     expect((screen.getByRole("button", { name: "Minimum 5 kits" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(/mix any compounds and strengths/)).toBeTruthy();
     for (let i = 0; i < 2; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Order TB-500 10 mg kits" }));
     fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
-    // 3 x $520 + 2 x $720 = $3,000 at 20% off; deposit 40%
-    expect(screen.getByTestId("ws-count").textContent).toBe("5 kits · 50 vials · 20% off");
-    expect(screen.getByText("5 more kits for 25% off")).toBeTruthy();
-    expect(screen.getByTestId("ws-deposit").textContent).toBe("$1,200.00");
+    // 3 x $487.50 + 2 x $675 = $2,812.50 at 25% off; deposit 40%
+    expect(screen.getByTestId("ws-count").textContent).toBe("5 kits · 50 vials · 25% off");
+    expect(screen.getByText("5 more kits for 30% off")).toBeTruthy();
+    expect(screen.getByTestId("ws-deposit").textContent).toBe("$1,125.00");
     expect((screen.getByRole("button", { name: "Continue to checkout" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
@@ -61,7 +62,7 @@ describe("WholesaleOrderSheet", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: "Order BPC-157 10 mg kits" }));
     for (let i = 0; i < 4; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     fireEvent.click(screen.getByRole("button", { name: "Continue to checkout" }));
-    const pay = screen.getByRole("button", { name: /Pay deposit \$1,040\.00/ }) as HTMLButtonElement;
+    const pay = screen.getByRole("button", { name: /Pay deposit \$975\.00/ }) as HTMLButtonElement;
     expect(pay.disabled).toBe(true);
     fireEvent.click(screen.getByText("pass check"));
     fireEvent.click(screen.getByRole("checkbox", { name: /laboratory research use only/ }));

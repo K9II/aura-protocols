@@ -13,10 +13,11 @@ import { ownerPayoutDetailsChangedEmail, ownerW9UploadedEmail, partnerApplicatio
 
 export type ApplyState = { error?: string } | undefined;
 
+const PROMOTION_MIN = 3;
 const applySchema = z.object({
   partnerType: z.enum(PARTNER_TYPE_IDS),
   audienceSize: z.enum(AUDIENCE_SIZE_IDS),
-  promotion: z.string().trim().min(3).max(1000),
+  promotion: z.string().trim().min(PROMOTION_MIN).max(1000),
   agree: z.literal("on"),
 });
 
@@ -52,6 +53,8 @@ export async function applyPartnerAction(_prev: ApplyState, form: FormData): Pro
   const customer = await getCustomer();
   if (!customer) return { error: "Please sign in to apply." };
   if (!customer.emailConfirmed) return { error: "Please verify your email first — check your inbox for the link." };
+  // "How you'll share Aura" is required and can't be blank (Alvester 2026-10-10): its own message.
+  if (String(form.get("promotion") ?? "").trim().length < PROMOTION_MIN) return { error: "Tell us how you'll share Aura — a sentence or two is enough." };
   const parsed = applySchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: "Please choose what you're applying as, fill in every field and accept the Partner Agreement." };
   const { partnerType, audienceSize, promotion } = parsed.data;

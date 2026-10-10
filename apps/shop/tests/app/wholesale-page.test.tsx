@@ -47,9 +47,12 @@ describe("/wholesale", () => {
     expect(screen.getByRole("note", { name: "Minimum 5 kits per order" }).textContent).toMatch(/^5Minimum orderKits \(50 vials\)/);
     expect(text).toMatch(/Every batch is independently tested/);
     expect(text).toMatch(/Offered as kits · 2 strengths/);
-    expect(text).toMatch(/APro-G3RT \(Retatrutide\) 10 mg/);
+    // option C kit cards: name with scientific name, kit size, volume pricing — never a kit price
+    expect(text).toMatch(/APro-G3RT \(Retatrutide\)Kit10 mg × 10 vials/);
+    expect(text).toMatch(/Volume price20–30% off/);
     expect(text).not.toMatch(/KPV/);
-    expect(text).not.toMatch(/\$/);
+    expect(text).not.toMatch(/\$(79|125|55)|\$\d+\.\d\d/);
+    expect(text).toMatch(/Today · 10 days to order/);
     expect(screen.getByRole("link", { name: /sign in to order/i }).getAttribute("href")).toBe("/sign-in?next=%2Fwholesale%3Fstep%3Dorder");
     expect(screen.getByText("Order by")).toBeTruthy();
   });

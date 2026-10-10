@@ -78,9 +78,10 @@ describe("product page", () => {
     expect(within(band).getAllByTestId("mol")).toHaveLength(1);
   });
 
-  it("blends show one model per component and say the parts aren't bonded", async () => {
+  it("blends show one full-size model with a button per component and say the parts aren't bonded", async () => {
     await renderSlug("bpc-157-tb-500-ghk-cu-kpv");
-    expect(screen.getAllByTestId("mol").map((m) => m.textContent)).toEqual(["BPC-157", "TB-500", "GHK-Cu", "KPV"]);
+    expect(screen.getAllByTestId("mol").map((m) => m.textContent)).toEqual(["BPC-157"]);
+    for (const name of ["BPC-157", "TB-500", "GHK-Cu", "KPV"]) expect(screen.getByRole("button", { name })).toBeInTheDocument();
     expect(screen.getByText(/separate molecules, not bonded/)).toBeInTheDocument();
     // pubchem-3d and computed panels share a caption; it appears once.
     expect(screen.getAllByText("Computed model — one of many shapes this molecule can take.")).toHaveLength(1);
