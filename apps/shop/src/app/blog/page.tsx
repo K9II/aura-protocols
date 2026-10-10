@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { posts } from "@/data/posts";
+import { CHEMICAL_CLASSES } from "@/data/catalog";
 import BlogList from "@/components/BlogList";
 import { BLOG_PUBLISHED } from "@/lib/constants";
 
 export const metadata = {
   title: "Research Blog — Aura Protocols",
-  description: "In-depth guides, reviews, and research summaries on the most studied peptides.",
+  description: "Research literature summaries: what laboratory studies have measured for each compound, and where research is heading.",
 };
 
 // post.date is a "Month YYYY" string (e.g. "July 2026") — parse to sort newest-first.
@@ -14,17 +15,11 @@ function parseDate(date: string): number {
   return new Date(`1 ${date}`).getTime();
 }
 
-// Curated filter set — narrower than the full list of category values on
-// individual posts. "Longevity & Wellness" maps to the existing "Wellness"
-// category value; posts tagged Weight Management or Buyer's Guide keep
-// their own category (still shown under "All") but have no dedicated pill.
-const BLOG_FILTERS: { label: string; value: string }[] = [
-  { label: "Recovery", value: "Recovery" },
-  { label: "Body Composition", value: "Body Composition" },
-  { label: "Growth & Performance", value: "Growth & Performance" },
-  { label: "Longevity & Wellness", value: "Wellness" },
-  { label: "Stacks", value: "Stacks" },
-];
+// One pill per chemical class that has a summary (the same categories as the catalog),
+// plus the COA how-to. Order follows the catalog.
+const BLOG_FILTERS: { label: string; value: string }[] = [...CHEMICAL_CLASSES, "Testing & Analysis"]
+  .filter((c) => posts.some((p) => p.category === c))
+  .map((c) => ({ label: c, value: c }));
 
 export default async function BlogPage({
   searchParams,

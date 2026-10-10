@@ -11,6 +11,18 @@ export const SLUG_RENAMES: Record<string, string> = {
   "klow-stack": "bpc-157-tb-500-ghk-cu-kpv",
 };
 
+// Blog posts retired in the research-summary rewrite (2026-10-10). Human-use topics go to
+// the blog index, never to a product's guide (a weight-loss or libido search must not land
+// on a compound); the rest go to the summary that replaced them.
+export const RETIRED_POSTS: Record<string, string> = {
+  "wearable-engine-personalized-peptide-protocol": "/blog",
+  "best-peptides-for-weight-loss": "/blog",
+  "peptides-for-libido-sexual-health": "/blog",
+  "why-glp1-dose-response-varies": "/blog",
+  "wolverine-vs-glow-vs-klow": "/blog/wolverine-stack-research-guide",
+  "cjc-1295-ipamorelin-stack": "/blog/cjc-1295-ipamorelin-research-guide",
+};
+
 // Affiliate-era vendor ids used in /go/aura-<vendor>-<product> links (lib/affiliate.ts, removed).
 const GO_VENDOR_IDS = ["ignite", "peak-lab", "pspeptides", "american-peptides", "evolve", "improved"];
 
@@ -29,7 +41,9 @@ export function buildRedirects({ blogPublished }: { blogPublished: boolean }): R
   }
   out.push({ source: "/go/:path*", destination: "/products", permanent: true });
 
-  if (!blogPublished) {
+  if (blogPublished) {
+    for (const [from, to] of Object.entries(RETIRED_POSTS)) out.push({ source: `/blog/${from}`, destination: to, permanent: true });
+  } else {
     out.push({ source: "/blog", destination: "/", permanent: false });
     out.push({ source: "/blog/:path*", destination: "/", permanent: false });
   }

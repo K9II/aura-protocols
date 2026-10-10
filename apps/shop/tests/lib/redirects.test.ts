@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildRedirects } from "@/lib/redirects";
+import { RETIRED_POSTS, buildRedirects } from "@/lib/redirects";
+import { posts } from "@/data/posts";
 
 const find = (list: ReturnType<typeof buildRedirects>, source: string) => list.find((r) => r.source === source);
 
@@ -33,5 +34,21 @@ describe("redirects", () => {
   it("uses temporary blog redirects only while unpublished", () => {
     expect(find(list, "/blog/:path*")).toEqual({ source: "/blog/:path*", destination: "/", permanent: false });
     expect(find(buildRedirects({ blogPublished: true }), "/blog/:path*")).toBeUndefined();
+  });
+
+  it("once published, retired posts redirect permanently: human-use topics to the blog index, never to a product guide", () => {
+    const pub = buildRedirects({ blogPublished: true });
+    for (const slug of ["best-peptides-for-weight-loss", "peptides-for-libido-sexual-health", "why-glp1-dose-response-varies", "wearable-engine-personalized-peptide-protocol"]) {
+      expect(find(pub, `/blog/${slug}`)).toEqual({ source: `/blog/${slug}`, destination: "/blog", permanent: true });
+    }
+    expect(find(pub, "/blog/cjc-1295-ipamorelin-stack")?.destination).toBe("/blog/cjc-1295-ipamorelin-research-guide");
+  });
+
+  it("retired posts are gone, and every redirect lands on a post that exists", () => {
+    const slugs = new Set(posts.map((p) => p.slug));
+    for (const [from, to] of Object.entries(RETIRED_POSTS)) {
+      expect(slugs.has(from), from).toBe(false);
+      if (to !== "/blog") expect(slugs.has(to.replace("/blog/", "")), to).toBe(true);
+    }
   });
 });
