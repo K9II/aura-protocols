@@ -6,14 +6,25 @@ import AuraLockup from "@/components/AuraLockup";
 import AuthLinks from "@/components/store/AuthLinks";
 import { useCart } from "@/components/store/CartProvider";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
+import { useLotNews } from "@/lib/lot-news";
 
 export default function SiteNav() {
   const { totals, setOpen } = useCart();
   const pathname = usePathname();
+  const news = useLotNews();
   if (pathname?.startsWith("/admin")) return null;
+  // Returning visitor with lots released since their last visit (set by the home lot record).
+  const [newsLead, ...newsItems] = news ? news.split(" · ") : [];
   return (
     <header className="pharmacopoeia sticky top-0 z-50">
       <div className="s-topbar">
+        {news ? (
+          <span>
+            <em>{newsLead}</em>
+            {newsItems.map((t) => <span key={t}>{" · "}<span className="whitespace-nowrap">{t}</span></span>)}
+            {" · "}<span className="whitespace-nowrap">COA on every lot</span>
+          </span>
+        ) : <>
         {/* Narrow screens wrap between phrases; each dot stays at the end of the
             phrase before it, so no line starts with one. Phones get the short
             wording so the bar is two lines, not four (2026-10-10). */}
@@ -28,6 +39,7 @@ export default function SiteNav() {
           <span className="whitespace-nowrap">COA every lot ·</span>{" "}
           <span className="whitespace-nowrap"><em>Free shipping over ${FREE_SHIPPING_THRESHOLD_USD}</em></span>
         </span>
+        </>}
       </div>
       <div className="p-container pt-3.5 pb-2 bg-[color:var(--paper)]">
         {/* Logo left · links centered (Shop first, 2026-10-09) · account + Cart right.

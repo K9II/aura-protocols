@@ -9,6 +9,9 @@ import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import Vial from "@/components/store/Vial";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
+import LotRecord from "@/components/store/LotRecord";
+import { currentMs } from "@/lib/clock";
+import { productRecord } from "@/lib/lot-record";
 import BeforeOrdering from "@/components/store/BeforeOrdering";
 import CompoundCard from "@/components/store/CompoundCard";
 import MoleculeViewer from "@/components/store/MoleculeViewer";
@@ -115,6 +118,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} cap={vialCap(c)} rule={CLASS_COLOR[c.chemicalClass]} strength={c.variants[0].strength} tilt={0} />
               </div>
             </div>
+            <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} />
           </div>
           <div className="relative">
             <p className="s-micro s-pdp-kick">
