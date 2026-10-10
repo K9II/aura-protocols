@@ -43,8 +43,8 @@ describe("costs from the AIOS reference", () => {
     expect(tirz.glp).toBe(true);
     // 67200 − 7100 − (2.9% + 60¢) − 2070 / 5
     expect(kpv.low.tiers[0].profitCents).toBe(Math.round(67200 - 7100 - (67200 * 0.029 + 60) - 2070 / 5));
-    // worst case: the fewest kits allowed per strength (2) share the $150 test
-    expect(kpv.low.worst.profitCents).toBe(Math.round(67200 - 7100 - (67200 * 0.029 + 60) - 2070 / 5 - 15000 / 2));
+    // worst case: a lone kit carries the strength's whole $150 test
+    expect(kpv.low.worst.profitCents).toBe(Math.round(67200 - 7100 - (67200 * 0.029 + 60) - 2070 / 5 - 15000));
     // GLP-1: the processor's 8%, no Stripe fixed fee
     expect(tirz.low.tiers[0].profitCents).toBe(Math.round(60000 - 5300 - 60000 * 0.08 - 2070 / 5));
   });
@@ -104,8 +104,8 @@ describe("kitMargins", () => {
     expect(lo.tiers[0].revenueCents).toBe(67200);
     expect(lo.tiers[0].profitCents).toBe(58891);
     expect(lo.tiers[0].marginPct).toBeCloseTo(87.63, 1);
-    // worst case: 2 kits of the strength (the per-strength minimum) share the $250 lot test
-    expect(lo.worst.profitCents).toBe(58891 - 25000 / 2);
+    // a lone kit carries the whole $250 lot test
+    expect(lo.worst.profitCents).toBe(58891 - 25000);
     expect(rows[0].high.supplier).toBe("LKZ");
     expect(rows[0].high.tiers[2].marginPct).toBeLessThan(lo.tiers[2].marginPct);
   });

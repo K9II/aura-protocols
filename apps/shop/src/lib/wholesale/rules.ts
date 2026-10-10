@@ -10,14 +10,11 @@ export const CUTOFF_ANCHOR = "2026-10-05";   // a Monday; runs close every whole
 export const TESTED_BEFORE_SHIP_DAYS = 5;
 export const WHOLESALE_TERMS_VERSION = "2026-10-08";
 
-// Pricing (2026-10-10): minimum 4 kits; 4-9 25%, 10-19 30%, 20+ 35% — every tier beats
-// the retail 10-pack (STD_PACKS). The first tier starts at the order minimum. Each batch's
-// independent lot test is absorbed in the kit price — never shown as a charge.
+// Pricing (2026-10-10): minimum 5 kits, mixed any way; 5-9 25%, 10-19 30%, 20+ 35% —
+// every tier beats the retail 10-pack (STD_PACKS). The first tier starts at the order
+// minimum. Each batch's independent lot test is absorbed in the kit price — never shown.
 export type Tier = { minKits: number; pct: number };
-export const DEFAULT_TIERS: Tier[] = [{ minKits: 4, pct: 25 }, { minKits: 10, pct: 30 }, { minKits: 20, pct: 35 }];
-// Every strength in an order needs at least this many kits, so a strength's lot test
-// is never carried by a single kit (Alvester 2026-10-10).
-export const MIN_KITS_PER_STRENGTH = 2;
+export const DEFAULT_TIERS: Tier[] = [{ minKits: 5, pct: 25 }, { minKits: 10, pct: 30 }, { minKits: 20, pct: 35 }];
 
 export type WholesaleSettings = {
   open: boolean; tiers: Tier[]; depositPct: number; balanceDays: number; runDays: number; leadDays: number; nextCutoffOverride: string | null;
@@ -104,7 +101,6 @@ export type KitLine = { slug: string; variantId: string; kits: number };
 export type WholesaleQuote = {
   items: PricedItem[]; rejected: Rejection[]; kits: number; tier: Tier;
   belowMinimum: boolean; kitsToMinimum: number;
-  short: KitLine[];                 // strengths ordered below MIN_KITS_PER_STRENGTH
   subtotalCents: number; shippingCents: number; insuranceCents: number;
   depositCents: number;             // charged at checkout (no tax): depositPct of the kits
   balanceBeforeTaxCents: number;    // the rest of the kits + shipping + insurance; tax is added from the checkout quote
@@ -141,7 +137,6 @@ export function priceWholesale(lines: KitLine[], rows: KitRow[], s: PricingSetti
   const totalBeforeTaxCents = subtotalCents + shippingCents + insuranceCents;
   return {
     items, rejected, kits, tier, belowMinimum: kits < s.minKits, kitsToMinimum: Math.max(0, s.minKits - kits),
-    short: [...merged.values()].filter((m) => m.kits < MIN_KITS_PER_STRENGTH).map((m) => ({ slug: m.row.slug, variantId: m.row.variantId, kits: m.kits })),
     subtotalCents, shippingCents, insuranceCents, depositCents, balanceBeforeTaxCents: totalBeforeTaxCents - depositCents, totalBeforeTaxCents,
   };
 }

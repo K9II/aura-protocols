@@ -54,7 +54,7 @@ describe("orders", () => {
     const { createPendingWholesaleOrder } = await import("@/lib/orders");
     const quote = { items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide", variantId: "10mg", strength: "10 mg", packQty: 10, quantity: 2,
       listUnitCents: 68000, packPct: 25, unitPriceCents: 51000, lineTotalCents: 102000, lotNumber: "" }],
-      rejected: [], kits: 2, tier: { minKits: 4, pct: 25 }, belowMinimum: true, kitsToMinimum: 2, short: [],
+      rejected: [], kits: 2, tier: { minKits: 5, pct: 25 }, belowMinimum: true, kitsToMinimum: 3,
       subtotalCents: 102000, shippingCents: 0, insuranceCents: 550,
       depositCents: 40800, balanceBeforeTaxCents: 61750, totalBeforeTaxCents: 102550 };
     const r = await createPendingWholesaleOrder({ customerId: "c1", email: "j@lab.org", ship, quote, cutoffOn: "2026-10-19", taxCents: 8000, taxCalculationId: "taxcalc_1", kitBoxCents: 450 });

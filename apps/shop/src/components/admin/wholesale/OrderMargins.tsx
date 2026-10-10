@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { orderMargin, type CostInputs, type KitMargin } from "@/lib/wholesale/margins";
-import { MIN_KITS_PER_STRENGTH as PER } from "@/lib/wholesale/rules";
 
 const usd = (c: number) => `${c < 0 ? "−" : ""}$${Math.round(Math.abs(c) / 100).toLocaleString("en-US")}`;
 const usd2 = (c: number) => `${c < 0 ? "−" : ""}$${(Math.abs(c) / 100).toFixed(2)}`;
@@ -13,17 +12,15 @@ type Line = { key: string; kits: number };
 export default function OrderMargins({ rows, mode, costs }: { rows: KitMargin[]; mode: "low" | "high"; costs: CostInputs }) {
   const byName = [...rows].sort((a, b) => a.name.localeCompare(b.name) || a.kitListCents - b.kitListCents);
   const min = costs.minKits;
-  // The worst case for the lab first: the minimum spread over as many strengths as allowed.
-  const spread = Math.max(1, Math.floor(min / PER));
   const presets: Array<[string, Line[]]> = [
-    [`${spread} strengths × ${PER} kits`, byName.slice(0, spread).map((r, i) => ({ key: r.key, kits: PER + (i === 0 ? min - spread * PER : 0) }))],
-    [`1 strength × ${min} kits`, byName.slice(0, 1).map((r) => ({ key: r.key, kits: Math.max(min, PER) }))],
+    [`${min} strengths × 1 kit`, byName.slice(0, min).map((r) => ({ key: r.key, kits: 1 }))],
+    [`1 strength × ${min} kits`, byName.slice(0, 1).map((r) => ({ key: r.key, kits: min }))],
     ["2 strengths × 5 kits", byName.slice(0, 2).map((r) => ({ key: r.key, kits: 5 }))],
   ];
   const [lines, setLines] = useState<Line[]>(presets[0][1]);
   const [adding, setAdding] = useState(byName[0]?.key ?? "");
-  const set = (key: string, kits: number) => setLines((ls) => ls.map((l) => (l.key === key ? { ...l, kits: Math.max(PER, Math.min(50, kits || PER)) } : l)));
-  const add = () => setLines((ls) => (ls.some((l) => l.key === adding) ? ls.map((l) => (l.key === adding ? { ...l, kits: l.kits + 1 } : l)) : [...ls, { key: adding, kits: PER }]));
+  const set = (key: string, kits: number) => setLines((ls) => ls.map((l) => (l.key === key ? { ...l, kits: Math.max(1, Math.min(50, kits || 1)) } : l)));
+  const add = () => setLines((ls) => (ls.some((l) => l.key === adding) ? ls.map((l) => (l.key === adding ? { ...l, kits: l.kits + 1 } : l)) : [...ls, { key: adding, kits: 1 }]));
   const used = lines.flatMap((l) => { const m = rows.find((r) => r.key === l.key); return m ? [{ m, kits: l.kits }] : []; });
   const o = orderMargin(used, mode, costs);
   const f = costs.fulfillment;
@@ -39,7 +36,7 @@ export default function OrderMargins({ rows, mode, costs }: { rows: KitMargin[];
             <div className="a-km-scroll"><table className="a-t"><thead><tr><th>Strength</th><th className="num">Kits</th><th className="num">Lab test</th><th /></tr></thead>
               <tbody>{used.map(({ m, kits }) => (
                 <tr key={m.key}><td>{m.name} {m.strength}{m.glp && <span className="a-km-flag">GLP-1</span>}</td>
-                  <td className="num"><input type="number" min={PER} max={50} value={kits} onChange={(e) => set(m.key, Number(e.target.value))} aria-label={`Kits of ${m.name} ${m.strength}`} /></td>
+                  <td className="num"><input type="number" min={1} max={50} value={kits} onChange={(e) => set(m.key, Number(e.target.value))} aria-label={`Kits of ${m.name} ${m.strength}`} /></td>
                   <td className="num">{usd(m.labCents)}</td>
                   <td><button type="button" className="a-km-mini ghost" onClick={() => setLines((ls) => ls.filter((l) => l.key !== m.key))} aria-label={`Remove ${m.name} ${m.strength}`}>Remove</button></td></tr>
               ))}</tbody></table></div>

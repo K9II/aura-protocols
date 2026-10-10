@@ -22,8 +22,8 @@ vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-09T18:00:00
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/headers", () => ({ headers: async () => new Map([["user-agent", "UA"]]) }));
 
-const settings = { open: true, tiers: [{ minKits: 4, pct: 25 }, { minKits: 10, pct: 30 }, { minKits: 20, pct: 35 }], depositPct: 40, balanceDays: 7, runDays: 14, leadDays: 28, nextCutoffOverride: null,
-  minKits: 4 };
+const settings = { open: true, tiers: [{ minKits: 5, pct: 25 }, { minKits: 10, pct: 30 }, { minKits: 20, pct: 35 }], depositPct: 40, balanceDays: 7, runDays: 14, leadDays: 28, nextCutoffOverride: null,
+  minKits: 5 };
 const customer = (o: Record<string, unknown> = {}) => ({ id: "c1", email: "j@lab.org", fullName: "Jane", emailConfirmed: true, stripeCustomerId: null,
   research: { field: "independent", org: "Lab", verifiedAt: "x" }, wholesale: { enabledAt: "2026-10-01T00:00:00Z", disabledAt: null }, ...o });
 const ship = { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state: "TX", zip: "78701" };
@@ -80,22 +80,12 @@ describe("wholesale actions", () => {
   it("start: an order under the minimum is refused before any work", async () => {
     getCustomer.mockResolvedValue(customer());
     const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
-    const r = await startWholesaleCheckoutAction({ ...input, lines: [{ slug: "bpc-157", variantId: "10mg", kits: 3 }] });
-    expect(r.error).toMatch(/at least 4 kits/i);
+    const r = await startWholesaleCheckoutAction({ ...input, lines: [{ slug: "bpc-157", variantId: "10mg", kits: 4 }] });
+    expect(r.error).toMatch(/at least 5 kits/i);
     expect(verifyHumanCheck).not.toHaveBeenCalled();
     expect(createPendingWholesaleOrder).not.toHaveBeenCalled();
   });
 
-  it("start: a strength under 2 kits is refused before any work; split lines of one strength count together", async () => {
-    getCustomer.mockResolvedValue(customer());
-    const { startWholesaleCheckoutAction } = await import("@/app/wholesale/actions");
-    const r = await startWholesaleCheckoutAction({ ...input, lines: [{ slug: "bpc-157", variantId: "10mg", kits: 4 }, { slug: "tb-500", variantId: "10mg", kits: 1 }] });
-    expect(r.error).toMatch(/each strength needs at least 2 kits/i);
-    expect(verifyHumanCheck).not.toHaveBeenCalled();
-    expect(createPendingWholesaleOrder).not.toHaveBeenCalled();
-    const split = await startWholesaleCheckoutAction({ ...input, lines: [{ slug: "bpc-157", variantId: "10mg", kits: 3 }, { slug: "tb-500", variantId: "10mg", kits: 1 }, { slug: "tb-500", variantId: "10mg", kits: 1 }] });
-    expect(split.error ?? "").not.toMatch(/each strength/i);
-  });
 
   it("start: a failed human check creates nothing", async () => {
     getCustomer.mockResolvedValue(customer());

@@ -9,7 +9,7 @@ import MinimumKits from "@/components/store/wholesale/MinimumKits";
 import WholesaleOrderSheet from "@/components/store/wholesale/WholesaleOrderSheet";
 import WholesaleTurnOn from "@/components/store/wholesale/WholesaleTurnOn";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
-import { cutoffFor, estimatedDates, kitRows, MIN_KITS_PER_STRENGTH, type WholesaleSettings } from "@/lib/wholesale/rules";
+import { cutoffFor, estimatedDates, kitRows, type WholesaleSettings } from "@/lib/wholesale/rules";
 import { withArt } from "@/lib/wholesale/art";
 import { getAccountState } from "@/lib/dal";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
@@ -69,7 +69,7 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
   const live = await getLiveCatalogOrNull();
   const rows = live ? withArt(kitRows(live.shown)) : null;
   const pricing = { tiers: s.tiers, depositPct: s.depositPct, minKits: s.minKits };
-  const rules = <MinimumKits minKits={s.minKits} perStrength={MIN_KITS_PER_STRENGTH} />;
+  const rules = <MinimumKits minKits={s.minKits} />;
 
   let body: React.ReactNode;
   if (!customer || !ordering) {

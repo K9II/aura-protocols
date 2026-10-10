@@ -1,5 +1,5 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
-import { KIT_VIALS, MIN_KITS_PER_STRENGTH } from "@/lib/wholesale/rules";
+import { KIT_VIALS } from "@/lib/wholesale/rules";
 import { BALANCE_REMINDER_DAY, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS } from "@/lib/wholesale/runs";
 
 const days = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
@@ -53,7 +53,7 @@ export default function Wholesale() {
       watch={[
         <>Link the right lot: check the lot number on the certificate against the boxes before choosing <Ui>Pass</Ui>. Passing can&apos;t be undone.</>,
         <>If one payment of a wholesale order is refunded in the Stripe dashboard you get an alert; refund the order from <Ui>Orders</Ui> so both payments and the stock are handled.</>,
-        <>Every strength in an order needs at least {MIN_KITS_PER_STRENGTH} kits, so no lot test is carried by a single kit; the order sheet adds and removes kits of a strength in steps that respect it. An order at the minimum can still be several strengths at {MIN_KITS_PER_STRENGTH} kits each, each paying its own lot test. <Ui>Margins</Ui> with the slider at {MIN_KITS_PER_STRENGTH} shows that worst case.</>,
+        <>The minimum is per order, not per strength: an order at the minimum can be all different strengths, each paying its own lot test. <Ui>Margins</Ui> with the slider at 1 shows that worst case.</>,
         <>Keep ordering off in <Ui>Settings</Ui> until the payment processor approves the deposit and balance charges.</>,
       ]}
     />

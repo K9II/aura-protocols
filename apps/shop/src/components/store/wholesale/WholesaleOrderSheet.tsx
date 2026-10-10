@@ -8,7 +8,7 @@ import HumanCheck from "@/components/account/HumanCheck";
 import KitBox from "@/components/store/wholesale/KitBox";
 import TierTable from "@/components/store/wholesale/TierTable";
 import { startWholesaleCheckoutAction } from "@/app/wholesale/actions";
-import { KIT_VIALS, MAX_KITS_PER_LINE, MIN_KITS_PER_STRENGTH, kitTitle, nextTier, priceWholesale, type KitSheetRow, type PricingSettings } from "@/lib/wholesale/rules";
+import { KIT_VIALS, MAX_KITS_PER_LINE, kitTitle, nextTier, priceWholesale, type KitSheetRow, type PricingSettings } from "@/lib/wholesale/rules";
 import type { Rejection } from "@/lib/pricing";
 import { usd } from "@/lib/html";
 import MinimumKits from "@/components/store/wholesale/MinimumKits";
@@ -40,9 +40,6 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
   const q = useMemo(() => priceWholesale(lines, rows, pricing), [lines, rows, pricing]);
   const next = nextTier(q.kits, pricing.tiers);
   const setN = (r: KitSheetRow, n: number) => setKits((k) => ({ ...k, [key(r)]: Math.min(MAX_KITS_PER_LINE, Math.max(0, n)) }));
-  // A strength is ordered at MIN_KITS_PER_STRENGTH or more, or not at all: the steppers skip below it.
-  const up = (n: number) => (n === 0 ? MIN_KITS_PER_STRENGTH : n + 1);
-  const down = (n: number) => (n <= MIN_KITS_PER_STRENGTH ? 0 : n - 1);
   const set = (k: keyof Addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr((a) => ({ ...a, [k]: e.target.value }));
   const classes = [...new Set(rows.map((r) => r.chemicalClass))];
 
@@ -85,7 +82,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
       <div className="s-ws-ln s"><span>Balance when your lot passes</span><span>{usd(q.balanceBeforeTaxCents)} + tax</span></div>
       <div className="s-ws-ln s"><span>Shipping</span><span>{q.shippingCents ? usd(q.shippingCents) : "Free"}</span></div>
       {step === "sheet"
-        ? <button type="button" className="s-ws-btn" disabled={q.belowMinimum || q.short.length > 0 || rejected.length > 0} onClick={() => { setError(null); setStep("checkout"); }}>
+        ? <button type="button" className="s-ws-btn" disabled={q.belowMinimum || rejected.length > 0} onClick={() => { setError(null); setStep("checkout"); }}>
             {q.belowMinimum ? `Minimum ${pricing.minKits} kits` : "Continue to checkout"}</button>
         : <>
             {verified && error && <p role="alert" className="mt-3 text-sm text-[color:var(--specimen)]">{error}</p>}
@@ -100,7 +97,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
     return (
       <>
         <TierTable tiers={pricing.tiers} activePct={q.belowMinimum ? null : q.tier.pct} />
-        <MinimumKits minKits={pricing.minKits} perStrength={MIN_KITS_PER_STRENGTH} />
+        <MinimumKits minKits={pricing.minKits} />
         {error && <p role="alert" className="mb-3 text-sm text-[color:var(--specimen)]">{error}</p>}
         <div className="s-ws-grid">
           <div className="s-ws-sheet-panel">
@@ -119,7 +116,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
                     return (
                       <tr key={key(r)} className={n ? "on" : "off"} style={{ "--cls": CLASS_COLOR[r.chemicalClass as ChemicalClass] ?? "var(--ink)" } as CSSProperties}>
                         <td className="cbx"><input type="checkbox" className="s-ws-cb" checked={n > 0} aria-label={`Order ${label} kits`}
-                          onChange={(e) => setN(r, e.target.checked ? MIN_KITS_PER_STRENGTH : 0)} /></td>
+                          onChange={(e) => setN(r, e.target.checked ? 1 : 0)} /></td>
                         <td className="pic"><KitBox title={t.title} strength={r.strength} art={r.art} width={92} /></td>
                         <td>
                           <span className="s-ws-nm">{t.title}</span> <span className="s-ws-pv s-ws-inl">· {t.scientific ? `${t.scientific} · ` : ""}{r.strength}</span>
@@ -130,9 +127,9 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
                         <td className="s-ws-kp">{usd(unit)}<br /><span className="s-ws-pv">{usd(Math.round(unit / KIT_VIALS))} / vial</span></td>
                         <td>
                           <span className={n ? "s-ws-step" : "s-ws-step dis"}>
-                            <button type="button" aria-label={`Remove a ${label} kit`} disabled={n === 0} onClick={() => { setN(r, down(n)); if (flagged && down(n) === 0) setRejected((x) => x.filter((y) => key(y) !== key(r))); }}>−</button>
+                            <button type="button" aria-label={`Remove a ${label} kit`} disabled={n === 0} onClick={() => { setN(r, n - 1); if (flagged && n === 1) setRejected((x) => x.filter((y) => key(y) !== key(r))); }}>−</button>
                             <span className="n" aria-live="polite">{n}</span>
-                            <button type="button" aria-label={`Add a ${label} kit`} onClick={() => setN(r, up(n))}>+</button>
+                            <button type="button" aria-label={`Add a ${label} kit`} onClick={() => setN(r, n + 1)}>+</button>
                           </span>
                         </td>
                       </tr>

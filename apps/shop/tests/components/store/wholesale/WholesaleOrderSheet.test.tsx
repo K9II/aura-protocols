@@ -11,7 +11,7 @@ const rows = [
   { slug: "bpc-157", name: "BPC-157", designation: null, chemicalClass: "Peptide Fragments", variantId: "10mg", strength: "10 mg", priceUsd: 65, art },
   { slug: "tb-500", name: "TB-500", designation: null, chemicalClass: "Peptide Fragments", variantId: "10mg", strength: "10 mg", priceUsd: 90, art },
 ];
-const pricing = { tiers: [{ minKits: 4, pct: 25 }, { minKits: 10, pct: 30 }, { minKits: 20, pct: 35 }], depositPct: 40, minKits: 4 };
+const pricing = { tiers: [{ minKits: 5, pct: 25 }, { minKits: 10, pct: 30 }, { minKits: 20, pct: 35 }], depositPct: 40, minKits: 5 };
 const ship = { name: "Dana", line1: "1 Elm", line2: null, city: "Boulder", state: "CO", zip: "80302" };
 
 async function sheet() {
@@ -31,19 +31,16 @@ describe("WholesaleOrderSheet", () => {
     expect(screen.getByText(/Every batch is independently tested/)).toBeTruthy();
   });
 
-  it("a checkbox adds two kits (the per-strength minimum); checkout stays locked until the 4-kit minimum", async () => {
+  it("a checkbox adds one kit; checkout stays locked until the 5-kit minimum", async () => {
     await sheet();
     fireEvent.click(screen.getByRole("checkbox", { name: "Order BPC-157 10 mg kits" }));
-    expect(screen.getByTestId("ws-count").textContent).toBe("2 kits · 20 vials");
-    expect(screen.getByText("2 more kits to reach the 4-kit minimum")).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Minimum 4 kits" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByText(/at least 2 kits of each/)).toBeTruthy();
-    // − from 2 removes the strength (never 1 kit); + from 0 adds 2
-    fireEvent.click(screen.getByRole("button", { name: "Remove a BPC-157 10 mg kit" }));
-    expect(screen.getByTestId("ws-count").textContent).toBe("0 kits · 0 vials");
-    fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
-    fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
+    expect(screen.getByTestId("ws-count").textContent).toBe("1 kit · 10 vials");
+    expect(screen.getByText("4 more kits to reach the 5-kit minimum")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Minimum 5 kits" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(/mix any compounds and strengths/)).toBeTruthy();
+    for (let i = 0; i < 2; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Order TB-500 10 mg kits" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
     // 3 x $487.50 + 2 x $675 = $2,812.50 at 25% off; deposit 40%
     expect(screen.getByTestId("ws-count").textContent).toBe("5 kits · 50 vials · 25% off");
     expect(screen.getByText("5 more kits for 30% off")).toBeTruthy();
@@ -63,7 +60,7 @@ describe("WholesaleOrderSheet", () => {
     startWholesaleCheckoutAction.mockResolvedValue({ error: "Card declined" });
     await sheet();
     fireEvent.click(screen.getByRole("checkbox", { name: "Order BPC-157 10 mg kits" }));
-    for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
+    for (let i = 0; i < 4; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     fireEvent.click(screen.getByRole("button", { name: "Continue to checkout" }));
     const pay = screen.getByRole("button", { name: /Pay deposit \$975\.00/ }) as HTMLButtonElement;
     expect(pay.disabled).toBe(true);

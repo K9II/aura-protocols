@@ -3,14 +3,14 @@
 import { useMemo, useState } from "react";
 import type { CostInputs, KitMargin, SupplierCase } from "@/lib/wholesale/margins";
 import { median, orderFulfillmentCents } from "@/lib/wholesale/margins";
-import { MIN_KITS_PER_STRENGTH, type Tier } from "@/lib/wholesale/rules";
+import type { Tier } from "@/lib/wholesale/rules";
 import OrderMargins from "@/components/admin/wholesale/OrderMargins";
 import CompetitorCheck from "@/components/admin/wholesale/CompetitorCheck";
 const usd = (c: number) => `$${Math.round(c / 100).toLocaleString("en-US")}`;
 const pct = (n: number) => `${n.toFixed(1)}%`;
 
 // Margin after the strength's lot test is shared by `kits` kits in the run. The lot
-// test is absorbed (never shown to buyers); at least MIN_KITS_PER_STRENGTH kits share it.
+// test is absorbed (never shown to buyers); one kit alone carries all of it.
 function withTest(sc: SupplierCase, tierIdx: number, testCents: number, kits: number) {
   const t = sc.tiers[tierIdx];
   const profit = t.profitCents - testCents / kits;
@@ -23,8 +23,7 @@ function withTest(sc: SupplierCase, tierIdx: number, testCents: number, kits: nu
 export default function KitMarginsChart({ rows, missing, costs, labName, syncedAt }: { rows: KitMargin[]; missing: string[]; costs: CostInputs; labName: string | null; syncedAt: string | null }) {
   const tiers = costs.tiers, f = costs.fulfillment;
   const [mode, setMode] = useState<"low" | "high">("low");
-  const [kits, setKits] = useState(MIN_KITS_PER_STRENGTH);
-  const fewest = kits === MIN_KITS_PER_STRENGTH;
+  const [kits, setKits] = useState(1);
   const [hover, setHover] = useState<number | null>(null);
   const first = 0, last = tiers.length - 1;
   const sorted = useMemo(() => [...rows].sort((a, b) => b[mode].tiers[first].marginPct - a[mode].tiers[first].marginPct), [rows, mode]);
@@ -44,7 +43,7 @@ export default function KitMarginsChart({ rows, missing, costs, labName, syncedA
       <div className="a-kpis" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
         <div className="a-kpi"><div className="l">{tierLabel(tiers[first], first)}</div><div className="v">{pct(median(sorted.map((r) => at(r).tiers[first].marginPct)))}</div><div className="d">median margin per kit</div></div>
         <div className="a-kpi"><div className="l">{tierLabel(tiers[last], last)}</div><div className="v">{pct(median(sorted.map((r) => at(r).tiers[last].marginPct)))}</div><div className="d">median margin per kit</div></div>
-        <div className="a-kpi"><div className="l">{fewest ? `Fewest kits per strength (${kits})` : `${kits} kits share the test`}</div><div className="v">{pct(median(sorted.map((r) => shared(r).margin)))}</div><div className="d">median at {tiers[first].pct}% off, lot test included</div></div>
+        <div className="a-kpi"><div className="l">{kits === 1 ? "Only kit of its strength" : `${kits} kits share the test`}</div><div className="v">{pct(median(sorted.map((r) => shared(r).margin)))}</div><div className="d">median at {tiers[first].pct}% off, lot test included</div></div>
         <div className="a-kpi"><div className="l">Lowest at {tiers[last].pct}% off</div><div className="v">{pct(at(lowest).tiers[last].marginPct)}</div><div className="d">{lowest.name} {lowest.strength}</div></div>
       </div>
 
@@ -56,18 +55,18 @@ export default function KitMarginsChart({ rows, missing, costs, labName, syncedA
         </div>
         <label className="a-km-kits">
           <span className="l">Kits of each strength in the run</span>
-          <input type="range" min={MIN_KITS_PER_STRENGTH} max={10} value={kits} onChange={(e) => setKits(Number(e.target.value))} aria-describedby="km-kits-help" />
+          <input type="range" min={1} max={10} value={kits} onChange={(e) => setKits(Number(e.target.value))} aria-describedby="km-kits-help" />
           <b>{kits}</b>
         </label>
       </div>
-      <p className="a-km-help" id="km-kits-help">Each run tests every strength once ({labName ?? "lab"}, {labRange} per strength, absorbed). Kits of the same strength share it, from all buyers in the run, so the ring moves right as more kits share the test. Each strength needs at least {MIN_KITS_PER_STRENGTH} kits, so at {MIN_KITS_PER_STRENGTH} the test is shared by the fewest kits allowed: the worst case.</p>
+      <p className="a-km-help" id="km-kits-help">Each run tests every strength once ({labName ?? "lab"}, {labRange} per strength, absorbed). Kits of the same strength share it, from all buyers in the run, so the ring moves right as more kits share the test. At 1, a lone kit pays the whole test: the worst case.</p>
 
       <div className="a-card">
         <div className="a-card-h"><h3>Margin by strength</h3>
           <div className="r a-km-legend" aria-hidden="true">
             <span><i style={{ background: "#6da7ec" }} />{tierLabel(tiers[first], first)}</span>
             <span><i style={{ background: "#1c5cab" }} />{tierLabel(tiers[last], last)}</span>
-            <span><i className="ring" />{fewest ? `${kits} kits of its strength (the fewest allowed) share the test` : `${kits} kits share the test`}</span>
+            <span><i className="ring" />{kits === 1 ? "Only kit of its strength (pays the whole test)" : `${kits} kits share the test`}</span>
           </div></div>
         <div className="a-card-b a-km-plot">
           <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Margin per kit by strength at the lowest and highest volume discounts, with the lot test shared by the chosen number of kits">
@@ -107,7 +106,7 @@ export default function KitMarginsChart({ rows, missing, costs, labName, syncedA
                   <tr><td>Kit cost</td><td>{usd(sc.costCents)}</td></tr>
                   <tr><td>Lab test</td><td>{usd(r.labCents)}</td></tr>
                   {sc.tiers.map((t) => <tr key={t.pct}><td>{t.pct}% off</td><td>{pct(t.marginPct)} · {usd(t.profitCents)}</td></tr>)}
-                  <tr><td>{`${kits} kits share test`}</td><td>{pct(s.margin)} · {usd(s.profit)}</td></tr>
+                  <tr><td>{kits === 1 ? "Lone kit + test" : `${kits} kits share test`}</td><td>{pct(s.margin)} · {usd(s.profit)}</td></tr>
                 </tbody></table>
               </div>
             );
@@ -139,7 +138,7 @@ export default function KitMarginsChart({ rows, missing, costs, labName, syncedA
       <details className="a-km-table">
         <summary>Table view</summary>
         <table className="a-t">
-          <thead><tr><th>Strength</th><th className="num">Kit at list</th><th>Supplier box</th>{tiers.map((t) => <th key={t.pct} className="num">{t.pct}% off</th>)}<th className="num">{`${kits} share test`}</th></tr></thead>
+          <thead><tr><th>Strength</th><th className="num">Kit at list</th><th>Supplier box</th>{tiers.map((t) => <th key={t.pct} className="num">{t.pct}% off</th>)}<th className="num">{kits === 1 ? "Lone kit + test" : `${kits} share test`}</th></tr></thead>
           <tbody>{sorted.map((r) => { const sc = at(r), s = shared(r); return (
             <tr key={r.key}><td>{r.name} {r.strength}</td><td className="num">{usd(r.kitListCents)}</td><td>{usd(sc.boxCents)} · {sc.supplier}</td>
               {sc.tiers.map((t) => <td key={t.pct} className="num">{pct(t.marginPct)} · {usd(t.profitCents)}</td>)}
