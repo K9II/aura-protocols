@@ -127,28 +127,22 @@ export function classCounts(list: Compound[]): Array<{ cls: ChemicalClass; count
     .filter((x) => x.count > 0);
 }
 
-// Material & testing (spec §4). PLACEHOLDER until sourcing confirms the
-// supplier's process and our lab's panel — the release check fails while true.
-export const MATERIAL_TESTING_PLACEHOLDER = true;
+// "Made by" row in Compound data (the Material & testing section was removed
+// 2026-10-10; testing is shown by the lot boxes, certificate and trust row).
+// PLACEHOLDER until sourcing confirms each supplier's process — the release
+// check fails while true.
+export const MADE_BY_PLACEHOLDER = true;
 
-export type MaterialRow = { label: string; value: string };
-
-const NON_PEPTIDE = new Set(["nad-plus", "slu-pp-332"]);
-const SYNTHESIS: Record<string, string> = {
+const NOT_HPLC_PURIFIED = new Set(["nad-plus", "slu-pp-332"]);
+const PROCESS: Record<string, string> = {
   "nad-plus": "Chemical synthesis",
   "slu-pp-332": "Chemical synthesis",
   "igf-1-lr3": "Recombinant expression",
   "glutathione": "Fermentation",
-  "ghk-cu": "Solid-phase peptide synthesis (SPPS), then copper complexation",
+  "ghk-cu": "Solid-phase synthesis, then copper complexation",
 };
 
-export function materialTestingRows(c: Compound): MaterialRow[] {
-  const rows: MaterialRow[] = [{ label: "Synthesis", value: SYNTHESIS[c.slug] ?? "Solid-phase peptide synthesis (SPPS)" }];
-  if (!NON_PEPTIDE.has(c.slug)) rows.push({ label: "Purification", value: "Preparative HPLC" });
-  rows.push(
-    { label: "Identity", value: "Mass spectrometry, every lot" },
-    { label: "Purity", value: "Analytical HPLC, every lot" },
-    { label: "Certificate", value: "Posted for each lot before it ships" },
-  );
-  return rows;
+export function madeBy(c: { slug: string }): string {
+  const process = PROCESS[c.slug] ?? "Solid-phase synthesis";
+  return NOT_HPLC_PURIFIED.has(c.slug) ? process : `${process}, HPLC-purified`;
 }

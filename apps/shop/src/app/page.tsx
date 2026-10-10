@@ -4,10 +4,13 @@ import ScrollReveal from "@/components/ScrollReveal";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import FromTheRecord from "@/components/store/FromTheRecord";
+import LotRecord from "@/components/store/LotRecord";
+import TrustRow from "@/components/store/TrustRow";
 import Unavailable from "@/components/store/Unavailable";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
-import { PURITY_FLOOR_PCT } from "@/lib/constants";
+import { currentMs } from "@/lib/clock";
+import { homeRecord } from "@/lib/lot-record";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 
 export const metadata: Metadata = {
@@ -42,14 +45,15 @@ export default async function HomePage() {
               <Link href="/products" className="p-btn-primary">Shop the lineup →</Link>
               <Link href="/coa" className="p-btn-outline">See the COAs</Link>
             </div>
-            <div className="s-proof s-micro load-in load-5">
-              <span>{PURITY_FLOOR_PCT}% purity floor</span><span>Lot-matched COAs</span><span>Free at ${FREE_SHIPPING_THRESHOLD_USD}+</span>
-            </div>
+            <TrustRow className="load-in load-5" />
           </div>
           <div className="load-in load-5 s-hero-sphere">
             <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
           </div>
         </section>
+
+        {/* last lot releases; hidden until the first lot is released */}
+        <LotRecord lots={homeRecord(live.lots)} variant="home" nowMs={currentMs()} />
 
         <FromTheRecord />
 
@@ -71,8 +75,8 @@ export default async function HomePage() {
           <div>
             {faq.map(({ q, a }) => (
               <details key={q} className="border-t border-[color:var(--line)] py-4">
-                <summary className="cursor-pointer text-[15px] flex justify-between">{q}<span className="text-[color:var(--specimen)]">+</span></summary>
-                <p className="text-sm text-[color:var(--ink-soft)] mt-3 max-w-[70ch]">{a}</p>
+                <summary className="cursor-pointer text-[17px] flex justify-between">{q}<span className="text-[color:var(--specimen)]">+</span></summary>
+                <p className="text-[16px] text-[color:var(--ink-soft)] mt-3 max-w-[70ch]">{a}</p>
               </details>
             ))}
           </div>
