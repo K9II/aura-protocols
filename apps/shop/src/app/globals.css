@@ -496,6 +496,15 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia .s-nav-actions .s-nav-shop, .pharmacopoeia .s-nav-signout { display: none; }
   .pharmacopoeia .s-nav-actions { white-space: nowrap; }
 }
+/* narrowest phones: logo + Admin/Account/Cart must share one row without overlapping */
+@media (max-width: 400px) {
+  /* the header already has a 16px gutter; the nav's own side padding would double it */
+  .pharmacopoeia .s-nav { column-gap: 10px; padding-left: 0; padding-right: 0; }
+  .pharmacopoeia .s-nav-logo { zoom: .88; }
+  .pharmacopoeia .s-nav-actions { gap: 8px; }
+  .pharmacopoeia .s-nav-auth, .pharmacopoeia .s-nav-cart { font-size: 14px; }
+  .pharmacopoeia .s-nav-cart.s-nav-cart-full { padding: 6px 8px; }
+}
 
 /* hero */
 .pharmacopoeia .s-hero { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 24px; padding: 30px 0 44px; }
