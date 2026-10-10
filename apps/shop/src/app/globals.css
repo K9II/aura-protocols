@@ -552,28 +552,38 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-card:hover .s-card-ph, .pharmacopoeia .s-card:focus-visible .s-card-ph { transform: translate(-2px, -3px); box-shadow: 0 1px 0 rgba(28,26,21,.05), 10px 14px 24px -10px rgba(28,26,21,.32); }
 .pharmacopoeia .s-card:focus-visible { outline: none; }
 .pharmacopoeia .s-card:focus-visible .s-card-info { outline: 2px solid var(--specimen); outline-offset: 2px; }
-.pharmacopoeia .s-card-ph { position: relative; height: 330px; background: var(--record); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.28); transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s; }
-.pharmacopoeia .s-placard { position: absolute; left: 8%; top: 12%; width: 66%; height: 70%; background: var(--label); border: 1px solid #DCD5C3; border-top: 4px solid var(--cls); box-shadow: 3px 5px 12px -5px rgba(28,26,21,.30); padding: 7% 8%; display: flex; flex-direction: column; gap: 6px; transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+.pharmacopoeia .s-card-ph { position: relative; height: 330px; background: var(--record); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.28); transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s; container-type: inline-size; }
+.pharmacopoeia .s-placard { position: absolute; left: 8%; top: 15%; width: 66%; height: 67%; background: var(--label); border: 1px solid #DCD5C3; border-top: 4px solid var(--cls); box-shadow: 3px 5px 12px -5px rgba(28,26,21,.30); padding: 7% 8%; display: flex; flex-direction: column; gap: 6px; transition: transform .45s cubic-bezier(.2,.7,.2,1); }
 .pharmacopoeia .s-placard-k { font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--cls); }
-.pharmacopoeia .s-placard-n { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: clamp(20px, 2.2vw, 28px); line-height: 1.02; letter-spacing: -.01em; margin-top: 4px; overflow-wrap: anywhere; }
+.pharmacopoeia .s-placard-n { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: clamp(17px, 7.6cqi, 22px); line-height: 1.05; letter-spacing: -.01em; margin-top: 4px; }
 .pharmacopoeia .s-placard-id { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .04em; color: var(--ink-soft); overflow-wrap: anywhere; }
 .pharmacopoeia .s-placard-r { margin-top: auto; font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); border-top: 1px solid #DCD5C3; padding-top: 6px; max-width: 58%; }
-.pharmacopoeia .s-card-vial { position: absolute; right: 6%; bottom: 9%; width: 42%; filter: drop-shadow(5px 8px 7px rgba(28,26,21,.22)); transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+/* placard text stays left of the vial, which stands in front of the placard's right side */
+.pharmacopoeia .s-placard-k, .pharmacopoeia .s-placard-n, .pharmacopoeia .s-placard-id { max-width: 76%; }
+.pharmacopoeia .s-placard-id span { white-space: nowrap; }
+.pharmacopoeia .s-card-vial { position: absolute; right: 5%; bottom: 9%; width: 37%; filter: drop-shadow(5px 8px 7px rgba(28,26,21,.22)); transition: transform .45s cubic-bezier(.2,.7,.2,1); }
 .pharmacopoeia .s-card-vial svg { display: block; width: 100%; height: auto; filter: none !important; }
 .pharmacopoeia .s-card:hover .s-card-vial { transform: translate(-3px, -5px); }
 .pharmacopoeia .s-card:hover .s-placard { transform: translate(2px, 1px); }
 @media (prefers-reduced-motion: reduce) { .pharmacopoeia .s-card, .pharmacopoeia .s-card-vial, .pharmacopoeia .s-placard { transition: none; } }
 @media (max-width: 640px) {
   .pharmacopoeia .s-card-ph { height: 250px; }
-  .pharmacopoeia .s-placard { padding: 8% 7%; gap: 3px; width: 72%; height: 62%; }
-  .pharmacopoeia .s-placard-n { font-size: 15px; overflow-wrap: normal; word-break: keep-all; }
+  /* top 16%: the stock flag sits above the placard, not over its corner */
+  .pharmacopoeia .s-placard { padding: 8% 7%; gap: 3px; width: 72%; top: 16%; height: 58%; }
+  .pharmacopoeia .s-placard-n { font-size: 15px; }
   .pharmacopoeia .s-placard-id { font-size: 9px; }
   .pharmacopoeia .s-placard-k { font-size: 8px; }
   .pharmacopoeia .s-placard-r { display: none; }
+  /* the tile height is fixed, so cap the vial's size: wider phones would grow it into the name and CAS */
+  .pharmacopoeia .s-card-vial { width: min(42%, 66px); }
 }
-/* narrowest phones: name only on the placard (CAS stays on the product page);
-   the COA tag shortens to "◇ COA" so it clears the vial */
-@media (max-width: 420px) { .pharmacopoeia .s-card-ph .s-coa-more { display: none; } .pharmacopoeia .s-placard-id { display: none; } .pharmacopoeia .s-placard-n { font-size: 14px; } }
+/* phones in a two-up grid: name only on the placard (the vial would cover the CAS;
+   it stays on the product page) */
+@media (max-width: 480px) { .pharmacopoeia .s-placard-id { display: none; } }
+/* narrow tiles (4-up on small laptops, phones): "◇ COA" so it fits beside the stock flag */
+@container (max-width: 250px) { .pharmacopoeia .s-card-ph .s-coa-more { display: none; } }
+/* narrowest phones: the COA tag shortens to "◇ COA" so it clears the vial */
+@media (max-width: 420px) { .pharmacopoeia .s-card-ph .s-coa-more { display: none; } .pharmacopoeia .s-placard-n { font-size: 14px; } }
 .pharmacopoeia .s-coa-tag { z-index: 4; position: absolute; top: 12px; left: 12px; font-size: 12px; padding: 4px 10px; white-space: nowrap; background: var(--paper); border: 1px solid #B9CDBE; color: var(--tested); }
 .pharmacopoeia .s-flag { position: absolute; top: 12px; right: 12px; z-index: 4; padding: 5px 8px; background: var(--specimen); color: var(--paper); font-size: 11.5px; }
 .pharmacopoeia .s-flag--out { background: var(--ink); }

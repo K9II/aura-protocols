@@ -17,7 +17,8 @@ export default function CompoundCard({ compound: c, index = 0 }: { compound: Com
   const anyLow = c.variants.some((v) => v.stock === "low");
   const price = `from ${formatUsd(fromPackPriceUsd(c))}`;
   const color = CLASS_COLOR[c.chemicalClass];
-  const idLine = c.identity.cas ? `CAS ${c.identity.cas}` : c.identity.formula;
+  // the number never breaks (CAS hyphens would split it); "CAS" can wrap above it
+  const idLine = c.identity.cas ? <>CAS <span>{c.identity.cas}</span></> : c.identity.formula;
   return (
     <Link href={`/products/${c.slug}`} className="s-card" style={{ "--cls": color } as CSSProperties}>
       <div className="s-card-ph">
