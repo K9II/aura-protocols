@@ -95,7 +95,7 @@ export default function BiosignatureSphere({ nodes, pairs }: { nodes: SphereNode
     // width (~2x on a 390px screen) instead of shrinking with a 720px canvas.
     // Same breakpoint as the phone rules in globals.css (.s-hero-sphere bleed).
     const compact = window.matchMedia("(max-width: 640px)").matches;
-    const W = compact ? 460 : 720, H = compact ? 440 : 600;
+    const W = compact ? 460 : 720, H = compact ? 470 : 640;
     canvas.width = W * dpr;
     canvas.height = H * dpr;
     const maybeCtx = canvas.getContext("2d");
@@ -104,8 +104,11 @@ export default function BiosignatureSphere({ nodes, pairs }: { nodes: SphereNode
     ctx.scale(dpr, dpr);
 
     const cx = W / 2, cy = H / 2;
-    const persp = 460, R = 130, ringR = compact ? 160 : 220;
-    const ringYFactor = compact ? 0.95 : 0.72;
+    // Sphere 25% larger on desktop (2026-10-10); perspective scales with it so the
+    // shape is unchanged. Phones have no spare width, so they grow a little less.
+    const SCALE = compact ? 1.12 : 1.25;
+    const persp = 460 * SCALE, R = 130 * SCALE, ringR = compact ? 172 : 250;
+    const ringYFactor = compact ? 0.95 : 0.8;
 
     const cloud = makeCloudPoints(130, R);
 
