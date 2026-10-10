@@ -795,6 +795,14 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-about-refs { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .pharmacopoeia .s-mol-stage { position: relative; height: 520px; background: radial-gradient(circle at 50% 50%, var(--paper) 0, var(--paper-deep) 70%); }
 @media (max-width: 900px) { .pharmacopoeia .s-mol-stage { height: 340px; } }
+/* phones: the model is fitted by its width (it spins about y), so the stage has an
+   empty band above it. Tuck that band under the text instead of shrinking the model;
+   the text stays on top so the PubChem link keeps working. */
+@media (max-width: 640px) {
+  .pharmacopoeia .s-about-inner { row-gap: 0; }
+  .pharmacopoeia .s-about-inner > div:first-child { position: relative; z-index: 1; }
+  .pharmacopoeia .s-about-inner .s-mol-stage { margin-top: -48px; margin-bottom: -40px; }
+}
 .pharmacopoeia .s-mol-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); }
 .pharmacopoeia .s-mol-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .pharmacopoeia .s-mol-cell { position: relative; background: var(--paper-deep); }
