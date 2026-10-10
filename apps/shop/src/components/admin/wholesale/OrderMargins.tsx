@@ -33,13 +33,13 @@ export default function OrderMargins({ rows, mode, costs }: { rows: KitMargin[];
       <div className="a-card-b">
         <div className="a-km-order-grid">
           <div>
-            <table className="a-t"><thead><tr><th>Strength</th><th className="num">Kits</th><th className="num">Lab test</th><th /></tr></thead>
+            <div className="a-km-scroll"><table className="a-t"><thead><tr><th>Strength</th><th className="num">Kits</th><th className="num">Lab test</th><th /></tr></thead>
               <tbody>{used.map(({ m, kits }) => (
                 <tr key={m.key}><td>{m.name} {m.strength}{m.glp && <span className="a-km-flag">GLP-1</span>}</td>
                   <td className="num"><input type="number" min={1} max={50} value={kits} onChange={(e) => set(m.key, Number(e.target.value))} aria-label={`Kits of ${m.name} ${m.strength}`} /></td>
                   <td className="num">{usd(m.labCents)}</td>
                   <td><button type="button" className="a-km-mini ghost" onClick={() => setLines((ls) => ls.filter((l) => l.key !== m.key))} aria-label={`Remove ${m.name} ${m.strength}`}>Remove</button></td></tr>
-              ))}</tbody></table>
+              ))}</tbody></table></div>
             <div className="a-km-add">
               <select value={adding} onChange={(e) => setAdding(e.target.value)} aria-label="Strength to add">
                 {byName.map((r) => <option key={r.key} value={r.key}>{r.name} {r.strength}</option>)}
