@@ -661,7 +661,9 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-ghost { z-index: 0; }
 .pharmacopoeia .s-pdp > .relative { z-index: 1; }
 /* Monograph placard tile (approved 2026-10-10, MOTS-c demo): ~80% opaque so the ghost name shows through */
-.pharmacopoeia .s-media { position: relative; z-index: 1; display: grid; align-content: start; }
+.pharmacopoeia .s-media { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; }
+/* the lot table scrolls inside its own box rather than widening the column */
+.pharmacopoeia .s-media > * { min-width: 0; }
 .pharmacopoeia .s-pdp-tile { position: relative; aspect-ratio: 1 / 1.04; background: rgba(244, 241, 234, .8); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 10px 14px 28px -14px rgba(28,26,21,.32); container-type: inline-size; }
 .pharmacopoeia .s-pdp-placard { position: absolute; left: 8%; top: max(11%, 54px); width: 64%; bottom: 13%; background: var(--label); border: 1px solid #DCD5C3; border-top: 5px solid var(--cls); box-shadow: 5px 8px 18px -8px rgba(28,26,21,.32); padding: 6.5% 7%; display: flex; flex-direction: column; gap: 8px; }
 /* text stays left of the vial, which stands in front of the placard's right side */
@@ -1076,3 +1078,72 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-topics label:focus-within { outline: 2px solid var(--specimen); outline-offset: 2px; }
 .pharmacopoeia .s-contact-sent { border: 1px solid var(--line); border-left: 3px solid #2E6A3E; padding: 16px 18px; max-width: 36rem; }
 .pharmacopoeia .s-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+/* Lot record (approved 2026-10-10; components/store/LotRecord.tsx) */
+.pharmacopoeia .s-rec-band { position: relative; }
+.pharmacopoeia .s-rec-band canvas { display: block; width: 100%; height: 250px; }
+.pharmacopoeia .s-rec--product .s-rec-band canvas { height: 260px; }
+.pharmacopoeia .s-rec-labels { position: absolute; inset: 0 0 auto 0; pointer-events: none; }
+.pharmacopoeia .s-rec-labels button { pointer-events: auto; position: absolute; transform: translateY(-50%); white-space: nowrap; background: transparent; border: 0; padding: 1px 4px; font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 11.5px; letter-spacing: .06em; color: var(--ink-soft); cursor: pointer; text-align: left; opacity: 0; }
+.pharmacopoeia .s-rec-labels.on button { animation: s-rec-in .3s ease-out both; }
+@keyframes s-rec-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .pharmacopoeia .s-rec-labels button { opacity: 1; } .pharmacopoeia .s-rec-labels.on button { animation: none; } }
+.pharmacopoeia .s-rec-labels button:hover, .pharmacopoeia .s-rec-labels button[aria-pressed="true"] { color: var(--ink); background: rgba(244,241,234,.95); }
+.pharmacopoeia .s-rec-labels button:focus-visible { outline: 2px solid var(--specimen); outline-offset: 1px; }
+.pharmacopoeia .s-rec-labels .tg { margin-left: 8px; padding: 1px 5px; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; border: 1px solid currentColor; }
+.pharmacopoeia .s-rec-labels button.new { color: var(--specimen); }
+/* narrow record: short labels, no tags (red = new, struck = sold out still say it) */
+.pharmacopoeia .s-rec-labels.narrow button { font-size: 10px; letter-spacing: .02em; padding: 1px 2px; }
+.pharmacopoeia .s-rec-labels.narrow .tg { display: none; }
+.pharmacopoeia .s-rec-labels button.out { color: #8A8475; }
+.pharmacopoeia .s-rec-labels button.out .lt { text-decoration: line-through; text-decoration-thickness: 1px; }
+.pharmacopoeia .s-rec-cap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--ink-soft); padding-top: 4px; }
+.pharmacopoeia .s-rec-detail { margin: 12px 0 0; border: 1px solid var(--line); background: var(--record); display: grid; grid-template-columns: repeat(6, auto) 1fr; align-items: stretch; }
+.pharmacopoeia .s-rec-detail > div { padding: 12px 16px; border-right: 1px solid var(--line); display: grid; gap: 3px; align-content: start; }
+.pharmacopoeia .s-rec-detail small { font-size: 10.5px; color: var(--ink-soft); }
+.pharmacopoeia .s-rec-detail b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 18px; }
+.pharmacopoeia .s-rec-detail b.s-mono { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 14px; }
+.pharmacopoeia .s-rec-detail a { align-self: center; justify-self: end; margin-right: 16px; color: var(--tested); border-bottom: 1px solid currentColor; font-size: 15px; white-space: nowrap; }
+@media (max-width: 900px) {
+  .pharmacopoeia .s-rec-detail { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pharmacopoeia .s-rec-detail > div { border-bottom: 1px solid var(--line); }
+  .pharmacopoeia .s-rec-detail > div:nth-child(3n) { border-right: 0; }
+  .pharmacopoeia .s-rec-detail a { grid-column: 1 / -1; justify-self: start; margin: 12px 16px; }
+}
+.pharmacopoeia .s-rec--home { margin: 8px 0 34px; }
+/* product page: under the image, sized to the left column */
+.pharmacopoeia .s-rec--product { margin-top: 30px; }
+.pharmacopoeia .s-rec--product .s-rec-detail { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; }
+.pharmacopoeia .s-rec--product .s-rec-detail > div { border-bottom: 1px solid var(--line); }
+.pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3n) { border-right: 0; }
+.pharmacopoeia .s-rec--product .s-rec-detail a { grid-column: 1 / -1; justify-self: start; margin: 12px 16px; }
+.pharmacopoeia .s-rec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 6px; padding-top: 18px; border-top: 1px solid var(--line); }
+.pharmacopoeia .s-rec-h { margin: 0; font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1; }
+.pharmacopoeia .s-rec-h em { color: var(--specimen); }
+.pharmacopoeia .s-rec-head .s-micro { font-size: 11px; color: var(--ink-soft); }
+/* phones say "Tap a run"; wider screens "Hover or tap a run" */
+.pharmacopoeia .s-rec-hint-phone { display: none; }
+@media (max-width: 480px) { .pharmacopoeia .s-rec-hint-wide { display: none; } .pharmacopoeia .s-rec-hint-phone { display: inline; } }
+.pharmacopoeia .s-rec--product .s-rec-cap { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); line-height: 1.6; row-gap: 4px; }
+.pharmacopoeia .s-rec-first { margin: 16px 0 0; padding: 12px 14px; line-height: 1.5; border: 1px dashed var(--line); font-size: 14.5px; color: var(--ink-soft); background: rgba(244,241,234,.6); }
+.pharmacopoeia .s-rec-table { margin-top: 14px; overflow-x: auto; border: 1px solid var(--line); background: var(--label); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.18); }
+.pharmacopoeia .s-rec-table table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.pharmacopoeia .s-rec-table th { text-align: left; font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--record); white-space: nowrap; }
+.pharmacopoeia .s-rec-table td { padding: 10px 12px; border-bottom: 1px solid #E3DDCD; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pharmacopoeia .s-rec-table td:first-child { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 13px; }
+.pharmacopoeia .s-rec-table tr:last-child td { border-bottom: 0; }
+.pharmacopoeia .s-rec-table tbody tr { cursor: pointer; }
+.pharmacopoeia .s-rec-table tbody tr:hover td { background: #F1EDE4; }
+.pharmacopoeia .s-rec-table tbody tr[aria-selected="true"] td { background: #EFEBE2; }
+.pharmacopoeia .s-rec-table tbody tr[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--cls, var(--ink)); }
+.pharmacopoeia .s-rec-table tbody tr:focus-visible { outline: 2px solid var(--specimen); outline-offset: -2px; }
+.pharmacopoeia .s-rec-table .st-live { color: var(--tested); }
+.pharmacopoeia .s-rec-table .st-out { color: #8A8475; }
+@media (max-width: 480px) {
+  .pharmacopoeia .s-rec-band canvas, .pharmacopoeia .s-rec--product .s-rec-band canvas { height: 210px; }
+  .pharmacopoeia .s-rec-head { flex-wrap: wrap; row-gap: 4px; }
+  .pharmacopoeia .s-rec-detail, .pharmacopoeia .s-rec--product .s-rec-detail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pharmacopoeia .s-rec-detail > div:nth-child(3n), .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3n) { border-right: 1px solid var(--line); }
+  .pharmacopoeia .s-rec-detail > div:nth-child(2n), .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(2n) { border-right: 0; }
+  .pharmacopoeia .s-rec-detail b.s-mono { font-size: 13px; }
+}

@@ -4,10 +4,13 @@ import ScrollReveal from "@/components/ScrollReveal";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import FromTheRecord from "@/components/store/FromTheRecord";
+import LotRecord from "@/components/store/LotRecord";
 import TrustRow from "@/components/store/TrustRow";
 import Unavailable from "@/components/store/Unavailable";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
+import { currentMs } from "@/lib/clock";
+import { homeRecord } from "@/lib/lot-record";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 
 export const metadata: Metadata = {
@@ -48,6 +51,9 @@ export default async function HomePage() {
             <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
           </div>
         </section>
+
+        {/* last lot releases; hidden until the first lot is released */}
+        <LotRecord lots={homeRecord(live.lots)} variant="home" nowMs={currentMs()} />
 
         <FromTheRecord />
 
