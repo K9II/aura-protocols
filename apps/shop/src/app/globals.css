@@ -1283,6 +1283,13 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-kc-pills button i { width: 9px; height: 9px; background: var(--cls); display: inline-block; }
 .pharmacopoeia .s-kc-pills button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .pharmacopoeia .s-kc-pills button:focus-visible { outline: 2px solid var(--specimen); outline-offset: 2px; }
+.pharmacopoeia .s-kc-more { display: flex; justify-content: center; margin: -6px 0 28px; }
+.pharmacopoeia .s-kc-more a { border: 1px solid var(--line); background: var(--record); color: var(--ink); padding: 8px 14px; font: 14px Georgia, serif; text-decoration: none; }
+.pharmacopoeia .s-kc-more a:hover { border-color: var(--ink); }
+.pharmacopoeia .s-kc-more a:focus-visible { outline: 2px solid var(--specimen); outline-offset: 2px; }
+/* featured kits: one row of five on wide screens; an odd last card centres on two columns */
+@media (min-width: 1100px) { .pharmacopoeia .s-kc-grid.s-kc-feat { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 28px 16px; } }
+@media (max-width: 900px) { .pharmacopoeia .s-kc-grid.s-kc-feat > :last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 7px); } }
 .pharmacopoeia .s-kc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 22px; margin: 0 0 30px; padding: 0; list-style: none; }
 .pharmacopoeia .s-kc-card { display: grid; align-content: start; min-width: 0; }
 .pharmacopoeia .s-kc-tile { height: 220px; display: grid; place-items: center; padding: 16px; background: var(--record); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.28); }

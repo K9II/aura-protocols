@@ -26,4 +26,15 @@ describe("KitCards (wholesale option C)", () => {
     fireEvent.click(screen.getByRole("button", { name: "All 3" }));
     expect(container.querySelectorAll(".s-kc-card")).toHaveLength(3);
   });
+
+  it("with seeAllHref: only the five featured kits, no pills, and a See all link to the order sheet", () => {
+    const many = [...ROWS, ...["tb-500", "ghk-cu", "semax", "selank"].map((s) => row(s, s.toUpperCase(), "Peptide Fragments"))];
+    const { container } = render(<KitCards rows={many} tiers={TIERS} seeAllHref="/wholesale?step=order" />);
+    expect(container.querySelectorAll(".s-kc-card")).toHaveLength(5);
+    expect(screen.getByText("Featured kits · 5 of 7 strengths")).toBeTruthy();
+    expect(screen.queryByRole("group", { name: "Show kits by class" })).toBeNull();
+    // featured order first: BPC-157, then Retatrutide
+    expect([...container.querySelectorAll(".s-kc-nm")].slice(0, 2).map((n) => n.textContent)).toEqual(["BPC-157", "APro-G3RT (Retatrutide)"]);
+    expect(screen.getByRole("link", { name: "See all 7 kits →" }).getAttribute("href")).toBe("/wholesale?step=order");
+  });
 });

@@ -83,7 +83,7 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
           <li>Pay the balance when your lot passes.</li>
           <li>Your kits ship with the lot&apos;s certificate.</li>
         </ol>
-        {rows && rows.length > 0 && <KitCards rows={rows} tiers={s.tiers} />}
+        {rows && rows.length > 0 && <KitCards rows={rows} tiers={s.tiers} seeAllHref={customer ? ORDER_HREF : `/sign-in?next=${encodeURIComponent(ORDER_HREF)}`} />}
         <TrustRow className="s-ws-trust" />
         {customer
           ? <Link href={ORDER_HREF} className="s-ws-btn">Start an order →</Link>
