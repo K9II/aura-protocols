@@ -222,6 +222,7 @@ describe("Today: disputes section", () => {
       toOrder: [{ id: "r3", number: "R-1003", days: 2, strengths: ["APro-G3RT (Retatrutide) 10 mg"] }],
       failed: [{ runId: "r2", number: "R-1002", label: "APro-G3RT (Retatrutide) 10 mg" }],
       balances: { due: 3, overdue: 1 },
+      newBuyers: [],
     })!;
     expect(sec.tone).toBe("red");
     expect(sec.n).toBe(3);
@@ -231,6 +232,24 @@ describe("Today: disputes section", () => {
       ["", "3 balances due · 1 overdue", "amb"],
       ["R-1004", "Closes Nov 2", "slate"],
     ]);
-    expect(wholesaleSection({ collecting: null, toOrder: [], failed: [], balances: { due: 0, overdue: 0 } })).toBeNull();
+    expect(wholesaleSection({ collecting: null, toOrder: [], failed: [], balances: { due: 0, overdue: 0 }, newBuyers: [] })).toBeNull();
+  });
+
+  it("new buyers: one line each, red near the order-by date, counted, with a Reviewed action", () => {
+    const sec = wholesaleSection({
+      collecting: null, toOrder: [], failed: [], balances: { due: 0, overdue: 0 },
+      newBuyers: [
+        { customerId: "c1", name: "Dana Reyes", organization: "Reyes Lab", email: "dana@reyeslab.org", field: "pharmacology", orders: ["AP-1052"], kits: 6, depositCents: 124000, cutoffOn: "2026-10-19", red: true, runId: "r5" },
+        { customerId: "c2", name: "Sam Ito", organization: null, email: "sam@ito.org", field: null, orders: ["AP-1055", "AP-1058"], kits: 10, depositCents: 200000, cutoffOn: "2026-11-02", red: false, runId: null },
+      ],
+    })!;
+    expect(sec.n).toBe(2);
+    expect(sec.tone).toBe("red");
+    expect(sec.lines.map((l) => [l.mono, l.title, l.tone, l.href])).toEqual([
+      ["AP-1052", "New wholesale buyer · Dana Reyes · Reyes Lab", "red", "/admin/wholesale/runs/r5"],
+      ["AP-1055 +1", "New wholesale buyer · Sam Ito", "slate", "/admin/customers/c2"],
+    ]);
+    expect(sec.lines[0].detail).toBe("dana@reyeslab.org · Pharmacology · 6 kits · $1,240.00 deposit");
+    expect(sec.lines[0].action).toEqual({ label: "Reviewed", review: { customerId: "c1", name: "Dana Reyes" } });
   });
 });

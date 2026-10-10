@@ -2,12 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
 
 let from: ReturnType<typeof fromQueue>;
+let unreviewed: unknown[] = [];
 const rpc = vi.fn();
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t), rpc }) }));
-vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: async () => ({ runDays: 14, nextCutoffOverride: null, balanceDays: 7 }) }));
+vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: async () => ({ runDays: 14, nextCutoffOverride: null, balanceDays: 7 }), unreviewedBuyers: async () => unreviewed }));
 
 describe("run data", () => {
-  beforeEach(() => { vi.resetModules(); rpc.mockReset(); });
+  beforeEach(() => { vi.resetModules(); rpc.mockReset(); unreviewed = []; });
 
   it("ensureRun calls ensure_production_run and throws on error", async () => {
     rpc.mockResolvedValueOnce({ data: "r1", error: null });
@@ -62,6 +63,20 @@ describe("run data", () => {
       toOrder: [{ id: "r2", number: "R-1002", days: 8, strengths: ["TB-500 10 mg"] }],
       failed: [{ runId: "r2", number: "R-1002", label: "APro-G3RT (Retatrutide) 10 mg" }],
       balances: { due: 2, overdue: 1 },
+      newBuyers: [],
     });
+  });
+
+  it("wholesaleTodos adds unreviewed buyers with their run id", async () => {
+    unreviewed = [{ orderId: "o1", orderNumber: "AP-1052", customerId: "c1", name: "Dana Reyes", organization: null, email: "d@x.org", field: null, depositCents: 100000, kits: 5, cutoffOn: "2026-10-19" }];
+    const runs = query({ data: [{ id: "r19", number: "R-1003", cutoff_on: "2026-10-19", notes: "", created_at: "x" }] });
+    const due = query({ data: [] });
+    const orders = query({ data: [
+      { id: "o1", order_number: "AP-1052", status: "deposit_paid", wholesale_cutoff_on: "2026-10-19", order_items: [{ compound_slug: "bpc-157", variant_id: "10mg", quantity: 5 }] },
+    ] });
+    from = fromQueue({ production_runs: [runs], orders: [due, orders] });
+    const { wholesaleTodos } = await import("@/lib/wholesale/runs-data");
+    const out = await wholesaleTodos(Date.parse("2026-10-13T16:00:00Z"));
+    expect(out.newBuyers).toEqual([expect.objectContaining({ customerId: "c1", runId: "r19", red: false })]);
   });
 });

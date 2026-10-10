@@ -26,7 +26,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       <Crumbs items={[{ label: "Today" }]} />
       <div className="a-ph"><div><h1>Today</h1><p>{headerDate(currentMs())}</p></div><div className="actions"><Link className="a-ulink" href="/admin/alerts">Past alerts</Link></div></div>
       <div className="a-today">
-        <Todos slots={slots} reloadHref={reloadHref} can={{ resolve: can(staff, "alerts.resolve"), warnings: can(staff, "disputes.warnings"), announce: can(staff, "email.draft") }} />
+        <Todos slots={slots} reloadHref={reloadHref} can={{ resolve: can(staff, "alerts.resolve"), warnings: can(staff, "disputes.warnings"), announce: can(staff, "email.draft"), review: can(staff, "wholesale.manage") }} />
         <Numbers period={period} view={numbers.ok ? numbers.view : null} reloadHref={reloadHref} />
       </div>
     </div>

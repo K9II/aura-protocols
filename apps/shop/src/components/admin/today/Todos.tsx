@@ -6,6 +6,7 @@ import { Icon } from "@/components/admin/ui";
 import AlertDone from "@/components/admin/today/AlertDone";
 import { announceAction } from "@/app/admin/email/actions";
 import WarningAction from "@/components/admin/disputes/WarningAction";
+import ReviewedButton from "@/components/admin/wholesale/ReviewedButton";
 import type { Slot, TodoLine, TodoSection } from "@/lib/today/todos";
 
 function Title({ l }: { l: TodoLine }) {
@@ -13,7 +14,7 @@ function Title({ l }: { l: TodoLine }) {
   return l.href ? <Link href={l.href}>{l.title}</Link> : <>{l.title}</>;
 }
 
-type Can = { resolve: boolean; warnings: boolean; announce: boolean };
+type Can = { resolve: boolean; warnings: boolean; announce: boolean; review: boolean };
 
 function Action({ a, can }: { a: NonNullable<TodoLine["action"]>; can: Can }) {
   if ("announce" in a) {
@@ -21,6 +22,7 @@ function Action({ a, can }: { a: NonNullable<TodoLine["action"]>; can: Can }) {
     return <form action={announceAction}><button type="submit" className="a-btn sm"><Icon name="send" />{a.label}</button></form>;
   }
   if ("warning" in a) return can.warnings ? <WarningAction w={a.warning} dialogKey={`today-${a.warning.id}`} /> : null;
+  if ("review" in a) return can.review ? <ReviewedButton customerId={a.review.customerId} name={a.review.name} /> : null;
   return <Link className="a-btn sm" href={a.href}>{a.icon && <Icon name={a.icon} />}{a.label}</Link>;
 }
 
