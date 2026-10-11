@@ -16,6 +16,7 @@ function matches(q: string) {
   const needle = q.trim().toLowerCase();
   return (c: Compound) =>
     c.name.toLowerCase().includes(needle) ||
+    (c.designation ?? "").toLowerCase().includes(needle) ||
     (c.identity.cas ?? "").includes(needle) ||
     c.variants.some((v) => !isPendingLot(v.lot) && v.lot.lot.toLowerCase() === needle);
 }

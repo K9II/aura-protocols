@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
 import {
   findCompound, compoundsInClass, relatedCompounds,
-  isPendingLot, vialLabel, vialCap, classCounts, strengthMg, packOptions, strengthInPriceUnit,
+  isPendingLot, vialLabel, vialParts, vialCap, classCounts, strengthMg, packOptions, strengthInPriceUnit,
   fromPackPriceUsd, toPackPriceUsd, perVialUsd,
 } from "@/lib/catalog";
 import { catalogContent } from "@/data/catalog";
@@ -51,6 +51,22 @@ describe("catalog helpers", () => {
     expect(vialLabel(fixture[0])).toBe("Alpha");
     expect(vialLabel({ ...fixture[0], name: "PT-141 (Bremelanotide)" })).toBe("PT-141");
     expect(vialLabel({ ...fixture[0], name: "SS-31 (Elamipretide)" })).toBe("SS-31");
+  });
+
+  it("a designation leads the vial label (blend nicknames, APro names)", () => {
+    expect(vialLabel({ ...fixture[2], name: "BPC-157 / TB-500 / GHK-Cu / KPV", designation: "KLOW" })).toBe("KLOW");
+    const named = Object.fromEntries(catalogContent.filter((c) => c.designation).map((c) => [c.slug, c.designation]));
+    expect(named).toMatchObject({ "bpc-157-tb-500-blend": "Wolverine", "bpc-157-tb-500-ghk-cu": "GLOW", "bpc-157-tb-500-ghk-cu-kpv": "KLOW" });
+  });
+
+  it("vialParts: a blend's components, two per line, for the small type under a nickname", () => {
+    const find = (slug: string) => catalogContent.find((c) => c.slug === slug)!;
+    expect(vialParts(find("bpc-157-tb-500-blend"))).toEqual(["BPC-157 · TB-500"]);
+    expect(vialParts(find("bpc-157-tb-500-ghk-cu"))).toEqual(["BPC-157 · TB-500", "GHK-Cu"]);
+    expect(vialParts(find("bpc-157-tb-500-ghk-cu-kpv"))).toEqual(["BPC-157 · TB-500", "GHK-Cu · KPV"]);
+    // no nickname, no parts line: the full name (or "first +") is already on the label
+    expect(vialParts(find("bpc-157"))).toEqual([]);
+    expect(vialParts({ ...find("bpc-157-tb-500-blend"), designation: undefined })).toEqual([]);
   });
 
   // Measured in-browser 2026-09-28: at the smallest name size (10.5) an

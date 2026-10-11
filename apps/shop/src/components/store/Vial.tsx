@@ -21,9 +21,10 @@ type VialProps = {
   width?: number;        // rendered width; height keeps the 120:200 ratio
   cap?: keyof typeof CAPS;
   rule?: string;         // label hairlines: the chemical class colour (lib/class-colors.ts); specimen red by default
+  parts?: string[];      // a nicknamed blend's components (vialParts()), printed small in place of LYOPHILIZED
 };
 
-export default function Vial({ id, label, strength, tilt = -10, width = 160, cap: capColor = "red", rule = "#A32B1F" }: VialProps) {
+export default function Vial({ id, label, strength, tilt = -10, width = 160, cap: capColor = "red", rule = "#A32B1F", parts = [] }: VialProps) {
   // A class colour reads as a band, so it draws a little heavier than the red hairline.
   const ruleWidth = rule === "#A32B1F" ? 0.8 : 1.6;
   const nameSize = label.length > 9 ? 10.5 : label.length > 7 ? 12.5 : 14;
@@ -116,9 +117,16 @@ export default function Vial({ id, label, strength, tilt = -10, width = 160, cap
       <text x="26" y="127" style={{ fontFamily: "var(--font-sans), Inter, sans-serif" }} fontSize="8.5" fill="#A32B1F">{strength}</text>
       <line x1="26" y1="133" x2="94" y2="133" stroke="#C9C2AE" strokeWidth=".8" />
       {/* Every line must end before x=94 (the paper label's right margin). */}
-      <text x="26" y="141.5" style={MONO} fontSize="5.4" fill="#4A4438" letterSpacing=".4">LYOPHILIZED</text>
-      <text x="26" y="148.5" style={MONO} fontSize="5.4" fill="#4A4438" letterSpacing=".4">RESEARCH USE ONLY</text>
-      <text x="26" y="155.5" style={MONO} fontSize="5.4" fill="#4A4438" letterSpacing=".2">NOT FOR HUMAN USE</text>
+      {parts.length > 1 ? <>
+        {/* Two lines of components: everything below steps down to a smaller size to fit. */}
+        {parts.slice(0, 2).map((t, i) => <text key={t} x="26" y={140 + i * 5.6} style={MONO} fontSize="4.8" fill="#1C1A15" letterSpacing=".2">{t}</text>)}
+        <text x="26" y="151.6" style={MONO} fontSize="5" fill="#4A4438" letterSpacing=".4">RESEARCH USE ONLY</text>
+        <text x="26" y="157.4" style={MONO} fontSize="5" fill="#4A4438" letterSpacing=".2">NOT FOR HUMAN USE</text>
+      </> : <>
+        <text x="26" y="141.5" style={MONO} fontSize="5.4" fill={parts.length ? "#1C1A15" : "#4A4438"} letterSpacing=".4">{parts[0] ?? "LYOPHILIZED"}</text>
+        <text x="26" y="148.5" style={MONO} fontSize="5.4" fill="#4A4438" letterSpacing=".4">RESEARCH USE ONLY</text>
+        <text x="26" y="155.5" style={MONO} fontSize="5.4" fill="#4A4438" letterSpacing=".2">NOT FOR HUMAN USE</text>
+      </>}
       <rect x="20" y="66" width="80" height="94" fill={`url(#${wrap})`} />
       {/* Glass edges catching light over the label */}
       <rect x="21.6" y="66" width="1.4" height="94" fill="#fff" opacity=".5" />
