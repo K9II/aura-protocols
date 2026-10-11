@@ -2,8 +2,15 @@
 
 import { useActionState, useState } from "react";
 import { setPayoutMethodAction, setPayoutPrefAction, type SettingsState } from "@/app/partners/actions";
+import { CASH_MIN_CENTS } from "@/lib/partners/tiers";
 
 const field = "w-full border border-[color:var(--ink)] bg-[color:var(--paper)] px-3.5 py-3 text-sm mb-4";
+// When each choice pays out (credit on clearing, cash on the 1st/15th from $100 — lib/partners/payout-math).
+const PREF_NOTE = {
+  cash: `ACH or Zelle on the 1st and 15th, from $${CASH_MIN_CENTS / 100}.`,
+  credit: "Added as soon as commission clears.",
+  split: "Credit when it clears; cash on the 1st and 15th.",
+} as const;
 const smallBtn: React.CSSProperties = { padding: "7px 13px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: "1px solid var(--ink)", background: "transparent", color: "var(--ink)" };
 
 export default function PayoutSettings({ pref, splitCashPct, methodHint }: { pref: "cash" | "credit" | "split"; splitCashPct: number; methodHint: string | null }) {
@@ -15,20 +22,23 @@ export default function PayoutSettings({ pref, splitCashPct, methodHint }: { pre
 
   return (
     <div>
-      <p className="s-micro mb-3">How you&apos;re paid</p>
+      <div className="s-pd-h"><h2 className="s-pp-h2">Getting <em>paid</em></h2></div>
       <form action={prefAction}>
         {(["cash", "credit", "split"] as const).map((p) => (
           <label key={p} className="s-chk" style={choice === p ? { borderColor: "var(--ink)" } : undefined}>
             <input type="radio" name="pref" value={p} checked={choice === p} onChange={() => setChoice(p)} />
-            <span>{p === "cash" ? "All cash" : p === "credit" ? <>All store credit <b>(1.3×)</b></> : <>Split · <input name="splitCashPct" type="number" min={0} max={100} defaultValue={splitCashPct} aria-label="Cash percentage" style={{ width: 56, border: "1px solid var(--line)", background: "var(--paper)", padding: "0 4px" }} />% cash, the rest as credit</>}</span>
+            <span style={{ fontSize: 15 }}>
+              {p === "cash" ? "All cash" : p === "credit" ? <>All store credit <b>(1.3×)</b></> : <>Split · <input name="splitCashPct" type="number" min={0} max={100} defaultValue={splitCashPct} aria-label="Cash percentage" style={{ width: 56, border: "1px solid var(--line)", background: "var(--paper)", padding: "0 4px" }} />% cash, the rest as credit</>}
+              <small className="block text-[13px] text-[color:var(--ink-soft)] mt-0.5">{PREF_NOTE[p]}</small>
+            </span>
           </label>
         ))}
         {choice !== "split" && <input type="hidden" name="splitCashPct" value={splitCashPct} />}
         <button type="submit" style={smallBtn}>Save preference</button>
-        {prefState?.ok && <span className="text-[12.5px] ml-2" style={{ color: "#2F5D3A" }}>Saved</span>}
+        {prefState?.ok && <span className="text-[12.5px] ml-2" style={{ color: "var(--tested)" }}>Saved</span>}
         {prefState?.error && <p role="alert" className="text-[12.5px] text-[color:var(--specimen)] mt-2">{prefState.error}</p>}
       </form>
-      <div style={{ border: "1px solid var(--line)", padding: "16px 18px", marginTop: 16 }}>
+      <div className="s-pp-panel" style={{ padding: "14px 16px", marginTop: 16, borderTopWidth: 1 }}>
         <p className="s-micro mb-1.5">Cash payout method</p>
         {!editing && methodHint ? (
           <p className="text-[14px]">{methodHint} <button type="button" className="underline ml-2 text-[color:var(--specimen)]" onClick={() => setEditing(true)}>Change</button></p>
@@ -52,7 +62,7 @@ export default function PayoutSettings({ pref, splitCashPct, methodHint }: { pre
             <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-2">Stored encrypted. Only the last four digits are shown here.</p>
           </form>
         )}
-        {methodState?.ok && <p className="text-[12.5px] mt-2" style={{ color: "#2F5D3A" }}>Saved</p>}
+        {methodState?.ok && <p className="text-[12.5px] mt-2" style={{ color: "var(--tested)" }}>Saved</p>}
         {methodState?.error && <p role="alert" className="text-[12.5px] text-[color:var(--specimen)] mt-2">{methodState.error}</p>}
       </div>
     </div>
