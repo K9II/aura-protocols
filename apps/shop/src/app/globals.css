@@ -523,11 +523,13 @@ main:has(> .pharmacopoeia) {
 @media (max-width: 900px) { .pharmacopoeia .s-hero { grid-template-columns: 1fr; } }
 /* Home hero north light (option D, chosen 2026-10-11; mock AXG9ymUY7hnEVpDyrqDU7g).
    The band clips the light so it never adds sideways scroll; the light fades in
-   below the header, only ever brightens (so text and the sphere stay legible). */
+   below the header and out at the bottom, only ever brightens (so text and the sphere stay legible). */
 .pharmacopoeia .s-hero-band { position: relative; overflow: hidden; isolation: isolate; }
 .pharmacopoeia .s-hero-band > .p-container { position: relative; z-index: 1; }
 .pharmacopoeia .s-hero-light { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 72px); mask-image: linear-gradient(to bottom, transparent 0, #000 72px); }
+  /* fades in below the header and out into the section below: no hard edge either way */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 72px, #000 calc(100% - 180px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 72px, #000 calc(100% - 180px), transparent 100%); }
 .pharmacopoeia .s-hl-shade { position: absolute; inset: 0; background: radial-gradient(120% 90% at 85% 0%, rgba(255,252,244,0) 0%, rgba(70,58,32,.04) 75%); }
 .pharmacopoeia .s-hl-window { position: absolute; left: 44%; top: -300px; width: 760px; height: 980px; transform-origin: 50% 0; mix-blend-mode: screen; animation: s-hl-drift 24s ease-in-out infinite alternate; }
 .pharmacopoeia .s-hl-clouds { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 30px; filter: blur(9px); animation: s-hl-clouds 20s ease-in-out infinite; }
