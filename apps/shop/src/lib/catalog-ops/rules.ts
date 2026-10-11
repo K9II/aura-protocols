@@ -4,13 +4,15 @@ import { byStrength, stockState, type CatalogOps, type LotStockRow } from "@/lib
 // Lives in catalog-merge (the merge sorts with it; importing rules there would be circular).
 export { strengthSortKey } from "@/lib/catalog-merge";
 import type { StockState } from "@/data/catalog-types";
+// Owned by lib/coa/rules now (catalog-merge imports it); re-exported here so
+// every existing caller of catalog-ops/rules keeps working unchanged.
+import { METHODS, PURITY_MIN } from "@/lib/coa/rules";
+export { METHODS, PURITY_MIN } from "@/lib/coa/rules";
 
 export const DEFAULT_LOW_AT = 20;
-export const PURITY_MIN = 90;
 export const COA_MAX_BYTES = 10 * 1024 * 1024;   // same as the coa bucket limit (catalog-ops.sql)
 export const LOT_NUMBER_RE = /^[A-Z0-9][A-Z0-9-]{2,39}$/;
 export const SKU_RE = /^[A-Z0-9][A-Z0-9-]{1,39}$/;
-export const METHODS = ["HPLC", "HPLC+MS"] as const;
 export const COUNT_REASONS = ["damaged", "recount", "found", "owner_withdrawal", "other"] as const;
 export type CountReason = (typeof COUNT_REASONS)[number];
 export const COUNT_REASON_LABEL: Record<CountReason, string> = { damaged: "Damaged", recount: "Recount", found: "Found", owner_withdrawal: "Owner withdrawal", other: "Other" };
