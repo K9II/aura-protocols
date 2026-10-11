@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { validateCode } from "@/lib/partners/codes";
 import { REF_COOKIE, REF_MAX_AGE_S, readRef, signRef } from "@/lib/partners/ref-cookie";
 import { recordClickByCode } from "@/lib/partners/data";
+import { alertOwner } from "@/lib/notify";
 import { SESSION_ONLY_COOKIE, sessionCookieOptions } from "@/lib/supabase/session-only";
 
 // 1) Refreshes the Supabase session on signed-in routes only (authorization
@@ -10,8 +11,9 @@ import { SESSION_ONLY_COOKIE, sessionCookieOptions } from "@/lib/supabase/sessio
 //    60-day referral cookie and counts the click after the response.
 const SESSION_PREFIXES = ["/account", "/checkout", "/order", "/admin", "/partners", "/reset-password", "/finish-account"];
 
-// Logged once per server process, not per request, if PARTNER_REF_SECRET is
-// missing — the cookie is simply skipped so no page ever crashes on it.
+// Logged and sent to the owner once per server process, not per request, if
+// PARTNER_REF_SECRET is missing — the cookie is skipped so no page ever crashes
+// on it, but partner links stop tracking, so it must be loud.
 let warnedMissingRefSecret = false;
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
@@ -59,6 +61,8 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
       } else if (!warnedMissingRefSecret) {
         warnedMissingRefSecret = true;
         console.error("PARTNER_REF_SECRET is not set; skipping the aura_ref referral cookie");
+        event.waitUntil(alertOwner("Partner links: referral cookie off",
+          `PARTNER_REF_SECRET is not set, so ?ref= partner links aren't being tracked (no cookie, no click count, no link attribution at checkout). First seen on ${check.code}. Set it in Vercel and redeploy.`));
       }
     }
   }
