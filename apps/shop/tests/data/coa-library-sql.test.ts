@@ -45,7 +45,17 @@ describe("coa-library.sql", () => {
     expect(sql).toContain("raise exception 'certificate_locked'");
     expect(sql).toContain("before insert or update or delete on lot_certificates");
   });
-  it("migrates each lot's certificate, then drops the columns from lots", () => {
+  it("the lock trigger tolerates a cascade-deleted parent lot and reads old.lot_id for update/delete", () => {
+    const fn = sql.slice(sql.indexOf("create or replace function guard_lot_certificates"), sql.indexOf("drop trigger if exists lot_certificates_guard"));
+    expect(fn).toContain("v_status is null or v_status = 'draft'");
+    expect(fn).toContain("case when tg_op = 'INSERT' then new.lot_id else old.lot_id end");
+  });
+  it("migrates each lot's certificate, then drops the columns from lots, guarded so a second run is a no-op", () => {
+    expect(sql).toContain("column_name = 'purity_pct'");
+    const insertAt = sql.indexOf("insert into lot_certificates");
+    const doAt = sql.lastIndexOf("do $$ begin", insertAt);
+    expect(doAt).toBeGreaterThan(-1);
+    expect(sql.slice(doAt, insertAt)).toContain("execute");
     expect(sql).toMatch(/insert into lot_certificates[\s\S]*from lots l[\s\S]*where l\.purity_pct is not null/);
     for (const c of ["purity_pct", "method", "tested_on", "coa_path"]) expect(sql).toContain(`alter table lots drop column if exists ${c};`);
     expect(sql.indexOf("create or replace view lot_stock")).toBeLessThan(sql.indexOf("alter table lots drop column if exists purity_pct;"));

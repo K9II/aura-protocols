@@ -61,13 +61,18 @@ alter table lot_certificates enable row level security;
 
 -- Draft lot: certificates change freely. Once the lot is live (or sold out /
 -- retired) a certificate is fixed: a new one (re-test) may be added, and an
--- update may change only the correction fields. Deletes are refused.
+-- update may change only the correction fields. Deletes are refused. The
+-- parent lot is looked up by old.lot_id for update/delete (so an update
+-- can't bypass the lock by moving a locked certificate onto a draft lot);
+-- a cascade delete of the lot itself removes the lot row before the FK's
+-- cascade removes its certificates, so a missing parent (v_status null) is
+-- treated the same as draft.
 create or replace function guard_lot_certificates() returns trigger language plpgsql
 set search_path = public, pg_temp as $$
 declare v_status text;
 begin
-  select status into v_status from lots where id = coalesce(new.lot_id, old.lot_id);
-  if v_status = 'draft' or tg_op = 'INSERT' then return coalesce(new, old); end if;
+  select status into v_status from lots where id = case when tg_op = 'INSERT' then new.lot_id else old.lot_id end;
+  if v_status is null or v_status = 'draft' or tg_op = 'INSERT' then return coalesce(new, old); end if;
   if tg_op = 'UPDATE' and new.correction_note is not null
      and (to_jsonb(new) - 'correction_note' - 'corrected_at' - 'corrected_by')
        = (to_jsonb(old) - 'correction_note' - 'corrected_at' - 'corrected_by') then
@@ -80,13 +85,22 @@ create trigger lot_certificates_guard before insert or update or delete on lot_c
   for each row execute function guard_lot_certificates();
 
 -- Each lot's existing certificate becomes its first certificate (lab "Not
--- recorded"; report number = the lot number, unique per lab). Idempotent.
-insert into lot_certificates (lot_id, lab_id, report_number, tested_on, coa_path, purity_pct, method, result, created_at)
-select l.id, (select id from labs where name = 'Not recorded'), l.lot_number, l.tested_on, l.coa_path, l.purity_pct, l.method, 'pass', l.received_at
-from lots l
-where l.purity_pct is not null and l.coa_path is not null
-  and not exists (select 1 from lot_certificates c where c.lot_id = l.id)
-on conflict (lab_id, report_number) do nothing;
+-- recorded"; report number = the lot number, unique per lab). Idempotent;
+-- guarded by a column check (dynamic SQL) so a second run, after the
+-- columns below are dropped, is a no-op instead of a parse-time error.
+do $$ begin
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'lots' and column_name = 'purity_pct') then
+    execute $m$
+      insert into lot_certificates (lot_id, lab_id, report_number, tested_on, coa_path, purity_pct, method, result, created_at)
+      select l.id, (select id from labs where name = 'Not recorded'), l.lot_number, l.tested_on, l.coa_path, l.purity_pct, l.method, 'pass', l.received_at
+      from lots l
+      where l.purity_pct is not null and l.coa_path is not null
+        and not exists (select 1 from lot_certificates c where c.lot_id = l.id)
+      on conflict (lab_id, report_number) do nothing
+    $m$;
+  end if;
+end $$;
 
 -- Held + sold vials per lot; available = sellable − held − sold. The
 -- certificate columns come from the lot's headline certificate: its latest
