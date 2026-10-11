@@ -9,7 +9,7 @@ import MinimumKits from "@/components/store/wholesale/MinimumKits";
 import WholesaleOrderSheet from "@/components/store/wholesale/WholesaleOrderSheet";
 import WholesaleTurnOn from "@/components/store/wholesale/WholesaleTurnOn";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
-import { cutoffFor, estimatedDates, kitRows, type WholesaleSettings } from "@/lib/wholesale/rules";
+import { VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_EVENT, VOLUME_QUOTE_MIN_KITS, cutoffFor, estimatedDates, kitRows, type WholesaleSettings } from "@/lib/wholesale/rules";
 import { withArt } from "@/lib/wholesale/art";
 import { getAccountState } from "@/lib/dal";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
@@ -27,7 +27,8 @@ export const metadata: Metadata = {
 };
 
 function Inquiry() {
-  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds and quantities" />;
+  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds, strengths and kits" prefillEvent={VOLUME_QUOTE_EVENT}
+    messagePlaceholder={"One line per strength, e.g.\nRetatrutide 30 mg: 50 kits\nBPC-157 10 mg: 10 kits"} />;
 }
 
 // Today's page: shown until wholesale opens, and whenever its settings can't be read.
@@ -72,6 +73,7 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
   const rules = <MinimumKits minKits={s.minKits} />;
 
   let body: React.ReactNode;
+  let onSheet = false;   // the order sheet (and its "Ask for a volume quote") is on this page
   if (!customer || !ordering) {
     body = (
       <>
@@ -97,6 +99,7 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
   } else if (!rows) {
     body = <><TierTable tiers={s.tiers} />{rules}<p role="alert" className="text-[15px]">Wholesale ordering is briefly unavailable — please try again shortly.</p></>;
   } else {
+    onSheet = true;
     body = <WholesaleOrderSheet rows={rows} pricing={pricing} cutoffLabel={dateLabel(cutoff)} ship={customer.ship} email={customer.email} />;
   }
 
@@ -108,9 +111,15 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
         <p className="s-ws-lede">10 vials of one strength per kit. Each production run is made and tested as one lot, and you receive its certificate.</p>
         <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} today={today} />
         {body}
-        <div className="s-ws-inq">
-          <h2 className="s-h2 mt-6 mb-3">Custom or larger <em>requests.</em></h2>
-          <p className="s-ws-note mb-6">Need a compound that isn&apos;t listed, or more than 20 kits? Ask us.</p>
+        <div className="s-ws-inq" id={VOLUME_QUOTE_ANCHOR}>
+          <h2 className="s-h2 mt-6 mb-3">Volume quotes and <em>custom requests.</em></h2>
+          <p className="s-ws-note mb-3">Ordering {VOLUME_QUOTE_MIN_KITS} or more kits, or need a compound that isn&apos;t listed? Send us the compounds, strengths and kit counts, and we&apos;ll reply with a quote for your order.</p>
+          <p className="s-ws-note mb-6" data-testid="ws-quote-howto">
+            {onSheet
+              ? <>Add your kits above and choose <b>Ask for a volume quote</b> in your order summary. It fills this in for you.</>
+              : <>Wholesale buyers: build your order in the order sheet and choose <b>Ask for a volume quote</b>. It fills this in for you.{" "}
+                  <Link href={customer ? ORDER_HREF : `/sign-in?next=${encodeURIComponent(ORDER_HREF)}`} className="p-link">Open the order sheet →</Link></>}
+          </p>
           <Inquiry />
         </div>
       </div>

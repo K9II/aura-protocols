@@ -1,5 +1,5 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
-import { KIT_VIALS } from "@/lib/wholesale/rules";
+import { KIT_VIALS, VOLUME_NUDGE_MIN_KITS, VOLUME_QUOTE_MIN_KITS } from "@/lib/wholesale/rules";
 import { BALANCE_REMINDER_DAY, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS } from "@/lib/wholesale/runs";
 import { REVIEW_WARN_DAYS } from "@/lib/wholesale/review";
 
@@ -36,6 +36,11 @@ export default function Wholesale() {
           <Step>Under <Ui>Try an order</Ui>, build an order with <Ui>Add a kit</Ui>, the kit counts and <Ui>Remove</Ui>, or start from one of the examples above it. It shows the order&apos;s profit, margin and profit per vial, with each cost on its own line. This is the worst case for the lab: the order is alone in its run, so it pays every strength&apos;s test.</Step>
           <Step><Ui>Kit price per vial vs competitors</Ui> compares a kit vial at each tier with the cheapest competitor&apos;s single vial of that strength. A minus means the kit is cheaper.</Step>
         </Task>
+        <Task title="Answer a volume quote request">
+          <Step>Orders of {VOLUME_QUOTE_MIN_KITS} or more kits are invited to ask for a quote: the wholesale page shows a <Ui>Volume quote</Ui> card next to the tiers, and from {VOLUME_NUDGE_MIN_KITS} kits the buyer&apos;s order summary counts down to it. <Ui>Ask for a volume quote</Ui> copies their kits into the inquiry form, so the request arrives in <Ui>Inquiries</Ui> (topic Wholesale) starting &ldquo;Volume quote request&rdquo;.</Step>
+          <Step>Price it in AIOS: <Ui>Aura Shop</Ui> → <Ui>Kits</Ui> → <Ui>Volume quote</Ui>. Add each strength and its kits; <Ui>Quote at</Ui> <Ui>Volume tier</Ui> gives the volume price, never below the floor it shows. Choose <Ui>Copy quote</Ui> and paste it into your reply.</Step>
+          <Step>An accepted quote can&apos;t be paid in the store yet: collect the deposit and balance by invoice and record the order with Claude, so it joins the run and its stock is held.</Step>
+        </Task>
         <Task title="Turn wholesale off for a customer">
           <Step>In <Ui>Customers</Ui>, open the customer and choose <Ui>Turn off wholesale…</Ui> with a reason. Orders already placed carry on. <Ui>Allow wholesale again</Ui> undoes it.</Step>
         </Task>
@@ -61,6 +66,7 @@ export default function Wholesale() {
         <>If one payment of a wholesale order is refunded in the Stripe dashboard you get an alert; refund the order from <Ui>Orders</Ui> so both payments and the stock are handled.</>,
         <>The minimum is per order, not per strength: an order at the minimum can be all different strengths, each paying its own lot test. <Ui>Margins</Ui> with the slider at 1 shows that worst case.</>,
         <>Keep ordering off in <Ui>Settings</Ui> until the payment processor approves the deposit and balance charges.</>,
+        <>The site never shows the volume discount; it&apos;s only in your quotes. Quote from the AIOS helper so every price is above its floor.</>,
         <>Review new buyers before <Ui>Record order</Ui>: after that you&apos;ve paid the supplier for their kits.</>,
       ]}
     />

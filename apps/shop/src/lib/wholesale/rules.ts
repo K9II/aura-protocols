@@ -10,6 +10,15 @@ export const CUTOFF_ANCHOR = "2026-10-05";   // a Monday; runs close every whole
 export const TESTED_BEFORE_SHIP_DAYS = 5;
 export const WHOLESALE_TERMS_VERSION = "2026-10-08";
 
+// Volume quotes (mock "Volume Quote Mocks", option B, Alvester 2026-10-11): orders of
+// VOLUME_QUOTE_MIN_KITS or more kits are invited to ask for a quote instead of paying the top
+// tier; the order sheet starts pointing at it from VOLUME_NUDGE_MIN_KITS. Quotes are priced by
+// hand from AIOS (Kits tab, Volume quote) and never shown on the site.
+export const VOLUME_QUOTE_MIN_KITS = 50;
+export const VOLUME_NUDGE_MIN_KITS = 40;
+export const VOLUME_QUOTE_ANCHOR = "volume-quote";
+export const VOLUME_QUOTE_EVENT = "aura:volume-quote";
+
 // Pricing (2026-10-10): minimum 5 kits, mixed any way; 5-9 30%, 10-19 35%, 20+ 40% —
 // every tier beats every retail offer (10-pack STD_PACKS, new-account %). The first tier starts at the order
 // minimum. Each batch's independent lot test is absorbed in the kit price — never shown.
@@ -51,6 +60,19 @@ export function parseWholesaleSettings(row: {
     runDays: row.wholesale_run_days, leadDays: row.wholesale_lead_days, nextCutoffOverride: row.wholesale_next_cutoff,
     minKits: row.wholesale_min_kits, kitBoxCents: row.wholesale_kit_box_cents ?? 0,
   };
+}
+
+// Where an order stands against the volume-quote threshold: close to it, at it, or neither.
+export function volumeNudge(kits: number): { kind: "near"; kitsNeeded: number } | { kind: "quote" } | null {
+  if (kits >= VOLUME_QUOTE_MIN_KITS) return { kind: "quote" };
+  if (kits >= VOLUME_NUDGE_MIN_KITS) return { kind: "near", kitsNeeded: VOLUME_QUOTE_MIN_KITS - kits };
+  return null;
+}
+
+// The inquiry text the order sheet hands to the form: one line per strength, scientific names.
+export function volumeQuoteMessage(items: Array<{ compoundName: string; strength: string; quantity: number }>): string {
+  const kits = items.reduce((n, i) => n + i.quantity, 0);
+  return [`Volume quote request (${kits} kits):`, ...items.map((i) => `- ${i.compoundName} ${i.strength}: ${i.quantity} kit${i.quantity === 1 ? "" : "s"}`)].join("\n");
 }
 
 // Below the first tier (an order under the minimum) prices at the first tier.
