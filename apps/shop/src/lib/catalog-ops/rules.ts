@@ -156,7 +156,7 @@ export type AdminLotRow = LotStockRow & {
 export function byLiveThenNumber(a: AdminLotRow, b: AdminLotRow): number {
   return (a.live_at ?? "").localeCompare(b.live_at ?? "") || a.lot_number.localeCompare(b.lot_number);
 }
-export type AdminOps = Omit<CatalogOps, "lots"> & { lots: AdminLotRow[] };
+export type AdminOps = Omit<CatalogOps, "lots" | "certificates" | "coa"> & { lots: AdminLotRow[] };
 type ContentLite = { slug: string; name: string; chemicalClass: string };
 export type LotRef = { lotNumber: string; purityPct: number; method: string; status: "draft" | "live" | "retired"; discrepancy: boolean; available: number; sellable: number };
 // shown = on the store (product shown AND strength shown AND not archived).
@@ -170,7 +170,7 @@ export type AdminRow = {
 };
 
 const ref = (l: AdminLotRow): LotRef => ({
-  lotNumber: l.lot_number, purityPct: Number(l.purity_pct), method: l.method, status: l.status,
+  lotNumber: l.lot_number, purityPct: Number(l.purity_pct ?? 0), method: l.method ?? "", status: l.status,
   discrepancy: isDiscrepancy(l.ordered_qty, l.counted_qty, l.damaged_qty), available: l.available, sellable: l.sellable,
 });
 

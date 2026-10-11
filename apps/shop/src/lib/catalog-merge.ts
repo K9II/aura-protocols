@@ -2,13 +2,16 @@
 // the storefront renders. Pure. Fail-closed: a product without a row is
 // hidden, strengths come only from the database (hidden or archived ones
 // never sell), drafts never appear.
-import type { CatalogEntry, LiveCompound, LiveVariant, Lot, PendingLot, PublicLot, StockState } from "@/data/catalog-types";
+import type { CatalogEntry, LiveCompound, LiveVariant, Lot, PendingLot, PublicCert, PublicLot, StockState } from "@/data/catalog-types";
+import { visibleCerts, type CertRow, type CoaSettings } from "@/lib/coa/visibility";
+import { measuredPct, verifyUrl } from "@/lib/coa/rules";
 
 export type LotStockRow = {
   id: string; lot_number: string; slug: string; variant_id: string;
-  purity_pct: number; method: "HPLC" | "HPLC+MS"; tested_on: string; coa_path: string | null;
+  purity_pct: number | null; method: "HPLC" | "HPLC+MS" | null; tested_on: string | null; coa_path: string | null;
   status: "draft" | "live" | "retired"; live_at: string | null;
   sellable: number; held: number; sold: number; available: number;
+  purity_ok: boolean; endotoxin_ok: boolean;
 };
 export type CatalogOps = {
   products: Array<{ slug: string; shown: boolean }>;
@@ -17,8 +20,10 @@ export type CatalogOps = {
     shown: boolean; archived_at: string | null; wholesale?: boolean;
   }>;
   lots: LotStockRow[];   // live + retired only (fetchCatalogOps filters drafts)
+  certificates: CertRow[];   // non-draft lots only
+  coa: CoaSettings;
 };
-export type LiveCatalog<C extends string = string> = { all: LiveCompound<C>[]; shown: LiveCompound<C>[]; lots: PublicLot[] };
+export type LiveCatalog<C extends string = string> = { all: LiveCompound<C>[]; shown: LiveCompound<C>[]; lots: PublicLot[]; certificates: PublicCert[] };
 
 // Sort order for strengths: mass units by amount in mg (mcg ÷ 1000), then IU
 // by amount. Unknown shapes sort last.
@@ -36,8 +41,10 @@ export function stockState(available: number, lowAt: number): StockState {
   return available <= lowAt ? "low" : "in";
 }
 
+// Public lots are live/retired, so the headline certificate always exists;
+// these fallbacks only satisfy the type.
 const toLot = (r: LotStockRow, coaUrl: (p: string) => string): Lot => ({
-  lot: r.lot_number, purityPct: Number(r.purity_pct), method: r.method, testedOn: r.tested_on, coaFile: r.coa_path ? coaUrl(r.coa_path) : "",
+  lot: r.lot_number, purityPct: Number(r.purity_pct ?? 0), method: r.method ?? "HPLC", testedOn: r.tested_on ?? "", coaFile: r.coa_path ? coaUrl(r.coa_path) : "",
 });
 const byLiveAt = (a: LotStockRow, b: LotStockRow) => (a.live_at ?? "").localeCompare(b.live_at ?? "") || a.lot_number.localeCompare(b.lot_number);
 
@@ -49,6 +56,7 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
   const all: LiveCompound<C>[] = [];
   const shown: LiveCompound<C>[] = [];
   const lots: PublicLot[] = [];
+  const publicLot = new Map<string, { pub: PublicLot; chemicalClass: string }>();
   for (const c of content) {
     if (!shownBySlug.has(c.slug)) continue;
     const productShown = shownBySlug.get(c.slug) === true;
@@ -61,11 +69,13 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
       // vial from one. onStore says whether its strength is selling now.
       if (productShown) {
         for (const l of ever) {
-          lots.push({
+          const pub: PublicLot = {
             ...toLot(l, coaUrl), slug: c.slug, compoundName: c.name, variantId: row.variant_id, strength: row.strength, liveAt: l.live_at!,
             status: l.status === "retired" ? "retired" : l.available > 0 ? "live" : "sold_out",
             onStore: row.shown && !row.archived_at,
-          });
+          };
+          lots.push(pub);
+          publicLot.set(l.id, { pub, chemicalClass: c.chemicalClass });
         }
       }
       if (row.archived_at) continue;
@@ -85,7 +95,26 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
     const onStore = variants.filter((v) => v.shown);
     if (productShown && onStore.length) shown.push({ ...c, variants: onStore });
   }
-  return { all, shown, lots };
+
+  const shownCerts = visibleCerts(ops.certificates.filter((r) => publicLot.has(r.lot_id)), ops.coa);
+  const labsByLot = new Map<string, Set<string>>();
+  for (const r of shownCerts) (labsByLot.get(r.lot_id) ?? labsByLot.set(r.lot_id, new Set()).get(r.lot_id)!).add(r.lab_id);
+  const certificates: PublicCert[] = shownCerts.map((r) => {
+    const { pub, chemicalClass } = publicLot.get(r.lot_id)!;
+    const measured = ops.coa.showMeasured ? r.measured_mg : null;
+    return {
+      id: r.id, lot: pub.lot, slug: pub.slug, compoundName: pub.compoundName, chemicalClass, strength: pub.strength,
+      lotStatus: pub.status, shipping: pub.status === "live" && pub.onStore,
+      labName: r.lab.name, labCity: r.lab.city, labIso: r.lab.iso17025,
+      reportNumber: r.report_number, verifyUrl: verifyUrl(r.lab.verify_url_template, r.report_number),
+      testedOn: r.tested_on, coaFile: coaUrl(r.coa_path), purityPct: r.purity_pct, method: r.method,
+      measuredMg: measured, measuredPct: measuredPct(measured, pub.strength),
+      tests: { identity: r.identity, endotoxin: r.endotoxin, sterility: r.sterility, heavy_metals: r.heavy_metals, fentanyl: r.fentanyl },
+      failed: r.result === "fail", note: r.note, correction: r.correction_note, correctedAt: r.corrected_at,
+      labsOnLot: labsByLot.get(r.lot_id)!.size,
+    };
+  });
+  return { all, shown, lots, certificates };
 }
 
 // RELEASE_CHECK (tests/release/catalog-release.test.ts): every code product

@@ -12,7 +12,8 @@ describe("catalog-ops data", () => {
 
   it("fetchCatalogOps reads products, variants and live/retired lots only", async () => {
     const lots = query({ data: [{ id: "l1", purity_pct: "99.40", sellable: 10, held: 0, sold: 0, available: 10 }] });
-    from = fromQueue({ catalog_products: [query({ data: [{ slug: "bpc-157", shown: true }] })], catalog_variants: [query({ data: [] })], lot_stock: [lots] });
+    from = fromQueue({ catalog_products: [query({ data: [{ slug: "bpc-157", shown: true }] })], catalog_variants: [query({ data: [] })], lot_stock: [lots],
+      lot_certificates: [query({ data: [] })], shop_settings: [query({ data: { coa_show_all: false, coa_show_measured: false } })] });
     const { fetchCatalogOps } = await import("@/lib/catalog-ops/data");
     const ops = await fetchCatalogOps();
     expect(callArgs(lots, "in")).toEqual(["status", ["live", "retired"]]);
@@ -20,7 +21,8 @@ describe("catalog-ops data", () => {
   });
 
   it("fetchCatalogOps throws on any read error (the storefront then fails closed)", async () => {
-    from = fromQueue({ catalog_products: [query({ error: { message: "down" } })], catalog_variants: [query({ data: [] })], lot_stock: [query({ data: [] })] });
+    from = fromQueue({ catalog_products: [query({ error: { message: "down" } })], catalog_variants: [query({ data: [] })], lot_stock: [query({ data: [] })],
+      lot_certificates: [query({ data: [] })], shop_settings: [query({ data: { coa_show_all: false, coa_show_measured: false } })] });
     const { fetchCatalogOps } = await import("@/lib/catalog-ops/data");
     await expect(fetchCatalogOps()).rejects.toThrow(/catalog read failed/);
   });
@@ -131,7 +133,8 @@ describe("catalog-ops data", () => {
 
     it("fetchCatalogOps and fetchAdminOps read strength, shown and archived_at", async () => {
       const v1 = query({ data: [] }), v2 = query({ data: [] });
-      from = fromQueue({ catalog_products: [query({ data: [] }), query({ data: [] })], catalog_variants: [v1, v2], lot_stock: [query({ data: [] }), query({ data: [] })] });
+      from = fromQueue({ catalog_products: [query({ data: [] }), query({ data: [] })], catalog_variants: [v1, v2], lot_stock: [query({ data: [] }), query({ data: [] })],
+        lot_certificates: [query({ data: [] })], shop_settings: [query({ data: { coa_show_all: false, coa_show_measured: false } })] });
       const { fetchCatalogOps, fetchAdminOps } = await import("@/lib/catalog-ops/data");
       await fetchCatalogOps();
       await fetchAdminOps("ss-31");

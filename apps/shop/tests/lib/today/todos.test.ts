@@ -20,7 +20,7 @@ const row = (o: Partial<AdminRow>): AdminRow => ({
 });
 const lot = (o: Partial<AdminLotRow>): AdminLotRow => ({
   id: "l1", lot_number: "AP-TB5-2611", slug: "tb-500", variant_id: "10mg", purity_pct: 99.1, method: "HPLC", tested_on: "2026-10-01",
-  coa_path: "AP-TB5-2611/1.pdf", status: "draft", live_at: null, sellable: 120, held: 0, sold: 0, available: 120,
+  coa_path: "AP-TB5-2611/1.pdf", status: "draft", live_at: null, sellable: 120, held: 0, sold: 0, available: 120, purity_ok: true, endotoxin_ok: true,
   ordered_qty: 120, counted_qty: 120, damaged_qty: 0, adjust_qty: 0, discrepancy_note: null, received_by: null, received_by_name: null,
   received_at: "2026-10-05T16:00:00Z", retired_at: null, ...o,
 });

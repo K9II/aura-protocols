@@ -3,15 +3,21 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import type { CatalogOps, LotStockRow } from "@/lib/catalog-merge";
 import type { AdminLotRow, AdminOps, CountReason, LotQty, ReceiveValue } from "@/lib/catalog-ops/rules";
 import { coaObjectPath } from "@/lib/catalog-ops/rules";
+import type { CertRow } from "@/lib/coa/visibility";
 
 const db = () => getSupabaseAdminClient();
 const fail = (what: string, error: unknown): never => { throw new Error(`${what} failed: ${JSON.stringify(error)}`); };
 const num = <T extends { purity_pct: unknown; sellable: unknown; held: unknown; sold: unknown; available: unknown }>(r: T): T =>
-  ({ ...r, purity_pct: Number(r.purity_pct), sellable: Number(r.sellable), held: Number(r.held), sold: Number(r.sold), available: Number(r.available) });
+  ({ ...r, purity_pct: r.purity_pct == null ? null : Number(r.purity_pct), sellable: Number(r.sellable), held: Number(r.held), sold: Number(r.sold), available: Number(r.available) });
+
+// Certificate numeric columns come back as strings from PostgREST (numeric type).
+export const certNum = (r: CertRow): CertRow =>
+  ({ ...r, purity_pct: r.purity_pct == null ? null : Number(r.purity_pct), measured_mg: r.measured_mg == null ? null : Number(r.measured_mg) });
 
 const VARIANT_COLS = "slug, variant_id, strength, price_cents, low_at, threepl_sku, shown, archived_at, wholesale";
-const LOT_COLS = "id, lot_number, slug, variant_id, purity_pct, method, tested_on, coa_path, status, live_at, sellable, held, sold, available";
+const LOT_COLS = "id, lot_number, slug, variant_id, purity_pct, method, tested_on, coa_path, status, live_at, sellable, held, sold, available, purity_ok, endotoxin_ok";
 const ADMIN_LOT_COLS = `${LOT_COLS}, ordered_qty, counted_qty, damaged_qty, adjust_qty, discrepancy_note, received_by, received_at, retired_at`;
+export const CERT_COLS = "id, lot_id, lab_id, report_number, tested_on, coa_path, purity_pct, method, measured_mg, identity, endotoxin, sterility, heavy_metals, fentanyl, result, note, correction_note, corrected_at, created_at, lab:labs(name, city, iso17025, verify_url_template)";
 
 // First names for a batch of customer ids, one query — used for both catalog
 // event actors and a lot's received_by (no N+1 per row).
@@ -27,16 +33,20 @@ async function actorNames(ids: Array<string | null>): Promise<Map<string, string
 
 // ---------- storefront ----------
 export async function fetchCatalogOps(): Promise<CatalogOps> {
-  const [p, v, l] = await Promise.all([
+  const [p, v, l, c, s] = await Promise.all([
     db().from("catalog_products").select("slug, shown"),
     db().from("catalog_variants").select(VARIANT_COLS),
     db().from("lot_stock").select(LOT_COLS).in("status", ["live", "retired"]),
+    db().from("lot_certificates").select(`${CERT_COLS}, lots!inner(status)`).neq("lots.status", "draft"),
+    db().from("shop_settings").select("coa_show_all, coa_show_measured").eq("id", true).single(),
   ]);
-  if (p.error || v.error || l.error) fail("catalog read", p.error ?? v.error ?? l.error);
+  if (p.error || v.error || l.error || c.error || s.error) fail("catalog read", p.error ?? v.error ?? l.error ?? c.error ?? s.error);
   return {
     products: (p.data ?? []) as CatalogOps["products"],
     variants: (v.data ?? []) as CatalogOps["variants"],
     lots: ((l.data ?? []) as LotStockRow[]).map(num),
+    certificates: ((c.data ?? []) as unknown as Array<CertRow & { lots?: unknown }>).map(({ lots: _l, ...r }) => certNum(r as CertRow)),
+    coa: { showAll: !!s.data?.coa_show_all, showMeasured: !!s.data?.coa_show_measured },
   };
 }
 

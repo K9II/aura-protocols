@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mergeCatalog, stockState, catalogReleaseProblems, strengthSortKey, type CatalogOps, type LotStockRow } from "@/lib/catalog-merge";
 import type { CatalogEntry } from "@/data/catalog-types";
+import type { CertRow } from "@/lib/coa/visibility";
 
 const entry = (slug: string): CatalogEntry => ({
   slug, name: slug.toUpperCase(), chemicalClass: "Peptide Fragments", identity: {}, form: "Lyophilized powder",
@@ -14,12 +15,14 @@ const vrow = (slug: string, strength: string, over: Partial<VariantRow> = {}): V
 const lot = (over: Partial<LotStockRow>): LotStockRow => ({
   id: "l1", lot_number: "BPC-2609-01", slug: "bpc-157", variant_id: "10mg", purity_pct: 99.4, method: "HPLC+MS",
   tested_on: "2026-09-18", coa_path: "BPC-2609-01/1.pdf", status: "live", live_at: "2026-09-24T00:00:00Z",
-  sellable: 200, held: 0, sold: 0, available: 200, ...over,
+  sellable: 200, held: 0, sold: 0, available: 200, purity_ok: true, endotoxin_ok: true, ...over,
 });
 const ops = (over: Partial<CatalogOps> = {}): CatalogOps => ({
   products: [{ slug: "bpc-157", shown: true }],
   variants: [vrow("bpc-157", "10 mg")],
   lots: [],
+  certificates: [],
+  coa: { showAll: false, showMeasured: false },
   ...over,
 });
 const url = (p: string) => `https://x/coa/${p}`;
@@ -96,7 +99,7 @@ describe("mergeCatalog", () => {
   });
 
   it("carries the per-strength wholesale switch (default on when the column is missing)", () => {
-    const ops = { products: [{ slug: "bpc-157", shown: true }], lots: [],
+    const ops = { products: [{ slug: "bpc-157", shown: true }], lots: [], certificates: [], coa: { showAll: false, showMeasured: false },
       variants: [
         { slug: "bpc-157", variant_id: "10mg", strength: "10 mg", price_cents: 6800, low_at: 5, threepl_sku: null, shown: true, archived_at: null, wholesale: false },
         { slug: "bpc-157", variant_id: "5mg", strength: "5 mg", price_cents: 4200, low_at: 5, threepl_sku: null, shown: true, archived_at: null },
@@ -148,6 +151,40 @@ describe("strengths from the database", () => {
     expect(strengthSortKey("250 mcg")).toBe(0.25);
     expect(strengthSortKey("10 mg")).toBe(10);
     expect(strengthSortKey("1 IU")).toBeGreaterThan(strengthSortKey("100000 mg"));
+  });
+});
+
+const cert = (x: Partial<CertRow>): CertRow => ({
+  id: "c1", lot_id: "l1", lab_id: "vgd", report_number: "VGD-1", tested_on: "2026-09-18", coa_path: "BPC-2609-01/1.pdf",
+  purity_pct: 99.4, method: "HPLC+MS", measured_mg: 10.4,
+  identity: "pass", endotoxin: "pass", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested",
+  result: "pass", note: null, correction_note: null, corrected_at: null, created_at: "2026-09-18T00:00:00Z",
+  lab: { name: "Vanguard Laboratory", city: "Olympia, WA", iso17025: true, verify_url_template: "https://v.example/{report}" }, ...x,
+});
+
+describe("mergeCatalog certificates", () => {
+  it("builds public certificates for shown products, with verify link and shipping flag; measured hidden by default", () => {
+    const m = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({})], certificates: [cert({})] }), url);
+    expect(m.certificates).toHaveLength(1);
+    expect(m.certificates[0]).toMatchObject({
+      lot: "BPC-2609-01", compoundName: "BPC-157", chemicalClass: "Peptide Fragments", strength: "10 mg", lotStatus: "live", shipping: true,
+      labName: "Vanguard Laboratory", labIso: true, verifyUrl: "https://v.example/VGD-1", coaFile: "https://x/coa/BPC-2609-01/1.pdf",
+      measuredMg: null, measuredPct: null, failed: false, labsOnLot: 1,
+    });
+  });
+  it("shows measured amount and failed certificates only when switched on", () => {
+    const failed = cert({ id: "c0", lab_id: "fd", result: "fail", endotoxin: "fail", note: "Damaged sample.", tested_on: "2026-09-10" });
+    const off = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({})], certificates: [cert({}), failed] }), url);
+    expect(off.certificates.map((c) => c.id)).toEqual(["c1"]);
+    const on = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({})], certificates: [cert({}), failed], coa: { showAll: true, showMeasured: true } }), url);
+    expect(on.certificates.map((c) => [c.id, c.failed, c.labsOnLot])).toEqual([["c1", false, 2], ["c0", true, 2]]);
+    expect(on.certificates[0]).toMatchObject({ measuredMg: 10.4, measuredPct: 104 });
+  });
+  it("hides certificates of hidden products and of lots not in the public list", () => {
+    const hidden = mergeCatalog([entry("bpc-157")], ops({ products: [{ slug: "bpc-157", shown: false }], lots: [lot({})], certificates: [cert({})] }), url);
+    expect(hidden.certificates).toEqual([]);
+    const orphan = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({})], certificates: [cert({ lot_id: "nope" })] }), url);
+    expect(orphan.certificates).toEqual([]);
   });
 });
 
