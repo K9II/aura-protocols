@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ScrollReveal from "@/components/ScrollReveal";
-import HeroLight, { HeroShadow } from "@/components/store/HeroLight";
+import HeroLight from "@/components/store/HeroLight";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import FromTheRecord from "@/components/store/FromTheRecord";
@@ -51,7 +51,6 @@ export default async function HomePage() {
             <TrustRow className="load-in load-5" />
           </div>
           <div className="load-in load-5 s-hero-sphere">
-            <HeroShadow />
             <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
           </div>
         </section>
