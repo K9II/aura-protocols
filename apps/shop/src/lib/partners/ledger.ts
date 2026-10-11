@@ -1,7 +1,7 @@
 import "server-only";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { clearsAt, commissionCents } from "@/lib/partners/tiers";
-import { receivedCents, splitPayout, type PayoutPref } from "@/lib/partners/payout-math";
+import { isCashDay, receivedCents, splitPayout, type PayoutPref } from "@/lib/partners/payout-math";
 
 export type CommissionState = "pending" | "clearing" | "payable" | "paid" | "void";
 export type CommissionRow = {
@@ -96,7 +96,9 @@ type RunPartner = { id: string; customer_id: string; payout_pref: PayoutPref; sp
 export type RunResult = { partnerId: string; cashCents: number; creditValueCents: number; carryCents: number };
 export type RunFailure = { partnerId: string; error: string };
 
-// One payout run per date (1st and 15th). A run that started but never
+// One payout run per date, every day: store credit for commission that has
+// cleared is issued on any day; cash is released only on the 1st and 15th
+// (isCashDay), otherwise it stays on the carry. A run that started but never
 // finished (finished_at null — e.g. the process died mid-run, or the prior
 // attempt had per-partner failures) is resumed rather than skipped; a
 // finished run is a true no-op. Each partner's share is settled in its own
@@ -127,6 +129,7 @@ export async function runPayouts(runDate: string): Promise<{ skipped: boolean; r
 
   const results: RunResult[] = [];
   const failures: RunFailure[] = [];
+  const cashDay = isCashDay(runDate);
 
   for (const p of (partners as RunPartner[] | null) ?? []) {
     if (done.has(p.id)) continue;
@@ -137,10 +140,11 @@ export async function runPayouts(runDate: string): Promise<{ skipped: boolean; r
       if (dedErr) throw dbError("deductions select", dedErr);
       const pay = (payable as { id: string; amount_cents: number }[] | null) ?? [];
       const ded = (deductions as { id: string; amount_cents: number }[] | null) ?? [];
-      if (pay.length === 0 && ded.length === 0 && p.cash_carry_cents === 0) continue;
+      // Off a cash day a carry alone has nothing to do: it waits for the 1st/15th.
+      if (pay.length === 0 && ded.length === 0 && (!cashDay || p.cash_carry_cents === 0)) continue;
 
       const net = pay.reduce((s, c) => s + c.amount_cents, 0) + ded.reduce((s, d) => s + d.amount_cents, 0);
-      const r = splitPayout({ netCents: net, carryCents: p.cash_carry_cents, pref: p.payout_pref, splitCashPct: p.split_cash_pct, w9Checked: !!p.w9_checked_at });
+      const r = splitPayout({ netCents: net, carryCents: p.cash_carry_cents, pref: p.payout_pref, splitCashPct: p.split_cash_pct, w9Checked: !!p.w9_checked_at, cashDay });
 
       const { error: applyError } = await db().rpc("apply_partner_payout", {
         p_partner: p.id,
@@ -182,9 +186,8 @@ export async function runPayouts(runDate: string): Promise<{ skipped: boolean; r
 
 // Run dates before `beforeDate` whose payout_runs row never finished — a
 // process that died mid-run, or a run left with per-partner failures. The
-// daily cron resumes each of these (via runPayouts) on any day, not just
-// the 1st/15th, so a stuck run self-heals instead of waiting for the next
-// scheduled date.
+// daily cron resumes each of these (via runPayouts) the next day, so a
+// stuck run self-heals; a resumed 1st/15th run still releases cash.
 export async function listUnfinishedPayoutRuns(beforeDate: string): Promise<string[]> {
   const { data, error } = await db().from("payout_runs").select("run_date").is("finished_at", null).lt("run_date", beforeDate);
   if (error) throw dbError("unfinished payout runs select", error);
