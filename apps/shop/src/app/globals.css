@@ -521,6 +521,37 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
 .pharmacopoeia .s-ctas a { font-size: 16px; padding: 13px 22px; }
 @media (max-width: 900px) { .pharmacopoeia .s-hero { grid-template-columns: 1fr; } }
+/* Home hero north light (option D, chosen 2026-10-11; mock AXG9ymUY7hnEVpDyrqDU7g).
+   The band clips the light so it never adds sideways scroll; the light fades in
+   below the header, only ever brightens (so text and the sphere stay legible). */
+.pharmacopoeia .s-hero-band { position: relative; overflow: hidden; isolation: isolate; }
+.pharmacopoeia .s-hero-band > .p-container { position: relative; z-index: 1; }
+.pharmacopoeia .s-hero-light { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 72px); mask-image: linear-gradient(to bottom, transparent 0, #000 72px); }
+.pharmacopoeia .s-hl-shade { position: absolute; inset: 0; background: radial-gradient(120% 90% at 85% 0%, rgba(255,252,244,0) 0%, rgba(70,58,32,.04) 75%); }
+.pharmacopoeia .s-hl-window { position: absolute; left: 44%; top: -300px; width: 760px; height: 980px; transform-origin: 50% 0; mix-blend-mode: screen; animation: s-hl-drift 24s ease-in-out infinite alternate; }
+.pharmacopoeia .s-hl-clouds { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 30px; filter: blur(9px); animation: s-hl-clouds 20s ease-in-out infinite; }
+.pharmacopoeia .s-hl-clouds i { background: rgba(255,251,240,.82);
+  -webkit-mask-image: repeating-linear-gradient(95deg, #000 0, #000 34px, rgba(0,0,0,.42) 72px, #000 112px); mask-image: repeating-linear-gradient(95deg, #000 0, #000 34px, rgba(0,0,0,.42) 72px, #000 112px);
+  -webkit-mask-size: 224px 100%; mask-size: 224px 100%; animation: s-hl-sway 6.5s ease-in-out infinite alternate; }
+.pharmacopoeia .s-hl-clouds i:nth-child(even) { animation-duration: 7.7s; animation-delay: -2s; }
+.pharmacopoeia .s-hl-grain { position: absolute; inset: 0; opacity: .5; mix-blend-mode: multiply; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .42  0 0 0 0 .38  0 0 0 0 .30  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.pharmacopoeia .s-hero-sphere { position: relative; }
+.pharmacopoeia .s-hero-sphere > :not(.s-hl-track) { position: relative; z-index: 1; }
+.pharmacopoeia .s-hl-track { position: absolute; z-index: 0; left: 25%; width: 50%; top: 83%; aspect-ratio: 50 / 7; animation: s-hl-follow 24s ease-in-out infinite alternate; }
+.pharmacopoeia .s-hl-contact { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(28,26,21,.22), rgba(28,26,21,.08) 55%, rgba(28,26,21,0)); filter: blur(5px); animation: s-hl-clouds 20s ease-in-out infinite; }
+@keyframes s-hl-drift { from { transform: translate(0, 0) rotate(-17deg) skewX(-10deg); } to { transform: translate(-130px, 44px) rotate(-12.5deg) skewX(-12deg); } }
+@keyframes s-hl-clouds { 0%, 34%, 84%, 100% { opacity: 1; } 52% { opacity: .5; } 62% { opacity: .58; } }
+@keyframes s-hl-sway { from { -webkit-mask-position: 0 0; mask-position: 0 0; } to { -webkit-mask-position: 112px 0; mask-position: 112px 0; } }
+@keyframes s-hl-follow { from { transform: translateX(0) scaleX(1); } to { transform: translateX(28px) scaleX(1.12); } }
+@media (max-width: 900px) {
+  /* phones: the sphere sits under the text, so the window falls across it from lower down */
+  .pharmacopoeia .s-hl-window { left: 6%; top: auto; bottom: 40px; width: 471px; height: 608px; }
+  .pharmacopoeia .s-hl-clouds { gap: 19px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pharmacopoeia .s-hl-window, .pharmacopoeia .s-hl-clouds, .pharmacopoeia .s-hl-clouds i, .pharmacopoeia .s-hl-track, .pharmacopoeia .s-hl-contact { animation: none; }
+}
 
 /* section header */
 .pharmacopoeia .s-lh { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 26px; flex-wrap: wrap; }
