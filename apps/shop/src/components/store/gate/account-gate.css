@@ -129,6 +129,7 @@
 .ag-phone .pc-dots i.on{width:18px;background:var(--specimen)}
 .ag-phone .pc-cap{background:var(--ink);color:var(--paper);padding:11px 18px 12px;border-top:2px solid var(--specimen)}
 .ag-phone .pc-cap b{display:block;font:400 16px/1.2 var(--font-newsreader),Georgia,serif}
+.ag-phone .pc-cap b em{font-style:italic;color:#E8A79E}
 .ag-phone .pc-cap small{display:block;font-size:11.5px;line-height:1.4;color:rgba(237,233,224,.72);margin-top:3px;text-wrap:balance}
 .ag-phone .pc-body{padding:22px 20px 20px}
 .ag-phone .pc-brand{display:flex;flex-direction:column;align-items:center;margin:0 0 16px}

@@ -197,7 +197,7 @@ export default function AccountGate() {
             {scenes && <div aria-hidden="true" dangerouslySetInnerHTML={{ __html: step === "1" ? scenes.PHONE_STRIP : scenes.PHONE_MINI }} />}
             {step === "1" && <span className="pc-dots" aria-hidden="true"><i className="on" /><i /><i /></span>}
           </div>
-          {step === "1" && <div className="pc-cap"><b>Tested before it’s listed.</b><small>Every lot’s certificate is published under its lot number.</small></div>}
+          {step === "1" && <div className="pc-cap"><b>Read the certificate <em>before</em> you order.</b><small>Look up any lot’s COA by the number on its vial.</small></div>}
           <div className="pc-body">{steps}</div>
         </section>
       </div>

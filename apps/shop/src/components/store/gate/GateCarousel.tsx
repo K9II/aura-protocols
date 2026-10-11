@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PURITY_FLOOR_PCT } from "@/lib/constants";
 
+// Captions in the plates' lab-notebook voice (Alvester chose set B, 2026-10-10).
 const SLIDES = [
-  { eb: "Tested in an ISO/IEC 17025-accredited US lab", h: <>Proof before <em>product.</em></>, sub: "Research compounds released only after independent lot testing." },
-  { eb: "Lot release", h: <>Tested before it’s listed.</>, sub: "Every lot’s certificate is published under its lot number." },
-  { eb: "Lot traceability", h: <>Every vial traced to its <em>tested lot.</em></>, sub: "Each order records the lot it shipped from, matched to that lot’s certificate." },
+  { eb: "Plate I · Specimens", h: <>Measured, <em>then</em> released.</>, sub: `Every lot is checked by HPLC against a ${PURITY_FLOOR_PCT}% purity floor before it’s listed.` },
+  { eb: "Plate II · The record", h: <>Read the certificate <em>before</em> you order.</>, sub: "Look up any lot’s COA by the number on its vial." },
+  { eb: "Plate III · The catalog", h: <>Every compound <em>on the record.</em></>, sub: "Arranged by chemical class, each with its own lot history." },
 ];
 const ADVANCE_MS = 5500;
 
