@@ -52,7 +52,7 @@ apps/shop/src/
 ```
 
 ## Compliance rules (enforced)
-- Research use only. No dosing, protocols, reconstitution, benefits, "studied for", or human-outcome language anywhere. Scientific names only; chemical-class categories; no "stack".
+- Research use only. No dosing, protocols, reconstitution, benefits, "studied for", or human-outcome language anywhere. Scientific names only; chemical-class categories; no "stack". Exception: a catalog `designation` (APro-G1SM/G2TRZ/G3RT for the three GLP-1s; Wolverine, GLOW, KLOW for the three blends, 2026-10-10) leads on the vial label and placard because the full name doesn't fit — the scientific name always shows alongside (card name, product title, orders, emails), a nicknamed blend's vial prints its components (`vialParts`), and search matches the designation.
 - `pnpm --filter @aura/shop build` runs `scripts/compliance-scan.mjs` and FAILS on banned phrases. Fix copy, don't widen the allowlist.
 - Account gate: browsing needs an account; the sign-up agreement (21+, RUO, dispute policy) is recorded in `account_agreements` (`gate_attestations` kept for history). The gate fails closed (a failed status check shows it).
 - Before unpausing Vercel: `RELEASE_CHECK=1 pnpm --filter @aura/shop test` must pass (every strength on the store has a live certified lot; no placeholder "Made by" process values — `MADE_BY_PLACEHOLDER` in `lib/catalog.ts`).

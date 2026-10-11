@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { catalogContent } from "@/data/catalog";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
-import { findCompound, fromPackPriceUsd, isPendingLot, madeBy, relatedCompounds, toPackPriceUsd, vialCap, vialLabel } from "@/lib/catalog";
+import { findCompound, fromPackPriceUsd, isPendingLot, madeBy, relatedCompounds, toPackPriceUsd, vialCap, vialLabel, vialParts } from "@/lib/catalog";
 import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import Vial from "@/components/store/Vial";
 import Unavailable from "@/components/store/Unavailable";
@@ -116,7 +116,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <span className="s-placard-r">Research use only · Not for human use</span>
               </div>
               <div className="s-pdp-vial">
-                <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} cap={vialCap(c)} rule={CLASS_COLOR[c.chemicalClass]} strength={c.variants[0].strength} tilt={0} />
+                <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} cap={vialCap(c)} rule={CLASS_COLOR[c.chemicalClass]} parts={vialParts(c)} strength={c.variants[0].strength} tilt={0} />
               </div>
             </div>
             <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} />

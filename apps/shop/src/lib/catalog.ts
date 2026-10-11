@@ -104,12 +104,24 @@ export function compoundTitle(c: { slug: string; name: string }): string {
 }
 
 // Vial labels fit ~11 characters at the smallest name size (see Vial.tsx).
-// Parenthetical synonyms drop ("PT-141 (Bremelanotide)" → "PT-141"); long
-// blends show their first component plus "+".
-export function vialLabel(c: { name: string }): string {
+// A designation (APro name, blend nickname) leads; otherwise parenthetical
+// synonyms drop ("PT-141 (Bremelanotide)" → "PT-141") and long blends show
+// their first component plus "+".
+export function vialLabel(c: { name: string; designation?: string | null }): string {
+  if (c.designation) return c.designation;
   const name = c.name.replace(/\s*\([^)]*\)\s*$/, "");
   if (name.length <= 11 || !name.includes(" / ")) return name;
   return `${name.split(" / ")[0]} +`;
+}
+
+// The small type under a blend's nickname on the vial: its components, two per
+// line ("BPC-157 · TB-500" / "GHK-Cu · KPV"). Nothing for anything else.
+export function vialParts(c: { designation?: string | null; components?: string[] }): string[] {
+  if (!c.designation || !c.components?.length) return [];
+  const names = c.components.map((slug) => (catalogContent.find((o) => o.slug === slug)?.name ?? slug).replace(/\s*\([^)]*\)\s*$/, ""));
+  const lines: string[] = [];
+  for (let i = 0; i < names.length; i += 2) lines.push(names.slice(i, i + 2).join(" · "));
+  return lines;
 }
 
 // Cap colors rotate through the content catalog for variety; a compound keeps

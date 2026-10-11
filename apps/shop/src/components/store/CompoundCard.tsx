@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import type { Compound } from "@/data/catalog";
-import { fromPackPriceUsd, isPendingLot, vialCap, vialLabel } from "@/lib/catalog";
+import { fromPackPriceUsd, isPendingLot, vialCap, vialLabel, vialParts } from "@/lib/catalog";
 import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import { formatUsd } from "@/lib/cart";
 import Vial from "@/components/store/Vial";
@@ -35,7 +35,7 @@ export default function CompoundCard({ compound: c, index = 0 }: { compound: Com
           <span className="s-placard-r">Research use only · Not for human use</span>
         </div>
         <div className="s-card-vial">
-          <Vial id={`${c.slug}-${index}`} label={vialLabel(c)} cap={vialCap(c)} rule={color} strength={c.variants[0].strength} tilt={0} />
+          <Vial id={`${c.slug}-${index}`} label={vialLabel(c)} cap={vialCap(c)} rule={color} parts={vialParts(c)} strength={c.variants[0].strength} tilt={0} />
         </div>
       </div>
       <div className="s-card-info">

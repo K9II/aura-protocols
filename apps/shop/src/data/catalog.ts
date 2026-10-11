@@ -86,7 +86,9 @@ export const catalogContent: CatalogEntry<ChemicalClass>[] = [
   entry("nad-plus", "NAD+", "Cofactors & Conjugates", { featured: true }),
   entry("glutathione", "Glutathione", "Cofactors & Conjugates"),
   // Blends (renamed by composition; old slugs 301 in lib/redirects.ts)
-  entry("bpc-157-tb-500-blend", "BPC-157 / TB-500", "Blends", { components: ["bpc-157", "tb-500"] }),
-  entry("bpc-157-tb-500-ghk-cu", "BPC-157 / TB-500 / GHK-Cu", "Blends", { components: ["bpc-157", "tb-500", "ghk-cu"] }),
-  entry("bpc-157-tb-500-ghk-cu-kpv", "BPC-157 / TB-500 / GHK-Cu / KPV", "Blends", { components: ["bpc-157", "tb-500", "ghk-cu", "kpv"] }),
+  // Blend nicknames lead on the vial (the full mix doesn't fit); the scientific name
+  // always shows alongside, and the components print under the nickname (2026-10-10).
+  entry("bpc-157-tb-500-blend", "BPC-157 / TB-500", "Blends", { components: ["bpc-157", "tb-500"], designation: "Wolverine" }),
+  entry("bpc-157-tb-500-ghk-cu", "BPC-157 / TB-500 / GHK-Cu", "Blends", { components: ["bpc-157", "tb-500", "ghk-cu"], designation: "GLOW" }),
+  entry("bpc-157-tb-500-ghk-cu-kpv", "BPC-157 / TB-500 / GHK-Cu / KPV", "Blends", { components: ["bpc-157", "tb-500", "ghk-cu", "kpv"], designation: "KLOW" }),
 ];
