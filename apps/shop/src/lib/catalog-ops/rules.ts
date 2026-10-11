@@ -1,12 +1,10 @@
 // Pure rules for admin Catalog & lots. No I/O.
-import { PURITY_FLOOR_PCT } from "@/lib/constants";
 import { byStrength, stockState, type CatalogOps, type LotStockRow } from "@/lib/catalog-merge";
 // Lives in catalog-merge (the merge sorts with it; importing rules there would be circular).
 export { strengthSortKey } from "@/lib/catalog-merge";
 import type { StockState } from "@/data/catalog-types";
 // Owned by lib/coa/rules now (catalog-merge imports it); re-exported here so
 // every existing caller of catalog-ops/rules keeps working unchanged.
-import { METHODS, PURITY_MIN } from "@/lib/coa/rules";
 export { METHODS, PURITY_MIN } from "@/lib/coa/rules";
 
 export const DEFAULT_LOW_AT = 20;
@@ -24,12 +22,11 @@ type Fail = { ok: false; fieldErrors: Record<string, string> };
 const intIn = (s: string, min: number, max: number) => { const n = Number(s.trim()); return Number.isInteger(n) && n >= min && n <= max ? n : null; };
 
 export type ReceiveInput = {
-  lotNumber: string; purity: string; method: string; testedOn: string; ordered: string; counted: string; damaged: string; note: string; coaPath: string;
+  lotNumber: string; ordered: string; counted: string; damaged: string; note: string;
   supplier?: string; cost?: string; testCost?: string; freight?: string; labels?: string;
 };
 export type ReceiveValue = {
-  lotNumber: string; purityPct: number; method: (typeof METHODS)[number]; testedOn: string;
-  orderedQty: number; countedQty: number; damagedQty: number; discrepancyNote: string | null; coaPath: string | null;
+  lotNumber: string; orderedQty: number; countedQty: number; damagedQty: number; discrepancyNote: string | null;
   // What the lot cost (lot-costs.sql): null = not recorded.
   supplier: string | null; costCents: number | null; testCents: number | null; freightCents: number | null; labelCents: number | null;
 };
@@ -47,17 +44,10 @@ export function isDiscrepancy(ordered: number, counted: number, damaged: number)
   return counted !== ordered || damaged > 0;
 }
 
-export function parseReceive(i: ReceiveInput, today: string):
-  { ok: true; value: ReceiveValue; warnings: { purity?: string } } | Fail {
+export function parseReceive(i: ReceiveInput): { ok: true; value: ReceiveValue } | Fail {
   const e: Record<string, string> = {};
   const lotNumber = i.lotNumber.trim().toUpperCase();
   if (!LOT_NUMBER_RE.test(lotNumber)) e.lotNumber = "3–40 letters, digits or dashes.";
-  const purity = Number(i.purity.trim());
-  if (!Number.isFinite(purity) || purity < PURITY_MIN || purity > 100) e.purity = `Between ${PURITY_MIN} and 100.`;
-  const method = METHODS.find((m) => m === i.method);
-  if (!method) e.method = "Pick HPLC or HPLC + MS.";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(i.testedOn)) e.testedOn = "Pick the test date.";
-  else if (i.testedOn > today) e.testedOn = "The test date can't be in the future.";
   let ordered: number | null = null;
   if (!i.ordered.trim()) e.ordered = "Required.";
   else { ordered = intIn(i.ordered, 0, 100000); if (ordered === null) e.ordered = "Whole vials."; }
@@ -84,18 +74,17 @@ export function parseReceive(i: ReceiveInput, today: string):
   if (Object.keys(e).length) return { ok: false, fieldErrors: e };
   return {
     ok: true,
-    warnings: purity < PURITY_FLOOR_PCT ? { purity: `Below the ${PURITY_FLOOR_PCT}% shown on the site.` } : {},
     value: {
-      lotNumber, purityPct: Math.round(purity * 100) / 100, method: method!, testedOn: i.testedOn,
-      orderedQty: ordered!, countedQty: counted!, damagedQty: damaged!, discrepancyNote: note || null, coaPath: i.coaPath.trim() || null,
+      lotNumber, orderedQty: ordered!, countedQty: counted!, damagedQty: damaged!, discrepancyNote: note || null,
       supplier, costCents: costCents ?? null, testCents: testCents ?? null, freightCents: freightCents ?? null, labelCents: labelCents ?? null,
     },
   };
 }
 
-export function liveRefusal(l: { status: string; coaPath: string | null; sellable: number }): string | null {
+export function liveRefusal(l: { status: string; purityOk: boolean; endotoxinOk: boolean; sellable: number }): string | null {
   if (l.status !== "draft") return "This lot is already live.";
-  if (!l.coaPath) return "Attach the certificate first.";
+  if (!l.purityOk) return "Needs a passing purity certificate.";
+  if (!l.endotoxinOk) return "Needs a passing endotoxin result.";
   if (l.sellable <= 0) return "Nothing to sell — every vial is damaged.";
   return null;
 }

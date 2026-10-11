@@ -252,10 +252,10 @@ async function disputedOrderIds(orderIds: string[]): Promise<Set<string>> {
   return new Set(((data ?? []) as Array<{ order_id: string }>).map((r) => r.order_id));
 }
 
-type LotFacts = { lot_number: string; purity_pct: number | string; method: string; coa_path: string | null };
+type LotFacts = { lot_number: string; purity_pct: number | string | null; method: string | null; coa_path: string | null };
 async function lotDetails(numbers: string[]): Promise<Map<string, LotFacts>> {
   if (!numbers.length) return new Map();
-  const { data, error } = await db().from("lots").select("lot_number, purity_pct, method, coa_path").in("lot_number", numbers);
+  const { data, error } = await db().from("lot_stock").select("lot_number, purity_pct, method, coa_path").in("lot_number", numbers);
   if (error) fail("dispute lots read", error);
   return new Map(((data ?? []) as LotFacts[]).map((l) => [l.lot_number, l]));
 }
@@ -305,7 +305,7 @@ export async function getDisputeCase(id: string): Promise<DisputeCase | null> {
         name: i.compound_name, strength: i.strength, vials, lineTotalCents: i.line_total_cents,
         lots: lots.map((l) => {
           const d = details.get(l.lotNumber);
-          return { lotNumber: l.lotNumber, vials: l.qty, purityPct: d ? Number(d.purity_pct) : null, method: d?.method ?? null, coaUrl: d?.coa_path ? coaPublicUrl(d.coa_path) : null };
+          return { lotNumber: l.lotNumber, vials: l.qty, purityPct: d?.purity_pct != null ? Number(d.purity_pct) : null, method: d?.method ?? null, coaUrl: d?.coa_path ? coaPublicUrl(d.coa_path) : null };
         }),
       };
     }),

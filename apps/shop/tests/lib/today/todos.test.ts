@@ -104,24 +104,26 @@ describe("to-do sections", () => {
     expect(stockSection([row({})])).toBeNull();
   });
 
-  it("lots: drafts ready to go live, missing a certificate, or with nothing to sell; one line for lots waiting to announce", () => {
+  it("lots: drafts ready to go live, missing a certificate, needing endotoxin, or with nothing to sell; one line for lots waiting to announce", () => {
     const label = (slug: string, v: string) => `${slug.toUpperCase()} ${v}`;
     const s = lotsSection([
       lot({}),
-      lot({ id: "l2", lot_number: "AP-GHK-2612", slug: "ghk-cu", variant_id: "50mg", coa_path: null, counted_qty: 80, sellable: 80, received_at: "2026-10-05T18:00:00Z" }),
+      lot({ id: "l2", lot_number: "AP-GHK-2612", slug: "ghk-cu", variant_id: "50mg", purity_ok: false, counted_qty: 80, sellable: 80, received_at: "2026-10-05T18:00:00Z" }),
+      lot({ id: "l5", lot_number: "AP-TB5-2614", endotoxin_ok: false, received_at: "2026-10-05T20:00:00Z" }),
       lot({ id: "l3", lot_number: "AP-TB5-2613", sellable: 0, received_at: "2026-10-06T10:00:00Z" }),
       lot({ id: "l4", lot_number: "AP-LIVE", status: "live" }),
     ], label, [
       { compoundName: "Semaglutide", slug: "semaglutide", strengths: "5 mg", lot: "AP-SEM-2609", purityPct: 99.2, method: "HPLC+MS", testedOn: "2026-09-30", coaFile: "/coa/a.pdf" },
       { compoundName: "BPC-157", slug: "bpc-157", strengths: "10 mg", lot: "AP-BPC-2610", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-10-01", coaFile: "/coa/b.pdf" },
     ])!;
-    expect(s.n).toBe(5);
+    expect(s.n).toBe(6);
     expect(s.lines.map((l) => l.title)).toEqual([
-      "TB-500 10mg is ready to put live", "GHK-CU 50mg is missing its certificate", "TB-500 10mg has nothing to sell", "2 lots waiting to announce",
+      "TB-500 10mg is ready to put live", "GHK-CU 50mg is missing its certificate", "TB-500 10mg needs a passing endotoxin result", "TB-500 10mg has nothing to sell", "2 lots waiting to announce",
     ]);
-    expect(s.lines[0]).toMatchObject({ mono: "AP-TB5-2611", tone: "slate", detail: "Certificate and receiving check done · 120 vials", action: { label: "Open lot", href: "/admin/catalog/tb-500" } });
+    expect(s.lines[0]).toMatchObject({ mono: "AP-TB5-2611", tone: "slate", detail: "Certificates and receiving check done · 120 vials", action: { label: "Open lot", href: "/admin/catalog/tb-500" } });
     expect(s.lines[1]).toMatchObject({ tone: "amb", detail: "Draft · received Oct 5 · 80 vials counted" });
-    expect(s.lines[3]).toMatchObject({ icon: "send", detail: "AP-SEM-2609 · Semaglutide 5 mg · and 1 more", action: { label: "Announce", announce: true } });
+    expect(s.lines[2]).toMatchObject({ tone: "amb", detail: "Draft · add the endotoxin report to the lot" });
+    expect(s.lines[4]).toMatchObject({ icon: "send", detail: "AP-SEM-2609 · Semaglutide 5 mg · and 1 more", action: { label: "Announce", announce: true } });
     expect(lotsSection([lot({ status: "live" })], label, [])).toBeNull();
   });
 

@@ -145,7 +145,7 @@ describe("disputes data", () => {
         { id: "o9", order_number: "AP-1090", status: "awaiting_payment", total_cents: 9900, paid_at: null, created_at: "2026-10-03T16:00:00Z" },
       ] }))],
       dispute_events: [query({ data: [{ id: "e1", action: "draft_saved", note: null, at: "2026-10-06T15:31:00Z", customers: { full_name: "Kearney Adams" } }] })],
-      lots: [query({ data: [{ lot_number: "AP-BPC-2604", purity_pct: "99.40", method: "HPLC", coa_path: "AP-BPC-2604/1.pdf" }] })],
+      lot_stock: [query({ data: [{ lot_number: "AP-BPC-2604", purity_pct: "99.40", method: "HPLC", coa_path: "AP-BPC-2604/1.pdf" }] })],
     });
     const { getDisputeCase } = await import("@/lib/disputes/data");
     const c = (await getDisputeCase(DISPUTE_ID))!;
@@ -176,7 +176,7 @@ describe("disputes data", () => {
       account_agreements: [query({ data: null })],
       orders: [query({ data: [] })],
       dispute_events: [query({ data: [] })],
-      lots: [query({ data: [] })],
+      lot_stock: [query({ data: [] })],
     });
     const { getDisputeCase } = await import("@/lib/disputes/data");
     const c = (await getDisputeCase(DISPUTE_ID))!;

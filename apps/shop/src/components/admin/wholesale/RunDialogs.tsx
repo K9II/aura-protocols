@@ -80,7 +80,7 @@ export function RecordOrderDialog({ runId, runNumber, cutoffLabel, slug, variant
   );
 }
 
-export function LinkLotDialog({ lineId, label, lots }: { lineId: string; label: string; lots: Array<{ id: string; lot_number: string; counted_qty: number; damaged_qty: number; coa_path: string | null }> }) {
+export function LinkLotDialog({ lineId, label, lots }: { lineId: string; label: string; lots: Array<{ id: string; lot_number: string; counted_qty: number; damaged_qty: number; coa_path: string | null; purity_ok: boolean; endotoxin_ok: boolean }> }) {
   const d = useDialog(linkLotAction);
   const id = `ll-${lineId}`;
   return (
@@ -95,7 +95,7 @@ export function LinkLotDialog({ lineId, label, lots }: { lineId: string; label: 
               ? <div className="a-callout info"><span>No draft lot of this strength yet. Receive the boxes in Catalog &amp; lots first (the lot stays a draft until it passes here).</span></div>
               : <div className="a-fld"><label htmlFor={`${id}-lot`}>Draft lot</label>
                   <select id={`${id}-lot`} name="lotId" className="a-select" style={{ width: "100%" }} required>
-                    {lots.map((l) => <option key={l.id} value={l.id}>{l.lot_number} · {l.counted_qty - l.damaged_qty} vials{l.coa_path ? " · certificate ✓" : " · no certificate yet"}</option>)}
+                    {lots.map((l) => <option key={l.id} value={l.id}>{l.lot_number} · {l.counted_qty - l.damaged_qty} vials{l.purity_ok && l.endotoxin_ok ? " · certificates ✓" : " · certificates not complete"}</option>)}
                   </select><Err msg={d.state?.fieldErrors?.lotId} /></div>}
             <Err msg={d.state?.error} />
           </div>

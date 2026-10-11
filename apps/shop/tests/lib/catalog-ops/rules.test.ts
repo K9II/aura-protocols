@@ -4,66 +4,64 @@ import {
   adminRows, rowsForTab, tabCounts, lotsMatch, parseStrength, strengthSortKey, soldOutMessage, coaObjectPath, isCoaPathFor, COA_MAX_BYTES,
 } from "@/lib/catalog-ops/rules";
 
-const base = { lotNumber: "bpc-2610-03", purity: "99.4", method: "HPLC+MS", testedOn: "2026-10-02", ordered: "200", counted: "200", damaged: "0", note: "", coaPath: "BPC-2610-03/1.pdf" };
+const base = { lotNumber: "bpc-2610-03", ordered: "200", counted: "200", damaged: "0", note: "" };
 
 describe("parseReceive", () => {
   it("normalises the lot number and returns numbers", () => {
-    const r = parseReceive(base, "2026-10-05");
-    expect(r).toEqual({ ok: true, warnings: {}, value: {
-      lotNumber: "BPC-2610-03", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-10-02",
-      orderedQty: 200, countedQty: 200, damagedQty: 0, discrepancyNote: null, coaPath: "BPC-2610-03/1.pdf",
+    const r = parseReceive(base);
+    expect(r).toEqual({ ok: true, value: {
+      lotNumber: "BPC-2610-03",
+      orderedQty: 200, countedQty: 200, damagedQty: 0, discrepancyNote: null,
       supplier: null, costCents: null, testCents: null, freightCents: null, labelCents: null,
     } });
   });
   it("records the supplier, what was paid and the lab fee; a cost needs its supplier", () => {
-    const r = parseReceive({ ...base, supplier: " Nana ", cost: "$1,040", testCost: "250" }, "2026-10-05");
+    const r = parseReceive({ ...base, supplier: " Nana ", cost: "$1,040", testCost: "250" });
     expect(r.ok && r.value).toMatchObject({ supplier: "Nana", costCents: 104000, testCents: 25000 });
-    const bad = parseReceive({ ...base, cost: "lots", testCost: "-5" }, "2026-10-05");
+    const bad = parseReceive({ ...base, cost: "lots", testCost: "-5" });
     expect(!bad.ok && Object.keys(bad.fieldErrors).sort()).toEqual(["cost", "testCost"]);
-    const noSup = parseReceive({ ...base, cost: "520" }, "2026-10-05");
+    const noSup = parseReceive({ ...base, cost: "520" });
     expect(!noSup.ok && noSup.fieldErrors.supplier).toMatch(/supplier/);
   });
-  it("refuses bad lot numbers, purity outside 90–100, future test dates, damaged > counted", () => {
-    const r = parseReceive({ ...base, lotNumber: "x", purity: "89", testedOn: "2026-10-06", damaged: "300" }, "2026-10-05");
+  it("refuses bad lot numbers and damaged > counted", () => {
+    const r = parseReceive({ ...base, lotNumber: "x", damaged: "300" });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(Object.keys(r.fieldErrors).sort()).toEqual(["damaged", "lotNumber", "purity", "testedOn"]);
+    if (!r.ok) expect(Object.keys(r.fieldErrors).sort()).toEqual(["damaged", "lotNumber"]);
   });
   it("a mismatch needs a note", () => {
-    const r = parseReceive({ ...base, counted: "196", damaged: "2" }, "2026-10-05");
+    const r = parseReceive({ ...base, counted: "196", damaged: "2" });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.fieldErrors.note).toBe("Say what happened — the counts don't match the invoice.");
-    expect(parseReceive({ ...base, counted: "196", damaged: "2", note: "Short 4; 2 cracked." }, "2026-10-05").ok).toBe(true);
-  });
-  it("warns (doesn't refuse) below the site's 99% claim", () => {
-    const r = parseReceive({ ...base, purity: "98.6" }, "2026-10-05");
-    expect(r.ok && r.warnings.purity).toBe("Below the 99% shown on the site.");
-  });
-  it("certificate is optional for a draft", () => {
-    expect(parseReceive({ ...base, coaPath: "" }, "2026-10-05")).toMatchObject({ ok: true, value: { coaPath: null } });
+    expect(parseReceive({ ...base, counted: "196", damaged: "2", note: "Short 4; 2 cracked." }).ok).toBe(true);
   });
   it("blank ordered/counted are required; blank damaged defaults to 0", () => {
-    const r1 = parseReceive({ ...base, ordered: "" }, "2026-10-05");
+    const r1 = parseReceive({ ...base, ordered: "" });
     expect(r1.ok).toBe(false);
     if (!r1.ok) expect(r1.fieldErrors.ordered).toBe("Required.");
-    const r2 = parseReceive({ ...base, counted: "" }, "2026-10-05");
+    const r2 = parseReceive({ ...base, counted: "" });
     expect(r2.ok).toBe(false);
     if (!r2.ok) expect(r2.fieldErrors.counted).toBe("Required.");
-    const r3 = parseReceive({ ...base, damaged: "" }, "2026-10-05");
+    const r3 = parseReceive({ ...base, damaged: "" });
     expect(r3.ok && r3.value.damagedQty).toBe(0);
   });
 });
 
-describe("isDiscrepancy / liveRefusal", () => {
+describe("isDiscrepancy", () => {
   it("counted ≠ ordered or any damaged", () => {
     expect(isDiscrepancy(200, 200, 0)).toBe(false);
     expect(isDiscrepancy(200, 196, 0)).toBe(true);
     expect(isDiscrepancy(200, 200, 1)).toBe(true);
   });
-  it("live needs draft + certificate + something sellable", () => {
-    expect(liveRefusal({ status: "draft", coaPath: "x.pdf", sellable: 10 })).toBeNull();
-    expect(liveRefusal({ status: "live", coaPath: "x.pdf", sellable: 10 })).toBe("This lot is already live.");
-    expect(liveRefusal({ status: "draft", coaPath: null, sellable: 10 })).toBe("Attach the certificate first.");
-    expect(liveRefusal({ status: "draft", coaPath: "x.pdf", sellable: 0 })).toBe("Nothing to sell — every vial is damaged.");
+});
+
+describe("liveRefusal", () => {
+  const draft = { status: "draft", purityOk: true, endotoxinOk: true, sellable: 10 };
+  it("ready when purity and endotoxin pass and something sells", () => expect(liveRefusal(draft)).toBeNull());
+  it("names what's missing, in order", () => {
+    expect(liveRefusal({ ...draft, status: "live" })).toBe("This lot is already live.");
+    expect(liveRefusal({ ...draft, purityOk: false, endotoxinOk: false })).toBe("Needs a passing purity certificate.");
+    expect(liveRefusal({ ...draft, endotoxinOk: false })).toBe("Needs a passing endotoxin result.");
+    expect(liveRefusal({ ...draft, sellable: 0 })).toBe("Nothing to sell — every vial is damaged.");
   });
 });
 

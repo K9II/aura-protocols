@@ -94,8 +94,7 @@ async function logEvent(e: { slug: string; variant_id?: string | null; lot_id?: 
 
 export async function receiveLot(slug: string, variantId: string, v: ReceiveValue, actorId: string): Promise<{ ok: true; id: string } | { ok: false; taken: true }> {
   const { data, error } = await db().from("lots").insert({
-    lot_number: v.lotNumber, slug, variant_id: variantId, purity_pct: v.purityPct, method: v.method, tested_on: v.testedOn,
-    coa_path: v.coaPath, status: "draft", ordered_qty: v.orderedQty, counted_qty: v.countedQty, damaged_qty: v.damagedQty,
+    lot_number: v.lotNumber, slug, variant_id: variantId, status: "draft", ordered_qty: v.orderedQty, counted_qty: v.countedQty, damaged_qty: v.damagedQty,
     discrepancy_note: v.discrepancyNote, received_by: actorId,
     supplier: v.supplier, cost_cents: v.costCents, test_cents: v.testCents, freight_cents: v.freightCents, label_cents: v.labelCents,
   }).select("id").single();
@@ -110,7 +109,7 @@ export async function receiveLot(slug: string, variantId: string, v: ReceiveValu
 // Drafts only; ok:false when the lot is no longer a draft (the caller throws: stale).
 export async function updateDraftLot(id: string, v: ReceiveValue, actorId: string): Promise<{ ok: boolean; taken?: true }> {
   const { data, error } = await db().from("lots").update({
-    lot_number: v.lotNumber, purity_pct: v.purityPct, method: v.method, tested_on: v.testedOn, coa_path: v.coaPath,
+    lot_number: v.lotNumber,
     ordered_qty: v.orderedQty, counted_qty: v.countedQty, damaged_qty: v.damagedQty, discrepancy_note: v.discrepancyNote,
     supplier: v.supplier, cost_cents: v.costCents, test_cents: v.testCents, freight_cents: v.freightCents, label_cents: v.labelCents,
   }).eq("id", id).eq("status", "draft").select("slug, variant_id");
@@ -140,7 +139,7 @@ export async function lotDefaults(): Promise<LotDefaults> {
   return { testCents: d.lot_test_cents, inboundPerBoxCents: d.inbound_per_box_cents, labelPerVialCents: d.label_per_vial_cents };
 }
 
-export type LiveResult = "ok" | "missing" | "not_draft" | "no_certificate" | "nothing_sellable";
+export type LiveResult = "ok" | "missing" | "not_draft" | "needs_purity" | "needs_endotoxin" | "nothing_sellable";
 export async function putLotLive(id: string, actorId: string): Promise<LiveResult> {
   const { data, error } = await db().rpc("admin_lot_live", { p_lot: id, p_actor: actorId });
   if (error) fail("admin_lot_live", error);
@@ -158,16 +157,6 @@ export async function retireLot(id: string, actorId: string): Promise<"ok" | "mi
   const { data, error } = await db().rpc("admin_retire_lot", { p_lot: id, p_actor: actorId });
   if (error) fail("admin_retire_lot", error);
   return data as "ok" | "missing" | "not_live";
-}
-
-export async function replaceCertificate(id: string, path: string, actorId: string): Promise<boolean> {
-  const before = await lotById(id);
-  if (!before || before.status === "draft") return false;   // drafts change it through Edit
-  const { error } = await db().from("lots").update({ coa_path: path }).eq("id", id);
-  if (error) fail("certificate replace", error);
-  await logEvent({ slug: before.slug, variant_id: before.variant_id, lot_id: id, kind: "certificate_replaced", actor_id: actorId,
-    before: { coa_path: before.coa_path }, after: { coa_path: path } });
-  return true;
 }
 
 type VariantField = "price_cents" | "low_at" | "threepl_sku";
