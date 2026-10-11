@@ -8,6 +8,7 @@ export default function InquiryForm({
   orgLabel,
   messageLabel,
   prefillEvent,
+  messagePlaceholder,
 }: {
   topic: Topic;
   orgLabel: string;
@@ -15,6 +16,7 @@ export default function InquiryForm({
   // A window event whose detail (a string) fills the message, e.g. the wholesale order sheet's
   // "Ask for a volume quote". The buyer can still edit it before sending; nothing sends by itself.
   prefillEvent?: string;
+  messagePlaceholder?: string;
 }) {
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const message = useRef<HTMLTextAreaElement>(null);
@@ -75,7 +77,7 @@ export default function InquiryForm({
       <label className="s-micro block mb-1.5" htmlFor="organization">{orgLabel}</label>
       <input id="organization" name="organization" className={field} />
       <label className="s-micro block mb-1.5" htmlFor="message">{messageLabel}</label>
-      <textarea id="message" name="message" required rows={5} className={field} ref={message} />
+      <textarea id="message" name="message" required rows={5} className={field} ref={message} placeholder={messagePlaceholder} />
       <div className="s-hp" aria-hidden="true">
         <label htmlFor="website">Website</label>
         <input id="website" name="website" tabIndex={-1} autoComplete="off" />

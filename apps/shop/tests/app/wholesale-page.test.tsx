@@ -96,4 +96,18 @@ describe("/wholesale", () => {
     expect(screen.getByText(/switched off for your account/)).toBeTruthy();
     expect(screen.queryByText("order sheet")).toBeNull();
   });
+
+  it("volume quotes: the inquiry section points to the order sheet, worded for where the buyer is", async () => {
+    m.getWholesaleSettings.mockResolvedValue(open);
+    m.getAccountState.mockResolvedValue({ customer: null, blocked: false, unfinished: false });
+    const out = await page();
+    expect(out.container.textContent).toMatch(/Volume quotes and custom requests\./);
+    expect(screen.getByTestId("ws-quote-howto").textContent).toMatch(/^Wholesale buyers: build your order in the order sheet/);
+    expect(screen.getByRole("link", { name: "Open the order sheet →" }).getAttribute("href")).toBe("/sign-in?next=%2Fwholesale%3Fstep%3Dorder");
+    out.unmount();
+    m.getAccountState.mockResolvedValue({ customer: enabled });
+    await page("order");
+    expect(screen.getByTestId("ws-quote-howto").textContent).toBe("Add your kits above and choose Ask for a volume quote in your order summary. It fills this in for you.");
+    expect(screen.queryByRole("link", { name: "Open the order sheet →" })).toBeNull();
+  });
 });

@@ -17,4 +17,9 @@ describe("InquiryForm prefill", () => {
     act(() => { window.dispatchEvent(new CustomEvent("aura:volume-quote", { detail: "x" })); });
     expect((screen.getByLabelText("Message") as HTMLTextAreaElement).value).toBe("");
   });
+
+  it("shows the message placeholder it is given", () => {
+    render(<InquiryForm topic="wholesale" orgLabel="Organization" messageLabel="Kits" messagePlaceholder="One line per strength" />);
+    expect((screen.getByLabelText("Kits") as HTMLTextAreaElement).placeholder).toBe("One line per strength");
+  });
 });
