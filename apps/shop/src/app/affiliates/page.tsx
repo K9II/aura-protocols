@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import EarningsCalculator from "@/components/partners/EarningsCalculator";
-import PartnerCta from "@/components/partners/PartnerCta";
+import { getCustomer } from "@/lib/dal";
+import { getPartnerForCustomer } from "@/lib/partners/data";
 import { CASH_MIN_CENTS, CLEARING_DAYS, CODE_DISCOUNT_PCT, CREDIT_MULTIPLIER, REF_WINDOW_DAYS, TIERS } from "@/lib/partners/tiers";
 
 export const metadata: Metadata = {
@@ -19,7 +20,21 @@ const creditExample = Math.round(CASH_MIN_CENTS * CREDIT_MULTIPLIER);
 // the hero mirrors the product-page image — a Monograph-style placard of the partner
 // terms with a hanging code tag in front — and the rest uses the product page's
 // raised panels and hanging tags. Every figure comes from lib/partners/tiers.ts.
-export default function AffiliatesPage() {
+// Partners (any status) still read the program page, but its buttons open their
+// dashboard instead of Apply. A failed check just shows Apply — /partners/apply
+// sends a partner on to the dashboard anyway.
+async function isPartner(): Promise<boolean> {
+  try {
+    const customer = await getCustomer();
+    return !!customer && !!(await getPartnerForCustomer(customer.id));
+  } catch (err) {
+    console.error("partner check on /affiliates failed:", err);
+    return false;
+  }
+}
+
+export default async function AffiliatesPage() {
+  const cta = (await isPartner()) ? { href: "/partners", label: "Open your dashboard →" } : { href: "/partners/apply", label: "Apply to partner →" };
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-14">
@@ -33,7 +48,7 @@ export default function AffiliatesPage() {
               <div><dt className="s-micro">Paid on</dt><dd>the 1st and 15th</dd></div>
               <div><dt className="s-micro">Link credit</dt><dd>{REF_WINDOW_DAYS} days after a click</dd></div>
             </dl>
-            <PartnerCta className="s-atc s-pp-apply" />
+            <Link href={cta.href} className="s-atc s-pp-apply">{cta.label}</Link>
           </div>
           <div className="s-pp-tile" aria-hidden>
             <div className="s-pp-placard">
@@ -96,7 +111,7 @@ export default function AffiliatesPage() {
               <li><b>Fair promotion.</b> Partners may not bid on &quot;Aura Protocols&quot; in paid search or social advertising, list their code on coupon or deal sites, or apply their own code to personal orders.</li>
               <li><b>Enforcement.</b> Any breach of these rules may result in termination of the partnership, and any commission not yet paid will be forfeited.</li>
             </ol>
-            <PartnerCta className="s-atc block text-center" style={{ marginTop: 24 }} />
+            <Link href={cta.href} className="s-atc block text-center" style={{ marginTop: 24 }}>{cta.label}</Link>
             <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-2">You&apos;ll be asked to sign in or create an account first. Full terms: <Link className="p-link" href="/partner-agreement">Partner Agreement</Link>.</p>
           </div>
         </div>

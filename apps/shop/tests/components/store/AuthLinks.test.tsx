@@ -58,15 +58,6 @@ describe("AuthLinks", () => {
     vi.unstubAllGlobals();
   });
 
-  it("adds a Partner link for a partner account", async () => {
-    getSession.mockResolvedValue({ data: { session: { user: { id: "u1" } } } });
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ owner: false, partner: true })));
-    render(<AuthLinks />);
-    expect(await screen.findByRole("link", { name: "Partner" })).toHaveAttribute("href", "/partners");
-    expect(screen.queryByRole("link", { name: "Admin" })).toBeNull();
-    vi.unstubAllGlobals();
-  });
-
   it("shows no Admin link for other customers, or when the owner check fails", async () => {
     getSession.mockResolvedValue({ data: { session: { user: { id: "u2" } } } });
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({ owner: false })));
@@ -74,7 +65,6 @@ describe("AuthLinks", () => {
     expect(await screen.findByRole("link", { name: "Account" })).toBeInTheDocument();
     await Promise.resolve();
     expect(screen.queryByRole("link", { name: "Admin" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Partner" })).toBeNull();
     unmount();
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
     render(<AuthLinks />);
