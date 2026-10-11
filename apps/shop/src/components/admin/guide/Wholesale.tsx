@@ -1,6 +1,7 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
 import { KIT_VIALS } from "@/lib/wholesale/rules";
 import { BALANCE_REMINDER_DAY, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS } from "@/lib/wholesale/runs";
+import { REVIEW_WARN_DAYS } from "@/lib/wholesale/review";
 
 const days = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
 
@@ -25,6 +26,10 @@ export default function Wholesale() {
         <Task title="Cancel a deposit">
           <Step>On the run, choose <Ui>Cancel deposit…</Ui> on the order, pick a reason and choose <Ui>Cancel and refund</Ui>. The deposit goes back to the card and the buyer is emailed.</Step>
         </Task>
+        <Task title="Review a new wholesale buyer">
+          <Step>A buyer&apos;s first paid deposit shows on <Ui>Today</Ui> under <Ui>Wholesale</Ui> as <Ui>New wholesale buyer</Ui>, with their email, field of research, kits and deposit. Look them up (organization, website, the email domain).</Step>
+          <Step>If they look right, choose <Ui>Reviewed</Ui>. If not, open the run (the order number) and choose <Ui>Cancel deposit…</Ui> on their order for a full refund.</Step>
+        </Task>
         <Task title="Check what a kit earns">
           <Step>In <Ui>Wholesale</Ui> choose <Ui>Margins</Ui> (owner only). Every strength offered as a kit shows its margin at the lowest and highest volume tier, worked out from today&apos;s retail price, the supplier box prices synced from AIOS and your lot-cost settings.</Step>
           <Step>Use <Ui>Cheapest on file</Ui> or <Ui>Highest on file</Ui> to switch supplier, and <Ui>Kits of each strength in the run</Ui> to see the margin as more kits share that strength&apos;s lot test. Hover a row for the dollars.</Step>
@@ -48,6 +53,7 @@ export default function Wholesale() {
           ["Margins", <>The page recalculates on every visit. Kit price is the retail vial price × {KIT_VIALS}, less the tier; cost is the supplier box, inbound freight and customs, labels and their application, the kit box, card fees on both charges (GLP-1 kits at the GLP-1 processor&apos;s percent, never Stripe) and the 3PL&apos;s pick, pack, postage and insurance per order, less what the buyer pays for insurance. The lot test, at the default lab&apos;s price for each strength, is absorbed and shared by every kit of that strength in the run. Monthly 3PL fees and receiving aren&apos;t counted.</>],
           ["Where the figures come from", <>Supplier prices, the 3PL, the GLP-1 processor, the lab and competitor prices are kept in AIOS and copied to the store by the price sync; the date of the last sync is at the foot of the page. Competitor prices are single vials, scaled to our strength when they only sell a different size (shown under the price).</>],
           ["Alerts", <>A run still not ordered {days(PAST_CUTOFF_ALERT_DAYS)} after its order-by date, a lot too short to cover its orders, an overdue balance and every forfeit alert you once each.</>],
+          ["New buyers", <>Reviewed once per buyer, never per order: later orders from a reviewed buyer don&apos;t show. The line turns red {days(REVIEW_WARN_DAYS)} before the run&apos;s order-by date. The run page lists unreviewed buyers next to <Ui>Record order</Ui>, but never blocks it.</>],
         ]} />
       }
       watch={[
@@ -55,6 +61,7 @@ export default function Wholesale() {
         <>If one payment of a wholesale order is refunded in the Stripe dashboard you get an alert; refund the order from <Ui>Orders</Ui> so both payments and the stock are handled.</>,
         <>The minimum is per order, not per strength: an order at the minimum can be all different strengths, each paying its own lot test. <Ui>Margins</Ui> with the slider at 1 shows that worst case.</>,
         <>Keep ordering off in <Ui>Settings</Ui> until the payment processor approves the deposit and balance charges.</>,
+        <>Review new buyers before <Ui>Record order</Ui>: after that you&apos;ve paid the supplier for their kits.</>,
       ]}
     />
   );

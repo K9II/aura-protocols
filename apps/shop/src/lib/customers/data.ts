@@ -52,7 +52,8 @@ export type LedgerRow = { id: string; amount_cents: number; reason: string; ref_
 export type CustomerEvent = { id: string; kind: EventKind; amount_cents: number | null; reason: string | null; note: string | null; actor_id: string | null; created_at: string; actorName: string | null };
 export type EventKind = "blocked" | "unblocked" | "credit_added" | "credit_removed" | "verify_resent"
   | "warning_refunded" | "warning_watched" | "warning_closed" // early fraud warnings (Disputes); reason = order number
-  | "wholesale_on" | "wholesale_off";                          // Admin → Customers wholesale switch; reason = why
+  | "wholesale_on" | "wholesale_off"                           // Admin → Customers wholesale switch; reason = why
+  | "wholesale_reviewed";                                      // new-buyer review (Wholesale); spec 2026-10-10
 export type CustomerDetail = {
   id: string; email: string; fullName: string; organization: string | null; isOwner: boolean; createdAt: string;
   verifiedAt: string | null; verifySentAt: string | null; marketingOptIn: boolean; blockedAt: string | null; blockedReason: string | null;
@@ -63,7 +64,8 @@ export type CustomerDetail = {
   // First-order research verification (checkout), null until given.
   research: { field: string; org: string; verifiedAt: string } | null;
   // Self-serve wholesale: enabledAt = accepted the terms; disabledAt = the owner switched it off.
-  wholesale: { enabledAt: string | null; disabledAt: string | null; disabledReason: string | null; terms: { version: string; at: string } | null };
+  // reviewedAt/reviewedBy = the new-buyer review (spec 2026-10-10), once per buyer, never per order.
+  wholesale: { enabledAt: string | null; disabledAt: string | null; disabledReason: string | null; terms: { version: string; at: string } | null; reviewedAt: string | null; reviewedBy: string | null };
 };
 
 export async function getCustomerDetail(id: string): Promise<CustomerDetail | null> {
@@ -91,7 +93,8 @@ export async function getCustomerDetail(id: string): Promise<CustomerDetail | nu
   // Names for the activity log and the partner who referred them.
   const firstReferred = [...orderRows].reverse().find((o) => o.partner_id && (o.status === "paid" || o.status === "shipped"));
   const partnerCustomer = firstReferred ? await partnerCustomerName(firstReferred.partner_id!) : null;
-  const actorIds = [...new Set(eventRows.map((e) => e.actor_id).filter((x): x is string => !!x))];
+  const reviewerId = (r.wholesale_reviewed_by as string | null) ?? null;
+  const actorIds = [...new Set([...eventRows.map((e) => e.actor_id), reviewerId].filter((x): x is string => !!x))];
   const names = await namesById(actorIds);
   const lastBlock = eventRows.find((e) => e.kind === "blocked");
   return {
@@ -102,6 +105,8 @@ export async function getCustomerDetail(id: string): Promise<CustomerDetail | nu
       enabledAt: (r.wholesale_enabled_at as string | null) ?? null, disabledAt: (r.wholesale_disabled_at as string | null) ?? null,
       disabledReason: (r.wholesale_disabled_reason as string | null) ?? null,
       terms: ((wsTerms.data as Array<{ terms_version: string; agreed_at: string }> | null) ?? []).map((t) => ({ version: t.terms_version, at: t.agreed_at }))[0] ?? null,
+      reviewedAt: (r.wholesale_reviewed_at as string | null) ?? null,
+      reviewedBy: reviewerId ? names.get(reviewerId) ?? null : null,
     },
     research: r.research_verified_at && r.research_field && r.research_org
       ? { field: r.research_field as string, org: r.research_org as string, verifiedAt: r.research_verified_at as string }

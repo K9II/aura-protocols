@@ -63,14 +63,29 @@ describe("customers data", () => {
 
   it("getCustomerDetail carries the wholesale switch and the latest wholesale terms", async () => {
     from = fromQueue({
-      customers: [query({ data: { id: "u1", full_name: "Dana Whitfield", created_at: "2026-09-01T00:00:00Z", wholesale_enabled_at: "2026-10-09T16:14:00Z", wholesale_disabled_at: null, wholesale_disabled_reason: null } })],
+      customers: [query({ data: { id: "u1", full_name: "Dana Whitfield", created_at: "2026-09-01T00:00:00Z", wholesale_enabled_at: "2026-10-09T16:14:00Z", wholesale_disabled_at: null, wholesale_disabled_reason: null, wholesale_reviewed_at: null, wholesale_reviewed_by: null } })],
       orders: [query({ data: [] })], account_agreements: [query({ data: [] })], gate_attestations: [query({ data: [] })],
       store_credit_ledger: [query({ data: [] })], customer_events: [query({ data: [] })], partners: [query({ data: null })],
       wholesale_agreements: [query({ data: [{ terms_version: "2026-10-08", agreed_at: "2026-10-09T16:14:00Z" }] })],
     });
     getUserById.mockResolvedValue({ data: { user: { email: "dana.w@example.com" } }, error: null });
     const { getCustomerDetail } = await import("@/lib/customers/data");
-    expect((await getCustomerDetail("u1"))!.wholesale).toEqual({ enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: { version: "2026-10-08", at: "2026-10-09T16:14:00Z" } });
+    expect((await getCustomerDetail("u1"))!.wholesale).toEqual({ enabledAt: "2026-10-09T16:14:00Z", disabledAt: null, disabledReason: null, terms: { version: "2026-10-08", at: "2026-10-09T16:14:00Z" }, reviewedAt: null, reviewedBy: null });
+  });
+
+  it("getCustomerDetail resolves the reviewer's name for a reviewed wholesale buyer", async () => {
+    const names = query({ data: [{ id: "owner1", full_name: "Alvester Holt" }] });
+    from = fromQueue({
+      customers: [query({ data: { id: "u1", full_name: "Dana Whitfield", created_at: "2026-09-01T00:00:00Z", wholesale_enabled_at: "2026-10-09T16:14:00Z", wholesale_disabled_at: null, wholesale_disabled_reason: null, wholesale_reviewed_at: "2026-10-12T17:00:00Z", wholesale_reviewed_by: "owner1" } }), names],
+      orders: [query({ data: [] })], account_agreements: [query({ data: [] })], gate_attestations: [query({ data: [] })],
+      store_credit_ledger: [query({ data: [] })], customer_events: [query({ data: [] })], partners: [query({ data: null })],
+      wholesale_agreements: [query({ data: [] })],
+    });
+    getUserById.mockResolvedValue({ data: { user: { email: "dana.w@example.com" } }, error: null });
+    const { getCustomerDetail } = await import("@/lib/customers/data");
+    const d = (await getCustomerDetail("u1"))!;
+    expect(d.wholesale.reviewedAt).toBe("2026-10-12T17:00:00Z");
+    expect(d.wholesale.reviewedBy).toBe("Alvester");
   });
 
   it("setCustomerWholesale off records the reason and logs the event", async () => {

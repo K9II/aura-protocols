@@ -5,7 +5,7 @@ const m = vi.hoisted(() => ({
   getOrderById: vi.fn(), stampWholesaleCancel: vi.fn(), transitionOrder: vi.fn(), refundCard: vi.fn(), lotById: vi.fn(), variantRow: vi.fn(),
   draftLotsFor: vi.fn(), failLine: vi.fn(), fillLotCostFromLine: vi.fn(), getRun: vi.fn(), lineById: vi.fn(), linkLot: vi.fn(), logEvent: vi.fn(), passLine: vi.fn(),
   recordLineOrder: vi.fn(), resourceLine: vi.fn(), runByCutoff: vi.fn(), runLines: vi.fn(), runOrders: vi.fn(), saveRunNotes: vi.fn(),
-  afterLineFailed: vi.fn(), releaseReadyOrders: vi.fn(), saveWholesaleSettings: vi.fn(),
+  afterLineFailed: vi.fn(), releaseReadyOrders: vi.fn(), saveWholesaleSettings: vi.fn(), markWholesaleReviewed: vi.fn(),
 }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/notify", () => ({ alertOwner: m.alertOwner, sendOrAlert: m.sendOrAlert }));
@@ -19,7 +19,7 @@ vi.mock("@/lib/wholesale/runs-data", () => ({
   recordLineOrder: m.recordLineOrder, resourceLine: m.resourceLine, runByCutoff: m.runByCutoff, runLines: m.runLines, runOrders: m.runOrders, saveRunNotes: m.saveRunNotes,
 }));
 vi.mock("@/lib/wholesale/balance", () => ({ afterLineFailed: m.afterLineFailed, releaseReadyOrders: m.releaseReadyOrders }));
-vi.mock("@/lib/wholesale/data", () => ({ saveWholesaleSettings: m.saveWholesaleSettings }));
+vi.mock("@/lib/wholesale/data", () => ({ saveWholesaleSettings: m.saveWholesaleSettings, markWholesaleReviewed: m.markWholesaleReviewed }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-09T18:00:00Z") }));
 
 const RUN = "11111111-1111-4111-8111-111111111111", LINE = "22222222-2222-4222-8222-222222222222", LOT = "33333333-3333-4333-8333-333333333333", ORDER = "44444444-4444-4444-8444-444444444444";
@@ -116,5 +116,28 @@ describe("Admin → Wholesale actions", () => {
     expect(m.saveWholesaleSettings).not.toHaveBeenCalled();
     expect(await saveWholesaleSettingsAction(null, fd(good))).toEqual({ ok: "Settings saved." });
     expect(m.saveWholesaleSettings).toHaveBeenCalledWith(expect.objectContaining({ open: true, minKits: 5, depositPct: 40 }));
+  });
+});
+
+describe("markWholesaleReviewedAction", () => {
+  const CUST = "55555555-5555-4555-8555-555555555555";
+  beforeEach(() => { m.requirePermission.mockReset(); m.markWholesaleReviewed.mockReset(); m.revalidatePath.mockReset(); m.requirePermission.mockResolvedValue({ id: "owner1" }); });
+
+  it("asks for wholesale.manage, marks the buyer reviewed as the owner and refreshes every admin page (Today, nav count, run, customer)", async () => {
+    m.markWholesaleReviewed.mockResolvedValue("ok");
+    const { markWholesaleReviewedAction } = await import("@/app/admin/wholesale/actions");
+    await markWholesaleReviewedAction(fd({ customerId: CUST }));
+    expect(m.requirePermission).toHaveBeenCalledWith("wholesale.manage");
+    expect(m.markWholesaleReviewed).toHaveBeenCalledWith(CUST, "owner1");
+    expect(m.revalidatePath).toHaveBeenCalledWith("/admin", "layout");
+  });
+
+  it("a second click is fine (already reviewed); a bad or unknown id throws", async () => {
+    const { markWholesaleReviewedAction } = await import("@/app/admin/wholesale/actions");
+    m.markWholesaleReviewed.mockResolvedValue("already");
+    await expect(markWholesaleReviewedAction(fd({ customerId: CUST }))).resolves.toBeUndefined();
+    await expect(markWholesaleReviewedAction(fd({ customerId: "nope" }))).rejects.toThrow(/reload/);
+    m.markWholesaleReviewed.mockResolvedValue("missing");
+    await expect(markWholesaleReviewedAction(fd({ customerId: CUST }))).rejects.toThrow(/reload/);
   });
 });

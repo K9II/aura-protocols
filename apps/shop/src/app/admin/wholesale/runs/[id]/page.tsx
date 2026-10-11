@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/lib/dal";
@@ -8,8 +9,9 @@ import { dateLabel, localDate } from "@/lib/today/time";
 import { usd } from "@/lib/html";
 import { catalogContent } from "@/data/catalog";
 import { lotById } from "@/lib/catalog-ops/data";
-import { getWholesaleSettings } from "@/lib/wholesale/data";
+import { getWholesaleSettings, unreviewedBuyers } from "@/lib/wholesale/data";
 import { estimatedDates } from "@/lib/wholesale/rules";
+import { reviewLines } from "@/lib/wholesale/review";
 import {
   kitsByStrength, lineStage, MAX_SUPPLIERS_PER_RUN, runStatus, supplierOptions, RUN_CHIP, RUN_STATUS_LABEL, STAGE_CHIP, strengthKey, strengthText, type RunLine,
 } from "@/lib/wholesale/runs";
@@ -19,6 +21,7 @@ import { Crumbs } from "@/components/admin/ui";
 import { OrderStatusChip } from "@/components/admin/orders/bits";
 import { CancelDepositDialog, LinkLotDialog, PassFailButtons, RecordOrderDialog, ResourceButton, RunNotes } from "@/components/admin/wholesale/RunDialogs";
 import ReceiveLotDialog from "@/components/admin/catalog/ReceiveLotDialog";
+import ReviewedButton from "@/components/admin/wholesale/ReviewedButton";
 import { lotDefaults, type LotDefaults } from "@/lib/catalog-ops/data";
 
 export const metadata: Metadata = { title: "Wholesale run", robots: { index: false, follow: false } };
@@ -40,7 +43,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   if (!run) notFound();
   const manage = can(staff, "wholesale.manage");
   const today = localDate(currentMs());
-  const [s, lines, orders, events] = await Promise.all([getWholesaleSettings(), runLines(run.id), runOrders([run.cutoff_on]), runEvents(run.id)]);
+  // The new-buyer note is information only: a failed read shows a note, never
+  // takes the page (and Record order) down with it.
+  const [s, lines, orders, events, pending] = await Promise.all([getWholesaleSettings(), runLines(run.id), runOrders([run.cutoff_on]), runEvents(run.id),
+    unreviewedBuyers().catch((err) => { console.error("unreviewed wholesale buyers read failed:", err); return null; })]);
+  const newBuyers = pending ? reviewLines(pending.filter((p) => p.cutoffOn === run.cutoff_on), today) : [];
   const live = orders.filter((o) => LIVE.has(o.status));
   const needed = kitsByStrength(live);
   const status = runStatus(run.cutoff_on, today, lines, orders);
@@ -80,6 +87,26 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
       <div className="a-vh"><div><h1>Run {run.number} <span className={`a-chip ${RUN_CHIP[status]}`}>{RUN_STATUS_LABEL[status]}</span></h1>
         <div className="sub">Order by {cutoffLabel}<span className="dot" />lot tested ≈ {dateLabel(dates.testedAbout)}<span className="dot" />ships about {dateLabel(dates.shipsAbout)}<span className="dot" />{live.length} orders · {[...needed.values()].reduce((a, b) => a + b, 0)} kits</div></div>
         <div className="actions"><span className="a-mk sl">{suppliers.length} of {MAX_SUPPLIERS_PER_RUN} suppliers{suppliers.length ? ` · ${suppliers.join(", ")}` : ""}</span></div></div>
+
+      {newBuyers.length > 0 && (
+        <div className="a-review-note" role="note">
+          <b>{newBuyers.length === 1 ? "1 new buyer" : `${newBuyers.length} new buyers`} not reviewed:</b>
+          {newBuyers.map((b, k) => (
+            <span key={b.customerId} className="who">
+              <span>{k > 0 && ", "}<Link href={`/admin/customers/${b.customerId}`}>{b.name}</Link>
+                {" ("}{b.orders.map((n, j) => <Fragment key={n}>{j > 0 && ", "}<Link className="a-ord" href={`/admin/orders/${n}`}>{n}</Link></Fragment>)}{")"}</span>
+              {manage && <ReviewedButton customerId={b.customerId} name={b.name} />}
+            </span>
+          ))}
+          <span className="sub">You can still record supplier orders. Cancel a deposit below if something looks off.</span>
+        </div>
+      )}
+      {!pending && (
+        <div className="a-review-note" role="note">
+          <b>Couldn&apos;t check for new buyers.</b>
+          <span className="sub">Reload the page. You can still record supplier orders.</span>
+        </div>
+      )}
 
       <div className="a-card">
         <div className="a-card-h"><h3>Strengths</h3><span className="sub">one supplier order and one lot test per strength</span></div>

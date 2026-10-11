@@ -3,7 +3,8 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import type { OrderStatus } from "@/lib/order-status";
 import { balanceTiming, daysSince, kitsByStrength, PAST_CUTOFF_ALERT_DAYS, strengthKey, type RunLine, type RunOrder } from "@/lib/wholesale/runs";
 import { cutoffFor } from "@/lib/wholesale/rules";
-import { getWholesaleSettings } from "@/lib/wholesale/data";
+import { getWholesaleSettings, unreviewedBuyers } from "@/lib/wholesale/data";
+import { reviewLines } from "@/lib/wholesale/review";
 import { catalogContent } from "@/data/catalog";
 import { compoundTitle } from "@/lib/catalog";
 import { addDays, localDate } from "@/lib/today/time";
@@ -234,11 +235,11 @@ const strengthLabel = (slug: string, variantId: string): string => {
 
 export async function wholesaleTodos(nowMs: number): Promise<WholesaleTodoInput> {
   const today = localDate(nowMs);
-  const [s, runs, due] = await Promise.all([getWholesaleSettings(), listRuns(), balanceDueOrders()]);
+  const [s, runs, due, pending] = await Promise.all([getWholesaleSettings(), listRuns(), balanceDueOrders(), unreviewedBuyers()]);
   const cutoff = cutoffFor(today, { runDays: s.runDays, override: s.nextCutoffOverride });
   const recent = runs.filter((r) => r.cutoff_on >= addDays(today, -120));
   const orders = await runOrders(recent.map((r) => r.cutoff_on));
-  const out: WholesaleTodoInput = { collecting: null, toOrder: [], failed: [], balances: { due: due.length, overdue: 0 } };
+  const out: WholesaleTodoInput = { collecting: null, toOrder: [], failed: [], balances: { due: due.length, overdue: 0 }, newBuyers: [] };
   for (const o of due) if (o.balance_due_at && nowMs >= balanceTiming(o.balance_due_at, s.balanceDays).overdueAt) out.balances.overdue++;
   for (const r of recent) {
     const mine = orders.filter((o) => o.wholesale_cutoff_on === r.cutoff_on);
@@ -256,5 +257,7 @@ export async function wholesaleTodos(nowMs: number): Promise<WholesaleTodoInput>
       .filter((k) => !lines.some((l) => strengthKey(l.slug, l.variant_id) === k && (l.ordered_at || l.result === "passed")));
     if (missing.length) out.toOrder.push({ id: r.id, number: r.number, days, strengths: missing.map((k) => { const [slug, v] = k.split("/"); return strengthLabel(slug, v); }) });
   }
+  const runIdByCutoff = new Map(runs.map((r) => [r.cutoff_on, r.id]));
+  out.newBuyers = reviewLines(pending, today).map((l) => ({ ...l, runId: runIdByCutoff.get(l.cutoffOn) ?? null }));
   return out;
 }

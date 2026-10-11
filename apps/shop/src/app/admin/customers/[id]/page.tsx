@@ -16,6 +16,7 @@ import { unblockAction } from "@/app/admin/customers/actions";
 import CreditDialog from "@/components/admin/customers/CreditDialog";
 import BlockDialog from "@/components/admin/customers/BlockDialog";
 import WholesaleDialog from "@/components/admin/customers/WholesaleDialog";
+import ReviewedButton from "@/components/admin/wholesale/ReviewedButton";
 import ResendVerify from "@/components/admin/customers/ResendVerify";
 import ConfirmSubmit from "@/components/admin/ConfirmSubmit";
 import { customerEventText as eventText } from "@/components/admin/customers/eventText";
@@ -194,6 +195,10 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                   : c.wholesale.enabledAt ? <>On since {shortDate(c.wholesale.enabledAt)}</> : <span className="muted">Not turned on</span>}</dd>
                 <dt>Terms</dt><dd>{c.wholesale.terms ? <>{c.wholesale.terms.version} · accepted {dateTime(c.wholesale.terms.at)}</> : <span className="muted">—</span>}</dd>
                 <dt>Orders</dt><dd>{c.orders.filter((o) => o.channel === "wholesale" && o.status !== "awaiting_payment" && o.status !== "cancelled").length || <span className="muted">—</span>}</dd>
+                <dt>Reviewed</dt><dd>{c.wholesale.reviewedAt
+                  ? <>{shortDate(c.wholesale.reviewedAt)}{c.wholesale.reviewedBy ? ` by ${c.wholesale.reviewedBy}` : ""}</>
+                  : c.wholesale.enabledAt ? <><span className="muted">Not reviewed yet</span>{can(staff, "wholesale.manage") && !c.wholesale.disabledAt && <div style={{ marginTop: 6 }}><ReviewedButton customerId={c.id} name={c.fullName} /></div>}</>
+                  : <span className="muted">—</span>}</dd>
               </dl>
               {can(staff, "wholesale.manage") && (c.wholesale.enabledAt || c.wholesale.disabledAt) && (
                 <div style={{ margin: "8px 0 6px" }}><WholesaleDialog customerId={c.id} name={c.fullName} off={!!c.wholesale.disabledAt} /></div>

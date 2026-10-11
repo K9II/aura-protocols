@@ -60,6 +60,7 @@ export const ACTION_PERMS: Record<string, Record<string, string>> = {
   "wholesale/actions.ts": {
     recordLineOrderAction: "wholesale.manage", linkLotAction: "wholesale.manage", passLineAction: "wholesale.manage", failLineAction: "wholesale.manage",
     resourceLineAction: "wholesale.manage", saveRunNotesAction: "wholesale.manage", cancelDepositAction: "wholesale.manage", saveWholesaleSettingsAction: "wholesale.manage",
+    markWholesaleReviewedAction: "wholesale.manage",
   },
   "disputes/actions.ts": { saveDisputeDraftAction: "disputes.draft", submitDisputeAction: "disputes.submit", refundEarlyWarningAction: "disputes.warnings", watchEarlyWarningAction: "disputes.warnings" },
   "catalog/actions.ts": {

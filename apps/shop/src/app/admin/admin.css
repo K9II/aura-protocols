@@ -1433,6 +1433,11 @@
 .adm .a-ws-tiers td { padding: 6px 8px; }
 .adm .a-ws-tiers input { width: 90px; }
 
+/* Run page: new buyers not reviewed (spec 2026-10-10). Information only, never blocks. */
+.adm .a-review-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--line); border-left: 3px solid var(--ochre); background: var(--ochre-bg); font-size: 13.5px; }
+.adm .a-review-note .who { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.adm .a-review-note .sub { flex-basis: 100%; color: var(--muted); font-size: 12.5px; }
+
 /* ---------- wholesale kit margins (owner-only, 2026-10-10) ---------- */
 .adm .a-km { display: grid; gap: 14px; }
 .adm .a-km .a-kpis { margin-bottom: 0; }

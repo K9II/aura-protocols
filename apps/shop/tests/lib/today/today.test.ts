@@ -37,7 +37,7 @@ describe("today assembly", () => {
   beforeEach(() => {
     vi.resetModules();
     wholesaleTodos.mockReset();
-    wholesaleTodos.mockResolvedValue({ collecting: null, toOrder: [], failed: [], balances: { due: 0, overdue: 0 } });
+    wholesaleTodos.mockResolvedValue({ collecting: null, toOrder: [], failed: [], balances: { due: 0, overdue: 0 }, newBuyers: [] });
     for (const f of Object.values(m)) f.mockReset();
     vi.spyOn(console, "error").mockImplementation(() => {});
     m.listOpenAlerts.mockResolvedValue([{ id: "a1", title: "T", detail: "D", count: 1, first_at: "2026-10-06T14:00:00Z", last_at: "2026-10-06T14:00:00Z", resolved_at: null, resolved_by_name: null, note: null }]);

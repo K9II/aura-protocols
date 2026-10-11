@@ -4,10 +4,10 @@ import { ownerStaff, assistantStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({
   requirePermission: vi.fn(), getWholesaleSettings: vi.fn(), listRuns: vi.fn(), runLines: vi.fn(), runOrders: vi.fn(), getRun: vi.fn(),
-  runEvents: vi.fn(), draftLotsFor: vi.fn(), pastSuppliers: vi.fn(), supplierPricesFor: vi.fn(), lotById: vi.fn(), notFound: vi.fn(() => { throw new Error("NOT_FOUND"); }),
+  runEvents: vi.fn(), draftLotsFor: vi.fn(), pastSuppliers: vi.fn(), supplierPricesFor: vi.fn(), lotById: vi.fn(), unreviewedBuyers: vi.fn(), notFound: vi.fn(() => { throw new Error("NOT_FOUND"); }),
 }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
-vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: m.getWholesaleSettings }));
+vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: m.getWholesaleSettings, unreviewedBuyers: m.unreviewedBuyers }));
 vi.mock("@/lib/wholesale/runs-data", () => ({ listRuns: m.listRuns, runLines: m.runLines, runOrders: m.runOrders, getRun: m.getRun, runEvents: m.runEvents, draftLotsFor: m.draftLotsFor, pastSuppliers: m.pastSuppliers, supplierPricesFor: m.supplierPricesFor }));
 vi.mock("@/lib/catalog-ops/data", () => ({ lotById: m.lotById, lotDefaults: async () => ({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 }) }));
 vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn() }));
@@ -15,7 +15,7 @@ vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-30T16:00:00
 vi.mock("next/navigation", () => ({ notFound: m.notFound, useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/app/admin/wholesale/actions", () => ({
   recordLineOrderAction: vi.fn(), linkLotAction: vi.fn(), passLineAction: vi.fn(), failLineAction: vi.fn(), resourceLineAction: vi.fn(),
-  saveRunNotesAction: vi.fn(), cancelDepositAction: vi.fn(), saveWholesaleSettingsAction: vi.fn(),
+  saveRunNotesAction: vi.fn(), cancelDepositAction: vi.fn(), saveWholesaleSettingsAction: vi.fn(), markWholesaleReviewedAction: vi.fn(),
 }));
 
 const RUN = "11111111-1111-4111-8111-111111111111";
@@ -40,6 +40,7 @@ describe("Admin → Wholesale pages", () => {
     m.pastSuppliers.mockResolvedValue(["HK Peptides"]);
     m.supplierPricesFor.mockResolvedValue({ "retatrutide/10mg": { Nana: 5200 } });
     m.lotById.mockResolvedValue({ lot_number: "BPC-2611A", coa_path: "x.pdf", held: 0 });
+    m.unreviewedBuyers.mockResolvedValue([]);
   });
 
   it("list: the collecting run on top, every run with its derived status and next step", async () => {
@@ -105,6 +106,34 @@ describe("Admin → Wholesale pages", () => {
     const row = [...container.querySelectorAll("tbody tr")].find((r) => r.textContent?.includes("BPC-157"))!;
     expect(row.querySelectorAll("td")[1].textContent).toBe("5");
     expect(screen.getByRole("button", { name: "Record order" })).toBeTruthy();
+  });
+
+  it("run page: lists this run's unreviewed buyers with Reviewed (owner); never disables Record order", async () => {
+    m.runOrders.mockResolvedValue([order()]);
+    m.runLines.mockResolvedValue([line()]);
+    m.unreviewedBuyers.mockResolvedValue([
+      { orderId: "o1", orderNumber: "AP-1052", customerId: "c1", name: "Dana Reyes", organization: "Reyes Lab", email: "d@x.org", field: null, depositCents: 100000, kits: 5, cutoffOn: run.cutoff_on },
+      { orderId: "o9", orderNumber: "AP-1099", customerId: "c9", name: "Other Run", organization: null, email: "o@x.org", field: null, depositCents: 100000, kits: 5, cutoffOn: "2026-12-28" },
+    ]);
+    const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
+    const note = container.querySelector(".a-review-note")!;
+    expect(note.textContent).toMatch(/1 new buyer not reviewed/);
+    expect(note.textContent).toMatch(/Dana Reyes \(AP-1052\)/);
+    expect(note.textContent).not.toMatch(/Other Run/);
+    expect(screen.getByRole("button", { name: "Mark Dana Reyes reviewed" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pass" })).toBeTruthy();
+  });
+
+  it("run page: a failed new-buyer read shows a note and keeps the page (Pass still there)", async () => {
+    m.runOrders.mockResolvedValue([order()]);
+    m.runLines.mockResolvedValue([line()]);
+    m.unreviewedBuyers.mockRejectedValue(new Error("down"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
+    expect(container.querySelector(".a-review-note")!.textContent).toMatch(/Couldn.t check for new buyers/);
+    expect(screen.getByRole("button", { name: "Pass" })).toBeTruthy();
   });
 
   it("run page: an unknown run is a 404", async () => {

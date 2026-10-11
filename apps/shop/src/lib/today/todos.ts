@@ -20,10 +20,13 @@ import {
 import type { InquiryTodo } from "@/lib/inquiries/data";
 import { refLabel, waitInfo } from "@/lib/inquiries/rules";
 import { TOPIC_TAG } from "@/lib/inquiries/topics";
+import type { ReviewLine } from "@/lib/wholesale/review";
+import { researchLabel } from "@/lib/account/research";
 
 export type LineTone = "red" | "amb" | "slate" | "mut";
 export type AlertLineData = OwnerAlert & { when: string };
-export type TodoAction = { label: string; href: string; icon?: IconName } | { label: string; announce: true } | { label: string; warning: WarningActionData };
+export type TodoAction = { label: string; href: string; icon?: IconName } | { label: string; announce: true } | { label: string; warning: WarningActionData }
+  | { label: string; review: { customerId: string; name: string } };
 export type TodoLine = {
   key: string; icon: IconName; tone: LineTone;
   mono?: string;          // an order or lot number, shown first in mono
@@ -258,6 +261,7 @@ export type WholesaleTodoInput = {
   toOrder: Array<{ id: string; number: string; days: number; strengths: string[] }>;
   failed: Array<{ runId: string; number: string; label: string }>;
   balances: { due: number; overdue: number };
+  newBuyers: Array<ReviewLine & { runId: string | null }>;   // spec 2026-10-10: unreviewed buyers with a paid deposit
 };
 export function wholesaleSection(i: WholesaleTodoInput): TodoSection | null {
   const lines: TodoLine[] = [];
@@ -265,10 +269,18 @@ export function wholesaleSection(i: WholesaleTodoInput): TodoSection | null {
     title: "Past cutoff, not ordered", detail: `${plural(r.days, "day")} since the cutoff · ${r.strengths.join(", ")}`, action: { label: "Open run", href: `/admin/wholesale/runs/${r.id}` } });
   for (const f of i.failed) lines.push({ key: `failed-${f.runId}-${f.label}`, icon: "warn", tone: "red", mono: f.number, href: `/admin/wholesale/runs/${f.runId}`,
     title: `Lot failed: ${f.label}`, detail: "Re-source it and record the new order", action: { label: "Open run", href: `/admin/wholesale/runs/${f.runId}` } });
+  for (const b of i.newBuyers) lines.push({
+    key: `buyer-${b.customerId}`, icon: "customers", tone: b.red ? "red" : "slate",
+    mono: b.orders.length > 1 ? `${b.orders[0]} +${b.orders.length - 1}` : b.orders[0],
+    href: b.runId ? `/admin/wholesale/runs/${b.runId}` : `/admin/customers/${b.customerId}`,
+    title: `New wholesale buyer · ${b.name}${b.organization ? ` · ${b.organization}` : ""}`,
+    detail: [b.email, b.field ? researchLabel(b.field) : null, plural(b.kits, "kit"), `${usd(b.depositCents)} deposit`].filter(Boolean).join(" · "),
+    action: { label: "Reviewed", review: { customerId: b.customerId, name: b.name } },
+  });
   if (i.balances.due) lines.push({ key: "balances", icon: "payouts", tone: i.balances.overdue ? "amb" : "slate",
     title: `${plural(i.balances.due, "balance")} due${i.balances.overdue ? ` · ${i.balances.overdue} overdue` : ""}`,
     detail: "Buyers pay from their order page", action: { label: "Orders", href: "/admin/orders?tab=wholesale" } });
   if (i.collecting && i.collecting.orders) lines.push({ key: "collecting", icon: "orders", tone: "slate", mono: i.collecting.number, href: `/admin/wholesale/runs/${i.collecting.id}`,
     title: `Closes ${dateLabel(i.collecting.cutoff)}`, detail: `${plural(i.collecting.orders, "order")} · ${plural(i.collecting.kits, "kit")}` });
-  return build({ key: "wholesale", title: "Wholesale", icon: "orders", n: i.toOrder.length + i.failed.length + i.balances.overdue, link: { label: "Wholesale", href: "/admin/wholesale" } }, lines);
+  return build({ key: "wholesale", title: "Wholesale", icon: "orders", n: i.toOrder.length + i.failed.length + i.newBuyers.length + i.balances.overdue, link: { label: "Wholesale", href: "/admin/wholesale" } }, lines);
 }

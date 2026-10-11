@@ -1,6 +1,7 @@
 import "server-only";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { parseWholesaleSettings, WHOLESALE_TERMS_VERSION, type WholesaleSettings } from "@/lib/wholesale/rules";
+import type { UnreviewedOrder } from "@/lib/wholesale/review";
 
 const db = () => getSupabaseAdminClient();
 const SETTINGS_COLS = "wholesale_open, wholesale_tiers, wholesale_deposit_pct, wholesale_balance_days, wholesale_run_days, wholesale_lead_days, wholesale_next_cutoff, wholesale_min_kits, wholesale_kit_box_cents";
@@ -33,6 +34,24 @@ export async function enableWholesale(customerId: string, ctx: { ipHash: string;
     .select("wholesale_enabled_at, wholesale_disabled_at").eq("id", customerId).maybeSingle();
   if (e2) throw new Error(`wholesale read failed: ${JSON.stringify(e2)}`);
   return !row || row.wholesale_disabled_at ? "disabled" : "enabled";
+}
+
+// Paid deposits from buyers not yet reviewed (spec 2026-10-10). Throws on a read error.
+export async function unreviewedBuyers(): Promise<UnreviewedOrder[]> {
+  const { data, error } = await db().rpc("admin_unreviewed_wholesale_buyers");
+  if (error) throw new Error(`unreviewed wholesale buyers read failed: ${JSON.stringify(error)}`);
+  return ((data ?? []) as Array<{ order_id: string; order_number: string; customer_id: string; full_name: string; organization: string | null;
+    email: string; research_field: string | null; deposit_cents: number; kits: number; cutoff_on: string }>).map((r) => ({
+    orderId: r.order_id, orderNumber: r.order_number, customerId: r.customer_id, name: r.full_name, organization: r.organization,
+    email: r.email, field: r.research_field, depositCents: r.deposit_cents, kits: r.kits, cutoffOn: r.cutoff_on,
+  }));
+}
+
+// Marks the buyer reviewed and logs it in one transaction (SQL). Idempotent.
+export async function markWholesaleReviewed(customerId: string, actorId: string): Promise<"ok" | "already" | "missing"> {
+  const { data, error } = await db().rpc("admin_mark_wholesale_reviewed", { p_customer: customerId, p_actor: actorId });
+  if (error) throw new Error(`wholesale review save failed: ${JSON.stringify(error)}`);
+  return data as "ok" | "already" | "missing";
 }
 
 export async function saveWholesaleSettings(v: {
