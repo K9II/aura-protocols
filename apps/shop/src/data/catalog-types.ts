@@ -61,3 +61,20 @@ export type PublicLot = Lot & {
   liveAt: string;
   onStore: boolean;   // its strength is shown and not archived (lot alerts announce only these)
 };
+
+export type CertTest = "pass" | "fail" | "not_tested";
+
+// One certificate customers can see (COA lookup, library, product page). Built
+// by mergeCatalog from lot_certificates under the store-wide switches.
+export type PublicCert = {
+  id: string; lot: string; slug: string; compoundName: string; chemicalClass: string; strength: string;
+  lotStatus: "live" | "sold_out" | "retired";
+  shipping: boolean;              // lot live with vials AND its strength on the store
+  labName: string; labCity: string | null; labIso: boolean;
+  reportNumber: string; verifyUrl: string | null; testedOn: string; coaFile: string;
+  purityPct: number | null; method: "HPLC" | "HPLC+MS" | null;
+  measuredMg: number | null; measuredPct: number | null;   // null unless "Show measured amount" is on
+  tests: { identity: CertTest; endotoxin: CertTest; sterility: CertTest; heavy_metals: CertTest; fentanyl: CertTest };
+  failed: boolean; note: string | null; correction: string | null; correctedAt: string | null;
+  labsOnLot: number;              // distinct labs among the lot's visible certificates
+};
