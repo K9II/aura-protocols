@@ -62,11 +62,11 @@ describe("order page · wholesale", () => {
     expect(screen.queryByRole("button", { name: "Cancel order" })).toBeNull();
   });
 
-  it("a strength failed (b2): re-sourcing notice with the APro name, new date, and cancel for a full refund after the cutoff", async () => {
+  it("a strength failed (b2): re-sourcing notice with the scientific name (code names hidden), new date, and cancel for a full refund after the cutoff", async () => {
     m.runLines.mockResolvedValue([{ slug: "retatrutide", variant_id: "10mg", result: "failed" }]);
     const { container } = await page(ws({ wholesale_cutoff_on: "2026-10-05", order_items: [{ compound_slug: "retatrutide", compound_name: "Retatrutide", variant_id: "10mg", strength: "10 mg", pack_qty: 10, quantity: 3 }] }));
     expect(container.textContent).toMatch(/One lot needs re-sourcing\./);
-    expect(container.textContent).toMatch(/APro-G3RT \(Retatrutide\) 10 mg/);
+    expect(container.textContent).toMatch(/Retatrutide 10 mg/);
     expect(container.textContent).toMatch(/New estimated ship date/);
     expect(screen.getByRole("button", { name: "Cancel for a full refund" })).toBeTruthy();
   });

@@ -53,10 +53,10 @@ export const catalogContent: CatalogEntry<ChemicalClass>[] = [
   // the primary processor, accepts GLP-1s). Stripe's prohibited list covers
   // "research use" semaglutide/tirzepatide/retatrutide, so these must never be
   // charged through Stripe.
-  // APro designations lead on these three; the scientific name always shows alongside (2026-10-08).
-  entry("semaglutide", "Semaglutide", "Incretin & Amylin Analogs", { designation: "APro-G1SM" }),
-  entry("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs", { designation: "APro-G2TRZ" }),
-  entry("retatrutide", "Retatrutide", "Incretin & Amylin Analogs", { designation: "APro-G3RT" }),
+  // APro code names are stored in data/glp-code-names.ts and NOT shown (2026-10-10).
+  entry("semaglutide", "Semaglutide", "Incretin & Amylin Analogs"),
+  entry("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs"),
+  entry("retatrutide", "Retatrutide", "Incretin & Amylin Analogs"),
   entry("cagrilintide", "Cagrilintide", "Incretin & Amylin Analogs"),
   entry("cagrisema", "Cagrilintide / Semaglutide", "Incretin & Amylin Analogs", { components: ["cagrilintide", "semaglutide"] }),
   entry("retatrutide-cagrilintide", "Retatrutide / Cagrilintide", "Incretin & Amylin Analogs", { components: ["retatrutide", "cagrilintide"] }),

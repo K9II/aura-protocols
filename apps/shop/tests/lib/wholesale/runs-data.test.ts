@@ -61,7 +61,7 @@ describe("run data", () => {
     expect(await wholesaleTodos(Date.parse("2026-10-13T16:00:00Z"))).toEqual({
       collecting: { id: "r3", number: "R-1003", cutoff: "2026-10-19", orders: 1, kits: 5 },
       toOrder: [{ id: "r2", number: "R-1002", days: 8, strengths: ["TB-500 10 mg"] }],
-      failed: [{ runId: "r2", number: "R-1002", label: "APro-G3RT (Retatrutide) 10 mg" }],
+      failed: [{ runId: "r2", number: "R-1002", label: "Retatrutide 10 mg" }],
       balances: { due: 2, overdue: 1 },
       newBuyers: [],
     });

@@ -126,14 +126,15 @@ describe("wholesale emails", () => {
     expect(m.html).toMatch(/refundable until/i);
   });
 
-  it("wholesale deposit email shows the APro designation with the scientific name", async () => {
+  it("wholesale deposit email shows the scientific name (GLP-1 code names hidden)", async () => {
     const { wholesaleDepositEmail } = await import("@/lib/emails");
     const reta = { ...(ws as Record<string, unknown>), order_items: [
       { compound_slug: "retatrutide", compound_name: "Retatrutide", strength: "10 mg", pack_qty: 10, quantity: 5, line_total_cents: 500000 },
       { compound_slug: "bpc-157", compound_name: "BPC-157", strength: "10 mg", pack_qty: 10, quantity: 5, line_total_cents: 272000 },
     ] } as never;
     const m = wholesaleDepositEmail(reta, { testedAbout: "2026-11-11", shipsAbout: "2026-11-16" });
-    expect(m.html).toContain("APro-G3RT (Retatrutide) · 10 mg");
+    expect(m.html).toContain("Retatrutide · 10 mg");
+    expect(m.html).not.toContain("APro-");
     expect(m.html).toContain("BPC-157 · 10 mg");
     expect(m.html).not.toMatch(/lot test ·/i);
     expect(findViolations(`${m.subject} ${m.html}`)).toEqual([]);

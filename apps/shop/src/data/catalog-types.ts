@@ -38,7 +38,7 @@ export type CatalogEntry<C extends string = string> = {
   vialMl: number;
   packDiscounts: PackDiscount[];
   featured?: boolean;
-  designation?: string;    // shown with the scientific name: APro designation ("APro-G3RT") or blend nickname ("GLOW")
+  designation?: string;    // shown with the scientific name: a blend nickname ("GLOW") or an APro code name
 };
 
 export type LiveVariant = VariantContent & {
