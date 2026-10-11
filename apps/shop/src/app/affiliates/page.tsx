@@ -45,7 +45,8 @@ export default async function AffiliatesPage() {
             <p className="s-pp-lede">For researchers, clinicians and publishers who cover research compounds responsibly. Share your code, your audience saves {CODE_DISCOUNT_PCT}%, and you earn on every order it brings in.</p>
             <dl className="s-pp-facts">
               <div><dt className="s-micro">Commission clears</dt><dd>{CLEARING_DAYS} days after shipping</dd></div>
-              <div><dt className="s-micro">Paid on</dt><dd>the 1st and 15th</dd></div>
+              <div><dt className="s-micro">Store credit</dt><dd>as soon as it clears</dd></div>
+              <div><dt className="s-micro">Cash</dt><dd>the 1st and 15th, from {usd(CASH_MIN_CENTS)}</dd></div>
               <div><dt className="s-micro">Link credit</dt><dd>{REF_WINDOW_DAYS} days after a click</dd></div>
             </dl>
             <Link href={cta.href} className="s-atc s-pp-apply">{cta.label}</Link>
@@ -89,7 +90,7 @@ export default async function AffiliatesPage() {
             <ol className="s-pp-list">
               <li>Apply with your Aura account. We review every application.</li>
               <li>Upon approval, you receive a unique referral code and link. You may change your code at any time. Orders placed within {REF_WINDOW_DAYS} days of a visitor clicking your link are credited to you, and every order that uses your code is credited regardless of timing.</li>
-              <li>Commission clears {CLEARING_DAYS} days after an order ships and is paid on the 1st and 15th.</li>
+              <li>Commission clears {CLEARING_DAYS} days after an order ships. Store credit is added that day; cash is paid on the 1st and 15th.</li>
             </ol>
           </div>
           <div>
@@ -97,11 +98,11 @@ export default async function AffiliatesPage() {
             <div className="s-pp-pay">
               <div className="s-pp-tag" style={{ "--edge": "var(--ink)" } as React.CSSProperties}>
                 <p className="p-serif s-pp-h">Cash</p>
-                <p>ACH or Zelle, from {usd(CASH_MIN_CENTS)}. A W-9 is required before your first cash payout.</p>
+                <p>ACH or Zelle on the 1st and 15th, from {usd(CASH_MIN_CENTS)}. A W-9 is required before your first cash payout.</p>
               </div>
               <div className="s-pp-tag">
                 <p className="p-serif s-pp-h">Store credit <em>worth {CREDIT_MULTIPLIER}×</em></p>
-                <p>{usd(CASH_MIN_CENTS)} of commission becomes {usd(creditExample)} to spend on Aura. No minimum. Choose cash, credit, or a split.</p>
+                <p>{usd(CASH_MIN_CENTS)} of commission becomes {usd(creditExample)} to spend on Aura. Added as soon as commission clears, with no minimum. Choose cash, credit, or a split.</p>
               </div>
             </div>
             <p className="s-micro" style={{ margin: "0 0 10px" }}>Partner rules</p>

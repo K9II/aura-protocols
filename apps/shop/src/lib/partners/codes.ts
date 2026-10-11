@@ -49,7 +49,7 @@ export type PartnerApplication = {
 };
 
 // Bump when the Partner Agreement text changes. Date only (no "." — mirrors TERMS_VERSION).
-export const PARTNER_AGREEMENT_VERSION = "2026-10-10";   // 2026-10-10: wholesale orders earn no commission
+export const PARTNER_AGREEMENT_VERSION = "2026-10-11";   // 2026-10-11: store credit added as soon as commission clears (2026-10-10: wholesale earns no commission)
 
 const BLOCKED = ["AURA", "FREE", "ADMIN", "STAFF", "SUPPORT", "OFFICIAL", "TEST", "DOSE", "INJECT", "CURE", "SEX", "FUCK", "SHIT", "NAZI"];
 
