@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ScrollReveal from "@/components/ScrollReveal";
+import HeroLight from "@/components/store/HeroLight";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import FromTheRecord from "@/components/store/FromTheRecord";
@@ -35,7 +36,9 @@ export default async function HomePage() {
   return (
     <div className="pharmacopoeia">
       <ScrollReveal />
-      <div className="p-container">
+      <div className="s-hero-band">
+        <HeroLight />
+        <div className="p-container">
         <section className="s-hero">
           <div>
             <p className="s-micro s-eyebrow load-in load-1">Research Peptides · Certified COA</p>
@@ -51,6 +54,9 @@ export default async function HomePage() {
             <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
           </div>
         </section>
+        </div>
+      </div>
+      <div className="p-container">
 
         {/* last lot releases; hidden until the first lot is released */}
         <LotRecord lots={homeRecord(live.lots, new Set(featured.map((c) => c.slug)))} variant="home" nowMs={currentMs()} />

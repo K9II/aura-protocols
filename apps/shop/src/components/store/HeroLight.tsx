@@ -1,0 +1,15 @@
+// North light behind the home hero (option D, chosen 2026-10-11; mock artifact
+// AXG9ymUY7hnEVpDyrqDU7g): soft window light that drifts, a sheer curtain swaying
+// through it, a cloud passing now and then, and paper grain. CSS only, decorative;
+// stills for visitors who turn motion off.
+export default function HeroLight() {
+  return (
+    <div className="s-hero-light" aria-hidden>
+      <div className="s-hl-shade" />
+      <div className="s-hl-window">
+        <div className="s-hl-clouds"><i /><i /><i /><i /><i /><i /></div>
+      </div>
+      <div className="s-hl-grain" />
+    </div>
+  );
+}
