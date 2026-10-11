@@ -3,6 +3,8 @@ import { NextRequest } from "next/server";
 
 const recordClickByCode = vi.fn();
 vi.mock("@/lib/partners/data", () => ({ recordClickByCode }));
+const alertOwner = vi.fn();
+vi.mock("@/lib/notify", () => ({ alertOwner }));
 
 // getUser() only simulates a token refresh (calling the cookies.setAll the
 // test passed via createServerClient) when a test opts in; the default
@@ -35,6 +37,22 @@ describe("proxy referral links", () => {
     expect(cookie.toLowerCase()).toContain("httponly");
     expect(ev.waitUntil).toHaveBeenCalledTimes(1);
     expect(recordClickByCode).toHaveBeenCalledWith("SMITHLAB");
+  });
+
+  it("a missing PARTNER_REF_SECRET skips the cookie but alerts the owner, once per process", async () => {
+    delete process.env.PARTNER_REF_SECRET;
+    alertOwner.mockReset(); alertOwner.mockResolvedValue(undefined);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { proxy } = await import("@/proxy");
+    const ev = event();
+    const res = await proxy(new NextRequest("http://localhost/products?ref=smithlab"), ev as never);
+    await proxy(new NextRequest("http://localhost/?ref=smithlab"), event() as never);
+    expect(res.headers.get("set-cookie") ?? "").not.toContain("aura_ref");
+    expect(recordClickByCode).not.toHaveBeenCalled();
+    expect(alertOwner).toHaveBeenCalledTimes(1);
+    expect(alertOwner.mock.calls[0][0]).toBe("Partner links: referral cookie off");
+    expect(alertOwner.mock.calls[0][1]).toMatch(/PARTNER_REF_SECRET/);
+    expect(ev.waitUntil).toHaveBeenCalledTimes(1);
   });
 
   it("ignores invalid or blocked codes", async () => {

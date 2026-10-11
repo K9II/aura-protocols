@@ -79,7 +79,7 @@ describe("applyPartnerAction", () => {
     expect(createApplication).toHaveBeenCalledWith({
       customerId: "u1", partnerType: "academic_researcher", code: "K7M2Q9XP",
       application: { channels: { youtube: "youtube.com/@smithlab" }, audienceSize: "5k_25k", promotion: "Monthly newsletter" },
-      agreement: { version: "2026-10-02", ipHash: "h(1.2.3.4)", userAgent: "ua" },
+      agreement: { version: "2026-10-10", ipHash: "h(1.2.3.4)", userAgent: "ua" },
     });
     expect(sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "owner@example.com", subject: "New partner application — K7M2Q9XP" });
   });
