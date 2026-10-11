@@ -10,8 +10,8 @@ export const REF_WINDOW_DAYS = 60;
 export type TierPct = 10 | 15 | 20;
 export const TIERS: ReadonlyArray<{ fromCents: number; pct: TierPct }> = [
   { fromCents: 0, pct: 10 },
-  { fromCents: 1_500_000, pct: 15 },
-  { fromCents: 4_000_000, pct: 20 },
+  { fromCents: 300_000, pct: 15 },   // 2026-10-11: lowered from $15,000 / $40,000 (Alvester)
+  { fromCents: 500_000, pct: 20 },
 ];
 
 export function tierFor(lifetimeCents: number): TierPct {

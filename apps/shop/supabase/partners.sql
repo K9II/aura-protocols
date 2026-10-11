@@ -159,8 +159,8 @@ begin
   select greatest(0, lifetime_cents + p_delta) into new_total from partners where id = p_partner for update;
   if new_total is null then raise exception 'partner % not found', p_partner; end if;
   new_tier := case
-    when new_total >= 4000000 then 20
-    when new_total >= 1500000 then 15
+    when new_total >= 500000 then 20   -- $5,000; keep in sync with TIERS in lib/partners/tiers.ts
+    when new_total >= 300000 then 15   -- $3,000
     else 10 end;
   update partners set lifetime_cents = new_total, tier_pct = greatest(tier_pct, new_tier) where id = p_partner
     returning tier_pct into new_tier;

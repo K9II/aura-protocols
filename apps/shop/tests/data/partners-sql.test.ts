@@ -25,8 +25,8 @@ describe("partners.sql", () => {
   });
 
   it("encodes the tier thresholds and never lowers a tier", () => {
-    expect(sql).toContain("when new_total >= 4000000 then 20");
-    expect(sql).toContain("when new_total >= 1500000 then 15");
+    expect(sql).toContain("when new_total >= 500000 then 20");
+    expect(sql).toContain("when new_total >= 300000 then 15");
     expect(sql).toContain("tier_pct = greatest(tier_pct,");
   });
 
