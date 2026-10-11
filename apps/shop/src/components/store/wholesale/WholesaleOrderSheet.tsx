@@ -8,7 +8,7 @@ import HumanCheck from "@/components/account/HumanCheck";
 import KitBox from "@/components/store/wholesale/KitBox";
 import TierTable from "@/components/store/wholesale/TierTable";
 import { startWholesaleCheckoutAction } from "@/app/wholesale/actions";
-import { KIT_VIALS, MAX_KITS_PER_LINE, kitTitle, nextTier, priceWholesale, type KitSheetRow, type PricingSettings } from "@/lib/wholesale/rules";
+import { KIT_VIALS, MAX_KITS_PER_LINE, VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_EVENT, VOLUME_QUOTE_MIN_KITS, kitTitle, nextTier, priceWholesale, volumeNudge, volumeQuoteMessage, type KitSheetRow, type PricingSettings } from "@/lib/wholesale/rules";
 import type { Rejection } from "@/lib/pricing";
 import { usd } from "@/lib/html";
 import MinimumKits from "@/components/store/wholesale/MinimumKits";
@@ -39,6 +39,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
   const lines = useMemo(() => rows.filter((r) => (kits[key(r)] ?? 0) > 0).map((r) => ({ slug: r.slug, variantId: r.variantId, kits: kits[key(r)] })), [rows, kits]);
   const q = useMemo(() => priceWholesale(lines, rows, pricing), [lines, rows, pricing]);
   const next = nextTier(q.kits, pricing.tiers);
+  const nudge = volumeNudge(q.kits);
   const setN = (r: KitSheetRow, n: number) => setKits((k) => ({ ...k, [key(r)]: Math.min(MAX_KITS_PER_LINE, Math.max(0, n)) }));
   const set = (k: keyof Addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr((a) => ({ ...a, [k]: e.target.value }));
   const classes = [...new Set(rows.map((r) => r.chemicalClass))];
@@ -64,7 +65,10 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
   const progress = q.belowMinimum
     ? { width: (q.kits / pricing.minKits) * 100, text: `${q.kitsToMinimum} more kit${q.kitsToMinimum === 1 ? "" : "s"} to reach the ${pricing.minKits}-kit minimum` }
     : next ? { width: (q.kits / (q.kits + next.kitsNeeded)) * 100, text: `${next.kitsNeeded} more kit${next.kitsNeeded === 1 ? "" : "s"} for ${next.pct}% off` }
+    : nudge?.kind === "near" ? { width: (q.kits / VOLUME_QUOTE_MIN_KITS) * 100, text: `${nudge.kitsNeeded} more kit${nudge.kitsNeeded === 1 ? "" : "s"} and you can ask for a volume quote` }
     : { width: 100, text: "Top tier" };
+  // Hands the sheet to the inquiry form below (the buyer reviews it and presses Send).
+  const askForQuote = () => window.dispatchEvent(new CustomEvent(VOLUME_QUOTE_EVENT, { detail: volumeQuoteMessage(q.items) }));
 
   const summary = (
     <div className="s-ws-sum">
@@ -73,6 +77,14 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
       {step === "sheet" && <>
         <div className="s-ws-bar"><i style={{ width: `${Math.min(100, progress.width)}%` }} /></div>
         <p className="s-ws-note" style={{ margin: "0 0 10px" }}>{progress.text}</p>
+        {nudge?.kind === "quote" && (
+          <div className="s-ws-vq" data-testid="ws-volume-quote">
+            <span className="s-micro" style={{ color: "var(--specimen)" }}>{VOLUME_QUOTE_MIN_KITS}+ kits</span>
+            <b>This order qualifies for a volume quote.</b>
+            <span className="s-ws-note">Send it to us as it stands and we&apos;ll reply with prices for these kits before you pay anything.</span>
+            <a href={`#${VOLUME_QUOTE_ANCHOR}`} onClick={askForQuote}>Ask for a volume quote →</a>
+          </div>
+        )}
       </>}
       {q.items.map((i) => {
         const t = kitTitle(rows.find((r) => r.slug === i.compoundSlug && r.variantId === i.variantId) ?? { name: i.compoundName, designation: null });

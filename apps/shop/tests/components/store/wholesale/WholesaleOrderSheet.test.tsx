@@ -73,4 +73,24 @@ describe("WholesaleOrderSheet", () => {
       ship: expect.objectContaining({ name: "Dana", zip: "80302" }),
     }));
   });
+
+  it("from 40 kits it counts down to a volume quote; at 50 it offers one and hands the sheet to the form", async () => {
+    await sheet();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Order BPC-157 10 mg kits" }));
+    for (let i = 1; i < 42; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
+    expect(screen.getByText("8 more kits and you can ask for a volume quote")).toBeTruthy();
+    expect(screen.queryByTestId("ws-volume-quote")).toBeNull();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Order TB-500 10 mg kits" }));
+    for (let i = 1; i < 8; i++) fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
+    expect(screen.getByTestId("ws-count").textContent).toBe("50 kits · 500 vials · 35% off");
+    expect(screen.getByTestId("ws-volume-quote").textContent).toContain("This order qualifies for a volume quote.");
+    const seen: string[] = [];
+    const on = (e: Event) => seen.push((e as CustomEvent<string>).detail);
+    window.addEventListener("aura:volume-quote", on);
+    fireEvent.click(screen.getByRole("link", { name: "Ask for a volume quote →" }));
+    window.removeEventListener("aura:volume-quote", on);
+    expect(seen).toEqual(["Volume quote request (50 kits):\n- BPC-157 10 mg: 42 kits\n- TB-500 10 mg: 8 kits"]);
+    // checkout stays open: the quote is an offer, not a gate
+    expect((screen.getByRole("button", { name: "Continue to checkout" }) as HTMLButtonElement).disabled).toBe(false);
+  });
 });

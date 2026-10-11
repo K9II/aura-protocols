@@ -1,18 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Topic } from "@/lib/inquiries/topics";
 
 export default function InquiryForm({
   topic,
   orgLabel,
   messageLabel,
+  prefillEvent,
 }: {
   topic: Topic;
   orgLabel: string;
   messageLabel: string;
+  // A window event whose detail (a string) fills the message, e.g. the wholesale order sheet's
+  // "Ask for a volume quote". The buyer can still edit it before sending; nothing sends by itself.
+  prefillEvent?: string;
 }) {
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const message = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!prefillEvent) return;
+    const fill = (e: Event) => {
+      const text = (e as CustomEvent<unknown>).detail;
+      if (typeof text !== "string" || !message.current) return;
+      message.current.value = text;
+      message.current.focus({ preventScroll: true });
+    };
+    window.addEventListener(prefillEvent, fill);
+    return () => window.removeEventListener(prefillEvent, fill);
+  }, [prefillEvent]);
   const [ref, setRef] = useState<string | null>(null);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -58,7 +75,7 @@ export default function InquiryForm({
       <label className="s-micro block mb-1.5" htmlFor="organization">{orgLabel}</label>
       <input id="organization" name="organization" className={field} />
       <label className="s-micro block mb-1.5" htmlFor="message">{messageLabel}</label>
-      <textarea id="message" name="message" required rows={5} className={field} />
+      <textarea id="message" name="message" required rows={5} className={field} ref={message} />
       <div className="s-hp" aria-hidden="true">
         <label htmlFor="website">Website</label>
         <input id="website" name="website" tabIndex={-1} autoComplete="off" />

@@ -9,7 +9,7 @@ import MinimumKits from "@/components/store/wholesale/MinimumKits";
 import WholesaleOrderSheet from "@/components/store/wholesale/WholesaleOrderSheet";
 import WholesaleTurnOn from "@/components/store/wholesale/WholesaleTurnOn";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
-import { cutoffFor, estimatedDates, kitRows, type WholesaleSettings } from "@/lib/wholesale/rules";
+import { VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_EVENT, VOLUME_QUOTE_MIN_KITS, cutoffFor, estimatedDates, kitRows, type WholesaleSettings } from "@/lib/wholesale/rules";
 import { withArt } from "@/lib/wholesale/art";
 import { getAccountState } from "@/lib/dal";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 function Inquiry() {
-  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds and quantities" />;
+  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds, strengths and kits" prefillEvent={VOLUME_QUOTE_EVENT} />;
 }
 
 // Today's page: shown until wholesale opens, and whenever its settings can't be read.
@@ -108,9 +108,9 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
         <p className="s-ws-lede">10 vials of one strength per kit. Each production run is made and tested as one lot, and you receive its certificate.</p>
         <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} today={today} />
         {body}
-        <div className="s-ws-inq">
-          <h2 className="s-h2 mt-6 mb-3">Custom or larger <em>requests.</em></h2>
-          <p className="s-ws-note mb-6">Need a compound that isn&apos;t listed, or more than 20 kits? Ask us.</p>
+        <div className="s-ws-inq" id={VOLUME_QUOTE_ANCHOR}>
+          <h2 className="s-h2 mt-6 mb-3">Volume quotes and <em>custom requests.</em></h2>
+          <p className="s-ws-note mb-6">Ordering {VOLUME_QUOTE_MIN_KITS} or more kits, or need a compound that isn&apos;t listed? Send us the compounds, strengths and kit counts, and we&apos;ll reply with a quote for your order.</p>
           <Inquiry />
         </div>
       </div>
