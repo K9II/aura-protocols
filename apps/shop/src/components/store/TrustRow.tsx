@@ -45,7 +45,7 @@ const ICONS = {
 export const TRUST_CLAIMS = [
   { icon: "usa", title: "Ships from the USA", sub: `Tracked · free over $${FREE_SHIPPING_THRESHOLD_USD}` },
   { icon: "purity", title: `≥${PURITY_FLOOR_PCT}% purity floor`, sub: "Every lot, by HPLC" },
-  { icon: "lab", title: "Independent US lab", sub: "Third-party tested" },
+  { icon: "lab", title: "Accredited US lab", sub: "ISO/IEC 17025 · third-party" },
   { icon: "coa", title: "Certificate every lot", sub: "Matched to your vial" },
 ] as const;
 

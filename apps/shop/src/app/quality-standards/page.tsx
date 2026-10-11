@@ -10,7 +10,7 @@ export default function QualityStandardsPage() {
       eyebrow="Quality Standards"
       title={<>What every lot <em>must prove.</em></>}
       sections={[
-        { heading: "Independent testing", body: <p>Every lot is tested by a third-party laboratory — never in-house — before it is listed as available.</p> },
+        { heading: "Independent testing", body: <p>Every lot is tested by an ISO/IEC 17025-accredited US laboratory — a third party, never in-house — before it is listed as available. ISO/IEC 17025 is the international standard for testing laboratories: an independent accreditation body assesses the lab&apos;s methods, instrument calibration, staff and records, and reassesses it on a schedule.</p> },
         { heading: "What the certificate covers", body: (
           <ul className="list-disc pl-5 space-y-1.5">
             <li><b>Identity</b> — mass spectrometry confirms the molecule is what the label says.</li>

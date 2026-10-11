@@ -11,7 +11,8 @@ describe("TrustRow", () => {
     expect(screen.getByText("Ships from the USA")).toBeInTheDocument();
     expect(screen.getByText(`Tracked · free over $${FREE_SHIPPING_THRESHOLD_USD}`)).toBeInTheDocument();
     expect(screen.getByText(`≥${PURITY_FLOOR_PCT}% purity floor`)).toBeInTheDocument();
-    expect(screen.getByText("Independent US lab")).toBeInTheDocument();
+    expect(screen.getByText("Accredited US lab")).toBeInTheDocument();
+    expect(screen.getByText("ISO/IEC 17025 · third-party")).toBeInTheDocument();
     expect(screen.getByText("Certificate every lot")).toBeInTheDocument();
   });
 
