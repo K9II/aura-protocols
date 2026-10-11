@@ -8,9 +8,9 @@ export default function W9Upload({ uploadedAt, checkedAt }: { uploadedAt: string
   const fmt = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   return (
     <div>
-      <p className="s-micro mt-4 mb-1.5">Tax form</p>
+      <p className="s-micro mt-5 mb-1.5">W-9</p>
       {uploadedAt ? (
-        <p className="text-[14px]">W-9 uploaded {fmt(uploadedAt)} · {checkedAt ? <span style={{ color: "#2F5D3A" }}>checked</span> : <span className="text-[color:var(--ink-soft)]">waiting for our check</span>}</p>
+        <p className="text-[14px]">W-9 uploaded {fmt(uploadedAt)} · {checkedAt ? <span style={{ color: "var(--tested)" }}>checked</span> : <span className="text-[color:var(--ink-soft)]">waiting for our check</span>}</p>
       ) : (
         <p className="text-[14px] text-[color:var(--ink-soft)]">Upload your signed W-9 to unlock cash payouts.</p>
       )}
@@ -20,7 +20,7 @@ export default function W9Upload({ uploadedAt, checkedAt }: { uploadedAt: string
           {pending ? "Uploading…" : uploadedAt ? "Replace" : "Upload"}
         </button>
       </form>
-      {state?.ok && <p className="text-[12.5px] mt-2" style={{ color: "#2F5D3A" }}>Uploaded — we&apos;ll check it shortly.</p>}
+      {state?.ok && <p className="text-[12.5px] mt-2" style={{ color: "var(--tested)" }}>Uploaded — we&apos;ll check it shortly.</p>}
       {state?.error && <p role="alert" className="text-[12.5px] text-[color:var(--specimen)] mt-2">{state.error}</p>}
     </div>
   );

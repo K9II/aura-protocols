@@ -132,6 +132,25 @@ describe("partner ledger", () => {
     expect(callArgs(runDone, "update")?.[0]).toMatchObject({ finished_at: expect.any(String), error: null });
   });
 
+  it("runPayouts on an ordinary day issues credit, puts the cash share on the carry and sends no cash", async () => {
+    const runIns = query({}); const runDone = query({});
+    const partnersSel = query({ data: [
+      { id: "p1", customer_id: "u1", payout_pref: "split", split_cash_pct: 60, cash_carry_cents: 1764, w9_checked_at: "2026-10-01", payout_method: "ach" },
+      { id: "p2", customer_id: "u2", payout_pref: "cash", split_cash_pct: 50, cash_carry_cents: 50000, w9_checked_at: "2026-10-01", payout_method: "ach" },
+    ] });
+    const donePayouts = query({ data: [] });
+    from = fromQueue({
+      payout_runs: [runIns, runDone], partners: [partnersSel], payouts: [donePayouts],
+      commissions: [query({ data: [{ id: "c1", amount_cents: 1314 }] }), query({ data: [] })],
+      commission_adjustments: [query({ data: [] }), query({ data: [] })],
+    });
+    const { runPayouts } = await import("@/lib/partners/ledger");
+    const r = await runPayouts("2026-10-12");
+    expect(r.results).toEqual([{ partnerId: "p1", cashCents: 0, creditValueCents: 684, carryCents: 2552 }]);
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith("apply_partner_payout", expect.objectContaining({ p_partner: "p1", p_cash_cents: 0, p_credit_value_cents: 684, p_new_carry: 2552, p_run_date: "2026-10-12" }));
+  });
+
   it("runPayouts nets an unsettled deduction against payable commission before splitting", async () => {
     const runIns = query({});
     const runDone = query({});

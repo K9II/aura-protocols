@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { projectEarnings } from "@/lib/partners/tiers";
+import { TIERS, projectEarnings } from "@/lib/partners/tiers";
 
 const dollars = (cents: number) => `$${Math.round(cents / 100).toLocaleString("en-US")}`;
 
@@ -10,8 +10,10 @@ export default function EarningsCalculator() {
   const [aov, setAov] = useState(180);
   const [mult, setMult] = useState<1 | 1.3>(1);
   const p = projectEarnings({ ordersPerMonth: orders, avgOrderCents: aov * 100, multiplier: mult });
-  const when = [p.reachedAt[15] ? `15% from month ${p.reachedAt[15]}` : null, p.reachedAt[20] ? `20% from month ${p.reachedAt[20]}` : null]
-    .filter(Boolean).join(" · ") || "Reach 15% at $15,000 of lifetime sales";
+  // When 15% and 20% arrive in the same month, name only 20%.
+  const skip15 = p.reachedAt[15] !== undefined && p.reachedAt[15] === p.reachedAt[20];
+  const when = [p.reachedAt[15] && !skip15 ? `15% from month ${p.reachedAt[15]}` : null, p.reachedAt[20] ? `20% from month ${p.reachedAt[20]}` : null]
+    .filter(Boolean).join(" · ") || `Reach ${TIERS[1].pct}% at ${dollars(TIERS[1].fromCents)} of lifetime sales`;
 
   return (
     // A raised panel like the product page's buy box (affiliate option B, 2026-10-10).

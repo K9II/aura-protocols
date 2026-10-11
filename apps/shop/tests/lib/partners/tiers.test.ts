@@ -9,17 +9,17 @@ describe("tiers", () => {
     expect([CODE_DISCOUNT_PCT, CLEARING_DAYS, CASH_MIN_CENTS, CREDIT_MULTIPLIER]).toEqual([10, 15, 10000, 1.3]);
   });
 
-  it("moves to 15% at exactly $15,000 and 20% at exactly $40,000 of lifetime sales", () => {
-    expect(tierFor(1_499_999)).toBe(10);
-    expect(tierFor(1_500_000)).toBe(15);
-    expect(tierFor(3_999_999)).toBe(15);
-    expect(tierFor(4_000_000)).toBe(20);
+  it("moves to 15% at exactly $3,000 and 20% at exactly $5,000 of lifetime sales", () => {
+    expect(tierFor(299_999)).toBe(10);
+    expect(tierFor(300_000)).toBe(15);
+    expect(tierFor(499_999)).toBe(15);
+    expect(tierFor(500_000)).toBe(20);
   });
 
   it("reports the next tier and what's left to reach it", () => {
-    expect(nextTier(942_000)).toEqual({ pct: 15, fromCents: 1_500_000, remainingCents: 558_000 });
-    expect(nextTier(1_500_000)).toEqual({ pct: 20, fromCents: 4_000_000, remainingCents: 2_500_000 });
-    expect(nextTier(4_000_000)).toBeNull();
+    expect(nextTier(52_020)).toEqual({ pct: 15, fromCents: 300_000, remainingCents: 247_980 });
+    expect(nextTier(300_000)).toEqual({ pct: 20, fromCents: 500_000, remainingCents: 200_000 });
+    expect(nextTier(500_000)).toBeNull();
   });
 
   it("rounds commission to the cent", () => {
@@ -32,23 +32,23 @@ describe("tiers", () => {
   });
 
   it("projects a year at the tier held when each month begins", () => {
-    // 20 orders × $180 = $3,600/month: months 1–5 at 10%, 15% from month 6 (lifetime $18,000).
+    // 20 orders × $180 = $3,600/month: month 1 at 10%, 15% in month 2 (lifetime $3,600), 20% from month 3 ($7,200).
     const r = projectEarnings({ ordersPerMonth: 20, avgOrderCents: 18000, multiplier: 1 });
     expect(r.firstMonthCents).toBe(36000);
-    expect(r.totalCents).toBe(5 * 36000 + 7 * 54000);
-    expect(r.finalTierPct).toBe(15);
-    expect(r.reachedAt).toEqual({ 15: 6 });
+    expect(r.totalCents).toBe(36000 + 54000 + 10 * 72000);
+    expect(r.finalTierPct).toBe(20);
+    expect(r.reachedAt).toEqual({ 15: 2, 20: 3 });
   });
 
   it("applies the 1.3× store-credit multiplier to every month", () => {
     const r = projectEarnings({ ordersPerMonth: 20, avgOrderCents: 18000, multiplier: 1.3 });
     expect(r.firstMonthCents).toBe(46800);
-    expect(r.totalCents).toBe(725400); // 1.3 × (5 × $360 + 7 × $540)
+    expect(r.totalCents).toBe(1053000); // 1.3 × ($360 + $540 + 10 × $720)
   });
 
-  it("reaches 20% when volume is high enough", () => {
-    const r = projectEarnings({ ordersPerMonth: 100, avgOrderCents: 20000, multiplier: 1 }); // $20,000/month
-    expect(r.reachedAt).toEqual({ 15: 2, 20: 3 });
+  it("passes through 15% on the way to 20% at lower volume", () => {
+    const r = projectEarnings({ ordersPerMonth: 4, avgOrderCents: 18000, multiplier: 1 }); // $720/month
+    expect(r.reachedAt).toEqual({ 15: 6, 20: 8 });
     expect(r.finalTierPct).toBe(20);
   });
 });

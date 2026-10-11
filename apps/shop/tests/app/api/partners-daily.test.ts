@@ -26,6 +26,7 @@ describe("GET /api/cron/partners-daily", () => {
     listUnfinishedPayoutRuns.mockResolvedValue([]);
     sweepShippedCommissions.mockResolvedValue({ swept: 0, errors: [] });
     listQueuedPayouts.mockResolvedValue([]);
+    runPayouts.mockResolvedValue({ skipped: false, results: [], failures: [] });
   });
   afterEach(() => vi.useRealTimers());
 
@@ -34,13 +35,18 @@ describe("GET /api/cron/partners-daily", () => {
     expect((await GET(get())).status).toBe(401);
   });
 
-  it("only clears commission on ordinary days", async () => {
+  it("runs the payout on ordinary days too (credit as it clears) without the owner's cash email", async () => {
     vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-10-07T10:00:00Z"));
+    runPayouts.mockResolvedValue({ skipped: false, results: [{ partnerId: "p1", cashCents: 0, creditValueCents: 684, carryCents: 2552 }], failures: [] });
+    getPartnerById.mockResolvedValue({ id: "p1", customer_id: "u1", code: "LABNOTES" });
+    partnerEmail.mockResolvedValue("lab@example.com");
     const { GET } = await import("@/app/api/cron/partners-daily/route");
     expect(await (await GET(get("Bearer s3cret"))).json()).toEqual({
-      cleared: 3, resumed: [], swept: { commissions: 0, errors: 0 }, payoutRun: null,
+      cleared: 3, resumed: [], swept: { commissions: 0, errors: 0 }, payoutRun: { runDate: "2026-10-07", partners: 1, cashQueued: 0 },
     });
-    expect(runPayouts).not.toHaveBeenCalled();
+    expect(runPayouts).toHaveBeenCalledWith("2026-10-07");
+    expect(sendOrAlert.mock.calls.map((c) => c[0].to)).toEqual(["lab@example.com"]);
+    expect(listQueuedPayouts).not.toHaveBeenCalled();
   });
 
   it("runs payouts on the 15th, emails partners credited and the owner's cash list", async () => {
@@ -69,19 +75,19 @@ describe("GET /api/cron/partners-daily", () => {
   it("resumes an earlier unfinished payout run even on an ordinary day", async () => {
     vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-10-07T10:00:00Z"));
     listUnfinishedPayoutRuns.mockResolvedValue(["2026-09-15"]);
-    runPayouts.mockResolvedValue({ skipped: false, results: [{ partnerId: "p2", cashCents: 0, creditValueCents: 0, carryCents: 0 }], failures: [] });
+    runPayouts.mockResolvedValueOnce({ skipped: false, results: [{ partnerId: "p2", cashCents: 0, creditValueCents: 0, carryCents: 0 }], failures: [] });
     const { GET } = await import("@/app/api/cron/partners-daily/route");
     const body = await (await GET(get("Bearer s3cret"))).json();
     expect(listUnfinishedPayoutRuns).toHaveBeenCalledWith("2026-10-07");
-    expect(runPayouts).toHaveBeenCalledWith("2026-09-15");
+    expect(runPayouts.mock.calls.map((c) => c[0])).toEqual(["2026-09-15", "2026-10-07"]);
     expect(body.resumed).toEqual([{ runDate: "2026-09-15", partners: 1, failures: 0, cashQueued: 0 }]);
-    expect(body.payoutRun).toBeNull();
+    expect(body.payoutRun).toEqual({ runDate: "2026-10-07", partners: 0, cashQueued: 0 });
   });
 
   it("a resumed run sends the partner credit email and the owner payout email, just like a same-day run", async () => {
     vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-10-07T10:00:00Z"));
     listUnfinishedPayoutRuns.mockResolvedValue(["2026-09-15"]);
-    runPayouts.mockResolvedValue({ skipped: false, results: [{ partnerId: "p1", cashCents: 0, creditValueCents: 7020, carryCents: 5400 }], failures: [] });
+    runPayouts.mockResolvedValueOnce({ skipped: false, results: [{ partnerId: "p1", cashCents: 0, creditValueCents: 7020, carryCents: 5400 }], failures: [] });
     getPartnerById.mockResolvedValue({ id: "p1", customer_id: "u1", code: "SMITHLAB" });
     partnerEmail.mockResolvedValue("sam@smithlab.org");
     listQueuedPayouts.mockResolvedValue([{ run_date: "2026-09-15", cash_cents: 21240, partners: { code: "BENCHNOTES", payout_details_hint: "ACH · checking ••••7310 · Wells Fargo" } }]);

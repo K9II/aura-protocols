@@ -1256,6 +1256,75 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   .pharmacopoeia .s-pp-calc { padding: 18px 14px 16px; }
 }
 @container (max-width: 460px) { .pharmacopoeia .s-pp-placard .s-placard-r { display: none; } .pharmacopoeia .s-pp-placard dl { gap: 6px 10px; font-size: 11px; } .pharmacopoeia .s-pp-placard dt { font-size: 9px; } }
+/* Partner dashboard, Option A "Partner placard" (approved 2026-10-11, artifact PQYjVexNx2ZBgq9VNxskGo). */
+.pharmacopoeia .s-pd-facts { margin: 18px 0 0; border-top: 1px solid var(--line); max-width: 480px; }
+.pharmacopoeia .s-pd-facts > div { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.pharmacopoeia .s-pd-facts dt { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-pd-facts dd { margin: 0; display: flex; align-items: center; gap: 12px; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+.pharmacopoeia .s-pd-code { font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 18px; letter-spacing: .08em; }
+.pharmacopoeia .s-pd-figs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 40px; }
+.pharmacopoeia .s-pd-figs > div { padding: 16px 20px 18px; border-left: 1px solid #E3DDCD; min-width: 0; }
+.pharmacopoeia .s-pd-figs > div:first-child { border-left: 0; }
+.pharmacopoeia .s-pd-figs b { display: block; font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.pharmacopoeia .s-pd-figs small { display: block; font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
+.pharmacopoeia .s-pd-two { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 44px; }
+.pharmacopoeia .s-pd-two > * { min-width: 0; }
+.pharmacopoeia .s-pd-side { display: grid; gap: 28px; align-content: start; }
+.pharmacopoeia .s-pd-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 0 12px; }
+.pharmacopoeia .s-pd-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.pharmacopoeia .s-pd-table th { font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); background: var(--record); text-align: left; padding: 11px 16px; white-space: nowrap; }
+.pharmacopoeia .s-pd-table td { padding: 12px 16px; border-top: 1px solid #E3DDCD; font-size: 15px; }
+.pharmacopoeia .s-pd-table .r { text-align: right; }
+.pharmacopoeia .s-pd-table .ord { font-family: var(--font-newsreader), Georgia, serif; font-size: 17px; white-space: nowrap; }
+.pharmacopoeia .s-pd-table tr.void td { color: #8a8475; }
+.pharmacopoeia .s-pd-table tr.void .ord, .pharmacopoeia .s-pd-table tr.void .amt { text-decoration: line-through; text-decoration-color: #b5ae9c; }
+.pharmacopoeia .s-st { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; border: 1px solid currentColor; white-space: nowrap; }
+.pharmacopoeia .s-st::before { content: ""; width: 7px; height: 7px; flex: none; }
+.pharmacopoeia .s-st--pending { color: var(--pending); } .pharmacopoeia .s-st--pending::before { border: 1.5px solid currentColor; border-radius: 50%; }
+.pharmacopoeia .s-st--clearing { color: var(--pending); background: #F3E9D2; } .pharmacopoeia .s-st--clearing::before { background: currentColor; border-radius: 50%; }
+.pharmacopoeia .s-st--cleared { color: var(--tested); background: #E4EEE3; } .pharmacopoeia .s-st--cleared::before { background: currentColor; }
+.pharmacopoeia .s-st--removed { color: #8a8475; border-style: dashed; } .pharmacopoeia .s-st--removed::before { width: 9px; height: 1.5px; background: currentColor; }
+.pharmacopoeia .s-pd-ladder tr.now td { background: #EEF3EC; }
+.pharmacopoeia .s-pd-ladder tr.now td:first-child { box-shadow: inset 3px 0 0 var(--tested); }
+.pharmacopoeia .s-pp-steps i.off { opacity: .35; }
+@media (max-width: 900px) {
+  .pharmacopoeia .s-pd-two { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .pharmacopoeia .s-pd-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pharmacopoeia .s-pd-figs > div { border-left: 0; border-top: 1px solid #E3DDCD; }
+  .pharmacopoeia .s-pd-figs > div:nth-child(-n+2) { border-top: 0; }
+  .pharmacopoeia .s-pd-figs > div:nth-child(even) { border-left: 1px solid #E3DDCD; }
+  .pharmacopoeia .s-pd-figs > div:last-child { grid-column: 1 / -1; border-left: 0; }
+}
+/* Phones (checked in the mock at 320/390/430, 2026-10-11): side column never grows past the
+   screen, facts read label-over-value, placard stacks with the tag hanging below, commission
+   rows become two-line cards (order + status chip / date · value + earned). */
+.pharmacopoeia .s-pd-side { grid-template-columns: minmax(0, 1fr); }
+.pharmacopoeia .s-pd-side > * { min-width: 0; }
+.pharmacopoeia .s-pd-ladder th { white-space: normal; }
+.pharmacopoeia .s-pd-table td.dt { white-space: nowrap; }
+@media (min-width: 601px) { .pharmacopoeia .s-pd-table td.meta { display: none; } }
+@media (max-width: 600px) {
+  .pharmacopoeia .s-pp-tile.s-pd-tile { aspect-ratio: auto; }
+  .pharmacopoeia .s-pd-tile .s-pp-placard { position: relative; inset: auto; width: auto; margin: 16px 16px 0; padding: 18px 18px 16px; }
+  .pharmacopoeia .s-pd-tile .s-pp-placard dl { max-width: 100%; }
+  .pharmacopoeia .s-pd-tile .s-placard-r { display: none; }
+  .pharmacopoeia .s-pd-tile .s-pp-code { position: relative; right: auto; bottom: auto; width: 168px; margin: -14px 16px 16px auto; transform: rotate(-3deg); }
+  .pharmacopoeia .s-pd-facts > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+  .pharmacopoeia .s-pd-facts dt { grid-column: 1 / -1; }
+  .pharmacopoeia .s-pd-facts dd { display: contents; }
+  .pharmacopoeia .s-pd-facts dd > :first-child { text-align: left; justify-self: start; min-width: 0; overflow-wrap: anywhere; }
+  .pharmacopoeia .s-pd-table thead { display: none; }
+  .pharmacopoeia .s-pd-table, .pharmacopoeia .s-pd-table tbody { display: block; }
+  .pharmacopoeia .s-pd-table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 12px 14px; border-top: 1px solid #E3DDCD; }
+  .pharmacopoeia .s-pd-table tr:first-child { border-top: 0; }
+  .pharmacopoeia .s-pd-table td { display: block; padding: 0; border: 0; font-size: 14px; }
+  .pharmacopoeia .s-pd-table td.ord { grid-column: 1; grid-row: 1; }
+  .pharmacopoeia .s-pd-table td.stc { grid-column: 2; grid-row: 1; justify-self: end; }
+  /* second line spans the card: date · value on the left, earned on the right (the status chip sets column 2's width) */
+  .pharmacopoeia .s-pd-table td.meta { grid-column: 1 / -1; grid-row: 2; color: var(--ink-soft); padding-right: 72px; }
+  .pharmacopoeia .s-pd-table td.amt { grid-column: 1 / -1; grid-row: 2; justify-self: end; text-align: right; }
+  .pharmacopoeia .s-pd-table td.hide-s { display: none; }
+}
 
 /* ===== Wholesale, option C "Kit placards" (approved 2026-10-10) — landing, order sheet and order page ===== */
 /* run dates: one raised panel with a green proof edge (and a timeline on the intro) */

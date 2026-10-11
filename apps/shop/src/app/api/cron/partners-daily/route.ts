@@ -3,19 +3,22 @@ import {
   clearDueCommissions, listQueuedPayouts, listUnfinishedPayoutRuns, runPayouts, sweepShippedCommissions,
 } from "@/lib/partners/ledger";
 import { getPartnerById, partnerEmail } from "@/lib/partners/data";
+import { isCashDay } from "@/lib/partners/payout-math";
 import { ownerPayoutRunEmail, partnerCreditAddedEmail } from "@/lib/emails-partners";
 import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
 
 type RunLike = { results: { partnerId: string; creditValueCents: number }[] };
 
-// Emails partners credited this run, then the owner the list of cash still
-// to send by hand. Returns how many cash payouts were queued.
+// Emails partners credited this run (at most one email a day each), then, on a
+// cash day only, the owner the list of cash to send by hand. Returns how many
+// cash payouts were queued.
 async function emailPayoutResults(runDate: string, run: RunLike): Promise<number> {
   for (const r of run.results.filter((x) => x.creditValueCents > 0)) {
     const partner = await getPartnerById(r.partnerId);
     const to = partner ? await partnerEmail(partner.customer_id) : null;
     if (to) await sendOrAlert({ to, ...partnerCreditAddedEmail({ creditValueCents: r.creditValueCents }) }, `credit ${partner?.code}`);
   }
+  if (!isCashDay(runDate)) return 0;
   const queued = (await listQueuedPayouts()).filter((p) => p.run_date === runDate);
   const owner = alertAddress();
   if (owner) {
@@ -31,12 +34,12 @@ async function emailPayoutResults(runDate: string, run: RunLike): Promise<number
 // never skips the others:
 //   1. clear commission past its 15-day hold
 //   2. resume any earlier payout run that started but never finished (a
-//      crash mid-run, or one left with per-partner failures) — every day,
-//      not just the 1st/15th
+//      crash mid-run, or one left with per-partner failures)
 //   3. sweep commissions still 'pending' whose order has since shipped onto
 //      the clearing timer, keyed off the order's own shipped_at
-//   4. on the 1st and 15th (UTC), run today's payout: store credit is
-//      issued at once, cash is queued for the owner
+//   4. every day, run today's payout: store credit for commission that has
+//      cleared is issued at once; on the 1st and 15th (UTC) cash is also
+//      queued and the owner gets the list by email
 // Every failure alerts the owner.
 export async function GET(request: Request): Promise<Response> {
   const secret = process.env.CRON_SECRET;
@@ -45,7 +48,6 @@ export async function GET(request: Request): Promise<Response> {
   }
   const now = new Date();
   const runDate = now.toISOString().slice(0, 10);
-  const day = now.getUTCDate();
 
   let cleared = 0;
   try {
@@ -83,8 +85,6 @@ export async function GET(request: Request): Promise<Response> {
     console.error("sweep shipped commissions failed:", err);
     await alertOwner("Sweep shipped commissions failed", String(err));
   }
-
-  if (day !== 1 && day !== 15) return NextResponse.json({ cleared, resumed, swept, payoutRun: null });
 
   try {
     const run = await runPayouts(runDate);

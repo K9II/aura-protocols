@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import EarningsCalculator from "@/components/partners/EarningsCalculator";
+import { getCustomer } from "@/lib/dal";
+import { getPartnerForCustomer } from "@/lib/partners/data";
 import { CASH_MIN_CENTS, CLEARING_DAYS, CODE_DISCOUNT_PCT, CREDIT_MULTIPLIER, REF_WINDOW_DAYS, TIERS } from "@/lib/partners/tiers";
 
 export const metadata: Metadata = {
@@ -18,7 +20,21 @@ const creditExample = Math.round(CASH_MIN_CENTS * CREDIT_MULTIPLIER);
 // the hero mirrors the product-page image — a Monograph-style placard of the partner
 // terms with a hanging code tag in front — and the rest uses the product page's
 // raised panels and hanging tags. Every figure comes from lib/partners/tiers.ts.
-export default function AffiliatesPage() {
+// Partners (any status) still read the program page, but its buttons open their
+// dashboard instead of Apply. A failed check just shows Apply — /partners/apply
+// sends a partner on to the dashboard anyway.
+async function isPartner(): Promise<boolean> {
+  try {
+    const customer = await getCustomer();
+    return !!customer && !!(await getPartnerForCustomer(customer.id));
+  } catch (err) {
+    console.error("partner check on /affiliates failed:", err);
+    return false;
+  }
+}
+
+export default async function AffiliatesPage() {
+  const cta = (await isPartner()) ? { href: "/partners", label: "Open your dashboard →" } : { href: "/partners/apply", label: "Apply to partner →" };
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-14">
@@ -29,10 +45,11 @@ export default function AffiliatesPage() {
             <p className="s-pp-lede">For researchers, clinicians and publishers who cover research compounds responsibly. Share your code, your audience saves {CODE_DISCOUNT_PCT}%, and you earn on every order it brings in.</p>
             <dl className="s-pp-facts">
               <div><dt className="s-micro">Commission clears</dt><dd>{CLEARING_DAYS} days after shipping</dd></div>
-              <div><dt className="s-micro">Paid on</dt><dd>the 1st and 15th</dd></div>
+              <div><dt className="s-micro">Store credit</dt><dd>as soon as it clears</dd></div>
+              <div><dt className="s-micro">Cash</dt><dd>the 1st and 15th, from {usd(CASH_MIN_CENTS)}</dd></div>
               <div><dt className="s-micro">Link credit</dt><dd>{REF_WINDOW_DAYS} days after a click</dd></div>
             </dl>
-            <Link href="/partners/apply" className="s-atc s-pp-apply">Apply to partner →</Link>
+            <Link href={cta.href} className="s-atc s-pp-apply">{cta.label}</Link>
           </div>
           <div className="s-pp-tile" aria-hidden>
             <div className="s-pp-placard">
@@ -73,7 +90,7 @@ export default function AffiliatesPage() {
             <ol className="s-pp-list">
               <li>Apply with your Aura account. We review every application.</li>
               <li>Upon approval, you receive a unique referral code and link. You may change your code at any time. Orders placed within {REF_WINDOW_DAYS} days of a visitor clicking your link are credited to you, and every order that uses your code is credited regardless of timing.</li>
-              <li>Commission clears {CLEARING_DAYS} days after an order ships and is paid on the 1st and 15th.</li>
+              <li>Commission clears {CLEARING_DAYS} days after an order ships. Store credit is added that day; cash is paid on the 1st and 15th.</li>
             </ol>
           </div>
           <div>
@@ -81,11 +98,11 @@ export default function AffiliatesPage() {
             <div className="s-pp-pay">
               <div className="s-pp-tag" style={{ "--edge": "var(--ink)" } as React.CSSProperties}>
                 <p className="p-serif s-pp-h">Cash</p>
-                <p>ACH or Zelle, from {usd(CASH_MIN_CENTS)}. A W-9 is required before your first cash payout.</p>
+                <p>ACH or Zelle on the 1st and 15th, from {usd(CASH_MIN_CENTS)}. A W-9 is required before your first cash payout.</p>
               </div>
               <div className="s-pp-tag">
                 <p className="p-serif s-pp-h">Store credit <em>worth {CREDIT_MULTIPLIER}×</em></p>
-                <p>{usd(CASH_MIN_CENTS)} of commission becomes {usd(creditExample)} to spend on Aura. No minimum. Choose cash, credit, or a split.</p>
+                <p>{usd(CASH_MIN_CENTS)} of commission becomes {usd(creditExample)} to spend on Aura. Added as soon as commission clears, with no minimum. Choose cash, credit, or a split.</p>
               </div>
             </div>
             <p className="s-micro" style={{ margin: "0 0 10px" }}>Partner rules</p>
@@ -95,7 +112,7 @@ export default function AffiliatesPage() {
               <li><b>Fair promotion.</b> Partners may not bid on &quot;Aura Protocols&quot; in paid search or social advertising, list their code on coupon or deal sites, or apply their own code to personal orders.</li>
               <li><b>Enforcement.</b> Any breach of these rules may result in termination of the partnership, and any commission not yet paid will be forfeited.</li>
             </ol>
-            <Link href="/partners/apply" className="s-atc block text-center" style={{ marginTop: 24 }}>Apply to partner →</Link>
+            <Link href={cta.href} className="s-atc block text-center" style={{ marginTop: 24 }}>{cta.label}</Link>
             <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-2">You&apos;ll be asked to sign in or create an account first. Full terms: <Link className="p-link" href="/partner-agreement">Partner Agreement</Link>.</p>
           </div>
         </div>

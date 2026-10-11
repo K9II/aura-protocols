@@ -7,7 +7,7 @@ export default function Payouts() {
   return (
     <Chapter
       id="payouts"
-      lede="Paying partners their cleared commission. Store credit is added automatically; cash is sent by you, by hand, from this page."
+      lede="Paying partners their cleared commission. Store credit is added automatically the day commission clears; cash is sent by you, by hand, from this page."
       tasks={<>
         <Task title="Send a cash payout">
           <Step>On the 1st and 15th you&apos;ll get an email listing the cash to send. Go to <Ui>Payouts</Ui>; the <Ui>To send</Ui> tab lists what&apos;s queued.</Step>
@@ -24,9 +24,9 @@ export default function Payouts() {
       </>}
       how={
         <Rules items={[
-          ["Payout days", <>Payouts run automatically on the 1st and 15th. Each partner chose cash, store credit or a split.</>],
-          ["Store credit", <>Added to the partner&apos;s account straight away, worth {CREDIT_MULTIPLIER}× the commission.</>],
-          ["Cash", <>Sent only when it&apos;s at least {CASH_MIN} and the partner&apos;s W-9 is checked. Otherwise it&apos;s carried to the next run.</>],
+          ["Payout days", <>Store credit is added every day as commission clears. Cash runs on the 1st and 15th. Each partner chose cash, store credit or a split.</>],
+          ["Store credit", <>Added to the partner&apos;s account the day the commission clears, worth {CREDIT_MULTIPLIER}× the commission. The partner gets one email a day at most.</>],
+          ["Cash", <>Sent only when it&apos;s at least {CASH_MIN} and the partner&apos;s W-9 is checked. Otherwise it&apos;s carried to the next 1st or 15th.</>],
           ["Bank details", <>Stored encrypted and shown only here, behind <Ui>Show full details</Ui>.</>],
         ]} />
       }
