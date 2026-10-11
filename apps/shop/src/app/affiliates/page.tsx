@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import EarningsCalculator from "@/components/partners/EarningsCalculator";
+import PartnerCta from "@/components/partners/PartnerCta";
 import { CASH_MIN_CENTS, CLEARING_DAYS, CODE_DISCOUNT_PCT, CREDIT_MULTIPLIER, REF_WINDOW_DAYS, TIERS } from "@/lib/partners/tiers";
 
 export const metadata: Metadata = {
@@ -32,7 +33,7 @@ export default function AffiliatesPage() {
               <div><dt className="s-micro">Paid on</dt><dd>the 1st and 15th</dd></div>
               <div><dt className="s-micro">Link credit</dt><dd>{REF_WINDOW_DAYS} days after a click</dd></div>
             </dl>
-            <Link href="/partners/apply" className="s-atc s-pp-apply">Apply to partner →</Link>
+            <PartnerCta className="s-atc s-pp-apply" />
           </div>
           <div className="s-pp-tile" aria-hidden>
             <div className="s-pp-placard">
@@ -95,7 +96,7 @@ export default function AffiliatesPage() {
               <li><b>Fair promotion.</b> Partners may not bid on &quot;Aura Protocols&quot; in paid search or social advertising, list their code on coupon or deal sites, or apply their own code to personal orders.</li>
               <li><b>Enforcement.</b> Any breach of these rules may result in termination of the partnership, and any commission not yet paid will be forfeited.</li>
             </ol>
-            <Link href="/partners/apply" className="s-atc block text-center" style={{ marginTop: 24 }}>Apply to partner →</Link>
+            <PartnerCta className="s-atc block text-center" style={{ marginTop: 24 }} />
             <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-2">You&apos;ll be asked to sign in or create an account first. Full terms: <Link className="p-link" href="/partner-agreement">Partner Agreement</Link>.</p>
           </div>
         </div>

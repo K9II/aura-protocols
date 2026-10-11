@@ -12,17 +12,18 @@ export default function AuthLinks() {
   const pathname = usePathname();
   const [state, setState] = useState<"unknown" | "out" | "in">("unknown");
   const [owner, setOwner] = useState(false);
+  const [partner, setPartner] = useState(false);
 
-  // Owner status lives server-side (customers has no browser access), so ask once signed in.
+  // Owner and partner status live server-side (customers has no browser access), so ask once signed in.
   useEffect(() => {
     if (state !== "in") return;
     let cancelled = false;
     fetch("/api/me/owner", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : { owner: false }))
-      .then((d: { owner?: boolean }) => { if (!cancelled) setOwner(d.owner === true); })
-      .catch(() => { if (!cancelled) setOwner(false); });
-    // leaving "in" (sign-out) clears it, so the next account never inherits the link
-    return () => { cancelled = true; setOwner(false); };
+      .then((r) => (r.ok ? r.json() : { owner: false, partner: false }))
+      .then((d: { owner?: boolean; partner?: boolean }) => { if (!cancelled) { setOwner(d.owner === true); setPartner(d.partner === true); } })
+      .catch(() => { if (!cancelled) { setOwner(false); setPartner(false); } });
+    // leaving "in" (sign-out) clears them, so the next account never inherits the links
+    return () => { cancelled = true; setOwner(false); setPartner(false); };
   }, [state]);
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function AuthLinks() {
   return (
     <>
       {owner && <Link href="/admin/orders" className="s-nav-auth" style={{ textDecoration: "none" }}>Admin</Link>}
+      {partner && <Link href="/partners" className="s-nav-auth" style={{ textDecoration: "none" }}>Partner</Link>}
       <Link href="/account" className="s-nav-auth" style={{ textDecoration: "none" }}>Account</Link>
       <form action={signOutAction} className="s-nav-signout">
         <button type="submit" className="s-nav-cart">Sign out</button>
