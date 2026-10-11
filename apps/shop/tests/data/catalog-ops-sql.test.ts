@@ -16,25 +16,9 @@ describe("catalog-ops.sql", () => {
     for (const t of tables) expect(sql, t).toContain(`alter table ${t} enable row level security;`);
   });
 
-  it("derives stock in a server-only view", () => {
-    expect(sql).toContain("create or replace view lot_stock with (security_invoker = true)");
-    expect(sql).toContain("revoke all on lot_stock from public, anon, authenticated;");
-  });
-
-  it("lot_stock lists every lots column explicitly (no l.*), in table order, then the derived counts", () => {
-    const view = sql.slice(sql.indexOf("create or replace view lot_stock"), sql.indexOf("revoke all on lot_stock"));
-    expect(view).not.toContain("l.*");
-    const table = sql.slice(sql.indexOf("create table if not exists lots ("), sql.indexOf("alter table lots enable"));
-    const cols = [...table.matchAll(/^\s{2}(\w+)\s+(?:uuid|text|numeric|date|integer|timestamptz)/gm)].map((m) => m[1]);
-    expect(cols).toContain("purity_pct");
-    const listed = view.slice(view.indexOf("select") + 6, view.indexOf("(l.counted_qty")).split(",").map((c) => c.trim()).filter(Boolean);
-    expect(listed).toEqual(cols.map((c) => `l.${c}`));
-    for (const c of ["sellable", "held", "sold", "available"]) expect(view).toContain(`as ${c}`);
-  });
-
   it("every function is server-only", () => {
     const fns = [...sql.matchAll(/create or replace function (\w+)\(/g)].map((m) => m[1]).filter((f) => f !== "settle_holds_on_order_status");
-    expect(fns.sort()).toEqual(["admin_correct_count", "admin_delete_variant", "admin_lot_live", "admin_retire_lot", "hold_vials", "lot_integrity", "order_hold_shortfall", "record_shipped_lots", "variant_history"]);
+    expect(fns.sort()).toEqual(["admin_correct_count", "admin_delete_variant", "admin_retire_lot", "hold_vials", "lot_integrity", "order_hold_shortfall", "record_shipped_lots", "variant_history"]);
     for (const f of fns) expect(sql, f).toMatch(new RegExp(`revoke all on function ${f}\\([^)]*\\) from public, anon, authenticated;`));
   });
 
