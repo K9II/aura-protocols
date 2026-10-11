@@ -6,6 +6,7 @@ import {
   fromPackPriceUsd, toPackPriceUsd, perVialUsd,
 } from "@/lib/catalog";
 import { catalogContent } from "@/data/catalog";
+import { GLP_CODE_NAMES } from "@/data/glp-code-names";
 import { liveFixture } from "../helpers/live-catalog";
 import { linePriceUsd } from "@/lib/cart";
 
@@ -53,10 +54,20 @@ describe("catalog helpers", () => {
     expect(vialLabel({ ...fixture[0], name: "SS-31 (Elamipretide)" })).toBe("SS-31");
   });
 
-  it("a designation leads the vial label (blend nicknames, APro names)", () => {
+  it("a designation leads the vial label (blend nicknames)", () => {
     expect(vialLabel({ ...fixture[2], name: "BPC-157 / TB-500 / GHK-Cu / KPV", designation: "KLOW" })).toBe("KLOW");
     const named = Object.fromEntries(catalogContent.filter((c) => c.designation).map((c) => [c.slug, c.designation]));
     expect(named).toMatchObject({ "bpc-157-tb-500-blend": "Wolverine", "bpc-157-tb-500-ghk-cu": "GLOW", "bpc-157-tb-500-ghk-cu-kpv": "KLOW" });
+  });
+
+  it("GLP-1 code names are stored but never shown (2026-10-10): the incretin products use their scientific names", () => {
+    const glp = catalogContent.filter((c) => c.chemicalClass === "Incretin & Amylin Analogs");
+    expect(glp.filter((c) => c.designation).map((c) => c.slug)).toEqual([]);
+    expect(GLP_CODE_NAMES).toEqual({
+      semaglutide: "APro-G1SM", tirzepatide: "APro-G2TRZ", retatrutide: "APro-G3RT",
+      cagrilintide: "APro-CAG", cagrisema: "APro-CAGSM", "retatrutide-cagrilintide": "APro-RTCAG",
+    });
+    for (const c of glp) expect(vialLabel(c), c.slug).not.toMatch(/APro/);
   });
 
   it("vialParts: a blend's components, two per line, for the small type under a nickname", () => {

@@ -56,14 +56,14 @@ describe("Admin → Wholesale pages", () => {
     expect(screen.getAllByText("In production").length).toBeGreaterThan(0);
   });
 
-  it("run page: stage buttons for the owner (record, pass/fail), APro designation with the scientific name, notes", async () => {
+  it("run page: stage buttons for the owner (record, pass/fail), GLP-1 code names hidden (scientific name), notes", async () => {
     m.runOrders.mockResolvedValue([order()]);
     m.runLines.mockResolvedValue([line()]);
     const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
     const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
     expect(container.textContent).toMatch(/Run R-1002/);
-    expect(screen.getByText("APro-G3RT")).toBeTruthy();
-    expect(container.textContent).toMatch(/Retatrutide · 10 mg/);
+    expect(container.textContent).not.toMatch(/APro-/);
+    expect(screen.getByText("Retatrutide")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Record order" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Pass" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Fail…" })).toBeTruthy();

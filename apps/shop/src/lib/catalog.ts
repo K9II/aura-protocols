@@ -92,8 +92,9 @@ export function isPendingLot(lot: Lot | PendingLot): lot is PendingLot {
   return "pending" in lot;
 }
 
-// APro designation of a compound (catalog content), or null. Shown with the
-// scientific name, never instead of it: "APro-G3RT (Retatrutide)".
+// Designation of a compound (catalog content), or null. Shown with the
+// scientific name, never instead of it: "GLOW (BPC-157 / TB-500 / GHK-Cu)".
+// The GLP-1 APro names are stored in GLP_CODE_NAMES (data/glp-code-names.ts) and never shown (2026-10-10).
 export function designationFor(slug: string): string | null {
   return catalogContent.find((c) => c.slug === slug)?.designation ?? null;
 }
