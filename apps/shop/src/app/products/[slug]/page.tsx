@@ -10,6 +10,7 @@ import Vial from "@/components/store/Vial";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
 import LotRecord from "@/components/store/LotRecord";
+import LotCertificates from "@/components/store/LotCertificates";
 import ResearchSummary from "@/components/store/ResearchSummary";
 import { currentMs } from "@/lib/clock";
 import { productRecord } from "@/lib/lot-record";
@@ -120,6 +121,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
             <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} />
+            <LotCertificates certs={live.certificates.filter((x) => x.slug === c.slug)} />
           </div>
           <div className="relative">
             <p className="s-micro s-pdp-kick">

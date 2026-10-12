@@ -16,7 +16,7 @@ async function renderSlug(slug: string) {
 }
 
 describe("product page", () => {
-  beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [] }); });
+  beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [], certificates: [] }); });
 
   it("fails closed when the live catalog can't be read: Unavailable, no price", async () => {
     live.mockResolvedValue(null);
@@ -27,7 +27,7 @@ describe("product page", () => {
   });
 
   it("404s a product the live catalog doesn't show", async () => {
-    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture().filter((c) => c.slug !== "bpc-157"), lots: [] });
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture().filter((c) => c.slug !== "bpc-157"), lots: [], certificates: [] });
     await expect(ProductPage({ params: Promise.resolve({ slug: "bpc-157" }) })).rejects.toThrow();
   });
 

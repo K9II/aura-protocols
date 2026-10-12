@@ -1586,6 +1586,7 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-coa-hitn a { border-bottom: 1px solid var(--line); } .pharmacopoeia .s-coa-hitn small { font-size: 20px; color: var(--ink-soft); }
 
 .pharmacopoeia .s-rec-table td.s-ok { color: var(--tested); } .pharmacopoeia .s-rec-table td.s-nt { color: #9C9483; }
+.pharmacopoeia .s-rec-table td.s-bad { color: var(--specimen); }
 .pharmacopoeia .s-cert-link { color: var(--tested); border-bottom: 1px solid currentColor; }
 @media (max-width: 640px) { .pharmacopoeia .s-coa-sel { min-width: 0; flex: 1 1 140px; } }
 
