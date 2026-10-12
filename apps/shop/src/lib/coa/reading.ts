@@ -171,7 +171,10 @@ const formatStrengths = (values: Amt[]) => values.map((v) => `${v.n} ${v.u}`).jo
 // A warning when the report names another product or strength (batch never
 // decides — the report prints the supplier's batch, not our lot number).
 type LotRef = { names: string[]; strength: string; lotNumber: string };
-// The two halves of the warning, so the form can bold them (mock f2); lotMismatch is the plain sentence.
+// The two halves of the warning, so the form can bold them (mock f2); lotMismatch
+// is the plain sentence, used only by tests now — CertificateFields renders its
+// own JSX from lotMismatchParts. The two must stay word-for-word the same; a
+// component test checks the JSX warning's textContent against this function.
 export function lotMismatchParts(r: Reading, lot: LotRef): { report: string; ours: string } | null {
   const product = r.product_name ? nameOnly(r.product_name).trim() : "";
   const p = squash(product);
@@ -200,4 +203,7 @@ export function productNames(c: { name: string; designation?: string; components
 }
 
 export const filledHead = (n: number) => `Filled ${n} field${n === 1 ? "" : "s"} from the PDF`;
-export const filledMessage = (n: number) => `${filledHead(n)}. Check each one.`;
+// One source for the tail: filledMessage (tests) and CertificateFields' JSX
+// (bolds the head) both build off the same string, never a slice-by-length.
+export const FILLED_TAIL = ". Check each one.";
+export const filledMessage = (n: number) => `${filledHead(n)}${FILLED_TAIL}`;

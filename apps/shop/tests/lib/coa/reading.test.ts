@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EMPTY_CERT, filledHead, filledMessage, lotMismatch, lotMismatchParts, matchLab, mergeReading, parseReading, productNames, READING_JSON_SCHEMA, type Reading } from "@/lib/coa/reading";
+import { EMPTY_CERT, FILLED_TAIL, filledHead, filledMessage, lotMismatch, lotMismatchParts, matchLab, mergeReading, parseReading, productNames, READING_JSON_SCHEMA, type Reading } from "@/lib/coa/reading";
 
 const TODAY = "2026-10-12";
 const R = (x: Partial<Reading> = {}): Reading => ({
@@ -185,5 +185,8 @@ describe("productNames / filledMessage", () => {
     expect(filledMessage(9)).toBe("Filled 9 fields from the PDF. Check each one.");
     expect(filledHead(1)).toBe("Filled 1 field from the PDF");
     expect(filledHead(9)).toBe("Filled 9 fields from the PDF");
+  });
+  it("filledMessage is built from filledHead + FILLED_TAIL, the same tail CertificateFields renders", () => {
+    expect(filledMessage(3)).toBe(filledHead(3) + FILLED_TAIL);
   });
 });

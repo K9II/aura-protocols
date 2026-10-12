@@ -6,7 +6,7 @@ import { Icon } from "@/components/admin/ui";
 import { readCertificateAction } from "@/app/admin/catalog/actions";
 import { METHODS } from "@/lib/catalog-ops/rules";
 import { certVerifyUrl, failedTests, measuredPct, TEST_KEYS, TEST_LABEL, type TestKey, type TestResult } from "@/lib/coa/rules";
-import { EMPTY_CERT, filledHead, filledMessage, lotMismatchParts, mergeReading, type CertDraft, type FillKey } from "@/lib/coa/reading";
+import { EMPTY_CERT, FILLED_TAIL, filledHead, lotMismatchParts, mergeReading, type CertDraft, type FillKey } from "@/lib/coa/reading";
 export { EMPTY_CERT, type CertDraft };
 
 export type LabOption = { id: string; name: string; city: string | null; verify_url_template: string | null; verify_hint?: string | null };
@@ -94,7 +94,7 @@ export default function CertificateFields({ idSuffix, lotNumber, strength, labs,
         {/* One live region that stays mounted, so screen readers announce each change. */}
         <div role="status" aria-live="polite">
           {read.kind === "busy" && <div className="a-read busy">Reading the PDF… <span className="muted">you can keep typing</span></div>}
-          {read.kind === "done" && <div className="a-read">ⓘ {read.n > 0 ? <span><b>{filledHead(read.n)}</b>{filledMessage(read.n).slice(filledHead(read.n).length)}</span> : <span>{NOTHING_FILLED}</span>}</div>}
+          {read.kind === "done" && <div className="a-read">ⓘ {read.n > 0 ? <span><b>{filledHead(read.n)}</b>{FILLED_TAIL}</span> : <span>{NOTHING_FILLED}</span>}</div>}
           {read.kind === "err" && <div className="a-read err">Couldn&apos;t read this PDF. Fill it in by hand.</div>}
         </div>
       </div>
@@ -138,6 +138,7 @@ export default function CertificateFields({ idSuffix, lotNumber, strength, labs,
         </div>
         {err("tests")}
         {failedNames.length > 0 && <div className="a-flag" role="alert"><Icon name="warn" />{failedNames.join(", ")} failed on this report. Review it, then set the Result.</div>}
+        {/* Word-for-word the same sentence as lib/coa/reading.ts's lotMismatch (still used by tests) — bolded here, plain there. */}
         {mismatch && <div className="a-lotwarn" role="alert">⚠ This report is for <b>{mismatch.report}</b>. You&apos;re adding it to <b>{mismatch.ours}</b>. Check you attached the right PDF.</div>}
         <div className="a-result">
           <span>Result</span>

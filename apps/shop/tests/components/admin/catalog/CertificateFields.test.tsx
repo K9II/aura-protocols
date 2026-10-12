@@ -10,6 +10,7 @@ HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", 
 HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
 vi.mock("@/lib/supabase/client", () => ({ createSupabaseBrowserClient: () => ({ storage: { from: () => ({ uploadToSignedUrl }) } }) }));
 import CertificateFields, { EMPTY_CERT } from "@/components/admin/catalog/CertificateFields";
+import { lotMismatch, type Reading } from "@/lib/coa/reading";
 
 const labs = [{ id: "v", name: "Vanguard Laboratory", city: "Olympia, WA", verify_url_template: "https://verifiedbyvanguard.com/verify/{report}" }];
 
@@ -149,6 +150,16 @@ describe("CertificateFields auto-fill", () => {
     expect(warn).toHaveTextContent("This report is for Tirzepatide 30 mg, batch N8326. You're adding it to MOTS-c 10 mg, lot AP-1107. Check you attached the right PDF.");
     expect(within(warn).getByText("Tirzepatide 30 mg, batch N8326", { selector: "b" })).toBeInTheDocument();
     expect(within(warn).getByText("MOTS-c 10 mg, lot AP-1107", { selector: "b" })).toBeInTheDocument();
+  });
+
+  it("the warning's text is word-for-word lib/coa/reading.ts's lotMismatch, for the same inputs", async () => {
+    const reading = { ...READING, product_name: "Tirzepatide", strength_label: "30 mg" } as Reading;
+    readCertificateAction.mockResolvedValue({ reading });
+    setup({ productNames: ["MOTS-c"], lotNumber: "AP-1107", strength: "10 mg" });
+    await attach();
+    const warn = await screen.findByRole("alert");
+    // ⚠ is the JSX's own prefix, not part of either sentence — the rest must match exactly.
+    expect(warn.textContent).toBe(`⚠ ${lotMismatch(reading, { names: ["MOTS-c"], strength: "10 mg", lotNumber: "AP-1107" })}`);
   });
 
   it("no product names: no wrong-lot check", async () => {
