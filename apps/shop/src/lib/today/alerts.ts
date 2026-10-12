@@ -16,6 +16,15 @@ export async function recordOwnerAlert(title: string, detail: string): Promise<v
   if (error) fail("record owner alert", error);
 }
 
+// Lets a caller that would alert on every attempt (the certificate reader)
+// raise one alert, not one per upload. Throws on a read error — the caller
+// alerts anyway then.
+export async function hasOpenAlert(title: string): Promise<boolean> {
+  const { data, error } = await db().from("owner_alerts").select("id").eq("title", normalizeAlertTitle(title)).is("resolved_at", null).limit(1);
+  if (error) fail("open alert read", error);
+  return (data ?? []).length > 0;
+}
+
 export async function listOpenAlerts(): Promise<OwnerAlert[]> {
   const { data, error } = await db().from("owner_alerts").select(COLS).is("resolved_at", null).order("last_at", { ascending: false });
   if (error) fail("open alerts read", error);

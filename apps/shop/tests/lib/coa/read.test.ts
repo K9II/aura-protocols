@@ -15,6 +15,8 @@ vi.mock("@anthropic-ai/sdk", () => {
 });
 const alertOwner = vi.fn();
 vi.mock("@/lib/notify", () => ({ alertOwner }));
+const hasOpenAlert = vi.fn();
+vi.mock("@/lib/today/alerts", () => ({ hasOpenAlert }));
 
 const READING = {
   lab_name: "Vanguard Laboratory", lab_city: "Olympia, WA", report_number: "VGD-24109", verify_code: null,
@@ -26,7 +28,7 @@ const answer = (text: string, stop = "end_turn") => ({ stop_reason: stop, conten
 const PDF = new Uint8Array([37, 80, 68, 70]);
 
 describe("readCertificate", () => {
-  beforeEach(() => { vi.resetModules(); create.mockReset(); alertOwner.mockReset(); process.env.ANTHROPIC_API_KEY = "sk-test"; });
+  beforeEach(() => { vi.resetModules(); create.mockReset(); alertOwner.mockReset(); hasOpenAlert.mockReset(); hasOpenAlert.mockResolvedValue(false); process.env.ANTHROPIC_API_KEY = "sk-test"; });
 
   it("sends the PDF as a document block with the JSON schema, Opus 5, fallbacks, and returns the reading", async () => {
     create.mockResolvedValue(answer(JSON.stringify(READING)));
@@ -111,5 +113,17 @@ describe("readCertificate", () => {
     create.mockRejectedValueOnce(new BadRequestError("messages: text content blocks must be non-empty"));
     expect(await readCertificate(PDF, "AP-1105", "2026-10-12")).toEqual({ ok: false });
     expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("alerts once: an open reader alert already there → no new alert; a failed check still alerts", async () => {
+    delete process.env.ANTHROPIC_API_KEY;
+    const { readCertificate } = await import("@/lib/coa/read");
+    hasOpenAlert.mockResolvedValueOnce(true);
+    expect(await readCertificate(PDF, "AP-1105", "2026-10-12")).toEqual({ ok: false });
+    expect(hasOpenAlert).toHaveBeenCalledWith("Certificate reader unavailable");
+    expect(alertOwner).not.toHaveBeenCalled();
+    hasOpenAlert.mockRejectedValueOnce(new Error("open alert read failed"));
+    await readCertificate(PDF, "AP-1106", "2026-10-12");
+    expect(alertOwner).toHaveBeenCalledWith("Certificate reader unavailable", expect.stringMatching(/^AP-1106 · /));
   });
 });
