@@ -43,14 +43,16 @@ export default function LabDialog({ lab, initial, triggerLabel, portal = false, 
   const id = (k: string) => `lab-${k}-${scope}`;
   const set = (k: "name" | "city" | "verify" | "hint") => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setV({ ...v, [k]: e.target.value });
 
+  // Pre-filled from a certificate: mark name/city "from PDF" until edited (mock f3).
+  const fromPdf = (k: "name" | "city") => !!initial?.[k] && v[k] === initial[k];
   const dialog = (
     <dialog ref={ref} className="a-modal" aria-labelledby={id("h")}>
       <form action={action}>
         {lab && <input type="hidden" name="labId" value={lab.id} />}
         <div className="a-modal-h"><h2 id={id("h")}>{lab ? `Edit lab · ${lab.name}` : "Add a lab"}</h2><button type="button" className="x" aria-label="Close" onClick={() => ref.current?.close()}>×</button></div>
         <div className="a-modal-b">
-          <div className="a-fld"><label htmlFor={id("name")}>Name</label><div className="a-input"><input id={id("name")} name="name" value={v.name} onChange={set("name")} required /></div>{fe.name && <div className="a-err" role="alert">{fe.name}</div>}</div>
-          <div className="a-fld"><label htmlFor={id("city")}>City <span className="muted" style={{ fontWeight: 400 }}>· optional</span></label><div className="a-input"><input id={id("city")} name="city" value={v.city} onChange={set("city")} /></div>{fe.city && <div className="a-err" role="alert">{fe.city}</div>}</div>
+          <div className="a-fld"><label htmlFor={id("name")}>Name{fromPdf("name") && <span className="a-pdfmark">from PDF</span>}</label><div className={fromPdf("name") ? "a-input pdf" : "a-input"}><input id={id("name")} name="name" value={v.name} onChange={set("name")} required /></div>{fe.name && <div className="a-err" role="alert">{fe.name}</div>}</div>
+          <div className="a-fld"><label htmlFor={id("city")}>City{fromPdf("city") && <span className="a-pdfmark">from PDF</span>} <span className="muted" style={{ fontWeight: 400 }}>· optional</span></label><div className={fromPdf("city") ? "a-input pdf" : "a-input"}><input id={id("city")} name="city" value={v.city} onChange={set("city")} /></div>{fe.city && <div className="a-err" role="alert">{fe.city}</div>}</div>
           <div className="a-fld"><label htmlFor={id("verify")}>Verify link <span className="muted" style={{ fontWeight: 400 }}>· optional</span></label>
             <div className="a-input mono"><input id={id("verify")} name="verify" placeholder="https://lab.example/verify/{report}" value={v.verify} onChange={set("verify")} /></div>
             <div className="help">Use {"{report}"} where the report number goes, or its Verify code when one is set</div>{fe.verify && <div className="a-err" role="alert">{fe.verify}</div>}</div>

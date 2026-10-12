@@ -12,8 +12,18 @@ describe("LabDialog", () => {
   it("pre-fills name and city and uses the given button label", () => {
     render(<LabDialog initial={{ name: "Kestrel Analytical", city: "Austin, TX" }} triggerLabel="Add lab" />);
     expect(screen.getByRole("button", { name: /add lab/i })).toBeInTheDocument();
-    expect((screen.getByLabelText("Name", { selector: "input" }) as HTMLInputElement).value).toBe("Kestrel Analytical");
+    expect((screen.getByLabelText(/^Name/, { selector: "input" }) as HTMLInputElement).value).toBe("Kestrel Analytical");
     expect((screen.getByLabelText(/City/, { selector: "input" }) as HTMLInputElement).value).toBe("Austin, TX");
+  });
+  it("marks pre-filled name and city from PDF until edited", () => {
+    render(<LabDialog initial={{ name: "Kestrel Analytical", city: "Austin, TX" }} />);
+    expect(screen.getAllByText("from PDF")).toHaveLength(2);
+    fireEvent.change(screen.getByLabelText(/^Name/, { selector: "input" }), { target: { value: "Kestrel Labs" } });
+    expect(screen.getAllByText("from PDF")).toHaveLength(1);
+  });
+  it("no marks on a plain Add lab", () => {
+    render(<LabDialog />);
+    expect(screen.queryByText("from PDF")).toBeNull();
   });
   it("portal: inside the admin shell (.adm) so its styles apply, but outside the caller's form", () => {
     const { container } = render(<div className="adm"><form><LabDialog portal initial={{ name: "K", city: "" }} /></form></div>);
