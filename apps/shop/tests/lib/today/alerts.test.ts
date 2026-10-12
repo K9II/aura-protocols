@@ -36,6 +36,17 @@ describe("owner alerts data", () => {
     await expect(listOpenAlerts()).rejects.toThrow(/open alerts read failed/);
   });
 
+  it("hasOpenAlert: an unresolved row with that (normalised) title; a read error throws", async () => {
+    const yes = query({ data: [{ id: "a1" }] }), no = query({ data: [] });
+    db.from = fromQueue({ owner_alerts: [yes, no, query({ error: { message: "down" } })] });
+    const { hasOpenAlert } = await import("@/lib/today/alerts");
+    expect(await hasOpenAlert(" Certificate reader  unavailable ")).toBe(true);
+    expect(callArgs(yes, "eq")).toEqual(["title", "Certificate reader unavailable"]);
+    expect(callArgs(yes, "is")).toEqual(["resolved_at", null]);
+    expect(await hasOpenAlert("Certificate reader unavailable")).toBe(false);
+    await expect(hasOpenAlert("x")).rejects.toThrow(/open alert read failed/);
+  });
+
   it("past alerts: the last 90 days or still open; open first; the resolver's first name", async () => {
     const q = query({ data: [
       row({ id: "done", resolved_at: "2026-10-06T15:00:00Z", last_at: "2026-10-06T15:00:00Z", customers: { full_name: "Kearney Adams" }, note: "resent by hand" }),

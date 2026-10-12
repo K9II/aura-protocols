@@ -21,11 +21,11 @@ const OTHER = "__other";
 // supplier order and saved as a draft linked to that line (no "put live").
 // labs/strength: for the optional first certificate (a new lot only —
 // certificates on a draft already received are edited on the lot's own rows).
-export default function ReceiveLotDialog({ slug, variantId, title, draft, small, prices = {}, defaults, runLine, primary, labs, strength }: {
+export default function ReceiveLotDialog({ slug, variantId, title, draft, small, prices = {}, defaults, runLine, primary, labs, strength, productNames, canAddLab, inactiveLabNames }: {
   slug: string; variantId: string; title: string; draft?: DraftLot; small?: boolean; prices?: Record<string, number>;
   defaults?: { testCents: number; inboundPerBoxCents: number; labelPerVialCents: number };
   runLine?: { id: string; supplier: string; cost: string; vials: number }; primary?: boolean;
-  labs: LabOption[]; strength: string;
+  labs: LabOption[]; strength: string; productNames?: string[]; canAddLab?: boolean; inactiveLabNames?: string[];
 }) {
   const testCents = defaults?.testCents;
   const ref = useRef<HTMLDialogElement>(null);
@@ -97,7 +97,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
             {!draft
               ? <details className="a-recv" open={!runLine}>
                   <summary className="h">First certificate <span className="muted" style={{ fontWeight: 400 }}>· optional — add it now or later from the lot</span></summary>
-                  <CertificateFields key={formKey} idSuffix={scope} lotNumber={v.lotNumber} strength={strength} labs={labs} initial={EMPTY_CERT} fieldErrors={fe} onChange={setCert} />
+                  <CertificateFields key={formKey} idSuffix={scope} lotNumber={v.lotNumber} strength={strength} labs={labs} initial={EMPTY_CERT} fieldErrors={fe} onChange={setCert} productNames={productNames} canAddLab={canAddLab} inactiveLabNames={inactiveLabNames} />
                 </details>
               : <p className="muted">Certificates are edited on the lot&apos;s certificate rows.</p>}
             <div className="a-recv">

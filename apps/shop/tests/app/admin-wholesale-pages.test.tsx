@@ -12,6 +12,7 @@ vi.mock("@/lib/wholesale/runs-data", () => ({ listRuns: m.listRuns, runLines: m.
 vi.mock("@/lib/catalog-ops/data", () => ({ lotById: m.lotById, lotDefaults: async () => ({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 }) }));
 vi.mock("@/lib/coa/data", () => ({ listLabs: m.listLabs }));
 vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn() }));
+vi.mock("@/app/admin/catalog/settings/actions", () => ({ saveLabAction: vi.fn() }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-30T16:00:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound, useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/app/admin/wholesale/actions", () => ({
@@ -86,6 +87,16 @@ describe("Admin → Wholesale pages", () => {
     expect(screen.getByRole("button", { name: "Link lot" })).toBeTruthy();
     expect((container.querySelector("input[name=runLineId]") as HTMLInputElement).value).toBe("l1");
     expect((container.querySelector("input[name=cost]") as HTMLInputElement).value).toBe("1140");
+  });
+
+  it("run page: Receive lot's certificate form knows the strength's product name", async () => {
+    m.runOrders.mockResolvedValue([order()]);
+    m.runLines.mockResolvedValue([line({ lot_id: null })]);
+    const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
+    const top = container.querySelector(".a-pdftop")!;
+    expect(top).toHaveAttribute("data-names", "BPC-157");
+    expect(top).toHaveAttribute("data-addlab", "1");
   });
 
   it("run page: an ordered line's lot shows certificates ✓ only when both are passing, matching Link lot's wording", async () => {

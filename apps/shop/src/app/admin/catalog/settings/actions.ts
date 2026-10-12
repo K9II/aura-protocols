@@ -9,7 +9,14 @@ import { NOT_RECORDED_LAB, parseLab } from "@/lib/coa/rules";
 import type { ActionState } from "@/app/admin/catalog/actions";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "");
-const refresh = () => { catalogChangedByOwner(); revalidatePath("/admin/catalog/settings"); };
+// "/admin/catalog" layout covers /admin/catalog/settings and every product
+// page, "/admin/wholesale/runs" every run page (Receive lot) — so a lab added
+// from a certificate form shows up in its Lab list. Both pages read labs fresh.
+const refresh = () => {
+  catalogChangedByOwner();
+  revalidatePath("/admin/catalog", "layout");
+  revalidatePath("/admin/wholesale/runs", "layout");
+};
 
 export async function setCoaSettingAction(f: FormData): Promise<void> {
   await requirePermission("catalog.edit");
@@ -32,7 +39,7 @@ export async function saveLabAction(_prev: ActionState, f: FormData): Promise<Ac
   const r = await saveLab(id, p.value);
   if (!r.ok) return { fieldErrors: { name: "A lab with that name already exists." } };
   refresh();
-  return { ok: id ? "Lab saved." : "Lab added." };
+  return { ok: id ? "Lab saved." : "Lab added.", name: p.value.name };
 }
 
 export async function setLabActiveAction(f: FormData): Promise<void> {

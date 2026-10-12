@@ -1523,3 +1523,17 @@
    .a-flag — admin.css already has a general .a-flag for inquiry message
    flags (.warn/.mut); this one is certificate-specific styling only. */
 .adm .a-recv .a-flag { margin-top: 10px; padding: 7px 10px; font-size: 12.5px; color: var(--specimen); background: var(--specimen-bg); border: 1px solid #E3B9B1; }
+/* COA auto-fill (mock 2026-10-12-coa-autofill-mocks): "from PDF" marks on
+   fields the reader filled, the read status line, the unknown-lab note and the
+   wrong-lot warning (amber — red stays for a failed test). */
+.adm .a-pdfmark { display: inline-block; margin-left: 6px; padding: 0 5px; font: 500 9.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--slate); background: var(--slate-bg); border: 1px solid #B5C3D3; vertical-align: 1px; }
+.adm .a-input.pdf, .adm .a-select.pdf { border-color: #9FB3CA; background: #F3F6F9; }
+.adm .a-seg2.pdf { outline: 1px solid #9FB3CA; outline-offset: 1px; }
+.adm .a-read { display: flex; gap: 8px; align-items: baseline; margin-top: 8px; padding: 7px 10px; font-size: 12.5px; color: #2A4664; background: var(--slate-bg); border: 1px solid #B5C3D3; }
+.adm .a-read.busy { color: var(--muted); background: var(--surface-2); border-color: var(--line); }
+.adm .a-read.err { color: #5E4512; background: var(--ochre-bg); border-color: #DEC98F; }
+.adm .a-labnote { margin-top: 6px; padding: 7px 10px; font-size: 12.5px; color: #5E4512; background: var(--ochre-bg); border: 1px solid #DEC98F; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.adm .a-labnote .a-btn { margin-left: auto; }
+.adm .a-lotwarn { margin-top: 10px; padding: 7px 10px; font-size: 12.5px; color: #5E4512; background: var(--ochre-bg); border: 1px solid #DEC98F; }
+.adm .a-pdftop { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.adm .a-pdftop .help { font-size: 12px; color: var(--muted); margin-top: 4px; }

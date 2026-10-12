@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { assistantStaff } from "../../helpers/staff";
+import { assistantStaff, ownerStaff } from "../../helpers/staff";
+import { rolePermissions } from "@/lib/staff/roles";
 const m = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../../helpers/staff")).ownerStaff()) }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/app/admin/catalog/actions", () => ({ setWholesaleAction: vi.fn(), receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(),
@@ -204,6 +205,29 @@ describe("/admin/catalog/[slug]", () => {
       expect(screen.getByText(/Kearney deleted/)).toHaveTextContent("Kearney deleted 20 mg");
     });
   });
+
+  it("certificate forms know the product's names and whether Add lab is allowed", async () => {
+    const { container } = render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    const tops = container.querySelectorAll(".a-pdftop");
+    expect(tops.length).toBeGreaterThan(0);
+    for (const top of tops) {
+      expect(top).toHaveAttribute("data-names", "SS-31 (Elamipretide)");
+      expect(top).toHaveAttribute("data-addlab", "1");
+    }
+  }, 20000);
+  // The Assistant never has lots.receive, so the plan's "render as assistant"
+  // case renders no certificate forms at all to check (CertificateDialog /
+  // ReceiveLotDialog are gated on lots.receive, not catalog.edit). canAddLab's
+  // own wiring (can(staff, "catalog.edit")) is exercised separately here with
+  // a staff that can receive lots but was stripped of catalog.edit — not a
+  // real role combination, but it proves the prop reaches the form as false.
+  it("canAddLab is false when the signed-in staff lacks catalog.edit", async () => {
+    m.requirePermission.mockResolvedValueOnce(ownerStaff({ permissions: new Set([...rolePermissions("owner")].filter((p) => p !== "catalog.edit")) }));
+    const { container } = render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    const tops = container.querySelectorAll(".a-pdftop");
+    expect(tops.length).toBeGreaterThan(0);
+    for (const top of tops) expect(top).toHaveAttribute("data-addlab", "0");
+  }, 20000);
 
   it("Assistant: no Receive lot, Add strength, Correct count, Add certificate or Put live; price shows as text", async () => {
     m.requirePermission.mockResolvedValueOnce(assistantStaff());
