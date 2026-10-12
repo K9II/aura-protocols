@@ -3,6 +3,7 @@ import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAd
 import type { OrderRow } from "@/lib/orders";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
+import { ORDERS_EMAIL, SUPPORT_EMAIL } from "@/lib/constants";
 
 const order = {
   order_number: "AP-1042", email: "j@lab.org", ship_name: "Jane <b>", ship_line1: "1 A St", ship_line2: null,
@@ -12,6 +13,17 @@ const order = {
 } as unknown as OrderRow;
 
 describe("emails", () => {
+  it("order emails reply to and name orders@; other customer email names support@", () => {
+    for (const m of [orderConfirmationEmail(order), shippedEmail(order), noChargeEmail(order), orderRefundedEmail(order)]) {
+      expect(m.replyTo).toBe(ORDERS_EMAIL);
+      expect(m.html).toContain(ORDERS_EMAIL);
+      expect(m.html).not.toContain(SUPPORT_EMAIL);
+    }
+    const credit = storeCreditAddedEmail(500, 500, null, "https://x");
+    expect("replyTo" in credit).toBe(false);
+    expect(credit.html).toContain(SUPPORT_EMAIL);
+  });
+
   it("order confirmation lists items with lots, totals and the research-use notice, escaping HTML", () => {
     const { subject, html } = orderConfirmationEmail(order);
     expect(subject).toBe("Order AP-1042 confirmed");

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import PolicyPage from "@/components/store/PolicyPage";
-import { SUPPORT_EMAIL } from "@/lib/constants";
+import { ORDERS_EMAIL, SUPPORT_EMAIL } from "@/lib/constants";
 import { SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
 
 export const metadata: Metadata = { title: "Refund & Dispute Policy", alternates: { canonical: "/refund-policy" } };
@@ -8,6 +8,7 @@ export const metadata: Metadata = { title: "Refund & Dispute Policy", alternates
 // Requires legal review before launch. The sign-up agreement links here by name.
 export default function RefundPolicyPage() {
   const mail = <a className="p-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>;
+  const ordersMail = <a className="p-link" href={`mailto:${ORDERS_EMAIL}`}>{ORDERS_EMAIL}</a>;
   return (
     <PolicyPage
       policy="refund-policy"
@@ -19,7 +20,7 @@ export default function RefundPolicyPage() {
       }}
       sections={[
         { id: "cancellations", heading: "Cancellations", body: (
-          <p>You may cancel any order for a full refund until it ships. Email {mail} with your order number; the refund goes back to your original payment method, usually within 5–10 business days depending on your bank.</p>
+          <p>You may cancel any order for a full refund until it ships. Email {ordersMail} with your order number; the refund goes back to your original payment method, usually within 5–10 business days depending on your bank.</p>
         ) },
         { id: "finality", heading: "Order finality", body: (
           <p>Once an order has shipped it cannot be cancelled, returned, or refunded. Research materials that have left our control can&apos;t be restocked or recertified, so we don&apos;t accept them back. You confirmed the items, quantities, and shipping address in your cart before paying.</p>
@@ -28,7 +29,7 @@ export default function RefundPolicyPage() {
           <p>Every order includes {formatUsd(SHIPPING_INSURANCE_USD)} shipping insurance. It covers:</p>
           <ul className="list-disc pl-5 space-y-1.5">
             <li><b>Lost packages</b> &mdash; once the carrier confirms the package is lost.</li>
-            <li><b>Damaged or incorrect items</b> &mdash; photograph the outer packaging, the inner packaging, and the vial labels, and email the photos with your order number to {mail} within 48 hours of the carrier&apos;s delivery time.</li>
+            <li><b>Damaged or incorrect items</b> &mdash; photograph the outer packaging, the inner packaging, and the vial labels, and email the photos with your order number to {ordersMail} within 48 hours of the carrier&apos;s delivery time.</li>
           </ul>
           <p>Approved claims receive one replacement or reshipment of the affected items. Claims are settled by replacement only &mdash; no cash refunds.</p>
         </>) },
