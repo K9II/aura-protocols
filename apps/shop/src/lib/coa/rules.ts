@@ -6,6 +6,11 @@ import { PURITY_FLOOR_PCT } from "@/lib/constants";
 export const METHODS = ["HPLC", "HPLC+MS"] as const;
 export const PURITY_MIN = 90;
 
+// The placeholder lab holding certificates migrated from the old test lots
+// (coa-library.sql). Never pickable on a new certificate, never editable or
+// re-activatable from the settings page.
+export const NOT_RECORDED_LAB = "Not recorded";
+
 export const TEST_KEYS = ["identity", "endotoxin", "sterility", "heavy_metals", "fentanyl"] as const;
 export type TestKey = (typeof TEST_KEYS)[number];
 export const TEST_LABEL: Record<TestKey, string> = { identity: "Identity", endotoxin: "Endotoxin", sterility: "Sterility", heavy_metals: "Heavy metals", fentanyl: "Fentanyl" };

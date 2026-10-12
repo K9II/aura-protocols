@@ -3,6 +3,7 @@ import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
 import { allPublicCertRows, coaSettings, listLabs } from "@/lib/coa/data";
 import { COA_DEFAULTS, visibleCerts, type CoaSettings } from "@/lib/coa/visibility";
+import { NOT_RECORDED_LAB } from "@/lib/coa/rules";
 import { setCoaSettingAction, setLabActiveAction } from "@/app/admin/catalog/settings/actions";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import LabDialog from "@/components/admin/catalog/LabDialog";
@@ -53,6 +54,19 @@ export default async function CoaSettingsPage() {
             <thead><tr><th>Lab</th><th>Verify link</th><th>ISO/IEC 17025</th><th className="num">Certificates</th><th></th></tr></thead>
             <tbody>
               {labs.map((lab) => {
+                // The placeholder holding migrated old test-lot certificates:
+                // never pickable, so it gets no verify link and no actions.
+                if (lab.name === NOT_RECORDED_LAB) {
+                  return (
+                    <tr key={lab.id} className="a-old">
+                      <td><b>{lab.name}</b><div className="muted">Old test lots · inactive</div></td>
+                      <td className="muted">—</td>
+                      <td><span className="a-chip c-draft">No</span></td>
+                      <td className="num">{lab.certificates}</td>
+                      <td></td>
+                    </tr>
+                  );
+                }
                 const sub = [lab.city, lab.active ? null : "inactive"].filter(Boolean).join(" · ");
                 return (
                   <tr key={lab.id} className={lab.active ? undefined : "a-old"}>

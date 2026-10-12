@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { ownerStaff } from "../../helpers/staff";
 
 vi.mock("@/lib/dal", () => ({ requirePermission: async () => ownerStaff() }));
@@ -53,6 +53,15 @@ describe("/admin/catalog/settings", () => {
     render(await CoaSettingsPage());
     const row = screen.getByText("Not recorded").closest("tr")!;
     expect(row).toHaveTextContent(/inactive/i);
+  });
+
+  it("'Not recorded' is a placeholder — no verify link, no Edit, and never an Activate button", async () => {
+    render(await CoaSettingsPage());
+    const row = screen.getByText("Not recorded").closest("tr")!;
+    expect(row).toHaveTextContent("—");
+    expect(within(row).queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    expect(within(row).queryByRole("button", { name: "Activate" })).not.toBeInTheDocument();
+    expect(within(row).queryByRole("button", { name: "Deactivate" })).not.toBeInTheDocument();
   });
 
   it("the callout never claims a certificate or result itself is accredited", async () => {
