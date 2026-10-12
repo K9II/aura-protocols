@@ -7,7 +7,7 @@ import { coaUploadAction } from "@/app/admin/catalog/actions";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { COA_MAX_BYTES } from "@/lib/catalog-ops/rules";
 
-export default function CoaUpload({ lotNumber, path, onPath, error, idSuffix, help }: { lotNumber: string; path: string; onPath: (p: string) => void; error?: string; idSuffix: string; help?: string }) {
+export default function CoaUpload({ lotNumber, path, onPath, error, idSuffix, help, onStart }: { lotNumber: string; path: string; onPath: (p: string) => void; error?: string; idSuffix: string; help?: string; onStart?: () => void }) {
   const id = `coa-file-${idSuffix}`;
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState<string | null>(null);
@@ -17,6 +17,7 @@ export default function CoaUpload({ lotNumber, path, onPath, error, idSuffix, he
     setMsg(null);
     if (file.type !== "application/pdf") return setMsg("PDF only.");
     if (file.size > COA_MAX_BYTES) return setMsg("Over 10 MB — export a smaller PDF.");
+    onStart?.();   // a new file is on its way: the form drops what the old one said
     setBusy(true);
     try {
       const link = await coaUploadAction(lotNumber);

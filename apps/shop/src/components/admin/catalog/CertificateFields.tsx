@@ -6,7 +6,7 @@ import { Icon } from "@/components/admin/ui";
 import { readCertificateAction } from "@/app/admin/catalog/actions";
 import { METHODS } from "@/lib/catalog-ops/rules";
 import { certVerifyUrl, failedTests, measuredPct, TEST_KEYS, TEST_LABEL, type TestKey, type TestResult } from "@/lib/coa/rules";
-import { EMPTY_CERT, filledMessage, lotMismatch, mergeReading, type CertDraft, type FillKey } from "@/lib/coa/reading";
+import { EMPTY_CERT, filledHead, filledMessage, lotMismatchParts, mergeReading, type CertDraft, type FillKey } from "@/lib/coa/reading";
 export { EMPTY_CERT, type CertDraft };
 
 export type LabOption = { id: string; name: string; city: string | null; verify_url_template: string | null; verify_hint?: string | null };
@@ -30,7 +30,7 @@ export default function CertificateFields({ idSuffix, lotNumber, strength, labs,
   const [filled, setFilled] = useState<Set<FillKey>>(new Set());
   const [read, setRead] = useState<ReadState>({ kind: "idle" });
   const [unknownLab, setUnknownLab] = useState<{ name: string; city: string | null } | null>(null);
-  const [mismatch, setMismatch] = useState<string | null>(null);
+  const [mismatch, setMismatch] = useState<{ report: string; ours: string } | null>(null);
   const readSeq = useRef(0);
   const pendingLab = useRef<string | null>(null);
   const put = (next: CertDraft) => { latest.current = next; setV(next); onChange?.(next); };
@@ -54,9 +54,14 @@ export default function CertificateFields({ idSuffix, lotNumber, strength, labs,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only reacts to a refreshed labs list
   }, [labs]);
 
+  // Replace starts: forget the old PDF's marks, note and warning, and void its pending read.
+  const startUpload = () => {
+    readSeq.current++;
+    setFilled(new Set()); setUnknownLab(null); setMismatch(null); setRead({ kind: "idle" });
+  };
   async function readPdf(path: string) {
     const seq = ++readSeq.current;
-    setRead({ kind: "busy" }); setMismatch(null); setUnknownLab(null);
+    setRead({ kind: "busy" }); setFilled(new Set()); setMismatch(null); setUnknownLab(null);
     let res: Awaited<ReturnType<typeof readCertificateAction>>;
     try { res = await readCertificateAction(lotNumber, path); } catch { res = { error: "unread" }; }
     if (seq !== readSeq.current) return;   // an answer for a PDF that has since been replaced
@@ -65,7 +70,8 @@ export default function CertificateFields({ idSuffix, lotNumber, strength, labs,
     put(m.draft);
     setFilled(m.filled);
     setUnknownLab(m.unknownLab);
-    setMismatch(lotMismatch(res.reading, { names: productNames.length ? productNames : [lotNumber], strength, lotNumber }));
+    // Without the product's names there's nothing to compare against: no warning.
+    setMismatch(productNames.length ? lotMismatchParts(res.reading, { names: productNames, strength, lotNumber }) : null);
     setRead({ kind: "done", n: m.filled.size });
   }
 
@@ -84,10 +90,13 @@ export default function CertificateFields({ idSuffix, lotNumber, strength, labs,
         <input type="hidden" name="coaPath" value={v.coaPath} />
         <CoaUpload idSuffix={`cert-${idSuffix}`} lotNumber={lotNumber} path={v.coaPath} error={fieldErrors.coa}
           help="Attach it first. The store reads it and fills in what it finds."
-          onPath={(p) => { put({ ...latest.current, coaPath: p }); void readPdf(p); }} />
-        {read.kind === "busy" && <div className="a-read busy" role="status">Reading the PDF… <span className="muted">you can keep typing</span></div>}
-        {read.kind === "done" && <div className="a-read" role="status">ⓘ <span><b>{read.n > 0 ? filledMessage(read.n) : NOTHING_FILLED}</b></span></div>}
-        {read.kind === "err" && <div className="a-read err" role="status">Couldn&apos;t read this PDF. Fill it in by hand.</div>}
+          onStart={startUpload} onPath={(p) => { put({ ...latest.current, coaPath: p }); void readPdf(p); }} />
+        {/* One live region that stays mounted, so screen readers announce each change. */}
+        <div role="status" aria-live="polite">
+          {read.kind === "busy" && <div className="a-read busy">Reading the PDF… <span className="muted">you can keep typing</span></div>}
+          {read.kind === "done" && <div className="a-read">ⓘ {read.n > 0 ? <span><b>{filledHead(read.n)}</b>{filledMessage(read.n).slice(filledHead(read.n).length)}</span> : <span>{NOTHING_FILLED}</span>}</div>}
+          {read.kind === "err" && <div className="a-read err">Couldn&apos;t read this PDF. Fill it in by hand.</div>}
+        </div>
       </div>
       <div className="a-row3">
         <div className="a-fld"><label htmlFor={id("lab")}>Lab{mark("labId")}</label>
@@ -129,7 +138,7 @@ export default function CertificateFields({ idSuffix, lotNumber, strength, labs,
         </div>
         {err("tests")}
         {failedNames.length > 0 && <div className="a-flag" role="alert"><Icon name="warn" />{failedNames.join(", ")} failed on this report. Review it, then set the Result.</div>}
-        {mismatch && <div className="a-lotwarn" role="alert">⚠ {mismatch}</div>}
+        {mismatch && <div className="a-lotwarn" role="alert">⚠ This report is for <b>{mismatch.report}</b>. You&apos;re adding it to <b>{mismatch.ours}</b>. Check you attached the right PDF.</div>}
         <div className="a-result">
           <span>Result</span>
           <input type="hidden" name="result" value={v.result} />

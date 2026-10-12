@@ -170,7 +170,9 @@ const formatStrengths = (values: Amt[]) => values.map((v) => `${v.n} ${v.u}`).jo
 
 // A warning when the report names another product or strength (batch never
 // decides — the report prints the supplier's batch, not our lot number).
-export function lotMismatch(r: Reading, lot: { names: string[]; strength: string; lotNumber: string }): string | null {
+type LotRef = { names: string[]; strength: string; lotNumber: string };
+// The two halves of the warning, so the form can bold them (mock f2); lotMismatch is the plain sentence.
+export function lotMismatchParts(r: Reading, lot: LotRef): { report: string; ours: string } | null {
   const product = r.product_name ? nameOnly(r.product_name).trim() : "";
   const p = squash(product);
   const productOff = p.length > 0 && !lot.names.some((n) => { const q = squash(n); return q.length > 0 && (p.includes(q) || q.includes(p)); });
@@ -185,7 +187,11 @@ export function lotMismatch(r: Reading, lot: { names: string[]; strength: string
     ? (hasExtraText(r.strength_label) ? formatStrengths(labelValues) : r.strength_label)
     : formatStrengths(values);
   const what = [product || lot.names[0], shownStrength].filter(Boolean).join(" ");
-  return `This report is for ${what}${r.batch ? `, batch ${r.batch}` : ""}. You're adding it to ${lot.names[0]} ${lot.strength}, lot ${lot.lotNumber}. Check you attached the right PDF.`;
+  return { report: `${what}${r.batch ? `, batch ${r.batch}` : ""}`, ours: `${lot.names[0]} ${lot.strength}, lot ${lot.lotNumber}` };
+}
+export function lotMismatch(r: Reading, lot: LotRef): string | null {
+  const m = lotMismatchParts(r, lot);
+  return m && `This report is for ${m.report}. You're adding it to ${m.ours}. Check you attached the right PDF.`;
 }
 
 // Names a report may use for a product: scientific name, designation, blend components.
@@ -193,4 +199,5 @@ export function productNames(c: { name: string; designation?: string; components
   return [...new Set([c.name, c.designation, ...(c.components ?? [])].filter((x): x is string => !!x))];
 }
 
-export const filledMessage = (n: number) => `Filled ${n} field${n === 1 ? "" : "s"} from the PDF. Check each one.`;
+export const filledHead = (n: number) => `Filled ${n} field${n === 1 ? "" : "s"} from the PDF`;
+export const filledMessage = (n: number) => `${filledHead(n)}. Check each one.`;

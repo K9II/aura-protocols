@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EMPTY_CERT, filledMessage, lotMismatch, matchLab, mergeReading, parseReading, productNames, READING_JSON_SCHEMA, type Reading } from "@/lib/coa/reading";
+import { EMPTY_CERT, filledHead, filledMessage, lotMismatch, lotMismatchParts, matchLab, mergeReading, parseReading, productNames, READING_JSON_SCHEMA, type Reading } from "@/lib/coa/reading";
 
 const TODAY = "2026-10-12";
 const R = (x: Partial<Reading> = {}): Reading => ({
@@ -128,6 +128,11 @@ describe("lotMismatch", () => {
     expect(lotMismatch(R({ product_name: "Tirzepatide", strength_label: "30 mg", batch: "N8326" }), lot))
       .toBe("This report is for Tirzepatide 30 mg, batch N8326. You're adding it to MOTS-c 10 mg, lot AP-1107. Check you attached the right PDF.");
   });
+  it("parts: what the report is for, and the lot it's being added to", () => {
+    expect(lotMismatchParts(R({ product_name: "Tirzepatide", strength_label: "30 mg", batch: "N8326" }), lot))
+      .toEqual({ report: "Tirzepatide 30 mg, batch N8326", ours: "MOTS-c 10 mg, lot AP-1107" });
+    expect(lotMismatchParts(R({ product_name: "MOTS-c", strength_label: "10 mg" }), lot)).toBeNull();
+  });
   it("right product, wrong strength", () => {
     expect(lotMismatch(R({ product_name: "MOTS-c", strength_label: "40 mg", batch: null }), lot))
       .toBe("This report is for MOTS-c 40 mg. You're adding it to MOTS-c 10 mg, lot AP-1107. Check you attached the right PDF.");
@@ -178,5 +183,7 @@ describe("productNames / filledMessage", () => {
   it("counts fields", () => {
     expect(filledMessage(1)).toBe("Filled 1 field from the PDF. Check each one.");
     expect(filledMessage(9)).toBe("Filled 9 fields from the PDF. Check each one.");
+    expect(filledHead(1)).toBe("Filled 1 field from the PDF");
+    expect(filledHead(9)).toBe("Filled 9 fields from the PDF");
   });
 });

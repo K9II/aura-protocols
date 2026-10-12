@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, waitFor, within } from "@testing-library/react";
 const { coaUploadAction, readCertificateAction, saveLabAction, uploadToSignedUrl } = vi.hoisted(() => ({
   coaUploadAction: vi.fn(), readCertificateAction: vi.fn(), saveLabAction: vi.fn(), uploadToSignedUrl: vi.fn(async () => ({ error: null })),
 }));
@@ -61,6 +61,10 @@ const setup = (extra: Partial<Parameters<typeof CertificateFields>[0]> = {}) =>
   render(<CertificateFields idSuffix="t" lotNumber="AP-1105" strength="10 mg" labs={labs} initial={EMPTY_CERT} productNames={["Tirzepatide"]} canAddLab {...extra} />);
 // The "from PDF" mark sits inside the label, so filled fields are found by a label prefix.
 const report = () => screen.getByLabelText(/^Report number/) as HTMLInputElement;
+// The status line is one live region; its message is split by the bold head (mock f1).
+const statusSays = (text: string) => waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(text));
+const pdfFile = () => new File(["%PDF"], "c.pdf", { type: "application/pdf" });
+const fileInput = () => document.querySelector('input[type="file"]') as HTMLInputElement;
 
 describe("CertificateFields auto-fill", () => {
   beforeEach(() => { coaUploadAction.mockReset(); readCertificateAction.mockReset(); });
@@ -78,7 +82,8 @@ describe("CertificateFields auto-fill", () => {
     setup();
     await attach();
     expect(readCertificateAction).toHaveBeenCalledWith("AP-1105", "AP-1105/1700000000000.pdf");
-    await screen.findByText("Filled 8 fields from the PDF. Check each one.");
+    await statusSays("Filled 8 fields from the PDF. Check each one.");
+    expect(within(screen.getByRole("status")).getByText("Filled 8 fields from the PDF", { selector: "b" })).toBeInTheDocument();
     expect(report().value).toBe("VGD-24109");
     expect((screen.getByLabelText(/^Lab/) as HTMLSelectElement).value).toBe("v");
     expect((document.querySelector('input[name="result"]') as HTMLInputElement).value).toBe("");
@@ -90,7 +95,7 @@ describe("CertificateFields auto-fill", () => {
     readCertificateAction.mockResolvedValue({ reading: READING });
     setup();
     await attach();
-    await screen.findByText(/Filled 8 fields/);
+    await statusSays("Filled 8 fields");
     fireEvent.change(report(), { target: { value: "VGD-1" } });
     expect(screen.getAllByText("from PDF")).toHaveLength(7);
   });
@@ -104,7 +109,7 @@ describe("CertificateFields auto-fill", () => {
     fireEvent.change(report(), { target: { value: "MINE-1" } });
     await act(async () => { resolve({ reading: READING }); });
     expect(report().value).toBe("MINE-1");
-    await screen.findByText("Filled 7 fields from the PDF. Check each one.");
+    await statusSays("Filled 7 fields from the PDF. Check each one.");
   });
 
   it("unknown lab: note + Add lab (owner only)", async () => {
@@ -140,7 +145,59 @@ describe("CertificateFields auto-fill", () => {
     coaUploadAction.mockResolvedValue({ path: "AP-1107/1700000000000.pdf", token: "t" });
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     await act(async () => { fireEvent.change(input, { target: { files: [new File(["%PDF"], "c.pdf", { type: "application/pdf" })] } }); });
-    expect(await screen.findByText(/This report is for Tirzepatide 30 mg, batch N8326/)).toBeInTheDocument();
+    const warn = await screen.findByRole("alert");
+    expect(warn).toHaveTextContent("This report is for Tirzepatide 30 mg, batch N8326. You're adding it to MOTS-c 10 mg, lot AP-1107. Check you attached the right PDF.");
+    expect(within(warn).getByText("Tirzepatide 30 mg, batch N8326", { selector: "b" })).toBeInTheDocument();
+    expect(within(warn).getByText("MOTS-c 10 mg, lot AP-1107", { selector: "b" })).toBeInTheDocument();
+  });
+
+  it("no product names: no wrong-lot check", async () => {
+    readCertificateAction.mockResolvedValue({ reading: { ...READING, product_name: "Tirzepatide", strength_label: "30 mg" } });
+    render(<CertificateFields idSuffix="t" lotNumber="AP-1105" strength="10 mg" labs={labs} initial={EMPTY_CERT} />);
+    await attach();
+    await statusSays("Filled 8 fields");
+    expect(document.querySelector(".a-lotwarn")).toBeNull();
+  });
+
+  it("nothing to fill: says so, not bold", async () => {
+    readCertificateAction.mockResolvedValue({ reading: READING });
+    setup({ initial: { ...EMPTY_CERT, labId: "v", reportNumber: "R", testedOn: "2026-10-01", purity: "99", measured: "10", tests: { ...EMPTY_CERT.tests, identity: "pass", endotoxin: "pass" } } });
+    await attach();
+    await statusSays("Nothing to fill from the PDF. Check it against the form.");
+    expect(screen.getByRole("status").querySelector("b")).toBeNull();
+  });
+
+  it("Replace clears the old PDF's marks, lab note and warning", async () => {
+    readCertificateAction.mockResolvedValueOnce({ reading: { ...READING, lab_name: "Kestrel Analytical", product_name: "Tirzepatide", strength_label: "30 mg" } })
+      .mockReturnValueOnce(new Promise(() => {}));
+    setup({ productNames: ["MOTS-c"] });
+    await attach();
+    await statusSays("Filled 7 fields");
+    expect(screen.getAllByText("from PDF").length).toBeGreaterThan(0);
+    expect(screen.getByText(/This report is from/)).toBeInTheDocument();
+    expect(document.querySelector(".a-lotwarn")).not.toBeNull();
+    await attach();
+    expect(screen.queryAllByText("from PDF")).toHaveLength(0);
+    expect(screen.queryByText(/This report is from/)).toBeNull();
+    expect(document.querySelector(".a-lotwarn")).toBeNull();
+    expect(screen.getByText(/Reading the PDF/)).toBeInTheDocument();
+  });
+
+  it("the first read answering while the second PDF uploads changes nothing", async () => {
+    let first!: (v: unknown) => void;
+    readCertificateAction.mockReturnValueOnce(new Promise((r) => { first = r; })).mockReturnValueOnce(new Promise(() => {}));
+    setup();
+    await attach();
+    let uploaded!: (v: unknown) => void;
+    coaUploadAction.mockReturnValueOnce(new Promise((r) => { uploaded = r; }));
+    await act(async () => { fireEvent.change(fileInput(), { target: { files: [pdfFile()] } }); });
+    await act(async () => { first({ reading: READING }); });
+    expect(report().value).toBe("");
+    expect(screen.queryAllByText("from PDF")).toHaveLength(0);
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+    await act(async () => { uploaded({ path: "AP-1105/1700000000001.pdf", token: "t" }); });
+    expect(readCertificateAction).toHaveBeenLastCalledWith("AP-1105", "AP-1105/1700000000001.pdf");
+    expect(report().value).toBe("");
   });
 
   it("failure: says to type it in, form still works", async () => {
