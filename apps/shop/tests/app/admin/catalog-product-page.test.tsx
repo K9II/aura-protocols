@@ -36,6 +36,9 @@ vi.mock("@/lib/catalog-ops/data", () => ({
       lot({ id: "g", lot_number: "SS2-2609-01", variant_id: "2mg", status: "draft", live_at: null, sellable: 50, available: 50 }),
       // No passing endotoxin result yet — can't go live.
       lot({ id: "d", lot_number: "SS10-2611-01", variant_id: "10mg", status: "draft", live_at: null, endotoxin_ok: false, sellable: 190, discrepancy_note: null }),
+      // No headline certificate (purity_pct/method both null) — the mobile
+      // card must show "—", never the literal "null".
+      lot({ id: "k", lot_number: "SS50-2610-05", variant_id: "50mg", status: "live", live_at: "2026-10-01", sellable: 40, held: 0, sold: 0, available: 40, purity_pct: null, method: null }),
     ],
   }),
   catalogEvents: async () => [
@@ -101,6 +104,12 @@ describe("/admin/catalog/[slug]", () => {
     expect(screen.getByText("1 certificate · 99.4% · HPLC+MS")).toBeInTheDocument();
     expect(screen.getByText("2 certificates · 99.4% · HPLC+MS")).toBeInTheDocument();
     expect(screen.getAllByText("0 certificates · 99.4% · HPLC+MS").length).toBeGreaterThan(0);
+  });
+  it("the mobile card shows — for a lot with no headline certificate, never the literal null", async () => {
+    const { container } = render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    const card = [...container.querySelectorAll(".a-plot")].find((el) => el.textContent?.includes("SS50-2610-05"))!;
+    expect(card.querySelector(".meta")!.textContent).toBe("—% · — · 0 held · 0 sold · 40 left");
+    expect(card.textContent).not.toMatch(/null/);
   });
   it("orders live lots oldest first, tying on lot number like hold_vials", async () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));

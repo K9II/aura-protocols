@@ -132,7 +132,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                   <td className="a-mono a-nw">{r.line?.supplier_ref ?? "—"}</td>
                   <td>{r.lot ? <>
                     <Link className="a-ord" href={`/admin/catalog/${r.slug}`} style={r.stage === "failed" ? { textDecoration: "line-through" } : undefined}>{r.lot.lot_number}</Link>
-                    <span className="muted"> · {r.stage === "passed" ? `held ${r.lot.held} vials` : r.stage === "failed" ? "never sold" : r.lot.coa_path ? "COA ✓" : "no certificate yet"}</span></> : "—"}</td>
+                    <span className="muted"> · {r.stage === "passed" ? `held ${r.lot.held} vials` : r.stage === "failed" ? "never sold" : r.lot.purity_ok && r.lot.endotoxin_ok ? "certificates ✓" : "certificates not complete"}</span></> : "—"}</td>
                   <td><span className={`a-chip ${STAGE_CHIP[r.stage].cls}`}>{STAGE_CHIP[r.stage].text}</span></td>
                   <td className="r a-nw">{manage && (
                     r.stage === "to_order" ? <RecordOrderDialog runId={run.id} runNumber={run.number} cutoffLabel={cutoffLabel} slug={r.slug} variantId={r.variantId} label={label} kits={needed.get(r.k) ?? 0} suppliers={suppliers} choices={choices} prices={prices[r.k] ?? {}} primary />

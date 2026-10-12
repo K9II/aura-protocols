@@ -124,6 +124,24 @@ describe("catalog actions", () => {
       );
     });
 
+    it("a fail result on the first certificate returns ok plus a Recorded as Failed warning, same as saveCertificateAction", async () => {
+      data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
+      data.coaUploaded.mockResolvedValue(true);
+      coaData.addCertificate.mockResolvedValue({ ok: true, id: "c1" });
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      const r = await receiveLotAction(null, fd({ ...receive, counted: "200", damaged: "0", note: "", ...cert({ result: "fail", certNote: "Short fill." }), intent: "draft" }));
+      expect(r).toEqual({ ok: "Saved BPC-2610-03 as a draft.", warning: "Recorded as Failed." });
+    });
+
+    it("Pass with a failed test on the first certificate warns which test failed, same as saveCertificateAction", async () => {
+      data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
+      data.coaUploaded.mockResolvedValue(true);
+      coaData.addCertificate.mockResolvedValue({ ok: true, id: "c1" });
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      const r = await receiveLotAction(null, fd({ ...receive, counted: "200", damaged: "0", note: "", ...cert({ test_endotoxin: "fail" }), intent: "draft" }));
+      expect(r).toEqual({ ok: "Saved BPC-2610-03 as a draft.", warning: "Saved as Pass although Endotoxin failed on this report." });
+    });
+
     it("a report number already recorded for this lab is reported after the lot is saved as a draft", async () => {
       data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
       data.coaUploaded.mockResolvedValue(true);

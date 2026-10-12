@@ -71,4 +71,19 @@ describe("LotCertificates", () => {
     render(<LotCertificates certs={withFailedTest} />);
     expect(screen.getByText(/✓ Pass · ✕ Fail · — Not tested/)).toBeInTheDocument();
   });
+
+  it("marks a failed row Failed next to its lab and lists its note under the table", () => {
+    const withFailed = [
+      cert({ id: "c1", labName: "Vanguard Laboratory", reportNumber: "VGD-24117" }),
+      cert({ id: "c2", labName: "Freedom Diagnostics", reportNumber: "Aura2610080412", failed: true, note: "Sample vial damaged." }),
+    ];
+    render(<LotCertificates certs={withFailed} />);
+    expect(screen.getByText("Failed")).toBeInTheDocument();
+    expect(screen.getByText("Failed · Aura2610080412: Sample vial damaged.")).toBeInTheDocument();
+  });
+
+  it("does not list a failed-row note when none passing rows are failed", () => {
+    render(<LotCertificates certs={certs} />);
+    expect(screen.queryByText(/^Failed ·/)).toBeNull();
+  });
 });

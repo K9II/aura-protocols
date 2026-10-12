@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(async () => null), coaUploadAction: vi.fn() }));
 vi.mock("@/lib/supabase/client", () => ({ createSupabaseBrowserClient: () => ({ storage: { from: () => ({ uploadToSignedUrl: vi.fn() }) } }) }));
 import ReceiveLotDialog from "@/components/admin/catalog/ReceiveLotDialog";
+import { receiveLotAction } from "@/app/admin/catalog/actions";
 
 // jsdom has no showModal; open = attribute is enough for these tests.
 HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
@@ -56,5 +57,16 @@ describe("ReceiveLotDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /Edit/ }));
     expect(screen.getByText(/Certificates are edited on the lot's certificate rows\./)).toBeInTheDocument();
     expect(screen.queryByText(/First certificate/)).not.toBeInTheDocument();
+  });
+
+  it("resets the first certificate's report number after a successful save", async () => {
+    (receiveLotAction as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: "Saved AP-1 as a draft." });
+    const { container } = render(<ReceiveLotDialog slug="bpc-157" variantId="10mg" title="BPC-157 10 mg" labs={labs} strength="10 mg" />);
+    fireEvent.click(screen.getByRole("button", { name: /Receive a lot/ }));
+    fireEvent.change(screen.getByLabelText("Lot number"), { target: { value: "AP-1" } });
+    fireEvent.change(document.querySelector('input[name="reportNumber"]')!, { target: { value: "VGD-99999" } });
+    expect(document.querySelector('input[name="reportNumber"]')).toHaveValue("VGD-99999");
+    await act(async () => { fireEvent.submit(container.querySelector("form")!); });
+    expect(document.querySelector('input[name="reportNumber"]')).toHaveValue("");
   });
 });

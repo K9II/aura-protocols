@@ -22,6 +22,17 @@ describe("catalog-ops.sql", () => {
     for (const f of fns) expect(sql, f).toMatch(new RegExp(`revoke all on function ${f}\\([^)]*\\) from public, anon, authenticated;`));
   });
 
+  it("lot_integrity skips body-checking so it can be created before lot_stock exists (coa-library.sql applies after this file)", () => {
+    const fnAt = sql.indexOf("create or replace function lot_integrity()");
+    const offAt = sql.lastIndexOf("set check_function_bodies = off;", fnAt);
+    expect(offAt).toBeGreaterThan(-1);
+    expect(sql.slice(offAt + "set check_function_bodies = off;".length, fnAt).trim()).toBe("");
+    const resetAt = sql.indexOf("reset check_function_bodies;", fnAt);
+    const revokeAt = sql.indexOf("revoke all on function lot_integrity()", fnAt);
+    expect(resetAt).toBeGreaterThan(fnAt);
+    expect(resetAt).toBeLessThan(revokeAt);
+  });
+
   it("serialises stock per strength with one advisory lock key", () => {
     expect(sql.match(/pg_advisory_xact_lock\(hashtext\('stock:' \|\|/g)?.length).toBeGreaterThanOrEqual(4);
   });

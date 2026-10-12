@@ -53,7 +53,7 @@ describe("/coa", () => {
 
   it("says when a found lot has no visible certificate yet", async () => {
     await lookUp("BPC-2609-01");
-    expect(screen.getByText(/certificate file is being uploaded/i)).toBeInTheDocument();
+    expect(screen.getByText("No certificate is published for this lot yet.")).toBeInTheDocument();
   });
 
   it("never lists a hidden product's lot", async () => {

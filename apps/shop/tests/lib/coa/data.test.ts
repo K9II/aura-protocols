@@ -58,13 +58,13 @@ describe("coa data", () => {
   });
 
   describe("updateDraftCertificate", () => {
-    it("updates the row and logs certificate_edited", async () => {
-      const upd = query({});
+    it("updates the row filtered by id and lot_id, and logs certificate_edited", async () => {
+      const upd = query({ data: [{ id: "c1" }] });
       const ev = query({});
       from = fromQueue({ lot_certificates: [upd], catalog_events: [ev] });
       const { updateDraftCertificate } = await import("@/lib/coa/data");
       expect(await updateDraftCertificate("c1", LOT, cert(), "owner")).toEqual({ ok: true });
-      expect(callArgs(upd, "eq")).toEqual(["id", "c1"]);
+      expect(upd.calls.filter(([m]) => m === "eq").map(([, a]) => a)).toEqual([["id", "c1"], ["lot_id", "lot1"]]);
       expect(callArgs(ev, "insert")?.[0]).toMatchObject({ kind: "certificate_edited", lot_id: "lot1" });
     });
 
@@ -85,20 +85,36 @@ describe("coa data", () => {
       const { updateDraftCertificate } = await import("@/lib/coa/data");
       await expect(updateDraftCertificate("c1", LOT, cert(), "owner")).rejects.toThrow(/certificate update failed/);
     });
+
+    it("returns { ok: false } without logging when no row comes back (the lot went stale)", async () => {
+      const upd = query({ data: [] });
+      from = fromQueue({ lot_certificates: [upd] });
+      const { updateDraftCertificate } = await import("@/lib/coa/data");
+      expect(await updateDraftCertificate("c1", LOT, cert(), "owner")).toEqual({ ok: false });
+      // No catalog_events queue entry: logEvent would throw "unexpected supabase.from" if called.
+    });
   });
 
   describe("deleteDraftCertificate", () => {
-    it("deletes and logs certificate_deleted", async () => {
-      const del = query({});
+    it("deletes the row filtered by id and lot_id, and logs certificate_deleted", async () => {
+      const del = query({ data: [{ id: "c1" }] });
       const ev = query({});
       from = fromQueue({ lot_certificates: [del], catalog_events: [ev] });
       const { deleteDraftCertificate } = await import("@/lib/coa/data");
       expect(await deleteDraftCertificate("c1", LOT, "VGD-24109", "owner")).toEqual({ ok: true });
+      expect(del.calls.filter(([m]) => m === "eq").map(([, a]) => a)).toEqual([["id", "c1"], ["lot_id", "lot1"]]);
       expect(callArgs(ev, "insert")?.[0]).toMatchObject({ kind: "certificate_deleted", before: { report: "VGD-24109" } });
     });
 
     it("returns { ok: false } without throwing when the certificate is locked", async () => {
       from = fromQueue({ lot_certificates: [query({ error: { message: "certificate_locked" } })] });
+      const { deleteDraftCertificate } = await import("@/lib/coa/data");
+      expect(await deleteDraftCertificate("c1", LOT, "VGD-24109", "owner")).toEqual({ ok: false });
+    });
+
+    it("returns { ok: false } without logging when no row comes back (the lot went stale)", async () => {
+      const del = query({ data: [] });
+      from = fromQueue({ lot_certificates: [del] });
       const { deleteDraftCertificate } = await import("@/lib/coa/data");
       expect(await deleteDraftCertificate("c1", LOT, "VGD-24109", "owner")).toEqual({ ok: false });
     });
@@ -191,6 +207,26 @@ describe("coa data", () => {
       from = fromQueue({ labs: [query({ error: { message: "down" } })] });
       const { saveLab } = await import("@/lib/coa/data");
       await expect(saveLab(null, lab())).rejects.toThrow(/lab save failed/);
+    });
+  });
+
+  describe("labById", () => {
+    it("reads the id and name", async () => {
+      from = fromQueue({ labs: [query({ data: { id: "lab1", name: "Not recorded" } })] });
+      const { labById } = await import("@/lib/coa/data");
+      expect(await labById("lab1")).toEqual({ id: "lab1", name: "Not recorded" });
+    });
+
+    it("returns null when not found", async () => {
+      from = fromQueue({ labs: [query({ data: null })] });
+      const { labById } = await import("@/lib/coa/data");
+      expect(await labById("missing")).toBeNull();
+    });
+
+    it("throws on a read error", async () => {
+      from = fromQueue({ labs: [query({ error: { message: "down" } })] });
+      const { labById } = await import("@/lib/coa/data");
+      await expect(labById("lab1")).rejects.toThrow(/lab read failed/);
     });
   });
 

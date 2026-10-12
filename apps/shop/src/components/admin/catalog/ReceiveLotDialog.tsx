@@ -34,6 +34,10 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
     ...(runLine ? { supplier: runLine.supplier, ordered: String(runLine.vials) } : {}) };
   const [v, setV] = useState(initial);
   const [cert, setCert] = useState<CertDraft>(EMPTY_CERT);
+  // Bumped on every successful save so CertificateFields remounts: it only
+  // reads its `initial` prop once, so without a fresh key the first-certificate
+  // block keeps showing the just-submitted values after the reset below.
+  const [formKey, setFormKey] = useState(0);
   const options = supplierOptions(draft?.supplier ? [draft.supplier] : runLine?.supplier ? [runLine.supplier] : [], Object.keys(prices)).options;
   const [other, setOther] = useState(!!draft?.supplier && !options.includes(draft.supplier));
   // The cost follows supplier box price × boxes until the owner types their own.
@@ -49,6 +53,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
       ref.current?.close();
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
       setV(initial()); setCert(EMPTY_CERT); setCostTyped(runLine?.cost ? runLine.cost : null); setFreightTyped(null); setLabelsTyped(null); setOther(false);
+      setFormKey((k) => k + 1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only reacts to a fresh action result
   }, [state]);
@@ -85,7 +90,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
             {!draft
               ? <details className="a-recv" open={!runLine}>
                   <summary className="h">First certificate <span className="muted" style={{ fontWeight: 400 }}>· optional — add it now or later from the lot</span></summary>
-                  <CertificateFields idSuffix={scope} lotNumber={v.lotNumber} strength={strength} labs={labs} initial={EMPTY_CERT} fieldErrors={fe} onChange={setCert} />
+                  <CertificateFields key={formKey} idSuffix={scope} lotNumber={v.lotNumber} strength={strength} labs={labs} initial={EMPTY_CERT} fieldErrors={fe} onChange={setCert} />
                 </details>
               : <p className="muted">Certificates are edited on the lot&apos;s certificate rows.</p>}
             <div className="a-recv">

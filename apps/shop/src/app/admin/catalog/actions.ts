@@ -58,6 +58,10 @@ const LIVE_REFUSAL: Record<string, string> = {
   nothing_sellable: "Nothing to sell — every vial is damaged.",
 };
 const TAKEN = "That report number is already recorded for this lab.";
+// Same precedence as saveCertificateAction: the owner's Failed call wins, then
+// a flagged failed test, then a below-floor purity warning.
+const certWarning = (p: { value: { result: "pass" | "fail" }; warnings: { purity?: string; failedTest?: string } }): string | undefined =>
+  p.value.result === "fail" ? "Recorded as Failed." : p.warnings.failedTest ?? p.warnings.purity;
 
 // Signed upload link for a certificate PDF; the browser uploads straight to
 // storage (server actions cap bodies at 1 MB), then submits the path.
@@ -129,7 +133,8 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
     throw new Error(STALE);
   }
   refresh(slug);
-  return { ok: `Saved ${val.lotNumber} as a draft.`, ...(cert?.ok && cert.warnings.purity ? { warning: cert.warnings.purity } : {}) };
+  const warning = cert?.ok ? certWarning(cert) : undefined;
+  return { ok: `Saved ${val.lotNumber} as a draft.`, ...(warning ? { warning } : {}) };
 }
 
 export async function putLiveAction(f: FormData): Promise<void> {
@@ -183,7 +188,7 @@ export async function saveCertificateAction(_prev: ActionState, f: FormData): Pr
     if (!r.ok) return { fieldErrors: { reportNumber: TAKEN } };
   }
   refresh(lot.slug);
-  const warning = p.value.result === "fail" ? "Recorded as Failed." : p.warnings.failedTest ?? p.warnings.purity;
+  const warning = certWarning(p);
   return { ok: certId ? "Certificate saved." : "Certificate added.", ...(warning ? { warning } : {}) };
 }
 

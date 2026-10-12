@@ -348,6 +348,10 @@ revoke all on function record_shipped_lots(uuid, json, text) from public, anon, 
 
 -- For the daily reconcile: lots below zero, and holds still 'held' on orders
 -- that are no longer pending.
+-- lot_stock now lives in coa-library.sql (applied after this file), so a
+-- fresh database won't have it yet; skip body-checking this function so its
+-- creation doesn't fail before that view exists.
+set check_function_bodies = off;
 create or replace function lot_integrity() returns json language sql stable
 set search_path = public, pg_temp as $$
   select json_build_object(
@@ -357,6 +361,7 @@ set search_path = public, pg_temp as $$
                     where h.state = 'held' and o.status not in ('awaiting_payment', 'processing'))
   )
 $$;
+reset check_function_bodies;
 revoke all on function lot_integrity() from public, anon, authenticated;
 
 -- Certificates: public bucket, PDF only, 10 MB (COA_MAX_BYTES in lib/catalog-ops/rules.ts).

@@ -15,12 +15,17 @@ export default function CertificateDialog({ lotId, lotNumber, title, strength, l
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState(saveCertificateAction, null);
   const [v, setV] = useState<CertDraft>(cert?.draft ?? EMPTY_CERT);
+  // Bumped on every successful save so CertificateFields remounts: it only
+  // reads its `initial` prop once, so without a fresh key it keeps showing
+  // the just-submitted values (e.g. the report number) after the reset above.
+  const [formKey, setFormKey] = useState(0);
   const scope = cert ? `edit-${cert.id}` : `add-${lotId}`;
   useEffect(() => {
     if (state?.ok) {
       ref.current?.close();
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
       if (!cert) setV(EMPTY_CERT);
+      setFormKey((k) => k + 1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only reacts to a fresh action result
   }, [state]);
@@ -36,7 +41,7 @@ export default function CertificateDialog({ lotId, lotNumber, title, strength, l
           {cert && <input type="hidden" name="certId" value={cert.id} />}
           <div className="a-modal-h"><h2 id={`cert-${scope}`}>{cert ? `Edit certificate · ${title}` : `Add a certificate · ${title}`}</h2><button type="button" className="x" aria-label="Close" onClick={() => ref.current?.close()}>×</button></div>
           <div className="a-modal-b">
-            <CertificateFields idSuffix={scope} lotNumber={lotNumber} strength={strength} labs={labs} initial={v} fieldErrors={fe} onChange={setV} />
+            <CertificateFields key={formKey} idSuffix={scope} lotNumber={lotNumber} strength={strength} labs={labs} initial={v} fieldErrors={fe} onChange={setV} />
             <ul className="a-checks">
               <li className={v.coaPath ? "" : "no"}><Icon name="check" />Certificate attached</li>
               {v.purity.trim() !== "" && <li className={Number(v.purity) >= PURITY_FLOOR_PCT ? "" : "no"}><Icon name="check" />Purity at or above the {PURITY_FLOOR_PCT}% shown on the site</li>}

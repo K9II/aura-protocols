@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ownerStaff } from "../../helpers/staff";
+import { NOT_RECORDED_LAB } from "@/lib/coa/rules";
 
 const requirePermission = vi.fn(async () => ownerStaff({ id: "owner", fullName: "Kearney Adams" }));
-const coaData = { saveLab: vi.fn(), setCoaSetting: vi.fn(), setLabActive: vi.fn() };
+const coaData = { saveLab: vi.fn(), setCoaSetting: vi.fn(), setLabActive: vi.fn(), labById: vi.fn() };
 const catalogChangedByOwner = vi.fn();
 vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/coa/data", () => coaData);
@@ -75,6 +76,13 @@ describe("coa settings actions", () => {
       await saveLabAction(null, fd({ ...labForm, hint: "The certificate ID from the QR code." }));
       expect(coaData.saveLab).toHaveBeenCalledWith(null, expect.objectContaining({ verifyHint: "The certificate ID from the QR code." }));
     });
+
+    it("refuses to edit the Not recorded placeholder lab", async () => {
+      coaData.labById.mockResolvedValue({ id: VALID_UUID, name: NOT_RECORDED_LAB });
+      const { saveLabAction } = await import("@/app/admin/catalog/settings/actions");
+      await expect(saveLabAction(null, fd({ ...labForm, labId: VALID_UUID }))).rejects.toThrow();
+      expect(coaData.saveLab).not.toHaveBeenCalled();
+    });
   });
 
   describe("setLabActiveAction", () => {
@@ -83,6 +91,13 @@ describe("coa settings actions", () => {
       await setLabActiveAction(fd({ labId: VALID_UUID, active: "false" }));
       expect(coaData.setLabActive).toHaveBeenCalledWith(VALID_UUID, false);
       expect(catalogChangedByOwner).toHaveBeenCalled();
+    });
+
+    it("refuses to (re)activate the Not recorded placeholder lab", async () => {
+      coaData.labById.mockResolvedValue({ id: VALID_UUID, name: NOT_RECORDED_LAB });
+      const { setLabActiveAction } = await import("@/app/admin/catalog/settings/actions");
+      await expect(setLabActiveAction(fd({ labId: VALID_UUID, active: "true" }))).rejects.toThrow();
+      expect(coaData.setLabActive).not.toHaveBeenCalled();
     });
   });
 

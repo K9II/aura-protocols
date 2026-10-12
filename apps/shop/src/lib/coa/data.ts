@@ -27,6 +27,12 @@ export async function saveLab(id: string | null, v: LabValue): Promise<{ ok: tru
   return { ok: true };
 }
 
+export async function labById(id: string): Promise<{ id: string; name: string } | null> {
+  const { data, error } = await db().from("labs").select("id, name").eq("id", id).maybeSingle();
+  if (error) fail("lab read", error);
+  return (data as { id: string; name: string } | null) ?? null;
+}
+
 export async function setLabActive(id: string, active: boolean): Promise<void> {
   const { error } = await db().from("labs").update({ active, updated_at: new Date().toISOString() }).eq("id", id);
   if (error) fail("lab active", error);
@@ -92,18 +98,23 @@ export async function addCertificate(lot: Lot, v: CertValue, actorId: string): P
 }
 
 export async function updateDraftCertificate(id: string, lot: Lot, v: CertValue, actorId: string): Promise<{ ok: true } | { ok: false; taken?: true; locked?: true }> {
-  const { error } = await db().from("lot_certificates").update(columns(v)).eq("id", id);
+  // Filtered by lot_id too, and read back: a certificate whose id matches but
+  // whose lot doesn't (the caller's lot went stale) must not silently no-op
+  // as success, and must not log an edit that didn't happen.
+  const { data, error } = await db().from("lot_certificates").update(columns(v)).eq("id", id).eq("lot_id", lot.id).select("id");
   if (code(error) === "23505") return { ok: false, taken: true };
   if (locked(error)) return { ok: false, locked: true };
   if (error) fail("certificate update", error);
+  if (!data?.length) return { ok: false };
   await logEvent({ slug: lot.slug, variant_id: lot.variant_id, lot_id: lot.id, kind: "certificate_edited", actor_id: actorId, after: { report: v.reportNumber } });
   return { ok: true };
 }
 
 export async function deleteDraftCertificate(id: string, lot: Lot, report: string, actorId: string): Promise<{ ok: boolean }> {
-  const { error } = await db().from("lot_certificates").delete().eq("id", id);
+  const { data, error } = await db().from("lot_certificates").delete().eq("id", id).eq("lot_id", lot.id).select("id");
   if (locked(error)) return { ok: false };
   if (error) fail("certificate delete", error);
+  if (!data?.length) return { ok: false };
   await logEvent({ slug: lot.slug, variant_id: lot.variant_id, lot_id: lot.id, kind: "certificate_deleted", actor_id: actorId, before: { report } });
   return { ok: true };
 }

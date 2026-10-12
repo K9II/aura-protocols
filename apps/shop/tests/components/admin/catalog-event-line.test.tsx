@@ -19,3 +19,32 @@ describe("catalogEventLine price_changed", () => {
     expect(text(price(null))).toBe("Alvester changed 10 mg price $59.00 → $79.00");
   });
 });
+
+const certEvent = (kind: string, extra: Partial<CatalogEvent> = {}) => ({
+  id: "e2", kind, lotNumber: "AP-1105", actorName: "Alvester", created_at: "2026-10-09T18:00:00Z",
+  before: null, after: null, reason: null, note: null, source: "manual",
+  variant_id: "10mg", lot_id: "lot1", actor_id: "owner", ...extra,
+}) as unknown as CatalogEvent;
+
+describe("catalogEventLine certificate events", () => {
+  it("certificate_added names the report and shows Pass", () => {
+    expect(text(certEvent("certificate_added", { after: { lab: "v", report: "VGD-24109", result: "pass" } })))
+      .toBe("Alvester added certificate VGD-24109 to AP-1105 · Pass");
+  });
+  it("certificate_added shows Failed", () => {
+    expect(text(certEvent("certificate_added", { after: { lab: "v", report: "VGD-24110", result: "fail" } })))
+      .toBe("Alvester added certificate VGD-24110 to AP-1105 · Failed");
+  });
+  it("certificate_edited names the report", () => {
+    expect(text(certEvent("certificate_edited", { after: { report: "VGD-24109" } })))
+      .toBe("Alvester edited certificate VGD-24109 on AP-1105");
+  });
+  it("certificate_deleted names the report", () => {
+    expect(text(certEvent("certificate_deleted", { before: { report: "VGD-24109" } })))
+      .toBe("Alvester deleted certificate VGD-24109 from AP-1105");
+  });
+  it("certificate_corrected shows the correction note", () => {
+    expect(text(certEvent("certificate_corrected", { before: { correction: null }, after: { correction: "Report number was mistyped." } })))
+      .toBe('Alvester added a correction to certificate on AP-1105 : "Report number was mistyped."');
+  });
+});

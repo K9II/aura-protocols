@@ -88,6 +88,25 @@ describe("Admin → Wholesale pages", () => {
     expect((container.querySelector("input[name=cost]") as HTMLInputElement).value).toBe("1140");
   });
 
+  it("run page: an ordered line's lot shows certificates ✓ only when both are passing, matching Link lot's wording", async () => {
+    m.runOrders.mockResolvedValue([order()]);
+    m.runLines.mockResolvedValue([line()]);
+    m.lotById.mockResolvedValue({ lot_number: "BPC-2611A", coa_path: "x.pdf", held: 0, purity_ok: true, endotoxin_ok: true });
+    const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
+    expect(container.textContent).toMatch(/certificates ✓/);
+    expect(container.textContent).not.toMatch(/COA ✓/);
+  });
+
+  it("run page: an ordered line's lot with a passing purity but no passing endotoxin says certificates not complete", async () => {
+    m.runOrders.mockResolvedValue([order()]);
+    m.runLines.mockResolvedValue([line()]);
+    m.lotById.mockResolvedValue({ lot_number: "BPC-2611A", coa_path: "x.pdf", held: 0, purity_ok: true, endotoxin_ok: false });
+    const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
+    expect(container.textContent).toMatch(/certificates not complete/);
+  });
+
   it("run page: the Assistant sees everything and no controls", async () => {
     m.requirePermission.mockResolvedValue(assistantStaff());
     m.runOrders.mockResolvedValue([order()]);

@@ -164,7 +164,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                       return (
                         <div key={l.id} className="a-plot">
                           <div className="top"><b className="a-mono">{l.lot_number}</b>{l.status === "draft" && disc && <span className="a-chip c-disc">Discrepancy</span>}<span className={`a-chip ${cls}`}>{label}</span></div>
-                          <div className="meta">{l.status === "draft" ? `Ordered ${l.ordered_qty} · counted ${l.counted_qty} · damaged ${l.damaged_qty} · ${l.sellable} sellable` : `${l.purity_pct ?? "—"}% · ${l.method} · ${l.held} held · ${l.sold} sold · ${l.available} left`}</div>
+                          <div className="meta">{l.status === "draft" ? `Ordered ${l.ordered_qty} · counted ${l.counted_qty} · damaged ${l.damaged_qty} · ${l.sellable} sellable` : `${l.purity_pct ?? "—"}% · ${l.method ?? "—"} · ${l.held} held · ${l.sold} sold · ${l.available} left`}</div>
                           {l.status === "draft" && can(staff, "lots.put_live") && (() => {
                             const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
                             return <>

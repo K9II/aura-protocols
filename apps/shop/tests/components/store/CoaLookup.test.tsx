@@ -43,7 +43,7 @@ describe("CoaLookup", () => {
     render(<CoaLookup lots={lots} certs={certs} />);
     lookUp("AP-1101");
     expect(screen.getByText("Lot AP-1101 · Sold out")).toBeInTheDocument();
-    expect(screen.getByText(/certificate file is being uploaded/i)).toBeInTheDocument();
+    expect(screen.getByText("No certificate is published for this lot yet.")).toBeInTheDocument();
   });
 
   it("reports an unknown lot", () => {

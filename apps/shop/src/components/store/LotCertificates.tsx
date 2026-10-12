@@ -47,7 +47,7 @@ export default function LotCertificates({ certs }: { certs: PublicCert[] }) {
                 <tbody>
                   {rows.map((c) => (
                     <tr key={c.id}>
-                      <td>{c.labName}</td>
+                      <td>{c.labName}{c.failed && <> · <span className="s-cert-failed">Failed</span></>}</td>
                       <td>{c.reportNumber}</td>
                       <td>{monthDay(c.testedOn)}</td>
                       <td className={c.purityPct == null ? "s-nt" : undefined}>{c.purityPct != null ? `${c.purityPct}% · ${c.method}` : "—"}</td>
@@ -72,6 +72,9 @@ export default function LotCertificates({ certs }: { certs: PublicCert[] }) {
             <p className="s-micro" style={{ color: "var(--ink-soft)", marginTop: 10 }}>
               ✓ Pass{anyFailed ? " · ✕ Fail" : ""} · — Not tested{isoLabs.map((l) => ` · ${l}: tested by an ISO/IEC 17025-accredited US lab`).join("")} · <Link href="/coa">All certificates →</Link>
             </p>
+            {rows.filter((c) => c.failed && c.note).map((c) => (
+              <p key={c.id} className="s-micro" style={{ color: "var(--specimen)", marginTop: 4 }}>Failed · {c.reportNumber}: {c.note}</p>
+            ))}
           </div>
         );
       })}

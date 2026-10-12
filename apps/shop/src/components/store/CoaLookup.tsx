@@ -53,7 +53,7 @@ export default function CoaLookup({ lots, certs }: { lots: LotHit[]; certs: Publ
             {hitCerts.length ? (
               <div className="s-certs">{hitCerts.map((c) => <CertCard key={c.id} cert={c} showName={false} head={cardHead(c)} />)}</div>
             ) : (
-              <p className="mt-4 text-sm text-[color:var(--specimen)]">The certificate file is being uploaded — check back shortly.</p>
+              <p className="mt-4 text-sm text-[color:var(--specimen)]">No certificate is published for this lot yet.</p>
             )}
           </div>
         ) : (
