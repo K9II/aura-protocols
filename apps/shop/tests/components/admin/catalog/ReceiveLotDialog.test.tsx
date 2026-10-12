@@ -8,8 +8,10 @@ import ReceiveLotDialog from "@/components/admin/catalog/ReceiveLotDialog";
 HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
 HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
 
+const labs = [{ id: "v", name: "Vanguard Laboratory", city: "Olympia, WA", verify_url_template: "https://verifiedbyvanguard.com/verify/{report}" }];
+
 describe("ReceiveLotDialog", () => {
-  const open = () => { render(<ReceiveLotDialog slug="bpc-157" variantId="10mg" title="BPC-157 10 mg" />); fireEvent.click(screen.getByRole("button", { name: /Receive a lot/ })); };
+  const open = () => { render(<ReceiveLotDialog slug="bpc-157" variantId="10mg" title="BPC-157 10 mg" labs={labs} strength="10 mg" />); fireEvent.click(screen.getByRole("button", { name: /Receive a lot/ })); };
 
   it("shows Discrepancy and requires a note when counts differ, with the sellable sum", () => {
     open();
@@ -21,21 +23,21 @@ describe("ReceiveLotDialog", () => {
     expect(screen.getByText("194")).toBeInTheDocument();
   });
 
-  it("Save and put live is disabled until a certificate is attached", () => {
+  it("Save and put live is disabled until the first certificate is complete", () => {
     open();
     expect(screen.getByRole("button", { name: "Save and put live" })).toBeDisabled();
   });
 
-  it("warns below the site's purity claim", () => {
+  it("offers an optional First certificate block with the given labs", () => {
     open();
-    fireEvent.change(screen.getByLabelText(/Purity/), { target: { value: "98.5" } });
-    expect(screen.getByText("Below the 99% shown on the site.")).toBeInTheDocument();
+    expect(screen.getByText(/First certificate/)).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /Vanguard Laboratory/ })).toBeInTheDocument();
   });
 
   it("scopes field ids so two dialogs on one page don't collide", () => {
     render(<>
-      <ReceiveLotDialog slug="bpc-157" variantId="10mg" title="BPC-157 10 mg" />
-      <ReceiveLotDialog slug="bpc-157" variantId="20mg" title="BPC-157 20 mg" />
+      <ReceiveLotDialog slug="bpc-157" variantId="10mg" title="BPC-157 10 mg" labs={labs} strength="10 mg" />
+      <ReceiveLotDialog slug="bpc-157" variantId="20mg" title="BPC-157 20 mg" labs={labs} strength="20 mg" />
     </>);
     const [open10, open20] = screen.getAllByRole("button", { name: /Receive a lot/ });
     fireEvent.click(open10);
@@ -46,5 +48,13 @@ describe("ReceiveLotDialog", () => {
     fireEvent.change(lotInputs[1], { target: { value: "BBB-2" } });
     expect(lotInputs[0]).toHaveValue("AAA-1");
     expect(lotInputs[1]).toHaveValue("BBB-2");
+  });
+
+  it("editing a draft shows no certificate fields — they're edited on the lot's own rows", () => {
+    render(<ReceiveLotDialog slug="bpc-157" variantId="10mg" title="BPC-157 10 mg" labs={labs} strength="10 mg"
+      draft={{ id: "a", lotNumber: "AP-1", ordered: "200", counted: "200", damaged: "0", note: "", supplier: "", cost: "", testCost: "", freight: "", labels: "" }} />);
+    fireEvent.click(screen.getByRole("button", { name: /Edit/ }));
+    expect(screen.getByText(/Certificates are edited on the lot's certificate rows\./)).toBeInTheDocument();
+    expect(screen.queryByText(/First certificate/)).not.toBeInTheDocument();
   });
 });

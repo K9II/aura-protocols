@@ -6,8 +6,9 @@ import { catalogContent } from "@/data/catalog";
 import { catalogEvents, fetchAdminOps, lotCosts, lotDefaults, variantHistory, type LotCost, type LotDefaults } from "@/lib/catalog-ops/data";
 import { supplierPricesFor } from "@/lib/wholesale/runs-data";
 import { adminRows, byLiveThenNumber, isDiscrepancy, liveRefusal, type AdminLotRow } from "@/lib/catalog-ops/rules";
+import { adminCertificates, coaSettings, listLabs } from "@/lib/coa/data";
+import type { CertRow } from "@/lib/coa/visibility";
 import { Crumbs, Icon } from "@/components/admin/ui";
-import { coaPublicUrl } from "@/lib/catalog-live";
 import { usd } from "@/lib/html";
 import { putLiveAction, restoreStrengthAction, setStrengthShownAction } from "@/app/admin/catalog/actions";
 import ReceiveLotDialog from "@/components/admin/catalog/ReceiveLotDialog";
@@ -15,6 +16,8 @@ import CorrectCountDialog from "@/components/admin/catalog/CorrectCountDialog";
 import InlineField from "@/components/admin/catalog/InlineField";
 import ShownSwitch from "@/components/admin/catalog/ShownSwitch";
 import LotActions from "@/components/admin/catalog/LotActions";
+import CertificateDialog from "@/components/admin/catalog/CertificateDialog";
+import CertList from "@/components/admin/catalog/CertList";
 import { catalogEventLine as eventLine } from "@/components/admin/catalog/eventLine";
 import StrengthMenu from "@/components/admin/catalog/StrengthMenu";
 import AddStrengthDialog from "@/components/admin/catalog/AddStrengthDialog";
@@ -36,7 +39,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const c = catalogContent.find((x) => x.slug === slug);
   if (!c) notFound();
-  const [ops, events, history] = await Promise.all([fetchAdminOps(slug), catalogEvents(slug), variantHistory(slug)]);
+  const [ops, events, history, certs, labs, settings] = await Promise.all([
+    fetchAdminOps(slug), catalogEvents(slug), variantHistory(slug), adminCertificates(slug), listLabs(), coaSettings(),
+  ]);
+  const labOptions = labs.filter((l) => l.active);
+  const certsByLot = new Map<string, CertRow[]>();
+  for (const cert of certs) {
+    const list = certsByLot.get(cert.lot_id);
+    if (list) list.push(cert); else certsByLot.set(cert.lot_id, [cert]);
+  }
   // Receive lot's pre-fills (supplier box prices, lab fee) and each lot's
   // recorded cost. A failed read leaves the fields for the owner to type.
   let prices: Record<string, Record<string, number>> = {}, defaults: LotDefaults | undefined, costs = new Map<string, LotCost>();
@@ -83,10 +94,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             const lotRow = (l: AdminLotRow, i: number, kind: "live" | "draft" | "old") => {
               const [cls, label] = status(l);
               const disc = isDiscrepancy(l.ordered_qty, l.counted_qty, l.damaged_qty);
+              const lotCerts = certsByLot.get(l.id) ?? [];
+              const lotTitle = `${c.name} ${r.strength} · lot ${l.lot_number}`;
               return [
                 <tr key={l.id} className={kind === "old" ? "a-old" : undefined}>
-                  <td className="a-lotref">{l.lot_number}<small>{l.purity_pct}% · {l.method} · tested {day(l.tested_on)}</small>
-                    {l.coa_path && <a className="a-coa" href={coaPublicUrl(l.coa_path)} target="_blank" rel="noopener noreferrer"><Icon name="download" />Certificate</a>}</td>
+                  <td className="a-lotref">{l.lot_number}<small>{lotCerts.length} certificate{lotCerts.length === 1 ? "" : "s"}{l.purity_pct != null ? ` · ${l.purity_pct}% · ${l.method}` : ""}</small></td>
                   <td><span className={`a-chip ${cls}`}>{label}</span>
                     {kind === "live" && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{i === 0 ? "selling now" : "next in line"}</div>}
                     {kind === "draft" && disc && <div style={{ marginTop: 4 }}><span className="a-chip c-disc">Discrepancy</span></div>}</td>
@@ -94,17 +106,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     <small>{l.received_by_name ? `${l.received_by_name} · ` : ""}{day(l.received_at)}{l.adjust_qty ? ` · corrected ${l.adjust_qty > 0 ? "+" : ""}${l.adjust_qty}` : ""}</small></td>
                   <td><div className="a-cnt"><span><small>Held</small>{l.held}</span><span><small>Sold</small>{l.sold}</span><span><small>Left</small>{l.available}</span></div></td>
                   <td><div className="a-acts">
+                    {(kind === "live" || kind === "draft") && can(staff, "lots.receive") && <CertificateDialog lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} />}
                     {kind === "live" && <>{can(staff, "stock.correct") && <CorrectCountDialog lotId={l.id} lotNumber={l.lot_number} left={l.available} held={l.held} sold={l.sold} canWithdraw={can(staff, "stock.owner_withdrawal")} />}{can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={live.length === 1} canPutLive={can(staff, "lots.put_live")} />}</>}
                     {/* Sold-out (available 0) is still a live lot — it can still be retired. Retired lots get no menu. */}
                     {kind === "old" && l.status === "live" && can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={false} canPutLive={can(staff, "lots.put_live")} />}
                     {kind === "draft" && (() => {
-                      const refusal = liveRefusal({ status: l.status, coaPath: l.coa_path, sellable: l.sellable });
+                      const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
                       return <>
                         {can(staff, "lots.put_live") && <div>
                           <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn sm primary" disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
                           {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}
                         </div>}
-                        {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, purity: String(l.purity_pct), method: l.method, testedOn: l.tested_on, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", coaPath: l.coa_path ?? "", supplier: costs.get(l.id)?.supplier ?? "", cost: dollars(costs.get(l.id)?.cost_cents), testCost: dollars(costs.get(l.id)?.test_cents), freight: dollars(costs.get(l.id)?.freight_cents), labels: dollars(costs.get(l.id)?.label_cents) }} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} />}
+                        {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", supplier: costs.get(l.id)?.supplier ?? "", cost: dollars(costs.get(l.id)?.cost_cents), testCost: dollars(costs.get(l.id)?.test_cents), freight: dollars(costs.get(l.id)?.freight_cents), labels: dollars(costs.get(l.id)?.label_cents) }} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} labs={labOptions} strength={r.strength} />}
                       </>;
                     })()}
                   </div></td>
@@ -112,6 +125,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 kind !== "old" && disc && l.discrepancy_note ? (
                   <tr key={`${l.id}-note`} className="a-noterow"><td colSpan={5}><div className="a-note"><Icon name="warn" /><span><b>Discrepancy · </b>{l.discrepancy_note}</span></div></td></tr>
                 ) : null,
+                <CertList key={`${l.id}-certs`} certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} />,
               ];
             };
             const [sc, sl] = !r.strengthShown ? ["c-hidden", "Hidden"] : r.stock === "in" ? ["c-in", "In stock"] : r.stock === "low" ? ["c-low", "Low"] : ["c-out", "Out of stock"];
@@ -128,7 +142,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   </div>
                   <div className="r">
                     {!r.strengthShown && can(staff, "catalog.edit") && <form action={setStrengthShownAction}><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={r.variantId} /><input type="hidden" name="shown" value="true" /><button type="submit" className="a-btn sm">Show on store</button></form>}
-                    {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} />}
+                    {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} labs={labOptions} strength={r.strength} />}
                     {can(staff, "catalog.edit") && <StrengthMenu slug={slug} variantId={r.variantId} strength={r.strength} shown={r.strengthShown} wholesale={r.wholesale} canDelete={h.lots === 0 && h.orders === 0} />}
                   </div>
                 </div>
@@ -150,9 +164,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                       return (
                         <div key={l.id} className="a-plot">
                           <div className="top"><b className="a-mono">{l.lot_number}</b>{l.status === "draft" && disc && <span className="a-chip c-disc">Discrepancy</span>}<span className={`a-chip ${cls}`}>{label}</span></div>
-                          <div className="meta">{l.status === "draft" ? `Ordered ${l.ordered_qty} · counted ${l.counted_qty} · damaged ${l.damaged_qty} · ${l.sellable} sellable` : `${l.purity_pct}% · ${l.method} · ${l.held} held · ${l.sold} sold · ${l.available} left`}</div>
+                          <div className="meta">{l.status === "draft" ? `Ordered ${l.ordered_qty} · counted ${l.counted_qty} · damaged ${l.damaged_qty} · ${l.sellable} sellable` : `${l.purity_pct ?? "—"}% · ${l.method} · ${l.held} held · ${l.sold} sold · ${l.available} left`}</div>
                           {l.status === "draft" && can(staff, "lots.put_live") && (() => {
-                            const refusal = liveRefusal({ status: l.status, coaPath: l.coa_path, sellable: l.sellable });
+                            const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
                             return <>
                               <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn primary" style={{ width: "100%", justifyContent: "center", height: 34, marginTop: 8 }} disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
                               {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}
