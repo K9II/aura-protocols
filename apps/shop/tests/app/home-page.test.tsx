@@ -15,11 +15,11 @@ const renderHome = async () => render(await HomePage());
 describe("/ (home)", () => {
   beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [] }); });
 
-  it("leads with Separated. Measured. Published. and the independent third-party US lab line", async () => {
+  it("leads with the 1906 receipt headline and the independent third-party US lab line", async () => {
     await renderHome();
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Separated. Measured.Published.");
-    expect(screen.getByText(/separated and measured by an independent third-party US lab before it goes on sale/i)).toBeInTheDocument();
-    expect(screen.getByText(/published under the lot number printed on your vial/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("1906 gave us the test.We added the receipt.");
+    expect(screen.getByText(/separated and measured by an independent third-party US lab before it goes out for research/i)).toBeInTheDocument();
+    expect(screen.getByText(/published under the lot number on your vial/i)).toBeInTheDocument();
   });
 
   it("links the lineup heading to the full inventory", async () => {
