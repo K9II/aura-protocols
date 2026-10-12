@@ -1,6 +1,6 @@
 // src/lib/coa/read.ts — reads a certificate PDF with Claude (spec 2026-10-12-coa-autofill-design.md).
 // Server only. Never throws: the form falls back to typing by hand. A missing
-// or rejected key alerts the owner (stable title — the dedupe key).
+// or rejected key, or an account out of credit, alerts the owner (stable title — the dedupe key).
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { alertOwner } from "@/lib/notify";
@@ -8,6 +8,7 @@ import { parseReading, READING_JSON_SCHEMA, type Reading } from "@/lib/coa/readi
 
 export const COA_READER_MODEL = "claude-opus-5";   // accuracy first; the owner may pick a cheaper model later
 const ALERT = "Certificate reader unavailable";
+const OUT_OF_CREDIT = /credit|billing|spend limit|usage limit/i;
 
 const PROMPT = `This PDF is a laboratory certificate of analysis for a research peptide vial.
 Fill the JSON fields with what is printed on it. Use null for anything not printed — never guess.
@@ -57,6 +58,9 @@ export async function readCertificate(pdf: Uint8Array, lotNumber: string, today:
   } catch (err) {
     if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError) {
       await alertOwner(ALERT, `${lotNumber} · the Anthropic API rejected the key (${(err as { status?: number }).status}). Fill certificates in by hand until it's fixed.`);
+    } else if ((err instanceof Anthropic.BadRequestError || err instanceof Anthropic.RateLimitError) && OUT_OF_CREDIT.test(err.message)) {
+      // Unlike a plain rate limit this won't clear on its own.
+      await alertOwner(ALERT, `${lotNumber} · the Anthropic account is out of credit or over its spend limit (${err.status}). Fill certificates in by hand until it's topped up or the limit is raised.`);
     } else {
       console.error(`certificate read ${lotNumber} failed:`, err);
     }

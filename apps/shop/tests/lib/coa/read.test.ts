@@ -4,12 +4,13 @@ const create = vi.fn();
 class APIError extends Error { status: number; constructor(status: number, m = "err") { super(m); this.status = status; } }
 class AuthenticationError extends APIError { constructor() { super(401, "invalid x-api-key"); } }
 class PermissionDeniedError extends APIError { constructor() { super(403, "forbidden"); } }
-class RateLimitError extends APIError { constructor() { super(429, "slow down"); } }
+class RateLimitError extends APIError { constructor(m = "slow down") { super(429, m); } }
+class BadRequestError extends APIError { constructor(m = "bad request") { super(400, m); } }
 vi.mock("@anthropic-ai/sdk", () => {
   // Arrow functions are never constructible (ES2015 semantics) — `new Anthropic()`
   // in the module under test needs a real function here, not the plan's arrow form.
   const Anthropic = vi.fn(function AnthropicMock() { return { beta: { messages: { create } } }; });
-  Object.assign(Anthropic, { APIError, AuthenticationError, PermissionDeniedError, RateLimitError });
+  Object.assign(Anthropic, { APIError, AuthenticationError, PermissionDeniedError, RateLimitError, BadRequestError });
   return { default: Anthropic };
 });
 const alertOwner = vi.fn();
@@ -92,6 +93,23 @@ describe("readCertificate", () => {
     create.mockRejectedValueOnce(new Error("socket hang up"));
     await readCertificate(PDF, "AP-1105", "2026-10-12");
     await readCertificate(PDF, "AP-1105", "2026-10-12");
+    expect(alertOwner).not.toHaveBeenCalled();
+  });
+
+  it("out of credit / over the spend limit (400 or 429) → alert; other bad requests → no alert", async () => {
+    const { readCertificate } = await import("@/lib/coa/read");
+    create.mockRejectedValueOnce(new BadRequestError("Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."));
+    await readCertificate(PDF, "AP-1105", "2026-10-12");
+    create.mockRejectedValueOnce(new RateLimitError("You have reached your specified API usage limits."));
+    await readCertificate(PDF, "AP-1106", "2026-10-12");
+    create.mockRejectedValueOnce(new BadRequestError("Workspace Spend Limit reached"));
+    await readCertificate(PDF, "AP-1107", "2026-10-12");
+    expect(alertOwner).toHaveBeenCalledTimes(3);
+    expect(alertOwner).toHaveBeenNthCalledWith(1, "Certificate reader unavailable", expect.stringMatching(/^AP-1105 · .*out of credit or over its spend limit/));
+    expect(alertOwner.mock.calls[1][1]).toMatch(/^AP-1106 · /);
+    alertOwner.mockReset();
+    create.mockRejectedValueOnce(new BadRequestError("messages: text content blocks must be non-empty"));
+    expect(await readCertificate(PDF, "AP-1105", "2026-10-12")).toEqual({ ok: false });
     expect(alertOwner).not.toHaveBeenCalled();
   });
 });
