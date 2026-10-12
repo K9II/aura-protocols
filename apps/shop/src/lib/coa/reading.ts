@@ -1,8 +1,7 @@
 // src/lib/coa/reading.ts — pure rules for the certificate reader (spec 2026-10-12-coa-autofill-design.md). No I/O.
 // The reader (lib/coa/read.ts) returns a Reading; the form merges it into its
 // draft here. The owner's typed values always win; Result is never touched.
-import { z } from "zod";
-import { METHODS, NOT_RECORDED_LAB, PURITY_MIN, TEST_KEYS, type TestKey, type TestResult } from "@/lib/coa/rules";
+import { METHODS, NOT_RECORDED_LAB, TEST_KEYS, type TestKey, type TestResult } from "@/lib/coa/rules";
 
 // The certificate form's draft (shared by CertificateFields, Receive a lot, Add/Edit certificate).
 export type CertDraft = {
@@ -14,70 +13,16 @@ export const EMPTY_CERT: CertDraft = {
   tests: { identity: "not_tested", endotoxin: "not_tested", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested" },
 };
 
-const TEXT_MAX = 60;   // report number cap (rules.ts REPORT_RE allows 60)
-const CODE_MAX = 80;   // verify code cap (parseCertificate)
-const NAME_MAX = 120;
-
-const testVal = z.enum(["pass", "fail", "not_tested"]).nullable();
-const ReadingSchema = z.object({
-  lab_name: z.string().nullable(), lab_city: z.string().nullable(),
-  report_number: z.string().nullable(), verify_code: z.string().nullable(),
-  tested_on: z.string().nullable(), purity_pct: z.number().nullable(), method: z.string().nullable(), measured_mg: z.number().nullable(),
-  identity: testVal, endotoxin: testVal, sterility: testVal, heavy_metals: testVal, fentanyl: testVal,
-  product_name: z.string().nullable(), strength_label: z.string().nullable(), batch: z.string().nullable(),
-});
-export type Reading = Omit<z.infer<typeof ReadingSchema>, "method"> & { method: (typeof METHODS)[number] | null };
-
-// JSON schema sent to the model as output_config.format (structured outputs:
-// every property required, no extra properties, nullable via anyOf — some
-// providers reject an array `type`, so every nullable property is a
-// two-branch anyOf instead of `type: [x, "null"]`).
-const S = { anyOf: [{ type: "string" }, { type: "null" }] } as const;
-const N = { anyOf: [{ type: "number" }, { type: "null" }] } as const;
-const METHOD_PROP = { anyOf: [{ type: "string", enum: [...METHODS] }, { type: "null" }] } as const;
-const T = { anyOf: [{ type: "string", enum: ["pass", "fail", "not_tested"] }, { type: "null" }] } as const;
-export const READING_JSON_SCHEMA = {
-  type: "object",
-  additionalProperties: false,
-  required: Object.keys(ReadingSchema.shape),
-  properties: {
-    lab_name: S, lab_city: S, report_number: S, verify_code: S,
-    tested_on: { ...S, description: "YYYY-MM-DD" }, purity_pct: N,
-    method: METHOD_PROP, measured_mg: N,
-    identity: T, endotoxin: T, sterility: T, heavy_metals: T, fentanyl: T,
-    product_name: S, strength_label: S, batch: S,
-  },
-} as const;
-
-const clean = (s: string | null, max: number, min = 1): string | null => {
-  const t = s?.trim() ?? "";
-  return t && t.length >= min && t.length <= max ? t : null;
+// What the reader returns (lib/coa/read.ts; validated by lib/coa/reading-schema.ts,
+// kept out of this file so the form's bundle never pulls in zod).
+type TestVal = "pass" | "fail" | "not_tested" | null;
+export type Reading = {
+  lab_name: string | null; lab_city: string | null;
+  report_number: string | null; verify_code: string | null;
+  tested_on: string | null; purity_pct: number | null; method: (typeof METHODS)[number] | null; measured_mg: number | null;
+  identity: TestVal; endotoxin: TestVal; sterility: TestVal; heavy_metals: TestVal; fentanyl: TestVal;
+  product_name: string | null; strength_label: string | null; batch: string | null;
 };
-const realDate = (s: string | null, today: string): string | null => {
-  if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
-  const d = new Date(`${s}T00:00:00Z`);
-  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== s) return null;
-  return s > today ? null : s;
-};
-
-// Validates the model's JSON and drops what the form could never save.
-export function parseReading(raw: unknown, today: string): Reading | null {
-  const p = ReadingSchema.safeParse(raw);
-  if (!p.success) return null;
-  const r = p.data;
-  const code = clean(r.verify_code, CODE_MAX);
-  return {
-    lab_name: clean(r.lab_name, NAME_MAX), lab_city: clean(r.lab_city, NAME_MAX),
-    report_number: clean(r.report_number, TEXT_MAX, 2),
-    verify_code: code && !/\s/.test(code) && code.length >= 2 ? code : null,
-    tested_on: realDate(r.tested_on, today),
-    purity_pct: r.purity_pct !== null && r.purity_pct >= PURITY_MIN && r.purity_pct <= 100 ? r.purity_pct : null,
-    method: METHODS.find((m) => m === r.method) ?? null,
-    measured_mg: r.measured_mg !== null && r.measured_mg > 0 && r.measured_mg <= 100000 ? r.measured_mg : null,
-    identity: r.identity, endotoxin: r.endotoxin, sterility: r.sterility, heavy_metals: r.heavy_metals, fentanyl: r.fentanyl,
-    product_name: clean(r.product_name, NAME_MAX), strength_label: clean(r.strength_label, NAME_MAX), batch: clean(r.batch, NAME_MAX),
-  };
-}
 
 const LAB_NOISE = new Set(["lab", "labs", "laboratory", "laboratories", "inc", "llc", "ltd", "co", "corp", "the", "testing", "services"]);
 const labKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ").filter((w) => w && !LAB_NOISE.has(w)).join(" ");

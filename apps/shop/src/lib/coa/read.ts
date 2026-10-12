@@ -5,7 +5,8 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { alertOwner } from "@/lib/notify";
 import { hasOpenAlert } from "@/lib/today/alerts";
-import { parseReading, READING_JSON_SCHEMA, type Reading } from "@/lib/coa/reading";
+import { parseReading, READING_JSON_SCHEMA } from "@/lib/coa/reading-schema";
+import type { Reading } from "@/lib/coa/reading";
 
 export const COA_READER_MODEL = "claude-opus-5";   // accuracy first; the owner may pick a cheaper model later
 const ALERT = "Certificate reader unavailable";
