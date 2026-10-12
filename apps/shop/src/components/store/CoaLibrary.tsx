@@ -29,10 +29,10 @@ export default function CoaLibrary({ certs }: { certs: PublicCert[] }) {
           <select value={lab} onChange={(e) => { setLab(e.target.value); setShown(LIBRARY_PAGE); }}><option value="">All labs</option>{labs.map((l) => <option key={l} value={l}>{l}</option>)}</select></label>
         <div className="s-coa-tests"><span className="s-micro" id="coa-test-l">Test</span>
           <nav className="s-pills" aria-labelledby="coa-test-l">
-            <button type="button" aria-current={test === "any" ? "page" : undefined} onClick={() => setTest("any")}>Any</button>
+            <button type="button" aria-current={test === "any" ? "page" : undefined} onClick={() => { setTest("any"); setShown(LIBRARY_PAGE); }}>Any</button>
             {TEST_FILTERS.map(([k, label]) => <button key={k} type="button" aria-current={test === k ? "page" : undefined} onClick={() => { setTest(k); setShown(LIBRARY_PAGE); }}>{label}<span>{count(k)}</span></button>)}
           </nav></div>
-        <label className="s-coa-ship"><input type="checkbox" checked={shipping} onChange={(e) => setShipping(e.target.checked)} /> <span>Currently shipping only</span></label>
+        <label className="s-coa-ship"><input type="checkbox" checked={shipping} onChange={(e) => { setShipping(e.target.checked); setShown(LIBRARY_PAGE); }} /> <span>Currently shipping only</span></label>
       </div>
       {hits.length ? <div className="s-certs">{hits.slice(0, shown).map((c) => <CertCard key={c.id} cert={c} />)}</div>
         : <p>No certificates match. <button type="button" className="s-cert-link" onClick={clear}>Clear the filters.</button></p>}

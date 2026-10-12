@@ -61,4 +61,22 @@ describe("CoaLibrary", () => {
     fireEvent.click(screen.getByRole("button", { name: /show 12 more/i }));
     expect(screen.getAllByRole("article")).toHaveLength(24);
   });
+
+  it("Currently shipping only returns to the first page after Show 12 more", () => {
+    const many: PublicCert[] = Array.from({ length: 24 }, (_, i) => cert({ id: `m${i}`, lot: `AP-${100 + i}` }));
+    render(<CoaLibrary certs={many} />);
+    fireEvent.click(screen.getByRole("button", { name: /show 12 more/i }));
+    expect(screen.getAllByRole("article")).toHaveLength(24);
+    fireEvent.click(screen.getByLabelText(/currently shipping only/i));
+    expect(screen.getAllByRole("article")).toHaveLength(12);
+  });
+
+  it("the Any pill returns to the first page after Show 12 more", () => {
+    const many: PublicCert[] = Array.from({ length: 24 }, (_, i) => cert({ id: `m${i}`, lot: `AP-${100 + i}` }));
+    render(<CoaLibrary certs={many} />);
+    fireEvent.click(screen.getByRole("button", { name: /show 12 more/i }));
+    expect(screen.getAllByRole("article")).toHaveLength(24);
+    fireEvent.click(screen.getByRole("button", { name: "Any" }));
+    expect(screen.getAllByRole("article")).toHaveLength(12);
+  });
 });
