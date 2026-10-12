@@ -613,7 +613,7 @@
 .adm .a-lots tr:has(+ tr.a-noterow) td { border-bottom: 0; }
 .adm .a-note { font-size: 12px; color: #4B3810; background: var(--ochre-bg); border: 1px solid #DEC98F; padding: 4px 8px; display: flex; gap: 6px; align-items: flex-start; }
 .adm .a-note b { font-weight: 600; }
-.adm .a-acts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: nowrap; }
+.adm .a-acts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
 .adm .a-lots tr.a-old td, .adm .a-t tr.a-old td { color: var(--muted); }
 .adm .a-lots tr.a-sub td { background: var(--surface-2); height: 30px; padding: 0 12px; vertical-align: middle; font: 500 9.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .adm .a-fifo { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 8px 16px; border-top: 1px solid var(--line); background: var(--surface-2); }
@@ -675,6 +675,9 @@
   .adm .a-plot .top { display: flex; align-items: center; gap: 6px; }
   .adm .a-plot .top .a-chip:first-of-type { margin-left: auto; }
   .adm .a-plot .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  /* Compact certificate list on a phone lot card (mock a1 content, ported to the card layout). */
+  .adm .a-plot .a-certs { margin: 8px 0 0; }
+  .adm .a-plot .a-certs li { padding: 6px 8px; }
 }
 
 /* Visual audit fixes (2026-10-05 live check) */
@@ -1490,12 +1493,17 @@
 @media (max-width: 860px) { .adm .a-km-order-grid { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- Certificates (mocks a1/a2, 2026-10-11) ---------- */
+/* A certificate/correction success message, full width under the lot row
+   instead of squeezed into the actions cell (LotRowMessages). */
+.adm .a-msgrow td { padding-top: 0 !important; padding-bottom: 10px; background: var(--surface-2); }
+.adm .a-msgrow .a-ok { display: block; }
+.adm div.a-msgrow { margin-top: 8px; }
 .adm .a-certrow td { padding-top: 0 !important; background: var(--surface-2); }
 .adm .a-certs { list-style: none; margin: 0; padding: 6px 0 4px; display: grid; gap: 4px; }
 .adm .a-certs li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12.5px; padding: 6px 10px; border: 1px solid var(--line); background: var(--surface); }
 .adm .a-certs li.fail { border-color: #E3B9B1; }
 .adm .a-certs li b { font-weight: 600; }
-.adm .a-certs .lk { margin-left: auto; display: inline-flex; gap: 12px; align-items: center; }
+.adm .a-certs .lk { margin-left: auto; display: inline-flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
 .adm .a-certs .lk .a-coa { margin-top: 0; }
 .adm .a-tests { display: inline-flex; gap: 6px; }
 .adm .a-tests i { font-style: normal; font-size: 11.5px; padding: 0 6px; border: 1px solid var(--line); color: var(--muted); }
@@ -1504,6 +1512,7 @@
 .adm .a-certnote { flex-basis: 100%; font-size: 12px; color: #4B3810; }
 .adm .a-testgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin-top: 8px; }
 .adm .a-testgrid > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.adm .a-testgrid .a-seg2 button { white-space: nowrap; }
 .adm .a-verify { font-size: 12.5px; padding: 8px 10px; border: 1px solid var(--line); background: var(--surface-2); }
 .adm .a-verify a { color: var(--ink); }
 @media (max-width: 640px) { .adm .a-testgrid { grid-template-columns: 1fr; } }

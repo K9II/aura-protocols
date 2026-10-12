@@ -17,7 +17,8 @@ import InlineField from "@/components/admin/catalog/InlineField";
 import ShownSwitch from "@/components/admin/catalog/ShownSwitch";
 import LotActions from "@/components/admin/catalog/LotActions";
 import CertificateDialog from "@/components/admin/catalog/CertificateDialog";
-import CertList from "@/components/admin/catalog/CertList";
+import CertList, { CertListItems } from "@/components/admin/catalog/CertList";
+import LotRowMessages from "@/components/admin/catalog/LotRowMessages";
 import { catalogEventLine as eventLine } from "@/components/admin/catalog/eventLine";
 import StrengthMenu from "@/components/admin/catalog/StrengthMenu";
 import AddStrengthDialog from "@/components/admin/catalog/AddStrengthDialog";
@@ -96,37 +97,42 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               const disc = isDiscrepancy(l.ordered_qty, l.counted_qty, l.damaged_qty);
               const lotCerts = certsByLot.get(l.id) ?? [];
               const lotTitle = `${c.name} ${r.strength} · lot ${l.lot_number}`;
-              return [
-                <tr key={l.id} className={kind === "old" ? "a-old" : undefined}>
-                  <td className="a-lotref">{l.lot_number}<small>{lotCerts.length} certificate{lotCerts.length === 1 ? "" : "s"}{l.purity_pct != null ? ` · ${l.purity_pct}% · ${l.method}` : ""}</small></td>
-                  <td><span className={`a-chip ${cls}`}>{label}</span>
-                    {kind === "live" && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{i === 0 ? "selling now" : "next in line"}</div>}
-                    {kind === "draft" && disc && <div style={{ marginTop: 4 }}><span className="a-chip c-disc">Discrepancy</span></div>}</td>
-                  <td className="a-rcv">Ordered <b>{l.ordered_qty}</b> · counted <b>{l.counted_qty}</b>{l.damaged_qty > 0 && <> · damaged <b>{l.damaged_qty}</b></>} · sellable <b>{l.sellable}</b>
-                    <small>{l.received_by_name ? `${l.received_by_name} · ` : ""}{day(l.received_at)}{l.adjust_qty ? ` · corrected ${l.adjust_qty > 0 ? "+" : ""}${l.adjust_qty}` : ""}</small></td>
-                  <td><div className="a-cnt"><span><small>Held</small>{l.held}</span><span><small>Sold</small>{l.sold}</span><span><small>Left</small>{l.available}</span></div></td>
-                  <td><div className="a-acts">
-                    {(kind === "live" || kind === "draft") && can(staff, "lots.receive") && <CertificateDialog lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} />}
-                    {kind === "live" && <>{can(staff, "stock.correct") && <CorrectCountDialog lotId={l.id} lotNumber={l.lot_number} left={l.available} held={l.held} sold={l.sold} canWithdraw={can(staff, "stock.owner_withdrawal")} />}{can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={live.length === 1} canPutLive={can(staff, "lots.put_live")} />}</>}
-                    {/* Sold-out (available 0) is still a live lot — it can still be retired. Retired lots get no menu. */}
-                    {kind === "old" && l.status === "live" && can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={false} canPutLive={can(staff, "lots.put_live")} />}
-                    {kind === "draft" && (() => {
-                      const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
-                      return <>
-                        {can(staff, "lots.put_live") && <div>
-                          <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn sm primary" disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
-                          {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}
-                        </div>}
-                        {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", supplier: costs.get(l.id)?.supplier ?? "", cost: dollars(costs.get(l.id)?.cost_cents), testCost: dollars(costs.get(l.id)?.test_cents), freight: dollars(costs.get(l.id)?.freight_cents), labels: dollars(costs.get(l.id)?.label_cents) }} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} labs={labOptions} strength={r.strength} />}
-                      </>;
-                    })()}
-                  </div></td>
-                </tr>,
-                kind !== "old" && disc && l.discrepancy_note ? (
-                  <tr key={`${l.id}-note`} className="a-noterow"><td colSpan={5}><div className="a-note"><Icon name="warn" /><span><b>Discrepancy · </b>{l.discrepancy_note}</span></div></td></tr>
-                ) : null,
-                <CertList key={`${l.id}-certs`} certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} />,
-              ];
+              // Wraps the row group (main row, discrepancy note, cert list) so every
+              // dialog nested anywhere inside shares one success-message line under
+              // the lot instead of each crowding its own trigger.
+              return (
+                <LotRowMessages key={l.id}>
+                  <tr className={kind === "old" ? "a-old" : undefined}>
+                    <td className="a-lotref">{l.lot_number}<small>{lotCerts.length} certificate{lotCerts.length === 1 ? "" : "s"}{l.purity_pct != null ? ` · ${l.purity_pct}% · ${l.method}` : ""}</small></td>
+                    <td><span className={`a-chip ${cls}`}>{label}</span>
+                      {kind === "live" && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{i === 0 ? "selling now" : "next in line"}</div>}
+                      {kind === "draft" && disc && <div style={{ marginTop: 4 }}><span className="a-chip c-disc">Discrepancy</span></div>}</td>
+                    <td className="a-rcv">Ordered <b>{l.ordered_qty}</b> · counted <b>{l.counted_qty}</b>{l.damaged_qty > 0 && <> · damaged <b>{l.damaged_qty}</b></>} · sellable <b>{l.sellable}</b>
+                      <small>{l.received_by_name ? `${l.received_by_name} · ` : ""}{day(l.received_at)}{l.adjust_qty ? ` · corrected ${l.adjust_qty > 0 ? "+" : ""}${l.adjust_qty}` : ""}</small></td>
+                    <td><div className="a-cnt"><span><small>Held</small>{l.held}</span><span><small>Sold</small>{l.sold}</span><span><small>Left</small>{l.available}</span></div></td>
+                    <td><div className="a-acts">
+                      {(kind === "live" || kind === "draft") && can(staff, "lots.receive") && <CertificateDialog lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} />}
+                      {kind === "live" && <>{can(staff, "stock.correct") && <CorrectCountDialog lotId={l.id} lotNumber={l.lot_number} left={l.available} held={l.held} sold={l.sold} canWithdraw={can(staff, "stock.owner_withdrawal")} />}{can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={live.length === 1} canPutLive={can(staff, "lots.put_live")} />}</>}
+                      {/* Sold-out (available 0) is still a live lot — it can still be retired. Retired lots get no menu. */}
+                      {kind === "old" && l.status === "live" && can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={false} canPutLive={can(staff, "lots.put_live")} />}
+                      {kind === "draft" && (() => {
+                        const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
+                        return <>
+                          {can(staff, "lots.put_live") && <div>
+                            <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn sm primary" disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
+                            {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}
+                          </div>}
+                          {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", supplier: costs.get(l.id)?.supplier ?? "", cost: dollars(costs.get(l.id)?.cost_cents), testCost: dollars(costs.get(l.id)?.test_cents), freight: dollars(costs.get(l.id)?.freight_cents), labels: dollars(costs.get(l.id)?.label_cents) }} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} labs={labOptions} strength={r.strength} />}
+                        </>;
+                      })()}
+                    </div></td>
+                  </tr>
+                  {kind !== "old" && disc && l.discrepancy_note ? (
+                    <tr className="a-noterow"><td colSpan={5}><div className="a-note"><Icon name="warn" /><span><b>Discrepancy · </b>{l.discrepancy_note}</span></div></td></tr>
+                  ) : null}
+                  <CertList certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} />
+                </LotRowMessages>
+              );
             };
             const [sc, sl] = !r.strengthShown ? ["c-hidden", "Hidden"] : r.stock === "in" ? ["c-in", "In stock"] : r.stock === "low" ? ["c-low", "Low"] : ["c-out", "Out of stock"];
             const h = historyOf(r.variantId);
@@ -152,27 +158,39 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                       <colgroup><col style={{ width: 196 }} /><col style={{ width: 100 }} /><col style={{ width: 200 }} /><col style={{ width: 150 }} /><col /></colgroup>
                       <thead><tr><th>Lot</th><th>Status</th><th>Received</th><th>Held · sold · left</th><th className="num" /></tr></thead>
                       <tbody>
-                        {live.flatMap((l, i) => lotRow(l, i, "live"))}
-                        {drafts.flatMap((l, i) => lotRow(l, i, "draft"))}
+                        {live.map((l, i) => lotRow(l, i, "live"))}
+                        {drafts.map((l, i) => lotRow(l, i, "draft"))}
                         {old.length > 0 && <tr className="a-sub"><td colSpan={5}>Sold out and retired · still findable in COA lookup</td></tr>}
-                        {old.flatMap((l, i) => lotRow(l, i, "old"))}
+                        {old.map((l, i) => lotRow(l, i, "old"))}
                       </tbody>
                     </table>
                     <div className="a-only-phone">{[...live, ...drafts, ...old].map((l) => {
                       const [cls, label] = status(l);
                       const disc = isDiscrepancy(l.ordered_qty, l.counted_qty, l.damaged_qty);
+                      // Same live/draft/old bucketing as the desktop table (sold-out counts as "old" too — see lotRow).
+                      const kind: "live" | "draft" | "old" = l.status === "draft" ? "draft" : old.includes(l) ? "old" : "live";
+                      const lotCerts = certsByLot.get(l.id) ?? [];
+                      const lotTitle = `${c.name} ${r.strength} · lot ${l.lot_number}`;
                       return (
-                        <div key={l.id} className="a-plot">
-                          <div className="top"><b className="a-mono">{l.lot_number}</b>{l.status === "draft" && disc && <span className="a-chip c-disc">Discrepancy</span>}<span className={`a-chip ${cls}`}>{label}</span></div>
-                          <div className="meta">{l.status === "draft" ? `Ordered ${l.ordered_qty} · counted ${l.counted_qty} · damaged ${l.damaged_qty} · ${l.sellable} sellable` : `${l.purity_pct ?? "—"}% · ${l.method ?? "—"} · ${l.held} held · ${l.sold} sold · ${l.available} left`}</div>
-                          {l.status === "draft" && can(staff, "lots.put_live") && (() => {
-                            const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
-                            return <>
-                              <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn primary" style={{ width: "100%", justifyContent: "center", height: 34, marginTop: 8 }} disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
-                              {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}
-                            </>;
-                          })()}
-                        </div>
+                        <LotRowMessages key={l.id} as="block">
+                          <div className="a-plot">
+                            <div className="top"><b className="a-mono">{l.lot_number}</b>{l.status === "draft" && disc && <span className="a-chip c-disc">Discrepancy</span>}<span className={`a-chip ${cls}`}>{label}</span></div>
+                            <div className="meta">{l.status === "draft" ? `Ordered ${l.ordered_qty} · counted ${l.counted_qty} · damaged ${l.damaged_qty} · ${l.sellable} sellable` : `${l.purity_pct ?? "—"}% · ${l.method ?? "—"} · ${l.held} held · ${l.sold} sold · ${l.available} left`}</div>
+                            {l.status === "draft" && can(staff, "lots.put_live") && (() => {
+                              const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
+                              return <>
+                                <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn primary" style={{ width: "100%", justifyContent: "center", height: 34, marginTop: 8 }} disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
+                                {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}
+                              </>;
+                            })()}
+                            {(kind === "live" || kind === "draft") && can(staff, "lots.receive") && (
+                              <div style={{ marginTop: 8 }}><CertificateDialog lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} /></div>
+                            )}
+                            {lotCerts.length > 0 && <ul className="a-certs">
+                              <CertListItems certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} />
+                            </ul>}
+                          </div>
+                        </LotRowMessages>
                       );
                     })}</div>
                     {live.length > 1 && <div className="a-fifo"><Icon name="info" />Orders take vials from {live[0].lot_number} first, then {live.slice(1).map((l) => l.lot_number).join(", then ")}. An order can take some from each.</div>}

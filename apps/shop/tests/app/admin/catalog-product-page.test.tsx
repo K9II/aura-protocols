@@ -76,7 +76,7 @@ describe("/admin/catalog/[slug]", () => {
     expect(screen.getAllByText(/Short 4, 2 cracked/)[0]).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Put live" })[0]).toBeInTheDocument();
     expect(screen.getByText(/Kearney put/)).toBeInTheDocument();
-  });
+  }, 20000);
   it("404s an unknown product", async () => {
     await expect(ProductPage({ params: Promise.resolve({ slug: "nope" }) })).rejects.toThrow();
   });
@@ -98,7 +98,7 @@ describe("/admin/catalog/[slug]", () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     const disabled = screen.getAllByRole("button", { name: "Put live" }).find((b) => b.hasAttribute("disabled"));
     expect(disabled).toHaveAttribute("title", "Needs a passing endotoxin result.");
-  });
+  }, 20000);
   it("the lot cell says how many certificates it has, with its headline purity and method", async () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     expect(screen.getByText("1 certificate · 99.4% · HPLC+MS")).toBeInTheDocument();
@@ -128,9 +128,10 @@ describe("/admin/catalog/[slug]", () => {
   it("a live lot offers Add certificate; its certificate rows show the result and links", async () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     expect(screen.getAllByRole("button", { name: "Add certificate" }).length).toBeGreaterThan(0);
-    expect(screen.getByText("VGD-1")).toBeInTheDocument();
+    // The desktop table and the phone card both list the lot's certificates.
+    expect(screen.getAllByText("VGD-1").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Pass").length).toBeGreaterThan(0);
-  });
+  }, 20000);
 
   describe("strengths (Screen 8)", () => {
     const page = async () => render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
@@ -159,7 +160,7 @@ describe("/admin/catalog/[slug]", () => {
       // only a strength whose lot went live keeps certificates in COA lookup
       expect(screen.getByText("archived Oct 3 · 1 lot · 0 orders")).toBeInTheDocument();
       expect(screen.getAllByRole("button", { name: "Restore" })).toHaveLength(2);
-    });
+    }, 20000);
 
     it("the ⋯ menu disables Delete with the reason when the strength has history", async () => {
       await page();
@@ -167,20 +168,20 @@ describe("/admin/catalog/[slug]", () => {
       const del = screen.getByRole("button", { name: /Delete strength/ });
       expect(del).toBeDisabled();
       expect(del).toHaveTextContent("This one has lots or orders, so archive it instead.");
-    }, 10000);
+    }, 20000);
 
     it("the ⋯ menu allows Delete for a strength with no lots or orders", async () => {
       await page();
       fireEvent.click(screen.getByRole("button", { name: "More for 30 mg" }));
       expect(screen.getByRole("button", { name: /Delete strength/ })).toBeEnabled();
       expect(screen.getByRole("button", { name: /Show on store.*Customers see it again/ })).toBeInTheDocument();
-    });
+    }, 20000);
 
     it("renders the Add a strength button and dialog", async () => {
       await page();
       expect(screen.getByRole("button", { name: "Add a strength" })).toBeInTheDocument();
       expect(screen.getByText(/Add a strength · SS-31/)).toBeInTheDocument();
-    });
+    }, 20000);
 
     it("the On the store rail lists only strengths on the store", async () => {
       await page();

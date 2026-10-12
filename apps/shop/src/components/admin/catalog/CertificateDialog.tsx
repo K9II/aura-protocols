@@ -7,6 +7,7 @@ import { saveCertificateAction } from "@/app/admin/catalog/actions";
 import { PURITY_FLOOR_PCT } from "@/lib/constants";
 import { Icon } from "@/components/admin/ui";
 import CertificateFields, { EMPTY_CERT, type CertDraft, type LabOption } from "@/components/admin/catalog/CertificateFields";
+import { useLotMessage } from "@/components/admin/catalog/LotRowMessages";
 
 export default function CertificateDialog({ lotId, lotNumber, title, strength, labs, lotLive, cert }: {
   lotId: string; lotNumber: string; title: string; strength: string; labs: LabOption[]; lotLive: boolean;
@@ -20,12 +21,14 @@ export default function CertificateDialog({ lotId, lotNumber, title, strength, l
   // the just-submitted values (e.g. the report number) after the reset above.
   const [formKey, setFormKey] = useState(0);
   const scope = cert ? `edit-${cert.id}` : `add-${lotId}`;
+  const report = useLotMessage();
   useEffect(() => {
     if (state?.ok) {
       ref.current?.close();
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
       if (!cert) setV(EMPTY_CERT);
       setFormKey((k) => k + 1);
+      report?.(`${state.ok}${state.warning ? ` ${state.warning}` : ""}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only reacts to a fresh action result
   }, [state]);
@@ -57,7 +60,7 @@ export default function CertificateDialog({ lotId, lotNumber, title, strength, l
           </div>
         </form>
       </dialog>
-      {state?.ok && <span className="a-ok" role="status">{state.ok}{state.warning ? ` ${state.warning}` : ""}</span>}
+      {!report && state?.ok && <span className="a-ok" role="status">{state.ok}{state.warning ? ` ${state.warning}` : ""}</span>}
     </>
   );
 }

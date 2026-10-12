@@ -4,12 +4,18 @@
 import { useActionState, useEffect, useRef } from "react";
 import { correctCertificateAction } from "@/app/admin/catalog/actions";
 import { CORRECTION_MAX } from "@/lib/coa/rules";
+import { useLotMessage } from "@/components/admin/catalog/LotRowMessages";
 
 export default function CorrectionDialog({ certId, report }: { certId: string; report: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState(correctCertificateAction, null);
+  const reportMsg = useLotMessage();
   useEffect(() => {
-    if (state?.ok) ref.current?.close();
+    if (state?.ok) {
+      ref.current?.close();
+      reportMsg?.(state.ok);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reacts only to a fresh action result, like CertificateDialog's reset effect
   }, [state]);
   const fe = state?.fieldErrors ?? {};
   return (
@@ -33,7 +39,7 @@ export default function CorrectionDialog({ certId, report }: { certId: string; r
           </div>
         </form>
       </dialog>
-      {state?.ok && <span className="a-ok" role="status">{state.ok}</span>}
+      {!reportMsg && state?.ok && <span className="a-ok" role="status">{state.ok}</span>}
     </>
   );
 }
