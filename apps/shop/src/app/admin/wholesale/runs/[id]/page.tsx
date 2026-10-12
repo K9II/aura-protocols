@@ -19,6 +19,7 @@ import { draftLotsFor, getRun, pastSuppliers, runEvents, supplierPricesFor, runL
 import { dateTime } from "@/lib/discounts/time";
 import { listLabs } from "@/lib/coa/data";
 import { productNames } from "@/lib/coa/reading";
+import { NOT_RECORDED_LAB } from "@/lib/coa/rules";
 import { Crumbs } from "@/components/admin/ui";
 import { OrderStatusChip } from "@/components/admin/orders/bits";
 import { CancelDepositDialog, LinkLotDialog, PassFailButtons, RecordOrderDialog, ResourceButton, RunNotes } from "@/components/admin/wholesale/RunDialogs";
@@ -73,6 +74,8 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
     labs = await listLabs();
   }
   const labOptions = labs.filter((l) => l.active);
+  // Switched-off labs, so a report from one says so instead of offering Add lab.
+  const inactiveLabNames = labs.filter((l) => !l.active && l.name !== NOT_RECORDED_LAB).map((l) => l.name);
 
   // Every strength the run's orders need, plus any line already recorded.
   const keys = [...new Set([...needed.keys(), ...lines.map((l) => strengthKey(l.slug, l.variant_id))])];
@@ -142,7 +145,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                     r.stage === "to_order" ? <RecordOrderDialog runId={run.id} runNumber={run.number} cutoffLabel={cutoffLabel} slug={r.slug} variantId={r.variantId} label={label} kits={needed.get(r.k) ?? 0} suppliers={suppliers} choices={choices} prices={prices[r.k] ?? {}} primary />
                     : r.stage === "ordered" ? <span className="a-ws-acts">
                       <ReceiveLotDialog small primary slug={r.slug} variantId={r.variantId} title={label} prices={prices[r.k]} defaults={recvDefaults} labs={labOptions} strength={r.strength}
-                        productNames={r.names} canAddLab={can(staff, "catalog.edit")}
+                        productNames={r.names} canAddLab={can(staff, "catalog.edit")} inactiveLabNames={inactiveLabNames}
                         runLine={{ id: r.line!.id, supplier: r.line!.supplier ?? "", cost: r.line!.cost_cents != null ? (r.line!.cost_cents / 100).toFixed(r.line!.cost_cents % 100 ? 2 : 0) : "",
                           vials: ((r.line!.kits_ordered ?? 0) + (r.line!.extra_boxes ?? 0)) * 10 }} />
                       {r.drafts.length > 0 && <LinkLotDialog lineId={r.line!.id} label={label} lots={r.drafts} />}

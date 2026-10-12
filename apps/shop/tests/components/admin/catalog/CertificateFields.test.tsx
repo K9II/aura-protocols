@@ -126,6 +126,14 @@ describe("CertificateFields auto-fill", () => {
     expect(screen.queryByRole("button", { name: /add lab/i })).toBeNull();
   });
 
+  it("a switched-off lab says so, with no Add lab", async () => {
+    readCertificateAction.mockResolvedValue({ reading: { ...READING, lab_name: "Kestrel Analytical Labs", lab_city: "Austin, TX" } });
+    setup({ inactiveLabNames: ["Kestrel Analytical"] });
+    await attach();
+    expect(await screen.findByText(/This report is from/)).toHaveTextContent("This report is from Kestrel Analytical Labs. That lab is switched off — turn it back on in COA settings.");
+    expect(screen.queryByRole("button", { name: /add lab/i })).toBeNull();
+  });
+
   it("picks a lab added from the note once the labs list includes it", async () => {
     readCertificateAction.mockResolvedValue({ reading: { ...READING, lab_name: "Kestrel Analytical", lab_city: "Austin, TX" } });
     saveLabAction.mockResolvedValue({ ok: "Lab added.", name: "Kestrel Analytical" });

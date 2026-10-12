@@ -6,7 +6,7 @@ import { Icon } from "@/components/admin/ui";
 import { readCertificateAction } from "@/app/admin/catalog/actions";
 import { METHODS } from "@/lib/catalog-ops/rules";
 import { certVerifyUrl, failedTests, measuredPct, TEST_KEYS, TEST_LABEL, type TestKey, type TestResult } from "@/lib/coa/rules";
-import { EMPTY_CERT, FILLED_TAIL, filledHead, lotMismatchParts, mergeReading, type CertDraft, type FillKey } from "@/lib/coa/reading";
+import { EMPTY_CERT, FILLED_TAIL, filledHead, lotMismatchParts, mergeReading, sameLabName, type CertDraft, type FillKey } from "@/lib/coa/reading";
 export { EMPTY_CERT, type CertDraft };
 
 export type LabOption = { id: string; name: string; city: string | null; verify_url_template: string | null; verify_hint?: string | null };
@@ -19,10 +19,13 @@ const NOTHING_FILLED = "Nothing to fill from the PDF. Check it against the form.
 // measured, coaPath, certNote, result, test_<key>. Only the owner sets the
 // result; a failed test is flagged here, never applied. Attaching a PDF reads
 // it (readCertificateAction) and fills only empty fields, marked "from PDF".
-export default function CertificateFields({ idSuffix, lotNumber, strength, labs, initial, fieldErrors = {}, onChange, productNames = [], canAddLab = false }: {
+export default function CertificateFields({ idSuffix, lotNumber, strength, labs, initial, fieldErrors = {}, onChange, productNames = [], canAddLab = false, inactiveLabNames = [] }: {
   idSuffix: string; lotNumber: string; strength: string; labs: LabOption[]; initial: CertDraft;
   fieldErrors?: Record<string, string>; onChange?: (v: CertDraft) => void;
   productNames?: string[]; canAddLab?: boolean;
+  // Switched-off labs (never "Not recorded"): `labs` holds only active ones, so
+  // without these a report from a switched-off lab would offer Add lab.
+  inactiveLabNames?: string[];
 }) {
   const [v, setV] = useState(initial);
   // The draft as of the last edit: a read that answers late merges into this, not the draft it started from.
@@ -104,10 +107,10 @@ export default function CertificateFields({ idSuffix, lotNumber, strength, labs,
             <option value="">Pick the lab</option>
             {labs.map((l) => <option key={l.id} value={l.id}>{l.name}{l.city ? ` — ${l.city}` : ""}</option>)}
           </select>
-          {unknownLab && v.labId === "" && (
-            <div className="a-labnote"><span>This report is from <b>{unknownLab.name}{unknownLab.city ? `, ${unknownLab.city}` : ""}</b>. It isn&apos;t in your labs list.</span>
-              {canAddLab && <LabDialog key={unknownLab.name} portal initial={unknownLab} triggerLabel="Add lab" onSaved={(n) => { pendingLab.current = n; pickPendingLab(labs); }} />}</div>
-          )}
+          {unknownLab && v.labId === "" && (inactiveLabNames.some((n) => sameLabName(n, unknownLab.name))
+            ? <div className="a-labnote"><span>This report is from <b>{unknownLab.name}</b>. That lab is switched off — turn it back on in COA settings.</span></div>
+            : <div className="a-labnote"><span>This report is from <b>{unknownLab.name}{unknownLab.city ? `, ${unknownLab.city}` : ""}</b>. It isn&apos;t in your labs list.</span>
+              {canAddLab && <LabDialog key={unknownLab.name} portal initial={unknownLab} triggerLabel="Add lab" onSaved={(n) => { pendingLab.current = n; pickPendingLab(labs); }} />}</div>)}
           {err("labId")}</div>
         <div className="a-fld"><label htmlFor={id("rep")}>Report number{mark("reportNumber")}</label><div className={pdf("reportNumber", "a-input mono")}><input id={id("rep")} name="reportNumber" value={v.reportNumber} onChange={(e) => edit("reportNumber", e.target.value)} /></div>{err("reportNumber")}
           <label htmlFor={id("vcode")} style={{ display: "block", marginTop: 10 }}>Verify code{mark("verifyCode")} <span className="muted" style={{ fontWeight: 400 }}>· optional, blank uses the report number</span></label>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EMPTY_CERT, FILLED_TAIL, filledHead, filledMessage, lotMismatch, lotMismatchParts, matchLab, mergeReading, parseReading, productNames, READING_JSON_SCHEMA, type Reading } from "@/lib/coa/reading";
+import { EMPTY_CERT, FILLED_TAIL, filledHead, filledMessage, lotMismatch, lotMismatchParts, matchLab, mergeReading, parseReading, productNames, READING_JSON_SCHEMA, sameLabName, type Reading } from "@/lib/coa/reading";
 
 const TODAY = "2026-10-12";
 const R = (x: Partial<Reading> = {}): Reading => ({
@@ -71,6 +71,14 @@ describe("matchLab", () => {
   });
   it("null name → nothing", () => {
     expect(matchLab(null, labs)).toBeNull();
+  });
+});
+
+describe("sameLabName", () => {
+  it("compares the way matchLab does", () => {
+    expect(sameLabName("Kestrel Analytical Labs, Inc.", "Kestrel Analytical")).toBe(true);
+    expect(sameLabName("Kestrel Analytical", "Vanguard Laboratory")).toBe(false);
+    expect(sameLabName("Labs Inc.", "The Laboratory")).toBe(false);   // nothing left to compare
   });
 });
 

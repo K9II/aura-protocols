@@ -8,6 +8,7 @@ import { supplierPricesFor } from "@/lib/wholesale/runs-data";
 import { adminRows, byLiveThenNumber, isDiscrepancy, liveRefusal, type AdminLotRow } from "@/lib/catalog-ops/rules";
 import { adminCertificates, coaSettings, listLabs } from "@/lib/coa/data";
 import { productNames } from "@/lib/coa/reading";
+import { NOT_RECORDED_LAB } from "@/lib/coa/rules";
 import type { CertRow } from "@/lib/coa/visibility";
 import { Crumbs, Icon } from "@/components/admin/ui";
 import { usd } from "@/lib/html";
@@ -49,6 +50,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     fetchAdminOps(slug), catalogEvents(slug), variantHistory(slug), adminCertificates(slug), listLabs(), coaSettings(),
   ]);
   const labOptions = labs.filter((l) => l.active);
+  // Switched-off labs, so a report from one says so instead of offering Add lab.
+  const inactiveLabNames = labs.filter((l) => !l.active && l.name !== NOT_RECORDED_LAB).map((l) => l.name);
   const certsByLot = new Map<string, CertRow[]>();
   for (const cert of certs) {
     const list = certsByLot.get(cert.lot_id);
@@ -116,7 +119,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                       <small>{l.received_by_name ? `${l.received_by_name} · ` : ""}{day(l.received_at)}{l.adjust_qty ? ` · corrected ${l.adjust_qty > 0 ? "+" : ""}${l.adjust_qty}` : ""}</small></td>
                     <td><div className="a-cnt"><span><small>Held</small>{l.held}</span><span><small>Sold</small>{l.sold}</span><span><small>Left</small>{l.available}</span></div></td>
                     <td><div className="a-acts">
-                      {(kind === "live" || kind === "draft") && can(staff, "lots.receive") && <CertificateDialog lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} productNames={names} canAddLab={addLab} />}
+                      {(kind === "live" || kind === "draft") && can(staff, "lots.receive") && <CertificateDialog lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} productNames={names} canAddLab={addLab} inactiveLabNames={inactiveLabNames} />}
                       {kind === "live" && <>{can(staff, "stock.correct") && <CorrectCountDialog lotId={l.id} lotNumber={l.lot_number} left={l.available} held={l.held} sold={l.sold} canWithdraw={can(staff, "stock.owner_withdrawal")} />}{can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={live.length === 1} canPutLive={can(staff, "lots.put_live")} />}</>}
                       {/* Sold-out (available 0) is still a live lot — it can still be retired. Retired lots get no menu. */}
                       {kind === "old" && l.status === "live" && can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={false} canPutLive={can(staff, "lots.put_live")} />}
@@ -127,7 +130,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                             <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn sm primary" disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
                             {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}
                           </div>}
-                          {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", supplier: costs.get(l.id)?.supplier ?? "", cost: dollars(costs.get(l.id)?.cost_cents), testCost: dollars(costs.get(l.id)?.test_cents), freight: dollars(costs.get(l.id)?.freight_cents), labels: dollars(costs.get(l.id)?.label_cents) }} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} labs={labOptions} strength={r.strength} productNames={names} canAddLab={addLab} />}
+                          {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} draft={{ id: l.id, lotNumber: l.lot_number, ordered: String(l.ordered_qty), counted: String(l.counted_qty), damaged: String(l.damaged_qty), note: l.discrepancy_note ?? "", supplier: costs.get(l.id)?.supplier ?? "", cost: dollars(costs.get(l.id)?.cost_cents), testCost: dollars(costs.get(l.id)?.test_cents), freight: dollars(costs.get(l.id)?.freight_cents), labels: dollars(costs.get(l.id)?.label_cents) }} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} labs={labOptions} strength={r.strength} productNames={names} canAddLab={addLab} inactiveLabNames={inactiveLabNames} />}
                         </>;
                       })()}
                     </div></td>
@@ -135,7 +138,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   {kind !== "old" && disc && l.discrepancy_note ? (
                     <tr className="a-noterow"><td colSpan={5}><div className="a-note"><Icon name="warn" /><span><b>Discrepancy · </b>{l.discrepancy_note}</span></div></td></tr>
                   ) : null}
-                  <CertList certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} productNames={names} canAddLab={addLab} />
+                  <CertList certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} productNames={names} canAddLab={addLab} inactiveLabNames={inactiveLabNames} />
                 </LotRowMessages>
               );
             };
@@ -153,7 +156,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   </div>
                   <div className="r">
                     {!r.strengthShown && can(staff, "catalog.edit") && <form action={setStrengthShownAction}><input type="hidden" name="slug" value={slug} /><input type="hidden" name="variantId" value={r.variantId} /><input type="hidden" name="shown" value="true" /><button type="submit" className="a-btn sm">Show on store</button></form>}
-                    {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} labs={labOptions} strength={r.strength} productNames={names} canAddLab={addLab} />}
+                    {can(staff, "lots.receive") && <ReceiveLotDialog small slug={slug} variantId={r.variantId} title={`${c.name} ${r.strength}`} prices={prices[`${slug}/${r.variantId}`]} defaults={defaults} labs={labOptions} strength={r.strength} productNames={names} canAddLab={addLab} inactiveLabNames={inactiveLabNames} />}
                     {can(staff, "catalog.edit") && <StrengthMenu slug={slug} variantId={r.variantId} strength={r.strength} shown={r.strengthShown} wholesale={r.wholesale} canDelete={h.lots === 0 && h.orders === 0} />}
                   </div>
                 </div>
@@ -189,10 +192,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                               </>;
                             })()}
                             {(kind === "live" || kind === "draft") && can(staff, "lots.receive") && (
-                              <div style={{ marginTop: 8 }}><CertificateDialog idPrefix="m-" lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} productNames={names} canAddLab={addLab} /></div>
+                              <div style={{ marginTop: 8 }}><CertificateDialog idPrefix="m-" lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} productNames={names} canAddLab={addLab} inactiveLabNames={inactiveLabNames} /></div>
                             )}
                             {lotCerts.length > 0 && <ul className="a-certs">
-                              <CertListItems idPrefix="m-" certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} productNames={names} canAddLab={addLab} />
+                              <CertListItems idPrefix="m-" certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} productNames={names} canAddLab={addLab} inactiveLabNames={inactiveLabNames} />
                             </ul>}
                           </div>
                         </LotRowMessages>

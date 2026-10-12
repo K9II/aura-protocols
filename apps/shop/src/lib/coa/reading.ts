@@ -82,13 +82,18 @@ export function parseReading(raw: unknown, today: string): Reading | null {
 const LAB_NOISE = new Set(["lab", "labs", "laboratory", "laboratories", "inc", "llc", "ltd", "co", "corp", "the", "testing", "services"]);
 const labKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ").filter((w) => w && !LAB_NOISE.has(w)).join(" ");
 
+// Two lab names are the same lab once case, punctuation and filler words
+// ("Labs", "Inc.") are dropped. The form uses it to spot a switched-off lab.
+export function sameLabName(a: string, b: string): boolean {
+  const k = labKey(a);
+  return k !== "" && k === labKey(b);
+}
+
 type LabLike = { id: string; name: string; city: string | null };
 // The active lab the report names, or { unknown } — "Not recorded" never matches.
 export function matchLab(name: string | null, labs: LabLike[]): { labId: string } | { unknown: true } | null {
-  if (!name) return null;
-  const k = labKey(name);
-  if (!k) return null;
-  const hit = labs.find((l) => l.name !== NOT_RECORDED_LAB && labKey(l.name) === k);
+  if (!name || !labKey(name)) return null;
+  const hit = labs.find((l) => l.name !== NOT_RECORDED_LAB && sameLabName(l.name, name));
   return hit ? { labId: hit.id } : { unknown: true };
 }
 
