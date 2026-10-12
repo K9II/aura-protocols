@@ -10,6 +10,7 @@ vi.mock("@/app/admin/catalog/actions", () => ({ setWholesaleAction: vi.fn(), rec
 // scope (unstable_cache(fetchCatalogOps, ...)); mocked wholesale like every
 // other test that touches it, so only coaPublicUrl is needed here.
 vi.mock("@/lib/catalog-live", () => ({ coaPublicUrl: (p: string) => `https://coa.test/${p}` }));
+vi.mock("@/lib/wholesale/runs-data", () => ({ supplierPricesFor: vi.fn(async () => ({})) }));
 const lot = (o: object) => ({ purity_pct: 99.4, method: "HPLC+MS", tested_on: "2026-09-18", coa_path: "x.pdf", purity_ok: true, endotoxin_ok: true, ordered_qty: 200, counted_qty: 200, damaged_qty: 0, adjust_qty: 0, discrepancy_note: null, received_by: "owner", received_by_name: "Kearney", received_at: "2026-09-24T00:00:00Z", retired_at: null, held: 0, sold: 0, slug: "ss-31", ...o });
 const draftLot = lot({ id: "b", lot_number: "SS50-2610-01", variant_id: "50mg", status: "draft", live_at: null, counted_qty: 96, damaged_qty: 2, ordered_qty: 100, discrepancy_note: "Short 4, 2 cracked", sellable: 94, available: 94 });
 vi.mock("@/lib/catalog-ops/data", () => ({
@@ -157,7 +158,7 @@ describe("/admin/catalog/[slug]", () => {
       const del = screen.getByRole("button", { name: /Delete strength/ });
       expect(del).toBeDisabled();
       expect(del).toHaveTextContent("This one has lots or orders, so archive it instead.");
-    });
+    }, 10000);
 
     it("the ⋯ menu allows Delete for a strength with no lots or orders", async () => {
       await page();

@@ -4,12 +4,13 @@ import { ownerStaff, assistantStaff } from "../helpers/staff";
 
 const m = vi.hoisted(() => ({
   requirePermission: vi.fn(), getWholesaleSettings: vi.fn(), listRuns: vi.fn(), runLines: vi.fn(), runOrders: vi.fn(), getRun: vi.fn(),
-  runEvents: vi.fn(), draftLotsFor: vi.fn(), pastSuppliers: vi.fn(), supplierPricesFor: vi.fn(), lotById: vi.fn(), unreviewedBuyers: vi.fn(), notFound: vi.fn(() => { throw new Error("NOT_FOUND"); }),
+  runEvents: vi.fn(), draftLotsFor: vi.fn(), pastSuppliers: vi.fn(), supplierPricesFor: vi.fn(), lotById: vi.fn(), unreviewedBuyers: vi.fn(), listLabs: vi.fn(), notFound: vi.fn(() => { throw new Error("NOT_FOUND"); }),
 }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
 vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: m.getWholesaleSettings, unreviewedBuyers: m.unreviewedBuyers }));
 vi.mock("@/lib/wholesale/runs-data", () => ({ listRuns: m.listRuns, runLines: m.runLines, runOrders: m.runOrders, getRun: m.getRun, runEvents: m.runEvents, draftLotsFor: m.draftLotsFor, pastSuppliers: m.pastSuppliers, supplierPricesFor: m.supplierPricesFor }));
 vi.mock("@/lib/catalog-ops/data", () => ({ lotById: m.lotById, lotDefaults: async () => ({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 }) }));
+vi.mock("@/lib/coa/data", () => ({ listLabs: m.listLabs }));
 vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn() }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-30T16:00:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound, useRouter: () => ({ refresh: vi.fn() }) }));
@@ -41,6 +42,7 @@ describe("Admin → Wholesale pages", () => {
     m.supplierPricesFor.mockResolvedValue({ "retatrutide/10mg": { Nana: 5200 } });
     m.lotById.mockResolvedValue({ lot_number: "BPC-2611A", coa_path: "x.pdf", held: 0 });
     m.unreviewedBuyers.mockResolvedValue([]);
+    m.listLabs.mockResolvedValue([]);
   });
 
   it("list: the collecting run on top, every run with its derived status and next step", async () => {

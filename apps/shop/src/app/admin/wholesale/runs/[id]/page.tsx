@@ -64,7 +64,10 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
     try { prices = await supplierPricesFor([...new Set([...needed.keys(), ...lines.map((l) => strengthKey(l.slug, l.variant_id))])]); }
     catch (err) { console.error("supplier prices read failed:", err); }
     try { recvDefaults = await lotDefaults(); } catch (err) { console.error("lot defaults read failed:", err); }
-    try { labs = await listLabs(); } catch (err) { console.error("labs read failed:", err); }
+    // Not soft: a silent failure here would leave the receive dialog with no
+    // labs to pick from, looking like "no labs configured" instead of a
+    // broken read.
+    labs = await listLabs();
   }
   const labOptions = labs.filter((l) => l.active);
 
