@@ -29,10 +29,13 @@ const ReadingSchema = z.object({
 export type Reading = Omit<z.infer<typeof ReadingSchema>, "method"> & { method: (typeof METHODS)[number] | null };
 
 // JSON schema sent to the model as output_config.format (structured outputs:
-// every property required, no extra properties, nullable via a type union).
-const S = { type: ["string", "null"] } as const;
-const N = { type: ["number", "null"] } as const;
-const T = { type: ["string", "null"], enum: ["pass", "fail", "not_tested", null] } as const;
+// every property required, no extra properties, nullable via anyOf — some
+// providers reject an array `type`, so every nullable property is a
+// two-branch anyOf instead of `type: [x, "null"]`).
+const S = { anyOf: [{ type: "string" }, { type: "null" }] } as const;
+const N = { anyOf: [{ type: "number" }, { type: "null" }] } as const;
+const METHOD_PROP = { anyOf: [{ type: "string", enum: [...METHODS] }, { type: "null" }] } as const;
+const T = { anyOf: [{ type: "string", enum: ["pass", "fail", "not_tested"] }, { type: "null" }] } as const;
 export const READING_JSON_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -40,15 +43,15 @@ export const READING_JSON_SCHEMA = {
   properties: {
     lab_name: S, lab_city: S, report_number: S, verify_code: S,
     tested_on: { ...S, description: "YYYY-MM-DD" }, purity_pct: N,
-    method: { type: ["string", "null"], enum: [...METHODS, null] }, measured_mg: N,
+    method: METHOD_PROP, measured_mg: N,
     identity: T, endotoxin: T, sterility: T, heavy_metals: T, fentanyl: T,
     product_name: S, strength_label: S, batch: S,
   },
 } as const;
 
-const clean = (s: string | null, max: number): string | null => {
+const clean = (s: string | null, max: number, min = 1): string | null => {
   const t = s?.trim() ?? "";
-  return t && t.length <= max ? t : null;
+  return t && t.length >= min && t.length <= max ? t : null;
 };
 const realDate = (s: string | null, today: string): string | null => {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
@@ -65,7 +68,7 @@ export function parseReading(raw: unknown, today: string): Reading | null {
   const code = clean(r.verify_code, CODE_MAX);
   return {
     lab_name: clean(r.lab_name, NAME_MAX), lab_city: clean(r.lab_city, NAME_MAX),
-    report_number: clean(r.report_number, TEXT_MAX),
+    report_number: clean(r.report_number, TEXT_MAX, 2),
     verify_code: code && !/\s/.test(code) && code.length >= 2 ? code : null,
     tested_on: realDate(r.tested_on, today),
     purity_pct: r.purity_pct !== null && r.purity_pct >= PURITY_MIN && r.purity_pct <= 100 ? r.purity_pct : null,
@@ -122,25 +125,65 @@ export function mergeReading(draft: CertDraft, r: Reading, labs: LabLike[]):
   return { draft: next, filled, unknownLab };
 }
 
+// Product-name matching only (never changed by the strength logic below).
 const squash = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 const STRENGTH_RE = /(\d+(?:\.\d+)?)\s*(mg|mcg|iu)\b/i;
-const strengthOf = (s: string | null) => {
-  const m = s ? STRENGTH_RE.exec(s) : null;
-  return m ? { n: Number(m[1]), u: m[2].toLowerCase() } : null;
-};
 const nameOnly = (s: string) => s.replace(new RegExp(STRENGTH_RE.source, "gi"), " ");
+
+// Strength matching: every number+unit found in the text (thousands commas
+// allowed), mcg converted to mg; IU stays its own unit.
+const STRENGTH_RE_G = /([\d,]+(?:\.\d+)?)\s*(mg|mcg|iu)\b/gi;
+type Amt = { n: number; u: "mg" | "iu" };
+function parseStrengths(s: string | null): Amt[] {
+  if (!s) return [];
+  const out: Amt[] = [];
+  for (const m of s.matchAll(new RegExp(STRENGTH_RE_G.source, STRENGTH_RE_G.flags))) {
+    const n = Number(m[1].replace(/,/g, ""));
+    const unit = m[2].toLowerCase();
+    out.push(unit === "mcg" ? { n: n / 1000, u: "mg" } : { n, u: unit as "mg" | "iu" });
+  }
+  return out;
+}
+const EPS = 1e-6;
+const approxEq = (a: number, b: number) => Math.abs(a - b) < EPS;
+
+// Fine when the lot's strength equals the first value or the same-unit sum
+// (after mcg→mg) — a blend's report prints one line per component. Silent
+// when the report has no strength, or the units simply aren't comparable
+// (a report in IU against a lot in mg, say) — never a false warning.
+function strengthMatches(values: Amt[], ours: Amt | null): boolean {
+  if (!ours || values.length === 0) return true;
+  const sameUnit = values.filter((v) => v.u === ours.u);
+  if (sameUnit.length === 0) return true;
+  if (values[0].u === ours.u && approxEq(values[0].n, ours.n)) return true;
+  return approxEq(sameUnit.reduce((a, v) => a + v.n, 0), ours.n);
+}
+
+// True once the number+unit matches are stripped out and letters remain —
+// the label names the product too ("Tirzepatide 30 mg"), so showing it
+// verbatim in the message would repeat the name.
+function hasExtraText(label: string): boolean {
+  const stripped = label.replace(new RegExp(STRENGTH_RE_G.source, STRENGTH_RE_G.flags), "");
+  return /[a-z]/i.test(stripped);
+}
+const formatStrengths = (values: Amt[]) => values.map((v) => `${v.n} ${v.u}`).join(" / ");
 
 // A warning when the report names another product or strength (batch never
 // decides — the report prints the supplier's batch, not our lot number).
 export function lotMismatch(r: Reading, lot: { names: string[]; strength: string; lotNumber: string }): string | null {
   const product = r.product_name ? nameOnly(r.product_name).trim() : "";
-  const reportStrength = strengthOf(r.strength_label) ?? strengthOf(r.product_name);
-  const ours = strengthOf(lot.strength);
   const p = squash(product);
   const productOff = p.length > 0 && !lot.names.some((n) => { const q = squash(n); return q.length > 0 && (p.includes(q) || q.includes(p)); });
-  const strengthOff = !!reportStrength && !!ours && (reportStrength.n !== ours.n || reportStrength.u !== ours.u);
+
+  const labelValues = parseStrengths(r.strength_label);
+  const values = labelValues.length > 0 ? labelValues : parseStrengths(r.product_name);
+  const ours = parseStrengths(lot.strength)[0] ?? null;
+  const strengthOff = !strengthMatches(values, ours);
+
   if (!productOff && !strengthOff) return null;
-  const shownStrength = r.strength_label ?? (reportStrength ? `${reportStrength.n} ${reportStrength.u}` : "");
+  const shownStrength = r.strength_label
+    ? (hasExtraText(r.strength_label) ? formatStrengths(labelValues) : r.strength_label)
+    : formatStrengths(values);
   const what = [product || lot.names[0], shownStrength].filter(Boolean).join(" ");
   return `This report is for ${what}${r.batch ? `, batch ${r.batch}` : ""}. You're adding it to ${lot.names[0]} ${lot.strength}, lot ${lot.lotNumber}. Check you attached the right PDF.`;
 }

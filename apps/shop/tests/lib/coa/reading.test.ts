@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EMPTY_CERT, filledMessage, lotMismatch, matchLab, mergeReading, parseReading, productNames, type Reading } from "@/lib/coa/reading";
+import { EMPTY_CERT, filledMessage, lotMismatch, matchLab, mergeReading, parseReading, productNames, READING_JSON_SCHEMA, type Reading } from "@/lib/coa/reading";
 
 const TODAY = "2026-10-12";
 const R = (x: Partial<Reading> = {}): Reading => ({
@@ -40,6 +40,22 @@ describe("parseReading", () => {
     const r = parseReading(R({ verify_code: "ab cd", report_number: "x".repeat(80) }), TODAY)!;
     expect(r.verify_code).toBeNull();
     expect(r.report_number).toBeNull();
+  });
+  it("drops a report number under 2 characters", () => {
+    expect(parseReading(R({ report_number: "V" }), TODAY)!.report_number).toBeNull();
+    expect(parseReading(R({ report_number: "VG" }), TODAY)!.report_number).toBe("VG");
+  });
+});
+
+describe("READING_JSON_SCHEMA", () => {
+  it("required matches the property set, no extra properties, and every property is nullable via anyOf (never an array type)", () => {
+    const props = READING_JSON_SCHEMA.properties as Record<string, { type?: unknown; anyOf?: unknown }>;
+    expect([...READING_JSON_SCHEMA.required].sort()).toEqual(Object.keys(props).sort());
+    expect(READING_JSON_SCHEMA.additionalProperties).toBe(false);
+    for (const p of Object.values(props)) {
+      expect(Array.isArray(p.type)).toBe(false);
+      expect(Array.isArray(p.anyOf)).toBe(true);
+    }
   });
 });
 
@@ -125,6 +141,31 @@ describe("lotMismatch", () => {
   });
   it("batch alone never warns", () => {
     expect(lotMismatch(R({ product_name: "MOTS-c", strength_label: "10 mg", batch: "ZZZ" }), lot)).toBeNull();
+  });
+  it("a blend's strengths sum to the lot's single strength", () => {
+    const glow = { names: ["GLOW", "BPC-157 / TB-500 / GHK-Cu"], strength: "70 mg", lotNumber: "AP-1200" };
+    expect(lotMismatch(R({ product_name: "GLOW", strength_label: "10mg/10mg/50mg" }), glow)).toBeNull();
+    const cagrisema = { names: ["CagriSema"], strength: "10 mg", lotNumber: "AP-1300" };
+    expect(lotMismatch(R({ product_name: "CagriSema", strength_label: "5 mg + 5 mg" }), cagrisema)).toBeNull();
+  });
+  it("a sum that doesn't add up still warns", () => {
+    const tirz = { names: ["Tirzepatide"], strength: "10 mg", lotNumber: "AP-1400" };
+    expect(lotMismatch(R({ product_name: "Tirzepatide", strength_label: "40 mg" }), tirz)).not.toBeNull();
+  });
+  it("mcg converts to mg, thousands commas allowed", () => {
+    const tirz = { names: ["Tirzepatide"], strength: "10 mg", lotNumber: "AP-1400" };
+    expect(lotMismatch(R({ product_name: "Tirzepatide", strength_label: "10000 mcg" }), tirz)).toBeNull();
+    expect(lotMismatch(R({ product_name: "Tirzepatide", strength_label: "10,000 mcg" }), tirz)).toBeNull();
+    expect(lotMismatch(R({ product_name: "Tirzepatide", strength_label: "500 mcg" }), tirz)).not.toBeNull();
+  });
+  it("IU against a lot in mg can't be compared, so it's silent", () => {
+    const tirz = { names: ["Tirzepatide"], strength: "10 mg", lotNumber: "AP-1400" };
+    expect(lotMismatch(R({ product_name: "Tirzepatide", strength_label: "500 IU" }), tirz)).toBeNull();
+  });
+  it("a strength label with the product's own name isn't repeated in the message", () => {
+    const tirz = { names: ["Tirzepatide"], strength: "10 mg", lotNumber: "AP-1400" };
+    expect(lotMismatch(R({ product_name: "Tirzepatide", strength_label: "Tirzepatide 30 mg", batch: null }), tirz))
+      .toBe("This report is for Tirzepatide 30 mg. You're adding it to Tirzepatide 10 mg, lot AP-1400. Check you attached the right PDF.");
   });
 });
 
