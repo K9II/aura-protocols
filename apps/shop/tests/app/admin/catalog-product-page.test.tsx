@@ -77,6 +77,12 @@ describe("/admin/catalog/[slug]", () => {
     expect(screen.getAllByRole("button", { name: "Put live" })[0]).toBeInTheDocument();
     expect(screen.getByText(/Kearney put/)).toBeInTheDocument();
   }, 20000);
+  it("has no duplicate element ids (desktop table and phone cards each render certificate dialogs)", async () => {
+    const { container } = render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    const ids = [...container.querySelectorAll("[id]")].map((e) => e.id);
+    expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([]);
+  }, 20000);
+
   it("404s an unknown product", async () => {
     await expect(ProductPage({ params: Promise.resolve({ slug: "nope" }) })).rejects.toThrow();
   });

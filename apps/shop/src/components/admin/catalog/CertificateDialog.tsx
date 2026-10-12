@@ -9,9 +9,11 @@ import { Icon } from "@/components/admin/ui";
 import CertificateFields, { EMPTY_CERT, type CertDraft, type LabOption } from "@/components/admin/catalog/CertificateFields";
 import { useLotMessage } from "@/components/admin/catalog/LotRowMessages";
 
-export default function CertificateDialog({ lotId, lotNumber, title, strength, labs, lotLive, cert }: {
+// idPrefix: the phone lot card renders a second copy of this dialog; a
+// distinct prefix keeps its element ids (and label targets) unique.
+export default function CertificateDialog({ lotId, lotNumber, title, strength, labs, lotLive, cert, idPrefix = "" }: {
   lotId: string; lotNumber: string; title: string; strength: string; labs: LabOption[]; lotLive: boolean;
-  cert?: { id: string; draft: CertDraft };
+  cert?: { id: string; draft: CertDraft }; idPrefix?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState(saveCertificateAction, null);
@@ -20,7 +22,7 @@ export default function CertificateDialog({ lotId, lotNumber, title, strength, l
   // reads its `initial` prop once, so without a fresh key it keeps showing
   // the just-submitted values (e.g. the report number) after the reset above.
   const [formKey, setFormKey] = useState(0);
-  const scope = cert ? `edit-${cert.id}` : `add-${lotId}`;
+  const scope = `${idPrefix}${cert ? `edit-${cert.id}` : `add-${lotId}`}`;
   const report = useLotMessage();
   useEffect(() => {
     if (state?.ok) {

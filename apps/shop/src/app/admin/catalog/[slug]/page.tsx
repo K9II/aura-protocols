@@ -184,10 +184,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                               </>;
                             })()}
                             {(kind === "live" || kind === "draft") && can(staff, "lots.receive") && (
-                              <div style={{ marginTop: 8 }}><CertificateDialog lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} /></div>
+                              <div style={{ marginTop: 8 }}><CertificateDialog idPrefix="m-" lotId={l.id} lotNumber={l.lot_number} title={lotTitle} strength={r.strength} labs={labOptions} lotLive={kind === "live"} /></div>
                             )}
                             {lotCerts.length > 0 && <ul className="a-certs">
-                              <CertListItems certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} />
+                              <CertListItems idPrefix="m-" certs={lotCerts} lot={l} labs={labOptions} settings={settings} canEdit={can(staff, "lots.receive")} title={lotTitle} strength={r.strength} />
                             </ul>}
                           </div>
                         </LotRowMessages>
