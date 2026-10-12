@@ -34,7 +34,7 @@ export async function saveLabAction(_prev: ActionState, f: FormData): Promise<Ac
   const r = await saveLab(id, p.value);
   if (!r.ok) return { fieldErrors: { name: "A lab with that name already exists." } };
   refresh();
-  return { ok: id ? "Lab saved." : "Lab added." };
+  return { ok: id ? "Lab saved." : "Lab added.", name: p.value.name };
 }
 
 export async function setLabActiveAction(f: FormData): Promise<void> {

@@ -2,7 +2,7 @@
 // Add / edit a lab (mock a3). Verify code hint (task 5b): shown under the
 // Verify code field on a certificate using this lab — not written here, just
 // the "where to find it" note the owner leaves once per lab.
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { saveLabAction } from "@/app/admin/catalog/settings/actions";
 import { Icon } from "@/components/admin/ui";
@@ -21,6 +21,7 @@ export default function LabDialog({ lab, initial, triggerLabel, portal = false, 
   onSaved?: (name: string) => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const rid = useId();
   const [state, action, pending] = useActionState(saveLabAction, null);
   const [v, setV] = useState<LabDraft>(lab ? draftOf(lab) : { ...EMPTY, name: initial?.name ?? "", city: initial?.city ?? "" });
   const [mounted, setMounted] = useState(!portal);
@@ -29,14 +30,16 @@ export default function LabDialog({ lab, initial, triggerLabel, portal = false, 
   useEffect(() => {
     if (state?.ok) {
       ref.current?.close();
-      onSaved?.(v.name.trim());
+      onSaved?.(state.name ?? v.name.trim());
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
       if (!lab) setV(EMPTY);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only reacts to a fresh action result
   }, [state]);
   const fe = state?.fieldErrors ?? {};
-  const scope = lab?.id ?? (initial ? "read" : "new");
+  // useId's colons are fine in htmlFor/aria-labelledby (not CSS selectors) and
+  // keep ids unique when several pre-filled dialogs are mounted on one page.
+  const scope = lab?.id ?? (initial ? `read${rid}` : "new");
   const id = (k: string) => `lab-${k}-${scope}`;
   const set = (k: "name" | "city" | "verify" | "hint") => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setV({ ...v, [k]: e.target.value });
 

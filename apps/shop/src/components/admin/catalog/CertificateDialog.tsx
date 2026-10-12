@@ -40,6 +40,9 @@ export default function CertificateDialog({ lotId, lotNumber, title, strength, l
       {cert
         ? <button type="button" className="a-linkbtn" onClick={() => ref.current?.showModal()}>Edit</button>
         : <button type="button" className="a-btn sm" onClick={() => ref.current?.showModal()}><Icon name="plus" />Add certificate</button>}
+      {/* No onClose/onCancel/onSubmit/onKeyDown here — the Add lab dialog is
+          portalled out of this form, and React bubbles its events through
+          this tree, so a handler added here would also fire for Add lab. */}
       <dialog ref={ref} className="a-modal wide" aria-labelledby={`cert-${scope}`}>
         <form action={action}>
           <input type="hidden" name="lotId" value={lotId} />

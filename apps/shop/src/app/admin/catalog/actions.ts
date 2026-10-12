@@ -17,7 +17,9 @@ import { CORRECTION_MAX, parseCertificate, TEST_KEYS, type CertInput } from "@/l
 import { catalogChangedByOwner } from "@/lib/catalog-live";
 import { alertOwner } from "@/lib/notify";
 
-export type ActionState = { ok?: string; error?: string; warning?: string; fieldErrors?: Record<string, string> } | null;
+// name: the saved lab's name (saveLabAction only) — so a caller can use the
+// value that was actually written, not whatever's still in the live field.
+export type ActionState = { ok?: string; error?: string; warning?: string; fieldErrors?: Record<string, string>; name?: string } | null;
 
 const STALE = "That lot changed — reload the page.";
 const PRODUCT_STALE = "That product changed — reload the page.";

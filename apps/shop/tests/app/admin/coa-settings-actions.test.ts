@@ -47,7 +47,7 @@ describe("coa settings actions", () => {
       coaData.saveLab.mockResolvedValue({ ok: true });
       const { saveLabAction } = await import("@/app/admin/catalog/settings/actions");
       const { revalidatePath } = await import("next/cache");
-      expect(await saveLabAction(null, fd(labForm))).toEqual({ ok: "Lab added." });
+      expect(await saveLabAction(null, fd(labForm))).toEqual({ ok: "Lab added.", name: "Vanguard Laboratory" });
       expect(coaData.saveLab).toHaveBeenCalledWith(null, expect.objectContaining({ name: "Vanguard Laboratory" }));
       expect(catalogChangedByOwner).toHaveBeenCalled();
       expect(revalidatePath).toHaveBeenCalledWith("/admin/catalog", "layout");
@@ -56,7 +56,7 @@ describe("coa settings actions", () => {
     it("edits an existing lab by id", async () => {
       coaData.saveLab.mockResolvedValue({ ok: true });
       const { saveLabAction } = await import("@/app/admin/catalog/settings/actions");
-      expect(await saveLabAction(null, fd({ ...labForm, labId: VALID_UUID }))).toEqual({ ok: "Lab saved." });
+      expect(await saveLabAction(null, fd({ ...labForm, labId: VALID_UUID }))).toEqual({ ok: "Lab saved.", name: "Vanguard Laboratory" });
       expect(coaData.saveLab).toHaveBeenCalledWith(VALID_UUID, expect.anything());
     });
 
