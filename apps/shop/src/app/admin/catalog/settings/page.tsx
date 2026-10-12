@@ -95,7 +95,7 @@ export default async function CoaSettingsPage() {
             </tbody>
           </table>
           <div className="a-callout info" style={{ marginTop: 12 }}><Icon name="info" /><div>
-            ISO/IEC 17025 = the lab holds the accreditation. Certificates from these labs say &quot;Tested by an ISO/IEC 17025-accredited US lab&quot; — never that a certificate or result is accredited. The verify link must contain {"{report}"}; it&apos;s replaced with each certificate&apos;s report number.
+            ISO/IEC 17025 = the lab holds the accreditation. Certificates from these labs say &quot;Tested by an ISO/IEC 17025-accredited US lab&quot; — never that a certificate or result is accredited. The verify link must contain {"{report}"}; it&apos;s replaced with each certificate&apos;s report number, or its Verify code when one is set.
           </div></div>
         </div>
       </section>

@@ -43,7 +43,7 @@ export default function LabDialog({ lab }: { lab?: Lab }) {
             <div className="a-fld"><label htmlFor={id("city")}>City <span className="muted" style={{ fontWeight: 400 }}>· optional</span></label><div className="a-input"><input id={id("city")} name="city" value={v.city} onChange={set("city")} /></div>{fe.city && <div className="a-err" role="alert">{fe.city}</div>}</div>
             <div className="a-fld"><label htmlFor={id("verify")}>Verify link <span className="muted" style={{ fontWeight: 400 }}>· optional</span></label>
               <div className="a-input mono"><input id={id("verify")} name="verify" placeholder="https://lab.example/verify/{report}" value={v.verify} onChange={set("verify")} /></div>
-              <div className="help">Use {"{report}"} where the report number goes</div>{fe.verify && <div className="a-err" role="alert">{fe.verify}</div>}</div>
+              <div className="help">Use {"{report}"} where the report number goes, or its Verify code when one is set</div>{fe.verify && <div className="a-err" role="alert">{fe.verify}</div>}</div>
             <div className="a-fld"><label htmlFor={id("hint")}>Where to find the verify code <span className="muted" style={{ fontWeight: 400 }}>· optional</span></label>
               <textarea id={id("hint")} name="hint" className="a-textarea" maxLength={200} value={v.hint} onChange={set("hint")} />
               <div className="help">Shown under the Verify code field on a certificate using this lab</div>{fe.hint && <div className="a-err" role="alert">{fe.hint}</div>}</div>
