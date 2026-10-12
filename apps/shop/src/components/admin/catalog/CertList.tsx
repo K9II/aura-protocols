@@ -14,14 +14,14 @@ const day = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString("en-US"
 
 export type CertListProps = {
   certs: CertRow[]; lot: { id: string; lot_number: string; status: string }; labs: LabOption[]; settings: CoaSettings;
-  canEdit: boolean; title: string; strength: string;
+  canEdit: boolean; title: string; strength: string; productNames?: string[]; canAddLab?: boolean;
 };
 
 // The <li>s themselves (mock a1): result chip, lab, report, date, purity,
 // tests, file + verify links, and whether it's on the store. Factored out of
 // CertList so the admin phone card (a-plot) can reuse the same rows inside
 // its own <ul> instead of the desktop <tr>/<td colSpan> wrapper.
-export function CertListItems({ certs, lot, labs, settings, canEdit, title, strength, idPrefix = "" }: CertListProps & { idPrefix?: string }) {
+export function CertListItems({ certs, lot, labs, settings, canEdit, title, strength, idPrefix = "", productNames, canAddLab }: CertListProps & { idPrefix?: string }) {
   const onStore = new Set(visibleCerts(certs, settings).map((c) => c.id));
   const draft = lot.status === "draft";
   return <>{certs.map((c) => {
@@ -39,7 +39,7 @@ export function CertListItems({ certs, lot, labs, settings, canEdit, title, stre
         <span className="lk">
           <a className="a-coa" href={coaPublicUrl(c.coa_path)} target="_blank" rel="noopener noreferrer">Certificate</a>
           {verify && <a className="a-coa" href={verify} target="_blank" rel="noopener noreferrer">Verify ↗</a>}
-          {canEdit && draft && <CertificateDialog idPrefix={idPrefix} lotId={lot.id} lotNumber={lot.lot_number} title={title} strength={strength} labs={labs} lotLive={false}
+          {canEdit && draft && <CertificateDialog idPrefix={idPrefix} lotId={lot.id} lotNumber={lot.lot_number} title={title} strength={strength} labs={labs} lotLive={false} productNames={productNames} canAddLab={canAddLab}
             cert={{ id: c.id, draft: { labId: c.lab_id, reportNumber: c.report_number, verifyCode: c.verify_code ?? "", testedOn: c.tested_on, purity: c.purity_pct?.toString() ?? "", method: c.method ?? "HPLC+MS",
               measured: c.measured_mg?.toString() ?? "", coaPath: c.coa_path, certNote: c.note ?? "", result: c.result,
               tests: { identity: c.identity, endotoxin: c.endotoxin, sterility: c.sterility, heavy_metals: c.heavy_metals, fentanyl: c.fentanyl } } }} />}

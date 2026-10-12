@@ -18,6 +18,7 @@ import {
 import { draftLotsFor, getRun, pastSuppliers, runEvents, supplierPricesFor, runLines, runOrders, type RunEvent } from "@/lib/wholesale/runs-data";
 import { dateTime } from "@/lib/discounts/time";
 import { listLabs } from "@/lib/coa/data";
+import { productNames } from "@/lib/coa/reading";
 import { Crumbs } from "@/components/admin/ui";
 import { OrderStatusChip } from "@/components/admin/orders/bits";
 import { CancelDepositDialog, LinkLotDialog, PassFailButtons, RecordOrderDialog, ResourceButton, RunNotes } from "@/components/admin/wholesale/RunDialogs";
@@ -85,7 +86,8 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
     const buyers = live.filter((o) => o.status === "deposit_paid" && o.items.some((i) => i.compound_slug === slug && i.variant_id === variantId)).length;
     return { k, slug, variantId, line, stage, lot, drafts, buyers, // A re-sourced line is back at to_order: show what the run needs now.
       kits: (stage === "to_order" ? undefined : line?.kits_ordered) ?? needed.get(k) ?? 0,
-      title: c?.designation ?? c?.name ?? slug, sci: c?.designation ? c.name : null, strength: strengthText(variantId) };
+      title: c?.designation ?? c?.name ?? slug, sci: c?.designation ? c.name : null, strength: strengthText(variantId),
+      names: c ? productNames(c) : [] };
   }));
   const cutoffLabel = dateLabel(run.cutoff_on);
   const lineLabel = new Map(rows.filter((r) => r.line).map((r) => [r.line!.id, `${r.title} ${r.strength}`]));
@@ -140,6 +142,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                     r.stage === "to_order" ? <RecordOrderDialog runId={run.id} runNumber={run.number} cutoffLabel={cutoffLabel} slug={r.slug} variantId={r.variantId} label={label} kits={needed.get(r.k) ?? 0} suppliers={suppliers} choices={choices} prices={prices[r.k] ?? {}} primary />
                     : r.stage === "ordered" ? <span className="a-ws-acts">
                       <ReceiveLotDialog small primary slug={r.slug} variantId={r.variantId} title={label} prices={prices[r.k]} defaults={recvDefaults} labs={labOptions} strength={r.strength}
+                        productNames={r.names} canAddLab={can(staff, "catalog.edit")}
                         runLine={{ id: r.line!.id, supplier: r.line!.supplier ?? "", cost: r.line!.cost_cents != null ? (r.line!.cost_cents / 100).toFixed(r.line!.cost_cents % 100 ? 2 : 0) : "",
                           vials: ((r.line!.kits_ordered ?? 0) + (r.line!.extra_boxes ?? 0)) * 10 }} />
                       {r.drafts.length > 0 && <LinkLotDialog lineId={r.line!.id} label={label} lots={r.drafts} />}

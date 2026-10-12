@@ -11,9 +11,9 @@ import { useLotMessage } from "@/components/admin/catalog/LotRowMessages";
 
 // idPrefix: the phone lot card renders a second copy of this dialog; a
 // distinct prefix keeps its element ids (and label targets) unique.
-export default function CertificateDialog({ lotId, lotNumber, title, strength, labs, lotLive, cert, idPrefix = "" }: {
+export default function CertificateDialog({ lotId, lotNumber, title, strength, labs, lotLive, cert, idPrefix = "", productNames, canAddLab }: {
   lotId: string; lotNumber: string; title: string; strength: string; labs: LabOption[]; lotLive: boolean;
-  cert?: { id: string; draft: CertDraft }; idPrefix?: string;
+  cert?: { id: string; draft: CertDraft }; idPrefix?: string; productNames?: string[]; canAddLab?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState(saveCertificateAction, null);
@@ -49,7 +49,7 @@ export default function CertificateDialog({ lotId, lotNumber, title, strength, l
           {cert && <input type="hidden" name="certId" value={cert.id} />}
           <div className="a-modal-h"><h2 id={`cert-${scope}`}>{cert ? `Edit certificate · ${title}` : `Add a certificate · ${title}`}</h2><button type="button" className="x" aria-label="Close" onClick={() => ref.current?.close()}>×</button></div>
           <div className="a-modal-b">
-            <CertificateFields key={formKey} idSuffix={scope} lotNumber={lotNumber} strength={strength} labs={labs} initial={v} fieldErrors={fe} onChange={setV} />
+            <CertificateFields key={formKey} idSuffix={scope} lotNumber={lotNumber} strength={strength} labs={labs} initial={v} fieldErrors={fe} onChange={setV} productNames={productNames} canAddLab={canAddLab} />
             <ul className="a-checks">
               <li className={v.coaPath ? "" : "no"}><Icon name="check" />Certificate attached</li>
               {v.purity.trim() !== "" && <li className={Number(v.purity) >= PURITY_FLOOR_PCT ? "" : "no"}><Icon name="check" />Purity at or above the {PURITY_FLOOR_PCT}% shown on the site</li>}

@@ -89,6 +89,16 @@ describe("Admin → Wholesale pages", () => {
     expect((container.querySelector("input[name=cost]") as HTMLInputElement).value).toBe("1140");
   });
 
+  it("run page: Receive lot's certificate form knows the strength's product name", async () => {
+    m.runOrders.mockResolvedValue([order()]);
+    m.runLines.mockResolvedValue([line({ lot_id: null })]);
+    const { default: Page } = await import("@/app/admin/wholesale/runs/[id]/page");
+    const { container } = render(await Page({ params: Promise.resolve({ id: RUN }) }));
+    const top = container.querySelector(".a-pdftop")!;
+    expect(top).toHaveAttribute("data-names", "BPC-157");
+    expect(top).toHaveAttribute("data-addlab", "1");
+  });
+
   it("run page: an ordered line's lot shows certificates ✓ only when both are passing, matching Link lot's wording", async () => {
     m.runOrders.mockResolvedValue([order()]);
     m.runLines.mockResolvedValue([line()]);

@@ -86,7 +86,7 @@ export default function CertificateFields({ idSuffix, lotNumber, strength, labs,
   const pdf = (k: FillKey, base: string) => (filled.has(k) ? `${base} pdf` : base);
   return (
     <>
-      <div className="a-pdftop">
+      <div className="a-pdftop" data-names={productNames.join("|")} data-addlab={canAddLab ? "1" : "0"}>
         <input type="hidden" name="coaPath" value={v.coaPath} />
         <CoaUpload idSuffix={`cert-${idSuffix}`} lotNumber={lotNumber} path={v.coaPath} error={fieldErrors.coa}
           help="Attach it first. The store reads it and fills in what it finds."
