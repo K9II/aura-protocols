@@ -11,7 +11,7 @@ import { publicSupabaseEnv } from "@/lib/supabase/env";
 // orders call catalogStockChanged (route handlers and actions: expire now).
 export const CATALOG_TAG = "catalog";
 
-const cachedOps = unstable_cache(fetchCatalogOps, ["catalog-ops-v1"], { tags: [CATALOG_TAG], revalidate: 3600 });
+const cachedOps = unstable_cache(fetchCatalogOps, ["catalog-ops-v2"], { tags: [CATALOG_TAG], revalidate: 3600 });
 
 export function coaPublicUrl(path: string): string {
   return `${publicSupabaseEnv().url}/storage/v1/object/public/coa/${path}`;

@@ -65,7 +65,7 @@ describe("Admin → Wholesale actions", () => {
   it("pass: a refusal is explained; a pass refreshes stock, alerts a short lot and releases ready orders", async () => {
     m.lineById.mockResolvedValue(line());
     const { passLineAction } = await import("@/app/admin/wholesale/actions");
-    m.passLine.mockResolvedValueOnce({ ok: false, reason: "no_certificate" });
+    m.passLine.mockResolvedValueOnce({ ok: false, reason: "needs_purity" });
     expect((await passLineAction(null, fd({ lineId: LINE })))?.error).toMatch(/certificate first/);
     m.passLine.mockResolvedValueOnce({ ok: true, held: 2, short: ["AP-1060"] });
     m.lotById.mockResolvedValue({ lot_number: "BPC-2611A" });

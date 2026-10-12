@@ -22,7 +22,7 @@ export type RunOrderRow = RunOrder & {
   email: string; ship_name: string; customer_id: string; deposit_cents: number; balance_cents: number; total_cents: number;
   balance_due_at: string | null; balance_session_id: string | null; created_at: string;
 };
-export type DraftLot = { id: string; lot_number: string; counted_qty: number; damaged_qty: number; coa_path: string | null; received_at: string };
+export type DraftLot = { id: string; lot_number: string; counted_qty: number; damaged_qty: number; coa_path: string | null; endotoxin_ok: boolean; purity_ok: boolean; received_at: string };
 
 export async function ensureRun(cutoff: string): Promise<string> {
   const { data, error } = await db().rpc("ensure_production_run", { p_cutoff: cutoff });
@@ -133,7 +133,7 @@ export async function pastSuppliers(): Promise<string[]> {
 
 // Draft lots of a strength, not linked to another run line yet.
 export async function draftLotsFor(slug: string, variantId: string): Promise<DraftLot[]> {
-  const { data, error } = await db().from("lots").select("id, lot_number, counted_qty, damaged_qty, coa_path, received_at")
+  const { data, error } = await db().from("lot_stock").select("id, lot_number, counted_qty, damaged_qty, coa_path, endotoxin_ok, purity_ok, received_at")
     .eq("slug", slug).eq("variant_id", variantId).eq("status", "draft").order("received_at", { ascending: false });
   if (error) fail("draft lots read", error);
   const { data: used, error: e2 } = await db().from("production_run_lines").select("lot_id").not("lot_id", "is", null);

@@ -41,7 +41,7 @@ language sql stable security definer set search_path = public, pg_temp as $$
                             from early_fraud_warnings w join orders o on o.id = w.order_id where w.resolved_at is null),
     'stock_low_or_out', (select coalesce(jsonb_agg(jsonb_build_object('product', slug, 'strength', strength, 'available', available, 'low_at', low_at) order by available, slug), '[]'::jsonb)
                          from stock where available <= low_at),
-    'lots_not_live', (select coalesce(jsonb_agg(jsonb_build_object('lot', lot_number, 'product', slug, 'variant', variant_id, 'has_certificate', coa_path is not null, 'received_at', received_at) order by received_at), '[]'::jsonb)
+    'lots_not_live', (select coalesce(jsonb_agg(jsonb_build_object('lot', lot_number, 'product', slug, 'variant', variant_id, 'has_certificate', exists (select 1 from lot_certificates c where c.lot_id = lots.id), 'received_at', received_at) order by received_at), '[]'::jsonb)
                       from lots where status = 'draft'),
     'payout_run_latest', (select jsonb_build_object('run_date', run_date, 'finished', finished_at is not null, 'error', left(error, 300)) from payout_runs order by run_date desc limit 1),
     'payouts_queued', (select jsonb_build_object('count', count(*), 'cash_cents', coalesce(sum(cash_cents), 0)) from payouts where status = 'queued'),

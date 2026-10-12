@@ -1,18 +1,17 @@
 "use client";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { receiveLotAction } from "@/app/admin/catalog/actions";
-import { isDiscrepancy, METHODS } from "@/lib/catalog-ops/rules";
-import { PURITY_FLOOR_PCT } from "@/lib/constants";
+import { isDiscrepancy } from "@/lib/catalog-ops/rules";
 import { Icon } from "@/components/admin/ui";
-import CoaUpload from "@/components/admin/catalog/CoaUpload";
+import CertificateFields, { EMPTY_CERT, type CertDraft, type LabOption } from "@/components/admin/catalog/CertificateFields";
 import { prefillTotal, supplierOptions } from "@/lib/wholesale/runs";
 import { usd } from "@/lib/html";
 
 export type DraftLot = {
-  id: string; lotNumber: string; purity: string; method: string; testedOn: string; ordered: string; counted: string; damaged: string; note: string; coaPath: string;
+  id: string; lotNumber: string; ordered: string; counted: string; damaged: string; note: string;
   supplier: string; cost: string; testCost: string; freight: string; labels: string;
 };
-const EMPTY: Omit<DraftLot, "id"> = { lotNumber: "", purity: "", method: "HPLC+MS", testedOn: "", ordered: "", counted: "", damaged: "0", note: "", coaPath: "", supplier: "", cost: "", testCost: "", freight: "", labels: "" };
+const EMPTY: Omit<DraftLot, "id"> = { lotNumber: "", ordered: "", counted: "", damaged: "0", note: "", supplier: "", cost: "", testCost: "", freight: "", labels: "" };
 const OTHER = "__other";
 
 // prices: this strength's supplier box prices (supplier_prices, from AIOS);
@@ -20,10 +19,13 @@ const OTHER = "__other";
 // They pre-fill the cost fields until the owner types their own.
 // runLine: received from a wholesale run page — pre-filled from the run's
 // supplier order and saved as a draft linked to that line (no "put live").
-export default function ReceiveLotDialog({ slug, variantId, title, draft, small, prices = {}, defaults, runLine, primary }: {
+// labs/strength: for the optional first certificate (a new lot only —
+// certificates on a draft already received are edited on the lot's own rows).
+export default function ReceiveLotDialog({ slug, variantId, title, draft, small, prices = {}, defaults, runLine, primary, labs, strength }: {
   slug: string; variantId: string; title: string; draft?: DraftLot; small?: boolean; prices?: Record<string, number>;
   defaults?: { testCents: number; inboundPerBoxCents: number; labelPerVialCents: number };
   runLine?: { id: string; supplier: string; cost: string; vials: number }; primary?: boolean;
+  labs: LabOption[]; strength: string;
 }) {
   const testCents = defaults?.testCents;
   const ref = useRef<HTMLDialogElement>(null);
@@ -31,6 +33,11 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
   const initial = () => draft ?? { id: "", ...EMPTY, testCost: testCents != null ? (testCents / 100).toFixed(testCents % 100 ? 2 : 0) : "",
     ...(runLine ? { supplier: runLine.supplier, ordered: String(runLine.vials) } : {}) };
   const [v, setV] = useState(initial);
+  const [cert, setCert] = useState<CertDraft>(EMPTY_CERT);
+  // Bumped on every successful save so CertificateFields remounts: it only
+  // reads its `initial` prop once, so without a fresh key the first-certificate
+  // block keeps showing the just-submitted values after the reset below.
+  const [formKey, setFormKey] = useState(0);
   const options = supplierOptions(draft?.supplier ? [draft.supplier] : runLine?.supplier ? [runLine.supplier] : [], Object.keys(prices)).options;
   const [other, setOther] = useState(!!draft?.supplier && !options.includes(draft.supplier));
   // The cost follows supplier box price × boxes until the owner types their own.
@@ -45,7 +52,8 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
     if (state?.ok) {
       ref.current?.close();
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
-      setV(initial()); setCostTyped(runLine?.cost ? runLine.cost : null); setFreightTyped(null); setLabelsTyped(null); setOther(false);
+      setV(initial()); setCert(EMPTY_CERT); setCostTyped(runLine?.cost ? runLine.cost : null); setFreightTyped(null); setLabelsTyped(null); setOther(false);
+      setFormKey((k) => k + 1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only reacts to a fresh action result
   }, [state]);
@@ -55,9 +63,8 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
   const known = [ordered, counted, damaged].every(Number.isInteger);
   const disc = known && isDiscrepancy(ordered, counted, damaged);
   const sellable = known ? counted - damaged : null;
-  const purity = n(v.purity);
-  const lowPurity = Number.isFinite(purity) && purity < PURITY_FLOOR_PCT;
-  const canLive = !!v.coaPath && known && (!disc || !!v.note.trim()) && (sellable ?? 0) > 0;
+  const canLive = known && (!disc || !!v.note.trim()) && (sellable ?? 0) > 0
+    && !!cert.labId && cert.purity.trim() !== "" && cert.tests.endotoxin === "pass" && cert.result === "pass" && !!cert.coaPath;
   const fe = state?.fieldErrors ?? {};
   const boxes = Number.isInteger(ordered) && ordered > 0 ? Math.ceil(ordered / 10) : 0;
   const boxCents = !other && v.supplier ? prices[v.supplier] : undefined;
@@ -76,21 +83,16 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
           <input type="hidden" name="variantId" value={variantId} />
           {draft && <input type="hidden" name="lotId" value={draft.id} />}
           {runLine && <input type="hidden" name="runLineId" value={runLine.id} />}
-          <input type="hidden" name="coaPath" value={v.coaPath} />
           {!other && <input type="hidden" name="supplier" value={v.supplier} />}
           <div className="a-modal-h"><h2 id={`recv-${scope}`}>{draft ? "Edit draft lot" : "Receive a lot"} · {title}</h2><button type="button" className="x" aria-label="Close" onClick={() => ref.current?.close()}>×</button></div>
           <div className="a-modal-b">
-            <div className="a-row3">
-              <div className="a-fld"><label htmlFor={`r-lot-${scope}`}>Lot number</label><div className="a-input mono"><input id={`r-lot-${scope}`} name="lotNumber" value={v.lotNumber} onChange={set("lotNumber")} required /></div>{fe.lotNumber && <div className="a-err" role="alert">{fe.lotNumber}</div>}</div>
-              <div className="a-fld"><label htmlFor={`r-purity-${scope}`}>Purity</label><div className={`a-input${lowPurity ? " warn" : ""}`}><input id={`r-purity-${scope}`} name="purity" inputMode="decimal" value={v.purity} onChange={set("purity")} required /><span className="affix">%</span></div>
-                {lowPurity && <div className="a-warnline"><Icon name="warn" />Below the {PURITY_FLOOR_PCT}% shown on the site.</div>}{fe.purity && <div className="a-err" role="alert">{fe.purity}</div>}</div>
-              <div className="a-fld"><label htmlFor={`r-method-${scope}`}>Method</label><div className="a-input"><select id={`r-method-${scope}`} name="method" value={v.method} onChange={set("method")} style={{ flex: 1, border: 0, background: "transparent", height: "100%", padding: "0 10px" }}>
-                {METHODS.map((m) => <option key={m} value={m}>{m === "HPLC+MS" ? "HPLC + MS" : m}</option>)}</select></div></div>
-            </div>
-            <div className="a-row3">
-              <div className="a-fld"><label htmlFor={`r-tested-${scope}`}>Tested on</label><div className="a-input"><input id={`r-tested-${scope}`} name="testedOn" type="date" value={v.testedOn} onChange={set("testedOn")} required /></div>{fe.testedOn && <div className="a-err" role="alert">{fe.testedOn}</div>}</div>
-              <div style={{ gridColumn: "span 2" }}><CoaUpload idSuffix={scope} lotNumber={v.lotNumber} path={v.coaPath} onPath={(p) => setV({ ...v, coaPath: p })} error={fe.coa} /></div>
-            </div>
+            <div className="a-fld"><label htmlFor={`r-lot-${scope}`}>Lot number</label><div className="a-input mono"><input id={`r-lot-${scope}`} name="lotNumber" value={v.lotNumber} onChange={set("lotNumber")} required /></div>{fe.lotNumber && <div className="a-err" role="alert">{fe.lotNumber}</div>}</div>
+            {!draft
+              ? <details className="a-recv" open={!runLine}>
+                  <summary className="h">First certificate <span className="muted" style={{ fontWeight: 400 }}>· optional — add it now or later from the lot</span></summary>
+                  <CertificateFields key={formKey} idSuffix={scope} lotNumber={v.lotNumber} strength={strength} labs={labs} initial={EMPTY_CERT} fieldErrors={fe} onChange={setCert} />
+                </details>
+              : <p className="muted">Certificates are edited on the lot&apos;s certificate rows.</p>}
             <div className="a-recv">
               <div className="h">Receiving check {disc && <span className="a-chip c-disc">Discrepancy</span>}</div>
               <div className="a-row3">
@@ -129,9 +131,9 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
               <div className="sum"><span>Sellable <b>{sellable ?? "—"}</b></span>{known && <span className="muted">= {counted} counted − {damaged} damaged</span>}{disc && <span className="muted" style={{ marginLeft: "auto" }}>You&apos;ll get an email about the shortfall</span>}</div>
             </div>
             <ul className="a-checks">
-              <li className={v.coaPath ? "" : "no"}><Icon name="check" />Certificate attached</li>
+              <li className={!!cert.labId && !!cert.purity.trim() && !!cert.coaPath ? "" : "no"}><Icon name="check" />Purity certificate attached</li>
               <li className={known && (!disc || v.note.trim()) ? "" : "no"}><Icon name="check" />Receiving check complete{disc ? " (discrepancy explained)" : ""}</li>
-              <li className={Number.isFinite(purity) && !lowPurity ? "" : "no"}><Icon name="check" />Purity at or above the {PURITY_FLOOR_PCT}% shown on the site</li>
+              <li className={cert.tests.endotoxin === "pass" ? "" : "no"}><Icon name="check" />Endotoxin passed</li>
             </ul>
             {state?.error && <div className="a-err" role="alert">{state.error}</div>}
           </div>

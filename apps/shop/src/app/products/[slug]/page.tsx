@@ -10,6 +10,7 @@ import Vial from "@/components/store/Vial";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
 import LotRecord from "@/components/store/LotRecord";
+import LotCertificates from "@/components/store/LotCertificates";
 import ResearchSummary from "@/components/store/ResearchSummary";
 import { currentMs } from "@/lib/clock";
 import { productRecord } from "@/lib/lot-record";
@@ -132,6 +133,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <BeforeOrdering />
           </div>
         </section>
+        {/* Full width below the two-column section (mock c5), not squeezed into the half-width media column. */}
+        <div className="s-pdp-certs">
+          <LotCertificates certs={live.certificates.filter((x) => x.slug === c.slug)} />
+        </div>
       </div>
 
       <section className="s-about">

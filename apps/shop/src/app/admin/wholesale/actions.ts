@@ -31,7 +31,8 @@ const uuid = (f: FormData, k: string) => { const r = z.string().uuid().safeParse
 const refresh = (runId: string) => { revalidatePath("/admin/wholesale"); revalidatePath(`/admin/wholesale/runs/${runId}`); revalidatePath("/admin"); };
 const stripeMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
 const PASS_REFUSAL: Record<string, string> = {
-  no_certificate: "Add the lot's certificate first (Catalog → the strength → the lot).",
+  needs_purity: "Add the lot's purity certificate first (Catalog → the strength → the lot).",
+  needs_endotoxin: "The lot needs a passing endotoxin result first (Catalog → the lot → Add certificate).",
   nothing_sellable: "That lot has no sellable vials.",
   not_draft: "That lot is already live or retired.",
   not_pending: "That strength already has a result.",

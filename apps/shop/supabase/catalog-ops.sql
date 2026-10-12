@@ -33,10 +33,6 @@ create table if not exists lots (
   lot_number        text not null unique check (lot_number ~ '^[A-Z0-9][A-Z0-9-]{2,39}$'),
   slug              text not null,
   variant_id        text not null,
-  purity_pct        numeric(5,2) not null check (purity_pct between 90 and 100),
-  method            text not null check (method in ('HPLC', 'HPLC+MS')),
-  tested_on         date not null,
-  coa_path          text,
   status            text not null default 'draft' check (status in ('draft', 'live', 'retired')),
   ordered_qty       integer not null check (ordered_qty >= 0),
   counted_qty       integer not null check (counted_qty >= 0),
@@ -100,25 +96,7 @@ create table if not exists catalog_events (
 create index if not exists catalog_events_slug_idx on catalog_events (slug, created_at desc);
 alter table catalog_events enable row level security;
 
--- Held + sold vials per lot; available = sellable − held − sold.
--- Columns listed (not l.*) so a column added to lots later can't change the
--- view's shape and break a re-run of this file.
-create or replace view lot_stock with (security_invoker = true) as
-select l.id, l.lot_number, l.slug, l.variant_id, l.purity_pct, l.method, l.tested_on, l.coa_path, l.status,
-  l.ordered_qty, l.counted_qty, l.damaged_qty, l.adjust_qty, l.discrepancy_note, l.received_by, l.received_at,
-  l.live_at, l.retired_at, l.created_at,
-  (l.counted_qty - l.damaged_qty + l.adjust_qty) as sellable,
-  coalesce(h.held, 0)::int as held,
-  coalesce(h.sold, 0)::int as sold,
-  (l.counted_qty - l.damaged_qty + l.adjust_qty - coalesce(h.held, 0) - coalesce(h.sold, 0))::int as available
-from lots l
-left join (
-  select lot_id,
-    sum(qty) filter (where state = 'held') as held,
-    sum(qty) filter (where state = 'sold') as sold
-  from lot_holds group by lot_id
-) h on h.lot_id = l.id;
-revoke all on lot_stock from public, anon, authenticated;
+-- lot_stock (held/sold/available per lot + the headline certificate) lives in coa-library.sql.
 
 -- Holds every vial of a pending order, oldest live lot first, all or nothing.
 -- Returns {"ok": true} | {"ok": false, "reason": "inactive"} (order not
@@ -218,26 +196,11 @@ set search_path = public, pg_temp as $$
 $$;
 revoke all on function order_hold_shortfall(uuid) from public, anon, authenticated;
 
+-- admin_lot_live (certificate checks) lives in coa-library.sql.
+
 -- Admin lot functions lock the lot row FOR NO KEY UPDATE (not FOR UPDATE) so
 -- they don't deadlock with hold_vials, whose lot_holds insert takes a KEY SHARE
 -- lock on the lot while it holds the same stock advisory lock.
--- 'ok' | 'missing' | 'not_draft' | 'no_certificate' | 'nothing_sellable'
-create or replace function admin_lot_live(p_lot uuid, p_actor uuid) returns text language plpgsql
-set search_path = public, pg_temp as $$
-declare l lots%rowtype;
-begin
-  select * into l from lots where id = p_lot for no key update;
-  if not found then return 'missing'; end if;
-  perform pg_advisory_xact_lock(hashtext('stock:' || l.slug || ':' || l.variant_id));
-  if l.status <> 'draft' then return 'not_draft'; end if;
-  if l.coa_path is null then return 'no_certificate'; end if;
-  if l.counted_qty - l.damaged_qty + l.adjust_qty <= 0 then return 'nothing_sellable'; end if;
-  update lots set status = 'live', live_at = now() where id = p_lot;
-  insert into catalog_events (slug, variant_id, lot_id, kind, actor_id) values (l.slug, l.variant_id, l.id, 'lot_live', p_actor);
-  return 'ok';
-end $$;
-revoke all on function admin_lot_live(uuid, uuid) from public, anon, authenticated;
-
 -- 'ok' | 'missing' | 'draft' | 'below_committed'. Never below held + sold.
 create or replace function admin_correct_count(p_lot uuid, p_delta integer, p_reason text, p_note text, p_actor uuid, p_source text)
 returns text language plpgsql
@@ -385,6 +348,10 @@ revoke all on function record_shipped_lots(uuid, json, text) from public, anon, 
 
 -- For the daily reconcile: lots below zero, and holds still 'held' on orders
 -- that are no longer pending.
+-- lot_stock now lives in coa-library.sql (applied after this file), so a
+-- fresh database won't have it yet; skip body-checking this function so its
+-- creation doesn't fail before that view exists.
+set check_function_bodies = off;
 create or replace function lot_integrity() returns json language sql stable
 set search_path = public, pg_temp as $$
   select json_build_object(
@@ -394,6 +361,7 @@ set search_path = public, pg_temp as $$
                     where h.state = 'held' and o.status not in ('awaiting_payment', 'processing'))
   )
 $$;
+reset check_function_bodies;
 revoke all on function lot_integrity() from public, anon, authenticated;
 
 -- Certificates: public bucket, PDF only, 10 MB (COA_MAX_BYTES in lib/catalog-ops/rules.ts).

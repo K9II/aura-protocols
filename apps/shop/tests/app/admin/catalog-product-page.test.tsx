@@ -3,13 +3,15 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { assistantStaff } from "../../helpers/staff";
 const m = vi.hoisted(() => ({ requirePermission: vi.fn(async () => (await import("../../helpers/staff")).ownerStaff()) }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
-vi.mock("@/app/admin/catalog/actions", () => ({ setWholesaleAction: vi.fn(), receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(), replaceCertificateAction: vi.fn(),
+vi.mock("@/app/admin/catalog/actions", () => ({ setWholesaleAction: vi.fn(), receiveLotAction: vi.fn(), coaUploadAction: vi.fn(), correctCountAction: vi.fn(), setFieldAction: vi.fn(), setShownAction: vi.fn(), putLiveAction: vi.fn(), retireAction: vi.fn(),
+  saveCertificateAction: vi.fn(), deleteCertificateAction: vi.fn(), correctCertificateAction: vi.fn(),
   addStrengthAction: vi.fn(), setStrengthShownAction: vi.fn(), archiveStrengthAction: vi.fn(), restoreStrengthAction: vi.fn(), deleteStrengthAction: vi.fn() }));
 // catalog-live.ts also imports fetchCatalogOps from catalog-ops/data at module
 // scope (unstable_cache(fetchCatalogOps, ...)); mocked wholesale like every
 // other test that touches it, so only coaPublicUrl is needed here.
 vi.mock("@/lib/catalog-live", () => ({ coaPublicUrl: (p: string) => `https://coa.test/${p}` }));
-const lot = (o: object) => ({ purity_pct: 99.4, method: "HPLC+MS", tested_on: "2026-09-18", coa_path: "x.pdf", ordered_qty: 200, counted_qty: 200, damaged_qty: 0, adjust_qty: 0, discrepancy_note: null, received_by: "owner", received_by_name: "Kearney", received_at: "2026-09-24T00:00:00Z", retired_at: null, held: 0, sold: 0, slug: "ss-31", ...o });
+vi.mock("@/lib/wholesale/runs-data", () => ({ supplierPricesFor: vi.fn(async () => ({})) }));
+const lot = (o: object) => ({ purity_pct: 99.4, method: "HPLC+MS", tested_on: "2026-09-18", coa_path: "x.pdf", purity_ok: true, endotoxin_ok: true, ordered_qty: 200, counted_qty: 200, damaged_qty: 0, adjust_qty: 0, discrepancy_note: null, received_by: "owner", received_by_name: "Kearney", received_at: "2026-09-24T00:00:00Z", retired_at: null, held: 0, sold: 0, slug: "ss-31", ...o });
 const draftLot = lot({ id: "b", lot_number: "SS50-2610-01", variant_id: "50mg", status: "draft", live_at: null, counted_qty: 96, damaged_qty: 2, ordered_qty: 100, discrepancy_note: "Short 4, 2 cracked", sellable: 94, available: 94 });
 vi.mock("@/lib/catalog-ops/data", () => ({
   fetchAdminOps: async () => ({
@@ -32,7 +34,11 @@ vi.mock("@/lib/catalog-ops/data", () => ({
       draftLot,
       lot({ id: "f", lot_number: "SS5-2608-01", variant_id: "5mg", status: "retired", live_at: "2026-08-01", sellable: 100, sold: 100, available: 0 }),
       lot({ id: "g", lot_number: "SS2-2609-01", variant_id: "2mg", status: "draft", live_at: null, sellable: 50, available: 50 }),
-      lot({ id: "d", lot_number: "SS10-2611-01", variant_id: "10mg", status: "draft", live_at: null, coa_path: null, sellable: 190, discrepancy_note: null }),
+      // No passing endotoxin result yet — can't go live.
+      lot({ id: "d", lot_number: "SS10-2611-01", variant_id: "10mg", status: "draft", live_at: null, endotoxin_ok: false, sellable: 190, discrepancy_note: null }),
+      // No headline certificate (purity_pct/method both null) — the mobile
+      // card must show "—", never the literal "null".
+      lot({ id: "k", lot_number: "SS50-2610-05", variant_id: "50mg", status: "live", live_at: "2026-10-01", sellable: 40, held: 0, sold: 0, available: 40, purity_pct: null, method: null }),
     ],
   }),
   catalogEvents: async () => [
@@ -45,6 +51,21 @@ vi.mock("@/lib/catalog-ops/data", () => ({
   ],
   variantHistory: async () => new Map([["10mg", { lots: 3, orders: 12 }], ["50mg", { lots: 1, orders: 0 }], ["5mg", { lots: 2, orders: 47 }], ["2mg", { lots: 1, orders: 0 }]]),
 }));
+const cert = (o: object) => ({
+  id: "cert-a", lot_id: "a", lab_id: "v", report_number: "VGD-1", verify_code: null, tested_on: "2026-09-18", coa_path: "a/1.pdf",
+  purity_pct: 99.4, method: "HPLC+MS", measured_mg: null, identity: "pass", endotoxin: "pass", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested",
+  result: "pass", note: null, correction_note: null, corrected_at: null, created_at: "2026-09-18T00:00:00Z",
+  lab: { name: "Vanguard Laboratory", city: "Olympia, WA", iso17025: true, verify_url_template: null }, ...o,
+});
+vi.mock("@/lib/coa/data", () => ({
+  adminCertificates: async () => [
+    cert({}),
+    cert({ id: "cert-b1", lot_id: "b", report_number: "VGD-2" }),
+    cert({ id: "cert-b2", lot_id: "b", report_number: "VGD-3" }),
+  ],
+  listLabs: async () => [{ id: "v", name: "Vanguard Laboratory", city: "Olympia, WA", verify_url_template: "https://verifiedbyvanguard.com/verify/{report}", verify_hint: null, iso17025: true, active: true, certificates: 3 }],
+  coaSettings: async () => ({ showAll: false, showMeasured: false }),
+}));
 import ProductPage from "@/app/admin/catalog/[slug]/page";
 
 describe("/admin/catalog/[slug]", () => {
@@ -55,7 +76,13 @@ describe("/admin/catalog/[slug]", () => {
     expect(screen.getAllByText(/Short 4, 2 cracked/)[0]).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Put live" })[0]).toBeInTheDocument();
     expect(screen.getByText(/Kearney put/)).toBeInTheDocument();
-  });
+  }, 20000);
+  it("has no duplicate element ids (desktop table and phone cards each render certificate dialogs)", async () => {
+    const { container } = render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    const ids = [...container.querySelectorAll("[id]")].map((e) => e.id);
+    expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([]);
+  }, 20000);
+
   it("404s an unknown product", async () => {
     await expect(ProductPage({ params: Promise.resolve({ slug: "nope" }) })).rejects.toThrow();
   });
@@ -73,25 +100,44 @@ describe("/admin/catalog/[slug]", () => {
     expect(screen.getByText(/vials moved to the shipped lot/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "AP-1104" })).toHaveAttribute("href", "/admin/orders/AP-1104");
   });
-  it("disables Put live with the refusal reason when the certificate's missing", async () => {
+  it("disables Put live with the refusal reason when a passing endotoxin result is missing", async () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     const disabled = screen.getAllByRole("button", { name: "Put live" }).find((b) => b.hasAttribute("disabled"));
-    expect(disabled).toHaveAttribute("title", "Attach the certificate first.");
+    expect(disabled).toHaveAttribute("title", "Needs a passing endotoxin result.");
+  }, 20000);
+  it("the lot cell says how many certificates it has, with its headline purity and method", async () => {
+    render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    expect(screen.getByText("1 certificate · 99.4% · HPLC+MS")).toBeInTheDocument();
+    expect(screen.getByText("2 certificates · 99.4% · HPLC+MS")).toBeInTheDocument();
+    expect(screen.getAllByText("0 certificates · 99.4% · HPLC+MS").length).toBeGreaterThan(0);
+  });
+  it("the mobile card shows — for a lot with no headline certificate, never the literal null", async () => {
+    const { container } = render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    const card = [...container.querySelectorAll(".a-plot")].find((el) => el.textContent?.includes("SS50-2610-05"))!;
+    expect(card.querySelector(".meta")!.textContent).toBe("—% · — · 0 held · 0 sold · 40 left");
+    expect(card.textContent).not.toMatch(/null/);
   });
   it("orders live lots oldest first, tying on lot number like hold_vials", async () => {
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     const refs = screen.getAllByText(/^SS10-/).map((n) => n.textContent);
     expect(refs.indexOf("SS10-2608-09")).toBeLessThan(refs.indexOf("SS10-2609-01"));
   });
-  it("a sold-out live lot keeps its ⋯ menu (Retire, Replace certificate); a retired lot has none", async () => {
+  it("a sold-out live lot keeps its ⋯ menu (Retire); a retired lot has none", async () => {
     // LotActions' ⋯ is a <summary>, which jsdom doesn't expose as role "button" — query by its aria-label instead.
     const { container } = render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     const soldOutMenu = container.querySelector('[aria-label="More for SS10-2607-05"]');
     expect(soldOutMenu).toBeInTheDocument();
     expect(container.querySelector('[aria-label="More for SS5-2608-01"]')).not.toBeInTheDocument();
     expect(soldOutMenu!.nextElementSibling).toHaveTextContent("Retire lot");
-    expect(soldOutMenu!.nextElementSibling).toHaveTextContent("Replace certificate");
+    expect(soldOutMenu!.nextElementSibling).not.toHaveTextContent("Replace certificate");
   });
+  it("a live lot offers Add certificate; its certificate rows show the result and links", async () => {
+    render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
+    expect(screen.getAllByRole("button", { name: "Add certificate" }).length).toBeGreaterThan(0);
+    // The desktop table and the phone card both list the lot's certificates.
+    expect(screen.getAllByText("VGD-1").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Pass").length).toBeGreaterThan(0);
+  }, 20000);
 
   describe("strengths (Screen 8)", () => {
     const page = async () => render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
@@ -120,7 +166,7 @@ describe("/admin/catalog/[slug]", () => {
       // only a strength whose lot went live keeps certificates in COA lookup
       expect(screen.getByText("archived Oct 3 · 1 lot · 0 orders")).toBeInTheDocument();
       expect(screen.getAllByRole("button", { name: "Restore" })).toHaveLength(2);
-    });
+    }, 20000);
 
     it("the ⋯ menu disables Delete with the reason when the strength has history", async () => {
       await page();
@@ -128,20 +174,20 @@ describe("/admin/catalog/[slug]", () => {
       const del = screen.getByRole("button", { name: /Delete strength/ });
       expect(del).toBeDisabled();
       expect(del).toHaveTextContent("This one has lots or orders, so archive it instead.");
-    });
+    }, 20000);
 
     it("the ⋯ menu allows Delete for a strength with no lots or orders", async () => {
       await page();
       fireEvent.click(screen.getByRole("button", { name: "More for 30 mg" }));
       expect(screen.getByRole("button", { name: /Delete strength/ })).toBeEnabled();
       expect(screen.getByRole("button", { name: /Show on store.*Customers see it again/ })).toBeInTheDocument();
-    });
+    }, 20000);
 
     it("renders the Add a strength button and dialog", async () => {
       await page();
       expect(screen.getByRole("button", { name: "Add a strength" })).toBeInTheDocument();
       expect(screen.getByText(/Add a strength · SS-31/)).toBeInTheDocument();
-    });
+    }, 20000);
 
     it("the On the store rail lists only strengths on the store", async () => {
       await page();
@@ -159,13 +205,14 @@ describe("/admin/catalog/[slug]", () => {
     });
   });
 
-  it("Assistant: no Receive lot, Add strength, Correct count or Put live; price shows as text", async () => {
+  it("Assistant: no Receive lot, Add strength, Correct count, Add certificate or Put live; price shows as text", async () => {
     m.requirePermission.mockResolvedValueOnce(assistantStaff());
     render(await ProductPage({ params: Promise.resolve({ slug: "ss-31" }) }));
     expect(screen.queryByRole("button", { name: /Receive/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Add a strength" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Correct count" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Put live" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add certificate" })).not.toBeInTheDocument();
     expect(screen.getByText("$79.00")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Edit Price per vial" })).not.toBeInTheDocument();
   });

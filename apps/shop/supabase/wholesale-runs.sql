@@ -149,6 +149,8 @@ alter table customer_events add constraint customer_events_kind_check check (kin
 -- Reconcile: wholesale vials are held on purpose from Pass until the balance
 -- is paid (deposit_paid → balance_due), so those aren't stale holds.
 -- Supersedes lot_integrity in catalog-ops.sql (re-apply this file after it).
+-- lot_stock is defined in coa-library.sql, applied after this file on a fresh database.
+set check_function_bodies = off;
 create or replace function lot_integrity() returns json language sql stable
 set search_path = public, pg_temp as $$
   select json_build_object(
@@ -158,4 +160,5 @@ set search_path = public, pg_temp as $$
                     where h.state = 'held' and o.status not in ('awaiting_payment', 'processing', 'deposit_paid', 'balance_due'))
   )
 $$;
+reset check_function_bodies;
 revoke all on function lot_integrity() from public, anon, authenticated;

@@ -47,7 +47,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   return (
     <div className="a-page">
       <Crumbs items={[{ label: "Catalog & lots" }]} />
-      <div className="a-ph"><div><h1>Catalog &amp; lots</h1><p>Prices, stock and certified lots. Changes show on the store within seconds.</p></div></div>
+      <div className="a-ph"><div><h1>Catalog &amp; lots</h1><p>Prices, stock and certified lots. Changes show on the store within seconds.</p></div><div className="actions"><Link className="a-ulink" href="/admin/catalog/settings">COA settings</Link></div></div>
       <div className="a-only-desk">
         <Kpis items={[
           { label: "Products shown", value: shownProducts, sub: `${hiddenProducts} hidden · ${counts.all} strengths` },

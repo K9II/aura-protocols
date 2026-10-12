@@ -5,11 +5,13 @@ import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
 import { catalogContent } from "@/data/catalog";
-import { addVariant, archiveVariant, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot, replaceCertificate, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, setVariantWholesale, updateDraftLot, variantRow, lotDefaults } from "@/lib/catalog-ops/data";
+import { addVariant, archiveVariant, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, setVariantWholesale, updateDraftLot, variantRow, lotDefaults } from "@/lib/catalog-ops/data";
 import { fillLotCostFromLine, lineById, linkLot } from "@/lib/wholesale/runs-data";
 import {
   isCoaPathFor, isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku, parseStrength,
 } from "@/lib/catalog-ops/rules";
+import { addCertificate, addCorrection, certificateById, deleteDraftCertificate, listLabs, updateDraftCertificate } from "@/lib/coa/data";
+import { CORRECTION_MAX, parseCertificate, TEST_KEYS, type CertInput } from "@/lib/coa/rules";
 import { catalogChangedByOwner } from "@/lib/catalog-live";
 import { alertOwner } from "@/lib/notify";
 
@@ -36,14 +38,30 @@ const variantOf = async (slug: string, variantId: string) => {
 };
 const refresh = (slug: string) => { catalogChangedByOwner(); revalidatePath("/admin/catalog"); revalidatePath(`/admin/catalog/${slug}`); };
 const receiveInput = (f: FormData) => ({
-  lotNumber: str(f, "lotNumber"), purity: str(f, "purity"), method: str(f, "method"), testedOn: str(f, "testedOn"),
-  ordered: str(f, "ordered"), counted: str(f, "counted"), damaged: str(f, "damaged"), note: str(f, "note"), coaPath: str(f, "coaPath"),
+  lotNumber: str(f, "lotNumber"),
+  ordered: str(f, "ordered"), counted: str(f, "counted"), damaged: str(f, "damaged"), note: str(f, "note"),
   supplier: str(f, "supplier"), cost: str(f, "cost"), testCost: str(f, "testCost"), freight: str(f, "freight"), labels: str(f, "labels"),
 });
+const certInput = (f: FormData): CertInput => ({
+  labId: str(f, "labId"), reportNumber: str(f, "reportNumber"), testedOn: str(f, "testedOn"), purity: str(f, "purity"), method: str(f, "method"),
+  measured: str(f, "measured"), coaPath: str(f, "coaPath"), certNote: str(f, "certNote"), result: str(f, "result"), verifyCode: str(f, "verifyCode"),
+  ...Object.fromEntries(TEST_KEYS.map((k) => [`test_${k}`, str(f, `test_${k}`)])) as Pick<CertInput, `test_${(typeof TEST_KEYS)[number]}`>,
+});
+const activeLabIds = async () => new Set((await listLabs()).filter((l) => l.active).map((l) => l.id));
+// Checks the uploaded PDF belongs to this lot's folder and finished uploading.
+async function pdfOk(lotNumber: string, path: string) {
+  return isCoaPathFor(lotNumber, path) && await coaUploaded(path);
+}
 const LIVE_REFUSAL: Record<string, string> = {
-  no_certificate: "Attach the certificate first.",
+  needs_purity: "Needs a passing purity certificate.",
+  needs_endotoxin: "Needs a passing endotoxin result.",
   nothing_sellable: "Nothing to sell — every vial is damaged.",
 };
+const TAKEN = "That report number is already recorded for this lab.";
+// Same precedence as saveCertificateAction: the owner's Failed call wins, then
+// a flagged failed test, then a below-floor purity warning.
+const certWarning = (p: { value: { result: "pass" | "fail" }; warnings: { purity?: string; failedTest?: string } }): string | undefined =>
+  p.value.result === "fail" ? "Recorded as Failed." : p.warnings.failedTest ?? p.warnings.purity;
 
 // Signed upload link for a certificate PDF; the browser uploads straight to
 // storage (server actions cap bodies at 1 MB), then submits the path.
@@ -58,20 +76,18 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
   const owner = await requirePermission("lots.receive");
   const slug = str(f, "slug"), variantId = str(f, "variantId");
   const { c, v } = await variantOf(slug, variantId);
-  const p = parseReceive(receiveInput(f), today());
+  const p = parseReceive(receiveInput(f));
   if (!p.ok) return { fieldErrors: p.fieldErrors };
   const val = p.value;
   const editing = str(f, "lotId");
-  // Editing a draft: what it was before, to spot a rename and changed counts.
+  // Editing a draft: what it was before, to spot changed counts. Certificates
+  // are added/edited/deleted on their own rows, not touched here.
   const prev = editing ? await lotById(uuid(f, "lotId")) : null;
   if (editing && (!prev || prev.status !== "draft")) throw new Error(STALE);
-  if (val.coaPath && prev && prev.lot_number !== val.lotNumber
-      && isCoaPathFor(prev.lot_number, val.coaPath) && !isCoaPathFor(val.lotNumber, val.coaPath)) {
-    return { fieldErrors: { coa: "The certificate was attached under the old lot number — attach it again." } };
-  }
-  if (val.coaPath && !(isCoaPathFor(val.lotNumber, val.coaPath) && await coaUploaded(val.coaPath))) {
-    return { fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } };
-  }
+  // An optional first certificate, only when receiving a new lot.
+  const cert = str(f, "labId") && !editing ? parseCertificate(certInput(f), today(), await activeLabIds()) : null;
+  if (cert && !cert.ok) return { fieldErrors: cert.fieldErrors };
+  if (cert?.ok && !(await pdfOk(val.lotNumber, cert.value.coaPath))) return { fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } };
   let id: string;
   if (editing) {
     id = uuid(f, "lotId");
@@ -82,6 +98,10 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
     const r = await receiveLot(slug, variantId, val, owner.id);
     if (!r.ok) return { fieldErrors: { lotNumber: "That lot number is already used." } };
     id = r.id;
+  }
+  if (cert?.ok) {
+    const r = await addCertificate({ id, slug, variant_id: variantId }, cert.value, owner.id);
+    if (!r.ok) { refresh(slug); return { error: `Saved ${val.lotNumber} as a draft, but that report number is already recorded for this lab — add the certificate from the lot.` }; }
   }
   // A new lot alerts on any discrepancy; an edited draft only when its counts
   // changed and still don't add up (not on every save).
@@ -113,7 +133,8 @@ export async function receiveLotAction(_prev: ActionState, f: FormData): Promise
     throw new Error(STALE);
   }
   refresh(slug);
-  return { ok: `Saved ${val.lotNumber} as a draft.`, ...(p.warnings.purity ? { warning: p.warnings.purity } : {}) };
+  const warning = cert?.ok ? certWarning(cert) : undefined;
+  return { ok: `Saved ${val.lotNumber} as a draft.`, ...(warning ? { warning } : {}) };
 }
 
 export async function putLiveAction(f: FormData): Promise<void> {
@@ -148,16 +169,46 @@ export async function correctCountAction(_prev: ActionState, f: FormData): Promi
   return { ok: p.value.delta < 0 ? `Removed ${vials}.` : `Added ${vials}.` };
 }
 
-export async function replaceCertificateAction(_prev: ActionState, f: FormData): Promise<ActionState> {
+export async function saveCertificateAction(_prev: ActionState, f: FormData): Promise<ActionState> {
   const owner = await requirePermission("lots.receive");
-  const id = uuid(f, "lotId");
-  const lot = await lotById(id);
+  const lot = await lotById(uuid(f, "lotId"));
   if (!lot) throw new Error(STALE);
-  const path = str(f, "coaPath");
-  if (!isCoaPathFor(lot.lot_number, path) || !(await coaUploaded(path))) return { fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } };
-  if (!(await replaceCertificate(id, path, owner.id))) throw new Error(STALE);
+  const p = parseCertificate(certInput(f), today(), await activeLabIds());
+  if (!p.ok) return { fieldErrors: p.fieldErrors };
+  if (!(await pdfOk(lot.lot_number, p.value.coaPath))) return { fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } };
+  const certId = str(f, "certId");
+  const target = { id: lot.id, slug: lot.slug, variant_id: lot.variant_id };
+  if (certId) {
+    if (lot.status !== "draft") throw new Error(STALE);   // locked: add a re-test or a correction instead
+    const r = await updateDraftCertificate(uuid(f, "certId"), target, p.value, owner.id);
+    if (!r.ok && r.taken) return { fieldErrors: { reportNumber: TAKEN } };
+    if (!r.ok) throw new Error(STALE);
+  } else {
+    const r = await addCertificate(target, p.value, owner.id);
+    if (!r.ok) return { fieldErrors: { reportNumber: TAKEN } };
+  }
   refresh(lot.slug);
-  return { ok: "Certificate replaced. The old file stays in the log." };
+  const warning = certWarning(p);
+  return { ok: certId ? "Certificate saved." : "Certificate added.", ...(warning ? { warning } : {}) };
+}
+
+export async function deleteCertificateAction(f: FormData): Promise<void> {
+  const owner = await requirePermission("lots.receive");
+  const c = await certificateById(uuid(f, "certId"));
+  if (!c || c.lot_status !== "draft") throw new Error(STALE);
+  if (!(await deleteDraftCertificate(c.id, { id: c.lot_id, slug: c.slug, variant_id: c.variant_id }, c.report_number, owner.id)).ok) throw new Error(STALE);
+  refresh(c.slug);
+}
+
+export async function correctCertificateAction(_prev: ActionState, f: FormData): Promise<ActionState> {
+  const owner = await requirePermission("lots.receive");
+  const c = await certificateById(uuid(f, "certId"));
+  if (!c) throw new Error(STALE);
+  const note = str(f, "correction").trim().slice(0, CORRECTION_MAX);
+  if (!note) return { fieldErrors: { correction: "Say what was wrong and what's right." } };
+  await addCorrection(c.id, { id: c.lot_id, slug: c.slug, variant_id: c.variant_id }, c.correction_note, note, owner.id);
+  refresh(c.slug);
+  return { ok: "Correction added. Customers see it on the certificate." };
 }
 
 const FIELDS = { price: "price_cents", low: "low_at", sku: "threepl_sku" } as const;

@@ -38,6 +38,7 @@ const PAGE_PERMS: Record<string, string> = {
   "disputes/[id]/evidence.pdf/route.ts": "disputes.view",
   "catalog/page.tsx": "catalog.view",
   "catalog/[slug]/page.tsx": "catalog.view",
+  "catalog/settings/page.tsx": "catalog.view",
   "email/page.tsx": "email.view",
   "email/runs/page.tsx": "email.view",
   "email/campaigns/[id]/page.tsx": "email.view",
@@ -64,11 +65,13 @@ export const ACTION_PERMS: Record<string, Record<string, string>> = {
   },
   "disputes/actions.ts": { saveDisputeDraftAction: "disputes.draft", submitDisputeAction: "disputes.submit", refundEarlyWarningAction: "disputes.warnings", watchEarlyWarningAction: "disputes.warnings" },
   "catalog/actions.ts": {
-    coaUploadAction: "lots.receive", receiveLotAction: "lots.receive", replaceCertificateAction: "lots.receive",
+    coaUploadAction: "lots.receive", receiveLotAction: "lots.receive",
+    saveCertificateAction: "lots.receive", deleteCertificateAction: "lots.receive", correctCertificateAction: "lots.receive",
     putLiveAction: "lots.put_live", retireAction: "lots.put_live", correctCountAction: "stock.correct",
     setFieldAction: "catalog.edit", setShownAction: "catalog.edit", setWholesaleAction: "catalog.edit", addStrengthAction: "catalog.edit", setStrengthShownAction: "catalog.edit",
     archiveStrengthAction: "catalog.edit", restoreStrengthAction: "catalog.edit", deleteStrengthAction: "catalog.edit",
   },
+  "catalog/settings/actions.ts": { setCoaSettingAction: "catalog.edit", saveLabAction: "catalog.edit", setLabActiveAction: "catalog.edit" },
   "email/actions.ts": {
     saveCampaignAction: "email.draft", copyAction: "email.draft", announceAction: "email.draft",
     sendTestAction: "email.send", scheduleAction: "email.send", unscheduleAction: "email.send", sendNowAction: "email.send", stopAction: "email.send",

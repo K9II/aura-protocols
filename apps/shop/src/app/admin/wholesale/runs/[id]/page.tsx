@@ -17,6 +17,7 @@ import {
 } from "@/lib/wholesale/runs";
 import { draftLotsFor, getRun, pastSuppliers, runEvents, supplierPricesFor, runLines, runOrders, type RunEvent } from "@/lib/wholesale/runs-data";
 import { dateTime } from "@/lib/discounts/time";
+import { listLabs } from "@/lib/coa/data";
 import { Crumbs } from "@/components/admin/ui";
 import { OrderStatusChip } from "@/components/admin/orders/bits";
 import { CancelDepositDialog, LinkLotDialog, PassFailButtons, RecordOrderDialog, ResourceButton, RunNotes } from "@/components/admin/wholesale/RunDialogs";
@@ -58,11 +59,17 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   // leaves the total for the owner to type).
   let prices: Record<string, Record<string, number>> = {};
   let recvDefaults: LotDefaults | undefined;
+  let labs: Awaited<ReturnType<typeof listLabs>> = [];
   if (manage) {
     try { prices = await supplierPricesFor([...new Set([...needed.keys(), ...lines.map((l) => strengthKey(l.slug, l.variant_id))])]); }
     catch (err) { console.error("supplier prices read failed:", err); }
     try { recvDefaults = await lotDefaults(); } catch (err) { console.error("lot defaults read failed:", err); }
+    // Not soft: a silent failure here would leave the receive dialog with no
+    // labs to pick from, looking like "no labs configured" instead of a
+    // broken read.
+    labs = await listLabs();
   }
+  const labOptions = labs.filter((l) => l.active);
 
   // Every strength the run's orders need, plus any line already recorded.
   const keys = [...new Set([...needed.keys(), ...lines.map((l) => strengthKey(l.slug, l.variant_id))])];
@@ -125,12 +132,12 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
                   <td className="a-mono a-nw">{r.line?.supplier_ref ?? "—"}</td>
                   <td>{r.lot ? <>
                     <Link className="a-ord" href={`/admin/catalog/${r.slug}`} style={r.stage === "failed" ? { textDecoration: "line-through" } : undefined}>{r.lot.lot_number}</Link>
-                    <span className="muted"> · {r.stage === "passed" ? `held ${r.lot.held} vials` : r.stage === "failed" ? "never sold" : r.lot.coa_path ? "COA ✓" : "no certificate yet"}</span></> : "—"}</td>
+                    <span className="muted"> · {r.stage === "passed" ? `held ${r.lot.held} vials` : r.stage === "failed" ? "never sold" : r.lot.purity_ok && r.lot.endotoxin_ok ? "certificates ✓" : "certificates not complete"}</span></> : "—"}</td>
                   <td><span className={`a-chip ${STAGE_CHIP[r.stage].cls}`}>{STAGE_CHIP[r.stage].text}</span></td>
                   <td className="r a-nw">{manage && (
                     r.stage === "to_order" ? <RecordOrderDialog runId={run.id} runNumber={run.number} cutoffLabel={cutoffLabel} slug={r.slug} variantId={r.variantId} label={label} kits={needed.get(r.k) ?? 0} suppliers={suppliers} choices={choices} prices={prices[r.k] ?? {}} primary />
                     : r.stage === "ordered" ? <span className="a-ws-acts">
-                      <ReceiveLotDialog small primary slug={r.slug} variantId={r.variantId} title={label} prices={prices[r.k]} defaults={recvDefaults}
+                      <ReceiveLotDialog small primary slug={r.slug} variantId={r.variantId} title={label} prices={prices[r.k]} defaults={recvDefaults} labs={labOptions} strength={r.strength}
                         runLine={{ id: r.line!.id, supplier: r.line!.supplier ?? "", cost: r.line!.cost_cents != null ? (r.line!.cost_cents / 100).toFixed(r.line!.cost_cents % 100 ? 2 : 0) : "",
                           vials: ((r.line!.kits_ordered ?? 0) + (r.line!.extra_boxes ?? 0)) * 10 }} />
                       {r.drafts.length > 0 && <LinkLotDialog lineId={r.line!.id} label={label} lots={r.drafts} />}

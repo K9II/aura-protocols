@@ -157,11 +157,15 @@ export function lotsSection(lots: AdminLotRow[], label: (slug: string, variantId
     const name = label(l.slug, l.variant_id), href = `/admin/catalog/${l.slug}`;
     const base = { key: l.id, mono: l.lot_number, href, action: { label: "Open lot", href } };
     // The same test the Put live button uses.
-    if (!liveRefusal({ status: l.status, coaPath: l.coa_path, sellable: l.sellable })) {
-      return { ...base, icon: "check", tone: "slate", title: `${name} is ready to put live`, detail: `Certificate and receiving check done · ${plural(l.sellable, "vial")}` };
+    const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
+    if (!refusal) {
+      return { ...base, icon: "check", tone: "slate", title: `${name} is ready to put live`, detail: `Certificates and receiving check done · ${plural(l.sellable, "vial")}` };
     }
-    if (!l.coa_path) {
+    if (!l.purity_ok) {
       return { ...base, icon: "info", tone: "amb", title: `${name} is missing its certificate`, detail: `Draft · received ${shortDate(l.received_at)} · ${plural(l.counted_qty, "vial")} counted` };
+    }
+    if (!l.endotoxin_ok) {
+      return { ...base, icon: "info", tone: "amb", title: `${name} needs a passing endotoxin result`, detail: "Draft · add the endotoxin report to the lot" };
     }
     return { ...base, icon: "warn", tone: "amb", title: `${name} has nothing to sell`, detail: "Draft · every counted vial is damaged" };
   });
