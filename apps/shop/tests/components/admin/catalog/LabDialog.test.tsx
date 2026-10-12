@@ -15,6 +15,12 @@ describe("LabDialog", () => {
     expect((screen.getByLabelText("Name", { selector: "input" }) as HTMLInputElement).value).toBe("Kestrel Analytical");
     expect((screen.getByLabelText(/City/, { selector: "input" }) as HTMLInputElement).value).toBe("Austin, TX");
   });
+  it("portal: inside the admin shell (.adm) so its styles apply, but outside the caller's form", () => {
+    const { container } = render(<div className="adm"><form><LabDialog portal initial={{ name: "K", city: "" }} /></form></div>);
+    const dialog = container.querySelector(".adm > dialog");
+    expect(dialog).not.toBeNull();
+    expect(container.querySelector("form dialog")).toBeNull();
+  });
   it("portal: the dialog renders under body, not inside the caller's form", () => {
     const { container } = render(<form data-testid="outer"><LabDialog portal initial={{ name: "K", city: "" }} /></form>);
     expect(container.querySelector("dialog")).toBeNull();

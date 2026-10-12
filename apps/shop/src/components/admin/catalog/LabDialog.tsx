@@ -17,7 +17,7 @@ export default function LabDialog({ lab, initial, triggerLabel, portal = false, 
   lab?: Lab;
   initial?: { name: string; city: string | null };   // pre-fill from a certificate the reader couldn't match
   triggerLabel?: string;
-  portal?: boolean;                                   // render the dialog under <body> (when opened from inside another form)
+  portal?: boolean;                                   // render the dialog outside the caller's form, inside the admin shell (.adm) so admin styles apply
   onSaved?: (name: string) => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -75,7 +75,7 @@ export default function LabDialog({ lab, initial, triggerLabel, portal = false, 
       {lab
         ? <button type="button" className="a-btn sm" onClick={() => ref.current?.showModal()}>Edit</button>
         : <button type="button" className="a-btn sm" style={{ marginLeft: "auto" }} onClick={() => ref.current?.showModal()}><Icon name="plus" />{triggerLabel ?? "Add lab"}</button>}
-      {portal ? (mounted ? createPortal(dialog, document.body) : null) : dialog}
+      {portal ? (mounted ? createPortal(dialog, document.querySelector(".adm") ?? document.body) : null) : dialog}
       {state?.ok && !portal && <span className="a-ok" role="status">{state.ok}</span>}
     </>
   );
