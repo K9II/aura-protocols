@@ -685,7 +685,7 @@ main:has(> .pharmacopoeia) {
    the 11-column table scrolled sideways and touched the lot record above it.
    s-pdp's own bottom padding already clears it from the grid; this adds a
    touch more so the heading never sits flush against that padding edge. */
-.pharmacopoeia .s-pdp-certs { padding-top: 4px; }
+.pharmacopoeia .s-pdp-certs { padding-top: 4px; padding-bottom: 56px; }
 .pharmacopoeia .s-pdp-certs:empty { display: none; }
 /* minmax(0,…) lets the single mobile column shrink below its content's min width
    (a bare 1fr kept the spec boxes wider than the screen and they were clipped). */
