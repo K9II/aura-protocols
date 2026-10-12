@@ -4,42 +4,59 @@ import { ownerStaff } from "../../helpers/staff";
 const requirePermission = vi.fn(async () => ownerStaff({ id: "owner", fullName: "Kearney Adams" }));
 const data = {
   receiveLot: vi.fn(), updateDraftLot: vi.fn(), putLotLive: vi.fn(), correctCount: vi.fn(), retireLot: vi.fn(),
-  replaceCertificate: vi.fn(), setVariantField: vi.fn(), setShown: vi.fn(), createCoaUpload: vi.fn(), coaUploaded: vi.fn(), lotById: vi.fn(),
+  setVariantField: vi.fn(), setShown: vi.fn(), createCoaUpload: vi.fn(), coaUploaded: vi.fn(), lotById: vi.fn(),
   variantRow: vi.fn(), addVariant: vi.fn(), setVariantShown: vi.fn(), archiveVariant: vi.fn(), restoreVariant: vi.fn(), deleteVariant: vi.fn(),
   lotDefaults: vi.fn(async () => ({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 })),
+};
+const coaData = {
+  addCertificate: vi.fn(), addCorrection: vi.fn(), certificateById: vi.fn(), deleteDraftCertificate: vi.fn(), listLabs: vi.fn(), updateDraftCertificate: vi.fn(),
 };
 const runs = { lineById: vi.fn(), linkLot: vi.fn(), fillLotCostFromLine: vi.fn() };
 vi.mock("@/lib/wholesale/runs-data", () => runs);
 const catalogChangedByOwner = vi.fn(), alertOwner = vi.fn();
 vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/catalog-ops/data", () => data);
+vi.mock("@/lib/coa/data", () => coaData);
 vi.mock("@/lib/catalog-live", () => ({ catalogChangedByOwner }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const fd = (o: Record<string, string>) => { const f = new FormData(); for (const [k, v] of Object.entries(o)) f.set(k, v); return f; };
 const VALID_UUID = "11111111-1111-4111-8111-111111111111";
-const receive = { slug: "bpc-157", variantId: "10mg", lotNumber: "BPC-2610-03", purity: "99.4", method: "HPLC+MS", testedOn: "2026-10-02", ordered: "200", counted: "196", damaged: "2", note: "Short 4; 2 cracked.", coaPath: "BPC-2610-03/1700000000000.pdf" };
+const LAB = "22222222-2222-4222-8222-222222222222";
+const receive = { slug: "bpc-157", variantId: "10mg", lotNumber: "BPC-2610-03", ordered: "200", counted: "196", damaged: "2", note: "Short 4; 2 cracked." };
+// A valid first certificate (Receive a lot's optional block), matching the LAB fixture below.
+const cert = (o: Record<string, string> = {}) => ({
+  labId: LAB, reportNumber: "VGD-24109", testedOn: "2025-01-01", purity: "99.47", method: "HPLC+MS", measured: "",
+  coaPath: "BPC-2610-03/1700000000000.pdf", certNote: "", result: "pass", verifyCode: "",
+  test_identity: "pass", test_endotoxin: "pass", test_sterility: "not_tested", test_heavy_metals: "not_tested", test_fentanyl: "not_tested",
+  ...o,
+});
 
 describe("catalog actions", () => {
   beforeEach(() => {
-    vi.resetModules(); Object.values(data).forEach((f) => f.mockReset()); Object.values(runs).forEach((f) => f.mockReset()); catalogChangedByOwner.mockReset(); alertOwner.mockReset();
+    vi.resetModules();
+    Object.values(data).forEach((f) => f.mockReset());
+    Object.values(coaData).forEach((f) => f.mockReset());
+    Object.values(runs).forEach((f) => f.mockReset());
+    catalogChangedByOwner.mockReset(); alertOwner.mockReset();
     data.lotDefaults.mockResolvedValue({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 });
     data.variantRow.mockResolvedValue({ strength: "10 mg", shown: true, archived_at: null });
+    coaData.listLabs.mockResolvedValue([{ id: LAB, active: true }]);
   });
 
   it("receive: saves a draft, alerts on a discrepancy, refreshes", async () => {
-    data.coaUploaded.mockResolvedValue(true);
     data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
     const { receiveLotAction } = await import("@/app/admin/catalog/actions");
     const r = await receiveLotAction(null, fd({ ...receive, intent: "draft" }));
     expect(r).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
     expect(alertOwner).toHaveBeenCalledWith("A lot arrived short or damaged", expect.stringContaining("ordered 200, counted 196, damaged 2"));
     expect(catalogChangedByOwner).toHaveBeenCalled();
+    expect(coaData.addCertificate).not.toHaveBeenCalled();
+    expect(data.coaUploaded).not.toHaveBeenCalled();
   });
 
   it("received from a run page: saved as a draft and linked to that run's line (owner-only), cost copied", async () => {
-    data.coaUploaded.mockResolvedValue(true);
     data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
     runs.lineById.mockResolvedValue({ id: VALID_UUID, run_id: "r1", slug: "bpc-157", variant_id: "10mg", supplier: "Nana", cost_cents: 5200 });
     runs.linkLot.mockResolvedValue(true);
@@ -53,7 +70,6 @@ describe("catalog actions", () => {
   });
 
   it("a run line for a different strength is refused", async () => {
-    data.coaUploaded.mockResolvedValue(true);
     data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
     runs.lineById.mockResolvedValue({ id: VALID_UUID, run_id: "r1", slug: "tb-500", variant_id: "10mg" });
     const { receiveLotAction } = await import("@/app/admin/catalog/actions");
@@ -62,7 +78,6 @@ describe("catalog actions", () => {
   });
 
   it("receive + put live goes live in the same step", async () => {
-    data.coaUploaded.mockResolvedValue(true);
     data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
     data.putLotLive.mockResolvedValue("ok");
     const { receiveLotAction } = await import("@/app/admin/catalog/actions");
@@ -70,53 +85,92 @@ describe("catalog actions", () => {
     expect(data.putLotLive).toHaveBeenCalledWith("l9", "owner");
   });
 
-  it("receive refuses a certificate path that wasn't uploaded, and a taken lot number", async () => {
-    data.coaUploaded.mockResolvedValue(false);
-    const { receiveLotAction } = await import("@/app/admin/catalog/actions");
-    expect(await receiveLotAction(null, fd({ ...receive, intent: "draft" }))).toEqual({ fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } });
-    data.coaUploaded.mockResolvedValue(true);
+  it("a taken lot number is a field error", async () => {
     data.receiveLot.mockResolvedValue({ ok: false, taken: true });
+    const { receiveLotAction } = await import("@/app/admin/catalog/actions");
     expect(await receiveLotAction(null, fd({ ...receive, intent: "draft" }))).toEqual({ fieldErrors: { lotNumber: "That lot number is already used." } });
   });
 
-  it.each([
-    ["a path under another lot", "OTHER-LOT/1700000000000.pdf"],
-    ["a path traversal attempt", "BPC-2610-03/../1700000000000.pdf"],
-  ])("receive refuses %s without ever checking storage or inserting", async (_label, coaPath) => {
-    const { receiveLotAction } = await import("@/app/admin/catalog/actions");
-    expect(await receiveLotAction(null, fd({ ...receive, coaPath, intent: "draft" })))
-      .toEqual({ fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } });
-    expect(data.coaUploaded).not.toHaveBeenCalled();
-    expect(data.receiveLot).not.toHaveBeenCalled();
-  });
-
   it("a taken lot number does not refresh the live catalog", async () => {
-    data.coaUploaded.mockResolvedValue(true);
     data.receiveLot.mockResolvedValue({ ok: false, taken: true });
     const { receiveLotAction } = await import("@/app/admin/catalog/actions");
     await receiveLotAction(null, fd({ ...receive, intent: "draft" }));
     expect(catalogChangedByOwner).not.toHaveBeenCalled();
   });
 
-  it("receive + live with no certificate stays a draft and says why", async () => {
-    data.coaUploaded.mockResolvedValue(true);
+  it.each([
+    ["needs_purity", "Saved as a draft. Needs a passing purity certificate."],
+    ["needs_endotoxin", "Saved as a draft. Needs a passing endotoxin result."],
+    ["nothing_sellable", "Saved as a draft. Nothing to sell — every vial is damaged."],
+  ])("receive + live refused as %s stays a draft and says why", async (reason, message) => {
     data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
-    data.putLotLive.mockResolvedValue("no_certificate");
+    data.putLotLive.mockResolvedValue(reason);
     const { receiveLotAction } = await import("@/app/admin/catalog/actions");
-    expect(await receiveLotAction(null, fd({ ...receive, counted: "200", damaged: "0", note: "", intent: "live" })))
-      .toEqual({ error: "Saved as a draft. Attach the certificate first." });
+    expect(await receiveLotAction(null, fd({ ...receive, counted: "200", damaged: "0", note: "", intent: "live" }))).toEqual({ error: message });
+  });
+
+  describe("with an optional first certificate", () => {
+    it("saves the lot and the certificate", async () => {
+      data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
+      data.coaUploaded.mockResolvedValue(true);
+      coaData.addCertificate.mockResolvedValue({ ok: true, id: "c1" });
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      const r = await receiveLotAction(null, fd({ ...receive, ...cert(), intent: "draft" }));
+      expect(r).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
+      expect(coaData.addCertificate).toHaveBeenCalledWith(
+        { id: "l9", slug: "bpc-157", variant_id: "10mg" },
+        expect.objectContaining({ reportNumber: "VGD-24109", labId: LAB }),
+        "owner",
+      );
+    });
+
+    it("a report number already recorded for this lab is reported after the lot is saved as a draft", async () => {
+      data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
+      data.coaUploaded.mockResolvedValue(true);
+      coaData.addCertificate.mockResolvedValue({ ok: false, taken: true });
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      const r = await receiveLotAction(null, fd({ ...receive, ...cert(), intent: "draft" }));
+      expect(r).toEqual({ error: "Saved BPC-2610-03 as a draft, but that report number is already recorded for this lab — add the certificate from the lot." });
+      expect(catalogChangedByOwner).toHaveBeenCalled();
+    });
+
+    it("refuses a certificate PDF outside the lot's folder before ever saving the lot", async () => {
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      const r = await receiveLotAction(null, fd({ ...receive, ...cert({ coaPath: "OTHER-LOT/1700000000000.pdf" }), intent: "draft" }));
+      expect(r).toEqual({ fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } });
+      expect(data.receiveLot).not.toHaveBeenCalled();
+      expect(data.coaUploaded).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["a path under another lot", "OTHER-LOT/1700000000000.pdf"],
+      ["a path traversal attempt", "BPC-2610-03/../1700000000000.pdf"],
+    ])("refuses %s without ever checking storage or inserting", async (_label, coaPath) => {
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      expect(await receiveLotAction(null, fd({ ...receive, ...cert({ coaPath }), intent: "draft" })))
+        .toEqual({ fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } });
+      expect(data.coaUploaded).not.toHaveBeenCalled();
+      expect(data.receiveLot).not.toHaveBeenCalled();
+    });
+
+    it("an invalid certificate field is a field error and nothing is saved", async () => {
+      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
+      const r = await receiveLotAction(null, fd({ ...receive, ...cert({ result: "" }), intent: "draft" }));
+      expect(r?.fieldErrors?.result).toBe("Pick Pass or Failed.");
+      expect(data.receiveLot).not.toHaveBeenCalled();
+      expect(coaData.addCertificate).not.toHaveBeenCalled();
+    });
   });
 
   describe("editing a draft", () => {
     // The draft as saved before this edit: same number, full count.
     const draft = (o: Record<string, unknown> = {}) => ({
-      id: VALID_UUID, lot_number: "BPC-2610-03", slug: "bpc-157", status: "draft", coa_path: "BPC-2610-03/1700000000000.pdf",
+      id: VALID_UUID, lot_number: "BPC-2610-03", slug: "bpc-157", status: "draft",
       ordered_qty: 200, counted_qty: 200, damaged_qty: 0, ...o,
     });
     beforeEach(() => { data.lotById.mockResolvedValue(draft()); });
 
     it("fires the discrepancy alert when the counts change into a discrepancy", async () => {
-      data.coaUploaded.mockResolvedValue(true);
       data.updateDraftLot.mockResolvedValue({ ok: true });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
       await receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" }));
@@ -125,16 +179,14 @@ describe("catalog actions", () => {
 
     it("re-saving a draft with the same discrepancy does not alert again", async () => {
       data.lotById.mockResolvedValue(draft({ counted_qty: 196, damaged_qty: 2 }));
-      data.coaUploaded.mockResolvedValue(true);
       data.updateDraftLot.mockResolvedValue({ ok: true });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
-      expect(await receiveLotAction(null, fd({ ...receive, purity: "99.6", lotId: VALID_UUID, intent: "draft" }))).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
+      expect(await receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" }))).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
       expect(alertOwner).not.toHaveBeenCalled();
     });
 
     it("changed counts that now add up do not alert", async () => {
       data.lotById.mockResolvedValue(draft({ counted_qty: 196, damaged_qty: 2 }));
-      data.coaUploaded.mockResolvedValue(true);
       data.updateDraftLot.mockResolvedValue({ ok: true });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
       await receiveLotAction(null, fd({ ...receive, counted: "200", damaged: "0", note: "", lotId: VALID_UUID, intent: "draft" }));
@@ -143,28 +195,20 @@ describe("catalog actions", () => {
 
     it("a different discrepancy alerts again", async () => {
       data.lotById.mockResolvedValue(draft({ counted_qty: 196, damaged_qty: 2 }));
-      data.coaUploaded.mockResolvedValue(true);
       data.updateDraftLot.mockResolvedValue({ ok: true });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
       await receiveLotAction(null, fd({ ...receive, counted: "190", lotId: VALID_UUID, intent: "draft" }));
       expect(alertOwner).toHaveBeenCalledWith("A lot arrived short or damaged", expect.stringContaining("ordered 200, counted 190, damaged 2"));
     });
 
-    it("renaming a lot whose certificate was attached under the old number asks to attach it again", async () => {
-      data.lotById.mockResolvedValue(draft({ lot_number: "BPC-2610-OLD", coa_path: "BPC-2610-OLD/1700000000000.pdf" }));
-      const { receiveLotAction } = await import("@/app/admin/catalog/actions");
-      expect(await receiveLotAction(null, fd({ ...receive, coaPath: "BPC-2610-OLD/1700000000000.pdf", lotId: VALID_UUID, intent: "draft" })))
-        .toEqual({ fieldErrors: { coa: "The certificate was attached under the old lot number — attach it again." } });
-      expect(data.coaUploaded).not.toHaveBeenCalled();
-      expect(data.updateDraftLot).not.toHaveBeenCalled();
-    });
-
-    it("renaming with a certificate re-attached under the new number saves", async () => {
-      data.lotById.mockResolvedValue(draft({ lot_number: "BPC-2610-OLD", coa_path: "BPC-2610-OLD/1700000000000.pdf" }));
-      data.coaUploaded.mockResolvedValue(true);
+    it("ignores any lab/certificate fields — certificates are added, edited and deleted on their own rows", async () => {
       data.updateDraftLot.mockResolvedValue({ ok: true });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
-      expect(await receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" }))).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
+      const r = await receiveLotAction(null, fd({ ...receive, ...cert(), lotId: VALID_UUID, intent: "draft" }));
+      expect(r).toEqual({ ok: "Saved BPC-2610-03 as a draft." });
+      expect(coaData.listLabs).not.toHaveBeenCalled();
+      expect(coaData.addCertificate).not.toHaveBeenCalled();
+      expect(data.coaUploaded).not.toHaveBeenCalled();
     });
 
     it("a lot that's gone or no longer a draft throws (stale) before saving", async () => {
@@ -177,7 +221,6 @@ describe("catalog actions", () => {
     });
 
     it("a taken lot number is a field error", async () => {
-      data.coaUploaded.mockResolvedValue(true);
       data.updateDraftLot.mockResolvedValue({ ok: false, taken: true });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
       expect(await receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" })))
@@ -185,7 +228,6 @@ describe("catalog actions", () => {
     });
 
     it("a lot that's no longer a draft throws (stale)", async () => {
-      data.coaUploaded.mockResolvedValue(true);
       data.updateDraftLot.mockResolvedValue({ ok: false });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
       await expect(receiveLotAction(null, fd({ ...receive, lotId: VALID_UUID, intent: "draft" }))).rejects.toThrow(/reload/);
@@ -196,6 +238,12 @@ describe("catalog actions", () => {
     data.putLotLive.mockResolvedValue("not_draft");
     const { putLiveAction } = await import("@/app/admin/catalog/actions");
     await expect(putLiveAction(fd({ lotId: VALID_UUID }))).rejects.toThrow(/reload/);
+  });
+
+  it("put live maps a refusal reason to its message", async () => {
+    data.putLotLive.mockResolvedValue("needs_purity");
+    const { putLiveAction } = await import("@/app/admin/catalog/actions");
+    await expect(putLiveAction(fd({ lotId: VALID_UUID }))).rejects.toThrow("Needs a passing purity certificate.");
   });
 
   it("a malformed lotId throws before touching the database", async () => {
@@ -220,38 +268,136 @@ describe("catalog actions", () => {
     expect(await correctCountAction(null, fd({ lotId: VALID_UUID, direction: "add", vials: "3", reason: "found", note: "" }))).toEqual({ ok: "Added 3 vials." });
   });
 
-  describe("replaceCertificateAction", () => {
-    it("refuses a path under another lot without checking storage", async () => {
-      data.lotById.mockResolvedValue({ lot_number: "BPC-2610-03", slug: "bpc-157" });
-      const { replaceCertificateAction } = await import("@/app/admin/catalog/actions");
-      expect(await replaceCertificateAction(null, fd({ lotId: VALID_UUID, coaPath: "OTHER-LOT/1700000000000.pdf" })))
+  describe("saveCertificateAction", () => {
+    beforeEach(() => {
+      data.lotById.mockResolvedValue({ id: VALID_UUID, lot_number: "BPC-2610-03", slug: "bpc-157", variant_id: "10mg", status: "live" });
+    });
+
+    it("refuses a PDF path outside the lot's folder without inserting", async () => {
+      const { saveCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await saveCertificateAction(null, fd({ lotId: VALID_UUID, ...cert({ coaPath: "OTHER-LOT/1700000000000.pdf" }) })))
         .toEqual({ fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } });
       expect(data.coaUploaded).not.toHaveBeenCalled();
-      expect(data.replaceCertificate).not.toHaveBeenCalled();
+      expect(coaData.addCertificate).not.toHaveBeenCalled();
     });
 
-    it("refuses when the object is missing from storage", async () => {
-      data.lotById.mockResolvedValue({ lot_number: "BPC-2610-03", slug: "bpc-157" });
-      data.coaUploaded.mockResolvedValue(false);
-      const { replaceCertificateAction } = await import("@/app/admin/catalog/actions");
-      expect(await replaceCertificateAction(null, fd({ lotId: VALID_UUID, coaPath: "BPC-2610-03/1700000000000.pdf" })))
-        .toEqual({ fieldErrors: { coa: "The certificate didn't finish uploading — attach it again." } });
-    });
-
-    it("on success, validates against the DB's own lot number and refreshes", async () => {
-      data.lotById.mockResolvedValue({ lot_number: "BPC-2610-03", slug: "bpc-157" });
+    it("on a live lot adds (never edits) and returns 'Certificate added.'", async () => {
       data.coaUploaded.mockResolvedValue(true);
-      data.replaceCertificate.mockResolvedValue(true);
-      const { replaceCertificateAction } = await import("@/app/admin/catalog/actions");
-      expect(await replaceCertificateAction(null, fd({ lotId: VALID_UUID, coaPath: "BPC-2610-03/1700000000000.pdf" })))
-        .toEqual({ ok: "Certificate replaced. The old file stays in the log." });
+      coaData.addCertificate.mockResolvedValue({ ok: true, id: "c1" });
+      const { saveCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await saveCertificateAction(null, fd({ lotId: VALID_UUID, ...cert() }))).toEqual({ ok: "Certificate added." });
+      expect(coaData.addCertificate).toHaveBeenCalledWith({ id: VALID_UUID, slug: "bpc-157", variant_id: "10mg" }, expect.objectContaining({ reportNumber: "VGD-24109" }), "owner");
       expect(catalogChangedByOwner).toHaveBeenCalled();
     });
 
-    it("throws when the lot no longer exists", async () => {
+    it("on a draft lot with a certId edits", async () => {
+      data.lotById.mockResolvedValue({ id: VALID_UUID, lot_number: "BPC-2610-03", slug: "bpc-157", variant_id: "10mg", status: "draft" });
+      data.coaUploaded.mockResolvedValue(true);
+      coaData.updateDraftCertificate.mockResolvedValue({ ok: true });
+      const { saveCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await saveCertificateAction(null, fd({ lotId: VALID_UUID, certId: VALID_UUID, ...cert() }))).toEqual({ ok: "Certificate saved." });
+      expect(coaData.updateDraftCertificate).toHaveBeenCalledWith(VALID_UUID, { id: VALID_UUID, slug: "bpc-157", variant_id: "10mg" }, expect.objectContaining({ reportNumber: "VGD-24109" }), "owner");
+    });
+
+    it("editing a certificate on a live lot is refused (locked) — add a re-test instead", async () => {
+      data.coaUploaded.mockResolvedValue(true);
+      const { saveCertificateAction } = await import("@/app/admin/catalog/actions");
+      await expect(saveCertificateAction(null, fd({ lotId: VALID_UUID, certId: VALID_UUID, ...cert() }))).rejects.toThrow(/reload/);
+      expect(coaData.updateDraftCertificate).not.toHaveBeenCalled();
+    });
+
+    it("a taken report number is a field error", async () => {
+      data.coaUploaded.mockResolvedValue(true);
+      coaData.addCertificate.mockResolvedValue({ ok: false, taken: true });
+      const { saveCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await saveCertificateAction(null, fd({ lotId: VALID_UUID, ...cert() })))
+        .toEqual({ fieldErrors: { reportNumber: "That report number is already recorded for this lab." } });
+    });
+
+    it("a fail result with a note returns ok plus a Recorded as Failed warning", async () => {
+      data.coaUploaded.mockResolvedValue(true);
+      coaData.addCertificate.mockResolvedValue({ ok: true, id: "c1" });
+      const { saveCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await saveCertificateAction(null, fd({ lotId: VALID_UUID, ...cert({ result: "fail", certNote: "Short fill." }) })))
+        .toEqual({ ok: "Certificate added.", warning: "Recorded as Failed." });
+    });
+
+    it("Pass with a failed test saves and warns which test failed", async () => {
+      data.coaUploaded.mockResolvedValue(true);
+      coaData.addCertificate.mockResolvedValue({ ok: true, id: "c1" });
+      const { saveCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await saveCertificateAction(null, fd({ lotId: VALID_UUID, ...cert({ test_endotoxin: "fail" }) })))
+        .toEqual({ ok: "Certificate added.", warning: "Saved as Pass although Endotoxin failed on this report." });
+    });
+
+    it("throws stale when the lot no longer exists", async () => {
       data.lotById.mockResolvedValue(null);
-      const { replaceCertificateAction } = await import("@/app/admin/catalog/actions");
-      await expect(replaceCertificateAction(null, fd({ lotId: VALID_UUID, coaPath: "X/1700000000000.pdf" }))).rejects.toThrow(/reload/);
+      const { saveCertificateAction } = await import("@/app/admin/catalog/actions");
+      await expect(saveCertificateAction(null, fd({ lotId: VALID_UUID, ...cert() }))).rejects.toThrow(/reload/);
+    });
+
+    it("an invalid certificate field is a field error, without checking storage or inserting", async () => {
+      const { saveCertificateAction } = await import("@/app/admin/catalog/actions");
+      const r = await saveCertificateAction(null, fd({ lotId: VALID_UUID, ...cert({ result: "" }) }));
+      expect(r?.fieldErrors?.result).toBe("Pick Pass or Failed.");
+      expect(data.coaUploaded).not.toHaveBeenCalled();
+      expect(coaData.addCertificate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("deleteCertificateAction", () => {
+    it("deletes a draft certificate and refreshes", async () => {
+      coaData.certificateById.mockResolvedValue({ id: VALID_UUID, lot_id: "l1", slug: "bpc-157", variant_id: "10mg", lot_status: "draft", report_number: "VGD-24109" });
+      coaData.deleteDraftCertificate.mockResolvedValue({ ok: true });
+      const { deleteCertificateAction } = await import("@/app/admin/catalog/actions");
+      await deleteCertificateAction(fd({ certId: VALID_UUID }));
+      expect(coaData.deleteDraftCertificate).toHaveBeenCalledWith(VALID_UUID, { id: "l1", slug: "bpc-157", variant_id: "10mg" }, "VGD-24109", "owner");
+      expect(catalogChangedByOwner).toHaveBeenCalled();
+    });
+
+    it("a live lot's certificate throws stale", async () => {
+      coaData.certificateById.mockResolvedValue({ id: VALID_UUID, lot_id: "l1", slug: "bpc-157", variant_id: "10mg", lot_status: "live", report_number: "VGD-24109" });
+      const { deleteCertificateAction } = await import("@/app/admin/catalog/actions");
+      await expect(deleteCertificateAction(fd({ certId: VALID_UUID }))).rejects.toThrow(/reload/);
+      expect(coaData.deleteDraftCertificate).not.toHaveBeenCalled();
+    });
+
+    it("a missing certificate throws stale", async () => {
+      coaData.certificateById.mockResolvedValue(null);
+      const { deleteCertificateAction } = await import("@/app/admin/catalog/actions");
+      await expect(deleteCertificateAction(fd({ certId: VALID_UUID }))).rejects.toThrow(/reload/);
+    });
+
+    it("the SQL lock winning a race throws stale", async () => {
+      coaData.certificateById.mockResolvedValue({ id: VALID_UUID, lot_id: "l1", slug: "bpc-157", variant_id: "10mg", lot_status: "draft", report_number: "VGD-24109" });
+      coaData.deleteDraftCertificate.mockResolvedValue({ ok: false });
+      const { deleteCertificateAction } = await import("@/app/admin/catalog/actions");
+      await expect(deleteCertificateAction(fd({ certId: VALID_UUID }))).rejects.toThrow(/reload/);
+    });
+  });
+
+  describe("correctCertificateAction", () => {
+    it("an empty note is a field error", async () => {
+      coaData.certificateById.mockResolvedValue({ id: VALID_UUID, lot_id: "l1", slug: "bpc-157", variant_id: "10mg", correction_note: null });
+      const { correctCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await correctCertificateAction(null, fd({ certId: VALID_UUID, correction: "   " })))
+        .toEqual({ fieldErrors: { correction: "Say what was wrong and what's right." } });
+      expect(coaData.addCorrection).not.toHaveBeenCalled();
+    });
+
+    it("adds a correction with the old note and confirms", async () => {
+      coaData.certificateById.mockResolvedValue({ id: VALID_UUID, lot_id: "l1", slug: "bpc-157", variant_id: "10mg", correction_note: "Old note." });
+      const { correctCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await correctCertificateAction(null, fd({ certId: VALID_UUID, correction: "Report number was mistyped; corrected to VGD-24109." })))
+        .toEqual({ ok: "Correction added. Customers see it on the certificate." });
+      expect(coaData.addCorrection).toHaveBeenCalledWith(VALID_UUID, { id: "l1", slug: "bpc-157", variant_id: "10mg" }, "Old note.", "Report number was mistyped; corrected to VGD-24109.", "owner");
+      expect(catalogChangedByOwner).toHaveBeenCalled();
+    });
+
+    it("throws stale when the certificate no longer exists", async () => {
+      coaData.certificateById.mockResolvedValue(null);
+      const { correctCertificateAction } = await import("@/app/admin/catalog/actions");
+      await expect(correctCertificateAction(null, fd({ certId: VALID_UUID, correction: "x" }))).rejects.toThrow(/reload/);
     });
   });
 
@@ -305,7 +451,6 @@ describe("catalog actions", () => {
 
   describe("strengths in the database", () => {
     it("receive into a hidden strength works; into an archived one throws (stale)", async () => {
-      data.coaUploaded.mockResolvedValue(true);
       data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });
       data.variantRow.mockResolvedValue({ strength: "30 mg", shown: false, archived_at: null });
       const { receiveLotAction } = await import("@/app/admin/catalog/actions");
@@ -394,7 +539,9 @@ describe("catalog actions", () => {
       ["putLiveAction", (m) => m.putLiveAction(fd({ lotId: VALID_UUID }))],
       ["retireAction", (m) => m.retireAction(fd({ lotId: VALID_UUID }))],
       ["correctCountAction", (m) => m.correctCountAction(null, fd({ lotId: VALID_UUID, direction: "add", vials: "1", reason: "found", note: "" }))],
-      ["replaceCertificateAction", (m) => m.replaceCertificateAction(null, fd({ lotId: VALID_UUID, coaPath: "X/1700000000000.pdf" }))],
+      ["saveCertificateAction", (m) => m.saveCertificateAction(null, fd({ lotId: VALID_UUID, ...cert() }))],
+      ["deleteCertificateAction", (m) => m.deleteCertificateAction(fd({ certId: VALID_UUID }))],
+      ["correctCertificateAction", (m) => m.correctCertificateAction(null, fd({ certId: VALID_UUID, correction: "x" }))],
       ["setFieldAction", (m) => m.setFieldAction(null, fd({ slug: "ss-31", variantId: "50mg", field: "price", value: "$1" }))],
       ["setShownAction", (m) => m.setShownAction(fd({ slug: "bpc-157", shown: "false" }))],
       ["addStrengthAction", (m) => m.addStrengthAction(null, fd({ slug: "ss-31", amount: "30", unit: "mg", price: "99", lowAt: "10", sku: "" }))],
@@ -408,7 +555,7 @@ describe("catalog actions", () => {
       requirePermission.mockRejectedValueOnce(new Error("NOT_FOUND"));
       const m = await import("@/app/admin/catalog/actions");
       await expect(run(m)).rejects.toThrow("NOT_FOUND");
-      Object.values(data).forEach((f) => expect(f).not.toHaveBeenCalled());
+      [...Object.values(data), ...Object.values(coaData)].forEach((f) => expect(f).not.toHaveBeenCalled());
     });
   });
 });

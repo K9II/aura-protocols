@@ -1,0 +1,37 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requirePermission } from "@/lib/dal";
+import { catalogChangedByOwner } from "@/lib/catalog-live";
+import { saveLab, setCoaSetting, setLabActive } from "@/lib/coa/data";
+import { parseLab } from "@/lib/coa/rules";
+import type { ActionState } from "@/app/admin/catalog/actions";
+
+const str = (f: FormData, k: string) => String(f.get(k) ?? "");
+const refresh = () => { catalogChangedByOwner(); revalidatePath("/admin/catalog/settings"); };
+
+export async function setCoaSettingAction(f: FormData): Promise<void> {
+  await requirePermission("catalog.edit");
+  const key = str(f, "key");
+  if (key !== "showAll" && key !== "showMeasured") throw new Error("Unknown setting.");
+  await setCoaSetting(key, str(f, "on") === "true");
+  refresh();
+}
+
+export async function saveLabAction(_prev: ActionState, f: FormData): Promise<ActionState> {
+  await requirePermission("catalog.edit");
+  const id = str(f, "labId") ? z.string().uuid().parse(str(f, "labId")) : null;
+  const p = parseLab({ name: str(f, "name"), city: str(f, "city"), verify: str(f, "verify"), iso: str(f, "iso"), hint: str(f, "hint") });
+  if (!p.ok) return { fieldErrors: p.fieldErrors };
+  const r = await saveLab(id, p.value);
+  if (!r.ok) return { fieldErrors: { name: "A lab with that name already exists." } };
+  refresh();
+  return { ok: id ? "Lab saved." : "Lab added." };
+}
+
+export async function setLabActiveAction(f: FormData): Promise<void> {
+  await requirePermission("catalog.edit");
+  await setLabActive(z.string().uuid().parse(str(f, "labId")), str(f, "active") === "true");
+  refresh();
+}
