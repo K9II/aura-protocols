@@ -5,8 +5,11 @@ export const EXTERNAL_REL = "noopener noreferrer";
 // Imported by next.config.ts — keep this file free of "@/" imports.
 export const BLOG_PUBLISHED = false;
 
-// Customer support mailbox — Kearney must confirm it receives mail before unpause.
+// Customer mailboxes (aliases; admin@ gets internal mail only). support@ is
+// general questions; orders@ is anything about a placed order — order emails'
+// Reply-To and footer, and the refund/damage steps on the Refund Policy.
 export const SUPPORT_EMAIL = "support@auraprotocols.com";
+export const ORDERS_EMAIL = "orders@auraprotocols.com";
 
 // The purity the site promises (homepage "99% purity floor"). The receive-a-lot
 // dialog warns below it.

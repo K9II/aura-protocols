@@ -1,6 +1,6 @@
 import { escapeHtml as e, usd } from "@/lib/html";
 import type { OrderRow } from "@/lib/orders";
-import { SUPPORT_EMAIL } from "@/lib/constants";
+import { ORDERS_EMAIL, SUPPORT_EMAIL } from "@/lib/constants";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 import { dateLabel } from "@/lib/today/time";
 import { compoundTitle } from "@/lib/catalog";
@@ -20,12 +20,18 @@ export function trackingUrl(carrier: string, number: string): string {
 
 const RUO = "All products are sold for laboratory research use only. Not for human or animal consumption.";
 
-export function shell(title: string, body: string): string {
+export function shell(title: string, body: string, contact: string = SUPPORT_EMAIL): string {
   return `<div style="font-family:Georgia,serif;color:#1C1A15;max-width:560px">
 <p style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#A32B1F">Aura Protocols</p>
 <h1 style="font-weight:400;font-size:26px;margin:0 0 16px">${e(title)}</h1>${body}
-<p style="font-size:12px;color:#4A4438;border-top:1px solid #C9C2AE;padding-top:12px;margin-top:24px">${RUO}<br>Questions: ${e(SUPPORT_EMAIL)}</p></div>`;
+<p style="font-size:12px;color:#4A4438;border-top:1px solid #C9C2AE;padding-top:12px;margin-top:24px">${RUO}<br>Questions: ${e(contact)}</p></div>`;
 }
+
+// Customer email about an order: footer and replies go to the orders mailbox.
+function orderShell(title: string, body: string): string {
+  return shell(title, body, ORDERS_EMAIL);
+}
+const ORDER_REPLY = { replyTo: ORDERS_EMAIL } as const;
 
 function itemsTable(o: OrderRow): string {
   const rows = (o.order_items ?? []).map((i) =>
@@ -48,8 +54,9 @@ function shipTo(o: OrderRow): string {
 
 export function orderConfirmationEmail(o: OrderRow) {
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} confirmed`,
-    html: shell(`Order ${o.order_number} confirmed`, `<p>Thank you — your payment was received. Each item lists the lot it ships from; the certificate for every lot is on our COA lookup.</p>${itemsTable(o)}${shipTo(o)}`),
+    html: orderShell(`Order ${o.order_number} confirmed`, `<p>Thank you — your payment was received. Each item lists the lot it ships from; the certificate for every lot is on our COA lookup.</p>${itemsTable(o)}${shipTo(o)}`),
   };
 }
 
@@ -58,8 +65,9 @@ export function orderConfirmationEmail(o: OrderRow) {
 export function noChargeEmail(o: OrderRow) {
   const items = (o.order_items ?? []).map((i) => `<li>${e(i.compound_name)} · ${e(i.strength)} × ${i.pack_qty * i.quantity}</li>`).join("");
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} is on its way soon`,
-    html: shell(`Order ${o.order_number}`, `<p>We're sending you the items below at no charge. You'll get a tracking email when they ship. Each item ships from a lot whose certificate is on our COA lookup.</p><ul>${items}</ul>${shipTo(o)}`),
+    html: orderShell(`Order ${o.order_number}`, `<p>We're sending you the items below at no charge. You'll get a tracking email when they ship. Each item ships from a lot whose certificate is on our COA lookup.</p><ul>${items}</ul>${shipTo(o)}`),
   };
 }
 
@@ -73,16 +81,18 @@ export function ownerNewOrderEmail(o: OrderRow) {
 export function shippedEmail(o: OrderRow) {
   const url = o.tracking_number ? trackingUrl(o.carrier ?? "usps", o.tracking_number) : null;
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} has shipped`,
-    html: shell(`Order ${o.order_number} has shipped`,
+    html: orderShell(`Order ${o.order_number} has shipped`,
       `<p>${url ? `Tracking: <a href="${e(url)}">${e(o.tracking_number ?? "")}</a>` : "Your order is on its way."}</p>${shipTo(o)}`),
   };
 }
 
 export function achFailedEmail(o: OrderRow) {
   return {
+    ...ORDER_REPLY,
     subject: `Payment for order ${o.order_number} didn't go through`,
-    html: shell(`Payment didn't go through`, `<p>Your bank payment for order ${e(o.order_number)} was declined, so the order has been cancelled and nothing was charged. You're welcome to place it again with a card or another bank account.</p>`),
+    html: orderShell(`Payment didn't go through`, `<p>Your bank payment for order ${e(o.order_number)} was declined, so the order has been cancelled and nothing was charged. You're welcome to place it again with a card or another bank account.</p>`),
   };
 }
 
@@ -94,8 +104,9 @@ export function orderRefundedEmail(o: OrderRow) {
     o.store_credit_cents > 0 ? `${usd(o.store_credit_cents)} back to your store credit` : null,
   ].filter(Boolean).join(" and ");
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} was cancelled and refunded`,
-    html: shell(`Order ${o.order_number} cancelled`, `<p>Order ${e(o.order_number)} was cancelled before it shipped and refunded in full: ${parts}.${charged > 0 ? " Card refunds usually appear within 5–10 business days, depending on your bank." : ""}</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
+    html: orderShell(`Order ${o.order_number} cancelled`, `<p>Order ${e(o.order_number)} was cancelled before it shipped and refunded in full: ${parts}.${charged > 0 ? " Card refunds usually appear within 5–10 business days, depending on your bank." : ""}</p><p>Questions about this order? Email ${e(ORDERS_EMAIL)}.</p>`),
   };
 }
 
@@ -107,8 +118,9 @@ export function orderRefundedAfterShipEmail(o: OrderRow, s: { cardCents: number;
     s.creditBackCents + s.cardToCreditCents > 0 ? `${usd(s.creditBackCents + s.cardToCreditCents)} to your store credit, available right away` : null,
   ].filter(Boolean).join(" and ");
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} was refunded`,
-    html: shell(`Order ${o.order_number} refunded`, `<p>We've refunded order ${e(o.order_number)}: ${parts}.</p><p>Questions about this order? Email ${e(SUPPORT_EMAIL)}.</p>`),
+    html: orderShell(`Order ${o.order_number} refunded`, `<p>We've refunded order ${e(o.order_number)}: ${parts}.</p><p>Questions about this order? Email ${e(ORDERS_EMAIL)}.</p>`),
   };
 }
 
@@ -133,16 +145,18 @@ export function wholesaleDepositEmail(o: OrderRow, d: { testedAbout: string; shi
     ? `<p>Your deposit is refundable until ${e(cutoff)} — cancel from your order page.</p>`
     : `<p>Your deposit is refundable until the order-by date — we'll confirm it by email.</p>`;
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} — deposit received`,
-    html: shell(`Order ${o.order_number} — deposit received`,
+    html: orderShell(`Order ${o.order_number} — deposit received`,
       `<p>Thank you — your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was received. Your kits are made to order with this production run.</p>${kitsTable(o)}${datesLine}<p>Balance when your lot passes testing: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax). We'll email you a link to pay it; it's due within 7 days.</p>${refundableLine}${shipTo(o)}`),
   };
 }
 
 export function wholesaleCancelledEmail(o: OrderRow) {
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} cancelled — deposit refunded`,
-    html: shell(`Order ${o.order_number} cancelled`,
+    html: orderShell(`Order ${o.order_number} cancelled`,
       `<p>Your wholesale order was cancelled before its order-by date. Your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> is being refunded to the way you paid; it can take 5–10 business days to appear.</p>${kitsTable(o)}`),
   };
 }
@@ -159,16 +173,18 @@ const orderLink = (siteUrl: string, n: string) => `${siteUrl}/order/${encodeURIC
 export function wholesaleBalanceDueEmail(o: OrderRow, d: { dueOn: string; siteUrl: string }) {
   const link = orderLink(d.siteUrl, o.order_number);
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} — your kits passed testing`,
-    html: shell(`Your kits passed testing`,
+    html: orderShell(`Your kits passed testing`,
       `<p>Your production lot passed independent testing and your kits are set aside for you.</p>${kitsTable(o)}<p>Balance: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax), due by <b>${e(dateLabel(d.dueOn))}</b>.</p><p><a href="${e(link)}">Pay your balance</a> on your order page. Unpaid orders are cancelled after the due date and the deposit is kept.</p>`),
   };
 }
 
 export function wholesaleBalanceReminderEmail(o: OrderRow, d: { dueOn: string; siteUrl: string }) {
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} — balance due ${dateLabel(d.dueOn)}`,
-    html: shell(`Balance due ${e(dateLabel(d.dueOn))}`,
+    html: orderShell(`Balance due ${e(dateLabel(d.dueOn))}`,
       `<p>A reminder: the balance of <b>${usd(o.balance_cents ?? 0)}</b> for order ${e(o.order_number)} is due by <b>${e(dateLabel(d.dueOn))}</b>. <a href="${e(orderLink(d.siteUrl, o.order_number))}">Pay it on your order page</a>. After that date the order is cancelled and the deposit is kept.</p>`),
   };
 }
@@ -176,24 +192,27 @@ export function wholesaleBalanceReminderEmail(o: OrderRow, d: { dueOn: string; s
 export function wholesaleLotFailedEmail(o: OrderRow, d: { strengths: string[]; newShipsAbout: string; siteUrl: string }) {
   const list = d.strengths.map((s) => `<li>${e(s)}</li>`).join("");
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} — a lot needs re-sourcing`,
-    html: shell(`A lot needs re-sourcing`,
+    html: orderShell(`A lot needs re-sourcing`,
       `<p>The production lot for the following did not pass our independent testing, so it will not be sold:</p><ul>${list}</ul><p>We are re-sourcing it. New estimated ship date: <b>${e(dateLabel(d.newShipsAbout))}</b>. Nothing is needed from you to keep your order. If you would rather not wait, <a href="${e(orderLink(d.siteUrl, o.order_number))}">cancel on your order page for a full refund of your deposit</a>.</p>`),
   };
 }
 
 export function wholesaleForfeitEmail(o: OrderRow) {
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} cancelled — balance not received`,
-    html: shell(`Order ${o.order_number} cancelled`,
+    html: orderShell(`Order ${o.order_number} cancelled`,
       `<p>We did not receive the balance for order ${e(o.order_number)} by its due date, so the order was cancelled and the deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was kept, as set out in the wholesale terms.</p>`),
   };
 }
 
 export function wholesaleBalanceReceivedEmail(o: OrderRow, d: { shipsAbout: string | null }) {
   return {
+    ...ORDER_REPLY,
     subject: `Order ${o.order_number} — balance received`,
-    html: shell(`Balance received`,
+    html: orderShell(`Balance received`,
       `<p>Thank you — your balance of <b>${usd(o.balance_cents ?? 0)}</b> was received.</p>${kitsTable(o)}${d.shipsAbout ? `<p>Your kits ship about <b>${e(dateLabel(d.shipsAbout))}</b>, with the lot's certificate. We'll email tracking when they ship.</p>` : ""}${shipTo(o)}`),
   };
 }

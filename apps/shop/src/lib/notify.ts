@@ -24,7 +24,7 @@ export async function alertOwner(title: string, detail: string): Promise<void> {
 }
 
 // Customer email that must not block the order. On failure, alerts the owner.
-export async function sendOrAlert(msg: { to: string; subject: string; html: string }, context: string): Promise<boolean> {
+export async function sendOrAlert(msg: { to: string; subject: string; html: string; replyTo?: string }, context: string): Promise<boolean> {
   try {
     await sendEmail(msg);
     return true;
