@@ -111,7 +111,9 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
       measuredMg: measured, measuredPct: measuredPct(measured, pub.strength),
       tests: { identity: r.identity, endotoxin: r.endotoxin, sterility: r.sterility, heavy_metals: r.heavy_metals, fentanyl: r.fentanyl },
       failed: r.result === "fail", note: r.note, correction: r.correction_note, correctedAt: r.corrected_at,
-      labsOnLot: labsByLot.get(r.lot_id)!.size,
+      // "Re-tested · N labs" only means something once customers can actually
+      // see every certificate — off, they see one (the headline) per kind.
+      labsOnLot: ops.coa.showAll ? labsByLot.get(r.lot_id)!.size : 1,
     };
   });
   return { all, shown, lots, certificates };

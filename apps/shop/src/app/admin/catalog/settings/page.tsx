@@ -71,8 +71,8 @@ export default async function CoaSettingsPage() {
                 return (
                   <tr key={lab.id} className={lab.active ? undefined : "a-old"}>
                     <td><b>{lab.name}</b><div className="muted">{sub || "—"}</div></td>
-                    <td className={lab.verify_url_template ? "a-mono" : "muted"} style={{ fontSize: 11.5 }}>
-                      {lab.verify_url_template ? lab.verify_url_template.replace(/^https:\/\//, "") : "No verify link"}
+                    <td style={{ fontSize: 11.5 }}>
+                      {lab.verify_url_template ? <span className="a-mono">{lab.verify_url_template.replace(/^https:\/\//, "")}</span> : <span className="muted">No verify link</span>}
                       {lab.verify_hint && <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>{lab.verify_hint}</div>}
                     </td>
                     <td><span className={`a-chip ${lab.iso17025 ? "c-live" : "c-draft"}`}>{lab.iso17025 ? "Yes" : "No"}</span></td>

@@ -32,7 +32,7 @@ export function catalogEventLine(e: CatalogEvent, strengthOf: (variantId: string
     case "certificate_added": return <>{who} added certificate <b>{String(a.report)}</b> to {lot} · {a.result === "fail" ? "Failed" : "Pass"}</>;
     case "certificate_edited": return <>{who} edited certificate <b>{String(a.report)}</b> on {lot}</>;
     case "certificate_deleted": return <>{who} deleted certificate <b>{String(b.report)}</b> from {lot}</>;
-    case "certificate_corrected": return <>{who} added a correction to certificate on {lot} : &quot;{String(a.correction)}&quot;</>;
+    case "certificate_corrected": return <>{who} added a correction to a certificate on {lot}: &quot;{String(a.correction)}&quot;</>;
     case "price_changed": return <>{who} changed {strengthOf(e.variant_id)} price <b>{usd(Number(b.price_cents))} → {usd(Number(a.price_cents))}</b>{e.note === AIOS_NOTE ? " · from AIOS" : ""}</>;
     case "low_at_changed": return <>{who} set {strengthOf(e.variant_id)} low level to {a.low_at}</>;
     case "threepl_sku_changed": return <>{who} set {strengthOf(e.variant_id)} 3PL SKU to <span className="a-nw">{a.threepl_sku ?? "none"}</span></>;

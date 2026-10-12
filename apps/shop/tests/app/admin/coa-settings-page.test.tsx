@@ -68,4 +68,11 @@ describe("/admin/catalog/settings", () => {
     render(await CoaSettingsPage());
     expect(screen.getByText(/never that a certificate or result is accredited/)).toBeInTheDocument();
   });
+
+  it("the verify hint renders in the regular admin font, not the monospace verify link", async () => {
+    render(await CoaSettingsPage());
+    const row = screen.getByText("Vanguard Laboratory").closest("tr")!;
+    const hint = within(row).getAllByText("The certificate ID from the QR code.").find((el) => el.tagName !== "TEXTAREA")!;
+    expect(hint.closest(".a-mono")).toBeNull();
+  });
 });

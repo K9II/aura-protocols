@@ -45,6 +45,6 @@ describe("catalogEventLine certificate events", () => {
   });
   it("certificate_corrected shows the correction note", () => {
     expect(text(certEvent("certificate_corrected", { before: { correction: null }, after: { correction: "Report number was mistyped." } })))
-      .toBe('Alvester added a correction to certificate on AP-1105 : "Report number was mistyped."');
+      .toBe('Alvester added a correction to a certificate on AP-1105: "Report number was mistyped."');
   });
 });

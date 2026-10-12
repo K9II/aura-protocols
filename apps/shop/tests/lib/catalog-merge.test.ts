@@ -180,6 +180,15 @@ describe("mergeCatalog certificates", () => {
     expect(on.certificates.map((c) => [c.id, c.failed, c.labsOnLot])).toEqual([["c1", false, 2], ["c0", true, 2]]);
     expect(on.certificates[0]).toMatchObject({ measuredMg: 10.4, measuredPct: 104 });
   });
+  it("labsOnLot counts distinct labs only when Show every certificate is on; off, a second visible lab doesn't trigger Re-tested", () => {
+    // Different kinds (a purity report and an endotoxin-only report) from
+    // different labs are both visible with showAll off — neither is a re-test.
+    const endo = cert({ id: "c2", lab_id: "fd", report_number: "FD-1", purity_pct: null, method: null, measured_mg: null, endotoxin: "pass",
+      lab: { name: "Freedom Diagnostics", city: "Franklin, TN", iso17025: false, verify_url_template: null } });
+    const off = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({})], certificates: [cert({}), endo] }), url);
+    expect(off.certificates.map((c) => [c.id, c.labsOnLot])).toEqual([["c1", 1], ["c2", 1]]);
+  });
+
   it("uses the certificate's verify code in the verify link when it has one", () => {
     const coded = cert({ verify_code: "dGMrBI-hahnc3q-z", lab: { name: "ILS Laboratories", city: "San Diego, CA", iso17025: true, verify_url_template: "https://portal.ils-lab.com/verify/{report}" } });
     const m = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({})], certificates: [coded] }), url);

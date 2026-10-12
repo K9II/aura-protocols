@@ -51,6 +51,16 @@ describe("/coa", () => {
     expect(screen.getByText("Lot BPC-2609-01 · Current")).toBeInTheDocument();
   });
 
+  it("labels a live lot whose strength isn't on the store as Not on sale, not Current", async () => {
+    live.mockResolvedValue({
+      all: [{ slug: "bpc-157", chemicalClass: "Peptide Fragments" }], shown: [],
+      lots: [{ ...lot("BPC-2609-01", "live", "2026-09-20T00:00:00Z"), onStore: false }],
+      certificates: [],
+    });
+    await lookUp("BPC-2609-01");
+    expect(screen.getByText("Lot BPC-2609-01 · Not on sale")).toBeInTheDocument();
+  });
+
   it("says when a found lot has no visible certificate yet", async () => {
     await lookUp("BPC-2609-01");
     expect(screen.getByText("No certificate is published for this lot yet.")).toBeInTheDocument();

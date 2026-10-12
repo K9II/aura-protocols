@@ -17,7 +17,8 @@ const STATUS: Record<PublicLot["status"], string> = { live: "Current", sold_out:
 // Every lot that was ever live, newest first.
 function coaLots(live: LiveCatalog<ChemicalClass>): LotHit[] {
   return [...live.lots].sort((a, b) => b.liveAt.localeCompare(a.liveAt)).map((l) => ({
-    lot: l.lot, name: l.compoundName, slug: l.slug, strength: l.strength, status: STATUS[l.status],
+    // A live lot whose strength isn't on the store (hidden/archived) isn't "Current" — it's not for sale.
+    lot: l.lot, name: l.compoundName, slug: l.slug, strength: l.strength, status: l.status === "live" && !l.onStore ? "Not on sale" : STATUS[l.status],
     chemicalClass: live.all.find((c) => c.slug === l.slug)?.chemicalClass ?? "",
   }));
 }
