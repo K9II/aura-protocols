@@ -4,7 +4,7 @@
 import { IDENTITY } from "./catalog-identity";
 import { DESCRIPTIONS } from "./catalog-descriptions";
 import type { CatalogEntry, LiveCompound, LiveVariant, PackDiscount } from "./catalog-types";
-export type { Lot, PendingLot, StockState, PackDiscount, Identity, PublicLot, CatalogEntry } from "./catalog-types";
+export type { Lot, PendingLot, StockState, PackDiscount, Identity, PublicLot, CatalogEntry, PublicCert, CertTest } from "./catalog-types";
 
 export const CHEMICAL_CLASSES = [
   "Incretin & Amylin Analogs",
