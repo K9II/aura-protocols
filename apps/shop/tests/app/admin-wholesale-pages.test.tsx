@@ -12,6 +12,7 @@ vi.mock("@/lib/wholesale/runs-data", () => ({ listRuns: m.listRuns, runLines: m.
 vi.mock("@/lib/catalog-ops/data", () => ({ lotById: m.lotById, lotDefaults: async () => ({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 }) }));
 vi.mock("@/lib/coa/data", () => ({ listLabs: m.listLabs }));
 vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn() }));
+vi.mock("@/app/admin/catalog/settings/actions", () => ({ saveLabAction: vi.fn() }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-30T16:00:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound, useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/app/admin/wholesale/actions", () => ({

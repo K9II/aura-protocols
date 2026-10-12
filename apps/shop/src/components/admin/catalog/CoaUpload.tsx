@@ -7,7 +7,7 @@ import { coaUploadAction } from "@/app/admin/catalog/actions";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { COA_MAX_BYTES } from "@/lib/catalog-ops/rules";
 
-export default function CoaUpload({ lotNumber, path, onPath, error, idSuffix }: { lotNumber: string; path: string; onPath: (p: string) => void; error?: string; idSuffix: string }) {
+export default function CoaUpload({ lotNumber, path, onPath, error, idSuffix, help }: { lotNumber: string; path: string; onPath: (p: string) => void; error?: string; idSuffix: string; help?: string }) {
   const id = `coa-file-${idSuffix}`;
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState<string | null>(null);
@@ -38,6 +38,7 @@ export default function CoaUpload({ lotNumber, path, onPath, error, idSuffix }: 
         <label className="a-btn sm r" htmlFor={id}>{path ? "Replace" : "Attach"}</label>
         <input id={id} type="file" accept="application/pdf" hidden onChange={(e) => pick(e.target.files?.[0])} />
       </div>
+      {help && !path && <div className="help">{help}</div>}
       {(msg || error) && <div className="a-err" role="alert">{msg ?? error}</div>}
     </div>
   );
