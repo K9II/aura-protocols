@@ -51,6 +51,8 @@ describe("coa settings actions", () => {
       expect(coaData.saveLab).toHaveBeenCalledWith(null, expect.objectContaining({ name: "Vanguard Laboratory" }));
       expect(catalogChangedByOwner).toHaveBeenCalled();
       expect(revalidatePath).toHaveBeenCalledWith("/admin/catalog", "layout");
+      // Add lab also opens from the wholesale run page's Receive lot form.
+      expect(revalidatePath).toHaveBeenCalledWith("/admin/wholesale/runs", "layout");
     });
 
     it("edits an existing lab by id", async () => {

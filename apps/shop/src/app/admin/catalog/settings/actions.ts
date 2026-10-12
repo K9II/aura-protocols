@@ -10,8 +10,13 @@ import type { ActionState } from "@/app/admin/catalog/actions";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "");
 // "/admin/catalog" layout covers /admin/catalog/settings and every product
-// page, so a lab added from a certificate form shows up in its Lab list.
-const refresh = () => { catalogChangedByOwner(); revalidatePath("/admin/catalog", "layout"); };
+// page, "/admin/wholesale/runs" every run page (Receive lot) — so a lab added
+// from a certificate form shows up in its Lab list. Both pages read labs fresh.
+const refresh = () => {
+  catalogChangedByOwner();
+  revalidatePath("/admin/catalog", "layout");
+  revalidatePath("/admin/wholesale/runs", "layout");
+};
 
 export async function setCoaSettingAction(f: FormData): Promise<void> {
   await requirePermission("catalog.edit");
