@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { PublicCert } from "@/data/catalog";
 
 // Product page (approved mock c5): the certificates of the lot currently shipping
@@ -28,6 +29,7 @@ export default function LotCertificates({ certs }: { certs: PublicCert[] }) {
     <>
       {[...groups.entries()].map(([lot, rows]) => {
         const anyMeasured = rows.some((c) => c.measuredMg != null);
+        const anyFailed = rows.some((c) => TEST_COLS.some(([k]) => c.tests[k] === "fail"));
         const isoLabs = [...new Set(rows.filter((c) => c.labIso).map((c) => c.labName))];
         return (
           <div key={lot}>
@@ -68,7 +70,7 @@ export default function LotCertificates({ certs }: { certs: PublicCert[] }) {
               </table>
             </div>
             <p className="s-micro" style={{ color: "var(--ink-soft)", marginTop: 10 }}>
-              ✓ Pass · — Not tested{isoLabs.map((l) => ` · ${l}: tested by an ISO/IEC 17025-accredited US lab`).join("")} · <a href="/coa">All certificates →</a>
+              ✓ Pass{anyFailed ? " · ✕ Fail" : ""} · — Not tested{isoLabs.map((l) => ` · ${l}: tested by an ISO/IEC 17025-accredited US lab`).join("")} · <Link href="/coa">All certificates →</Link>
             </p>
           </div>
         );

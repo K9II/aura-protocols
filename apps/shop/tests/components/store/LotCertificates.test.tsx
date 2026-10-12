@@ -57,4 +57,18 @@ describe("LotCertificates", () => {
     render(<LotCertificates certs={certs} />);
     expect(screen.getByText(/Vanguard Laboratory: tested by an ISO\/IEC 17025-accredited US lab/)).toBeInTheDocument();
   });
+
+  it("links 'All certificates' to /coa", () => {
+    render(<LotCertificates certs={certs} />);
+    expect(screen.getByRole("link", { name: "All certificates →" })).toHaveAttribute("href", "/coa");
+  });
+
+  it("adds ✕ Fail to the legend only when a certificate in the group has a failed test", () => {
+    render(<LotCertificates certs={certs} />);
+    expect(screen.queryByText(/✕ Fail/)).toBeNull();
+
+    const withFailedTest = [cert({ tests: { identity: "pass", endotoxin: "fail", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested" } })];
+    render(<LotCertificates certs={withFailedTest} />);
+    expect(screen.getByText(/✓ Pass · ✕ Fail · — Not tested/)).toBeInTheDocument();
+  });
 });
