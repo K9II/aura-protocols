@@ -3,17 +3,11 @@ import { useState } from "react";
 import CoaUpload from "@/components/admin/catalog/CoaUpload";
 import { Icon } from "@/components/admin/ui";
 import { METHODS } from "@/lib/catalog-ops/rules";
-import { certVerifyUrl, failedTests, measuredPct, TEST_KEYS, TEST_LABEL, type TestKey, type TestResult } from "@/lib/coa/rules";
+import { certVerifyUrl, failedTests, measuredPct, TEST_KEYS, TEST_LABEL, type TestResult } from "@/lib/coa/rules";
+import { EMPTY_CERT, type CertDraft } from "@/lib/coa/reading";
+export { EMPTY_CERT, type CertDraft };
 
 export type LabOption = { id: string; name: string; city: string | null; verify_url_template: string | null; verify_hint?: string | null };
-export type CertDraft = {
-  labId: string; reportNumber: string; verifyCode: string; testedOn: string; purity: string; method: string; measured: string; coaPath: string; certNote: string;
-  result: "" | "pass" | "fail"; tests: Record<TestKey, TestResult>;
-};
-export const EMPTY_CERT: CertDraft = {
-  labId: "", reportNumber: "", verifyCode: "", testedOn: "", purity: "", method: "HPLC+MS", measured: "", coaPath: "", certNote: "", result: "",
-  tests: { identity: "not_tested", endotoxin: "not_tested", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested" },
-};
 const RESULT_LABEL: Record<TestResult, string> = { pass: "Pass", fail: "Fail", not_tested: "Not tested" };
 
 // The certificate block shared by Add/Edit certificate and Receive a lot.
