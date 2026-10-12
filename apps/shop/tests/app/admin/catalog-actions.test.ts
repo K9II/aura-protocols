@@ -481,20 +481,28 @@ describe("catalog actions", () => {
       expect(readCertificate).toHaveBeenCalledWith(new Uint8Array([1]), "AP-1105", expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
     });
     it("a path from another lot, or a missing upload, is not read", async () => {
+      data.coaUploaded.mockResolvedValue(true);
       const { readCertificateAction } = await import("@/app/admin/catalog/actions");
+      // AP-1106 doesn't match the path's lot folder (AP-1105) — refused by the
+      // path check even though coaUploaded would say the upload finished.
       expect(await readCertificateAction("AP-1106", PATH)).toEqual({ error: "unread" });
       data.coaUploaded.mockResolvedValue(false);
       expect(await readCertificateAction("AP-1105", PATH)).toEqual({ error: "unread" });
       expect(readCertificate).not.toHaveBeenCalled();
     });
     it("reader failure or a thrown download → unread, never throws", async () => {
-      data.coaUploaded.mockResolvedValue(true);
-      data.coaPdf.mockRejectedValueOnce(new Error("storage down"));
-      const { readCertificateAction } = await import("@/app/admin/catalog/actions");
-      expect(await readCertificateAction("AP-1105", PATH)).toEqual({ error: "unread" });
-      data.coaPdf.mockResolvedValue(new Uint8Array([1]));
-      readCertificate.mockResolvedValue({ ok: false });
-      expect(await readCertificateAction("AP-1105", PATH)).toEqual({ error: "unread" });
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      try {
+        data.coaUploaded.mockResolvedValue(true);
+        data.coaPdf.mockRejectedValueOnce(new Error("storage down"));
+        const { readCertificateAction } = await import("@/app/admin/catalog/actions");
+        expect(await readCertificateAction("AP-1105", PATH)).toEqual({ error: "unread" });
+        data.coaPdf.mockResolvedValue(new Uint8Array([1]));
+        readCertificate.mockResolvedValue({ ok: false });
+        expect(await readCertificateAction("AP-1105", PATH)).toEqual({ error: "unread" });
+      } finally {
+        spy.mockRestore();
+      }
     });
   });
 
