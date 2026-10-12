@@ -614,7 +614,7 @@
 .adm .a-note { font-size: 12px; color: #4B3810; background: var(--ochre-bg); border: 1px solid #DEC98F; padding: 4px 8px; display: flex; gap: 6px; align-items: flex-start; }
 .adm .a-note b { font-weight: 600; }
 .adm .a-acts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: nowrap; }
-.adm .a-lots tr.a-old td { color: var(--muted); }
+.adm .a-lots tr.a-old td, .adm .a-t tr.a-old td { color: var(--muted); }
 .adm .a-lots tr.a-sub td { background: var(--surface-2); height: 30px; padding: 0 12px; vertical-align: middle; font: 500 9.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .adm .a-fifo { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 8px 16px; border-top: 1px solid var(--line); background: var(--surface-2); }
 .adm .a-menu { position: relative; }

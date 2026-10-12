@@ -225,6 +225,23 @@ describe("coa data", () => {
     });
   });
 
+  describe("allPublicCertRows", () => {
+    it("reads every certificate of a non-draft lot, stripping the joined lots column", async () => {
+      from = fromQueue({ lot_certificates: [query({ data: [{ id: "c1", purity_pct: "99.40", measured_mg: null, lots: { status: "live" } }] })] });
+      const { allPublicCertRows } = await import("@/lib/coa/data");
+      const rows = await allPublicCertRows();
+      expect(rows[0]).not.toHaveProperty("lots");
+      expect(rows[0].purity_pct).toBe(99.4);
+      expect(from).toHaveBeenCalledWith("lot_certificates");
+    });
+
+    it("throws on a read error", async () => {
+      from = fromQueue({ lot_certificates: [query({ error: { message: "down" } })] });
+      const { allPublicCertRows } = await import("@/lib/coa/data");
+      await expect(allPublicCertRows()).rejects.toThrow(/certificates read failed/);
+    });
+  });
+
   describe("certificateById", () => {
     it("returns the certificate with its lot's identifiers, stripping the joined lots column", async () => {
       from = fromQueue({ lot_certificates: [query({ data: { id: "c1", purity_pct: "99.40", measured_mg: null, lots: { lot_number: "BPC-2610-03", slug: "bpc-157", variant_id: "10mg", status: "live" } } })] });

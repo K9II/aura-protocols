@@ -45,6 +45,15 @@ export async function setCoaSetting(key: keyof CoaSettings, on: boolean): Promis
   if (error) fail("coa setting", error);
 }
 
+// Every certificate of a lot that isn't a draft — the pool visibleCerts()
+// chooses from for the whole store. Used to count how many certificates the
+// "Show every certificate" switch is currently hiding.
+export async function allPublicCertRows(): Promise<CertRow[]> {
+  const { data, error } = await db().from("lot_certificates").select(`${CERT_COLS}, lots!inner(status)`).neq("lots.status", "draft");
+  if (error) fail("certificates read", error);
+  return ((data ?? []) as unknown as Array<CertRow & { lots?: unknown }>).map(({ lots: _l, ...r }) => certNum(r as CertRow));
+}
+
 // Every certificate of a product's lots (drafts included), newest first.
 export async function adminCertificates(slug: string): Promise<CertRow[]> {
   const { data, error } = await db().from("lot_certificates").select(`${CERT_COLS}, lots!inner(slug)`).eq("lots.slug", slug)
