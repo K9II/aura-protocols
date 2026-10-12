@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import LotCertificates from "@/components/store/LotCertificates";
 import type { PublicCert } from "@/data/catalog";
+import { NOT_RECORDED_LAB } from "@/lib/coa/rules";
 
 const cert = (x: Partial<PublicCert> = {}): PublicCert => ({
   id: "c1", lot: "AP-1107", slug: "ss-31", compoundName: "SS-31 (Elamipretide)", chemicalClass: "Mitochondrial & Metabolic", strength: "10 mg",
@@ -85,5 +86,11 @@ describe("LotCertificates", () => {
   it("does not list a failed-row note when none passing rows are failed", () => {
     render(<LotCertificates certs={certs} />);
     expect(screen.queryByText(/^Failed ·/)).toBeNull();
+  });
+
+  it("shows 'Lab not recorded' instead of the placeholder lab name", () => {
+    render(<LotCertificates certs={[cert({ labName: NOT_RECORDED_LAB })]} />);
+    expect(screen.getByText("Lab not recorded")).toBeInTheDocument();
+    expect(screen.queryByText(NOT_RECORDED_LAB)).toBeNull();
   });
 });

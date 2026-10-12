@@ -121,7 +121,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
             <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} />
-            <LotCertificates certs={live.certificates.filter((x) => x.slug === c.slug)} />
           </div>
           <div className="relative">
             <p className="s-micro s-pdp-kick">
@@ -134,6 +133,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <BeforeOrdering />
           </div>
         </section>
+        {/* Full width below the two-column section (mock c5), not squeezed into the half-width media column. */}
+        <div className="s-pdp-certs">
+          <LotCertificates certs={live.certificates.filter((x) => x.slug === c.slug)} />
+        </div>
       </div>
 
       <section className="s-about">

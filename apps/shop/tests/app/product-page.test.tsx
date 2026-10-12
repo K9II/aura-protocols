@@ -42,6 +42,25 @@ describe("product page", () => {
     expect(screen.getByText("BPC-2609-01")).toBeInTheDocument();
   });
 
+  it("renders the lot's certificates full width below the two-column section, not inside the media column", async () => {
+    live.mockResolvedValue({
+      all: liveFixture(), shown: liveFixture(), lots: [], certificates: [{
+        id: "c1", lot: "AP-1107", slug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide Fragments", strength: "10 mg",
+        lotStatus: "live", shipping: true, labName: "Vanguard Laboratory", labCity: "Olympia, WA", labIso: true, reportNumber: "VGD-24117",
+        verifyUrl: "https://x/verify/VGD-24117", testedOn: "2026-10-06", coaFile: "https://x/coa/AP-1107/1.pdf",
+        purityPct: 99.62, method: "HPLC+MS", measuredMg: null, measuredPct: null,
+        tests: { identity: "pass", endotoxin: "pass", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested" },
+        failed: false, note: null, correction: null, correctedAt: null, labsOnLot: 1,
+      }],
+    });
+    const { container } = await renderSlug("bpc-157");
+    expect(container.querySelector(".s-media")).not.toHaveTextContent("Certificates ·");
+    const certsBlock = container.querySelector(".s-pdp-certs")!;
+    expect(certsBlock).toHaveTextContent("Certificates · 10 mg · lot AP-1107 · on sale now");
+    // A sibling of .s-pdp (not nested inside it), so it spans the full container width.
+    expect(certsBlock.previousElementSibling).toHaveClass("s-pdp");
+  });
+
   it("orders sections: hero, About this compound, Compound data, Researchers also added (no Material & testing)", async () => {
     await renderSlug("bpc-157");
     const h2s = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);

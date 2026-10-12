@@ -680,6 +680,13 @@ main:has(> .pharmacopoeia) {
 
 /* product page */
 .pharmacopoeia .s-pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 64px; padding: 48px 0 72px; position: relative; }
+/* Lot's certificates (mock c5, 2026-10-11 live check): full width below the
+   two-column section, not squeezed into the half-width media column where
+   the 11-column table scrolled sideways and touched the lot record above it.
+   s-pdp's own bottom padding already clears it from the grid; this adds a
+   touch more so the heading never sits flush against that padding edge. */
+.pharmacopoeia .s-pdp-certs { padding-top: 4px; }
+.pharmacopoeia .s-pdp-certs:empty { display: none; }
 /* minmax(0,…) lets the single mobile column shrink below its content's min width
    (a bare 1fr kept the spec boxes wider than the screen and they were clipped). */
 @media (max-width: 900px) { .pharmacopoeia .s-pdp { grid-template-columns: minmax(0, 1fr); } }

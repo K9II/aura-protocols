@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PublicCert } from "@/data/catalog";
+import { NOT_RECORDED_LAB } from "@/lib/coa/rules";
 
 // Product page (approved mock c5): the certificates of the lot currently shipping
 // for this compound, grouped by lot (a product can have more than one strength
@@ -47,7 +48,7 @@ export default function LotCertificates({ certs }: { certs: PublicCert[] }) {
                 <tbody>
                   {rows.map((c) => (
                     <tr key={c.id}>
-                      <td>{c.labName}{c.failed && <> · <span className="s-cert-failed">Failed</span></>}</td>
+                      <td>{c.labName === NOT_RECORDED_LAB ? "Lab not recorded" : c.labName}{c.failed && <> · <span className="s-cert-failed">Failed</span></>}</td>
                       <td>{c.reportNumber}</td>
                       <td>{monthDay(c.testedOn)}</td>
                       <td className={c.purityPct == null ? "s-nt" : undefined}>{c.purityPct != null ? `${c.purityPct}% · ${c.method}` : "—"}</td>
