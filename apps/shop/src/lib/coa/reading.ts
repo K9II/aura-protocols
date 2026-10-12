@@ -202,9 +202,11 @@ export function lotMismatch(r: Reading, lot: LotRef): string | null {
   return m && `This report is for ${m.report}. You're adding it to ${m.ours}. Check you attached the right PDF.`;
 }
 
-// Names a report may use for a product: scientific name, designation, blend components.
+// Names a report may use for a product: scientific name, designation, blend
+// components, and each part of a "/" name (a blend whose components aren't listed).
 export function productNames(c: { name: string; designation?: string; components?: string[] }): string[] {
-  return [...new Set([c.name, c.designation, ...(c.components ?? [])].filter((x): x is string => !!x))];
+  const parts = c.name.split("/").map((x) => x.trim());
+  return [...new Set([c.name, c.designation, ...(c.components ?? []), ...parts].filter((x): x is string => !!x))];
 }
 
 export const filledHead = (n: number) => `Filled ${n} field${n === 1 ? "" : "s"} from the PDF`;

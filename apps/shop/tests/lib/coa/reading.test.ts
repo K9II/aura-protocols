@@ -132,6 +132,10 @@ describe("lotMismatch", () => {
     expect(lotMismatch(R({ product_name: "MOTS-c (Mitochondrial ORF)", strength_label: "10mg" }), lot)).toBeNull();
     expect(lotMismatch(R({ product_name: "mots c 10 mg", strength_label: null }), lot)).toBeNull();
   });
+  it("a blend report naming a component variant matches by its parts", () => {
+    const cjc = { names: productNames({ name: "CJC-1295 / Ipamorelin", components: [] }), strength: "10 mg", lotNumber: "AP-1110" };
+    expect(lotMismatch(R({ product_name: "CJC-1295 (no DAC) / Ipamorelin", strength_label: null }), cjc)).toBeNull();
+  });
   it("wrong product", () => {
     expect(lotMismatch(R({ product_name: "Tirzepatide", strength_label: "30 mg", batch: "N8326" }), lot))
       .toBe("This report is for Tirzepatide 30 mg, batch N8326. You're adding it to MOTS-c 10 mg, lot AP-1107. Check you attached the right PDF.");
@@ -187,6 +191,9 @@ describe("productNames / filledMessage", () => {
     expect(productNames({ name: "BPC-157 / TB-500", designation: "Wolverine", components: ["BPC-157", "TB-500"] }))
       .toEqual(["BPC-157 / TB-500", "Wolverine", "BPC-157", "TB-500"]);
     expect(productNames({ name: "MOTS-c" })).toEqual(["MOTS-c"]);
+  });
+  it("also each part of a name with \"/\" (a blend with no components listed)", () => {
+    expect(productNames({ name: "CJC-1295 / Ipamorelin", components: [] })).toEqual(["CJC-1295 / Ipamorelin", "CJC-1295", "Ipamorelin"]);
   });
   it("counts fields", () => {
     expect(filledMessage(1)).toBe("Filled 1 field from the PDF. Check each one.");
