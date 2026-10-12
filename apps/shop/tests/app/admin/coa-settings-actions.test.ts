@@ -46,9 +46,11 @@ describe("coa settings actions", () => {
     it("adds a new lab and refreshes", async () => {
       coaData.saveLab.mockResolvedValue({ ok: true });
       const { saveLabAction } = await import("@/app/admin/catalog/settings/actions");
+      const { revalidatePath } = await import("next/cache");
       expect(await saveLabAction(null, fd(labForm))).toEqual({ ok: "Lab added." });
       expect(coaData.saveLab).toHaveBeenCalledWith(null, expect.objectContaining({ name: "Vanguard Laboratory" }));
       expect(catalogChangedByOwner).toHaveBeenCalled();
+      expect(revalidatePath).toHaveBeenCalledWith("/admin/catalog", "layout");
     });
 
     it("edits an existing lab by id", async () => {
