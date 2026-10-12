@@ -48,14 +48,21 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
   // a separate "Receive a lot" vs "Edit draft" trigger for the same strength)
   // — scope every field id so their labels never collide.
   const scope = `${slug}-${variantId}${draft ? `-${draft.id}` : ""}`;
+  // Every close — after a save, or Cancel / × / Esc before one — starts the
+  // next opening fresh (a draft goes back to its saved values). Errors from the
+  // last attempt are hidden until the next submit.
+  const [dismissed, setDismissed] = useState<typeof state>(null);
+  const reset = () => {
+    setV(initial()); setCert(EMPTY_CERT); setCostTyped(draft?.cost ? draft.cost : runLine?.cost ? runLine.cost : null);
+    setFreightTyped(draft?.freight ? draft.freight : null); setLabelsTyped(draft?.labels ? draft.labels : null);
+    setOther(!!draft?.supplier && !options.includes(draft.supplier));
+    setFormKey((k) => k + 1); setDismissed(state);
+  };
+  // Only this dialog's own close: React bubbles "close" from dialogs rendered
+  // inside it (e.g. a portalled Add lab), and those must not wipe the form.
+  const onClose = (e: React.SyntheticEvent<HTMLDialogElement>) => { if (e.target === e.currentTarget) reset(); };
   useEffect(() => {
-    if (state?.ok) {
-      ref.current?.close();
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the form so reopening starts fresh
-      setV(initial()); setCert(EMPTY_CERT); setCostTyped(runLine?.cost ? runLine.cost : null); setFreightTyped(null); setLabelsTyped(null); setOther(false);
-      setFormKey((k) => k + 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only reacts to a fresh action result
+    if (state?.ok) ref.current?.close();
   }, [state]);
   const set = (k: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setV({ ...v, [k]: e.target.value });
   const n = (s: string) => (s.trim() === "" ? NaN : Number(s));
@@ -65,7 +72,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
   const sellable = known ? counted - damaged : null;
   const canLive = known && (!disc || !!v.note.trim()) && (sellable ?? 0) > 0
     && !!cert.labId && cert.purity.trim() !== "" && cert.tests.endotoxin === "pass" && cert.result === "pass" && !!cert.coaPath;
-  const fe = state?.fieldErrors ?? {};
+  const fe = state === dismissed ? {} : state?.fieldErrors ?? {};
   const boxes = Number.isInteger(ordered) && ordered > 0 ? Math.ceil(ordered / 10) : 0;
   const boxCents = !other && v.supplier ? prices[v.supplier] : undefined;
   const cost = costTyped ?? prefillTotal(boxCents, boxes);
@@ -77,7 +84,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
       <button type="button" className={`a-btn${small ? " sm" : ""}${primary ? " primary" : ""}`} onClick={() => ref.current?.showModal()}>
         {draft ? <><Icon name="edit" />Edit</> : runLine ? <>Receive lot</> : <><Icon name="plus" />Receive <span className="a-only-desk">a lot</span></>}
       </button>
-      <dialog ref={ref} className="a-modal wide" aria-labelledby={`recv-${scope}`}>
+      <dialog ref={ref} className="a-modal wide" aria-labelledby={`recv-${scope}`} onClose={onClose}>
         <form action={action}>
           <input type="hidden" name="slug" value={slug} />
           <input type="hidden" name="variantId" value={variantId} />
@@ -135,7 +142,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
               <li className={known && (!disc || v.note.trim()) ? "" : "no"}><Icon name="check" />Receiving check complete{disc ? " (discrepancy explained)" : ""}</li>
               <li className={cert.tests.endotoxin === "pass" ? "" : "no"}><Icon name="check" />Endotoxin passed</li>
             </ul>
-            {state?.error && <div className="a-err" role="alert">{state.error}</div>}
+            {state !== dismissed && state?.error && <div className="a-err" role="alert">{state.error}</div>}
           </div>
           <div className="a-modal-f"><span className="muted a-only-desk" style={{ fontSize: 12 }}>Logged as received by you, now</span>
             <div className="r">
