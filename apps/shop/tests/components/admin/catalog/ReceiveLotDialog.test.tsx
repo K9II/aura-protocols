@@ -7,7 +7,8 @@ import { receiveLotAction } from "@/app/admin/catalog/actions";
 
 // jsdom has no showModal; open = attribute is enough for these tests.
 HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
-HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
+// close() fires "close" like a real browser, so the dialog's onClose reset runs.
+HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); this.dispatchEvent(new Event("close")); };
 
 const labs = [{ id: "v", name: "Vanguard Laboratory", city: "Olympia, WA", verify_url_template: "https://verifiedbyvanguard.com/verify/{report}" }];
 
@@ -68,5 +69,44 @@ describe("ReceiveLotDialog", () => {
     expect(document.querySelector('input[name="reportNumber"]')).toHaveValue("VGD-99999");
     await act(async () => { fireEvent.submit(container.querySelector("form")!); });
     expect(document.querySelector('input[name="reportNumber"]')).toHaveValue("");
+  });
+
+  describe("closing without saving clears the form", () => {
+    const lotBox = () => screen.getByLabelText(/Lot number/) as HTMLInputElement;
+    it("Cancel clears what was typed, including the first certificate", () => {
+      open();
+      fireEvent.change(lotBox(), { target: { value: "DEMO-01" } });
+      fireEvent.change(screen.getByLabelText(/Report number/), { target: { value: "VGD-1" } });
+      fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+      fireEvent.click(screen.getByRole("button", { name: /Receive a lot/ }));
+      expect(lotBox().value).toBe("");
+      expect((screen.getByLabelText(/Report number/) as HTMLInputElement).value).toBe("");
+    });
+    it("the × button and Esc clear it too", () => {
+      open();
+      fireEvent.change(lotBox(), { target: { value: "DEMO-02" } });
+      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      expect(lotBox().value).toBe("");
+      fireEvent.change(lotBox(), { target: { value: "DEMO-03" } });
+      act(() => { (document.querySelector("dialog") as HTMLDialogElement).dispatchEvent(new Event("close")); });
+      expect(lotBox().value).toBe("");
+    });
+    it("editing a draft goes back to the draft's saved values", () => {
+      const draft = { id: "d1", lotNumber: "BPC-2610-03", ordered: "200", counted: "196", damaged: "2", note: "Short 4", supplier: "", cost: "", testCost: "", freight: "", labels: "" };
+      render(<ReceiveLotDialog slug="bpc-157" variantId="10mg" title="BPC-157 10 mg" labs={labs} strength="10 mg" draft={draft} />);
+      fireEvent.click(screen.getByRole("button", { name: /Edit/ }));
+      fireEvent.change(screen.getByLabelText(/^Counted/), { target: { value: "150" } });
+      fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+      expect((screen.getByLabelText(/^Counted/) as HTMLInputElement).value).toBe("196");
+    });
+    it("a close event from a dialog nested inside (e.g. Add lab) does not clear the form", () => {
+      open();
+      fireEvent.change(lotBox(), { target: { value: "DEMO-04" } });
+      const outer = document.querySelector("dialog") as HTMLDialogElement;
+      const inner = document.createElement("dialog");
+      outer.querySelector("form")!.appendChild(inner);
+      act(() => { inner.dispatchEvent(new Event("close", { bubbles: true })); });
+      expect(lotBox().value).toBe("DEMO-04");
+    });
   });
 });
