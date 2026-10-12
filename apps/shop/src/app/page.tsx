@@ -42,7 +42,7 @@ export default async function HomePage() {
         <section className="s-hero">
           <div>
             <p className="s-micro s-eyebrow load-in load-1">Research Peptides · Certified COA</p>
-            <h1 className="s-h1 load-in load-2">1906 gave us the test.<br /><em>We added the receipt.</em></h1>
+            <h1 className="s-h1 load-in load-2">1906 gave us the&nbsp;test.<br /><em>We added the receipt.</em></h1>
             <p className="s-sub load-in load-3">Every lot is separated and measured by an independent third-party US lab before it goes out for research. Its certificate is published under the lot number on your vial.</p>
             <div className="s-ctas load-in load-4">
               <Link href="/products" className="p-btn-primary">Shop the lineup →</Link>
