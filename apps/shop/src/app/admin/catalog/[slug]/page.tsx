@@ -24,6 +24,8 @@ import StrengthMenu from "@/components/admin/catalog/StrengthMenu";
 import AddStrengthDialog from "@/components/admin/catalog/AddStrengthDialog";
 
 export const metadata = { title: "Catalog & lots", robots: { index: false } };
+// The certificate reader (readCertificateAction) can take up to ~90 s.
+export const maxDuration = 120;
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 // Labeled UTC like customers/[id]/page.tsx's utcStamp — the server's clock, unambiguous for an audit log.
 const when = (iso: string) => `${new Date(iso).toLocaleString("en-US", { timeZone: "UTC", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} UTC`;

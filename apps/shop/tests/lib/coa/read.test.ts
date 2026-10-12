@@ -44,6 +44,16 @@ describe("readCertificate", () => {
     expect(JSON.stringify(p)).not.toMatch(/"result"/);
   });
 
+  it("a thinking block before the text block still returns the reading", async () => {
+    create.mockResolvedValueOnce({
+      stop_reason: "end_turn",
+      content: [{ type: "thinking", thinking: "", signature: "x" }, { type: "text", text: JSON.stringify(READING) }],
+      usage: { input_tokens: 5000, output_tokens: 400 },
+    });
+    const { readCertificate } = await import("@/lib/coa/read");
+    expect(await readCertificate(PDF, "AP-1105", "2026-10-12")).toEqual({ ok: true, reading: READING });
+  });
+
   it("refusal or max_tokens → not ok, no alert", async () => {
     const { readCertificate } = await import("@/lib/coa/read");
     create.mockResolvedValueOnce(answer("", "refusal"));

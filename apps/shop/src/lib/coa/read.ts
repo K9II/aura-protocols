@@ -18,7 +18,7 @@ Fill the JSON fields with what is printed on it. Use null for anything not print
 - purity_pct: the purity percentage as a number (99.47 for 99.47%).
 - method: "HPLC+MS" when the purity/identity used HPLC with mass spectrometry (LC-MS), "HPLC" for HPLC alone.
 - measured_mg: the measured quantity per vial in mg.
-- identity, endotoxin, sterility, heavy_metals, fentanyl: "pass" or "fail" only when the report shows a result for that test (a conforming identity is "pass"; an endotoxin level within its limit is "pass"); "not_tested" only when the report says it was not tested; otherwise null.
+- identity, endotoxin, sterility, heavy_metals, fentanyl: "pass" or "fail" only when the report shows a result for that test (a conforming identity is "pass"; an endotoxin level within the limit printed on the report is "pass", above it is "fail"); "not_tested" only when the report says it was not tested; otherwise null.
 - product_name, strength_label, batch: the sample's product name, labelled strength (e.g. "10 mg") and batch/lot as printed.`;
 
 export type ReadResult = { ok: true; reading: Reading } | { ok: false };
@@ -29,7 +29,7 @@ export async function readCertificate(pdf: Uint8Array, lotNumber: string, today:
     await alertOwner(ALERT, `${lotNumber} · ANTHROPIC_API_KEY is not set, so certificate PDFs can't be read. Fill certificates in by hand until it is.`);
     return { ok: false };
   }
-  const client = new Anthropic({ apiKey, timeout: 90_000, maxRetries: 1 });
+  const client = new Anthropic({ apiKey, timeout: 90_000, maxRetries: 0 });
   try {
     const res = await client.beta.messages.create({
       model: COA_READER_MODEL,

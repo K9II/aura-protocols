@@ -26,6 +26,8 @@ import ReviewedButton from "@/components/admin/wholesale/ReviewedButton";
 import { lotDefaults, type LotDefaults } from "@/lib/catalog-ops/data";
 
 export const metadata: Metadata = { title: "Wholesale run", robots: { index: false, follow: false } };
+// The certificate reader (readCertificateAction) can take up to ~90 s.
+export const maxDuration = 120;
 
 const LIVE = new Set(["deposit_paid", "balance_due", "paid", "shipped"]);
 const EVENT: Record<RunEvent["kind"], string> = {
