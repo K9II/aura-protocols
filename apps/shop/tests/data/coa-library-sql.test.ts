@@ -95,4 +95,11 @@ describe("coa-library.sql", () => {
     expect(daily).not.toContain("coa_path");
     expect(daily).toContain("exists (select 1 from lot_certificates c where c.lot_id = lots.id)");
   });
+  it("certificates carry an optional verify code; labs an optional verify hint (seeded)", () => {
+    expect(sql).toContain("alter table lot_certificates add column if not exists verify_code text check (verify_code is null or length(trim(verify_code)) between 2 and 80);");
+    expect(sql).toContain("alter table labs add column if not exists verify_hint text check (verify_hint is null or length(verify_hint) <= 200);");
+    expect(sql).toMatch(/update labs set verify_hint = .*where name = 'Vanguard Laboratory' and verify_hint is null/);
+    expect(sql).toMatch(/update labs set verify_hint = .*where name = 'ILS Laboratories' and verify_hint is null/);
+    expect(sql).toMatch(/update labs set verify_hint = .*where name = 'Freedom Diagnostics' and verify_hint is null/);
+  });
 });

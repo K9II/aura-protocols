@@ -2,7 +2,7 @@
 import { TEST_KEYS, type Method, type TestResult } from "@/lib/coa/rules";
 
 export type CertRow = {
-  id: string; lot_id: string; lab_id: string; report_number: string; tested_on: string; coa_path: string;
+  id: string; lot_id: string; lab_id: string; report_number: string; verify_code: string | null; tested_on: string; coa_path: string;
   purity_pct: number | null; method: Method | null; measured_mg: number | null;
   identity: TestResult; endotoxin: TestResult; sterility: TestResult; heavy_metals: TestResult; fentanyl: TestResult;
   result: "pass" | "fail"; note: string | null; correction_note: string | null; corrected_at: string | null; created_at: string;

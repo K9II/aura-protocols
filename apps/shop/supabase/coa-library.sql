@@ -168,4 +168,13 @@ alter table catalog_events add constraint catalog_events_kind_check check (kind 
 alter table shop_settings add column if not exists coa_show_all boolean not null default false;
 alter table shop_settings add column if not exists coa_show_measured boolean not null default false;
 
+-- Verify code (2026-10-11): the code a lab's verify link takes, when it isn't
+-- the printed report number (Vanguard: the certificate ID from the QR code;
+-- ILS: the access code under the QR code). Blank = use the report number.
+alter table lot_certificates add column if not exists verify_code text check (verify_code is null or length(trim(verify_code)) between 2 and 80);
+alter table labs add column if not exists verify_hint text check (verify_hint is null or length(verify_hint) <= 200);
+update labs set verify_hint = 'The certificate ID from the QR code (looks like 2d9dede6-9823-…), not the report number.' where name = 'Vanguard Laboratory' and verify_hint is null;
+update labs set verify_hint = 'The access code printed under the QR code, bottom right (looks like dGMrBI-hahnc3q-z).' where name = 'ILS Laboratories' and verify_hint is null;
+update labs set verify_hint = 'Leave blank: the report number (search code) opens the certificate.' where name = 'Freedom Diagnostics' and verify_hint is null;
+
 commit;

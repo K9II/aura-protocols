@@ -4,7 +4,7 @@
 // never sell), drafts never appear.
 import type { CatalogEntry, LiveCompound, LiveVariant, Lot, PendingLot, PublicCert, PublicLot, StockState } from "@/data/catalog-types";
 import { visibleCerts, type CertRow, type CoaSettings } from "@/lib/coa/visibility";
-import { measuredPct, verifyUrl } from "@/lib/coa/rules";
+import { certVerifyUrl, measuredPct } from "@/lib/coa/rules";
 
 export type LotStockRow = {
   id: string; lot_number: string; slug: string; variant_id: string;
@@ -106,7 +106,7 @@ export function mergeCatalog<C extends string>(content: CatalogEntry<C>[], ops: 
       id: r.id, lot: pub.lot, slug: pub.slug, compoundName: pub.compoundName, chemicalClass, strength: pub.strength,
       lotStatus: pub.status, shipping: pub.status === "live" && pub.onStore,
       labName: r.lab.name, labCity: r.lab.city, labIso: r.lab.iso17025,
-      reportNumber: r.report_number, verifyUrl: verifyUrl(r.lab.verify_url_template, r.report_number),
+      reportNumber: r.report_number, verifyUrl: certVerifyUrl(r.lab.verify_url_template, r.report_number, r.verify_code),
       testedOn: r.tested_on, coaFile: coaUrl(r.coa_path), purityPct: r.purity_pct, method: r.method,
       measuredMg: measured, measuredPct: measuredPct(measured, pub.strength),
       tests: { identity: r.identity, endotoxin: r.endotoxin, sterility: r.sterility, heavy_metals: r.heavy_metals, fentanyl: r.fentanyl },

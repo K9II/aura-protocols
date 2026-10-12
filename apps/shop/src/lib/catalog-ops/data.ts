@@ -17,7 +17,7 @@ export const certNum = (r: CertRow): CertRow =>
 const VARIANT_COLS = "slug, variant_id, strength, price_cents, low_at, threepl_sku, shown, archived_at, wholesale";
 const LOT_COLS = "id, lot_number, slug, variant_id, purity_pct, method, tested_on, coa_path, status, live_at, sellable, held, sold, available, purity_ok, endotoxin_ok";
 const ADMIN_LOT_COLS = `${LOT_COLS}, ordered_qty, counted_qty, damaged_qty, adjust_qty, discrepancy_note, received_by, received_at, retired_at`;
-export const CERT_COLS = "id, lot_id, lab_id, report_number, tested_on, coa_path, purity_pct, method, measured_mg, identity, endotoxin, sterility, heavy_metals, fentanyl, result, note, correction_note, corrected_at, created_at, lab:labs(name, city, iso17025, verify_url_template)";
+export const CERT_COLS = "id, lot_id, lab_id, report_number, verify_code, tested_on, coa_path, purity_pct, method, measured_mg, identity, endotoxin, sterility, heavy_metals, fentanyl, result, note, correction_note, corrected_at, created_at, lab:labs(name, city, iso17025, verify_url_template)";
 
 // First names for a batch of customer ids, one query — used for both catalog
 // event actors and a lot's received_by (no N+1 per row).

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { certKind, visibleCerts, type CertRow } from "@/lib/coa/visibility";
 
 const row = (x: Partial<CertRow>): CertRow => ({
-  id: "c1", lot_id: "L1", lab_id: "vgd", report_number: "R1", tested_on: "2026-10-05", coa_path: "AP-1105/1.pdf",
+  id: "c1", lot_id: "L1", lab_id: "vgd", report_number: "R1", verify_code: null, tested_on: "2026-10-05", coa_path: "AP-1105/1.pdf",
   purity_pct: 99.47, method: "HPLC+MS", measured_mg: 10.42,
   identity: "pass", endotoxin: "pass", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested",
   result: "pass", note: null, correction_note: null, corrected_at: null, created_at: "2026-10-05T10:00:00Z",

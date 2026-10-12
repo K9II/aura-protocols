@@ -155,7 +155,7 @@ describe("strengths from the database", () => {
 });
 
 const cert = (x: Partial<CertRow>): CertRow => ({
-  id: "c1", lot_id: "l1", lab_id: "vgd", report_number: "VGD-1", tested_on: "2026-09-18", coa_path: "BPC-2609-01/1.pdf",
+  id: "c1", lot_id: "l1", lab_id: "vgd", report_number: "VGD-1", verify_code: null, tested_on: "2026-09-18", coa_path: "BPC-2609-01/1.pdf",
   purity_pct: 99.4, method: "HPLC+MS", measured_mg: 10.4,
   identity: "pass", endotoxin: "pass", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested",
   result: "pass", note: null, correction_note: null, corrected_at: null, created_at: "2026-09-18T00:00:00Z",
@@ -179,6 +179,11 @@ describe("mergeCatalog certificates", () => {
     const on = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({})], certificates: [cert({}), failed], coa: { showAll: true, showMeasured: true } }), url);
     expect(on.certificates.map((c) => [c.id, c.failed, c.labsOnLot])).toEqual([["c1", false, 2], ["c0", true, 2]]);
     expect(on.certificates[0]).toMatchObject({ measuredMg: 10.4, measuredPct: 104 });
+  });
+  it("uses the certificate's verify code in the verify link when it has one", () => {
+    const coded = cert({ verify_code: "dGMrBI-hahnc3q-z", lab: { name: "ILS Laboratories", city: "San Diego, CA", iso17025: true, verify_url_template: "https://portal.ils-lab.com/verify/{report}" } });
+    const m = mergeCatalog([entry("bpc-157")], ops({ lots: [lot({})], certificates: [coded] }), url);
+    expect(m.certificates[0].verifyUrl).toBe("https://portal.ils-lab.com/verify/dGMrBI-hahnc3q-z");
   });
   it("hides certificates of hidden products and of lots not in the public list", () => {
     const hidden = mergeCatalog([entry("bpc-157")], ops({ products: [{ slug: "bpc-157", shown: false }], lots: [lot({})], certificates: [cert({})] }), url);

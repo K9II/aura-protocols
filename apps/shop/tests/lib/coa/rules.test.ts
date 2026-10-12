@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { hasFailedTest, labelMg, measuredPct, parseCertificate, parseLab, TEST_KEYS, verifyUrl, type CertInput } from "@/lib/coa/rules";
+import { certVerifyUrl, hasFailedTest, labelMg, measuredPct, parseCertificate, parseLab, TEST_KEYS, verifyUrl, type CertInput } from "@/lib/coa/rules";
 
 const LAB = "11111111-1111-4111-8111-111111111111";
 const input = (x: Partial<CertInput> = {}): CertInput => ({
   labId: LAB, reportNumber: "VGD-24109", testedOn: "2026-10-05", purity: "99.47", method: "HPLC+MS", measured: "", coaPath: "AP-1105/1791758296000.pdf", certNote: "",
-  result: "pass",
+  result: "pass", verifyCode: "",
   test_identity: "pass", test_endotoxin: "pass", test_sterility: "not_tested", test_heavy_metals: "not_tested", test_fentanyl: "not_tested", ...x,
 });
 const parse = (x: Partial<CertInput> = {}) => parseCertificate(input(x), "2026-10-11", new Set([LAB]));
@@ -23,9 +23,17 @@ describe("parseCertificate", () => {
     if (!r.ok) return;
     expect(r.value).toEqual({
       labId: LAB, reportNumber: "VGD-24109", testedOn: "2026-10-05", purityPct: 99.47, method: "HPLC+MS", measuredMg: 10.42,
-      coaPath: "AP-1105/1791758296000.pdf", note: null, result: "pass",
+      coaPath: "AP-1105/1791758296000.pdf", note: null, result: "pass", verifyCode: null,
       tests: { identity: "pass", endotoxin: "pass", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested" },
     });
+  });
+  it("refuses a verify code with a space", () => {
+    const r = parse({ verifyCode: "dGMrBI hahnc3q-z" });
+    expect(!r.ok && r.fieldErrors.verifyCode).toMatch(/no spaces/i);
+  });
+  it("keeps a valid verify code", () => {
+    const r = parse({ verifyCode: "dGMrBI-hahnc3q-z" });
+    expect(r.ok && r.value.verifyCode).toBe("dGMrBI-hahnc3q-z");
   });
   it("allows a report with no purity (endotoxin/sterility only); method is then ignored", () => {
     const r = parse({ purity: "", method: "HPLC", test_identity: "not_tested", test_sterility: "pass" });
@@ -72,6 +80,13 @@ describe("verifyUrl", () => {
   });
 });
 
+describe("certVerifyUrl", () => {
+  it("uses the verify code when set, the report number otherwise", () => {
+    expect(certVerifyUrl("https://portal.ils-lab.com/verify/{report}", "LL0001", "dGMrBI-hahnc3q-z")).toBe("https://portal.ils-lab.com/verify/dGMrBI-hahnc3q-z");
+    expect(certVerifyUrl("https://portal.ils-lab.com/verify/{report}", "LL0001", null)).toBe("https://portal.ils-lab.com/verify/LL0001");
+  });
+});
+
 describe("labelMg / measuredPct", () => {
   it("reads mg and mcg labels; IU has no mass", () => {
     expect(labelMg("10 mg")).toBe(10);
@@ -88,10 +103,14 @@ describe("labelMg / measuredPct", () => {
 
 describe("parseLab", () => {
   it("needs a name; verify link must be https and contain {report}", () => {
-    expect(parseLab({ name: "Vanguard Laboratory", city: "Olympia, WA", verify: "https://verifiedbyvanguard.com/verify/{report}", iso: "on" }))
-      .toEqual({ ok: true, value: { name: "Vanguard Laboratory", city: "Olympia, WA", verifyUrlTemplate: "https://verifiedbyvanguard.com/verify/{report}", iso17025: true } });
-    const bad = parseLab({ name: "", city: "", verify: "http://x.com/verify", iso: "" });
+    expect(parseLab({ name: "Vanguard Laboratory", city: "Olympia, WA", verify: "https://verifiedbyvanguard.com/verify/{report}", iso: "on", hint: "" }))
+      .toEqual({ ok: true, value: { name: "Vanguard Laboratory", city: "Olympia, WA", verifyUrlTemplate: "https://verifiedbyvanguard.com/verify/{report}", iso17025: true, verifyHint: null } });
+    const bad = parseLab({ name: "", city: "", verify: "http://x.com/verify", iso: "", hint: "" });
     expect(!bad.ok && Object.keys(bad.fieldErrors).sort()).toEqual(["name", "verify"]);
-    expect(parseLab({ name: "BTLabs", city: "", verify: "", iso: "" })).toEqual({ ok: true, value: { name: "BTLabs", city: null, verifyUrlTemplate: null, iso17025: false } });
+    expect(parseLab({ name: "BTLabs", city: "", verify: "", iso: "", hint: "" })).toEqual({ ok: true, value: { name: "BTLabs", city: null, verifyUrlTemplate: null, iso17025: false, verifyHint: null } });
+  });
+  it("keeps an optional verify hint", () => {
+    const r = parseLab({ name: "Vanguard Laboratory", city: "", verify: "", iso: "", hint: "The certificate ID from the QR code." });
+    expect(r.ok && r.value.verifyHint).toBe("The certificate ID from the QR code.");
   });
 });

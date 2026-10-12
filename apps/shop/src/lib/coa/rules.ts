@@ -21,10 +21,11 @@ const REPORT_RE = /^\S(.{0,58}\S)?$/;
 export type CertInput = {
   labId: string; reportNumber: string; testedOn: string; purity: string; method: string; measured: string; coaPath: string; certNote: string;
   result: string;   // the owner's pick: "pass" | "fail"
+  verifyCode: string;
 } & { [K in TestKey as `test_${K}`]: string };
 export type CertValue = {
   labId: string; reportNumber: string; testedOn: string; purityPct: number | null; method: Method | null; measuredMg: number | null;
-  coaPath: string; tests: Tests; result: "pass" | "fail"; note: string | null;
+  coaPath: string; tests: Tests; result: "pass" | "fail"; note: string | null; verifyCode: string | null;
 };
 
 // The owner sets Pass/Failed. A failed test is only flagged to the owner.
@@ -70,6 +71,8 @@ export function parseCertificate(i: CertInput, today: string, labIds: ReadonlySe
   const result = i.result === "pass" || i.result === "fail" ? i.result : null;
   if (!result) e.result = "Pick Pass or Failed.";
   if (result === "fail" && !note) e.certNote = "Say what failed. Customers see this note when every certificate is shown.";
+  const verifyCode = i.verifyCode.trim() || null;
+  if (verifyCode && (verifyCode.length < 2 || verifyCode.length > 80 || /\s/.test(verifyCode))) e.verifyCode = "The code from the lab's QR or verify link, no spaces.";
   if (Object.keys(e).length) return { ok: false, fieldErrors: e };
   return {
     ok: true,
@@ -77,12 +80,18 @@ export function parseCertificate(i: CertInput, today: string, labIds: ReadonlySe
       ...(purityPct !== null && purityPct < PURITY_FLOOR_PCT ? { purity: `Below the ${PURITY_FLOOR_PCT}% shown on the site.` } : {}),
       ...(result === "pass" && failedTests(tests).length ? { failedTest: `Saved as Pass although ${failedTests(tests).join(", ")} failed on this report.` } : {}),
     },
-    value: { labId: i.labId, reportNumber, testedOn: i.testedOn, purityPct, method, measuredMg, coaPath, tests, result: result!, note },
+    value: { labId: i.labId, reportNumber, testedOn: i.testedOn, purityPct, method, measuredMg, coaPath, tests, result: result!, note, verifyCode },
   };
 }
 
 export function verifyUrl(template: string | null, report: string): string | null {
   return template ? template.replace("{report}", encodeURIComponent(report)) : null;
+}
+
+// The lab's verify link, keyed by the certificate's verify code when it has
+// one (Vanguard's QR id, ILS's access code) and by the report number otherwise.
+export function certVerifyUrl(template: string | null, reportNumber: string, verifyCode: string | null): string | null {
+  return verifyUrl(template, verifyCode ?? reportNumber);
 }
 
 // "10 mg" → 10, "500 mcg" → 0.5; IU (and anything else) has no mass.
@@ -96,8 +105,8 @@ export function measuredPct(measuredMg: number | null, strength: string): number
   return measuredMg == null || !label ? null : Math.round((measuredMg / label) * 100);
 }
 
-export type LabValue = { name: string; city: string | null; verifyUrlTemplate: string | null; iso17025: boolean };
-export function parseLab(i: { name: string; city: string; verify: string; iso: string }):
+export type LabValue = { name: string; city: string | null; verifyUrlTemplate: string | null; iso17025: boolean; verifyHint: string | null };
+export function parseLab(i: { name: string; city: string; verify: string; iso: string; hint: string }):
   { ok: true; value: LabValue } | { ok: false; fieldErrors: Record<string, string> } {
   const e: Record<string, string> = {};
   const name = i.name.trim();
@@ -107,6 +116,7 @@ export function parseLab(i: { name: string; city: string; verify: string; iso: s
   if (verify && (!/^https:\/\//.test(verify) || !verify.includes("{report}") || verify.length > 200)) {
     e.verify = "An https:// link with {report} where the report number goes.";
   }
+  const verifyHint = i.hint.trim().slice(0, 200) || null;
   if (Object.keys(e).length) return { ok: false, fieldErrors: e };
-  return { ok: true, value: { name, city, verifyUrlTemplate: verify, iso17025: i.iso === "on" } };
+  return { ok: true, value: { name, city, verifyUrlTemplate: verify, iso17025: i.iso === "on", verifyHint } };
 }
