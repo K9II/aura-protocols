@@ -65,7 +65,7 @@ export const ACTION_PERMS: Record<string, Record<string, string>> = {
   },
   "disputes/actions.ts": { saveDisputeDraftAction: "disputes.draft", submitDisputeAction: "disputes.submit", refundEarlyWarningAction: "disputes.warnings", watchEarlyWarningAction: "disputes.warnings" },
   "catalog/actions.ts": {
-    coaUploadAction: "lots.receive", receiveLotAction: "lots.receive",
+    coaUploadAction: "lots.receive", readCertificateAction: "lots.receive", receiveLotAction: "lots.receive",
     saveCertificateAction: "lots.receive", deleteCertificateAction: "lots.receive", correctCertificateAction: "lots.receive",
     putLiveAction: "lots.put_live", retireAction: "lots.put_live", correctCountAction: "stock.correct",
     setFieldAction: "catalog.edit", setShownAction: "catalog.edit", setWholesaleAction: "catalog.edit", addStrengthAction: "catalog.edit", setStrengthShownAction: "catalog.edit",

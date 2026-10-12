@@ -5,12 +5,14 @@ import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
 import { catalogContent } from "@/data/catalog";
-import { addVariant, archiveVariant, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, setVariantWholesale, updateDraftLot, variantRow, lotDefaults } from "@/lib/catalog-ops/data";
+import { addVariant, archiveVariant, coaPdf, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, setVariantWholesale, updateDraftLot, variantRow, lotDefaults } from "@/lib/catalog-ops/data";
 import { fillLotCostFromLine, lineById, linkLot } from "@/lib/wholesale/runs-data";
 import {
   isCoaPathFor, isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku, parseStrength,
 } from "@/lib/catalog-ops/rules";
 import { addCertificate, addCorrection, certificateById, deleteDraftCertificate, listLabs, updateDraftCertificate } from "@/lib/coa/data";
+import { readCertificate } from "@/lib/coa/read";
+import type { Reading } from "@/lib/coa/reading";
 import { CORRECTION_MAX, parseCertificate, TEST_KEYS, type CertInput } from "@/lib/coa/rules";
 import { catalogChangedByOwner } from "@/lib/catalog-live";
 import { alertOwner } from "@/lib/notify";
@@ -70,6 +72,23 @@ export async function coaUploadAction(lotNumber: string): Promise<{ path: string
   const lot = String(lotNumber).trim().toUpperCase();
   if (!LOT_NUMBER_RE.test(lot)) return { error: "Enter the lot number first." };
   return createCoaUpload(lot);
+}
+
+// Reads the just-uploaded certificate PDF and returns what's printed on it;
+// the form fills its empty fields. Never throws — on any failure the owner
+// types it in (the reader alerts the owner when the key is missing/rejected).
+export async function readCertificateAction(lotNumber: string, coaPath: string): Promise<{ reading: Reading } | { error: "unread" }> {
+  await requirePermission("lots.receive");
+  const lot = String(lotNumber).trim().toUpperCase();
+  const path = String(coaPath);
+  try {
+    if (!LOT_NUMBER_RE.test(lot) || !(await pdfOk(lot, path))) return { error: "unread" };
+    const r = await readCertificate(await coaPdf(path), lot, today());
+    return r.ok ? { reading: r.reading } : { error: "unread" };
+  } catch (err) {
+    console.error(`certificate read ${lot} failed:`, err);
+    return { error: "unread" };
+  }
 }
 
 export async function receiveLotAction(_prev: ActionState, f: FormData): Promise<ActionState> {

@@ -4,7 +4,7 @@ import { ownerStaff } from "../../helpers/staff";
 const requirePermission = vi.fn(async () => ownerStaff({ id: "owner", fullName: "Kearney Adams" }));
 const data = {
   receiveLot: vi.fn(), updateDraftLot: vi.fn(), putLotLive: vi.fn(), correctCount: vi.fn(), retireLot: vi.fn(),
-  setVariantField: vi.fn(), setShown: vi.fn(), createCoaUpload: vi.fn(), coaUploaded: vi.fn(), lotById: vi.fn(),
+  setVariantField: vi.fn(), setShown: vi.fn(), createCoaUpload: vi.fn(), coaUploaded: vi.fn(), coaPdf: vi.fn(), lotById: vi.fn(),
   variantRow: vi.fn(), addVariant: vi.fn(), setVariantShown: vi.fn(), archiveVariant: vi.fn(), restoreVariant: vi.fn(), deleteVariant: vi.fn(),
   lotDefaults: vi.fn(async () => ({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 })),
 };
@@ -14,6 +14,8 @@ const coaData = {
 const runs = { lineById: vi.fn(), linkLot: vi.fn(), fillLotCostFromLine: vi.fn() };
 vi.mock("@/lib/wholesale/runs-data", () => runs);
 const catalogChangedByOwner = vi.fn(), alertOwner = vi.fn();
+const readCertificate = vi.fn();
+vi.mock("@/lib/coa/read", () => ({ readCertificate }));
 vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/catalog-ops/data", () => data);
 vi.mock("@/lib/coa/data", () => coaData);
@@ -39,7 +41,7 @@ describe("catalog actions", () => {
     Object.values(data).forEach((f) => f.mockReset());
     Object.values(coaData).forEach((f) => f.mockReset());
     Object.values(runs).forEach((f) => f.mockReset());
-    catalogChangedByOwner.mockReset(); alertOwner.mockReset();
+    catalogChangedByOwner.mockReset(); alertOwner.mockReset(); readCertificate.mockReset();
     data.lotDefaults.mockResolvedValue({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 });
     data.variantRow.mockResolvedValue({ strength: "10 mg", shown: true, archived_at: null });
     coaData.listLabs.mockResolvedValue([{ id: LAB, active: true }]);
@@ -464,6 +466,35 @@ describe("catalog actions", () => {
       const { coaUploadAction } = await import("@/app/admin/catalog/actions");
       expect(await coaUploadAction("bpc-2610-03")).toEqual({ path: "BPC-2610-03/1700000000000.pdf", token: "tok" });
       expect(data.createCoaUpload).toHaveBeenCalledWith("BPC-2610-03");
+    });
+  });
+
+  describe("readCertificateAction", () => {
+    const PATH = "AP-1105/1700000000000.pdf";
+    it("checks permission, the path and the upload, downloads the PDF and returns the reading", async () => {
+      data.coaUploaded.mockResolvedValue(true);
+      data.coaPdf.mockResolvedValue(new Uint8Array([1]));
+      readCertificate.mockResolvedValue({ ok: true, reading: { lab_name: "Vanguard Laboratory" } });
+      const { readCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await readCertificateAction("ap-1105", PATH)).toEqual({ reading: { lab_name: "Vanguard Laboratory" } });
+      expect(requirePermission).toHaveBeenCalledWith("lots.receive");
+      expect(readCertificate).toHaveBeenCalledWith(new Uint8Array([1]), "AP-1105", expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
+    });
+    it("a path from another lot, or a missing upload, is not read", async () => {
+      const { readCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await readCertificateAction("AP-1106", PATH)).toEqual({ error: "unread" });
+      data.coaUploaded.mockResolvedValue(false);
+      expect(await readCertificateAction("AP-1105", PATH)).toEqual({ error: "unread" });
+      expect(readCertificate).not.toHaveBeenCalled();
+    });
+    it("reader failure or a thrown download → unread, never throws", async () => {
+      data.coaUploaded.mockResolvedValue(true);
+      data.coaPdf.mockRejectedValueOnce(new Error("storage down"));
+      const { readCertificateAction } = await import("@/app/admin/catalog/actions");
+      expect(await readCertificateAction("AP-1105", PATH)).toEqual({ error: "unread" });
+      data.coaPdf.mockResolvedValue(new Uint8Array([1]));
+      readCertificate.mockResolvedValue({ ok: false });
+      expect(await readCertificateAction("AP-1105", PATH)).toEqual({ error: "unread" });
     });
   });
 

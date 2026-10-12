@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
 
-const rpc = vi.fn(), createSignedUploadUrl = vi.fn(), list = vi.fn();
+const rpc = vi.fn(), createSignedUploadUrl = vi.fn(), list = vi.fn(), download = vi.fn();
 let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({
-  from: (t: string) => from(t), rpc, storage: { from: () => ({ createSignedUploadUrl, list }) },
+  from: (t: string) => from(t), rpc, storage: { from: () => ({ createSignedUploadUrl, list, download }) },
 }) }));
 
 describe("catalog-ops data", () => {
-  beforeEach(() => { vi.resetModules(); rpc.mockReset(); createSignedUploadUrl.mockReset(); list.mockReset(); });
+  beforeEach(() => { vi.resetModules(); rpc.mockReset(); createSignedUploadUrl.mockReset(); list.mockReset(); download.mockReset(); });
 
   it("fetchCatalogOps reads products, variants and live/retired lots only", async () => {
     const lots = query({ data: [{ id: "l1", purity_pct: "99.40", sellable: 10, held: 0, sold: 0, available: 10 }] });
@@ -127,6 +127,19 @@ describe("catalog-ops data", () => {
     const { coaUploaded } = await import("@/lib/catalog-ops/data");
     expect(await coaUploaded("BPC-1/5.pdf")).toBe(true);
     expect(list).toHaveBeenCalledWith("BPC-1", { search: "5.pdf" });
+  });
+
+  it("coaPdf downloads the stored PDF as bytes", async () => {
+    download.mockResolvedValueOnce({ data: new Blob([new Uint8Array([1, 2, 3])]), error: null });
+    const { coaPdf } = await import("@/lib/catalog-ops/data");
+    expect(Array.from(await coaPdf("AP-1105/1.pdf"))).toEqual([1, 2, 3]);
+    expect(download).toHaveBeenCalledWith("AP-1105/1.pdf");
+  });
+
+  it("coaPdf throws when the download fails", async () => {
+    download.mockResolvedValueOnce({ data: null, error: { message: "nope" } });
+    const { coaPdf } = await import("@/lib/catalog-ops/data");
+    await expect(coaPdf("AP-1105/1.pdf")).rejects.toThrow();
   });
   describe("strengths", () => {
     const add = { strength: "30 mg", variantId: "30mg", priceCents: 9900, lowAt: 10, sku: "AP-SS31-30" };

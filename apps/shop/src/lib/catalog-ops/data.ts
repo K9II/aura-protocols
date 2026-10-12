@@ -289,6 +289,13 @@ export async function coaUploaded(path: string): Promise<boolean> {
   return ((data ?? []) as Array<{ name: string }>).some((f) => f.name === path.slice(slash + 1));
 }
 
+// The stored certificate PDF, for the reader (server-side: action bodies cap at 1 MB).
+export async function coaPdf(path: string): Promise<Uint8Array> {
+  const { data, error } = await db().storage.from("coa").download(path);
+  if (error || !data) fail("certificate download", error);
+  return new Uint8Array(await (data as Blob).arrayBuffer());
+}
+
 // ---------- checkout / orders ----------
 export type HoldResult = { ok: true } | { ok: false; reason: "inactive" } | { ok: false; reason: "sold_out"; short: Array<{ slug: string; variantId: string }> };
 export async function holdVials(orderId: string): Promise<HoldResult> {
