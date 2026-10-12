@@ -56,9 +56,10 @@ export function homeRecord(lots: PublicLot[], featured: ReadonlySet<string> = ne
 // Calendar day in shop time (America/Denver).
 const shopDay = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Denver", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
 
-// Product page: every released lot of this compound, newest first.
+// Product page: every released lot of this compound whose strength is on the
+// store, newest first (hidden/archived strengths stay findable in COA lookup).
 export function productRecord(lots: PublicLot[], slug: string): RecordLot[] {
-  return lots.filter((l) => l.slug === slug).sort(newestFirst).map(toRecord).filter((l): l is RecordLot => l !== null);
+  return lots.filter((l) => l.slug === slug && l.onStore).sort(newestFirst).map(toRecord).filter((l): l is RecordLot => l !== null);
 }
 
 // Lots released after the visitor's previous visit. First visit (no baseline): none.

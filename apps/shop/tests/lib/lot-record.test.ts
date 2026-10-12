@@ -38,6 +38,14 @@ describe("lot record", () => {
     expect(rec.map((l) => [l.lot, l.status])).toEqual([["B", "live"], ["A", "sold_out"]]);
   });
 
+  it("product: strengths on the store only — a hidden or archived strength's lots stay off the chart", () => {
+    const rec = productRecord([
+      lot({ lot: "ON", liveAt: "2026-09-01T00:00:00Z" }),
+      lot({ lot: "HIDDEN", variantId: "99mg", strength: "99 mg", liveAt: "2026-10-01T00:00:00Z", onStore: false }),
+    ], "bpc-157");
+    expect(rec.map((l) => l.lot)).toEqual(["ON"]);
+  });
+
   it("never sends stock counts or flags to the browser", () => {
     const [r] = homeRecord([lot({})]);
     expect(Object.keys(r).sort()).toEqual(["coaFile", "compound", "liveAt", "lot", "method", "purityPct", "slug", "status", "strength", "testedOn"]);
