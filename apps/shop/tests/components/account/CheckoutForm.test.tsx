@@ -39,7 +39,7 @@ vi.mock("@/components/account/HumanCheck", async () => {
 const { default: CheckoutForm } = await import("@/components/account/CheckoutForm");
 type FormProps = Parameters<typeof CheckoutForm>[0];
 const renderForm = (p: Partial<FormProps> = {}) =>
-  render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} {...p} />);
+  render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} {...p} />);
 
 describe("CheckoutForm", () => {
   beforeEach(() => {
@@ -60,6 +60,20 @@ describe("CheckoutForm", () => {
     expect(screen.getByRole("group", { name: /order details/i })).not.toBeDisabled();
     expect(screen.getByText(/✓ Verified/)).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /NOT an Alien/ })).toBeNull();
+  });
+
+  it("shows each item's class and its lot certificate, a total before tax, the discount rules tucked away, and two trust claims", () => {
+    renderForm();
+    expect(screen.getByText("Peptide Fragments")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Lot AP-0001 · certificate on file/ })).toHaveAttribute("href", "/coa?lot=AP-0001");
+    expect(screen.getByText("Total before tax")).toBeInTheDocument();
+    const rules = screen.getByText("How discounts work").closest("details")!;
+    expect(rules).not.toHaveAttribute("open");
+    expect(rules.textContent).toMatch(/capped at \d+% of list price/);
+    const trust = screen.getByRole("list", { name: /why researchers order from aura/i });
+    expect(trust.textContent).toContain("Ships from the USA");
+    expect(trust.textContent).toContain("Certificate every lot");
+    expect(trust.querySelectorAll("li")).toHaveLength(2);
   });
 
   it("includes shipping protection by default; unticking it shows the decline notice and sends the decline", async () => {
@@ -102,15 +116,15 @@ describe("CheckoutForm", () => {
     expect(screen.getByRole("group", { name: /order details/i })).toBeDisabled();
   });
 
-  it("first order: research box defaults to Independent Researcher, prefills the company and sends both", async () => {
-    const { container } = renderForm({ needsResearch: true, organization: "Halden Labs" });
+  it("first order: research box defaults to Independent Researcher, asks no company, and sends the field", async () => {
+    const { container } = renderForm({ needsResearch: true });
     expect(screen.getByLabelText(/field of qualified research/i)).toHaveValue("independent");
-    expect(screen.getByLabelText(/company or institution/i)).toHaveValue("Halden Labs");
+    expect(screen.queryByLabelText(/company or institution/i)).toBeNull();
     expect(screen.getByText(/one time only/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(startCheckoutAction).toHaveBeenCalled());
-    expect(startCheckoutAction.mock.calls[0][0]).toMatchObject({ research: { field: "independent", org: "Halden Labs" } });
+    expect(startCheckoutAction.mock.calls[0][0]).toEqual(expect.objectContaining({ research: { field: "independent" } }));
   });
 
   it("no research box once the account is verified, and nothing sent for it", async () => {
@@ -176,7 +190,7 @@ describe("CheckoutForm", () => {
   it("applies a code the shopper entered in the cart, ahead of a referral-link code", async () => {
     cart.code = "SMITHLAB";
     checkCodeAction.mockResolvedValue({ ok: true, kind: "partner", code: "SMITHLAB" });
-    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="otherref" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
+    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="otherref" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} />);
     await waitFor(() => expect(checkCodeAction).toHaveBeenCalledWith("SMITHLAB"));
     expect(checkCodeAction).not.toHaveBeenCalledWith("otherref");
     await waitFor(() => expect(screen.getByText(/SMITHLAB applied/)).toBeInTheDocument());
@@ -186,24 +200,24 @@ describe("CheckoutForm", () => {
 
   it("auto-applies a valid referral-link code on mount, without the customer typing anything", async () => {
     checkCodeAction.mockResolvedValue({ ok: true, kind: "partner", code: "SMITHLAB" });
-    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="smithlab" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
+    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="smithlab" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} />);
     await waitFor(() => expect(checkCodeAction).toHaveBeenCalledWith("smithlab"));
     await waitFor(() => expect(screen.getByText(/SMITHLAB applied/)).toBeInTheDocument());
     expect(screen.getByRole("button", { name: /remove/i })).toBeInTheDocument();
   });
 
   it("links from the order summary back to the cart to edit it", () => {
-    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
+    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} />);
     expect(screen.getByRole("link", { name: /edit cart/i })).toHaveAttribute("href", "/cart");
   });
 
   it("does not call the server when there is no referral code to apply", () => {
-    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
+    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} />);
     expect(checkCodeAction).not.toHaveBeenCalled();
   });
 
   it("sends a typed-but-never-applied code on submit instead of silently dropping it", async () => {
-    const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
+    const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} />);
     const input = screen.getByLabelText(/discount code/i);
     fireEvent.change(input, { target: { value: "loose" } });
     const form = container.querySelector("form")!;
@@ -214,7 +228,7 @@ describe("CheckoutForm", () => {
 
   it("sends the applied code, not stray input, once a code has been explicitly applied", async () => {
     checkCodeAction.mockResolvedValue({ ok: true, kind: "partner", code: "SMITHLAB" });
-    const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
+    const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} />);
     const input = screen.getByLabelText(/discount code/i);
     fireEvent.change(input, { target: { value: "smithlab" } });
     fireEvent.click(screen.getByRole("button", { name: /apply/i }));
@@ -227,7 +241,7 @@ describe("CheckoutForm", () => {
 
   it("re-enables the pay button and shows the error when starting checkout throws", async () => {
     startCheckoutAction.mockRejectedValue(new Error("network"));
-    const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
+    const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} />);
     fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Something went wrong — please try again."));
@@ -236,7 +250,7 @@ describe("CheckoutForm", () => {
 
   it("shows an error instead of hanging when checking a code throws", async () => {
     checkCodeAction.mockRejectedValue(new Error("network"));
-    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
+    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} />);
     fireEvent.change(screen.getByLabelText(/discount code/i), { target: { value: "AURA-7K2Q" } });
     fireEvent.click(screen.getByRole("button", { name: /apply/i }));
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Something went wrong — please try again."));
@@ -248,9 +262,9 @@ describe("CheckoutForm", () => {
     lines.length = 0;
     lines.push({ slug: "bpc-157", variantId: "5mg", packQty: 2, quantity: 1 });
     try {
-      render(<CheckoutForm email="j@lab.org" ship={null} initialCode="smithlab" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
+      render(<CheckoutForm email="j@lab.org" ship={null} initialCode="smithlab" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} />);
       await waitFor(() => expect(screen.getByText(/code −10%/)).toBeInTheDocument());
-      const row = screen.getByText("BPC-157").closest(".s-cart-line")!;
+      const row = screen.getByText("BPC-157").closest(".s-co-item")!;
       expect(row.textContent).toContain("2-pack");
       expect(row.textContent).not.toMatch(/−5%/);
       expect(row.textContent).toContain("$98.00");
@@ -262,7 +276,7 @@ describe("CheckoutForm", () => {
   });
 
   it("shows the automatic new-account percent when the offer is live", async () => {
-    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={{ endsAt: "2026-10-18T23:59:59.999Z" }} capPct={30} needsResearch={false} organization={null} />);
+    render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={{ endsAt: "2026-10-18T23:59:59.999Z" }} capPct={30} needsResearch={false} />);
     expect(screen.getByText(`New account: ${OFFER_PCT_TEXT} off this first order, applied automatically.`)).toBeInTheDocument();
     expect(screen.getByText(new RegExp(`Includes new-account ${OFFER_PCT_TEXT}`))).toBeInTheDocument();
   });

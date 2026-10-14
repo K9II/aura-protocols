@@ -158,8 +158,8 @@ describe("wholesale actions", () => {
   it("enable: asks for research details when missing and none were given", async () => {
     getCustomer.mockResolvedValue(customer({ research: null, wholesale: { enabledAt: null, disabledAt: null } }));
     const { enableWholesaleAction } = await import("@/app/wholesale/actions");
-    const { RESEARCH_REQUIRED } = await import("@/lib/account/research");
-    expect(await enableWholesaleAction({ agree: true })).toEqual({ error: RESEARCH_REQUIRED });
+    const { WHOLESALE_RESEARCH_REQUIRED } = await import("@/lib/account/research");
+    expect(await enableWholesaleAction({ agree: true })).toEqual({ error: WHOLESALE_RESEARCH_REQUIRED });
     expect(enableWholesale).not.toHaveBeenCalled();
   });
 

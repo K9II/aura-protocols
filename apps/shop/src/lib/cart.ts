@@ -1,8 +1,8 @@
 import type { Compound } from "@/data/catalog";
 
 // Shipping economics — the policy pages, cart and checkout all read these.
-export const FREE_SHIPPING_THRESHOLD_USD = 300;
-export const FLAT_SHIPPING_USD = 15;
+export const FREE_SHIPPING_THRESHOLD_USD = 250; // 2026-10-13: was 300
+export const FLAT_SHIPPING_USD = 18; // 2026-10-13: was 15; our PipShip cost is about $17.84 per 2-vial order
 export const SHIPPING_PROTECTION_USD = 5.5; // optional at checkout (wholesale: always); covers transit loss/damage (replacement only) — lib/shipping-protection.ts
 
 export function formatUsd(amount: number): string {

@@ -65,7 +65,7 @@ describe("applyDiscounts — the mock's SPRING20 (20% order, stacks, free ship, 
     expect(r.codeOutcome).toBe("below_min");
     expect(r.shortOfMinCents).toBe(15000 - 13110);
     expect(r.partnerDiscountCents).toBe(0);
-    expect(r.shippingCents).toBe(1500);
+    expect(r.shippingCents).toBe(1800);
   });
 
   it("only Blends in the cart: no eligible items", () => {
@@ -169,13 +169,13 @@ describe("lineEligible", () => {
 
 describe("review fixes", () => {
   it("a code that would lose free shipping and cost more isn't applied", () => {
-    const cart = order(["tb-500", 2], ["mots-c", 2]); // $169.10 + $131.10 = $300.20 → free shipping
-    const ten: CodeTerms = { ...spring, kind: "order_amount", value: 1000, freeShipping: false, minOrderCents: null, excludeClasses: [] };
-    const r = applyDiscounts(cart, { auto: null, code: ten, capPct: CAP }); // $290.20 + $15 shipping = $305.20 > $300.20
+    const cart = order(["mots-c", 2, 2]); // 2 × $131.10 = $262.20 → free shipping
+    const ten: CodeTerms = { ...spring, kind: "order_amount", value: 1500, freeShipping: false, minOrderCents: null, excludeClasses: [] };
+    const r = applyDiscounts(cart, { auto: null, code: ten, capPct: CAP }); // $247.20 + $18 shipping = $265.20 > $262.20
     expect(r.codeOutcome).toBe("no_gain");
-    expect(r.subtotalCents - r.partnerDiscountCents).toBe(30020);
+    expect(r.subtotalCents - r.partnerDiscountCents).toBe(26220);
     expect(r.shippingCents).toBe(0);
-    const forty = applyDiscounts(cart, { auto: null, code: { ...ten, value: 4000 }, capPct: CAP }); // $260.20 + $15 = $275.20 < $300.20
+    const forty = applyDiscounts(cart, { auto: null, code: { ...ten, value: 4000 }, capPct: CAP }); // $222.20 + $18 = $240.20 < $262.20
     expect(forty.codeOutcome).toBe("applied");
   });
 

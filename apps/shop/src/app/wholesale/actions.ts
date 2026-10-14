@@ -13,7 +13,7 @@ import { alertOwner, sendOrAlert } from "@/lib/notify";
 import { getLiveCatalog } from "@/lib/catalog-live";
 import { verifyHumanCheck } from "@/lib/turnstile";
 import { HUMAN_CHECK_FAILED, HUMAN_CHECK_UNAVAILABLE } from "@/lib/human-check";
-import { RESEARCH_FIELDS, RESEARCH_ORG_MAX, RESEARCH_REQUIRED, RESEARCH_SAVE_FAILED } from "@/lib/account/research";
+import { RESEARCH_FIELDS, RESEARCH_ORG_MAX, WHOLESALE_RESEARCH_REQUIRED as RESEARCH_REQUIRED, RESEARCH_SAVE_FAILED } from "@/lib/account/research";
 import { saveResearchVerification } from "@/lib/account/research-data";
 import { bookkeep, requestIp, requestIpHash } from "@/lib/checkout-shared";
 import { enableWholesale, getWholesaleSettings } from "@/lib/wholesale/data";

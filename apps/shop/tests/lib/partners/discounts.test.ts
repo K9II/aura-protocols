@@ -35,15 +35,15 @@ describe("applyPartnerCode", () => {
     expect(r.subtotalCents).toBe(28230);
     expect(r.partnerDiscountCents).toBe(690);
     expect(r.subtotalCents - r.partnerDiscountCents).toBe(27540);
-    expect(r.shippingCents).toBe(1500); // $275.40 < $300
-    expect(r.totalBeforeTaxCents).toBe(27540 + 1500 + r.insuranceCents);
+    expect(r.shippingCents).toBe(0); // $275.40 ≥ $250: free
+    expect(r.totalBeforeTaxCents).toBe(27540 + r.insuranceCents);
   });
 
   it("decides free shipping on the discounted amount", () => {
-    // 2 vials at $160 = $320.00; after code $288.00 → shipping charged.
-    const r = applyPartnerCode(order([item({ quantity: 2, listUnitCents: 16000, unitPriceCents: 16000, lineTotalCents: 32000 })]));
-    expect(r.partnerDiscountCents).toBe(3200);
-    expect(r.shippingCents).toBe(1500);
+    // 2 vials at $135 = $270.00; after code $243.00 → shipping charged.
+    const r = applyPartnerCode(order([item({ quantity: 2, listUnitCents: 13500, unitPriceCents: 13500, lineTotalCents: 27000 })]));
+    expect(r.partnerDiscountCents).toBe(2700);
+    expect(r.shippingCents).toBe(1800);
   });
 
   it("a partner code beats the 5% 2-pack discount (code is 10% off list)", () => {
