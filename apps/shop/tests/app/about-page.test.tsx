@@ -20,6 +20,13 @@ describe("/about (About + Quality Standards)", () => {
     expect(text).not.toMatch(/COA pending/i);
   });
 
+  it("speaks as the team and signs as The Aura Team (owner, 2026-10-14)", () => {
+    const { container } = render(<AboutPage />);
+    const text = container.textContent ?? "";
+    expect(text).toContain("— The Aura Team");
+    expect(text).not.toMatch(/I(&apos;|'|’)?(d| started)/);
+  });
+
   it("takes the purity floor and support address from constants, and links the lookup and RUO policy", () => {
     const { container } = render(<AboutPage />);
     expect(container.textContent).toContain(`floor of ${PURITY_FLOOR_PCT}%`);

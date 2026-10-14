@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-// The owner is still choosing how to sign (2026-10-14).
-const SIGNATURE = "Founder, Aura Protocols";
+// Signed by the team, so the page speaks as "we" (owner, 2026-10-14).
+const SIGNATURE = "The Aura Team";
 
 export default function AboutPage() {
   return (
@@ -30,7 +30,7 @@ export default function AboutPage() {
       <div className="s-about-col s-about-body">
         <section className="s-about-first">
           <h2>Why we started</h2>
-          <p>Researchers make decisions from data: which run to repeat, which result to trust, what to try next. If the compound in the vial isn&apos;t what the label says, every one of those calls rests on a bad number. I started Aura Protocols to take the guesswork out of that. Every lot we sell is tested by an independent lab before it goes on sale, and you can read the results for the exact lot in your vial.</p>
+          <p>Researchers make decisions from data: which run to repeat, which result to trust, what to try next. If the compound in the vial isn&apos;t what the label says, every one of those calls rests on a bad number. We started Aura Protocols to take the guesswork out of that. Every lot we sell is tested by an independent lab before it goes on sale, and you can read the results for the exact lot in your vial.</p>
         </section>
 
         <section>
@@ -51,7 +51,7 @@ export default function AboutPage() {
         <section>
           <h2>Research use only</h2>
           <p>Everything we sell is for in-vitro laboratory research. We don&apos;t give instructions for use and don&apos;t sell to anyone under 21; see our <Link href="/ruo" className="p-link">Research Use Only policy</Link>. Compounds ship lyophilized and are listed by scientific name, grouped by chemical class. Three blends also carry a short name (Wolverine, GLOW, KLOW) because the full name won&apos;t fit on the vial; the scientific name is always shown with it.</p>
-          <p>If a certificate doesn&apos;t add up, or a vial doesn&apos;t match its paperwork, write to <a href={`mailto:${SUPPORT_EMAIL}`} className="p-link">{SUPPORT_EMAIL}</a>. I&apos;d rather hear it from you than have it sit in your data.</p>
+          <p>If a certificate doesn&apos;t add up, or a vial doesn&apos;t match its paperwork, write to <a href={`mailto:${SUPPORT_EMAIL}`} className="p-link">{SUPPORT_EMAIL}</a>. We&apos;d rather hear it from you than have it sit in your data.</p>
           <p className="s-about-sig">— {SIGNATURE}</p>
         </section>
       </div>
