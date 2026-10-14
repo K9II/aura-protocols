@@ -1769,6 +1769,9 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 /* ── How an order runs: engraved plate + side column (mock approved 2026-10-14; built like .s-record) ── */
 .pharmacopoeia .s-plate { display: grid; grid-template-columns: minmax(0, 1fr) 360px; margin: 24px 0 56px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--paper-deep); }
 .pharmacopoeia .s-plate-art { display: flex; padding: 26px 22px 22px; border-right: 1px solid var(--line); }
+/* The side panel is first in the page (phones read it before the figures); desktop puts the art back on the left. */
+.pharmacopoeia .s-plate > .s-plate-art { grid-column: 1; grid-row: 1; }
+.pharmacopoeia .s-plate > .s-plate-side { grid-column: 2; grid-row: 1; }
 .pharmacopoeia .s-plate-sheet { position: relative; flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 40px 24px 34px; background: #EFE6C9; box-shadow: 0 1px 0 var(--line), 0 10px 24px rgba(28, 26, 21, .10); }
 .pharmacopoeia .s-plate-taf { position: absolute; right: 14px; top: 10px; font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 13px; color: #5A4A2E; }
 .pharmacopoeia .s-plate-figs { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -1791,6 +1794,7 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 @media (max-width: 960px) {
   .pharmacopoeia .s-plate { grid-template-columns: minmax(0, 1fr); }
   .pharmacopoeia .s-plate-art { border-right: 0; }
+  .pharmacopoeia .s-plate > .s-plate-art, .pharmacopoeia .s-plate > .s-plate-side { grid-column: auto; grid-row: auto; }
 }
 @media (max-width: 600px) {
   .pharmacopoeia .s-plate-art { padding: 16px 12px; }

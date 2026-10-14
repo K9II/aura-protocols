@@ -80,6 +80,23 @@ const FIGURES = [
 export default function OrderPlate() {
   return (
     <section className="s-plate p-reveal" aria-labelledby="order-plate">
+      {/* The heading and steps come first (phones show them above the figures,
+          Alvester 2026-10-14); on desktop CSS keeps them in the right column. */}
+      <div className="s-plate-side">
+        <p className="s-micro s-record-eyebrow">How an order runs</p>
+        <h2 id="order-plate" className="s-h2">Four simple steps, <em>start to finish.</em></h2>
+        <ol className="s-plate-steps">
+          {STEPS.map((s, i) => (
+            <li key={s.title}>
+              <span>Fig. {i + 1}</span>
+              <b>{s.title}</b>
+              <small>{s.body}</small>
+            </li>
+          ))}
+        </ol>
+        <Link href="/products" className="s-micro s-record-link">Shop the lineup →</Link>
+        <p className="s-plate-cap">Plate I. An order, from the catalog to the bench.</p>
+      </div>
       <div className="s-plate-art">
         <div className="s-plate-sheet">
           <span className="s-plate-taf" aria-hidden>Taf. I.</span>
@@ -97,21 +114,6 @@ export default function OrderPlate() {
             ))}
           </div>
         </div>
-      </div>
-      <div className="s-plate-side">
-        <p className="s-micro s-record-eyebrow">How an order runs</p>
-        <h2 id="order-plate" className="s-h2">Four simple steps, <em>start to finish.</em></h2>
-        <ol className="s-plate-steps">
-          {STEPS.map((s, i) => (
-            <li key={s.title}>
-              <span>Fig. {i + 1}</span>
-              <b>{s.title}</b>
-              <small>{s.body}</small>
-            </li>
-          ))}
-        </ol>
-        <Link href="/products" className="s-micro s-record-link">Shop the lineup →</Link>
-        <p className="s-plate-cap">Plate I. An order, from the catalog to the bench.</p>
       </div>
     </section>
   );

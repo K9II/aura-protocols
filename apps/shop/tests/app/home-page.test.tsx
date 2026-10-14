@@ -72,6 +72,9 @@ describe("/ (home)", () => {
     expect(plate.compareDocumentPosition(letter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(plate).toHaveTextContent(/Fig\. 4/);
     for (const w of ["Pick", "Verify", "Secure", "Receive"]) expect(within(plate).getByText(w)).toBeInTheDocument();
+    // the heading and steps come before the figures (phones stack them in this order)
+    const h = within(plate).getByRole("heading", { level: 2, name: /four simple steps/i });
+    expect(h.compareDocumentPosition(within(plate).getByText("Fig. 1.")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.queryByText(/straight/i)).not.toBeInTheDocument();
   });
 
