@@ -5,6 +5,7 @@ import { useState, type CSSProperties } from "react";
 import type { PublicCert } from "@/data/catalog";
 import { CLASS_COLOR } from "@/lib/class-colors";
 import CertCard from "@/components/store/CertCard";
+import { useSearch } from "@/lib/use-search";
 
 export type LotHit = { lot: string; name: string; slug: string; strength: string; status: string; chemicalClass: string };
 
@@ -18,8 +19,13 @@ function cardHead(c: PublicCert): string {
 }
 
 export default function CoaLookup({ lots, certs }: { lots: LotHit[]; certs: PublicCert[] }) {
-  const [value, setValue] = useState("");
-  const [searched, setSearched] = useState<string | null>(null);
+  // ?lot= (a vial QR scan via /L/<lot>, or an order page's lot link) is looked up on arrival
+  // until the visitor types or searches.
+  const urlLot = new URLSearchParams(useSearch()).get("lot")?.trim() ?? "";
+  const [typed, setValue] = useState<string | null>(null);
+  const [submitted, setSearched] = useState<string | null>(null);
+  const value = typed ?? urlLot;
+  const searched = submitted ?? (urlLot || null);
   const hit = searched ? lots.find((l) => l.lot.toUpperCase() === searched.toUpperCase()) : undefined;
   const hitCerts = hit ? certs.filter((c) => c.lot === hit.lot) : [];
   const hitLabs = new Set(hitCerts.map((c) => c.labName)).size;
