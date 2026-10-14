@@ -114,7 +114,7 @@ export function welcomeEmail(n: 1 | 2 | 3 | 4 | 5, ctx: MarketingCtx, offer: Fir
         p("A certificate is only as good as the lab that signs it. So who checks the lab?")
         + p("ISO/IEC 17025 is the international standard for testing laboratories. To hold it, a lab is assessed by an independent accreditation body on its methods, instrument calibration, staff and record-keeping, and then reassessed on a schedule. It's the difference between a lab <em>saying</em> its results are right and an outsider confirming that they can be.")
         + p("Every lot we sell is tested by an ISO/IEC 17025-accredited lab in the United States, never in-house. Mass spectrometry confirms identity: the molecule weighs what it should. HPLC measures purity. And the lot on the certificate matches the lot on your vial.")
-        + check(`${s}/quality-standards`, "How we test every lot") + SIGN, ctx),
+        + check(`${s}/about#testing`, "How we test every lot") + SIGN, ctx),
     };
     case 5: return {
       subject: "What's not on our label",

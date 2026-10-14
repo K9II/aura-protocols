@@ -25,13 +25,8 @@ export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
         <div>
           <h6 className="s-micro text-[color:var(--ink-soft)] mb-3.5">Company</h6>
           <ul className="text-[15px] space-y-2.5">
-            <li>
-              <Link href="/about">About</Link>
-              {/* Quality Standards sits under About (2026-10-14) */}
-              <ul className="mt-2 ml-1 pl-3 border-l border-[color:var(--line)] text-[14px] text-[color:var(--ink-soft)]">
-                <li><Link href="/quality-standards">Quality Standards</Link></li>
-              </ul>
-            </li>
+            {/* About includes the quality standards (2026-10-14) */}
+            <li><Link href="/about">About</Link></li>
             <li><Link href="/faq">FAQ</Link></li>
             <li><Link href="/coa">COA Lookup</Link></li>
             <li><Link href="/wholesale">Wholesale</Link></li>
