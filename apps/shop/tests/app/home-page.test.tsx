@@ -61,7 +61,7 @@ describe("/ (home)", () => {
   it("shows how an order runs after the lineup, then the Aura letter; the FAQ moved to /faq", async () => {
     await renderHome();
     const lineup = screen.getByRole("heading", { level: 2, name: /the lineup/i });
-    const plate = screen.getByRole("region", { name: /one lot number, start to finish/i });
+    const plate = screen.getByRole("region", { name: /four simple steps, start to finish/i });
     const letter = screen.getByRole("region", { name: /the aura letter/i });
     expect(lineup.compareDocumentPosition(plate) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(plate.compareDocumentPosition(letter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

@@ -93,7 +93,7 @@ export default function OrderPlate() {
       </div>
       <div className="s-plate-side">
         <p className="s-micro s-record-eyebrow">How an order runs</p>
-        <h2 id="order-plate" className="s-h2">One lot number, <em>start to finish.</em></h2>
+        <h2 id="order-plate" className="s-h2">Four simple steps, <em>start to finish.</em></h2>
         <ol className="s-plate-steps">
           {STEPS.map((s, i) => (
             <li key={s.title}>
