@@ -16,7 +16,7 @@ export function basketOrder(c: Compound, packQty: number): PricedOrder {
       compoundSlug: c.slug, compoundName: c.name, chemicalClass: c.chemicalClass, variantId: v.id, strength: v.strength,
       packQty, quantity: 1, listUnitCents, packPct: pack.pct, unitPriceCents, lineTotalCents: unitPriceCents, lotNumber: "",
     }],
-    rejected: [], subtotalCents: unitPriceCents, partnerDiscountCents: 0, shippingCents: 0, insuranceCents: 0, totalBeforeTaxCents: 0,
+    rejected: [], subtotalCents: unitPriceCents, partnerDiscountCents: 0, shippingCents: 0, protection: false, insuranceCents: 0, totalBeforeTaxCents: 0,
   });
 }
 

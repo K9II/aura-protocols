@@ -8,6 +8,7 @@ import type { ShipAddress } from "@/lib/ship-address";
 import type { NoChargeReason } from "@/lib/no-charge/rules";
 import { ORDER_PAGE_SIZE, ORDER_TABS, TAB_STATUSES, type OrderTab } from "@/lib/orders/tabs";
 import type { WholesaleQuote } from "@/lib/wholesale/rules";
+import { PROTECTION_TERMS_VERSION, type ProtectionChoice } from "@/lib/shipping-protection";
 
 export type OrderItemRow = {
   id: string; compound_slug: string; compound_name: string; variant_id: string; strength: string; pack_qty: number;
@@ -19,6 +20,7 @@ export type OrderRow = {
   channel: "retail" | "wholesale"; wholesale_cutoff_on: string | null;
   ship_name: string; ship_line1: string; ship_line2: string | null; ship_city: string; ship_state: string; ship_zip: string;
   subtotal_cents: number; shipping_cents: number; insurance_cents: number; tax_cents: number; total_cents: number;
+  protection: ProtectionChoice | null; protection_terms: string | null; // shipping-protection.sql; insurance_cents = its charge
   deposit_cents: number | null; balance_cents: number | null;
   partner_id: string | null; attributed_by: "code" | "link" | null; partner_discount_cents: number; new_account_discount: boolean; store_credit_cents: number;
   discount_code_id: string | null; code_discount_cents: number;
@@ -55,6 +57,7 @@ export async function createPendingOrder(input: {
     customer_id: customerId, email, status: "awaiting_payment",
     ship_name: ship.name, ship_line1: ship.line1, ship_line2: ship.line2, ship_city: ship.city, ship_state: ship.state, ship_zip: ship.zip,
     subtotal_cents: priced.subtotalCents, shipping_cents: priced.shippingCents, insurance_cents: priced.insuranceCents, tax_cents: taxCents,
+    protection: priced.protection ? "accepted" : "declined", protection_terms: PROTECTION_TERMS_VERSION,
     total_cents: priced.totalBeforeTaxCents + taxCents,
     partner_id: input.partner?.partnerId ?? null, attributed_by: input.partner?.attributedBy ?? null,
     partner_discount_cents: priced.partnerDiscountCents, new_account_discount: input.newAccountDiscount ?? false, store_credit_cents: input.storeCreditCents ?? 0,

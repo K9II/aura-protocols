@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import type { Compound } from "@/data/catalog";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
+import { PROTECTION_DECLINED_NOTICE, PROTECTION_PRICE_TEXT } from "@/lib/shipping-protection";
 
 const tested = { lot: "AP-0001", purityPct: 99.5, method: "HPLC" as const, testedOn: "2026-09-01", coaFile: "/coa/AP-0001.pdf" };
 // The live catalog comes from the cart context (CartProvider's `catalog`).
@@ -61,9 +62,29 @@ describe("CheckoutForm", () => {
     expect(screen.queryByRole("heading", { name: /NOT an Alien/ })).toBeNull();
   });
 
+  it("includes shipping protection by default; unticking it shows the decline notice and sends the decline", async () => {
+    const { container } = renderForm();
+    const box = screen.getByRole("checkbox", { name: /shipping protection/i });
+    expect(box).toBeChecked();
+    expect(screen.queryByRole("note")).toBeNull();
+    expect(screen.getAllByText(PROTECTION_PRICE_TEXT).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
+    fireEvent.submit(container.querySelector("form")!);
+    await waitFor(() => expect(startCheckoutAction).toHaveBeenCalledTimes(1));
+    expect(startCheckoutAction.mock.calls[0][0]).toMatchObject({ protection: true });
+
+    await waitFor(() => expect(human.resets).toBe(1)); // the form is usable again
+    fireEvent.click(box);
+    expect(screen.getByRole("note")).toHaveTextContent(PROTECTION_DECLINED_NOTICE);
+    expect(screen.getByText("Not added")).toBeInTheDocument();
+    fireEvent.submit(container.querySelector("form")!);
+    await waitFor(() => expect(startCheckoutAction).toHaveBeenCalledTimes(2));
+    expect(startCheckoutAction.mock.calls[1][0]).toMatchObject({ protection: false });
+  });
+
   it("sends the token, and resets the widget after an attempt that doesn't leave", async () => {
     const { container } = renderForm();
-    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(startCheckoutAction).toHaveBeenCalled());
     expect(startCheckoutAction.mock.calls[0][0]).toMatchObject({ humanToken: "tok-0" });
@@ -74,7 +95,7 @@ describe("CheckoutForm", () => {
     startCheckoutAction.mockResolvedValue({ error: "The check didn't go through — please tick the box again." });
     const { container } = renderForm();
     human.autoPass = false; // the reset after this attempt needs the visitor again
-    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(container.querySelector(".s-human [role=alert]")).toHaveTextContent("The check didn't go through"));
     expect(screen.getAllByRole("alert")).toHaveLength(1);
@@ -86,7 +107,7 @@ describe("CheckoutForm", () => {
     expect(screen.getByLabelText(/field of qualified research/i)).toHaveValue("independent");
     expect(screen.getByLabelText(/company or institution/i)).toHaveValue("Halden Labs");
     expect(screen.getByText(/one time only/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(startCheckoutAction).toHaveBeenCalled());
     expect(startCheckoutAction.mock.calls[0][0]).toMatchObject({ research: { field: "independent", org: "Halden Labs" } });
@@ -95,7 +116,7 @@ describe("CheckoutForm", () => {
   it("no research box once the account is verified, and nothing sent for it", async () => {
     const { container } = renderForm();
     expect(screen.queryByLabelText(/field of qualified research/i)).toBeNull();
-    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(startCheckoutAction).toHaveBeenCalled());
     expect(startCheckoutAction.mock.calls[0][0].research).toBeUndefined();
@@ -110,7 +131,7 @@ describe("CheckoutForm", () => {
     lines.push({ slug: "mots-c", variantId: "10mg", packQty: 1, quantity: 1 }, { slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 });
     try {
       const { container } = renderForm();
-      fireEvent.click(screen.getByRole("checkbox"));
+      fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
       fireEvent.submit(container.querySelector("form")!);
       await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(msg));
       expect(cart.removeStrengths).toHaveBeenCalledTimes(1);
@@ -132,7 +153,7 @@ describe("CheckoutForm", () => {
     cart.removeStrengths.mockImplementation(() => { lines.length = 0; });
     try {
       const { container } = renderForm();
-      fireEvent.click(screen.getByRole("checkbox"));
+      fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
       fireEvent.submit(container.querySelector("form")!);
       await waitFor(() => expect(screen.getByText("Your cart is empty.")).toBeInTheDocument());
       expect(screen.getByRole("alert")).toHaveTextContent(msg);
@@ -145,7 +166,7 @@ describe("CheckoutForm", () => {
   it("other rejections stay listed and don't refresh or remove anything", async () => {
     startCheckoutAction.mockResolvedValue({ error: "Some items can't be ordered right now — they've been flagged below.", rejected: [{ slug: "bpc-157", variantId: "5mg", reason: "pending_lot" }] });
     const { container } = renderForm();
-    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(screen.getByText(/certificate pending; remove it from your cart to continue/)).toBeInTheDocument());
     expect(cart.removeStrengths).not.toHaveBeenCalled();
@@ -207,7 +228,7 @@ describe("CheckoutForm", () => {
   it("re-enables the pay button and shows the error when starting checkout throws", async () => {
     startCheckoutAction.mockRejectedValue(new Error("network"));
     const { container } = render(<CheckoutForm email="j@lab.org" ship={null} initialCode="" creditBalanceCents={0} newAccountOffer={null} capPct={30} needsResearch={false} organization={null} />);
-    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Something went wrong — please try again."));
     expect(screen.getByRole("button", { name: /continue to secure payment/i })).toBeInTheDocument();

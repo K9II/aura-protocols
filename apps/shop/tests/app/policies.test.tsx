@@ -6,7 +6,7 @@ import RefundPolicyPage from "@/app/refund-policy/page";
 import ShippingPage from "@/app/shipping/page";
 import PrivacyPage from "@/app/privacy/page";
 import RuoPage from "@/app/ruo/page";
-import { FLAT_SHIPPING_USD, FREE_SHIPPING_THRESHOLD_USD, SHIPPING_INSURANCE_USD, formatUsd } from "@/lib/cart";
+import { FLAT_SHIPPING_USD, FREE_SHIPPING_THRESHOLD_USD, SHIPPING_PROTECTION_USD, formatUsd } from "@/lib/cart";
 
 function renderPolicy(ui: ReactElement) {
   const { container } = render(ui);
@@ -50,9 +50,14 @@ describe("/refund-policy", () => {
   it("is strict after shipment and replacement-only for transit claims", () => {
     const { container, text } = renderPolicy(<RefundPolicyPage />);
     const transit = container.querySelector("#transit-loss")?.textContent ?? "";
-    expect(transit).toContain(formatUsd(SHIPPING_INSURANCE_USD));
+    expect(transit).toContain(formatUsd(SHIPPING_PROTECTION_USD));
     expect(transit).toMatch(/48 hours/);
     expect(transit).toMatch(/no cash refunds/i);
+    // Optional: unprotected orders travel at the customer's risk; a wrong item is always put right.
+    expect(transit).toMatch(/optional/i);
+    expect(transit).toMatch(/risk of loss passes to you when the package is handed to the carrier/i);
+    expect(transit).toMatch(/wrong items are our mistake, with or without shipping protection/i);
+    expect(transit).not.toMatch(/insurance/i);
     expect(container.querySelector("#finality")?.textContent).toMatch(/cannot be cancelled, returned, or refunded/i);
     expectNoLegacyReturns(text);
   });
@@ -61,7 +66,7 @@ describe("/refund-policy", () => {
 describe("/shipping", () => {
   it("has the six sections in order", () => {
     const { ids } = renderPolicy(<ShippingPage />);
-    expect(ids).toEqual(["destinations", "cost", "dispatch", "tracking", "insurance", "handling"]);
+    expect(ids).toEqual(["destinations", "cost", "dispatch", "tracking", "protection", "handling"]);
   });
 
   it("shows costs from the constants", () => {
@@ -69,7 +74,8 @@ describe("/shipping", () => {
     const cost = container.querySelector("#cost")?.textContent ?? "";
     expect(cost).toContain(formatUsd(FLAT_SHIPPING_USD));
     expect(cost).toContain(formatUsd(FREE_SHIPPING_THRESHOLD_USD));
-    expect(cost).toContain(formatUsd(SHIPPING_INSURANCE_USD));
+    expect(cost).toContain(formatUsd(SHIPPING_PROTECTION_USD));
+    expect(cost).toMatch(/included at checkout unless you remove it/i);
     expect(cost).toContain("$300");
     expect(cost).toContain("$5.50");
   });
@@ -79,9 +85,10 @@ describe("/shipping", () => {
     expect(container.querySelector("#dispatch")?.textContent).not.toMatch(/business day/i);
   });
 
-  it("links insurance to the refund policy", () => {
+  it("links shipping protection to the refund policy and never calls it insurance", () => {
     const { container, text } = renderPolicy(<ShippingPage />);
-    expect(container.querySelector('#insurance a[href="/refund-policy#transit-loss"]')).not.toBeNull();
+    expect(container.querySelector('#protection a[href="/refund-policy#transit-loss"]')).not.toBeNull();
+    expect(text).not.toMatch(/insurance/i);
     expectNoLegacyReturns(text);
   });
 });

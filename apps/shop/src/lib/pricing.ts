@@ -2,12 +2,12 @@
 // (slug, variant, pack, quantity); every price, discount and shipping charge
 // is rebuilt here from the live catalog (passed in). Pure — safe to import on client and server.
 import type { Compound } from "@/data/catalog";
-import { FLAT_SHIPPING_USD, FREE_SHIPPING_THRESHOLD_USD, SHIPPING_INSURANCE_USD, type CartLine } from "@/lib/cart";
+import { FLAT_SHIPPING_USD, FREE_SHIPPING_THRESHOLD_USD, SHIPPING_PROTECTION_USD, type CartLine } from "@/lib/cart";
 import { isPendingLot } from "@/lib/catalog";
 
 export const SHIPPING_FLAT_CENTS = Math.round(FLAT_SHIPPING_USD * 100);
 export const FREE_SHIPPING_MIN_CENTS = Math.round(FREE_SHIPPING_THRESHOLD_USD * 100);
-export const INSURANCE_CENTS = Math.round(SHIPPING_INSURANCE_USD * 100);
+export const PROTECTION_CENTS = Math.round(SHIPPING_PROTECTION_USD * 100);
 export const MAX_PACKS_PER_LINE = 50;
 
 export type PricedItem = {
@@ -36,11 +36,12 @@ export type PricedOrder = {
   partnerDiscountCents: number;  // every discount beyond pack price (partner code, new-account percent, discount code), after the store-wide cap — set by lib/discounts/engine.ts; 0 here. Legacy name (orders.partner_discount_cents).
   freeShipping?: boolean;        // a free-shipping discount code applies
   shippingCents: number;         // decided on subtotal − partner discount, or 0 with freeShipping
-  insuranceCents: number;
-  totalBeforeTaxCents: number;   // subtotal − partner discount + shipping + insurance
+  protection: boolean;           // the customer added shipping protection (lib/shipping-protection.ts)
+  insuranceCents: number;        // its charge (legacy name: orders.insurance_cents); 0 when declined
+  totalBeforeTaxCents: number;   // subtotal − partner discount + shipping + protection
 };
 
-export function priceOrder(lines: CartLine[], list: Compound[]): PricedOrder {
+export function priceOrder(lines: CartLine[], list: Compound[], opts: { protection?: boolean } = {}): PricedOrder {
   const items: PricedItem[] = [];
   const rejected: Rejection[] = [];
   for (const line of lines) {
@@ -61,14 +62,14 @@ export function priceOrder(lines: CartLine[], list: Compound[]): PricedOrder {
     });
   }
   const subtotalCents = items.reduce((s, i) => s + i.lineTotalCents, 0);
-  return withCharges({ items, rejected, subtotalCents, partnerDiscountCents: 0, shippingCents: 0, insuranceCents: 0, totalBeforeTaxCents: 0 });
+  return withCharges({ items, rejected, subtotalCents, partnerDiscountCents: 0, shippingCents: 0, protection: opts.protection ?? false, insuranceCents: 0, totalBeforeTaxCents: 0 });
 }
 
-// Recomputes shipping, insurance and the pre-tax total from subtotal − partner
+// Recomputes shipping, shipping protection and the pre-tax total from subtotal − partner
 // discount. Exported so lib/partners/discounts.ts applies the same rule.
 export function withCharges(o: PricedOrder): PricedOrder {
   const goods = o.subtotalCents - o.partnerDiscountCents;
   const shippingCents = o.items.length === 0 || o.freeShipping || goods >= FREE_SHIPPING_MIN_CENTS ? 0 : SHIPPING_FLAT_CENTS;
-  const insuranceCents = o.items.length === 0 ? 0 : INSURANCE_CENTS;
+  const insuranceCents = o.items.length === 0 || !o.protection ? 0 : PROTECTION_CENTS;
   return { ...o, shippingCents, insuranceCents, totalBeforeTaxCents: goods + shippingCents + insuranceCents };
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { query, fromQueue, callArgs } from "../helpers/supabase-mock";
+import { PROTECTION_TERMS_VERSION } from "@/lib/shipping-protection";
 
 let from: ReturnType<typeof fromQueue>;
 const catalogStockChanged = vi.fn();
@@ -10,7 +11,7 @@ const ship = { name: "Jane", line1: "1 A St", line2: null, city: "Austin", state
 const priced = {
   items: [{ compoundSlug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide Fragments", variantId: "5mg", strength: "5 mg", packQty: 1, quantity: 2,
     listUnitCents: 4900, packPct: 0, unitPriceCents: 4900, lineTotalCents: 9800, lotNumber: "AP-0001" }],
-  rejected: [], subtotalCents: 9800, partnerDiscountCents: 0, shippingCents: 1500, insuranceCents: 550, totalBeforeTaxCents: 11850,
+  rejected: [], subtotalCents: 9800, partnerDiscountCents: 0, shippingCents: 1500, protection: true, insuranceCents: 550, totalBeforeTaxCents: 11850,
 };
 
 describe("orders", () => {
@@ -26,6 +27,7 @@ describe("orders", () => {
     expect(callArgs(orderQ, "insert")?.[0]).toMatchObject({
       customer_id: "u1", email: "j@lab.org", status: "awaiting_payment", ship_state: "TX",
       subtotal_cents: 9800, shipping_cents: 1500, insurance_cents: 550, tax_cents: 0, total_cents: 11850,
+      protection: "accepted", protection_terms: PROTECTION_TERMS_VERSION,
     });
     expect(callArgs(itemsQ, "insert")?.[0]).toEqual([expect.objectContaining({ order_id: "o1", lot_number: "AP-0001", quantity: 2, line_total_cents: 9800 })]);
   });

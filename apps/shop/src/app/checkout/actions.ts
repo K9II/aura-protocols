@@ -43,6 +43,7 @@ const schema = z.object({
   })).min(1).max(50),
   ship: shipAddressSchema,
   ruoConfirmed: z.literal(true),
+  protection: z.boolean(), // optional shipping protection; false = declined, with the notice shown
   partnerCode: z.string().max(40).optional(),
   useCredit: z.boolean().optional(),
   humanToken: z.string().max(4096).optional(),
@@ -123,7 +124,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
 
   const parsed = schema.safeParse(input);
   if (!parsed.success) return { error: "Please complete the shipping address, your research details and the research-use confirmation." };
-  const { lines, ship, partnerCode, useCredit, humanToken, research } = parsed.data;
+  const { lines, ship, partnerCode, useCredit, humanToken, research, protection } = parsed.data;
 
   // The human check (Cloudflare Turnstile) comes before any work: no code
   // lookup, stock hold or order for a bot. "unavailable" is our problem
@@ -147,7 +148,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
     console.error("live catalog read failed:", err);
     return { error: "The store is briefly unavailable — please try again." };
   }
-  let priced: PricedOrder = priceOrder(lines, live.shown);
+  let priced: PricedOrder = priceOrder(lines, live.shown, { protection });
   if (priced.rejected.length) return { error: "Some items can't be ordered right now — they've been flagged below.", rejected: priced.rejected };
   if (priced.items.length === 0) return { error: "Your cart is empty." };
 

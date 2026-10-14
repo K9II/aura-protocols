@@ -15,6 +15,7 @@ import type { ShipAddress } from "@/lib/ship-address";
 import { usd } from "@/lib/html";
 import { FREE_SHIPPING_THRESHOLD_USD, formatUsd } from "@/lib/cart";
 import HumanCheck from "@/components/account/HumanCheck";
+import { PROTECTION_DECLINED_NOTICE, PROTECTION_DEFAULT, PROTECTION_LABEL, PROTECTION_OFFER, PROTECTION_PRICE_TEXT } from "@/lib/shipping-protection";
 import { DEFAULT_RESEARCH_FIELD, RESEARCH_FIELDS, RESEARCH_FIELD_LABEL, RESEARCH_ORG_MAX, type ResearchField } from "@/lib/account/research";
 
 const field = "w-full border border-[color:var(--ink)] bg-[color:var(--paper)] px-3.5 py-3 text-sm mb-4";
@@ -42,6 +43,8 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const [codeMsg, setCodeMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [useCredit, setUseCredit] = useState(creditBalanceCents > 0);
   const [ruo, setRuo] = useState(false);
+  // Shipping protection: ticked by default; unticking it declines, and the decline notice shows.
+  const [protection, setProtection] = useState(PROTECTION_DEFAULT);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rejected, setRejected] = useState<Rejection[]>([]);
@@ -54,7 +57,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const [researchOrg, setResearchOrg] = useState(organization ?? "");
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
-  const base = useMemo(() => priceOrder(lines, catalog), [lines, catalog]);
+  const base = useMemo(() => priceOrder(lines, catalog, { protection }), [lines, catalog, protection]);
   // The automatic percent: the new-account percent or a partner code's
   // percent, whichever is larger (they never stack). A discount code runs
   // through the same engine the server uses; the server re-prices every order.
@@ -103,7 +106,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
       // A code typed but never explicitly applied is still sent — the server
       // either applies it or refuses it with a reason; it's never silently dropped.
       const r = await startCheckoutAction({
-        lines, ship: addr, ruoConfirmed: ruo, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit,
+        lines, ship: addr, ruoConfirmed: ruo, protection, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit,
         humanToken: humanToken ?? undefined,
         research: needsResearch ? { field: researchField, org: researchOrg.trim() } : undefined,
       });
@@ -231,8 +234,13 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
               <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping</span><span>{priced.shippingCents ? usd(priced.shippingCents)
                 : codeShipping ? <>Free <span className="text-[color:var(--ink-soft)] text-[12.5px]">(code {appliedCode})</span></>
                 : <>Free <span className="text-[color:var(--ink-soft)] text-[12.5px]">({formatUsd(FREE_SHIPPING_THRESHOLD_USD)} or more)</span></>}</span></div>
-              <div className="flex justify-between text-[15px] mt-1.5"><span>Shipping insurance</span><span>{usd(priced.insuranceCents)}</span></div>
+              <div className="flex justify-between text-[15px] mt-1.5"><span>{PROTECTION_LABEL}</span><span>{protection ? usd(priced.insuranceCents) : <span className="text-[color:var(--ink-soft)]">Not added</span>}</span></div>
               <div className="flex justify-between text-[15px] mt-1.5 text-[color:var(--ink-soft)]"><span>Sales tax</span><span>Calculated at payment</span></div>
+              <div className="s-protect">
+                <label className="s-chk"><input type="checkbox" checked={protection} onChange={(e) => setProtection(e.target.checked)} />
+                  <span>Add <b>{PROTECTION_LABEL.toLowerCase()}</b> for {PROTECTION_PRICE_TEXT}. <span className="text-[color:var(--ink-soft)]">{PROTECTION_OFFER}</span></span></label>
+                {!protection && <p className="s-protect-off" role="note">{PROTECTION_DECLINED_NOTICE}</p>}
+              </div>
               {creditBalanceCents > 0 && (
                 <label className="s-chk mt-3"><input type="checkbox" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} />
                   <span>Apply store credit <span className="text-[color:var(--ink-soft)]">(balance {usd(creditBalanceCents)})</span> — held when you continue to payment, returned automatically if it isn&apos;t completed.</span></label>

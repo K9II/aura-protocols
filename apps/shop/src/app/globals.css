@@ -865,6 +865,10 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-chk input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--ink); flex-shrink: 0; }
 .pharmacopoeia .s-chk:has(input:checked) { border-color: var(--ink); }
 .pharmacopoeia .s-chk a { color: var(--specimen); border-bottom: 1px solid rgba(163, 43, 31, .4); }
+/* Optional shipping protection at checkout: the box, and the decline notice while it is unchecked. */
+.pharmacopoeia .s-protect { margin-top: 12px; }
+.pharmacopoeia .s-protect .s-chk { margin-bottom: 0; }
+.pharmacopoeia .s-protect-off { border: 1px solid var(--line); border-top: 0; padding: 10px 14px; font-size: 12.5px; line-height: 1.5; color: var(--specimen); background: var(--paper); margin: 0; }
 
 /* policy pages (layout B: sticky contents rail; stacks below 1024px) */
 .pharmacopoeia .s-policy-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 56px; align-items: start; }

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
 import {
   addLine, removeLine, setQuantity, linePriceUsd, cartTotals, packPct,
-  FREE_SHIPPING_THRESHOLD_USD, FLAT_SHIPPING_USD, SHIPPING_INSURANCE_USD, formatUsd, type CartLine,
+  FREE_SHIPPING_THRESHOLD_USD, FLAT_SHIPPING_USD, SHIPPING_PROTECTION_USD, formatUsd, type CartLine,
 } from "@/lib/cart";
 
 const c: Compound = {
@@ -61,7 +61,7 @@ describe("shipping constants", () => {
   it("matches the approved shipping economics", () => {
     expect(FREE_SHIPPING_THRESHOLD_USD).toBe(300);
     expect(FLAT_SHIPPING_USD).toBe(15);
-    expect(SHIPPING_INSURANCE_USD).toBe(5.5);
+    expect(SHIPPING_PROTECTION_USD).toBe(5.5);
   });
 
   it("formats whole dollars without cents and fractional amounts with two decimals", () => {

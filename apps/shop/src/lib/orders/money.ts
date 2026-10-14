@@ -6,6 +6,7 @@ import { splitRefund, type RefundDestination } from "@/lib/refunds/rules";
 export type MoneyOrder = {
   subtotal_cents: number; partner_discount_cents: number; code_discount_cents: number; shipping_cents: number; insurance_cents: number;
   tax_cents: number; total_cents: number; store_credit_cents: number; new_account_discount: boolean; partner_id: string | null;
+  protection?: "accepted" | "declined" | null;
   // For the Refunded line (r4). A refund made in the Stripe dashboard has no reason/destination.
   status?: string; refund_reason?: string | null; refund_destination?: RefundDestination | null; stripe_payment_intent?: string | null;
 };
@@ -42,7 +43,7 @@ export function moneyLines(o: MoneyOrder, ctx: { code: MoneyCode | null; partner
   if (o.code_discount_cents > 0) lines.push({ label: "Code", note: ctx.code ? `${ctx.code.code} · ${codeText(ctx.code)}` : undefined, cents: -o.code_discount_cents, kind: "disc" });
   lines.push(
     { label: "Shipping", cents: o.shipping_cents, kind: "plain" },
-    { label: "Insurance", cents: o.insurance_cents, kind: "plain" },
+    { label: "Shipping protection", note: o.protection === "declined" ? "declined" : undefined, cents: o.insurance_cents, kind: "plain" },
     { label: "Tax", cents: o.tax_cents, kind: "plain" },
     { label: "Total", cents: o.total_cents, kind: "total" },
     { label: "Store credit applied", cents: o.store_credit_cents, kind: "plain" },

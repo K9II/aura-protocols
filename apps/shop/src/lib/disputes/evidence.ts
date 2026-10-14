@@ -11,6 +11,7 @@ import { SHOP_LEGAL_NAME } from "@/lib/disputes/constants";
 import { EDITABLE_FIELDS, type EvidenceDraft } from "@/lib/disputes/fields";
 import { addressText, carrierName, longDate, plural, utcStamp, type Addr } from "@/lib/disputes/format";
 import { humanize } from "@/lib/disputes/rules";
+import { PROTECTION_DECLINED_NOTICE, type ProtectionChoice } from "@/lib/shipping-protection";
 
 // Sentences of the Refund & Dispute Policy (app/refund-policy/page.tsx),
 // quoted to the bank. A test keeps them in step with the page.
@@ -18,6 +19,7 @@ export const POLICY_EXCERPTS = [
   "You may cancel any order for a full refund until it ships.",
   "Once an order has shipped it cannot be cancelled, returned, or refunded.",
   "Approved claims receive one replacement or reshipment of the affected items.",
+  "Unprotected orders: risk of loss passes to you when the package is handed to the carrier.",
   "You agreed when you created your account to contact us before filing a payment dispute.",
 ] as const;
 
@@ -30,6 +32,7 @@ export type EvidenceFacts = {
     number: string; status: OrderStatus; email: string; createdAt: string; paidAt: string | null; ruoConfirmedAt: string;
     ship: Addr; carrier: string | null; tracking: string | null; shippedAt: string | null;
     subtotalCents: number; discountCents: number; shippingCents: number; insuranceCents: number; taxCents: number; totalCents: number; creditCents: number;
+    protection: ProtectionChoice | null; // null: no choice offered (orders before 2026-10-13 all carried it)
   };
   items: EvidenceItem[];
   customer: { name: string; email: string; createdAt: string; lastSignInAt: string | null };
@@ -69,7 +72,13 @@ const itemsText = (f: EvidenceFacts, withPurity = false): string =>
   f.items.map((i) => `${i.name} ${i.strength} (${lotsText(i, withPurity)}, ${plural(i.vials, "vial")})`).join("; ");
 
 const CONTACT = "Our records show no contact from the cardholder about this order before the dispute.";
-const INSURANCE = "Every order includes shipping insurance: a package the carrier confirms lost is replaced once the customer reports it to us.";
+// What the order said about transit loss: protection bought, declined (with the notice shown at checkout), or the old always-on charge.
+function protectionPara(f: EvidenceFacts): string {
+  if (f.order.protection === "declined") {
+    return `At checkout the cardholder declined optional shipping protection and was shown this notice before paying: "${PROTECTION_DECLINED_NOTICE}" Under our Refund & Dispute Policy, which the cardholder agreed to, risk of loss passed to the cardholder when the package was handed to the carrier.`;
+  }
+  return "The order included shipping protection: a package the carrier confirms lost is replaced once the customer reports it to us.";
+}
 const LOT_TESTING = "Each lot is tested by an independent laboratory before it is offered for sale, and its certificate of analysis is published by lot number.";
 const NO_RETURNS = "Our Refund & Dispute Policy, agreed at sign-up, states that once an order has shipped it cannot be cancelled, returned, or refunded, because research materials that have left our control can't be restocked or recertified.";
 const NO_REFUND = "No refund is owed. Our Refund & Dispute Policy, agreed at sign-up, allows cancellation for a full refund until an order ships; once an order has shipped it cannot be cancelled, returned, or refunded.";
@@ -116,7 +125,7 @@ function letterBody(f: EvidenceFacts): Array<string | null> {
   const amount = `${usd(f.amountCents)}${paidText(f)}`;
   switch (letterKind(f.reason)) {
     case "not_received":
-      return [`The cardholder states that order ${n} was not received. ${shipPara(f, "it")}`, trackingLine(f), shipped ? INSURANCE : null, agreementPara(f), CONTACT, productsPara(f)];
+      return [`The cardholder states that order ${n} was not received. ${shipPara(f, "it")}`, trackingLine(f), shipped ? protectionPara(f) : null, agreementPara(f), CONTACT, productsPara(f)];
     case "fraud":
       return [
         sentence(f.reason === "unrecognized" ? `The cardholder states they do not recognize order ${n} (${amount}).` : `The cardholder states they did not authorize order ${n} (${amount}).`,
@@ -237,7 +246,7 @@ export function evidenceSections(f: EvidenceFacts): PdfSection[] {
   const o = f.order;
   const totals = [
     `Subtotal ${usd(o.subtotalCents)}`, o.discountCents ? `discount -${usd(o.discountCents)}` : null, `shipping ${usd(o.shippingCents)}`,
-    `shipping insurance ${usd(o.insuranceCents)}`, `sales tax ${usd(o.taxCents)}`, `total ${usd(o.totalCents)}`,
+    o.protection === "declined" ? "shipping protection declined" : `shipping protection ${usd(o.insuranceCents)}`, `sales tax ${usd(o.taxCents)}`, `total ${usd(o.totalCents)}`,
     o.creditCents ? `paid with store credit ${usd(o.creditCents)}` : null,
   ].filter(Boolean).join(" · ");
   const lots = f.items.flatMap((i) => i.lots.map((l) => [

@@ -59,7 +59,7 @@ export function facts(o: Partial<EvidenceFacts> = {}, order: Partial<EvidenceFac
       number: "AP-1031", status: "shipped", email: "dana.w@example.com", createdAt: "2026-09-21T16:00:00Z", paidAt: "2026-09-21T16:02:00Z",
       ruoConfirmedAt: "2026-09-21T16:00:00Z", ship: { name: "Dana Whitfield", line1: "1420 Elm St", line2: "Apt 3", city: "Boulder", state: "CO", zip: "80302" },
       carrier: "usps", tracking: "9400111899223401552788", shippedAt: "2026-09-22T18:00:00Z",
-      subtotalCents: 39100, discountCents: 0, shippingCents: 0, insuranceCents: 550, taxCents: 1550, totalCents: 41200, creditCents: 0,
+      subtotalCents: 39100, discountCents: 0, shippingCents: 0, insuranceCents: 550, taxCents: 1550, totalCents: 41200, creditCents: 0, protection: "accepted",
       ...order,
     },
   };

@@ -8,7 +8,7 @@ import { lotDefaults } from "@/lib/catalog-ops/data";
 import { kitRows } from "@/lib/wholesale/rules";
 import { kitMargins, type CostInputs } from "@/lib/wholesale/margins";
 import { aiosReference } from "@/lib/wholesale/margins-data";
-import { INSURANCE_CENTS } from "@/lib/pricing";
+import { PROTECTION_CENTS } from "@/lib/pricing";
 import { Crumbs } from "@/components/admin/ui";
 import KitMarginsChart from "@/components/admin/wholesale/KitMarginsChart";
 
@@ -28,7 +28,7 @@ export default async function WholesaleMarginsPage() {
   const costs: CostInputs = {
     tiers: s.tiers, minKits: s.minKits, lotTestCents: d.testCents, labPerStrength: ref.lab?.perStrength,
     inboundPerBoxCents: d.inboundPerBoxCents, labelPerVialCents: d.labelPerVialCents, kitBoxCents: s.kitBoxCents,
-    fulfillment: ref.fulfillment, insuranceChargedCents: INSURANCE_CENTS, glpPct: ref.glpPct, competitors: ref.competitors,
+    fulfillment: ref.fulfillment, insuranceChargedCents: PROTECTION_CENTS, glpPct: ref.glpPct, competitors: ref.competitors,
   };
   const m = kitMargins(rows, prices, costs);
 
