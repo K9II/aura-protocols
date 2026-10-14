@@ -26,15 +26,19 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     <div className="pharmacopoeia">
       <div className="p-container py-16">
         {message && <p role="alert" className="s-signin-alert text-sm text-[color:var(--specimen)]">{message}</p>}
-        {/* Layout B (mock signin-B): Google + both forms one above the other on
-            the left, the offer panel on the right (sticky); panel first on phones. */}
+        {/* Mock "A · Placard and hanging tag" (2026-10-14): Google + sign-in on
+            one raised panel, a new account on another, the offer placard on the
+            right (sticky); offer first on phones. One Google button serves new
+            and returning researchers, so it sits above the sign-in fields. */}
         <div className="s-signin-grid">
           <div className="s-signin-col">
-            <p className="s-micro text-[color:var(--specimen)] mb-2.5">New or returning</p>
-            <GoogleButton next={next} />
-            <OrEmail />
-            <div className="s-signin-forms">
+            <div className="s-co-panel s-signin-panel">
+              <p className="s-micro text-[color:var(--specimen)] mb-2.5">New or returning</p>
+              <GoogleButton next={next} />
+              <OrEmail />
               <SignInForm next={next} />
+            </div>
+            <div className="s-co-panel s-signin-panel s-signin-panel--new">
               <SignUpForm next={next} />
             </div>
           </div>

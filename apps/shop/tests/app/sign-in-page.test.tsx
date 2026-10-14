@@ -31,7 +31,7 @@ describe("/sign-in", () => {
     expect(screen.getByText("sign-up-form")).toBeInTheDocument();
   });
 
-  it("layout B: Google + both forms one above the other in the left column, the offer panel on the right", async () => {
+  it("two raised panels on the left (Google + sign in, then a new account), the offer placard on the right", async () => {
     const { container } = render(await page({ next: "/checkout" }));
     const grid = container.querySelector(".s-signin-grid")!;
     expect(grid.children).toHaveLength(2);
@@ -39,9 +39,13 @@ describe("/sign-in", () => {
     expect(col).toHaveClass("s-signin-col");
     expect(offer).toBe(screen.getByRole("complementary", { name: "Welcome offer" }));
     expect(offer.querySelector(".s-offer-num")!.textContent).toBe(String(NEW_ACCOUNT_PCT));
-    expect(col).toContainElement(screen.getByRole("button", { name: "Continue with Google" }));
-    const forms = col.querySelector(".s-signin-forms")!;
-    expect(forms.textContent).toBe("sign-in-form /checkoutsign-up-form");
+    const panels = [...col.children];
+    expect(panels).toHaveLength(2);
+    for (const p of panels) expect(p).toHaveClass("s-co-panel", "s-signin-panel");
+    expect(panels[0]).toContainElement(screen.getByRole("button", { name: "Continue with Google" }));
+    expect(panels[0].textContent).toContain("sign-in-form /checkout");
+    expect(panels[1]).toHaveClass("s-signin-panel--new");
+    expect(panels[1].textContent).toBe("sign-up-form");
     expect(screen.getAllByRole("complementary", { name: "Welcome offer" })).toHaveLength(1);
   });
 

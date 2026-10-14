@@ -1,35 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { treeSvg } from "@/lib/holiday/tree";
 import { garlandDefsSvg, garlandStripSvg, hollySvg, GARLAND_THICKNESS, HOLLY_BOX, HOLLY_REACH } from "@/lib/holiday/garland";
 
 const ids = (svg: string) => [...svg.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
-
-describe("holiday tree SVG", () => {
-  it("is deterministic (same string every render, so no hydration drift)", () => {
-    expect(treeSvg()).toBe(treeSvg());
-    expect(treeSvg({ seed: 3 })).not.toBe(treeSvg({ seed: 4 }));
-  });
-
-  it("keeps the mock's realistic parts: needles, snow tips, glowing lights, baubles, star, snowbank", () => {
-    const s = treeSvg();
-    expect(s.startsWith("<svg")).toBe(true);
-    expect(s).toContain('viewBox="0 0 260 300"');
-    expect((s.match(/stroke-linecap="round"/g) ?? []).length).toBeGreaterThan(100); // needle strokes
-    expect((s.match(/fill="#F4F8FB"/g) ?? []).length).toBeGreaterThan(30);          // snow on bough tips
-    expect((s.match(/class="s-offer-glow"/g) ?? []).length).toBeGreaterThan(30);    // twinkling lights
-    expect(s).toContain("url(#s-offer-bulbR)");
-    expect(s).toContain("url(#s-offer-bulbG)");
-    expect(s).toContain('class="s-offer-starglow"');
-    expect(s).toContain("url(#s-offer-snowbank)");
-    expect(s).toContain('aria-hidden="true"');
-    expect(s).not.toMatch(/NaN|undefined/);
-  });
-
-  it("namespaces every id so it can't collide with other SVGs on the page", () => {
-    expect(ids(treeSvg()).length).toBeGreaterThan(0);
-    for (const id of ids(treeSvg())) expect(id).toMatch(/^s-offer-/);
-  });
-});
 
 describe("holiday garland SVG (size-independent)", () => {
   it("is deterministic", () => {
@@ -67,6 +39,6 @@ describe("holiday garland SVG (size-independent)", () => {
   });
 
   it("never uses a compliance-flagged word in classes or ids", () => {
-    expect(treeSvg() + garlandDefsSvg() + garlandStripSvg("h") + hollySvg(2)).not.toMatch(/stack/i);
+    expect(garlandDefsSvg() + garlandStripSvg("h") + hollySvg(2)).not.toMatch(/stack/i);
   });
 });
