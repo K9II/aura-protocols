@@ -33,15 +33,11 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
   const pending = isPendingLot(lot);
   const out = variant.stock === "out"; // a pending lot is always out
 
+  // The buy box comes first: phones show it right under the name (mock Q1, 2026-10-14,
+  // https://claude.ai/artifact/ADTaVMde9m6LCk7VDhHV4e). Above 900px CSS puts the proof
+  // (specs, certificate link, trust row) back above it (.s-pick order).
   return (
-    <div>
-      <SpecBoxes lot={lot} />
-      {!pending && lot.coaFile ? (
-        <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
-      ) : (
-        <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
-      )}
-      <TrustRow className="s-trust--pdp" />
+    <div className="s-pick">
       <div className="s-buy">
         {c.variants.length > 1 && (
           <>
@@ -94,6 +90,13 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
         </div>
         <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders of ${FREE_SHIPPING_THRESHOLD_USD} or more</div>
       </div>
+      <SpecBoxes lot={lot} />
+      {!pending && lot.coaFile ? (
+        <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
+      ) : (
+        <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
+      )}
+      <TrustRow className="s-trust--pdp" />
     </div>
   );
 }

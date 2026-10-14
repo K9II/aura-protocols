@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { liveFixture } from "../helpers/live-catalog";
 import { render, screen, within } from "@testing-library/react";
@@ -78,13 +79,22 @@ describe("product page", () => {
     expect(within(data).getByText("Solid-phase synthesis, HPLC-purified")).toBeInTheDocument();
   });
 
-  it("buy panel holds the pack choice, Add to cart and shipping line; trust row sits above it", async () => {
+  it("buy panel holds the pack choice, Add to cart and shipping line; it comes first (phones), desktop puts the proof above it", async () => {
     const { container } = await renderSlug("bpc-157");
     const buy = container.querySelector(".s-buy")!;
     expect(buy.querySelector(".s-atc")).not.toBeNull();
     expect(buy.querySelector(".s-ship")?.textContent).toContain("Ships from the US");
-    const trust = container.querySelector(".s-trust--pdp")!;
-    expect(trust.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // page order = the phone order (mock Q1): name, buy box, then specs, certificate link, trust row
+    const pick = buy.parentElement!;
+    expect(pick).toHaveClass("s-pick");
+    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-specs", "s-certlink", "s-trust"]);
+    expect(container.querySelector(".s-pdp-h1")!.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // desktop: CSS order puts specs, certificate link and trust row back above the buy box
+    const css = readFileSync("src/app/globals.css", "utf8");
+    const order = (sel: string) => Number(new RegExp(`\\.s-pick > \\.${sel} \\{ order: (\\d)`).exec(css)?.[1]);
+    expect(order("s-specs")).toBeLessThan(order("s-buy"));
+    expect(order("s-certlink")).toBeLessThan(order("s-buy"));
+    expect(order("s-trust")).toBeLessThan(order("s-buy"));
   });
 
   it("About band shows the description, caption, legend and source link", async () => {

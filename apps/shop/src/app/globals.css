@@ -709,6 +709,30 @@ main:has(> .pharmacopoeia) {
 /* minmax(0,…) lets the single mobile column shrink below its content's min width
    (a bare 1fr kept the spec boxes wider than the screen and they were clipped). */
 @media (max-width: 900px) { .pharmacopoeia .s-pdp { grid-template-columns: minmax(0, 1fr); } }
+/* Product page buy area (mock Q1, 2026-10-14). VariantPicker renders the buy box first;
+   desktop shows the proof above it, phones show it right under the name. */
+.pharmacopoeia .s-pick { display: flex; flex-direction: column; }
+.pharmacopoeia .s-pick > .s-specs { order: 1; }
+.pharmacopoeia .s-pick > .s-certlink { order: 2; align-self: flex-start; }
+.pharmacopoeia .s-pick > .s-trust { order: 3; }
+.pharmacopoeia .s-pick > .s-buy { order: 4; }
+/* Phones: unwrap the two columns so the lot record can follow the buying area:
+   picture, name, buy box, proof, lot record, then the research-use notes. */
+@media (max-width: 900px) {
+  .pharmacopoeia .s-pick > .s-buy, .pharmacopoeia .s-pick > .s-specs, .pharmacopoeia .s-pick > .s-certlink, .pharmacopoeia .s-pick > .s-trust { order: 0; }
+  .pharmacopoeia .s-pick > .s-buy { margin-bottom: 22px; }
+  .pharmacopoeia .s-pdp { row-gap: 0; }
+  .pharmacopoeia .s-pdp > .s-media, .pharmacopoeia .s-pdp > .relative { display: contents; }
+  .pharmacopoeia .s-pdp > .s-media > *, .pharmacopoeia .s-pdp > .relative > * { position: relative; z-index: 1; }
+  .pharmacopoeia .s-pdp-tile { order: 1; }
+  .pharmacopoeia .s-pdp .s-pdp-kick { order: 2; margin-top: 28px; }
+  .pharmacopoeia .s-pdp-h1 { order: 3; }
+  .pharmacopoeia .s-pick { order: 4; }
+  .pharmacopoeia .s-pdp .s-rec { order: 5; margin-top: 28px; }
+  .pharmacopoeia .s-ruo { order: 6; }
+  .pharmacopoeia .s-ruo + p { order: 7; }
+  .pharmacopoeia .s-pdp .s-before { order: 8; }
+}
 /* The product-page ghost name spans the viewport; clip it so it never adds a horizontal scrollbar. */
 main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-ghost { position: absolute; left: 50%; transform: translateX(-50%); width: 100vw; text-align: center; top: 70px; font-family: var(--font-newsreader), Georgia, serif; font-size: clamp(160px, 22vw, 340px); line-height: 1; color: rgba(28, 26, 21, .055); white-space: nowrap; pointer-events: none; letter-spacing: -.02em; }
