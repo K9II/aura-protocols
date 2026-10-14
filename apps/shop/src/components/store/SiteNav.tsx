@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AuraLockup from "@/components/AuraLockup";
 import AuthLinks from "@/components/store/AuthLinks";
+import SiteSearch from "@/components/store/SiteSearch";
 import { useCart } from "@/components/store/CartProvider";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 import { useLotNews } from "@/lib/lot-news";
@@ -53,6 +54,7 @@ export default function SiteNav() {
             <Link href="/affiliates">Affiliate Program</Link>
           </div>
           <div className="s-nav-actions">
+            <SiteSearch />
             <AuthLinks />
             <button type="button" className={totals.itemCount > 0 ? "s-nav-cart s-nav-cart-full" : "s-nav-cart"} onClick={() => setOpen(true)}>
               Cart ({totals.itemCount})
