@@ -15,6 +15,10 @@ describe("redirects", () => {
     expect(find(list, source)).toEqual({ source, destination, permanent: true });
   });
 
+  it("sends a vial QR scan (/L/<lot>) to that lot on the COA lookup, temporarily", () => {
+    expect(find(list, "/L/:lot")).toEqual({ source: "/L/:lot", destination: "/coa?lot=:lot", permanent: false });
+  });
+
   it("renames the old blend slugs", () => {
     expect(find(list, "/products/glow-stack")).toEqual({ source: "/products/glow-stack", destination: "/products/bpc-157-tb-500-ghk-cu", permanent: true });
     expect(find(list, "/products/klow-stack")?.destination).toBe("/products/bpc-157-tb-500-ghk-cu-kpv");

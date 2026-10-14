@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useSyncExternalStore, type CSSProperties, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 import GoogleButton, { OrEmail } from "@/components/account/GoogleButton";
 import AuraLockup from "@/components/AuraLockup";
 import { gateSignInAction, gateSignUpAction, resendVerifyAction } from "@/app/auth/gate-actions";
@@ -10,6 +10,7 @@ import { signOutAction } from "@/app/auth/actions";
 import { OFFER_DAYS_TEXT, OFFER_PCT_TEXT } from "@/lib/account/offer";
 import { MARKETING_NOTICE } from "@/lib/gate-shared";
 import { SUPPORT_EMAIL } from "@/lib/constants";
+import { useSearch } from "@/lib/use-search";
 
 export type Step = "1" | "2a" | "2b" | "verify" | "closed";
 type Variant = "a" | "pc";
@@ -72,14 +73,6 @@ export default function GateSteps({ variant, step, email, onStep, onEmail, onDon
       </footer>
     </>
   );
-}
-
-// This page's query string, read in the browser (no useSearchParams: that
-// would need a Suspense boundary around the root-layout gate). Re-read on
-// every render; the server render has none.
-const noSubscribe = () => () => {};
-function useSearch(): string {
-  return useSyncExternalStore(noSubscribe, () => window.location.search, () => "");
 }
 
 function EmailStep({ c, email, onEmail, onStep }: { c: (n: string) => string; email: string; onEmail: (e: string) => void; onStep: (s: Step) => void }) {

@@ -46,6 +46,23 @@ describe("/coa", () => {
     expect(region.getByRole("link", { name: /open certificate/i })).toHaveAttribute("href", "https://x/coa/BPC-2601-01/1.pdf");
   });
 
+  it("looks up the lot in ?lot= on arrival (vial QR scans and order-page lot links)", async () => {
+    window.history.replaceState(null, "", "/coa?lot=bpc-2609-01");
+    try {
+      render(await CoaPage());
+      expect(screen.getByText("Lot BPC-2609-01 · Current")).toBeInTheDocument();
+      expect(screen.getByLabelText("Lot number")).toHaveValue("bpc-2609-01");
+    } finally {
+      window.history.replaceState(null, "", "/");
+    }
+  });
+
+  it("shows nothing looked up when there is no ?lot=", async () => {
+    render(await CoaPage());
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+    expect(screen.getByLabelText("Lot number")).toHaveValue("");
+  });
+
   it("labels the lot selling now as Current", async () => {
     await lookUp("BPC-2609-01");
     expect(screen.getByText("Lot BPC-2609-01 · Current")).toBeInTheDocument();

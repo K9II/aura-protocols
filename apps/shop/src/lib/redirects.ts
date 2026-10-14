@@ -30,6 +30,9 @@ export function buildRedirects({ blogPublished }: { blogPublished: boolean }): R
   const out: Redirect[] = [];
   for (const s of REMOVED_TO_PRODUCTS) out.push({ source: s, destination: "/products", permanent: true });
   for (const s of REMOVED_TO_HOME) out.push({ source: s, destination: "/", permanent: true });
+  // The QR on every vial label: HTTPS://AURAPROTOCOLS.COM/L/<LOT> (uppercase keeps the code small).
+  // Temporary, so the target can change without browsers holding on to it.
+  out.push({ source: "/L/:lot", destination: "/coa?lot=:lot", permanent: false });
   for (const [from, to] of Object.entries(SLUG_RENAMES)) out.push({ source: `/products/${from}`, destination: `/products/${to}`, permanent: true });
 
   // Every content product (a hidden product's old link lands on its 404, as before).
