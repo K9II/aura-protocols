@@ -66,6 +66,7 @@ describe("/ (home)", () => {
     expect(lineup.compareDocumentPosition(plate) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(plate.compareDocumentPosition(letter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(plate).toHaveTextContent(/Fig\. 4/);
+    for (const w of ["Pick", "Verify", "Secure", "Receive"]) expect(within(plate).getByText(w)).toBeInTheDocument();
     expect(screen.queryByText(/straight/i)).not.toBeInTheDocument();
   });
 });
