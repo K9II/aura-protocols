@@ -1,6 +1,5 @@
 import Link from "next/link";
 import AuraLockup from "@/components/AuraLockup";
-import { classCounts } from "@/lib/catalog";
 import type { Compound } from "@/data/catalog";
 
 export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
@@ -16,10 +15,11 @@ export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
         <div>
           <h6 className="s-micro text-[color:var(--ink-soft)] mb-3.5">Shop</h6>
           <ul className="text-[15px] space-y-2.5">
+            {/* All compounds + Blends only (2026-10-14); the other classes are a click away on /products */}
             <li><Link href="/products">All compounds</Link></li>
-            {classCounts(catalog).map(({ cls }) => (
-              <li key={cls}><Link href={`/products?cat=${encodeURIComponent(cls)}`}>{cls}</Link></li>
-            ))}
+            {catalog.some((c) => c.chemicalClass === "Blends") && (
+              <li><Link href={`/products?cat=${encodeURIComponent("Blends")}`}>Blends</Link></li>
+            )}
           </ul>
         </div>
         <div>

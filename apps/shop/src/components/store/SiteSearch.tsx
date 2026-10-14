@@ -113,10 +113,8 @@ export default function SiteSearch() {
 
   return (
     <>
-      <button type="button" className="s-nav-search" onClick={() => setOpen(true)} aria-label="Search the catalog" aria-haspopup="dialog">
+      <button type="button" className="s-nav-search" onClick={() => setOpen(true)} aria-label="Search the catalog" title="Search ( / )" aria-haspopup="dialog">
         <SearchIcon />
-        <span className="s-nav-search-t">Search</span>
-        <kbd aria-hidden>/</kbd>
       </button>
       {open && (
         <div className="pharmacopoeia s-sx">

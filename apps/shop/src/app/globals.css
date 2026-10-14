@@ -480,7 +480,12 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-nav-logo { grid-area: logo; justify-self: start; display: inline-flex; }
 .pharmacopoeia .s-nav-links { grid-area: links; display: flex; gap: 24px; font-size: 16px; color: var(--ink-soft); }
 .pharmacopoeia .s-nav-links a:hover { color: var(--specimen); }
-.pharmacopoeia .s-nav-actions { grid-area: actions; justify-self: end; display: flex; align-items: center; gap: 16px; }
+.pharmacopoeia .s-nav-actions { grid-area: actions; justify-self: end; display: flex; align-items: center; gap: 16px; white-space: nowrap; }
+/* tablets/small laptops: links on their own centered row (the owner's actions need the width) */
+@media (min-width: 641px) and (max-width: 1180px) {
+  .pharmacopoeia .s-nav { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "logo actions" "links links"; row-gap: 8px; }
+  .pharmacopoeia .s-nav-links { justify-self: center; }
+}
 .pharmacopoeia .s-nav-shop { font-size: 16px; padding: 7px 16px; border: 1px solid var(--ink); transition: color .25s, border-color .25s; }
 .pharmacopoeia .s-nav-shop:hover { color: var(--specimen); border-color: var(--specimen); }
 .pharmacopoeia .s-nav-cart { font-size: 16px; background: none; border: 0; cursor: pointer; color: inherit; font-family: inherit; }
@@ -1642,9 +1647,10 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 @media (max-width: 640px) { .pharmacopoeia .s-coa-lib { margin-top: 40px; padding-top: 28px; } }
 
 /* ── Site search (nav button + panel; mock "Storefront Search", approved 2026-10-14) ── */
-.pharmacopoeia .s-nav-search { display: inline-flex; align-items: center; gap: 9px; min-height: 38px; padding: 6px 9px 6px 11px; border: 1px solid var(--line); background: transparent; color: var(--ink-soft); font-family: inherit; font-size: 15px; cursor: pointer; transition: color .2s, border-color .2s; }
+/* icon only: the owner's nav (Admin · Account · Sign out · Cart) leaves no room for a label (2026-10-14) */
+.pharmacopoeia .s-nav-search { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; flex-shrink: 0; padding: 0; border: 1px solid var(--line); background: transparent; color: var(--ink-soft); cursor: pointer; transition: color .2s, border-color .2s; }
 .pharmacopoeia .s-nav-search:hover { color: var(--ink); border-color: var(--ink); }
-.pharmacopoeia .s-nav-search kbd, .pharmacopoeia .s-sx kbd { font-family: var(--font-jetbrains), monospace; font-size: 11px; line-height: 1; border: 1px solid var(--line); padding: 3px 6px; color: var(--ink-soft); background: transparent; }
+.pharmacopoeia .s-sx kbd { font-family: var(--font-jetbrains), monospace; font-size: 11px; line-height: 1; border: 1px solid var(--line); padding: 3px 6px; color: var(--ink-soft); background: transparent; }
 /* the panel renders inside .s-nav-actions, which is nowrap on phones */
 .s-sx { position: fixed; inset: 0; z-index: 95; white-space: normal; text-align: left; }
 .s-sx-backdrop { position: absolute; inset: 0; background: rgba(28, 26, 21, .42); }
@@ -1703,8 +1709,8 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 }
 /* phones: a full-screen sheet; the top match's vial card sits above the list */
 @media (max-width: 720px) {
-  .pharmacopoeia .s-nav-search { padding: 6px 9px; min-height: 36px; }
-  .pharmacopoeia .s-nav-search-t, .pharmacopoeia .s-nav-search kbd, .pharmacopoeia .s-sx-keys { display: none; }
+  .pharmacopoeia .s-nav-search { width: 36px; height: 36px; }
+  .pharmacopoeia .s-sx-keys { display: none; }
   .pharmacopoeia .s-sx-panel { margin: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; border: 0; padding: 20px 16px 16px; display: flex; flex-direction: column; }
   .pharmacopoeia .s-sx-h { font-size: 34px; }
   .pharmacopoeia .s-sx-eyebrow { margin-bottom: 6px; }
@@ -1735,4 +1741,7 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 }
 @media (max-width: 400px) {
   .pharmacopoeia .s-sx-h { font-size: 29px; }
+  .pharmacopoeia .s-nav-search { width: 32px; height: 32px; }
+  .pharmacopoeia .s-nav-search svg { width: 14px; height: 14px; }
+  .pharmacopoeia .s-nav-actions { gap: 7px; }
 }
