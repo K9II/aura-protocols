@@ -1783,7 +1783,7 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-letter-head > .s-micro { margin: 0 0 6px; color: var(--ink-soft); }
 .pharmacopoeia .s-letter-title { margin: 0; font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: clamp(32px, 7.4vw, 52px); letter-spacing: .06em; line-height: 1; white-space: nowrap; }
 .pharmacopoeia .s-letter-title em { color: var(--specimen); letter-spacing: .02em; }
-.pharmacopoeia .s-letter-rule { margin-top: 18px; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--ink); height: 3px; }
+.pharmacopoeia .s-letter-rule { margin-top: 18px; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--ink); height: 6px; box-sizing: border-box; }
 .pharmacopoeia .s-letter-dek { margin: 0; padding: 8px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; color: var(--ink-soft); border-bottom: 1px solid var(--line); }
 .pharmacopoeia .s-letter-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
 .pharmacopoeia .s-letter-body > div { padding: 26px 32px 30px; }
