@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { getCustomer, letterState, subscribeToLetter, alertOwner } = vi.hoisted(() => ({
-  getCustomer: vi.fn(), letterState: vi.fn(), subscribeToLetter: vi.fn(), alertOwner: vi.fn(),
+const { getCustomer, letterState, subscribeToLetter, subscribeOtherEmail, alertOwner } = vi.hoisted(() => ({
+  getCustomer: vi.fn(), letterState: vi.fn(), subscribeToLetter: vi.fn(), subscribeOtherEmail: vi.fn(), alertOwner: vi.fn(),
 }));
 vi.mock("@/lib/dal", () => ({ getCustomer }));
-vi.mock("@/lib/email/letter", () => ({ letterState, subscribeToLetter }));
+vi.mock("@/lib/email/letter", () => ({ letterState, subscribeToLetter, subscribeOtherEmail }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 
 import { letterStatusAction, subscribeLetterAction } from "@/app/letter-actions";
 
-const consent = (on: boolean) => { const f = new FormData(); if (on) f.set("consent", "on"); return f; };
+const consent = (on: boolean, email?: string) => { const f = new FormData(); if (on) f.set("consent", "on"); if (email !== undefined) f.set("email", email); return f; };
 const me = { id: "c1", email: "a@lab.org", emailConfirmed: true };
 
 describe("Aura letter actions", () => {
@@ -44,5 +44,26 @@ describe("Aura letter actions", () => {
     const r = await subscribeLetterAction(consent(true));
     expect(r.ok).toBe(false);
     expect(alertOwner).toHaveBeenCalledWith("Aura letter: subscribe failed", expect.stringContaining("db down"));
+  });
+
+  it("sends a different address a confirm link instead of listing it", async () => {
+    getCustomer.mockResolvedValue(me);
+    subscribeOtherEmail.mockResolvedValue("check_inbox");
+    expect(await subscribeLetterAction(consent(true, " Lab@Other.org "))).toEqual({ ok: true, state: "check_inbox", email: "lab@other.org" });
+    expect(subscribeOtherEmail).toHaveBeenCalledWith("lab@other.org");
+    expect(subscribeToLetter).not.toHaveBeenCalled();
+  });
+
+  it("treats the account email in any case as the account's own", async () => {
+    getCustomer.mockResolvedValue(me);
+    subscribeToLetter.mockResolvedValue("confirmed");
+    await subscribeLetterAction(consent(true, "A@LAB.org"));
+    expect(subscribeToLetter).toHaveBeenCalledWith(me);
+    expect(subscribeOtherEmail).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid address", async () => {
+    getCustomer.mockResolvedValue(me);
+    expect(await subscribeLetterAction(consent(true, "not-an-email"))).toEqual({ ok: false, message: "Please enter a valid email address." });
   });
 });

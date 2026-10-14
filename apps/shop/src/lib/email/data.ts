@@ -3,7 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { sendEmail } from "@/lib/ses";
 import { SUPPORT_EMAIL } from "@/lib/constants";
 import { assertCompliant } from "@/lib/email/compliance";
-import { normalizeEmail } from "@/lib/email/links";
+import { hashToken, newConfirmToken, normalizeEmail } from "@/lib/email/links";
 import type { Msg } from "@/lib/emails-marketing";
 
 const db = () => getSupabaseAdminClient();
@@ -105,6 +105,75 @@ export async function recordOptIn(email: string, partnerRef: string | null): Pro
     { onConflict: "email" },
   );
   if (error) throw new Error(`opt-in save failed: ${JSON.stringify(error)}`);
+}
+
+// ── Confirm-by-email: an address that isn't a verified account email (the
+// Aura letter box with a different address, 2026-10-14). Restored from the
+// pre-2026-10-04 flow, without welcome codes.
+
+// How many "confirm" emails went to this address since the given instant —
+// an anti email-bomb gate (upsertPending), not a user-facing count.
+export async function confirmsSentSince(email: string, sinceIso: string): Promise<number> {
+  const { data, error } = await db().from("email_sends").select("id")
+    .eq("email", normalizeEmail(email)).eq("kind", "confirm").gte("sent_at", sinceIso);
+  if (error) throw new Error(`email_sends count failed: ${JSON.stringify(error)}`);
+  return Array.isArray(data) ? data.length : 0;
+}
+
+export const CONFIRM_COOLDOWN_MS = 10 * 60 * 1000;
+const CONFIRM_DAILY_WINDOW_MS = 24 * 3600 * 1000;
+export const CONFIRM_DAILY_LIMIT = 3;
+
+// New or returning address → pending with a fresh confirm token.
+// Already confirmed → nothing changes. Already unsubscribed → stays
+// unsubscribed; only a clicked confirm link undoes that. Too many recent
+// confirm emails → cooldown: no new token, nothing sent (anti email-bomb).
+export async function upsertPending(input: { email: string; source: "letter"; partnerRef: string | null }, nowMs: number = Date.now()):
+  Promise<{ state: "confirmed" } | { state: "pending"; token: string } | { state: "cooldown" }> {
+  const email = normalizeEmail(input.email);
+  const existing = await getSubscriber(email);
+  if (existing?.status === "confirmed") return { state: "confirmed" };
+
+  const [recent, daily] = await Promise.all([
+    confirmsSentSince(email, new Date(nowMs - CONFIRM_COOLDOWN_MS).toISOString()),
+    confirmsSentSince(email, new Date(nowMs - CONFIRM_DAILY_WINDOW_MS).toISOString()),
+  ]);
+  if (recent >= 1 || daily >= CONFIRM_DAILY_LIMIT) return { state: "cooldown" };
+
+  const { token, hash } = newConfirmToken();
+  // A "source" of "unsubscribe" is just the stub unsubscribe() creates — not a real source to keep.
+  const keepSource = existing?.source && existing.source !== "unsubscribe";
+  const patch: Record<string, unknown> = {
+    email, confirm_token_hash: hash,
+    source: keepSource ? existing!.source : input.source,
+    partner_ref: input.partnerRef ?? existing?.partner_ref ?? null,
+  };
+  if (existing?.status !== "unsubscribed") {
+    patch.status = "pending";
+    patch.unsubscribed_at = null;
+  }
+  const { error } = await db().from("subscribers").upsert(patch, { onConflict: "email" });
+  if (error) throw new Error(`subscriber upsert failed: ${JSON.stringify(error)}`);
+  return { state: "pending", token };
+}
+
+export type ConfirmResult = { row: SubscriberRow; already: boolean };
+
+// Confirm link → confirmed. Never nulls confirm_token_hash, so a second click
+// (a double-click, or a mail scanner prefetching the link) reads as
+// `already: true` and never re-sends File 01.
+export async function confirmSubscriber(token: string, nowMs: number = Date.now()): Promise<ConfirmResult | null> {
+  const hash = hashToken(token);
+  const { data: updated, error } = await db().from("subscribers")
+    .update({ status: "confirmed", confirmed_at: new Date(nowMs).toISOString(), unsubscribed_at: null })
+    .eq("confirm_token_hash", hash).in("status", ["pending", "unsubscribed"]).select("*").maybeSingle();
+  if (error) throw new Error(`subscriber confirm failed: ${JSON.stringify(error)}`);
+  if (updated) return { row: updated as SubscriberRow, already: false };
+  // Nothing pending matched: an invalid token, or one already confirmed (by an earlier or concurrent click).
+  const { data: confirmed, error: cErr } = await db().from("subscribers").select("*")
+    .eq("confirm_token_hash", hash).eq("status", "confirmed").maybeSingle();
+  if (cErr) throw new Error(`subscriber read failed: ${JSON.stringify(cErr)}`);
+  return confirmed ? { row: confirmed as SubscriberRow, already: true } : null;
 }
 
 export async function isUnsubscribed(email: string): Promise<boolean> {

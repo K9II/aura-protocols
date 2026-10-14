@@ -7,7 +7,7 @@ export const TERMS_VERSION = "2026-10-13";
 // from an email.
 export const GATE_EXEMPT_PATHS = [
   "/terms", "/refund-policy", "/privacy", "/shipping", "/ruo", "/contact",
-  "/sign-in", "/forgot-password", "/reset-password", "/finish-account", "/verified", "/unsubscribed",
+  "/sign-in", "/forgot-password", "/reset-password", "/finish-account", "/verified", "/unsubscribed", "/subscribed",
 ] as const;
 const GATE_EXEMPT_PREFIXES = ["/auth/"];
 

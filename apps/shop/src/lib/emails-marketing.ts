@@ -66,6 +66,17 @@ function offerBox(): string {
   return `<table role="presentation" style="border:1px solid ${INK};border-collapse:collapse;margin:0 0 18px"><tr><td style="padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em">FIRST ORDER · ${OFFER_PCT_TEXT}<br><span style="font-size:20px;letter-spacing:.04em;color:${INK}"><b>Applied automatically</b></span><br><span style="color:${SOFT};letter-spacing:0">on a first order within ${OFFER_DAYS_TEXT} of opening your account</span></td></tr></table>`;
 }
 
+// The Aura letter, for an address that isn't a verified account email.
+export function confirmEmail(confirmUrl: string): Msg {
+  return {
+    subject: "Confirm your email",
+    html: frame("The Aura letter", "One click to *confirm.*",
+      p("Confirm this address to get the Aura letter: promotions, research updates, store news and new lots with their certificates. Only when there's something worth sending. No spam.")
+      + p(link(confirmUrl, "Confirm my email →"))
+      + p(`<span style="color:${SOFT}">Didn't ask for this? Ignore it and you won't hear from us.</span>`), null),
+  };
+}
+
 export function welcomeEmail(n: 1 | 2 | 3 | 4 | 5, ctx: MarketingCtx, offer: FirstOrderOffer): Msg {
   const s = ctx.site;
   switch (n) {

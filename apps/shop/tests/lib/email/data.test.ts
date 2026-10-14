@@ -264,3 +264,72 @@ describe("hasPaidOrder ignores no-charge orders", () => {
     expect(q.calls).toContainEqual(["eq", ["kind", "sale"]]);
   });
 });
+
+describe("upsertPending (the Aura letter, a different address)", () => {
+  beforeEach(() => { vi.resetModules(); });
+  const sends = (n: number) => query({ data: Array.from({ length: n }, (_, i) => ({ id: `s${i}` })) });
+
+  it("returns confirmed without writing for an address already on the list", async () => {
+    from = fromQueue({ subscribers: [query({ data: { email: "a@b.co", status: "confirmed" } })] });
+    const { upsertPending } = await import("@/lib/email/data");
+    expect(await upsertPending({ email: "a@b.co", source: "letter", partnerRef: null })).toEqual({ state: "confirmed" });
+  });
+
+  it("goes pending with a fresh token for a new address", async () => {
+    const write = query({});
+    from = fromQueue({ subscribers: [query({ data: null }), write], email_sends: [sends(0), sends(0)] });
+    const { upsertPending } = await import("@/lib/email/data");
+    const r = await upsertPending({ email: "New@B.co", source: "letter", partnerRef: null });
+    expect(r.state).toBe("pending");
+    expect(callArgs(write, "upsert")?.[0]).toMatchObject({ email: "new@b.co", source: "letter", status: "pending", unsubscribed_at: null });
+  });
+
+  it("keeps an unsubscribed address unsubscribed until its link is clicked", async () => {
+    const write = query({});
+    from = fromQueue({ subscribers: [query({ data: { email: "a@b.co", status: "unsubscribed", source: "signup" } }), write], email_sends: [sends(0), sends(0)] });
+    const { upsertPending } = await import("@/lib/email/data");
+    await upsertPending({ email: "a@b.co", source: "letter", partnerRef: null });
+    const patch = callArgs(write, "upsert")?.[0] as Record<string, unknown>;
+    expect(patch.status).toBeUndefined();
+    expect(patch.source).toBe("signup");
+  });
+
+  it("cools down after a recent confirmation, or three in a day (anti email-bomb)", async () => {
+    from = fromQueue({ subscribers: [query({ data: null })], email_sends: [sends(1), sends(1)] });
+    let mod = await import("@/lib/email/data");
+    expect(await mod.upsertPending({ email: "a@b.co", source: "letter", partnerRef: null })).toEqual({ state: "cooldown" });
+    vi.resetModules();
+    from = fromQueue({ subscribers: [query({ data: null })], email_sends: [sends(0), sends(3)] });
+    mod = await import("@/lib/email/data");
+    expect(await mod.upsertPending({ email: "a@b.co", source: "letter", partnerRef: null })).toEqual({ state: "cooldown" });
+  });
+});
+
+describe("confirmSubscriber", () => {
+  beforeEach(() => { vi.resetModules(); });
+
+  it("confirms a pending or unsubscribed row and clears unsubscribed_at", async () => {
+    const upd = query({ data: { email: "a@b.co", status: "confirmed" } });
+    from = fromQueue({ subscribers: [upd] });
+    const { confirmSubscriber } = await import("@/lib/email/data");
+    expect(await confirmSubscriber("tok")).toEqual({ row: { email: "a@b.co", status: "confirmed" }, already: false });
+    expect(callArgs(upd, "update")?.[0]).toMatchObject({ status: "confirmed", unsubscribed_at: null });
+    expect(callArgs(upd, "in")).toEqual(["status", ["pending", "unsubscribed"]]);
+  });
+
+  it("reads a second click as already confirmed, and an unknown token as null", async () => {
+    from = fromQueue({ subscribers: [query({ data: null }), query({ data: { email: "a@b.co" } })] });
+    let mod = await import("@/lib/email/data");
+    expect(await mod.confirmSubscriber("tok")).toEqual({ row: { email: "a@b.co" }, already: true });
+    vi.resetModules();
+    from = fromQueue({ subscribers: [query({ data: null }), query({ data: null })] });
+    mod = await import("@/lib/email/data");
+    expect(await mod.confirmSubscriber("nope")).toBeNull();
+  });
+
+  it("throws when the update fails", async () => {
+    from = fromQueue({ subscribers: [query({ error: { message: "down" } })] });
+    const { confirmSubscriber } = await import("@/lib/email/data");
+    await expect(confirmSubscriber("tok")).rejects.toThrow(/down/);
+  });
+});

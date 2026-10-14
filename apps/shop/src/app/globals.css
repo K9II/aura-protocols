@@ -1798,8 +1798,6 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-letter-form { display: flex; flex-direction: column; justify-content: center; }
 .pharmacopoeia .s-letter-form form { display: flex; flex-direction: column; gap: 14px; }
 .pharmacopoeia .s-letter-form .s-letter-k { margin: 0; }
-.pharmacopoeia .s-letter-email { min-height: 48px; border: 0; border-bottom: 1px solid var(--ink); background: transparent; padding: 0 2px; font-family: var(--font-newsreader), Georgia, serif; font-size: 22px; color: var(--ink); }
-.pharmacopoeia .s-letter-email:focus { outline: none; }
 .pharmacopoeia .s-letter-consent { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
 .pharmacopoeia .s-letter-consent input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--ink); flex-shrink: 0; }
 .pharmacopoeia .s-letter-btn:disabled { opacity: .55; cursor: default; }
@@ -1814,4 +1812,12 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   .pharmacopoeia .s-letter-head { padding: 24px 18px 0; }
   .pharmacopoeia .s-letter-body > div { padding: 22px 18px 24px; }
 }
-.pharmacopoeia .s-letter-btn { align-self: flex-start; display: inline-block; padding: 13px 24px; font-family: inherit; font-size: 16px; cursor: pointer; }
+.pharmacopoeia .s-letter-btn { display: block; width: 100%; min-height: 50px; padding: 13px 24px; border: 0; background: var(--specimen); color: var(--paper); text-align: center; font-family: inherit; font-size: 16px; cursor: pointer; transition: background .2s; }
+.pharmacopoeia .s-letter-btn:hover:not(:disabled) { background: var(--ink); }
+/* the email box: B's layout (label printed inside), C's colours (red top edge) */
+.pharmacopoeia .s-letter-box { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px 8px; border: 1px solid var(--ink); border-top: 3px solid var(--specimen); background: #F5F2EA; box-shadow: inset 0 1px 0 rgba(28, 26, 21, .06); cursor: text; }
+.pharmacopoeia .s-letter-box .s-micro { font-size: 10px; color: var(--specimen); }
+.pharmacopoeia .s-letter-box input { border: 0; background: transparent; padding: 0; min-width: 0; font-family: var(--font-newsreader), Georgia, serif; font-size: 21px; color: var(--ink); }
+.pharmacopoeia .s-letter-box input:focus { outline: none; }
+.pharmacopoeia .s-letter-box:focus-within { box-shadow: 0 0 0 2px var(--label), 0 0 0 3px var(--ink); }
+.pharmacopoeia .s-letter-hint { margin: -6px 0 0; font-size: 13px; color: var(--ink-soft); }
