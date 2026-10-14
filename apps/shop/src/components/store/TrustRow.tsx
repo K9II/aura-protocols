@@ -7,7 +7,7 @@ import { PURITY_FLOOR_PCT } from "@/lib/constants";
 // One proof-green accent per icon. Never promise delivery days or a city.
 const ACC = "var(--tested)";
 
-const ICONS = {
+export const ICONS = {
   usa: (
     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="square" strokeLinejoin="miter" aria-hidden>
       <path d="M8 15 L14 9 H34 L40 15" /><rect x="8" y="15" width="32" height="25" /><path d="M24 9 V21" />
@@ -49,10 +49,12 @@ export const TRUST_CLAIMS = [
   { icon: "coa", title: "Certificate every lot", sub: "Matched to your vial" },
 ] as const;
 
-export default function TrustRow({ className = "" }: { className?: string }) {
+// `only` picks a subset (checkout shows shipping and certificates).
+export default function TrustRow({ className = "", only }: { className?: string; only?: Array<keyof typeof ICONS> }) {
+  const claims = only ? TRUST_CLAIMS.filter((c) => only.includes(c.icon)) : TRUST_CLAIMS;
   return (
     <ul className={`s-trust ${className}`.trim()} aria-label="Why researchers order from Aura">
-      {TRUST_CLAIMS.map((c) => (
+      {claims.map((c) => (
         <li key={c.icon}>{ICONS[c.icon]}<b>{c.title}</b><span>{c.sub}</span></li>
       ))}
     </ul>

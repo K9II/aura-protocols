@@ -21,9 +21,11 @@ export const RESEARCH_FIELD_LABEL: Record<ResearchField, string> = {
 export const DEFAULT_RESEARCH_FIELD: ResearchField = "independent";
 export const RESEARCH_ORG_MAX = 120;
 
-export type ResearchInfo = { field: ResearchField; org: string; verifiedAt: string };
+// org: asked on the wholesale sign-up only (retail checkout dropped it 2026-10-13: no competitor asks).
+export type ResearchInfo = { field: ResearchField; org: string | null; verifiedAt: string };
 
-export const RESEARCH_REQUIRED = "Please choose your field of research and enter your company or institution.";
+export const RESEARCH_REQUIRED = "Please choose your field of research.";
+export const WHOLESALE_RESEARCH_REQUIRED = "Please choose your field of research and enter your company or institution.";
 export const RESEARCH_SAVE_FAILED = "We couldn't save your research details — please try again.";
 
 export function researchLabel(field: string): string {

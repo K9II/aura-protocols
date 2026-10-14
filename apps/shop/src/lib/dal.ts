@@ -102,8 +102,8 @@ export const getAccountState = cache(async (): Promise<AccountState> => {
       ...user, fullName: r.full_name, organization: r.organization, isOwner: r.is_owner,
       stripeCustomerId: r.stripe_customer_id, ship, createdAt: r.created_at,
       emailConfirmed: !!r.email_verified_at, verifyRequired: r.verify_required,
-      research: r.research_verified_at && r.research_field && r.research_org
-        ? { field: r.research_field as ResearchField, org: r.research_org, verifiedAt: r.research_verified_at }
+      research: r.research_verified_at && r.research_field
+        ? { field: r.research_field as ResearchField, org: r.research_org ?? null, verifiedAt: r.research_verified_at }
         : null,
       wholesale: { enabledAt: r.wholesale_enabled_at ?? null, disabledAt: r.wholesale_disabled_at ?? null },
     },

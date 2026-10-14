@@ -76,7 +76,8 @@ describe("/shipping", () => {
     expect(cost).toContain(formatUsd(FREE_SHIPPING_THRESHOLD_USD));
     expect(cost).toContain(formatUsd(SHIPPING_PROTECTION_USD));
     expect(cost).toMatch(/included at checkout unless you remove it/i);
-    expect(cost).toContain("$300");
+    expect(cost).toContain("$250");
+    expect(cost).toContain("$18");
     expect(cost).toContain("$5.50");
   });
 

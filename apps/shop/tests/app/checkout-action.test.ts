@@ -127,10 +127,9 @@ describe("startCheckoutAction", () => {
     expect((await startCheckoutAction(input)).error).toMatch(/field of research/);
     expect(createPendingOrder).not.toHaveBeenCalled();
     expect((await startCheckoutAction({ ...input, research: { field: "astrology", org: "X" } })).error).toBeTruthy();
-    expect((await startCheckoutAction({ ...input, research: { field: "independent", org: "   " } })).error).toBeTruthy();
     expect(createPendingOrder).not.toHaveBeenCalled();
-    expect(await startCheckoutAction({ ...input, research: { field: "independent", org: " Halden Labs " } })).toEqual({ url: "https://checkout.stripe.com/x" });
-    expect(saveResearchVerification).toHaveBeenCalledWith("u1", { field: "independent", org: "Halden Labs" });
+    expect(await startCheckoutAction({ ...input, research: { field: "independent" } })).toEqual({ url: "https://checkout.stripe.com/x" });
+    expect(saveResearchVerification).toHaveBeenCalledWith("u1", { field: "independent" }); // no company asked at checkout
     expect(saveResearchVerification.mock.invocationCallOrder[0]).toBeLessThan(createPendingOrder.mock.invocationCallOrder[0]);
   });
 
@@ -179,8 +178,8 @@ describe("startCheckoutAction", () => {
     createCheckout.mockResolvedValue(redirect);
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect(await startCheckoutAction(input)).toEqual({ url: "https://checkout.stripe.com/x" });
-    expect(createPendingOrder.mock.calls[0][0].priced).toMatchObject({ subtotalCents: 4900, shippingCents: 1500, insuranceCents: 550, partnerDiscountCents: 0 });
-    expect(createCheckout.mock.calls[0][0]).toMatchObject({ shippingCents: 1500, insuranceCents: 550, partnerDiscountCents: 0, lineDiscountsCents: [0] });
+    expect(createPendingOrder.mock.calls[0][0].priced).toMatchObject({ subtotalCents: 4900, shippingCents: 1800, insuranceCents: 550, partnerDiscountCents: 0 });
+    expect(createCheckout.mock.calls[0][0]).toMatchObject({ shippingCents: 1800, insuranceCents: 550, partnerDiscountCents: 0, lineDiscountsCents: [0] });
     expect(attachCheckoutSession).toHaveBeenCalledWith("o1", "cs_1");
     expect(saveStripeCustomerId).toHaveBeenCalledWith("u1", "cus_1");
     expect(saveStripeCoupon).not.toHaveBeenCalled();
@@ -268,7 +267,7 @@ describe("startCheckoutAction", () => {
     spendCredit.mockResolvedValue(true);
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect(await startCheckoutAction({ ...input, useCredit: true })).toEqual({ url: "/order/AP-1001" });
-    const total = 4900 + 1500 + 550 + 426;
+    const total = 4900 + 1800 + 550 + 426;
     expect(createPendingOrder.mock.calls[0][0]).toMatchObject({ storeCreditCents: total, taxCents: 426, taxCalculationId: "taxcalc_1" });
     expect(spendCredit).toHaveBeenCalledWith("u1", total, "o1");
     expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "paid");
@@ -308,7 +307,7 @@ describe("startCheckoutAction", () => {
 
   it("partial store credit leaves at least Stripe's $0.50 minimum to pay, and is held before Stripe starts", async () => {
     getCustomer.mockResolvedValue(customer);
-    const total = 4900 + 1500 + 550 + 426;
+    const total = 4900 + 1800 + 550 + 426;
     creditBalance.mockResolvedValue(total - 20); // would leave $0.20
     quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
     spendCredit.mockResolvedValue(true);
@@ -323,7 +322,7 @@ describe("startCheckoutAction", () => {
 
   it("a partial store credit spend that fails (balance changed) cancels immediately without starting Stripe", async () => {
     getCustomer.mockResolvedValue(customer);
-    const total = 4900 + 1500 + 550 + 426;
+    const total = 4900 + 1800 + 550 + 426;
     creditBalance.mockResolvedValue(total - 20);
     quoteTax.mockResolvedValue({ calculationId: "taxcalc_1", taxCents: 426 });
     spendCredit.mockResolvedValue(false);

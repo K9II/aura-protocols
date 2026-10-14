@@ -59,8 +59,8 @@ describe("cart", () => {
 
 describe("shipping constants", () => {
   it("matches the approved shipping economics", () => {
-    expect(FREE_SHIPPING_THRESHOLD_USD).toBe(300);
-    expect(FLAT_SHIPPING_USD).toBe(15);
+    expect(FREE_SHIPPING_THRESHOLD_USD).toBe(250); // 2026-10-13 (was 300)
+    expect(FLAT_SHIPPING_USD).toBe(18); // 2026-10-13 (was 15)
     expect(SHIPPING_PROTECTION_USD).toBe(5.5);
   });
 
