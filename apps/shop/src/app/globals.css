@@ -1755,7 +1755,9 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-plate-figs figure { margin: 0; display: flex; flex-direction: column; align-items: center; }
 .pharmacopoeia .s-plate-figs svg:not(.s-plate-ground) { width: 132px; max-width: 100%; height: auto; aspect-ratio: 120 / 150; }
 .pharmacopoeia .s-plate-figs figcaption { margin-top: 10px; font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 15px; color: #5A4A2E; }
-.pharmacopoeia .s-plate-ground { position: absolute; left: 0; width: 100%; top: 158px; height: 20px; }
+.pharmacopoeia .s-plate-word { height: 34px; font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 22px; line-height: 22px; color: var(--ink); }
+/* 34px word + 158px down the 165px-tall figure */
+.pharmacopoeia .s-plate-ground { position: absolute; left: 0; width: 100%; top: 192px; height: 20px; }
 .pharmacopoeia .s-plate-side { display: flex; flex-direction: column; gap: 14px; padding: 24px 22px; background: var(--record); }
 .pharmacopoeia .s-plate-side .s-h2 { margin: 0; font-size: 34px; line-height: 1.1; }
 .pharmacopoeia .s-plate-steps { list-style: none; margin: 4px 0 0; padding: 0; }

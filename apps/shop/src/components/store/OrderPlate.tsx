@@ -69,7 +69,13 @@ function Parcel() {
   );
 }
 
-const FIGURES = [Rack, Certificate, SealedVial, Parcel];
+// The word over each figure (2026-10-14).
+const FIGURES = [
+  { Fig: Rack, word: "Pick" },
+  { Fig: Certificate, word: "Verify" },
+  { Fig: SealedVial, word: "Secure" },
+  { Fig: Parcel, word: "Receive" },
+];
 
 export default function OrderPlate() {
   return (
@@ -82,8 +88,9 @@ export default function OrderPlate() {
               <path d="M0 10 H440 L452 10 L458 2 L466 18 L472 10 H1000" fill="none" stroke={SEPIA} strokeWidth="1" vectorEffect="non-scaling-stroke" />
               <path d="M452 10 L458 2 L466 18 L472 10" fill="none" stroke={RED} strokeWidth="1.4" vectorEffect="non-scaling-stroke" />
             </svg>
-            {FIGURES.map((Fig, i) => (
-              <figure key={i}>
+            {FIGURES.map(({ Fig, word }, i) => (
+              <figure key={word}>
+                <span className="s-plate-word">{word}</span>
                 <Fig />
                 <figcaption>Fig. {i + 1}.</figcaption>
               </figure>
