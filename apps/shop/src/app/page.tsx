@@ -10,6 +10,7 @@ import AuraLetter from "@/components/store/AuraLetter";
 import LotRecord from "@/components/store/LotRecord";
 import TrustRow from "@/components/store/TrustRow";
 import Unavailable from "@/components/store/Unavailable";
+import type { Compound } from "@/data/catalog";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { currentMs } from "@/lib/clock";
 import { homeRecord } from "@/lib/lot-record";
@@ -45,6 +46,10 @@ export default async function HomePage() {
             </div>
             <TrustRow className="load-in load-5" />
           </div>
+          {/* Phones (under 900px): the lineup comes right after the headline block, before the
+              sphere (mock P1, 2026-10-14, https://claude.ai/artifact/8V1LaYJ4UXD1SeGooF4WN8).
+              Desktop shows the copy further down instead; CSS shows one of the two. */}
+          <HomeLineup featured={featured} total={live.shown.length} where="phone" />
           <div className="load-in load-5 s-hero-sphere">
             <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
           </div>
@@ -58,18 +63,7 @@ export default async function HomePage() {
 
         <FromTheRecord />
 
-        <section className="p-reveal py-14">
-          <div className="s-lh">
-            <h2 className="s-h2"><Link href="/products" className="s-h2-link">The <em>lineup</em></Link></h2>
-            <p>No matching COA - No sale</p>
-          </div>
-          <div className="s-grid">
-            {featured.map((c, i) => <CompoundCard key={c.slug} compound={c} index={i} />)}
-          </div>
-          <div className="mt-8">
-            <Link href="/products" className="p-see-all s-micro">See all {live.shown.length} compounds →</Link>
-          </div>
-        </section>
+        <HomeLineup featured={featured} total={live.shown.length} where="desk" />
 
         {/* how an order runs (2026-10-14) */}
         <OrderPlate />
@@ -78,5 +72,24 @@ export default async function HomePage() {
         <AuraLetter />
       </div>
     </div>
+  );
+}
+
+// The featured lineup. Rendered twice on the home page: inside the hero on phones,
+// after the 1906 plate on desktop; CSS shows one (.s-lineup--phone / --desk).
+function HomeLineup({ featured, total, where }: { featured: Compound[]; total: number; where: "phone" | "desk" }) {
+  return (
+    <section className={`p-reveal py-14 s-lineup s-lineup--${where}`}>
+      <div className="s-lh">
+        <h2 className="s-h2"><Link href="/products" className="s-h2-link">The <em>lineup</em></Link></h2>
+        <p>No matching COA - No sale</p>
+      </div>
+      <div className="s-grid">
+        {featured.map((c, i) => <CompoundCard key={c.slug} compound={c} index={i} idScope={where === "phone" ? "m-" : ""} />)}
+      </div>
+      <div className="mt-8">
+        <Link href="/products" className="p-see-all s-micro">See all {total} compounds →</Link>
+      </div>
+    </section>
   );
 }

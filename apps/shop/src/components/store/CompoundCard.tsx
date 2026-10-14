@@ -9,7 +9,8 @@ import Vial from "@/components/store/Vial";
 // Monograph card (approved 2026-10-10): a placard with the compound's identity
 // stands behind an upright vial on a raised tile; the text below sits on a
 // joined base, so tile + base read as one object.
-export default function CompoundCard({ compound: c, index = 0 }: { compound: Compound; index?: number }) {
+// idScope keeps the vial's SVG ids unique when the same card is on the page twice (home: phone + desktop lineup).
+export default function CompoundCard({ compound: c, index = 0, idScope = "" }: { compound: Compound; index?: number; idScope?: string }) {
   // Lot line from the first strength with a released lot.
   const lot = c.variants.find((v) => !isPendingLot(v.lot))?.lot ?? { pending: true as const };
   const pending = isPendingLot(lot);
@@ -35,7 +36,7 @@ export default function CompoundCard({ compound: c, index = 0 }: { compound: Com
           <span className="s-placard-r">Research use only · Not for human use</span>
         </div>
         <div className="s-card-vial">
-          <Vial id={`${c.slug}-${index}`} label={vialLabel(c)} cap={vialCap(c)} rule={color} parts={vialParts(c)} strength={c.variants[0].strength} tilt={0} />
+          <Vial id={`${idScope}${c.slug}-${index}`} label={vialLabel(c)} cap={vialCap(c)} rule={color} parts={vialParts(c)} strength={c.variants[0].strength} tilt={0} />
         </div>
       </div>
       <div className="s-card-info">

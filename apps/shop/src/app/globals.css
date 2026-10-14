@@ -526,6 +526,13 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
 .pharmacopoeia .s-ctas a { font-size: 16px; padding: 13px 22px; }
 @media (max-width: 900px) { .pharmacopoeia .s-hero { grid-template-columns: 1fr; } }
+/* Home lineup (mock P1, 2026-10-14): phones see it inside the hero, between the
+   headline block and the sphere; desktop sees it after the 1906 plate. */
+.pharmacopoeia .s-lineup--phone { display: none; }
+@media (max-width: 900px) {
+  .pharmacopoeia .s-lineup--phone { display: block; padding-top: 28px; padding-bottom: 12px; }
+  .pharmacopoeia .s-lineup--desk { display: none; }
+}
 /* Home hero north light (option D, chosen 2026-10-11; mock AXG9ymUY7hnEVpDyrqDU7g).
    The band clips the light so it never adds sideways scroll; the light fades in
    below the header and out at the bottom, only ever brightens (so text and the sphere stay legible). */
