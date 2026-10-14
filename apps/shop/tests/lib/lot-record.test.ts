@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { PublicLot } from "@/data/catalog";
-import { homeRecord, newSince, newsLine, productRecord, recordGeo, runY, shortDate } from "@/lib/lot-record";
+import { HOME_REC_MAX_H, HOME_REC_MAX_H_NARROW, REC_TOP_PAD, fitRecordHeight, homeRecord, newSince, newsLine, productRecord, recordGeo, runY, shortDate } from "@/lib/lot-record";
 
 const lot = (over: Partial<PublicLot>): PublicLot => ({
   lot: "BP10-2609-01", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-09-10", coaFile: "https://x/coa.pdf",
@@ -90,3 +90,37 @@ describe("lot record", () => {
     expect(peak(99.8)).toBeLessThan(peak(99.0));
   });
 });
+
+describe("home record height (fitRecordHeight)", () => {
+  // the highest point any run reaches: its baseline plus the tallest peak runY can draw
+  const top = (narrow: boolean, H: number, n: number) => {
+    const W = narrow ? 300 : 900, g = recordGeo(W, H, n);
+    let min = Infinity;
+    for (let i = 0; i < n; i++) for (let k = 0; k <= 400; k++) min = Math.min(min, g.y0 - i * g.dy + runY(`LOT-${i}`, 100, k / 400, g.amp));
+    return min;
+  };
+
+  it("a few lots get a shorter band than the old fixed height, with every peak inside it", () => {
+    for (const narrow of [true, false]) {
+      const H = fitRecordHeight(narrow, 3);
+      expect(H).toBeLessThan(narrow ? HOME_REC_MAX_H_NARROW : HOME_REC_MAX_H);
+      expect(top(narrow, H, 3)).toBeGreaterThanOrEqual(REC_TOP_PAD - 2);
+      expect(top(narrow, H, 3)).toBeLessThan(REC_TOP_PAD + 12); // and no big empty band above
+    }
+  });
+
+  it("grows with each lot and stops at the old fixed height", () => {
+    for (const narrow of [true, false]) {
+      const hs = [2, 3, 4, 5, 6, 7, 8].map((n) => fitRecordHeight(narrow, n));
+      for (let i = 1; i < hs.length; i++) expect(hs[i]).toBeGreaterThanOrEqual(hs[i - 1]);
+      expect(hs[hs.length - 1]).toBeLessThanOrEqual(narrow ? HOME_REC_MAX_H_NARROW : HOME_REC_MAX_H);
+      expect(fitRecordHeight(narrow, 20)).toBe(narrow ? HOME_REC_MAX_H_NARROW : HOME_REC_MAX_H);
+    }
+  });
+
+  it("a single lot keeps room around its centred run", () => {
+    expect(fitRecordHeight(false, 1)).toBeGreaterThanOrEqual(170);
+    expect(top(false, fitRecordHeight(false, 1), 1)).toBeGreaterThan(0);
+  });
+});
+

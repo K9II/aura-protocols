@@ -108,6 +108,29 @@ export function recordGeo(W: number, H: number, n: number): RecordGeo {
   return { narrow, n, dx, dy, tw, y0, amp };
 }
 
+// ---- home record height ----
+// The home record is only as tall as its runs need: the tallest possible peak
+// (runY's main peak at 100% purity) clears the top by REC_TOP_PAD, so a few
+// lots leave no empty band above them. Each new lot adds a depth step until
+// the band reaches the old fixed height (the CSS caps below), where the runs
+// start to pack closer instead. recordGeo only reads W to pick narrow (W < 460)
+// and the run width, so the height depends on narrow and n alone.
+export const REC_TOP_PAD = 14;
+export const HOME_REC_MAX_H = 250;        // = .s-rec-band canvas, desktop
+export const HOME_REC_MAX_H_NARROW = 210; // = the phone rule
+const PEAK_MAX = 1.08;                    // runY: 0.78 + (100 − 99) × 0.3
+
+export function fitRecordHeight(narrow: boolean, n: number): number {
+  const maxH = narrow ? HOME_REC_MAX_H_NARROW : HOME_REC_MAX_H;
+  const minH = n <= 1 ? 170 : 120; // a single run sits in the middle; give it room
+  const W = narrow ? 300 : 900;
+  for (let H = minH; H < maxH; H += 2) {
+    const g = recordGeo(W, H, n);
+    if (g.y0 - (n - 1) * g.dy - PEAK_MAX * g.amp >= REC_TOP_PAD) return H;
+  }
+  return maxH;
+}
+
 export const lotHash = (s: string) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
 
 // One run: baseline noise + the main peak (height from purity) + impurity bumps
