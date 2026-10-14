@@ -312,6 +312,9 @@ h1, h2, h3 {
   --tested: #2F6B3A;
   --pending: #9A6A12;
   --record: #F4F1EA;
+  /* Tiles behind a vial (cards, product page, search preview): lighter so the glass reads clear (option A, 2026-10-14). */
+  --vial-tile: #F9F8F4;
+  --vial-tile-shadow: 0 1px 0 rgba(28,26,21,.04), 5px 7px 14px -8px rgba(28,26,21,.18);
   --label: #FBFAF7;
   background: var(--paper);
   color: var(--ink);
@@ -609,7 +612,7 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-card:hover .s-card-ph, .pharmacopoeia .s-card:focus-visible .s-card-ph { transform: translate(-2px, -3px); box-shadow: 0 1px 0 rgba(28,26,21,.05), 10px 14px 24px -10px rgba(28,26,21,.32); }
 .pharmacopoeia .s-card:focus-visible { outline: none; }
 .pharmacopoeia .s-card:focus-visible .s-card-info { outline: 2px solid var(--specimen); outline-offset: 2px; }
-.pharmacopoeia .s-card-ph { position: relative; height: 330px; background: var(--record); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.28); transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s; container-type: inline-size; }
+.pharmacopoeia .s-card-ph { position: relative; height: 330px; background: var(--vial-tile); border: 1px solid var(--line); box-shadow: var(--vial-tile-shadow); transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s; container-type: inline-size; }
 .pharmacopoeia .s-placard { position: absolute; left: 8%; top: 15%; width: 66%; height: 67%; background: var(--label); border: 1px solid #DCD5C3; border-top: 4px solid var(--cls); box-shadow: 3px 5px 12px -5px rgba(28,26,21,.30); padding: 7% 8%; display: flex; flex-direction: column; gap: 6px; transition: transform .45s cubic-bezier(.2,.7,.2,1); }
 .pharmacopoeia .s-placard-k { font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--cls); }
 .pharmacopoeia .s-placard-n { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: clamp(17px, 7.6cqi, 22px); line-height: 1.05; letter-spacing: -.01em; margin-top: 4px; }
@@ -715,7 +718,7 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-media { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; }
 /* the lot table scrolls inside its own box rather than widening the column */
 .pharmacopoeia .s-media > * { min-width: 0; }
-.pharmacopoeia .s-pdp-tile { position: relative; aspect-ratio: 1 / 1.04; background: rgba(244, 241, 234, .8); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 10px 14px 28px -14px rgba(28,26,21,.32); container-type: inline-size; }
+.pharmacopoeia .s-pdp-tile { position: relative; aspect-ratio: 1 / 1.04; background: rgba(249, 248, 244, .86); border: 1px solid var(--line); box-shadow: var(--vial-tile-shadow); container-type: inline-size; }
 .pharmacopoeia .s-pdp-placard { position: absolute; left: 8%; top: max(11%, 54px); width: 64%; bottom: 13%; background: var(--label); border: 1px solid #DCD5C3; border-top: 5px solid var(--cls); box-shadow: 5px 8px 18px -8px rgba(28,26,21,.32); padding: 6.5% 7%; display: flex; flex-direction: column; gap: 8px; }
 /* text stays left of the vial, which stands in front of the placard's right side */
 .pharmacopoeia .s-pdp-placard > :not(.s-placard-r) { max-width: 76%; }
@@ -1713,7 +1716,7 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-sx-none { padding: 18px 0 4px; font-size: 17px; color: var(--ink-soft); }
 .pharmacopoeia .s-sx-none a, .pharmacopoeia .s-sx-shop { color: var(--specimen); border-bottom: 1px solid var(--specimen); }
 .pharmacopoeia .s-sx-shop { display: inline-block; margin-top: 16px; padding-bottom: 2px; }
-.pharmacopoeia .s-sx-pv { display: flex; flex-direction: column; gap: 16px; padding: 24px 24px 20px; background: var(--paper-deep); border: 1px solid var(--line); color: var(--ink); }
+.pharmacopoeia .s-sx-pv { display: flex; flex-direction: column; gap: 16px; padding: 24px 24px 20px; background: var(--vial-tile); border: 1px solid var(--line); color: var(--ink); }
 .pharmacopoeia .s-sx-pv-vial { display: flex; justify-content: center; align-items: center; min-height: 255px; }
 .pharmacopoeia .s-sx-pv-info { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 14px; }
 .pharmacopoeia .s-sx-pv-cls { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-soft); }

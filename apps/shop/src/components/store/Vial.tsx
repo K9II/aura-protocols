@@ -41,16 +41,18 @@ export default function Vial({ id, label, strength, tilt = -10, width = 160, cap
       viewBox="0 0 120 200"
       role="img"
       aria-label={`${label} ${strength} vial`}
-      style={{ transform: `rotate(${tilt}deg)`, filter: "drop-shadow(0 12px 14px rgba(28,26,21,.14))" }}
+      style={{ transform: `rotate(${tilt}deg)`, filter: "drop-shadow(0 12px 14px rgba(28,26,21,.09))" }}
     >
       <defs>
         <linearGradient id={glass} x1="0" x2="1">
-          <stop offset="0" stopColor="#7f8b92" stopOpacity=".42" />
-          <stop offset=".08" stopColor="#ffffff" stopOpacity=".55" />
-          <stop offset=".16" stopColor="#dfe6ea" stopOpacity=".1" />
-          <stop offset=".6" stopColor="#ffffff" stopOpacity=".06" />
-          <stop offset=".88" stopColor="#cfd8dd" stopOpacity=".22" />
-          <stop offset="1" stopColor="#6f7b82" stopOpacity=".5" />
+          {/* Clear glass (option A, 2026-10-14, https://claude.ai/artifact/XePpA5K5JVPozL5Zc3b3fY):
+              light grey edges, a bright left highlight, no white wash through the middle. */}
+          <stop offset="0" stopColor="#7f8b92" stopOpacity=".22" />
+          <stop offset=".08" stopColor="#ffffff" stopOpacity=".6" />
+          <stop offset=".16" stopColor="#eef3f5" stopOpacity=".04" />
+          <stop offset=".6" stopColor="#ffffff" stopOpacity="0" />
+          <stop offset=".88" stopColor="#dde4e8" stopOpacity=".1" />
+          <stop offset="1" stopColor="#6f7b82" stopOpacity=".26" />
         </linearGradient>
         <linearGradient id={alu} x1="0" x2="1">
           <stop offset="0" stopColor="#8b9196" />
@@ -80,22 +82,22 @@ export default function Vial({ id, label, strength, tilt = -10, width = 160, cap
       </defs>
 
       {/* Glass body */}
-      <path d={BODY} fill={`url(#${glass})`} stroke="#9aa6ad" strokeOpacity=".55" strokeWidth=".8" />
+      <path d={BODY} fill={`url(#${glass})`} stroke="#9aa6ad" strokeOpacity=".45" strokeWidth=".8" />
       <g clipPath={`url(#${clip})`}>
         {/* Lyophilized cake */}
         <path d="M22,178 Q34,173.5 46,176 Q60,172.5 74,175.5 Q88,173 98,177 L98,190 L22,190 Z" fill={`url(#${powder})`} />
         <path d="M22,178 Q34,173.5 46,176 Q60,172.5 74,175.5 Q88,173 98,177" fill="none" stroke="#fff" strokeWidth=".9" opacity=".8" />
         {/* Thick glass base */}
-        <rect x="20" y="189" width="80" height="7" fill="#9aa6ad" opacity=".28" />
+        <rect x="20" y="189" width="80" height="7" fill="#9aa6ad" opacity=".16" />
         <path d="M24,190 Q60,186 96,190" fill="none" stroke="#fff" strokeWidth=".8" opacity=".7" />
         {/* Shoulder refraction */}
         <path d="M22,62 Q24,53 38,51" fill="none" stroke="#fff" strokeWidth="1.2" opacity=".75" />
         <path d="M98,62 Q96,53 82,51" fill="none" stroke="#5f6b72" strokeWidth=".9" opacity=".35" />
       </g>
       {/* Specular streaks (behind the label) */}
-      <rect x="25.5" y="56" width="2.6" height="134" rx="1.3" fill="#fff" opacity=".55" />
-      <rect x="29.5" y="58" width=".9" height="130" fill="#fff" opacity=".35" />
-      <rect x="91" y="60" width="1.6" height="126" rx=".8" fill="#fff" opacity=".35" />
+      <rect x="25.5" y="56" width="2.6" height="134" rx="1.3" fill="#fff" opacity=".45" />
+      <rect x="29.5" y="58" width=".9" height="130" fill="#fff" opacity=".25" />
+      <rect x="91" y="60" width="1.6" height="126" rx=".8" fill="#fff" opacity=".25" />
       {/* Lot printed on the glass */}
       <text x="60" y="171" style={MONO} fontSize="4.2" fill="#4A4438" opacity=".55" letterSpacing=".8" textAnchor="middle">LOT ——————</text>
 
@@ -133,7 +135,7 @@ export default function Vial({ id, label, strength, tilt = -10, width = 160, cap
       <rect x="95.5" y="66" width="1.2" height="94" fill="#fff" opacity=".3" />
 
       {/* Neck, aluminum crimp seal, flip-off cap */}
-      <rect x="38" y="38" width="44" height="8" fill={`url(#${glass})`} stroke="#9aa6ad" strokeOpacity=".5" strokeWidth=".6" />
+      <rect x="38" y="38" width="44" height="8" fill={`url(#${glass})`} stroke="#9aa6ad" strokeOpacity=".4" strokeWidth=".6" />
       <rect x="30" y="18" width="60" height="23" rx="2" fill={`url(#${alu})`} />
       <rect x="30" y="37" width="60" height="4" fill="#8b9196" opacity=".45" />
       <line x1="30" y1="22" x2="90" y2="22" stroke="#fff" strokeWidth=".5" opacity=".6" />
