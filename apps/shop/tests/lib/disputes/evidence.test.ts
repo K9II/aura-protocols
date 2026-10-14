@@ -7,6 +7,7 @@ import {
 } from "@/lib/disputes/evidence";
 import { EDITABLE_FIELDS } from "@/lib/disputes/fields";
 import { facts, unshipped } from "../../helpers/dispute-fixtures";
+import { PROTECTION_DECLINED_NOTICE } from "@/lib/shipping-protection";
 
 const TRACK_URL = "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400111899223401552788";
 const REASONS = ["product_not_received", "fraudulent", "unrecognized", "product_unacceptable", "credit_not_processed", "general", "duplicate"];
@@ -36,13 +37,21 @@ describe("dispute evidence", () => {
     expect(Object.keys(editable(e))).toEqual([...EDITABLE_FIELDS]);
   });
 
+  it("not received, protection declined: quotes the notice the cardholder saw and the risk-of-loss term", () => {
+    const f = facts();
+    const declined = { ...f, order: { ...f.order, insuranceCents: 0, protection: "declined" as const } };
+    const paras = buildEvidence(declined).uncategorized_text.split("\n\n");
+    expect(paras[3]).toBe(`At checkout the cardholder declined optional shipping protection and was shown this notice before paying: "${PROTECTION_DECLINED_NOTICE}" Under our Refund & Dispute Policy, which the cardholder agreed to, risk of loss passed to the cardholder when the package was handed to the carrier.`);
+    expect(evidenceSections(declined)[0].lines.join(" ")).toContain("shipping protection declined");
+  });
+
   it("not received: shipping, tracking link, insurance, the agreement and the products", () => {
     const letter = buildEvidence(facts()).uncategorized_text;
     const paras = letter.split("\n\n");
     expect(paras[0]).toBe("To the card issuer,");
     expect(paras[1]).toBe("The cardholder states that order AP-1031 was not received. Our records show it was shipped on September 22, 2026 by USPS (tracking 9400111899223401552788) to the name and address the cardholder entered at checkout: Dana Whitfield, 1420 Elm St, Apt 3, Boulder, CO 80302.");
     expect(paras[2]).toBe(`Carrier tracking: ${TRACK_URL}`);
-    expect(paras[3]).toMatch(/^Every order includes shipping insurance/);
+    expect(paras[3]).toMatch(/^The order included shipping protection/);
     expect(paras[4]).toBe("The cardholder created an account with us (dana.w@example.com) on September 14, 2026 and, before any purchase, agreed to our Terms and our Refund & Dispute Policy (version 2026-09-27), confirming that they are 21 or older, the products are for laboratory research use only, and they would contact us before filing a payment dispute. At checkout on September 21, 2026 they confirmed again that the order was for laboratory research use only. The timestamped agreement record is attached.");
     expect(letter).toContain("BPC-157 10 mg (lot AP-BPC-2604, 3 vials); TB-500 10 mg (lot AP-TB5-2603, 2 vials)");
     expect(paras.slice(-2)).toEqual(["We ask that the dispute be decided in our favour.", "Aura Protocols LLC"]);
@@ -128,7 +137,7 @@ describe("dispute evidence", () => {
     const s = evidenceSections(facts());
     expect(s.map((x) => x.title)).toEqual(["Receipt", "Shipping and delivery", "Lots shipped", "Account agreement", "Policy excerpts"]);
     expect(s[0].lines[0]).toBe("Order AP-1031 · placed 2026-09-21 16:00:00 UTC · paid 2026-09-21 16:02:00 UTC · Visa ending 4242");
-    expect(s[0].lines).toContain("Subtotal $391.00 · shipping $0.00 · shipping insurance $5.50 · sales tax $15.50 · total $412.00");
+    expect(s[0].lines).toContain("Subtotal $391.00 · shipping $0.00 · shipping protection $5.50 · sales tax $15.50 · total $412.00");
     expect(s[1].lines).toEqual([
       "Shipped 2026-09-22 18:00:00 UTC by USPS · tracking 9400111899223401552788",
       "Ship to: Dana Whitfield, 1420 Elm St, Apt 3, Boulder, CO 80302",

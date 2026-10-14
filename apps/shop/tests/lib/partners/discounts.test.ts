@@ -10,7 +10,7 @@ function item(over: Partial<PricedItem>): PricedItem {
 }
 function order(items: PricedItem[]): PricedOrder {
   const subtotalCents = items.reduce((s, i) => s + i.lineTotalCents, 0);
-  return withCharges({ items, rejected: [], subtotalCents, partnerDiscountCents: 0, shippingCents: 0, insuranceCents: 0, totalBeforeTaxCents: 0 });
+  return withCharges({ items, rejected: [], subtotalCents, partnerDiscountCents: 0, shippingCents: 0, protection: true, insuranceCents: 0, totalBeforeTaxCents: 0 });
 }
 
 describe("applyPartnerCode", () => {

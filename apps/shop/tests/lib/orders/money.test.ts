@@ -8,7 +8,7 @@ describe("moneyLines", () => {
   it("splits the code's share from the other discount and ends with Charged", () => {
     const lines = moneyLines(base, { code, partnerCode: "QUINN10" });
     expect(lines.map((l) => [l.label, l.cents])).toEqual([
-      ["Goods", 44_500], ["Partner discount", -4_450], ["Code", -2_003], ["Shipping", 0], ["Insurance", 550], ["Tax", 2_842],
+      ["Goods", 44_500], ["Partner discount", -4_450], ["Code", -2_003], ["Shipping", 0], ["Shipping protection", 550], ["Tax", 2_842],
       ["Total", 41_439], ["Store credit applied", 0], ["Charged", 41_439],
     ]);
     expect(lines.find((l) => l.label === "Partner discount")?.note).toBe("QUINN10 · 10%");

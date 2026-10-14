@@ -1,6 +1,6 @@
 // Wholesale: made-to-order 10-vial kits (spec 2026-10-08-wholesale-kits-design.md).
 // Pure — safe on client and server. Prices are always rebuilt server-side.
-import { FREE_SHIPPING_MIN_CENTS, INSURANCE_CENTS, SHIPPING_FLAT_CENTS, type PricedItem, type Rejection } from "@/lib/pricing";
+import { FREE_SHIPPING_MIN_CENTS, PROTECTION_CENTS, SHIPPING_FLAT_CENTS, type PricedItem, type Rejection } from "@/lib/pricing";
 import { addDays, daysBetween } from "@/lib/today/time";
 import type { OrderStatus } from "@/lib/order-status";
 
@@ -154,7 +154,7 @@ export function priceWholesale(lines: KitLine[], rows: KitRow[], s: PricingSetti
   });
   const subtotalCents = items.reduce((n, i) => n + i.lineTotalCents, 0);
   const shippingCents = items.length === 0 || subtotalCents >= FREE_SHIPPING_MIN_CENTS ? 0 : SHIPPING_FLAT_CENTS;
-  const insuranceCents = items.length === 0 ? 0 : INSURANCE_CENTS;
+  const insuranceCents = items.length === 0 ? 0 : PROTECTION_CENTS; // wholesale: always included
   const depositCents = Math.round(subtotalCents * s.depositPct / 100);
   const totalBeforeTaxCents = subtotalCents + shippingCents + insuranceCents;
   return {

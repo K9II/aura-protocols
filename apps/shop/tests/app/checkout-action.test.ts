@@ -69,6 +69,7 @@ const input = {
   lines: [{ slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 }],
   ship: { name: "Jane", line1: "1 A St", line2: "", city: "Austin", state: "TX", zip: "78701" },
   ruoConfirmed: true,
+  protection: true,
   humanToken: "tok",
 };
 const redirect = { kind: "redirect", url: "https://checkout.stripe.com/x", sessionId: "cs_1", stripeCustomerId: "cus_1", couponId: null };

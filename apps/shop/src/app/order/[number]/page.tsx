@@ -18,6 +18,7 @@ import PayBalanceButton from "@/components/store/wholesale/PayBalanceButton";
 import { currentMs } from "@/lib/clock";
 import { dateLabel, localDate } from "@/lib/today/time";
 import { usd } from "@/lib/html";
+import { PROTECTION_DECLINED_SHORT, PROTECTION_LABEL } from "@/lib/shipping-protection";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false, follow: false } };
 
@@ -72,6 +73,11 @@ export default async function OrderPage({ params, searchParams }: {
             : "A confirmation email is on its way. You can follow this order under your account."}
         </p>
         <OrderCard order={order} />
+        {!noCharge && order.protection && (
+          <p className="text-[13px] mt-3" style={{ color: order.protection === "declined" ? "var(--specimen)" : "var(--ink-soft)" }}>
+            {PROTECTION_LABEL}: {order.protection === "declined" ? PROTECTION_DECLINED_SHORT : `Added (${usd(order.insurance_cents)}). Lost or damaged in transit? We send a replacement.`}
+          </p>
+        )}
         <Link href="/account" className="p-btn-outline inline-block px-5 py-3 text-sm uppercase tracking-[0.06em] mt-8">My orders →</Link>
       </div>
     </div>
@@ -135,7 +141,7 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
               <p className="s-ws-note" style={{ margin: "6px 0 0" }}>Nothing is needed to keep your order — we&apos;ll email you when the new lot passes.</p>
             </> : <>
               <div className="s-ws-ln"><span>Balance when your lot passes testing</span><span>{balance}</span></div>
-              <p className="s-ws-note" style={{ margin: "2px 0 12px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} insurance and sales tax. We&apos;ll email you a link; it&apos;s due within {settings?.balanceDays ?? 7} days.</p>
+              <p className="s-ws-note" style={{ margin: "2px 0 12px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} shipping protection and sales tax. We&apos;ll email you a link; it&apos;s due within {settings?.balanceDays ?? 7} days.</p>
               {cutoff && dates && <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0 }} />}
             </>}
           </div>
@@ -144,7 +150,7 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
           <div className="s-ws-sum" style={{ marginTop: 16 }}>
             <div className="s-ws-ln"><span>Deposit paid</span><span>{deposit}</span></div>
             <div className="s-ws-ln b t"><span>Balance due{dueOn ? ` by ${dateLabel(dueOn)}` : ""}</span><span>{balance}</span></div>
-            <p className="s-ws-note" style={{ margin: "2px 0 6px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} insurance and sales tax.</p>
+            <p className="s-ws-note" style={{ margin: "2px 0 6px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} shipping protection and sales tax.</p>
             <PayBalanceButton orderNumber={order.order_number} label={balance} />
             <p className="s-ws-note" style={{ marginTop: 8 }}>Unpaid orders are cancelled after {dueOn ? dateLabel(dueOn) : "the due date"} and the deposit is kept.</p>
           </div>

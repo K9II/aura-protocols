@@ -68,7 +68,7 @@ describe("commerce adapter", () => {
     expect(params.discounts).toBeUndefined();
     expect(params.line_items).toEqual([
       { quantity: 2, price_data: { currency: "usd", unit_amount: 13230, tax_behavior: "exclusive", product_data: { name: "BPC-157 — 5 mg · 3-pack" } } },
-      { quantity: 1, price_data: { currency: "usd", unit_amount: 550, tax_behavior: "exclusive", product_data: { name: "Shipping insurance (transit loss and damage)" } } },
+      { quantity: 1, price_data: { currency: "usd", unit_amount: 550, tax_behavior: "exclusive", product_data: { name: "Shipping protection (transit loss and damage)" } } },
     ]);
     expect(params.shipping_options[0].shipping_rate_data).toMatchObject({ type: "fixed_amount", fixed_amount: { amount: 0, currency: "usd" } });
     expect(params.payment_method_types).toBeUndefined(); // methods come from the Stripe dashboard
@@ -110,7 +110,7 @@ describe("commerce adapter", () => {
     expect(params.automatic_tax).toEqual({ enabled: false });
     expect(params.shipping_options).toBeUndefined();
     expect(params.line_items.map((l: { price_data: { product_data: { name: string }; unit_amount: number } }) => [l.price_data.product_data.name, l.price_data.unit_amount])).toEqual([
-      ["BPC-157 — 5 mg · 3-pack", 13230], ["Shipping insurance (transit loss and damage)", 550], ["Tracked shipping (US)", 1500], ["Sales tax", 2180],
+      ["BPC-157 — 5 mg · 3-pack", 13230], ["Shipping protection (transit loss and damage)", 550], ["Tracked shipping (US)", 1500], ["Sales tax", 2180],
     ]);
     expect(couponsCreate).toHaveBeenCalledWith(
       expect.objectContaining({ amount_off: 18600, name: "Store credit" }),

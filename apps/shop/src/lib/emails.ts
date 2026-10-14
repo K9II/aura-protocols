@@ -4,6 +4,7 @@ import { ORDERS_EMAIL, SUPPORT_EMAIL } from "@/lib/constants";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 import { dateLabel } from "@/lib/today/time";
 import { compoundTitle } from "@/lib/catalog";
+import { PROTECTION_DECLINED_SHORT, PROTECTION_LABEL } from "@/lib/shipping-protection";
 
 export const CARRIERS = ["usps", "ups", "fedex", "dhl"] as const;
 export type Carrier = (typeof CARRIERS)[number];
@@ -41,11 +42,12 @@ function itemsTable(o: OrderRow): string {
 <tr><td style="padding-top:10px">Subtotal</td><td style="text-align:right">${usd(o.subtotal_cents)}</td></tr>
 ${o.partner_discount_cents > 0 ? `<tr><td>${o.new_account_discount ? `New-account ${OFFER_PCT_TEXT}` : "Discount code"}</td><td style="text-align:right">−${usd(o.partner_discount_cents)}</td></tr>` : ""}
 <tr><td>Shipping</td><td style="text-align:right">${o.shipping_cents ? usd(o.shipping_cents) : "Free"}</td></tr>
-<tr><td>Shipping insurance</td><td style="text-align:right">${usd(o.insurance_cents)}</td></tr>
+<tr><td>${PROTECTION_LABEL}</td><td style="text-align:right">${o.protection === "declined" ? "Declined" : usd(o.insurance_cents)}</td></tr>
 <tr><td>Sales tax</td><td style="text-align:right">${usd(o.tax_cents)}</td></tr>
 <tr><td><b>Total</b></td><td style="text-align:right"><b>${usd(o.total_cents)}</b></td></tr>
 ${o.store_credit_cents > 0 ? `<tr><td>Paid with store credit</td><td style="text-align:right">−${usd(o.store_credit_cents)}</td></tr>
-<tr><td>Charged</td><td style="text-align:right">${usd(o.total_cents - o.store_credit_cents)}</td></tr>` : ""}</table>`;
+<tr><td>Charged</td><td style="text-align:right">${usd(o.total_cents - o.store_credit_cents)}</td></tr>` : ""}</table>${o.protection === "declined" ? `
+<p style="font-size:12px;color:#A32B1F">${PROTECTION_LABEL}: ${e(PROTECTION_DECLINED_SHORT)}</p>` : ""}`;
 }
 
 function shipTo(o: OrderRow): string {
@@ -148,7 +150,7 @@ export function wholesaleDepositEmail(o: OrderRow, d: { testedAbout: string; shi
     ...ORDER_REPLY,
     subject: `Order ${o.order_number} — deposit received`,
     html: orderShell(`Order ${o.order_number} — deposit received`,
-      `<p>Thank you — your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was received. Your kits are made to order with this production run.</p>${kitsTable(o)}${datesLine}<p>Balance when your lot passes testing: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax). We'll email you a link to pay it; it's due within 7 days.</p>${refundableLine}${shipTo(o)}`),
+      `<p>Thank you — your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was received. Your kits are made to order with this production run.</p>${kitsTable(o)}${datesLine}<p>Balance when your lot passes testing: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, shipping protection and sales tax). We'll email you a link to pay it; it's due within 7 days.</p>${refundableLine}${shipTo(o)}`),
   };
 }
 
@@ -176,7 +178,7 @@ export function wholesaleBalanceDueEmail(o: OrderRow, d: { dueOn: string; siteUr
     ...ORDER_REPLY,
     subject: `Order ${o.order_number} — your kits passed testing`,
     html: orderShell(`Your kits passed testing`,
-      `<p>Your production lot passed independent testing and your kits are set aside for you.</p>${kitsTable(o)}<p>Balance: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, insurance and sales tax), due by <b>${e(dateLabel(d.dueOn))}</b>.</p><p><a href="${e(link)}">Pay your balance</a> on your order page. Unpaid orders are cancelled after the due date and the deposit is kept.</p>`),
+      `<p>Your production lot passed independent testing and your kits are set aside for you.</p>${kitsTable(o)}<p>Balance: <b>${usd(o.balance_cents ?? 0)}</b> (includes shipping, shipping protection and sales tax), due by <b>${e(dateLabel(d.dueOn))}</b>.</p><p><a href="${e(link)}">Pay your balance</a> on your order page. Unpaid orders are cancelled after the due date and the deposit is kept.</p>`),
   };
 }
 

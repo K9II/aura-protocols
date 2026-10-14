@@ -3,7 +3,7 @@ import type { Compound } from "@/data/catalog";
 // Shipping economics — the policy pages, cart and checkout all read these.
 export const FREE_SHIPPING_THRESHOLD_USD = 300;
 export const FLAT_SHIPPING_USD = 15;
-export const SHIPPING_INSURANCE_USD = 5.5; // charged on every order; covers transit loss/damage (replacement only)
+export const SHIPPING_PROTECTION_USD = 5.5; // optional at checkout (wholesale: always); covers transit loss/damage (replacement only) — lib/shipping-protection.ts
 
 export function formatUsd(amount: number): string {
   return Number.isInteger(amount) ? `$${amount}` : `$${amount.toFixed(2)}`;

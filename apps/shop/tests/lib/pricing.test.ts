@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
-import { priceOrder, withCharges, SHIPPING_FLAT_CENTS, FREE_SHIPPING_MIN_CENTS, INSURANCE_CENTS } from "@/lib/pricing";
+import { priceOrder, withCharges, SHIPPING_FLAT_CENTS, FREE_SHIPPING_MIN_CENTS, PROTECTION_CENTS } from "@/lib/pricing";
 
 const base = {
   identity: {}, form: "Lyophilized powder", storage: "−20 °C", vialMl: 3, chemicalClass: "Peptide Fragments" as const,
@@ -27,17 +27,23 @@ describe("priceOrder", () => {
     expect(r.partnerDiscountCents).toBe(0);
   });
 
-  it("charges $15 shipping under $300, none at or above it, and $5.50 insurance on every order", () => {
-    expect([SHIPPING_FLAT_CENTS, FREE_SHIPPING_MIN_CENTS, INSURANCE_CENTS]).toEqual([1500, 30000, 550]);
-    const small = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 1 }], list);
+  it("charges $15 shipping under $300, none at or above it, and $5.50 shipping protection only when chosen", () => {
+    expect([SHIPPING_FLAT_CENTS, FREE_SHIPPING_MIN_CENTS, PROTECTION_CENTS]).toEqual([1500, 30000, 550]);
+    const declined = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 1 }], list);
+    expect(declined.protection).toBe(false);
+    expect(declined.insuranceCents).toBe(0);
+    expect(declined.totalBeforeTaxCents).toBe(4900 + SHIPPING_FLAT_CENTS);
+    const small = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 1 }], list, { protection: true });
     expect(small.shippingCents).toBe(SHIPPING_FLAT_CENTS);
-    expect(small.insuranceCents).toBe(INSURANCE_CENTS);
-    expect(small.totalBeforeTaxCents).toBe(4900 + SHIPPING_FLAT_CENTS + INSURANCE_CENTS);
+    expect(small.insuranceCents).toBe(PROTECTION_CENTS);
+    expect(small.totalBeforeTaxCents).toBe(4900 + SHIPPING_FLAT_CENTS + PROTECTION_CENTS);
     const under = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 6 }], list); // 29400
     expect(under.shippingCents).toBe(SHIPPING_FLAT_CENTS);
-    const over = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 7 }], list); // 34300
+    const over = priceOrder([{ slug: "alpha", variantId: "5mg", packQty: 1, quantity: 7 }], list, { protection: true }); // 34300
     expect(over.shippingCents).toBe(0);
-    expect(over.totalBeforeTaxCents).toBe(34300 + INSURANCE_CENTS);
+    expect(over.totalBeforeTaxCents).toBe(34300 + PROTECTION_CENTS);
+    // A discount recomputes the charges and keeps the choice.
+    expect(withCharges({ ...over, partnerDiscountCents: 1000 }).insuranceCents).toBe(PROTECTION_CENTS);
   });
 
   it("rejects unknown items, pending lots, out-of-stock sizes and bad quantities", () => {

@@ -32,7 +32,7 @@ export default function Today() {
       how={
         <Rules items={[
           ["Sales", <>Goods after discounts: what customers paid for the products after pack, partner, new-account and code discounts. It&apos;s the same figure Email and Discounts use and the one partners earn on. Paid and shipped orders count, on the day they were paid.</>],
-          ["Charged, shipping, tax", <>The line under Sales, for checking against Stripe. <Ui>charged</Ui> is what cards and banks paid (store credit isn&apos;t in it); <Ui>shipping</Ui> includes shipping insurance.</>],
+          ["Charged, shipping, tax", <>The line under Sales, for checking against Stripe. <Ui>charged</Ui> is what cards and banks paid (store credit isn&apos;t in it); <Ui>shipping</Ui> includes shipping protection on orders where the customer added it.</>],
           ["Profit", <>The line under Sales: the period&apos;s sales minus product cost, lab fees, card fees and partner commissions — the same as each order&apos;s <Ui>Profit</Ui> card, added up. It names any orders without lot costs (their profit is too high) or with estimated card fees.</>],
           ["Refunds", <>A refunded order drops out of Sales. The <Ui>refunded</Ui> line shows refunds made in the period, at the order total.</>],
           ["Shop time", <>Days and hours are Mountain time, like discount dates and email schedules.</>],

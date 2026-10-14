@@ -23,7 +23,7 @@ export type ExampleLine = { name: string; note: string; listCents: number; witho
 export type Example = { lines: ExampleLine[]; listCents: number; withoutCents: number; goodsCents: number; offPct: number; capped: boolean; freeShipping: boolean };
 
 export function vipExample(capPct: number): Example {
-  const base = withCharges({ items: ITEMS, rejected: [], subtotalCents: ITEMS.reduce((s, i) => s + i.lineTotalCents, 0), partnerDiscountCents: 0, shippingCents: 0, insuranceCents: 0, totalBeforeTaxCents: 0 });
+  const base = withCharges({ items: ITEMS, rejected: [], subtotalCents: ITEMS.reduce((s, i) => s + i.lineTotalCents, 0), partnerDiscountCents: 0, shippingCents: 0, protection: false, insuranceCents: 0, totalBeforeTaxCents: 0 });
   const r = applyDiscounts(base, { auto: null, code: CODE, capPct });
   const lines = ITEMS.map((i, k) => ({
     name: i.compoundName,

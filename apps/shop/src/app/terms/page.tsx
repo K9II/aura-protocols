@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PolicyPage from "@/components/store/PolicyPage";
 import { GOVERNING_STATE, SUPPORT_EMAIL } from "@/lib/constants";
+import { DAMAGE_REPORT_HOURS } from "@/lib/shipping-protection";
 
 export const metadata: Metadata = { title: "Terms of Service", alternates: { canonical: "/terms" } };
 
@@ -12,10 +13,10 @@ export default function TermsPage() {
     <PolicyPage
       policy="terms"
       title={<>Terms of <em>Service.</em></>}
-      updated="October 4, 2026"
+      updated="October 13, 2026"
       summary={{
         headline: <>Research use only. Cancel any time before your order ships &mdash; once it ships, the sale is final.</>,
-        detail: <>Lost or damaged in transit? Your shipping insurance covers a replacement. Report damage with photos within 48 hours of delivery.</>,
+        detail: <>Lost or damaged in transit? Orders with shipping protection get a replacement; report damage with photos within {DAMAGE_REPORT_HOURS} hours of delivery. Unprotected orders travel at your risk.</>,
       }}
       sections={[
         { id: "research-use", heading: "Research use only", body: (<>
@@ -33,11 +34,11 @@ export default function TermsPage() {
           <p>An account is required to check out. The agreements you accept when you create it are recorded on your account with the version of these Terms and the time you accepted. Keep your password private &mdash; you are responsible for orders placed from your account.</p>
         ) },
         { id: "orders", heading: "Orders, pricing, and payment", body: (<>
-          <p>Prices are in US dollars and may change without notice. Payment is taken when you place an order, and the total &mdash; including shipping and shipping insurance &mdash; is shown before you pay. We may correct pricing or listing errors and cancel any affected order with a full refund.</p>
+          <p>Prices are in US dollars and may change without notice. Payment is taken when you place an order, and the total &mdash; including shipping and any shipping protection you choose &mdash; is shown before you pay. We may correct pricing or listing errors and cancel any affected order with a full refund.</p>
           <p><b>Discounts.</b> Each order takes one discount code. Pack pricing, account offers, partner codes and discount codes combine only up to a store-wide maximum percentage of list price; the current maximum and your exact discount are shown at checkout before you pay. A code that would take an order past that maximum applies only up to it. Promotions may change or end at any time, have no cash value, and can&apos;t be applied to past orders.</p>
         </>) },
         { id: "finality", heading: "Cancellations and order finality", body: (
-          <p>You may cancel for a full refund at any time until your order ships. Once an order has shipped it cannot be cancelled, returned, or refunded. Loss or damage in transit is covered by shipping insurance, as set out in our <Link href="/refund-policy#transit-loss" className="p-link">Refund &amp; Dispute Policy</Link>.</p>
+          <p>You may cancel for a full refund at any time until your order ships. Once an order has shipped it cannot be cancelled, returned, or refunded. Loss or damage in transit is covered only for orders with shipping protection; for orders without it, risk of loss passes to you when the package is handed to the carrier, as set out in our <Link href="/refund-policy#transit-loss" className="p-link">Refund &amp; Dispute Policy</Link>.</p>
         ) },
         { id: "restrictions", heading: "Use restrictions", body: (
           <p>We do not provide instructions for use, preparation guidance, or any claim about effects in humans or animals, and we do not answer questions seeking them. If communications or conduct suggest a product is intended for any use other than laboratory research, we may refuse the sale, cancel open orders with a refund, and close the account.</p>

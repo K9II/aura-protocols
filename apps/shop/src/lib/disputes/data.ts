@@ -296,7 +296,7 @@ export async function getDisputeCase(id: string): Promise<DisputeCase | null> {
       ship: { name: order.ship_name, line1: order.ship_line1, line2: order.ship_line2, city: order.ship_city, state: order.ship_state, zip: order.ship_zip },
       carrier: order.carrier, tracking: order.tracking_number, shippedAt: order.shipped_at,
       subtotalCents: order.subtotal_cents, discountCents: order.partner_discount_cents, shippingCents: order.shipping_cents,
-      insuranceCents: order.insurance_cents, taxCents: order.tax_cents, totalCents: order.total_cents, creditCents: order.store_credit_cents,
+      insuranceCents: order.insurance_cents, protection: order.protection ?? null, taxCents: order.tax_cents, totalCents: order.total_cents, creditCents: order.store_credit_cents,
     },
     items: items.map((i) => {
       const vials = i.pack_qty * i.quantity;

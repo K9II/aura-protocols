@@ -3,6 +3,7 @@ import { CLEARING_DAYS } from "@/lib/partners/tiers";
 import { SHIP_LATE_BUSINESS_DAYS } from "@/lib/today/constants";
 import { NO_CHARGE_MAX_VIALS } from "@/lib/no-charge/rules";
 import { REFUND_NOTE_MAX, REFUND_REASONS, REFUND_REASON_LABEL } from "@/lib/refunds/rules";
+import { PROTECTION_PRICE_TEXT } from "@/lib/shipping-protection";
 
 const reasons = REFUND_REASONS.map((r) => REFUND_REASON_LABEL[r]);
 
@@ -25,7 +26,7 @@ export default function Orders() {
         <Task title="Refund an order">
           <Step>Before it ships: open the order and choose <Ui>Cancel and refund</Ui> (on a phone it&apos;s under <Ui>⋯</Ui>). Pick a reason — {reasons.join(", ")} — add a note if you like, and confirm.</Step>
           <Step>The card part goes back to the card through Stripe, store credit the customer used goes back to their balance, the vials go back in stock, any partner commission is reversed, and the customer gets the &ldquo;cancelled and refunded&rdquo; email. An order paid entirely in store credit goes back to store credit.</Step>
-          <Step>After it ships, the policy says the sale is final. For damage or loss, open <Ui>⋯</Ui> and choose <Ui>Send a replacement</Ui> — it opens a no-charge order with the replacement and the original order filled in.</Step>
+          <Step>After it ships, the policy says the sale is final. For damage or loss on an order with shipping protection, or a wrong item on any order, open <Ui>⋯</Ui> and choose <Ui>Send a replacement</Ui> — it opens a no-charge order with the replacement and the original order filled in.</Step>
           <Step><Ui>Refund…</Ui> under <Ui>⋯</Ui> is for rare exceptions. A note is required (up to {REFUND_NOTE_MAX} characters), it goes to store credit unless you choose the card and the vials stay out of stock. If you send the money back to the card (a cash refund), you tick a box confirming you understand the policy — after shipping, claims are settled by replacement only, no cash refunds. The customer gets a &ldquo;refunded&rdquo; email with the amount and where it went.</Step>
         </Task>
         <Task title="Send vials at no charge">
@@ -48,6 +49,7 @@ export default function Orders() {
           ["Cancelled", <>An unfinished checkout that was closed. No money moved.</>],
           ["Refunded", <>Fully refunded. The commission is reversed and any store credit used is returned. The order page shows a <Ui>Refund</Ui> card — amount, where it went, the reason and who did it — and the timeline reads <Ui>Cancelled and refunded</Ui> or <Ui>Refunded — exception</Ui>.</>],
           ["Profit", <>The <Ui>Profit</Ui> card on a paid or shipped order: goods after discounts, minus each vial&apos;s landed cost — what you paid the supplier, the shipping and customs to bring the lot in and its labels, spread over the vials you could sell — the lot&apos;s lab fee spread the same way, the card fee Stripe actually charged, and any partner commission. Shipping labels and 3PL fees aren&apos;t in it yet.</>],
+          ["Shipping protection", <>Included at checkout unless the customer unticks it ({PROTECTION_PRICE_TEXT}). The <Ui>Money</Ui> card shows the charge, or <Ui>declined</Ui>. A protected order lost or damaged in transit gets one replacement: send it with <Ui>Send a replacement</Ui>. A declined order isn&apos;t replaced; the customer saw a notice saying so before paying, and that notice goes into the evidence if they dispute the charge. A wrong item is always put right, protected or not.</>],
           ["No-charge orders", <>Every price is $0; the retail value is kept on the order for the record. It isn&apos;t a sale: Today, Discounts, Email results and Customers leave it out. No partner commission, and it doesn&apos;t use the customer&apos;s first-order offer. A cancelled one reads <Ui>Cancelled (no charge)</Ui>.</>],
         ]} />
       }

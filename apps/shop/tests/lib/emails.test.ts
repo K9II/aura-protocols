@@ -4,6 +4,7 @@ import type { OrderRow } from "@/lib/orders";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 import { ORDERS_EMAIL, SUPPORT_EMAIL } from "@/lib/constants";
+import { PROTECTION_DECLINED_SHORT } from "@/lib/shipping-protection";
 
 const order = {
   order_number: "AP-1042", email: "j@lab.org", ship_name: "Jane <b>", ship_line1: "1 A St", ship_line2: null,
@@ -30,9 +31,17 @@ describe("emails", () => {
     expect(html).toContain("BPC-157");
     expect(html).toContain("Lot AP-0001");
     expect(html).toContain("$311.09");
-    expect(html).toContain("Shipping insurance");
+    expect(html).toContain("Shipping protection");
     expect(html).toContain("Jane &lt;b&gt;");
     expect(html).toMatch(/research use only/i);
+  });
+
+  it("a declined order says so on the receipt; an accepted one shows the charge", () => {
+    const declined = orderConfirmationEmail({ ...order, insurance_cents: 0, protection: "declined" } as OrderRow).html;
+    expect(declined).toContain("<td>Shipping protection</td><td style=\"text-align:right\">Declined</td>");
+    expect(declined).toContain(`Shipping protection: ${PROTECTION_DECLINED_SHORT}`);
+    const accepted = orderConfirmationEmail({ ...order, protection: "accepted" } as OrderRow).html;
+    expect(accepted).not.toContain("Declined");
   });
 
   it("receipts show the partner code and store credit so the lines add up", () => {
