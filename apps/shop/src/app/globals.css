@@ -1823,3 +1823,36 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-letter-box input:focus { outline: none; }
 .pharmacopoeia .s-letter-box:focus-within { box-shadow: 0 0 0 2px var(--label), 0 0 0 3px var(--ink); }
 .pharmacopoeia .s-letter-hint { margin: -6px 0 0; font-size: 13px; color: var(--ink-soft); }
+/* /about (About + Quality Standards, 2026-10-14) */
+.pharmacopoeia .s-about-col { max-width: 760px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+@media (max-width: 640px) { .pharmacopoeia .s-about-col { padding-left: 16px; padding-right: 16px; } }
+.pharmacopoeia .s-about-head { padding-top: 64px; padding-bottom: 32px; }
+.pharmacopoeia .s-about-sub { margin: 18px 0 0; max-width: 46ch; font-size: 19px; line-height: 1.55; color: var(--ink-soft); }
+.pharmacopoeia .s-about-plate { margin: 0; padding: 22px; background: var(--paper-deep); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.pharmacopoeia .s-about-sheet { position: relative; display: flex; flex-direction: column; align-items: center; padding: 30px 24px 18px; background: #EFE6C9; box-shadow: 0 1px 0 var(--line), 0 10px 24px rgba(28, 26, 21, .10); }
+.pharmacopoeia .s-about-sheet svg { width: 100%; max-width: 520px; height: auto; }
+.pharmacopoeia .s-about-sheet figcaption { margin-top: 10px; text-align: center; font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 15px; color: #5A4A2E; }
+@media (max-width: 640px) { .pharmacopoeia .s-about-plate { padding: 12px; } .pharmacopoeia .s-about-sheet { padding: 26px 10px 14px; } }
+.pharmacopoeia .s-about-body { padding-top: 40px; padding-bottom: 8px; }
+.pharmacopoeia .s-about-body section { padding: 26px 0; border-top: 1px solid var(--line); border-bottom: 0; scroll-margin-top: 96px; }
+.pharmacopoeia .s-about-body section:first-child { border-top: 0; padding-top: 8px; }
+.pharmacopoeia .s-about-body h2 { margin: 0 0 12px; font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 26px; line-height: 1.2; }
+.pharmacopoeia .s-about-body p { margin: 0 0 12px; font-size: 16.5px; line-height: 1.65; color: var(--ink-soft); }
+.pharmacopoeia .s-about-body p:last-child { margin-bottom: 0; }
+.pharmacopoeia .s-about-first p { font-size: 18px; color: var(--ink); }
+.pharmacopoeia .s-about-sig { margin-top: 16px; font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 21px; color: var(--ink) !important; }
+.pharmacopoeia .s-about-claims { list-style: none; margin: 40px 0 72px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); background: var(--record); }
+.pharmacopoeia .s-about-claims li { display: flex; flex-direction: column; gap: 6px; padding: 20px; }
+.pharmacopoeia .s-about-claims li + li { border-left: 1px solid var(--line); }
+.pharmacopoeia .s-about-claims .s-micro { font-size: 11px; color: var(--tested); }
+.pharmacopoeia .s-about-claims b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 20px; line-height: 1.2; }
+.pharmacopoeia .s-about-claims span:not(.s-micro) { font-size: 14.5px; line-height: 1.5; color: var(--ink-soft); }
+@media (max-width: 900px) {
+  .pharmacopoeia .s-about-claims { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pharmacopoeia .s-about-claims li:nth-child(3) { border-left: 0; }
+  .pharmacopoeia .s-about-claims li:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+@media (max-width: 520px) {
+  .pharmacopoeia .s-about-claims { grid-template-columns: minmax(0, 1fr); }
+  .pharmacopoeia .s-about-claims li + li { border-left: 0; border-top: 1px solid var(--line); }
+}

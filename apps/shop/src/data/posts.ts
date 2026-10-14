@@ -714,8 +714,8 @@ export const posts: Post[] = [
         parts: [
           "Every Aura Protocols lot is tested by a third-party laboratory before it is listed: mass spectrometry for identity and HPLC for purity, with a 99% purity floor. The lot number on the certificate matches the lot number on the vial. Certificates are on each product page and in the ",
           { href: "/coa", text: "COA Lookup" },
-          " by lot number; a product marked \"COA pending\" cannot be ordered until its certificate is posted. See ",
-          { href: "/quality-standards", text: "Quality Standards" },
+          " by lot number. See ",
+          { href: "/about#testing", text: "How a lot is tested" },
           " for the full criteria.",
         ],
       },

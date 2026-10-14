@@ -30,6 +30,8 @@ export function buildRedirects({ blogPublished }: { blogPublished: boolean }): R
   const out: Redirect[] = [];
   for (const s of REMOVED_TO_PRODUCTS) out.push({ source: s, destination: "/products", permanent: true });
   for (const s of REMOVED_TO_HOME) out.push({ source: s, destination: "/", permanent: true });
+  // Quality Standards merged into About (2026-10-14).
+  out.push({ source: "/quality-standards", destination: "/about#testing", permanent: true });
   // The QR on every vial label: HTTPS://AURAPROTOCOLS.COM/L/<LOT> (uppercase keeps the code small).
   // Temporary, so the target can change without browsers holding on to it.
   out.push({ source: "/L/:lot", destination: "/coa?lot=:lot", permanent: false });

@@ -21,12 +21,12 @@ describe("SiteFooter", () => {
     expect(screen.queryByRole("link", { name: "Blends" })).not.toBeInTheDocument();
   });
 
-  it("lists FAQ under Company, with Quality Standards nested under About", () => {
+  it("lists About and FAQ under Company; Quality Standards is part of About now", () => {
     render(<SiteFooter catalog={liveFixture()} />);
     const company = screen.getByText("Company").nextElementSibling as HTMLElement;
     expect(within(company).getByRole("link", { name: "FAQ" })).toHaveAttribute("href", "/faq");
-    const about = within(company).getByRole("link", { name: "About" }).closest("li") as HTMLElement;
-    expect(within(about).getByRole("link", { name: "Quality Standards" })).toHaveAttribute("href", "/quality-standards");
+    expect(within(company).getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
+    expect(screen.queryByRole("link", { name: "Quality Standards" })).not.toBeInTheDocument();
     const legal = screen.getByText("Legal").nextElementSibling as HTMLElement;
     expect(within(legal).queryByRole("link", { name: "FAQ" })).not.toBeInTheDocument();
   });
