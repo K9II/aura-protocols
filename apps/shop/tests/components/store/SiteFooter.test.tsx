@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import SiteFooter from "@/components/store/SiteFooter";
 import { liveFixture } from "../../helpers/live-catalog";
 
@@ -19,5 +19,15 @@ describe("SiteFooter", () => {
   it("drops Blends when no blend is shown", () => {
     render(<SiteFooter catalog={liveFixture().filter((c) => c.chemicalClass !== "Blends")} />);
     expect(screen.queryByRole("link", { name: "Blends" })).not.toBeInTheDocument();
+  });
+
+  it("lists FAQ under Company, with Quality Standards nested under About", () => {
+    render(<SiteFooter catalog={liveFixture()} />);
+    const company = screen.getByText("Company").nextElementSibling as HTMLElement;
+    expect(within(company).getByRole("link", { name: "FAQ" })).toHaveAttribute("href", "/faq");
+    const about = within(company).getByRole("link", { name: "About" }).closest("li") as HTMLElement;
+    expect(within(about).getByRole("link", { name: "Quality Standards" })).toHaveAttribute("href", "/quality-standards");
+    const legal = screen.getByText("Legal").nextElementSibling as HTMLElement;
+    expect(within(legal).queryByRole("link", { name: "FAQ" })).not.toBeInTheDocument();
   });
 });

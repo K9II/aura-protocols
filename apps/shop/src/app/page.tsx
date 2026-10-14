@@ -5,11 +5,12 @@ import HeroLight from "@/components/store/HeroLight";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import FromTheRecord from "@/components/store/FromTheRecord";
+import OrderPlate from "@/components/store/OrderPlate";
+import AuraLetter from "@/components/store/AuraLetter";
 import LotRecord from "@/components/store/LotRecord";
 import TrustRow from "@/components/store/TrustRow";
 import Unavailable from "@/components/store/Unavailable";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
-import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 import { currentMs } from "@/lib/clock";
 import { homeRecord } from "@/lib/lot-record";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
@@ -20,12 +21,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const faq = [
-  { q: "Are these for human use?", a: "No. Every compound is sold strictly for in-vitro laboratory research. Not for human or animal consumption, and not for medical, veterinary, or diagnostic use." },
-  { q: "What's a COA, and where is it?", a: "A certificate of analysis is the independent lab report for a specific production lot — identity, purity, and method. Every product page links the certificate for the lot currently shipping, and you can look up any lot number on the COA Lookup page." },
-  { q: "How fast do you ship?", a: `Orders ship from the US with tracking. Shipping is free on orders of $${FREE_SHIPPING_THRESHOLD_USD} or more.` },
-  { q: "What if a product says “COA pending”?", a: "The lot is still at the lab. The certificate is posted the day results come back." },
-];
 
 export default async function HomePage() {
   const live = await getLiveCatalogOrNull();
@@ -76,17 +71,11 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="p-reveal py-14">
-          <h2 className="s-h2 mb-6">Straight <em>answers</em></h2>
-          <div>
-            {faq.map(({ q, a }) => (
-              <details key={q} className="border-t border-[color:var(--line)] py-4">
-                <summary className="cursor-pointer text-[17px] flex justify-between">{q}<span className="text-[color:var(--specimen)]">+</span></summary>
-                <p className="text-[16px] text-[color:var(--ink-soft)] mt-3 max-w-[70ch]">{a}</p>
-              </details>
-            ))}
-          </div>
-        </section>
+        {/* how an order runs (2026-10-14) */}
+        <OrderPlate />
+
+        {/* The Aura letter; the FAQ moved to /faq (footer, Company) */}
+        <AuraLetter />
       </div>
     </div>
   );

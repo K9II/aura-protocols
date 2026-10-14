@@ -6,7 +6,8 @@ import { join } from "node:path";
 // constant, never a hard-coded amount, so a threshold change can't drift.
 const SRC = join(__dirname, "..", "..", "src");
 // The product page's shipping line lives in the buy panel (VariantPicker).
-const FILES = ["app/page.tsx", "components/store/VariantPicker.tsx"];
+// The FAQ (moved off the home page 2026-10-14) answers "How fast do you ship?".
+const FILES = ["app/faq/page.tsx", "components/store/VariantPicker.tsx"];
 
 describe("free-shipping copy", () => {
   it.each(FILES)("%s has no hard-coded threshold and uses the constant", (rel) => {

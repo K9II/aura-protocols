@@ -6,6 +6,7 @@ vi.mock("@/components/BiosignatureSphere", () => ({ default: () => null }));
 vi.mock("@/components/ScrollReveal", () => ({ default: () => null }));
 const { live } = vi.hoisted(() => ({ live: vi.fn() }));
 vi.mock("@/lib/catalog-live", () => ({ getLiveCatalogOrNull: live }));
+vi.mock("@/app/letter-actions", () => ({ letterStatusAction: () => new Promise(() => {}), subscribeLetterAction: vi.fn() }));
 
 import HomePage from "@/app/page";
 import { liveFixture } from "../helpers/live-catalog";
@@ -55,5 +56,16 @@ describe("/ (home)", () => {
     await renderHome();
     expect(screen.getByText(`See all ${shown.length} compounds →`)).toBeInTheDocument();
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(shown.filter((c) => c.featured).length);
+  });
+
+  it("shows how an order runs after the lineup, then the Aura letter; the FAQ moved to /faq", async () => {
+    await renderHome();
+    const lineup = screen.getByRole("heading", { level: 2, name: /the lineup/i });
+    const plate = screen.getByRole("region", { name: /one lot number, start to finish/i });
+    const letter = screen.getByRole("region", { name: /the aura letter/i });
+    expect(lineup.compareDocumentPosition(plate) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(plate.compareDocumentPosition(letter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(plate).toHaveTextContent(/Fig\. 4/);
+    expect(screen.queryByText(/straight/i)).not.toBeInTheDocument();
   });
 });
