@@ -22,10 +22,16 @@ export async function listVerifiedOptIn(email: string): Promise<boolean> {
   }
   if (!listed) return false;
   try {
-    const site = siteUrl(), unsub = unsubscribeUrl(site, email, "welcome_1");
-    await sendTracked({ email, kind: "welcome_1", ref: null, msg: welcomeEmail(1, { site, unsubscribeUrl: unsub }, await offerForEmail(email)), unsubscribeUrl: unsub });
+    await sendWelcomeFile1(email);
   } catch (err) {
     await alertOwner("Welcome File 01 failed at verification", `${email}: ${String(err)} — the hourly email run will retry.`);
   }
   return true;
+}
+
+// Welcome File 01 to a newly confirmed address (also the Aura letter's
+// confirm link). Throws on failure; "duplicate" when it already went out.
+export async function sendWelcomeFile1(email: string): Promise<"sent" | "duplicate"> {
+  const site = siteUrl(), unsub = unsubscribeUrl(site, email, "welcome_1");
+  return sendTracked({ email, kind: "welcome_1", ref: null, msg: welcomeEmail(1, { site, unsubscribeUrl: unsub }, await offerForEmail(email)), unsubscribeUrl: unsub });
 }
