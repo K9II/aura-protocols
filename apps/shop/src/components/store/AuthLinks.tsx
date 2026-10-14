@@ -8,23 +8,9 @@ import { signOutAction } from "@/app/auth/actions";
 
 // Display-only sign-in state, read in the browser after load so every page can
 // stay static. Real authorization happens server-side in lib/dal.ts.
-export default function AuthLinks() {
+function useSessionState() {
   const pathname = usePathname();
   const [state, setState] = useState<"unknown" | "out" | "in">("unknown");
-  const [owner, setOwner] = useState(false);
-
-  // Owner status lives server-side (customers has no browser access), so ask once signed in.
-  useEffect(() => {
-    if (state !== "in") return;
-    let cancelled = false;
-    fetch("/api/me/owner", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : { owner: false }))
-      .then((d: { owner?: boolean }) => { if (!cancelled) setOwner(d.owner === true); })
-      .catch(() => { if (!cancelled) setOwner(false); });
-    // leaving "in" (sign-out) clears it, so the next account never inherits the link
-    return () => { cancelled = true; setOwner(false); };
-  }, [state]);
-
   useEffect(() => {
     let cancelled = false;
     let unsubscribe: (() => void) | undefined;
@@ -42,6 +28,36 @@ export default function AuthLinks() {
     // Re-check on every page change: sign-in and sign-out run as server actions that
     // move to a new page without a reload, so no browser auth event fires.
   }, [pathname]);
+  return state;
+}
+
+// Phones: the header's top row has no room for Sign out (logo, search, Admin,
+// Account, Cart), so it sits at the end of the links row instead (CSS shows it
+// under 640px only).
+export function PhoneSignOut() {
+  if (useSessionState() !== "in") return null;
+  return (
+    <form action={signOutAction} className="s-nav-signout-phone">
+      <button type="submit">Sign out</button>
+    </form>
+  );
+}
+
+export default function AuthLinks() {
+  const state = useSessionState();
+  const [owner, setOwner] = useState(false);
+
+  // Owner status lives server-side (customers has no browser access), so ask once signed in.
+  useEffect(() => {
+    if (state !== "in") return;
+    let cancelled = false;
+    fetch("/api/me/owner", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { owner: false }))
+      .then((d: { owner?: boolean }) => { if (!cancelled) setOwner(d.owner === true); })
+      .catch(() => { if (!cancelled) setOwner(false); });
+    // leaving "in" (sign-out) clears it, so the next account never inherits the link
+    return () => { cancelled = true; setOwner(false); };
+  }, [state]);
 
   if (state === "unknown") return <span className="s-nav-auth" aria-hidden />;
   if (state === "out") return <Link href="/sign-in" className="s-nav-auth">Sign in</Link>;

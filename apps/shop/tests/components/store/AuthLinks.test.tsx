@@ -10,7 +10,7 @@ vi.mock("@/lib/supabase/client", () => ({
 vi.mock("@/app/auth/actions", () => ({ signOutAction: vi.fn() }));
 let pathname = "/";
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
-import AuthLinks from "@/components/store/AuthLinks";
+import AuthLinks, { PhoneSignOut } from "@/components/store/AuthLinks";
 
 describe("AuthLinks", () => {
   beforeEach(() => { getSession.mockReset(); unsubscribe.mockReset(); onAuthStateChange.mockClear(); pathname = "/"; });
@@ -46,6 +46,18 @@ describe("AuthLinks", () => {
     render(<AuthLinks />);
     expect(await screen.findByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
     expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+  });
+
+  it("phone links row: Sign out only when signed in", async () => {
+    getSession.mockResolvedValue({ data: { session: { user: { id: "u1" } } } });
+    const { container, unmount } = render(<PhoneSignOut />);
+    expect(await screen.findByRole("button", { name: "Sign out" })).toBeInTheDocument();
+    expect(container.querySelector("form.s-nav-signout-phone")).not.toBeNull();
+    unmount();
+    getSession.mockResolvedValue({ data: { session: null } });
+    const out = render(<PhoneSignOut />);
+    await Promise.resolve(); await Promise.resolve();
+    expect(out.container.querySelector("form")).toBeNull();
   });
 
   it("adds an Admin link for the owner account", async () => {

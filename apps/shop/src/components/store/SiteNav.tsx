@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AuraLockup from "@/components/AuraLockup";
-import AuthLinks from "@/components/store/AuthLinks";
+import AuthLinks, { PhoneSignOut } from "@/components/store/AuthLinks";
 import SiteSearch from "@/components/store/SiteSearch";
 import { useCart } from "@/components/store/CartProvider";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
@@ -52,6 +52,7 @@ export default function SiteNav() {
             <Link href="/coa">COA Lookup</Link>
             <Link href="/wholesale">Wholesale</Link>
             <Link href="/affiliates">Affiliate Program</Link>
+            <PhoneSignOut />
           </div>
           <div className="s-nav-actions">
             <SiteSearch />
