@@ -143,6 +143,24 @@ describe("AccountGate", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: /create your account/ })).toBeInTheDocument());
   });
 
+  it("step 1 hangs the offer tag beside the logo (decoration only) and shows the line-icon trust row; signing in drops the tag", async () => {
+    routes({ state: "anon" }, { next: "sign-in" });
+    const { default: AccountGate } = await import("@/components/store/gate/AccountGate");
+    render(<AccountGate />);
+    await settle();
+    const tag = document.querySelector(".ag-offer-tag")!;
+    expect(tag).toHaveAttribute("aria-hidden", "true");
+    expect(tag.closest("header")).not.toBeNull();
+    expect(tag.textContent).toBe(`New accountFirst order${OFFER_PCT_TEXT} off`);
+    const trust = document.querySelector(".ag .trust")!;
+    expect(trust.textContent).toBe("Independent US labCertificate for every lotShips from the US");
+    expect(trust.querySelectorAll("svg")).toHaveLength(3);
+    fireEvent.change(screen.getByPlaceholderText("you@institution.org"), { target: { value: "jane@lab.org" } });
+    fireEvent.click(screen.getByRole("button", { name: /Get access/ }));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Welcome back." })).toBeInTheDocument());
+    expect(document.querySelector(".ag-offer-tag")).toBeNull();
+  });
+
   it("explains a rate-limited lookup", async () => {
     routes({ state: "anon" }, { error: "x" }, 429);
     const { default: AccountGate } = await import("@/components/store/gate/AccountGate");

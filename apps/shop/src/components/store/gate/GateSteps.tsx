@@ -11,6 +11,7 @@ import { OFFER_DAYS_TEXT, OFFER_PCT_TEXT } from "@/lib/account/offer";
 import { MARKETING_NOTICE } from "@/lib/gate-shared";
 import { SUPPORT_EMAIL } from "@/lib/constants";
 import { useSearch } from "@/lib/use-search";
+import { ICONS } from "@/components/store/TrustRow";
 
 export type Step = "1" | "2a" | "2b" | "verify" | "closed";
 type Variant = "a" | "pc";
@@ -54,6 +55,12 @@ export default function GateSteps({ variant, step, email, onStep, onEmail, onDon
       <header className={c("brand")}>
         <div className="fi" style={i(0)}><span className="lockup"><AuraLockup size={variant === "a" ? 72 : 60} mode="once" /></span></div>
         <p className="tag fi" style={i(1)}>Proof before product.</p>
+        {/* Mock G2 (2026-10-14, https://claude.ai/artifact/2BRGSVJtmP6Wz5R3qs2ciR): the offer as a hanging tag
+            beside the logo, on the first step only (a returning researcher signing in isn't offered it).
+            Decoration: the heading below states the same offer. */}
+        {step === "1" && (
+          <div className="ag-offer-tag fi" style={i(1)} aria-hidden="true"><span>New account</span><b>First order</b><i>{OFFER_PCT_TEXT} off</i></div>
+        )}
       </header>
       {step === "1" && <EmailStep c={c} email={email} onEmail={onEmail} onStep={onStep} />}
       {step === "2a" && <><SignInStep c={c} email={email} onStep={onStep} onDone={onDone} />{back(5)}</>}
@@ -62,9 +69,10 @@ export default function GateSteps({ variant, step, email, onStep, onEmail, onDon
       {step === "closed" && <ClosedStep c={c} />}
       {step !== "2b" && step !== "closed" && (
         <div className={`trust ${c("trust")} fi`} style={i(5)}>
-          <span><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true"><path d="M6 1.5h4M6.6 1.5v4.6L2.4 13a1 1 0 0 0 .9 1.5h9.4a1 1 0 0 0 .9-1.5L9.4 6.1V1.5" /><path d="M4.1 10.2h7.8" /></svg>Independent US lab</span>
-          <span><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true"><path d="M3 1.5h7l3 3v10H3z" /><path d="M10 1.5v3h3" /><path d="M5.5 7.5h5M5.5 10h3" /><path d="M5.2 12.6l1.3-1.6 1.3 1.6" /></svg>Certificate for every lot</span>
-          <span><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true"><path d="M1.5 4.5 8 1.5l6.5 3v7L8 14.5l-6.5-3z" /><path d="M1.5 4.5 8 7.5l6.5-3M8 7.5v7" /><path d="M4.8 3 11.2 6" /></svg>Ships from the US</span>
+          {/* The storefront's Bench line icons (TrustRow), green accents = proof. */}
+          <span>{ICONS.lab}Independent US lab</span>
+          <span>{ICONS.coa}Certificate for every lot</span>
+          <span>{ICONS.usa}Ships from the US</span>
         </div>
       )}
       <footer className={`legal ${c("foot")} fi`} style={i(6)}>
