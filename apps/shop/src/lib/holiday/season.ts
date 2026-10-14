@@ -1,5 +1,5 @@
 // When the storefront wears its holiday dressing (the /finish-account offer
-// panel's tree, snow and garland). Recurring every year, in shop time
+// placard's garland). Recurring every year, in shop time
 // (America/Denver): from HOLIDAY_START 00:00 through HOLIDAY_END 23:59.
 // The window may wrap the new year. Pure — safe on client and server.
 import { SHOP_TZ } from "@/lib/discounts/time";

@@ -17,55 +17,64 @@ const panel = async () => {
   return render(<OfferPanel />);
 };
 
-describe("OfferPanel (Ink welcome offer)", () => {
+describe("OfferPanel (welcome-offer placard)", () => {
   beforeEach(() => { now.ms = OUT; });
 
-  it("states the offer from the constants: big percent, days, proof strip", async () => {
+  it("states the offer from the constants on a placard: big percent, days, the three claims", async () => {
     const { container } = await panel();
     const aside = screen.getByRole("complementary", { name: "Welcome offer" });
     expect(aside).toHaveClass("s-offer");
-    expect(container.textContent).toContain("Welcome offer · new accounts");
-    expect(container.querySelector(".s-offer-num")!.textContent).toBe(String(NEW_ACCOUNT_PCT));
-    expect(container.querySelector(".s-offer-pct")!.textContent).toBe("%");
-    expect(container.textContent).toContain(`off your first order, placed within ${OFFER_DAYS_TEXT}.`);
-    expect(container.querySelector(".s-offer-lead em")!.textContent).toBe(`${OFFER_DAYS_TEXT}.`);
-    expect(container.textContent).toContain(`≥${PURITY_FLOOR_PCT}%HPLC floor`);
-    expect(container.textContent).toContain("1 : 1vial to certificate");
-    expect(container.textContent).toContain(`$${FREE_SHIPPING_THRESHOLD_USD}free shipping`);
+    const placard = container.querySelector(".s-offer-tile .s-pp-placard")!;
+    expect(placard.textContent).toContain("Welcome offer · new accounts");
+    expect(placard.querySelector(".s-offer-num")!.textContent).toBe(String(NEW_ACCOUNT_PCT));
+    expect(placard.querySelector(".s-offer-pct")!.textContent).toBe("%");
+    expect(placard.textContent).toContain(`off your first order, placed within ${OFFER_DAYS_TEXT}.`);
+    expect(placard.querySelector(".s-offer-lead em")!.textContent).toBe(`${OFFER_DAYS_TEXT}.`);
+    expect(placard.textContent).toContain(`Purity≥${PURITY_FLOOR_PCT}% HPLC floor`);
+    expect(placard.textContent).toContain("Record1 : 1 vial to certificate");
+    expect(placard.textContent).toContain(`Shippingfree over $${FREE_SHIPPING_THRESHOLD_USD}`);
+    expect(placard.textContent).toContain("Research use only · Not for human use");
     expect(findViolations(visibleText(container.innerHTML))).toEqual([]);
     expect(container.innerHTML).not.toMatch(/no code needed|stack/i);
   });
 
-  it("out of season: the same panel, no tree, snow or garland", async () => {
+  it("hangs a tag off the tile (decoration: its words repeat the placard) and puts the trust row underneath", async () => {
     const { container } = await panel();
-    expect(container.querySelector(".s-offer")).not.toHaveClass("s-offer--holiday");
-    expect(container.querySelector(".s-offer-tree")).toBeNull();
-    expect(container.querySelector(".s-offer-snow")).toBeNull();
-    expect(container.querySelector(".s-offer-garland")).toBeNull();
+    const tag = container.querySelector(".s-offer-tile .s-pp-tag")!;
+    expect(tag).toHaveAttribute("aria-hidden", "true");
+    expect(tag.textContent).toBe(`New accountFirst order${NEW_ACCOUNT_PCT}% off`);
+    const trust = screen.getByRole("list", { name: "Why researchers order from Aura" });
+    expect(trust).toHaveClass("s-trust--offer");
+    expect(trust.querySelectorAll("li")).toHaveLength(4);
+    expect(container.querySelector(".s-offer-tile")!.compareDocumentPosition(trust) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("in season (shop time Dec 1 – Jan 1): tree, snowfall and garland with four strips and four holly corners", async () => {
+  it("out of season: no garland, and the tree and snow are gone for good", async () => {
+    const { container } = await panel();
+    expect(container.querySelector(".s-offer")).not.toHaveClass("s-offer--holiday");
+    expect(container.querySelector(".s-offer-garland")).toBeNull();
+    expect(container.querySelector(".s-offer-tree, .s-offer-snow")).toBeNull();
+  });
+
+  it("in season (shop time Dec 1 – Jan 1): a garland with four strips and four holly corners frames the tile", async () => {
     now.ms = IN;
     const { container } = await panel();
     expect(container.querySelector(".s-offer")).toHaveClass("s-offer--holiday");
-    expect(container.querySelector(".s-offer-tree svg")).not.toBeNull();
-    expect(container.querySelectorAll(".s-offer-snow i").length).toBeGreaterThan(20);
-    const g = container.querySelector(".s-offer-garland")!;
+    const g = container.querySelector(".s-offer-tile > .s-offer-garland")!;
     expect(g).toHaveAttribute("aria-hidden", "true");
     expect(g.querySelectorAll(".s-offer-strip")).toHaveLength(4);
     expect(g.querySelectorAll(".s-offer-holly")).toHaveLength(4);
-    // decoration is hidden from assistive tech; the offer text is not
-    for (const el of container.querySelectorAll(".s-offer-tree, .s-offer-snow")) expect(el).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector(".s-offer-tree, .s-offer-snow")).toBeNull();
     expect(screen.getByRole("complementary", { name: "Welcome offer" })).toBeInTheDocument();
   });
 
-  it("only the snow layer clips: the panel that holds the garland has no overflow rule, and motion stops on request", () => {
+  it("nothing that holds the garland clips, and the lights stop twinkling on request", () => {
     const css = readFileSync("src/app/globals.css", "utf8");
     const rule = (sel: string) => new RegExp(`${sel.replace(/[.-]/g, (c) => `\\${c}`)}\\s*\\{[^}]*\\}`).exec(css)?.[0] ?? "";
-    expect(rule(".pharmacopoeia .s-offer")).not.toBe("");
-    expect(rule(".pharmacopoeia .s-offer")).not.toMatch(/overflow/);
-    expect(rule(".pharmacopoeia .s-offer-garland")).not.toMatch(/overflow:\s*(hidden|clip)/);
-    expect(rule(".pharmacopoeia .s-offer-snow")).toMatch(/overflow:\s*hidden/);
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[^}]*\.s-offer/);
+    for (const sel of [".pharmacopoeia .s-offer", ".pharmacopoeia .s-pp-tile.s-offer-tile", ".pharmacopoeia .s-pp-tile", ".pharmacopoeia .s-offer-garland"]) {
+      expect(rule(sel)).not.toBe("");
+      expect(rule(sel)).not.toMatch(/overflow/);
+    }
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[^}]*\.s-offer-lights[^}]*animation: none/);
   });
 });
