@@ -1802,8 +1802,7 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-letter-email:focus { outline: none; }
 .pharmacopoeia .s-letter-consent { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
 .pharmacopoeia .s-letter-consent input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--ink); flex-shrink: 0; }
-.pharmacopoeia .s-letter-form button { align-self: flex-start; }
-.pharmacopoeia .s-letter-form button:disabled { opacity: .6; cursor: default; }
+.pharmacopoeia .s-letter-btn:disabled { opacity: .55; cursor: default; }
 .pharmacopoeia .s-letter-err { margin: 0; font-size: 14px; color: var(--specimen); }
 .pharmacopoeia .s-letter-done { margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-soft); }
 .pharmacopoeia .s-letter-done b { font-weight: 400; color: var(--tested); }
@@ -1815,4 +1814,4 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   .pharmacopoeia .s-letter-head { padding: 24px 18px 0; }
   .pharmacopoeia .s-letter-body > div { padding: 22px 18px 24px; }
 }
-.pharmacopoeia .s-letter-form button { padding: 13px 24px; font-family: inherit; font-size: 16px; cursor: pointer; }
+.pharmacopoeia .s-letter-btn { align-self: flex-start; display: inline-block; padding: 13px 24px; font-family: inherit; font-size: 16px; cursor: pointer; }

@@ -36,6 +36,8 @@ export default function AuraLetter() {
   }
 
   const signedIn = status?.signedIn === true ? status : null;
+  const onList = signedIn?.state === "confirmed";
+  const waiting = signedIn?.state === "pending" && !signedIn.verified;
   return (
     <section className="s-letter p-reveal" aria-labelledby="aura-letter">
       <div className="s-letter-head">
@@ -54,24 +56,29 @@ export default function AuraLetter() {
           </ol>
         </div>
         <div className="s-letter-form">
-          {signedIn?.state === "confirmed" ? (
-            <p className="s-letter-done" role="status"><b>● You&apos;re on the list.</b> Promotions and updates go to {signedIn.email}. Unsubscribe from any email.</p>
-          ) : signedIn?.state === "pending" && !signedIn.verified ? (
-            <p className="s-letter-done" role="status"><b>Almost there.</b> Verify your email — the link is in your inbox — and you&apos;re on the list.</p>
-          ) : status && !status.signedIn ? (
-            <p className="s-letter-done"><Link href="/sign-in" className="p-link">Sign in</Link> to subscribe with your account email.</p>
-          ) : (
-            <form action={submit}>
-              <label htmlFor="letter-email" className="s-micro s-letter-k">Subscribe · your account email</label>
-              <input id="letter-email" type="email" readOnly value={signedIn?.email ?? ""} placeholder="you@yourlab.org" className="s-letter-email" />
+          {/* The box always shows (2026-10-14); its state sits inside it. */}
+          <form action={submit}>
+            <label htmlFor="letter-email" className="s-micro s-letter-k">Subscribe · your account email</label>
+            <input id="letter-email" type="email" readOnly value={signedIn?.email ?? ""} placeholder="you@yourlab.org" className="s-letter-email" />
+            {onList ? (
+              <p className="s-letter-done" role="status"><b>● You&apos;re on the list.</b> Promotions and updates go to this address. Unsubscribe from any email.</p>
+            ) : waiting ? (
+              <p className="s-letter-done" role="status"><b>Almost there.</b> Verify your email — the link is in your inbox — and you&apos;re on the list.</p>
+            ) : (
               <label className="s-letter-consent">
-                <input type="checkbox" name="consent" required />
+                <input type="checkbox" name="consent" required disabled={!signedIn} />
                 <span>Email me Aura Protocols promotions, research updates and new arrivals. I can unsubscribe at any time.</span>
               </label>
-              {error && <p className="s-letter-err" role="alert">{error}</p>}
-              <button type="submit" className="p-btn-primary" disabled={pending || !signedIn}>{pending ? "Subscribing…" : "Subscribe →"}</button>
-            </form>
-          )}
+            )}
+            {error && <p className="s-letter-err" role="alert">{error}</p>}
+            {status && !status.signedIn ? (
+              <Link href="/sign-in" className="p-btn-primary s-letter-btn">Sign in to subscribe →</Link>
+            ) : (
+              <button type="submit" className="p-btn-primary s-letter-btn" disabled={pending || !signedIn || onList || waiting}>
+                {onList ? "Subscribed ✓" : waiting ? "Waiting on verification" : pending ? "Subscribing…" : "Subscribe →"}
+              </button>
+            )}
+          </form>
         </div>
       </div>
     </section>

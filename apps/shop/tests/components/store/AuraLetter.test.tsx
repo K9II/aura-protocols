@@ -29,20 +29,24 @@ describe("AuraLetter", () => {
     expect(await screen.findByText(/you're on the list/i)).toBeInTheDocument();
   });
 
-  it("shows the list state instead of the form when already subscribed or waiting on verification", async () => {
+  it("keeps the box when already subscribed or waiting on verification, with the state inside it", async () => {
     letterStatusAction.mockResolvedValue({ signedIn: true, email: "a@lab.org", state: "confirmed", verified: true });
     const { unmount } = render(<AuraLetter />);
     expect(await screen.findByText(/you're on the list/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/your account email/i)).toHaveValue("a@lab.org");
+    expect(screen.getByRole("button", { name: "Subscribed ✓" })).toBeDisabled();
     unmount();
     letterStatusAction.mockResolvedValue({ signedIn: true, email: "a@lab.org", state: "pending", verified: false });
     render(<AuraLetter />);
     expect(await screen.findByText(/verify your email/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Waiting on verification" })).toBeDisabled();
   });
 
   it("asks a signed-out visitor to sign in", async () => {
     letterStatusAction.mockResolvedValue({ signedIn: false });
     render(<AuraLetter />);
-    expect(await screen.findByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/sign-in");
+    expect(await screen.findByRole("link", { name: "Sign in to subscribe →" })).toHaveAttribute("href", "/sign-in");
+    expect(screen.getByLabelText(/your account email/i)).toBeInTheDocument();
   });
 
   it("shows the error when the subscribe fails", async () => {
