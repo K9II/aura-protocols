@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
-  PULSE_CYCLE_MS, PULSE_SWEEP_MS, RECORD_DRAW_MS, RECORD_STAGGER_MS, easeInOut, newSince, newsLine, recordGeo, runY, shortDate,
+  PULSE_CYCLE_MS, PULSE_SWEEP_MS, RECORD_DRAW_MS, RECORD_STAGGER_MS, easeInOut, fitRecordHeight, newSince, newsLine, recordGeo, runY, shortDate,
   type RecordLot,
 } from "@/lib/lot-record";
 import { setLotNews, visitBaseline } from "@/lib/lot-news";
@@ -218,7 +218,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
       {product && (
         <div className="s-rec-head"><h3 className="s-rec-h">Lot <em>record</em></h3><span className="s-micro"><span className="s-rec-hint-wide">Hover or tap a run</span><span className="s-rec-hint-phone">Tap a run</span></span></div>
       )}
-      <div className="s-rec-band">
+      {/* Home: the band is as tall as its runs need (CSS picks the narrow height under 460px). */}
+      <div className="s-rec-band" style={product ? undefined : ({ "--rec-h": `${fitRecordHeight(false, n)}px`, "--rec-h-narrow": `${fitRecordHeight(true, n)}px` } as CSSProperties)}>
         <canvas
           ref={canvasRef}
           aria-hidden
