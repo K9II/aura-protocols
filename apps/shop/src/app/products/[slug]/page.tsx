@@ -127,10 +127,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <Link href={`/products?cat=${encodeURIComponent(c.chemicalClass)}`}><i />{c.chemicalClass}</Link><span>· {c.vialMl} mL vial · {strengths}</span>
             </p>
             <h1 className="s-pdp-h1">{c.name}</h1>
-            <VariantPicker compound={c} />
-            <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
-            <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-1.5">All products currently listed on this site are for research purposes only.</p>
-            <BeforeOrdering />
+            <VariantPicker compound={c} notes={<>
+              <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
+              <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-1.5">All products currently listed on this site are for research purposes only.</p>
+              <BeforeOrdering />
+            </>} />
           </div>
         </section>
         {/* Full width below the two-column section (mock c5), not squeezed into the half-width media column. */}

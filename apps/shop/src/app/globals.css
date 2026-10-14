@@ -716,11 +716,13 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-pick > .s-certlink { order: 2; align-self: flex-start; }
 .pharmacopoeia .s-pick > .s-trust { order: 3; }
 .pharmacopoeia .s-pick > .s-buy { order: 4; }
-/* Phones: unwrap the two columns so the lot record can follow the buying area:
-   picture, name, buy box, proof, lot record, then the research-use notes. */
+.pharmacopoeia .s-pick > .s-pick-notes { order: 5; }
+/* Phones: unwrap the two columns so the lot record can follow the buying area. The page
+   order inside .s-pick is already the phone order: buy box, research-use notes + Before
+   ordering (the terms stay next to Add to cart, 2026-10-14), specs, certificate link, trust row. */
 @media (max-width: 900px) {
-  .pharmacopoeia .s-pick > .s-buy, .pharmacopoeia .s-pick > .s-specs, .pharmacopoeia .s-pick > .s-certlink, .pharmacopoeia .s-pick > .s-trust { order: 0; }
-  .pharmacopoeia .s-pick > .s-buy { margin-bottom: 22px; }
+  .pharmacopoeia .s-pick > .s-buy, .pharmacopoeia .s-pick > .s-pick-notes, .pharmacopoeia .s-pick > .s-specs, .pharmacopoeia .s-pick > .s-certlink, .pharmacopoeia .s-pick > .s-trust { order: 0; }
+  .pharmacopoeia .s-pick > .s-specs { margin-top: 26px; }
   .pharmacopoeia .s-pdp { row-gap: 0; }
   .pharmacopoeia .s-pdp > .s-media, .pharmacopoeia .s-pdp > .relative { display: contents; }
   .pharmacopoeia .s-pdp > .s-media > *, .pharmacopoeia .s-pdp > .relative > * { position: relative; z-index: 1; }
@@ -729,9 +731,6 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia .s-pdp-h1 { order: 3; }
   .pharmacopoeia .s-pick { order: 4; }
   .pharmacopoeia .s-pdp .s-rec { order: 5; margin-top: 28px; }
-  .pharmacopoeia .s-ruo { order: 6; }
-  .pharmacopoeia .s-ruo + p { order: 7; }
-  .pharmacopoeia .s-pdp .s-before { order: 8; }
 }
 /* The product-page ghost name spans the viewport; clip it so it never adds a horizontal scrollbar. */
 main > .pharmacopoeia { overflow-x: clip; }

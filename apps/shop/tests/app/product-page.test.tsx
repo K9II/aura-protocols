@@ -87,7 +87,12 @@ describe("product page", () => {
     // page order = the phone order (mock Q1): name, buy box, then specs, certificate link, trust row
     const pick = buy.parentElement!;
     expect(pick).toHaveClass("s-pick");
-    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-specs", "s-certlink", "s-trust"]);
+    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-pick-notes", "s-specs", "s-certlink", "s-trust"]);
+    // the research-use line, disclaimer and Before ordering sit right under the buy box
+    const notes = pick.querySelector(".s-pick-notes")!;
+    expect(notes.querySelector(".s-ruo")).toHaveTextContent("For research use only · Not for human consumption · 21+");
+    expect(notes).toHaveTextContent("All products currently listed on this site are for research purposes only.");
+    expect(notes.querySelector(".s-before")).not.toBeNull();
     expect(container.querySelector(".s-pdp-h1")!.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     // desktop: CSS order puts specs, certificate link and trust row back above the buy box
     const css = readFileSync("src/app/globals.css", "utf8");
@@ -95,6 +100,7 @@ describe("product page", () => {
     expect(order("s-specs")).toBeLessThan(order("s-buy"));
     expect(order("s-certlink")).toBeLessThan(order("s-buy"));
     expect(order("s-trust")).toBeLessThan(order("s-buy"));
+    expect(order("s-pick-notes")).toBeGreaterThan(order("s-buy"));
   });
 
   it("About band shows the description, caption, legend and source link", async () => {
