@@ -5,7 +5,7 @@ import { CartProvider, useCart } from "@/components/store/CartProvider";
 import SiteNav from "@/components/store/SiteNav";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
-vi.mock("@/components/store/AuthLinks", () => ({ default: () => <a href="/sign-in">Sign in</a> }));
+vi.mock("@/components/store/AuthLinks", () => ({ default: () => <a href="/sign-in">Sign in</a>, PhoneSignOut: () => <form className="s-nav-signout-phone"><button type="submit">Sign out</button></form> }));
 let pathname = "/";
 vi.mock("next/navigation", () => ({ usePathname: () => pathname, useRouter: () => ({ push: vi.fn() }) }));
 

@@ -18,9 +18,9 @@ export default async function AccountPage() {
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-16"><div style={{ maxWidth: 760 }}>
-        <div className="flex items-center gap-4 mb-2.5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2.5">
           <p className="s-micro text-[color:var(--specimen)]">Account · {customer.email}</p>
-          <form action={signOutAction} className="flex"><button type="submit" className="s-micro underline bg-transparent border-0 cursor-pointer text-[color:var(--specimen)]">Sign out</button></form>
+          <form action={signOutAction} className="flex"><button type="submit" className="s-micro underline bg-transparent border-0 cursor-pointer whitespace-nowrap text-[color:var(--specimen)]">Sign out</button></form>
         </div>
         <h1 className="s-h1 mb-8" style={{ fontSize: 48 }}>My <em>orders.</em></h1>
         {!customer.emailConfirmed && <p role="alert" className="text-sm text-[color:var(--specimen)] mb-6">Please verify your email address — we sent a link to {customer.email}.<ResendVerify /></p>}
