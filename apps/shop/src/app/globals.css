@@ -288,6 +288,12 @@ h1, h2, h3 {
 .aura-once .aura-comet { animation: auraRunOnce 1.8s cubic-bezier(.5,0,.2,1) both; }
 .aura-once .aura-spark { animation: auraFlash 1.9s ease-out both; }
 
+/* footer emblem: live pulse on desktop only; below that it stays drawn and still (2026-10-14) */
+@media (max-width: 1180px) {
+  .aura-desk-only .aura-glow, .aura-desk-only .aura-pulse { animation: none !important; stroke-dashoffset: 0 !important; }
+  .aura-desk-only .aura-comet, .aura-desk-only .aura-spark { display: none !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aura-glow, .aura-pulse { animation: none !important; stroke-dashoffset: 0 !important; }
   .aura-comet, .aura-spark { display: none !important; }
@@ -481,6 +487,8 @@ main:has(> .pharmacopoeia) {
    keep the links on the true center of the bar. */
 .pharmacopoeia .s-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "logo links actions"; align-items: center; column-gap: 18px; padding: 10px 14px; background: transparent; }
 .pharmacopoeia .s-nav-logo { grid-area: logo; justify-self: start; display: inline-flex; }
+/* desktop only: a bigger emblem in the header (2026-10-14) */
+@media (min-width: 1181px) { .pharmacopoeia .s-nav-logo { zoom: 1.55; } }
 .pharmacopoeia .s-nav-links { grid-area: links; display: flex; gap: 24px; font-size: 16px; color: var(--ink-soft); }
 .pharmacopoeia .s-nav-links a:hover { color: var(--specimen); }
 .pharmacopoeia .s-nav-actions { grid-area: actions; justify-self: end; display: flex; align-items: center; gap: 16px; white-space: nowrap; }
