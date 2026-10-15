@@ -1530,6 +1530,99 @@ export const posts: Post[] = [
     ],
   },
   {
+    slug: "eloralintide-research-guide",
+    ruo: true,
+    title: "Eloralintide: A Research Literature Summary",
+    excerpt:
+      "An amylin analog developed at Eli Lilly (LY3841136). What laboratory studies have measured — its selectivity among the amylin and calcitonin receptors in cell-based assays — and where research is heading.",
+    category: "Incretin & Amylin Analogs",
+    date: "October 2026",
+    readTime: "3 min read",
+    content: [
+      {
+        type: "intro",
+        text: "Eloralintide (development code LY3841136) is an amylin analog developed at Eli Lilly and Company. This summary covers its chemistry, what cell-based receptor studies have measured, and where research is heading. It does not cover clinical literature.",
+      },
+      { type: "h2", text: "Chemical Identity" },
+      {
+        type: "p",
+        text: "Eloralintide (molecular formula C201H319N49O65S2, molecular weight 4526.0 g/mol, CAS 2883634-40-8, PubChem CID 175663130) is a synthetic peptide analog of the pancreatic hormone amylin (Briere et al., 2025).",
+      },
+      { type: "h2", text: "Mechanisms Examined in Laboratory Studies" },
+      {
+        type: "p",
+        text: "Receptor selectivity: Briere and colleagues (Molecular Metabolism, 2025) measured eloralintide's activity in cell lines that each express a single rat or human receptor: the amylin 1 receptor (AMY1R), the amylin 3 receptor (AMY3R) or the calcitonin receptor (CTR). At the human receptors it preferentially activated AMY1R, about 12-fold more than CTR and 11-fold more than AMY3R. At the rat receptors, both AMY1R and AMY3R were activated more potently than CTR.",
+      },
+      {
+        type: "p",
+        text: "Contrast with cagrilintide: the same paper describes cagrilintide as a non-selective amylin receptor agonist and characterizes eloralintide as AMY1R-selective (Briere et al., 2025).",
+      },
+      {
+        type: "callout",
+        text: "These findings come from cell-based receptor assays. They describe which receptors eloralintide activates in vitro. They are not evidence of any effect of research material in people.",
+      },
+      { type: "h2", text: "Research Highlights" },
+      {
+        type: "ul",
+        items: [
+          "Amylin analog developed at Eli Lilly and Company, development code LY3841136 (Briere et al., 2025)",
+          "Preferentially activated the human amylin 1 receptor: about 12-fold over the calcitonin receptor and 11-fold over the amylin 3 receptor (Briere et al., 2025)",
+          "At rat receptors, AMY1R and AMY3R were both activated more potently than CTR (Briere et al., 2025)",
+        ],
+      },
+      { type: "h2", text: "Where Research Is Heading" },
+      {
+        type: "ul",
+        items: [
+          "Species differences: explaining why the rat receptors respond differently from the human ones in the same assays.",
+          "Receptor selectivity: confirming the AMY1R preference in other assay formats and in other laboratories.",
+          "Independent replication: the discovery paper's authors are employees and shareholders of Eli Lilly and Company, which funded the work, as the paper discloses.",
+        ],
+      },
+      { type: "h2", text: "Regulatory Status" },
+      {
+        type: "p",
+        text: "Eloralintide is an investigational compound and is not approved by the FDA for any use. Aura Protocols supplies eloralintide as a research chemical for laboratory use only.",
+      },
+      {
+        type: "faq",
+        faq: [
+          {
+            q: "Is eloralintide a GLP-1 receptor agonist?",
+            a: "No. It is an amylin analog. In cell-based assays it activated the amylin and calcitonin receptors, preferring the amylin 1 receptor (Briere et al., 2025).",
+          },
+          {
+            q: "How does it differ from cagrilintide?",
+            a: "Both are amylin analogs. The discovery paper describes cagrilintide as non-selective across the amylin receptors and eloralintide as selective for the amylin 1 receptor (Briere et al., 2025).",
+          },
+          {
+            q: "Does this summary cover clinical trials?",
+            a: "No. It covers chemistry and cell-based receptor studies only.",
+          },
+        ],
+      },
+      { type: "h2", text: "References" },
+      {
+        type: "p",
+        parts: [
+          "1. Briere DA, Qu H, Lansu K, et al. \"Eloralintide (LY3841136), a novel amylin receptor agonist …: From discovery to clinical proof of concept.\" Molecular Metabolism. 2025;102:102271. ",
+          { href: "https://pubmed.ncbi.nlm.nih.gov/41109426/", text: "pubmed.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "2. PubChem. Eloralintide (CID 175663130). ",
+          { href: "https://pubchem.ncbi.nlm.nih.gov/compound/175663130", text: "pubchem.ncbi.nlm.nih.gov", external: true },
+        ],
+      },
+      {
+        type: "disclaimer",
+        text: "This summary describes published laboratory research. It is not medical advice. All products sold by Aura Protocols are for research use only — not for human or veterinary use.",
+      },
+    ],
+  },
+  {
     slug: "epithalon-research-guide",
     ruo: true,
     title: "Epithalon: A Research Literature Summary",

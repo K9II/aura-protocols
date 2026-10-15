@@ -340,6 +340,20 @@ export const STRUCTURES: Record<string, Structure> = {
       "S"
     ],
     "ref": "https://pubchem.ncbi.nlm.nih.gov/compound/171397054"
+  },
+  "eloralintide": {
+    "id": "eloralintide",
+    "label": "Eloralintide",
+    "file": "/structures/eloralintide.sdf",
+    "source": "computed",
+    "heavyAtoms": 317,
+    "elements": [
+      "C",
+      "N",
+      "O",
+      "S"
+    ],
+    "ref": "https://pubchem.ncbi.nlm.nih.gov/compound/175663130"
   }
 };
 
@@ -412,6 +426,9 @@ export const STRUCTURE_PANELS: Record<string, string[]> = {
   ],
   "cagrilintide": [
     "cagrilintide"
+  ],
+  "eloralintide": [
+    "eloralintide"
   ],
   "cjc-1295-ipamorelin": [
     "cjc-1295-no-dac",
