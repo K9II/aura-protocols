@@ -96,6 +96,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ["Storage", c.storage],
   ];
 
+  // The certificate cards/table are the one place that opens a certificate; the link by the
+  // price jumps to them when there are any to show.
+  const productCerts = live.certificates.filter((x) => x.slug === c.slug);
+  const hasShippingCerts = productCerts.some((x) => x.shipping);
   return (
     <div className="pharmacopoeia" style={{ "--cls": CLASS_COLOR[c.chemicalClass] } as CSSProperties}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
@@ -127,7 +131,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <Link href={`/products?cat=${encodeURIComponent(c.chemicalClass)}`}><i />{c.chemicalClass}</Link><span>· {c.vialMl} mL vial · {strengths}</span>
             </p>
             <h1 className="s-pdp-h1">{c.name}</h1>
-            <VariantPicker compound={c} notes={<>
+            <VariantPicker compound={c} certsHref={hasShippingCerts ? "#lot-certificates" : undefined} notes={<>
               <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
               <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-1.5">All products currently listed on this site are for research purposes only.</p>
               <BeforeOrdering />
@@ -135,8 +139,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
         </section>
         {/* Full width below the two-column section (mock c5), not squeezed into the half-width media column. */}
-        <div className="s-pdp-certs">
-          <LotCertificates certs={live.certificates.filter((x) => x.slug === c.slug)} />
+        <div className="s-pdp-certs" id="lot-certificates">
+          <LotCertificates certs={productCerts} />
         </div>
       </div>
 

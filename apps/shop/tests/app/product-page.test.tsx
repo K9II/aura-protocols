@@ -57,6 +57,9 @@ describe("product page", () => {
     const { container } = await renderSlug("bpc-157");
     expect(container.querySelector(".s-media")).not.toHaveTextContent("Certificates ·");
     const certsBlock = container.querySelector(".s-pdp-certs")!;
+    // the link by the price jumps to the certificates; the cards/table are the one place that opens the PDF
+    expect(certsBlock.id).toBe("lot-certificates");
+    expect(container.querySelector(".s-certlink")).toHaveAttribute("href", "#lot-certificates");
     expect(certsBlock).toHaveTextContent("Certificates · 10 mg · lot AP-1107 · on sale now");
     // A sibling of .s-pdp (not nested inside it), so it spans the full container width.
     expect(certsBlock.previousElementSibling).toHaveClass("s-pdp");

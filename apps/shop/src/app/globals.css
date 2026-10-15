@@ -706,6 +706,9 @@ main:has(> .pharmacopoeia) {
    touch more so the heading never sits flush against that padding edge. */
 .pharmacopoeia .s-pdp-certs { padding-top: 4px; padding-bottom: 56px; }
 .pharmacopoeia .s-pdp-certs:empty { display: none; }
+/* "See this lot's certificates ↓" lands below the pinned site header. */
+.pharmacopoeia #lot-certificates { scroll-margin-top: 150px; }
+@media (max-width: 640px) { .pharmacopoeia #lot-certificates { scroll-margin-top: 200px; } }
 /* minmax(0,…) lets the single mobile column shrink below its content's min width
    (a bare 1fr kept the spec boxes wider than the screen and they were clipped). */
 @media (max-width: 900px) { .pharmacopoeia .s-pdp { grid-template-columns: minmax(0, 1fr); } }

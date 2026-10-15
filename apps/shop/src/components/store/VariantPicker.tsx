@@ -20,7 +20,7 @@ const STOCK_LABEL = { in: "In stock", low: "Low stock", out: "Out of stock" } as
 // choose sits on one raised panel (s-buy, class-colour top edge; 2026-10-10).
 // `notes` (research-use line, disclaimer, Before ordering) render right after the buy box so
 // the terms sit next to Add to cart at every width.
-export default function VariantPicker({ compound: c, notes }: { compound: Compound; notes?: ReactNode }) {
+export default function VariantPicker({ compound: c, notes, certsHref }: { compound: Compound; notes?: ReactNode; certsHref?: string }) {
   const { add } = useCart();
   const [variantId, setVariantId] = useState(c.variants[0].id);
   const [packQty, setPackQty] = useState(c.packDiscounts[0].qty);
@@ -95,7 +95,10 @@ export default function VariantPicker({ compound: c, notes }: { compound: Compou
       {notes && <div className="s-pick-notes">{notes}</div>}
       <SpecBoxes lot={lot} />
       {!pending && lot.coaFile ? (
-        <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
+        // One place opens certificates: the certificate cards/table lower down (Alvester,
+        // 2026-10-14). This link jumps there; it only opens the PDF if the page has none to show.
+        certsHref ? <a className="s-certlink" href={certsHref}>◇ See this lot&apos;s certificates ↓</a>
+          : <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
       ) : (
         <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
       )}

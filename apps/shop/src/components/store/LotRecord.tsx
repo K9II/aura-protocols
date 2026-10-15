@@ -264,7 +264,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
         <div><small className="s-micro">Method</small><b>{L.method}</b></div>
         <div><small className="s-micro">Tested</small><b>{shortDate(L.testedOn, nowMs)}</b></div>
         <div><small className="s-micro">Status</small><b>{statusOf(L)}</b></div>
-        {L.coaFile && <a href={L.coaFile} target="_blank" rel="noopener noreferrer">Open this lot&apos;s certificate →</a>}
+        {/* Product pages open certificates from the certificate cards only (2026-10-14). */}
+        {!product && L.coaFile && <a href={L.coaFile} target="_blank" rel="noopener noreferrer">Open this lot&apos;s certificate →</a>}
       </div>
       {product && (
         <div className="s-rec-table">

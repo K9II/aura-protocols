@@ -51,14 +51,17 @@ describe("LotRecord", () => {
     expect(screen.queryByText(/tap a run/i)).toBeNull();
     expect(screen.getByRole("heading", { name: "Lot record" })).toBeInTheDocument();
     expect(document.querySelector(".s-rec-detail")).toHaveTextContent("SX10-2610-01");
+    // product pages open certificates from the certificate cards only
+    expect(screen.queryByRole("link", { name: /open this lot's certificate/i })).toBeNull();
     unmount();
     // the first-lot note described the chart ("joins the record here, in front"), so it goes with it
     render(<LotRecord lots={LOTS.slice(0, 1)} variant="product" nowMs={NOW} compoundName="Semax" />);
     expect(screen.queryByText(/The first Semax lot\./)).toBeNull();
   });
 
-  it("home: keeps the chart", () => {
+  it("home: keeps the chart and the certificate link", () => {
     render(<LotRecord lots={LOTS} variant="home" nowMs={NOW} />);
+    expect(screen.getByRole("link", { name: /open this lot's certificate/i })).toBeInTheDocument();
     expect(document.querySelector(".s-rec canvas")).not.toBeNull();
     expect(document.querySelector(".s-rec")).not.toHaveClass("s-rec--nochart");
   });
