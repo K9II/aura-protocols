@@ -20,7 +20,7 @@ const row = (o: Partial<AdminRow>): AdminRow => ({
 });
 const lot = (o: Partial<AdminLotRow>): AdminLotRow => ({
   id: "l1", lot_number: "AP-TB5-2611", slug: "tb-500", variant_id: "10mg", purity_pct: 99.1, method: "HPLC", tested_on: "2026-10-01",
-  coa_path: "AP-TB5-2611/1.pdf", status: "draft", live_at: null, sellable: 120, held: 0, sold: 0, available: 120, purity_ok: true, endotoxin_ok: true,
+  coa_path: "AP-TB5-2611/1.pdf", status: "draft", live_at: null, sellable: 120, held: 0, sold: 0, available: 120, purity_ok: true, endotoxin_ok: true, cost_ok: true,
   ordered_qty: 120, counted_qty: 120, damaged_qty: 0, adjust_qty: 0, discrepancy_note: null, received_by: null, received_by_name: null,
   received_at: "2026-10-05T16:00:00Z", retired_at: null, ...o,
 });
@@ -125,6 +125,13 @@ describe("to-do sections", () => {
     expect(s.lines[2]).toMatchObject({ tone: "amb", detail: "Draft · add the endotoxin report to the lot" });
     expect(s.lines[4]).toMatchObject({ icon: "send", detail: "AP-SEM-2609 · Semaglutide 5 mg · and 1 more", action: { label: "Announce", announce: true } });
     expect(lotsSection([lot({ status: "live" })], label, [])).toBeNull();
+  });
+
+  it("lots: a draft with its certificates but no cost recorded says so (it can't go live without it)", () => {
+    const label = (slug: string, v: string) => `${slug.toUpperCase()} ${v}`;
+    const s = lotsSection([lot({ id: "l6", lot_number: "AP-TB5-2615", cost_ok: false })], label, [])!;
+    expect(s.lines.map((l) => l.title)).toEqual(["TB-500 10mg needs its cost"]);
+    expect(s.lines[0]).toMatchObject({ tone: "amb", detail: "Draft · Edit the lot and enter the supplier and cost" });
   });
 
   it("email: a late hourly run, rates at half of Amazon's limit, a campaign sending; nothing when healthy", () => {

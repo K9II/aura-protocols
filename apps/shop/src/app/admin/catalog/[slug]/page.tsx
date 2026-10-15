@@ -116,7 +116,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                       {/* Sold-out (available 0) is still a live lot — it can still be retired. Retired lots get no menu. */}
                       {kind === "old" && l.status === "live" && can(staff, "lots.receive") && <LotActions lotId={l.id} lotNumber={l.lot_number} lastLive={false} canPutLive={can(staff, "lots.put_live")} />}
                       {kind === "draft" && (() => {
-                        const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
+                        const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, costOk: l.cost_ok, sellable: l.sellable });
                         return <>
                           {can(staff, "lots.put_live") && <div>
                             <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn sm primary" disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
@@ -177,7 +177,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                             <div className="top"><b className="a-mono">{l.lot_number}</b>{l.status === "draft" && disc && <span className="a-chip c-disc">Discrepancy</span>}<span className={`a-chip ${cls}`}>{label}</span></div>
                             <div className="meta">{l.status === "draft" ? `Ordered ${l.ordered_qty} · counted ${l.counted_qty} · damaged ${l.damaged_qty} · ${l.sellable} sellable` : `${l.purity_pct ?? "—"}% · ${l.method ?? "—"} · ${l.held} held · ${l.sold} sold · ${l.available} left`}</div>
                             {l.status === "draft" && can(staff, "lots.put_live") && (() => {
-                              const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, sellable: l.sellable });
+                              const refusal = liveRefusal({ status: l.status, purityOk: l.purity_ok, endotoxinOk: l.endotoxin_ok, costOk: l.cost_ok, sellable: l.sellable });
                               return <>
                                 <form action={putLiveAction}><input type="hidden" name="lotId" value={l.id} /><button type="submit" className="a-btn primary" style={{ width: "100%", justifyContent: "center", height: 34, marginTop: 8 }} disabled={!!refusal} title={refusal ?? undefined}>Put live</button></form>
                                 {refusal && <div className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>{refusal}</div>}

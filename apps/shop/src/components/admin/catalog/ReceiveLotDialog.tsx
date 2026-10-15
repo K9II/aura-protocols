@@ -70,12 +70,15 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
   const known = [ordered, counted, damaged].every(Number.isInteger);
   const disc = known && isDiscrepancy(ordered, counted, damaged);
   const sellable = known ? counted - damaged : null;
-  const canLive = known && (!disc || !!v.note.trim()) && (sellable ?? 0) > 0
-    && !!cert.labId && cert.purity.trim() !== "" && cert.tests.endotoxin === "pass" && cert.result === "pass" && !!cert.coaPath;
   const fe = state === dismissed ? {} : state?.fieldErrors ?? {};
   const boxes = Number.isInteger(ordered) && ordered > 0 ? Math.ceil(ordered / 10) : 0;
   const boxCents = !other && v.supplier ? prices[v.supplier] : undefined;
   const cost = costTyped ?? prefillTotal(boxCents, boxes);
+  // A lot goes live only with its cost (admin_lot_live: needs_cost), so profit is never overstated.
+  const costReady = !!v.supplier.trim() && cost.trim() !== "" && Number(cost) >= 0;
+  const canLive = known && (!disc || !!v.note.trim()) && (sellable ?? 0) > 0
+    && !!cert.labId && cert.purity.trim() !== "" && cert.tests.endotoxin === "pass" && cert.result === "pass" && !!cert.coaPath
+    && costReady;
   const freight = freightTyped ?? prefillTotal(defaults?.inboundPerBoxCents, boxes);
   const labelVials = Number.isInteger(counted) && counted > 0 ? counted : (Number.isInteger(ordered) ? ordered : 0);
   const labels = labelsTyped ?? prefillTotal(defaults?.labelPerVialCents, labelVials);
@@ -141,6 +144,7 @@ export default function ReceiveLotDialog({ slug, variantId, title, draft, small,
               <li className={!!cert.labId && !!cert.purity.trim() && !!cert.coaPath ? "" : "no"}><Icon name="check" />Purity certificate attached</li>
               <li className={known && (!disc || v.note.trim()) ? "" : "no"}><Icon name="check" />Receiving check complete{disc ? " (discrepancy explained)" : ""}</li>
               <li className={cert.tests.endotoxin === "pass" ? "" : "no"}><Icon name="check" />Endotoxin passed</li>
+              <li className={costReady ? "" : "no"}><Icon name="check" />Lot cost recorded</li>
             </ul>
             {state !== dismissed && state?.error && <div className="a-err" role="alert">{state.error}</div>}
           </div>

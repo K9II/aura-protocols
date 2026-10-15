@@ -33,6 +33,7 @@ const stripeMessage = (err: unknown) => (err instanceof Error ? err.message : St
 const PASS_REFUSAL: Record<string, string> = {
   needs_purity: "Add the lot's purity certificate first (Catalog → the strength → the lot).",
   needs_endotoxin: "The lot needs a passing endotoxin result first (Catalog → the lot → Add certificate).",
+  needs_cost: "The lot needs its cost first (Catalog → the lot → Edit: supplier and cost).",
   nothing_sellable: "That lot has no sellable vials.",
   not_draft: "That lot is already live or retired.",
   not_pending: "That strength already has a result.",

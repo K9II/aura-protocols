@@ -15,7 +15,7 @@ export const certNum = (r: CertRow): CertRow =>
   ({ ...r, purity_pct: r.purity_pct == null ? null : Number(r.purity_pct), measured_mg: r.measured_mg == null ? null : Number(r.measured_mg) });
 
 const VARIANT_COLS = "slug, variant_id, strength, price_cents, low_at, threepl_sku, shown, archived_at, wholesale";
-const LOT_COLS = "id, lot_number, slug, variant_id, purity_pct, method, tested_on, coa_path, status, live_at, sellable, held, sold, available, purity_ok, endotoxin_ok";
+const LOT_COLS = "id, lot_number, slug, variant_id, purity_pct, method, tested_on, coa_path, status, live_at, sellable, held, sold, available, purity_ok, endotoxin_ok, cost_ok";
 const ADMIN_LOT_COLS = `${LOT_COLS}, ordered_qty, counted_qty, damaged_qty, adjust_qty, discrepancy_note, received_by, received_at, retired_at`;
 export const CERT_COLS = "id, lot_id, lab_id, report_number, verify_code, tested_on, coa_path, purity_pct, method, measured_mg, identity, endotoxin, sterility, heavy_metals, fentanyl, result, note, correction_note, corrected_at, created_at, lab:labs(name, city, iso17025, verify_url_template)";
 
@@ -139,7 +139,7 @@ export async function lotDefaults(): Promise<LotDefaults> {
   return { testCents: d.lot_test_cents, inboundPerBoxCents: d.inbound_per_box_cents, labelPerVialCents: d.label_per_vial_cents };
 }
 
-export type LiveResult = "ok" | "missing" | "not_draft" | "needs_purity" | "needs_endotoxin" | "nothing_sellable";
+export type LiveResult = "ok" | "missing" | "not_draft" | "needs_purity" | "needs_endotoxin" | "needs_cost" | "nothing_sellable";
 export async function putLotLive(id: string, actorId: string): Promise<LiveResult> {
   const { data, error } = await db().rpc("admin_lot_live", { p_lot: id, p_actor: actorId });
   if (error) fail("admin_lot_live", error);
