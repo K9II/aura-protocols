@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import {
-  PULSE_CYCLE_MS, PULSE_SWEEP_MS, RECORD_DRAW_MS, RECORD_STAGGER_MS, easeInOut, fitRecordHeight, newSince, newsLine, recordGeo, runY, shortDate,
+  PULSE_CYCLE_MS, PULSE_OFF_QUERY, PULSE_SWEEP_MS, RECORD_DRAW_MS, RECORD_STAGGER_MS, easeInOut, fitRecordHeight, newSince, newsLine, pulseRuns, recordGeo, runY, shortDate,
   type RecordLot,
 } from "@/lib/lot-record";
 import { setLotNews, visitBaseline } from "@/lib/lot-news";
@@ -22,6 +22,11 @@ type Props = {
   compoundName?: string;
 };
 
+const subscribeNarrow = (onChange: () => void) => {
+  const m = typeof window !== "undefined" ? window.matchMedia?.(PULSE_OFF_QUERY) : undefined;
+  m?.addEventListener?.("change", onChange);
+  return () => m?.removeEventListener?.("change", onChange);
+};
 const STATUS_LABEL = { live: "In stock", sold_out: "Sold out" } as const;
 
 export default function LotRecord({ lots, variant, nowMs, compoundName }: Props) {
@@ -36,7 +41,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
   // Live pulse (Alvester, 2026-10-10: "I would like for the pulse to continue"):
   // after the build-in, a bright trace keeps sweeping along the live run — the
   // newest release on the home page, the in-stock lot on a product page. Runs
-  // only while on screen and the tab is in front; never with reduced motion.
+  // only while on screen and the tab is in front; never with reduced motion, and not
+  // on phones or small tablets (PULSE_OFF_QUERY, 2026-10-14).
   const [live, setLive] = useState(false);
   const n = lots.length;
   const product = variant === "product";
@@ -52,6 +58,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
   }, [lots, product]);
 
   const reduce = useMemo(() => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches, []);
+  // Phones and small tablets: no live pulse (follows rotation / resizing).
+  const narrow = useSyncExternalStore(subscribeNarrow, () => !!window.matchMedia?.(PULSE_OFF_QUERY).matches, () => false);
 
   const pulseIndex = product ? lots.findIndex((l) => l.status === "live") : 0;
 
@@ -106,7 +114,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
     // the live pulse, once the build-in has finished
     const built = (n - 1) * RECORD_STAGGER_MS + RECORD_DRAW_MS;
     const pi = pulseIndex;
-    if (!reduce && live && pi >= 0 && t > built) {
+    const pulse = pulseRuns({ reduce, narrow, live, index: pi });
+    if (pulse && t > built) {
       const ph = ((t - built) % PULSE_CYCLE_MS) / PULSE_SWEEP_MS;
       if (ph <= 1) {
         const L = lots[pi], ox = pi * g.dx, by = g.y0 - pi * g.dy;
@@ -123,8 +132,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
         ctx.beginPath(); ctx.arc(hx, hy, 2.6, 0, Math.PI * 2); ctx.fillStyle = "rgba(47,107,58,.95)"; ctx.fill();
       }
     }
-    return (!reduce && t < built + 40) || (!reduce && live && pi >= 0);
-  }, [size, n, lots, hover, sel, fresh, reduce, live, pulseIndex]);
+    return (!reduce && t < built + 40) || pulse;
+  }, [size, n, lots, hover, sel, fresh, reduce, narrow, live, pulseIndex]);
 
   // Canvas size follows its box (device pixels capped at 2x).
   useEffect(() => {

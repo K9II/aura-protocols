@@ -11,6 +11,11 @@ export const RECORD_DRAW_MS = 1400;
 // Live pulse: a trace sweeps the live run in PULSE_SWEEP_MS, once every PULSE_CYCLE_MS.
 export const PULSE_SWEEP_MS = 2400;
 export const PULSE_CYCLE_MS = 3600;
+// No live pulse on phones and small tablets (Alvester, 2026-10-14): the record still
+// draws in once; the sweeping trace runs on wider screens only.
+export const PULSE_OFF_QUERY = "(max-width: 900px)";
+export const pulseRuns = (o: { reduce: boolean; narrow: boolean; live: boolean; index: number }) =>
+  !o.reduce && !o.narrow && o.live && o.index >= 0;
 
 export type RecordStatus = "live" | "sold_out";
 
