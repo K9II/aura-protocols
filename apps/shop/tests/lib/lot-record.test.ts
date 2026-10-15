@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { PublicLot } from "@/data/catalog";
-import { HOME_REC_MAX_H, HOME_REC_MAX_H_NARROW, PULSE_OFF_QUERY, REC_TOP_PAD, fitRecordHeight, pulseRuns, homeRecord, newSince, newsLine, productRecord, recordGeo, runY, shortDate } from "@/lib/lot-record";
+import { HOME_REC_MAX_H, HOME_REC_MAX_H_NARROW, LOT_CHART, REC_TOP_PAD, fitRecordHeight, pulseRuns, homeRecord, newSince, newsLine, productRecord, recordGeo, runY, shortDate } from "@/lib/lot-record";
 
 const lot = (over: Partial<PublicLot>): PublicLot => ({
   lot: "BP10-2609-01", purityPct: 99.4, method: "HPLC+MS", testedOn: "2026-09-10", coaFile: "https://x/coa.pdf",
@@ -124,17 +124,15 @@ describe("home record height (fitRecordHeight)", () => {
   });
 });
 
-describe("live pulse (pulseRuns)", () => {
-  const on = { reduce: false, narrow: false, live: true, index: 0 };
-  it("runs on wide screens while on screen, for the live run", () => {
-    expect(pulseRuns(on)).toBe(true);
+describe("lot record chart switch (LOT_CHART) and live pulse", () => {
+  it("shows the chart on the home page and none on product pages", () => {
+    expect(LOT_CHART).toEqual({ home: true, product: false });
   });
-  it("never on phones and small tablets (under 900px), with reduced motion, off screen, or without a live run", () => {
-    expect(PULSE_OFF_QUERY).toBe("(max-width: 900px)");
-    expect(pulseRuns({ ...on, narrow: true })).toBe(false);
+  it("the pulse runs for the live run while on screen; never with reduced motion or without a live run", () => {
+    const on = { reduce: false, live: true, index: 0 };
+    expect(pulseRuns(on)).toBe(true);
     expect(pulseRuns({ ...on, reduce: true })).toBe(false);
     expect(pulseRuns({ ...on, live: false })).toBe(false);
     expect(pulseRuns({ ...on, index: -1 })).toBe(false);
   });
 });
-
