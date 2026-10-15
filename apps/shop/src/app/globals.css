@@ -1683,6 +1683,22 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-rec-table td.s-ok { color: var(--tested); } .pharmacopoeia .s-rec-table td.s-nt { color: #9C9483; }
 .pharmacopoeia .s-rec-table td.s-bad { color: var(--specimen); }
 .pharmacopoeia .s-cert-link { color: var(--tested); border-bottom: 1px solid currentColor; }
+/* Product page certificates on phones (≤900px): stacked cards instead of the wide table (2026-10-14). */
+.pharmacopoeia .s-lc-cards { display: none; list-style: none; margin: 14px 0 0; padding: 0; }
+@media (max-width: 900px) {
+  .pharmacopoeia .s-lc-table { display: none; }
+  .pharmacopoeia .s-lc-cards { display: grid; gap: 12px; }
+}
+.pharmacopoeia .s-lc-card { background: var(--label); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.18); padding: 14px 16px 16px; }
+.pharmacopoeia .s-lc-card dl { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; }
+.pharmacopoeia .s-lc-card dl > div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.pharmacopoeia .s-lc-card dt { color: var(--ink-soft); }
+.pharmacopoeia .s-lc-card dd { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.pharmacopoeia .s-lc-card dd.s-mono { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 13.5px; }
+.pharmacopoeia .s-lc-tests { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 0; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 12px; letter-spacing: .04em; }
+.pharmacopoeia .s-lc-tests .s-ok { color: var(--tested); } .pharmacopoeia .s-lc-tests .s-bad { color: var(--specimen); } .pharmacopoeia .s-lc-tests .s-nt { color: #9C9483; }
+.pharmacopoeia .s-lc-links { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 14px 0 0; }
+.pharmacopoeia .s-lc-open { display: inline-block; padding: 10px 16px; background: var(--ink); color: var(--paper); font-size: 15px; }
 @media (max-width: 640px) { .pharmacopoeia .s-coa-sel { min-width: 0; flex: 1 1 140px; } }
 
 /* refresh language: class-colour top edge + raised tile, class dash line, green proof rule on purity */
