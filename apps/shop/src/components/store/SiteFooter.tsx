@@ -7,7 +7,8 @@ export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
     <footer className="pharmacopoeia border-t border-[color:var(--line)]">
       <div className="p-container py-14 grid gap-10 md:grid-cols-[1.3fr_1fr_1fr_1fr]">
         <div>
-          <AuraLockup size={70} mode="static" />
+          {/* live pulse on desktop only — .aura-desk-only stills it below 1181px */}
+          <AuraLockup size={70} mode="loop" className="aura-desk-only" />
           <p className="text-[15px] text-[color:var(--ink-soft)] mt-5 max-w-[30ch]">
             Research-grade peptides. No lot is sold until an independent lab has tested it and its certificate is on the page.
           </p>
