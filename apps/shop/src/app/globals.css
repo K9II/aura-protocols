@@ -706,9 +706,35 @@ main:has(> .pharmacopoeia) {
    touch more so the heading never sits flush against that padding edge. */
 .pharmacopoeia .s-pdp-certs { padding-top: 4px; padding-bottom: 56px; }
 .pharmacopoeia .s-pdp-certs:empty { display: none; }
+/* "See this lot's certificates ↓" lands below the pinned site header. */
+.pharmacopoeia #lot-certificates { scroll-margin-top: 150px; }
+@media (max-width: 640px) { .pharmacopoeia #lot-certificates { scroll-margin-top: 200px; } }
 /* minmax(0,…) lets the single mobile column shrink below its content's min width
    (a bare 1fr kept the spec boxes wider than the screen and they were clipped). */
 @media (max-width: 900px) { .pharmacopoeia .s-pdp { grid-template-columns: minmax(0, 1fr); } }
+/* Product page buy area (mock Q1, 2026-10-14). VariantPicker renders the buy box first;
+   desktop shows the proof above it, phones show it right under the name. */
+.pharmacopoeia .s-pick { display: flex; flex-direction: column; }
+.pharmacopoeia .s-pick > .s-specs { order: 1; }
+.pharmacopoeia .s-pick > .s-certlink { order: 2; align-self: flex-start; }
+.pharmacopoeia .s-pick > .s-trust { order: 3; }
+.pharmacopoeia .s-pick > .s-buy { order: 4; }
+.pharmacopoeia .s-pick > .s-pick-notes { order: 5; }
+/* Phones: unwrap the two columns so the lot record can follow the buying area. The page
+   order inside .s-pick is already the phone order: buy box, research-use notes + Before
+   ordering (the terms stay next to Add to cart, 2026-10-14), specs, certificate link, trust row. */
+@media (max-width: 900px) {
+  .pharmacopoeia .s-pick > .s-buy, .pharmacopoeia .s-pick > .s-pick-notes, .pharmacopoeia .s-pick > .s-specs, .pharmacopoeia .s-pick > .s-certlink, .pharmacopoeia .s-pick > .s-trust { order: 0; }
+  .pharmacopoeia .s-pick > .s-specs { margin-top: 26px; }
+  .pharmacopoeia .s-pdp { row-gap: 0; }
+  .pharmacopoeia .s-pdp > .s-media, .pharmacopoeia .s-pdp > .relative { display: contents; }
+  .pharmacopoeia .s-pdp > .s-media > *, .pharmacopoeia .s-pdp > .relative > * { position: relative; z-index: 1; }
+  .pharmacopoeia .s-pdp-tile { order: 1; }
+  .pharmacopoeia .s-pdp .s-pdp-kick { order: 2; margin-top: 28px; }
+  .pharmacopoeia .s-pdp-h1 { order: 3; }
+  .pharmacopoeia .s-pick { order: 4; }
+  .pharmacopoeia .s-pdp .s-rec { order: 5; margin-top: 28px; }
+}
 /* The product-page ghost name spans the viewport; clip it so it never adds a horizontal scrollbar. */
 main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-ghost { position: absolute; left: 50%; transform: translateX(-50%); width: 100vw; text-align: center; top: 70px; font-family: var(--font-newsreader), Georgia, serif; font-size: clamp(160px, 22vw, 340px); line-height: 1; color: rgba(28, 26, 21, .055); white-space: nowrap; pointer-events: none; letter-spacing: -.02em; }
@@ -1660,6 +1686,22 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-rec-table td.s-ok { color: var(--tested); } .pharmacopoeia .s-rec-table td.s-nt { color: #9C9483; }
 .pharmacopoeia .s-rec-table td.s-bad { color: var(--specimen); }
 .pharmacopoeia .s-cert-link { color: var(--tested); border-bottom: 1px solid currentColor; }
+/* Product page certificates on phones (≤900px): stacked cards instead of the wide table (2026-10-14). */
+.pharmacopoeia .s-lc-cards { display: none; list-style: none; margin: 14px 0 0; padding: 0; }
+@media (max-width: 900px) {
+  .pharmacopoeia .s-lc-table { display: none; }
+  .pharmacopoeia .s-lc-cards { display: grid; gap: 12px; }
+}
+.pharmacopoeia .s-lc-card { background: var(--label); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.18); padding: 14px 16px 16px; }
+.pharmacopoeia .s-lc-card dl { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; }
+.pharmacopoeia .s-lc-card dl > div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.pharmacopoeia .s-lc-card dt { color: var(--ink-soft); }
+.pharmacopoeia .s-lc-card dd { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.pharmacopoeia .s-lc-card dd.s-mono { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 13.5px; }
+.pharmacopoeia .s-lc-tests { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 0; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 12px; letter-spacing: .04em; }
+.pharmacopoeia .s-lc-tests .s-ok { color: var(--tested); } .pharmacopoeia .s-lc-tests .s-bad { color: var(--specimen); } .pharmacopoeia .s-lc-tests .s-nt { color: #9C9483; }
+.pharmacopoeia .s-lc-links { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 14px 0 0; }
+.pharmacopoeia .s-lc-open { display: inline-block; padding: 10px 16px; background: var(--ink); color: var(--paper); font-size: 15px; }
 @media (max-width: 640px) { .pharmacopoeia .s-coa-sel { min-width: 0; flex: 1 1 140px; } }
 
 /* refresh language: class-colour top edge + raised tile, class dash line, green proof rule on purity */

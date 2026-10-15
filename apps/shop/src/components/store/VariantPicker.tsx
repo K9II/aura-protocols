@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { Compound } from "@/data/catalog";
 import { isPendingLot, packOptions, strengthInPriceUnit } from "@/lib/catalog";
 import { FREE_SHIPPING_THRESHOLD_USD, linePriceUsd } from "@/lib/cart";
@@ -18,7 +18,9 @@ const STOCK_LABEL = { in: "In stock", low: "Low stock", out: "Out of stock" } as
 // the total and the bulk saving are visible before anything is clicked. The
 // lot boxes and certificate link follow the selected strength. Everything you
 // choose sits on one raised panel (s-buy, class-colour top edge; 2026-10-10).
-export default function VariantPicker({ compound: c }: { compound: Compound }) {
+// `notes` (research-use line, disclaimer, Before ordering) render right after the buy box so
+// the terms sit next to Add to cart at every width.
+export default function VariantPicker({ compound: c, notes, certsHref }: { compound: Compound; notes?: ReactNode; certsHref?: string }) {
   const { add } = useCart();
   const [variantId, setVariantId] = useState(c.variants[0].id);
   const [packQty, setPackQty] = useState(c.packDiscounts[0].qty);
@@ -33,15 +35,11 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
   const pending = isPendingLot(lot);
   const out = variant.stock === "out"; // a pending lot is always out
 
+  // The buy box comes first: phones show it right under the name (mock Q1, 2026-10-14,
+  // https://claude.ai/artifact/ADTaVMde9m6LCk7VDhHV4e). Above 900px CSS puts the proof
+  // (specs, certificate link, trust row) back above it, the notes stay under it (.s-pick order).
   return (
-    <div>
-      <SpecBoxes lot={lot} />
-      {!pending && lot.coaFile ? (
-        <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
-      ) : (
-        <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
-      )}
-      <TrustRow className="s-trust--pdp" />
+    <div className="s-pick">
       <div className="s-buy">
         {c.variants.length > 1 && (
           <>
@@ -94,6 +92,17 @@ export default function VariantPicker({ compound: c }: { compound: Compound }) {
         </div>
         <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders of ${FREE_SHIPPING_THRESHOLD_USD} or more</div>
       </div>
+      {notes && <div className="s-pick-notes">{notes}</div>}
+      <SpecBoxes lot={lot} />
+      {!pending && lot.coaFile ? (
+        // One place opens certificates: the certificate cards/table lower down (Alvester,
+        // 2026-10-14). This link jumps there; it only opens the PDF if the page has none to show.
+        certsHref ? <a className="s-certlink" href={certsHref}>◇ See this lot&apos;s certificates ↓</a>
+          : <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
+      ) : (
+        <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
+      )}
+      <TrustRow className="s-trust--pdp" />
     </div>
   );
 }

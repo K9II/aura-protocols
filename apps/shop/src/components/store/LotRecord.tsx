@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
-  PULSE_CYCLE_MS, PULSE_SWEEP_MS, RECORD_DRAW_MS, RECORD_STAGGER_MS, easeInOut, fitRecordHeight, newSince, newsLine, recordGeo, runY, shortDate,
+  PULSE_CYCLE_MS, PULSE_SWEEP_MS, RECORD_DRAW_MS, RECORD_STAGGER_MS, easeInOut, fitRecordHeight, LOT_CHART, newSince, newsLine, pulseRuns, recordGeo, runY, shortDate,
   type RecordLot,
 } from "@/lib/lot-record";
 import { setLotNews, visitBaseline } from "@/lib/lot-news";
@@ -36,7 +36,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
   // Live pulse (Alvester, 2026-10-10: "I would like for the pulse to continue"):
   // after the build-in, a bright trace keeps sweeping along the live run — the
   // newest release on the home page, the in-stock lot on a product page. Runs
-  // only while on screen and the tab is in front; never with reduced motion.
+  // only while on screen and the tab is in front; never with reduced motion. Product pages
+  // have no chart at all (LOT_CHART, lib/lot-record.ts, 2026-10-14).
   const [live, setLive] = useState(false);
   const n = lots.length;
   const product = variant === "product";
@@ -54,6 +55,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
   const reduce = useMemo(() => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches, []);
 
   const pulseIndex = product ? lots.findIndex((l) => l.status === "live") : 0;
+  // Product pages show no chart (LOT_CHART): only the heading, lot details and lot table.
+  const chart = LOT_CHART[variant];
 
   const draw = useCallback((now: number): boolean => {
     const cv = canvasRef.current;
@@ -106,7 +109,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
     // the live pulse, once the build-in has finished
     const built = (n - 1) * RECORD_STAGGER_MS + RECORD_DRAW_MS;
     const pi = pulseIndex;
-    if (!reduce && live && pi >= 0 && t > built) {
+    const pulse = pulseRuns({ reduce, live, index: pi });
+    if (pulse && t > built) {
       const ph = ((t - built) % PULSE_CYCLE_MS) / PULSE_SWEEP_MS;
       if (ph <= 1) {
         const L = lots[pi], ox = pi * g.dx, by = g.y0 - pi * g.dy;
@@ -123,7 +127,7 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
         ctx.beginPath(); ctx.arc(hx, hy, 2.6, 0, Math.PI * 2); ctx.fillStyle = "rgba(47,107,58,.95)"; ctx.fill();
       }
     }
-    return (!reduce && t < built + 40) || (!reduce && live && pi >= 0);
+    return (!reduce && t < built + 40) || pulse;
   }, [size, n, lots, hover, sel, fresh, reduce, live, pulseIndex]);
 
   // Canvas size follows its box (device pixels capped at 2x).
@@ -214,12 +218,12 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
     : `${n === 1 ? "First lot release" : `Last ${n} lot releases`} · drawn from each certificate's purity`;
 
   return (
-    <div className={`s-rec s-rec--${variant}`} ref={bandRef}>
+    <div className={`s-rec s-rec--${variant}${chart ? "" : " s-rec--nochart"}`} ref={bandRef}>
       {product && (
-        <div className="s-rec-head"><h3 className="s-rec-h">Lot <em>record</em></h3><span className="s-micro"><span className="s-rec-hint-wide">Hover or tap a run</span><span className="s-rec-hint-phone">Tap a run</span></span></div>
+        <div className="s-rec-head"><h3 className="s-rec-h">Lot <em>record</em></h3>{chart && <span className="s-micro"><span className="s-rec-hint-wide">Hover or tap a run</span><span className="s-rec-hint-phone">Tap a run</span></span>}</div>
       )}
       {/* Home: the band is as tall as its runs need (CSS picks the narrow height under 460px). */}
-      <div className="s-rec-band" style={product ? undefined : ({ "--rec-h": `${fitRecordHeight(false, n)}px`, "--rec-h-narrow": `${fitRecordHeight(true, n)}px` } as CSSProperties)}>
+      {chart && <div className="s-rec-band" style={product ? undefined : ({ "--rec-h": `${fitRecordHeight(false, n)}px`, "--rec-h-narrow": `${fitRecordHeight(true, n)}px` } as CSSProperties)}>
         <canvas
           ref={canvasRef}
           aria-hidden
@@ -252,7 +256,7 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
         {product && n === 1 && (
           <p className="s-rec-first">The first {compoundName} lot. Each new lot joins the record here, in front, with its own certificate.</p>
         )}
-      </div>
+      </div>}
       <div className="s-rec-detail" aria-live="polite">
         <div><small className="s-micro">Lot</small><b className="s-mono">{L.lot}</b></div>
         <div><small className="s-micro">Compound</small><b>{L.compound} {L.strength}</b></div>
@@ -260,7 +264,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
         <div><small className="s-micro">Method</small><b>{L.method}</b></div>
         <div><small className="s-micro">Tested</small><b>{shortDate(L.testedOn, nowMs)}</b></div>
         <div><small className="s-micro">Status</small><b>{statusOf(L)}</b></div>
-        {L.coaFile && <a href={L.coaFile} target="_blank" rel="noopener noreferrer">Open this lot&apos;s certificate →</a>}
+        {/* Product pages open certificates from the certificate cards only (2026-10-14). */}
+        {!product && L.coaFile && <a href={L.coaFile} target="_blank" rel="noopener noreferrer">Open this lot&apos;s certificate →</a>}
       </div>
       {product && (
         <div className="s-rec-table">

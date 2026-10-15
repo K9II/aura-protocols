@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { liveFixture } from "../helpers/live-catalog";
 import { render, screen, within } from "@testing-library/react";
@@ -56,6 +57,9 @@ describe("product page", () => {
     const { container } = await renderSlug("bpc-157");
     expect(container.querySelector(".s-media")).not.toHaveTextContent("Certificates ·");
     const certsBlock = container.querySelector(".s-pdp-certs")!;
+    // the link by the price jumps to the certificates; the cards/table are the one place that opens the PDF
+    expect(certsBlock.id).toBe("lot-certificates");
+    expect(container.querySelector(".s-certlink")).toHaveAttribute("href", "#lot-certificates");
     expect(certsBlock).toHaveTextContent("Certificates · 10 mg · lot AP-1107 · on sale now");
     // A sibling of .s-pdp (not nested inside it), so it spans the full container width.
     expect(certsBlock.previousElementSibling).toHaveClass("s-pdp");
@@ -78,13 +82,28 @@ describe("product page", () => {
     expect(within(data).getByText("Solid-phase synthesis, HPLC-purified")).toBeInTheDocument();
   });
 
-  it("buy panel holds the pack choice, Add to cart and shipping line; trust row sits above it", async () => {
+  it("buy panel holds the pack choice, Add to cart and shipping line; it comes first (phones), desktop puts the proof above it", async () => {
     const { container } = await renderSlug("bpc-157");
     const buy = container.querySelector(".s-buy")!;
     expect(buy.querySelector(".s-atc")).not.toBeNull();
     expect(buy.querySelector(".s-ship")?.textContent).toContain("Ships from the US");
-    const trust = container.querySelector(".s-trust--pdp")!;
-    expect(trust.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // page order = the phone order (mock Q1): name, buy box, then specs, certificate link, trust row
+    const pick = buy.parentElement!;
+    expect(pick).toHaveClass("s-pick");
+    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-pick-notes", "s-specs", "s-certlink", "s-trust"]);
+    // the research-use line, disclaimer and Before ordering sit right under the buy box
+    const notes = pick.querySelector(".s-pick-notes")!;
+    expect(notes.querySelector(".s-ruo")).toHaveTextContent("For research use only · Not for human consumption · 21+");
+    expect(notes).toHaveTextContent("All products currently listed on this site are for research purposes only.");
+    expect(notes.querySelector(".s-before")).not.toBeNull();
+    expect(container.querySelector(".s-pdp-h1")!.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // desktop: CSS order puts specs, certificate link and trust row back above the buy box
+    const css = readFileSync("src/app/globals.css", "utf8");
+    const order = (sel: string) => Number(new RegExp(`\\.s-pick > \\.${sel} \\{ order: (\\d)`).exec(css)?.[1]);
+    expect(order("s-specs")).toBeLessThan(order("s-buy"));
+    expect(order("s-certlink")).toBeLessThan(order("s-buy"));
+    expect(order("s-trust")).toBeLessThan(order("s-buy"));
+    expect(order("s-pick-notes")).toBeGreaterThan(order("s-buy"));
   });
 
   it("About band shows the description, caption, legend and source link", async () => {

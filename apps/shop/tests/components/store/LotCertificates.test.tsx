@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import LotCertificates from "@/components/store/LotCertificates";
 import type { PublicCert } from "@/data/catalog";
 import { NOT_RECORDED_LAB } from "@/lib/coa/rules";
@@ -23,6 +23,10 @@ const certs: PublicCert[] = [
   cert({ id: "c3", lot: "AP-1101", shipping: false, labName: "Vanguard Laboratory" }), // old, non-shipping lot
 ];
 
+// The table is the desktop view; phones get stacked cards (CSS shows one), so table checks scope to it.
+const table = () => within(document.querySelector<HTMLElement>(".s-lc-table")!);
+const cardsEl = () => document.querySelector<HTMLElement>(".s-lc-cards")!;
+
 describe("LotCertificates", () => {
   it("shows the heading, two rows and the pass/not-tested marks", () => {
     render(<LotCertificates certs={certs} />);
@@ -35,8 +39,8 @@ describe("LotCertificates", () => {
 
   it("links to Open and Verify", () => {
     render(<LotCertificates certs={certs} />);
-    expect(screen.getAllByRole("link", { name: "Open" })).toHaveLength(2);
-    expect(screen.getAllByRole("link", { name: "Verify ↗" })).toHaveLength(2);
+    expect(table().getAllByRole("link", { name: "Open" })).toHaveLength(2);
+    expect(table().getAllByRole("link", { name: "Verify ↗" })).toHaveLength(2);
   });
 
   it("adds a Measured column only when a certificate has a measured amount", () => {
@@ -44,9 +48,10 @@ describe("LotCertificates", () => {
     expect(screen.queryByRole("columnheader", { name: "Measured" })).toBeNull();
 
     const withMeasured = [cert({ id: "c1", measuredMg: 10.42, measuredPct: 104 })];
-    render(<LotCertificates certs={withMeasured} />);
+    const { container } = render(<LotCertificates certs={withMeasured} />);
     expect(screen.getByRole("columnheader", { name: "Measured" })).toBeInTheDocument();
-    expect(screen.getByText("10.42 mg · 104%")).toBeInTheDocument();
+    expect(within(container.querySelector<HTMLElement>(".s-lc-table")!).getByText("10.42 mg · 104%")).toBeInTheDocument();
+    expect(within(container.querySelector<HTMLElement>(".s-lc-cards")!).getByText("10.42 mg · 104%")).toBeInTheDocument();
   });
 
   it("renders nothing when no certificate of this slug is shipping", () => {
@@ -79,7 +84,7 @@ describe("LotCertificates", () => {
       cert({ id: "c2", labName: "Freedom Diagnostics", reportNumber: "Aura2610080412", failed: true, note: "Sample vial damaged." }),
     ];
     render(<LotCertificates certs={withFailed} />);
-    expect(screen.getByText("Failed")).toBeInTheDocument();
+    expect(table().getByText("Failed")).toBeInTheDocument();
     expect(screen.getByText("Failed · Aura2610080412: Sample vial damaged.")).toBeInTheDocument();
   });
 
@@ -90,7 +95,25 @@ describe("LotCertificates", () => {
 
   it("shows 'Lab not recorded' instead of the placeholder lab name", () => {
     render(<LotCertificates certs={[cert({ labName: NOT_RECORDED_LAB })]} />);
-    expect(screen.getByText("Lab not recorded")).toBeInTheDocument();
+    expect(table().getByText("Lab not recorded")).toBeInTheDocument();
+    expect(within(cardsEl()).getByText("Lab not recorded")).toBeInTheDocument();
     expect(screen.queryByText(NOT_RECORDED_LAB)).toBeNull();
+  });
+
+  it("phones: one stacked card per certificate with lab, report, tested, purity, the test marks and Open / Verify", () => {
+    render(<LotCertificates certs={certs} />);
+    const cards = cardsEl().querySelectorAll(".s-lc-card");
+    expect(cards).toHaveLength(2);
+    const first = within(cards[0] as HTMLElement);
+    expect(first.getByText("Vanguard Laboratory")).toBeInTheDocument();
+    expect(first.getByText("VGD-24117")).toBeInTheDocument();
+    expect(first.getByText("Oct 6, 2026")).toBeInTheDocument();
+    expect(first.getByText("99.62% · HPLC+MS")).toBeInTheDocument();
+    expect([...cards[0].querySelectorAll(".s-lc-tests span")].map((e) => e.textContent)).toEqual(["Identity ✓", "Endotoxin ✓", "Sterility —", "Metals —", "Fentanyl —"]);
+    expect(first.getByRole("link", { name: "Open certificate" })).toHaveAttribute("href", "https://x/coa/AP-1107/1.pdf");
+    expect(first.getByRole("link", { name: "Verify ↗" })).toHaveAttribute("href", "https://verifiedbyvanguard.com/verify/VGD-24117");
+    // a certificate without purity shows a dash; Measured only when measured
+    expect(within(cards[1] as HTMLElement).getByText("—")).toBeInTheDocument();
+    expect(cardsEl().textContent).not.toContain("Measured");
   });
 });

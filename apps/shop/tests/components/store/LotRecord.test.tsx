@@ -42,13 +42,27 @@ describe("LotRecord", () => {
     expect(fresh[0].getAttribute("aria-label")).toContain("lot SX10-2610-01");
   });
 
-  it("product: lot table lists every lot with its status; one lot shows the first-lot note", () => {
+  it("product: no chart (LOT_CHART) — heading, lot details and the lot table only", () => {
     const { unmount } = render(<LotRecord lots={LOTS} variant="product" nowMs={NOW} compoundName="Semax" />);
     const rows = document.querySelectorAll(".s-rec-table tbody tr");
     expect([...rows].map((r) => r.textContent)).toEqual(["SX10-2610-0110 mg99.4%8 OctIn stock", "BP10-2609-0110 mg99.4%11 SepSold out"]);
-    expect(document.querySelector(".s-rec-first")).toBeNull();
+    expect(document.querySelector(".s-rec")).toHaveClass("s-rec--nochart");
+    expect(document.querySelector(".s-rec canvas, .s-rec-band, .s-rec-labels, .s-rec-cap")).toBeNull();
+    expect(screen.queryByText(/tap a run/i)).toBeNull();
+    expect(screen.getByRole("heading", { name: "Lot record" })).toBeInTheDocument();
+    expect(document.querySelector(".s-rec-detail")).toHaveTextContent("SX10-2610-01");
+    // product pages open certificates from the certificate cards only
+    expect(screen.queryByRole("link", { name: /open this lot's certificate/i })).toBeNull();
     unmount();
+    // the first-lot note described the chart ("joins the record here, in front"), so it goes with it
     render(<LotRecord lots={LOTS.slice(0, 1)} variant="product" nowMs={NOW} compoundName="Semax" />);
-    expect(screen.getByText(/The first Semax lot\./)).toBeInTheDocument();
+    expect(screen.queryByText(/The first Semax lot\./)).toBeNull();
+  });
+
+  it("home: keeps the chart and the certificate link", () => {
+    render(<LotRecord lots={LOTS} variant="home" nowMs={NOW} />);
+    expect(screen.getByRole("link", { name: /open this lot's certificate/i })).toBeInTheDocument();
+    expect(document.querySelector(".s-rec canvas")).not.toBeNull();
+    expect(document.querySelector(".s-rec")).not.toHaveClass("s-rec--nochart");
   });
 });

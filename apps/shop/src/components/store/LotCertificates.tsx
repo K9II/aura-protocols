@@ -35,7 +35,7 @@ export default function LotCertificates({ certs }: { certs: PublicCert[] }) {
         return (
           <div key={lot}>
             <p className="s-micro" style={{ color: "var(--ink-soft)" }}>Certificates · {rows[0].strength} · lot {lot} · on sale now</p>
-            <div className="s-rec-table">
+            <div className="s-rec-table s-lc-table">
               <table>
                 <thead>
                   <tr>
@@ -70,6 +70,33 @@ export default function LotCertificates({ certs }: { certs: PublicCert[] }) {
                 </tbody>
               </table>
             </div>
+            {/* Phones (≤900px): one stacked card per certificate instead of the wide table
+                (Alvester, 2026-10-14); CSS shows one of the two. */}
+            <ul className="s-lc-cards">
+              {rows.map((c) => (
+                <li key={c.id} className="s-lc-card">
+                  <dl>
+                    <div><dt className="s-micro">Lab</dt><dd>{c.labName === NOT_RECORDED_LAB ? "Lab not recorded" : c.labName}{c.failed && <> · <span className="s-cert-failed">Failed</span></>}</dd></div>
+                    <div><dt className="s-micro">Report</dt><dd className="s-mono">{c.reportNumber}</dd></div>
+                    <div><dt className="s-micro">Tested</dt><dd>{monthDay(c.testedOn)}</dd></div>
+                    <div><dt className="s-micro">Purity</dt><dd>{c.purityPct != null ? `${c.purityPct}% · ${c.method}` : "—"}</dd></div>
+                    {c.measuredMg != null && (
+                      <div><dt className="s-micro">Measured</dt><dd>{`${c.measuredMg} mg${c.measuredPct != null ? ` · ${c.measuredPct}%` : ""}`}</dd></div>
+                    )}
+                  </dl>
+                  <p className="s-lc-tests">
+                    {TEST_COLS.map(([k, label]) => {
+                      const r = c.tests[k];
+                      return <span key={k} className={r === "pass" ? "s-ok" : r === "fail" ? "s-bad" : "s-nt"}>{label} {MARK[r]}</span>;
+                    })}
+                  </p>
+                  <p className="s-lc-links">
+                    <a className="s-lc-open" href={c.coaFile} target="_blank" rel="noopener noreferrer">Open certificate</a>
+                    {c.verifyUrl && <a className="s-cert-link" href={c.verifyUrl} target="_blank" rel="noopener noreferrer">Verify ↗</a>}
+                  </p>
+                </li>
+              ))}
+            </ul>
             <p className="s-micro" style={{ color: "var(--ink-soft)", marginTop: 10 }}>
               ✓ Pass{anyFailed ? " · ✕ Fail" : ""} · — Not tested{isoLabs.map((l) => ` · ${l}: tested by an ISO/IEC 17025-accredited US lab`).join("")} · <Link href="/coa">All certificates →</Link>
             </p>

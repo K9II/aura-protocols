@@ -40,6 +40,14 @@ describe("VariantPicker", () => {
     expect(screen.getByText(/certificate posted when lab results return/i)).toBeInTheDocument();
   });
 
+  it("with certificate cards on the page, the link jumps to them instead of opening the PDF", () => {
+    render(<CartProvider catalog={liveFixture()}><VariantPicker compound={ss31} certsHref="#lot-certificates" /></CartProvider>);
+    const link = screen.getByRole("link", { name: /see this lot's certificates/i });
+    expect(link).toHaveAttribute("href", "#lot-certificates");
+    expect(link).not.toHaveAttribute("target");
+    expect(screen.queryByRole("link", { name: /view this lot's certificate$/i })).toBeNull();
+  });
+
   it("shows the selected strength's lot and certificate", () => {
     render(<CartProvider catalog={liveFixture()}><VariantPicker compound={ss31} /></CartProvider>);
     expect(screen.getByText(LOT.lot)).toBeInTheDocument();
