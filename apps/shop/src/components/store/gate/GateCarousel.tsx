@@ -5,8 +5,8 @@ import { PURITY_FLOOR_PCT } from "@/lib/constants";
 
 // Captions in the plates' lab-notebook voice (Alvester chose set B, 2026-10-10).
 const SLIDES = [
-  { eb: "Plate I · Specimens", h: <>Purity verified, <em>then</em> released.</>, sub: `Every lot is tested by an ISO/IEC 17025-accredited US lab against a ${PURITY_FLOOR_PCT}% purity floor before it’s listed.` },
-  { eb: "Plate II · The record", h: <>Verify the certificate <em>before</em> you order.</>, sub: "Look up any lot’s COA by the number on its vial." },
+  { eb: "Plate I · Specimens", light: true, h: <>Purity verified, <em>then</em> released.</>, sub: `Every lot is tested by an ISO/IEC 17025-accredited US lab against a ${PURITY_FLOOR_PCT}% purity floor before it’s listed.` },
+  { eb: "Plate II · The record", light: true, h: <>Verify the certificate <em>before</em> you order.</>, sub: "Look up any lot’s COA by the number on its vial." },
   { eb: "Plate III · The catalog", h: <>Every compound <em>on the record.</em></>, sub: "Arranged by chemical class, each with its own lot history." },
 ];
 const ADVANCE_MS = 5500;
@@ -34,7 +34,7 @@ export default function GateCarousel({ scenes, running }: { scenes: readonly str
       {SLIDES.map((s, k) => (
         <div key={k} className={`slide${k === cur ? " on" : ""}`} aria-roledescription="slide" aria-label={`${k + 1} of ${SLIDES.length}`} aria-hidden={k !== cur}>
           {scenes && <div aria-hidden="true" dangerouslySetInnerHTML={{ __html: scenes[k] }} />}
-          <div className="a-cap"><p className="micro r-eb">{s.eb}</p><h3 className="r-h">{s.h}</h3><p className="s r-sub">{s.sub}</p></div>
+          <div className={`a-cap${s.light ? " light" : ""}`}><p className="micro r-eb">{s.eb}</p><h3 className="r-h">{s.h}</h3><p className="s r-sub">{s.sub}</p></div>
         </div>
       ))}
       <div className="dots" role="group" aria-label="Choose slide">
