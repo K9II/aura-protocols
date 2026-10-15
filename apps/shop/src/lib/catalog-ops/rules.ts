@@ -81,10 +81,14 @@ export function parseReceive(i: ReceiveInput): { ok: true; value: ReceiveValue }
   };
 }
 
-export function liveRefusal(l: { status: string; purityOk: boolean; endotoxinOk: boolean; sellable: number }): string | null {
+// Same order as admin_lot_live (coa-library.sql). The cost is required so an order's
+// profit is never overstated by a lot with no cost (2026-10-14).
+export const NEEDS_COST = "Needs the lot cost: pick the supplier and enter the cost (Edit).";
+export function liveRefusal(l: { status: string; purityOk: boolean; endotoxinOk: boolean; costOk: boolean; sellable: number }): string | null {
   if (l.status !== "draft") return "This lot is already live.";
   if (!l.purityOk) return "Needs a passing purity certificate.";
   if (!l.endotoxinOk) return "Needs a passing endotoxin result.";
+  if (!l.costOk) return NEEDS_COST;
   if (l.sellable <= 0) return "Nothing to sell — every vial is damaged.";
   return null;
 }

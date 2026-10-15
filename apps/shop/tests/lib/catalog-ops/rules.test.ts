@@ -55,12 +55,14 @@ describe("isDiscrepancy", () => {
 });
 
 describe("liveRefusal", () => {
-  const draft = { status: "draft", purityOk: true, endotoxinOk: true, sellable: 10 };
-  it("ready when purity and endotoxin pass and something sells", () => expect(liveRefusal(draft)).toBeNull());
+  const draft = { status: "draft", purityOk: true, endotoxinOk: true, costOk: true, sellable: 10 };
+  it("ready when purity and endotoxin pass, the cost is recorded and something sells", () => expect(liveRefusal(draft)).toBeNull());
   it("names what's missing, in order", () => {
     expect(liveRefusal({ ...draft, status: "live" })).toBe("This lot is already live.");
     expect(liveRefusal({ ...draft, purityOk: false, endotoxinOk: false })).toBe("Needs a passing purity certificate.");
     expect(liveRefusal({ ...draft, endotoxinOk: false })).toBe("Needs a passing endotoxin result.");
+    expect(liveRefusal({ ...draft, costOk: false })).toBe("Needs the lot cost: pick the supplier and enter the cost (Edit).");
+    expect(liveRefusal({ ...draft, endotoxinOk: false, costOk: false })).toBe("Needs a passing endotoxin result.");
     expect(liveRefusal({ ...draft, sellable: 0 })).toBe("Nothing to sell — every vial is damaged.");
   });
 });

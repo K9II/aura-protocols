@@ -101,6 +101,7 @@ describe("catalog actions", () => {
   it.each([
     ["needs_purity", "Saved as a draft. Needs a passing purity certificate."],
     ["needs_endotoxin", "Saved as a draft. Needs a passing endotoxin result."],
+    ["needs_cost", "Saved as a draft. Needs the lot cost: pick the supplier and enter the cost (Edit)."],
     ["nothing_sellable", "Saved as a draft. Nothing to sell — every vial is damaged."],
   ])("receive + live refused as %s stays a draft and says why", async (reason, message) => {
     data.receiveLot.mockResolvedValue({ ok: true, id: "l9" });

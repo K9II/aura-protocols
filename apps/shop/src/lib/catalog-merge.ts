@@ -11,7 +11,7 @@ export type LotStockRow = {
   purity_pct: number | null; method: "HPLC" | "HPLC+MS" | null; tested_on: string | null; coa_path: string | null;
   status: "draft" | "live" | "retired"; live_at: string | null;
   sellable: number; held: number; sold: number; available: number;
-  purity_ok: boolean; endotoxin_ok: boolean;
+  purity_ok: boolean; endotoxin_ok: boolean; cost_ok: boolean;
 };
 export type CatalogOps = {
   products: Array<{ slug: string; shown: boolean }>;

@@ -72,6 +72,10 @@ describe("coa-library.sql", () => {
     const fn = sql.slice(sql.indexOf("create or replace function admin_lot_live"), sql.indexOf("revoke all on function admin_lot_live"));
     expect(fn).toContain("return 'needs_purity'");
     expect(fn).toContain("return 'needs_endotoxin'");
+    // and the lot's cost (2026-10-14), checked after the certificates
+    expect(fn).toContain("if l.cost_cents is null or l.supplier is null then return 'needs_cost'; end if;");
+    expect(fn.indexOf("needs_endotoxin")).toBeLessThan(fn.indexOf("needs_cost"));
+    expect(sql).toContain("(l.cost_cents is not null and l.supplier is not null) as cost_ok");
     expect(fn).not.toContain("no_certificate");
     expect(sql).toContain("revoke all on function admin_lot_live(uuid, uuid) from public, anon, authenticated;");
   });

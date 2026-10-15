@@ -9,7 +9,7 @@ export default function Catalog() {
   return (
     <Chapter
       id="catalog"
-      lede="Prices, stock and certified lots for every product and strength. A lot only sells once it has a passing purity certificate and a passing endotoxin result, and its receiving check is done; the store always sells the oldest live lot first."
+      lede="Prices, stock and certified lots for every product and strength. A lot only sells once it has a passing purity certificate, a passing endotoxin result and its cost recorded, and its receiving check is done; the store always sells the oldest live lot first."
       tasks={<>
         <Task title="Receive a shipment" note="one lot of one strength">
           <Step>Open the product in <Ui>Catalog &amp; lots</Ui> and choose <Ui>Receive a lot</Ui> on the strength that arrived.</Step>
@@ -19,7 +19,7 @@ export default function Catalog() {
           <Step>Choose <Ui>Save and put live</Ui> to start selling it, or <Ui>Save as draft</Ui> to finish later.</Step>
         </Task>
         <Task title="Put a draft lot live">
-          <Step>Drafts show under the live lots with <Ui>Put live</Ui>. It&apos;s greyed out until the lot has a passing purity certificate and a passing endotoxin result — on one report or two. The line under the button says which is missing. Use <Ui>Edit</Ui> to fix anything first — once live, the lot&apos;s details can&apos;t change.</Step>
+          <Step>Drafts show under the live lots with <Ui>Put live</Ui>. It&apos;s greyed out until the lot has a passing purity certificate and a passing endotoxin result — on one report or two — and its supplier and cost are entered, so every order&apos;s profit is right. The line under the button says what&apos;s missing. Use <Ui>Edit</Ui> to fix anything first — once live, the lot&apos;s details can&apos;t change.</Step>
         </Task>
         <Task title="Add a certificate or a re-test">
           <Step><Ui>+ Add certificate</Ui> on the lot. On a draft you can <Ui>Edit</Ui> or <Ui>Delete</Ui> a certificate; once the lot is live a certificate can&apos;t change — add a re-test, or use <Ui>Correction note</Ui> to fix a typo (customers see the note).</Step>

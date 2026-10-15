@@ -1,5 +1,6 @@
 -- COA library (spec 2026-10-11-coa-library-design.md). Apply after
--- catalog-ops.sql and wholesale-runs.sql. Supersedes catalog-ops.sql's
+-- catalog-ops.sql, wholesale-runs.sql and lot-costs.sql (lot_stock.cost_ok and
+-- admin_lot_live's 'needs_cost' read lots.cost_cents / supplier). Supersedes catalog-ops.sql's
 -- lot_stock view and admin_lot_live, and wholesale-runs.sql's
 -- catalog_events kind check — if wholesale-runs.sql is re-run, re-apply this
 -- file after it. A lot carries one or more certificates; the lot's own
@@ -115,7 +116,9 @@ select l.id, l.lot_number, l.slug, l.variant_id, hc.purity_pct, hc.method, hc.te
   coalesce(h.sold, 0)::int as sold,
   (l.counted_qty - l.damaged_qty + l.adjust_qty - coalesce(h.held, 0) - coalesce(h.sold, 0))::int as available,
   (hc.id is not null) as purity_ok,
-  exists (select 1 from lot_certificates e where e.lot_id = l.id and e.result = 'pass' and e.endotoxin = 'pass') as endotoxin_ok
+  exists (select 1 from lot_certificates e where e.lot_id = l.id and e.result = 'pass' and e.endotoxin = 'pass') as endotoxin_ok,
+  -- a lot goes live only with its cost recorded (supplier + box cost; 2026-10-14) so profit is never overstated
+  (l.cost_cents is not null and l.supplier is not null) as cost_ok
 from lots l
 left join lateral (
   select c.id, c.purity_pct, c.method, c.tested_on, c.coa_path from lot_certificates c
@@ -135,7 +138,7 @@ alter table lots drop column if exists method;
 alter table lots drop column if exists tested_on;
 alter table lots drop column if exists coa_path;
 
--- 'ok' | 'missing' | 'not_draft' | 'needs_purity' | 'needs_endotoxin' | 'nothing_sellable'
+-- 'ok' | 'missing' | 'not_draft' | 'needs_purity' | 'needs_endotoxin' | 'needs_cost' | 'nothing_sellable'
 -- (locks: see catalog-ops.sql — FOR NO KEY UPDATE, same stock advisory key)
 create or replace function admin_lot_live(p_lot uuid, p_actor uuid) returns text language plpgsql
 set search_path = public, pg_temp as $$
@@ -151,6 +154,8 @@ begin
   if not exists (select 1 from lot_certificates c where c.lot_id = p_lot and c.result = 'pass' and c.endotoxin = 'pass') then
     return 'needs_endotoxin';
   end if;
+  -- the lot's cost (lot-costs.sql), or every order from it overstates profit (2026-10-14)
+  if l.cost_cents is null or l.supplier is null then return 'needs_cost'; end if;
   if l.counted_qty - l.damaged_qty + l.adjust_qty <= 0 then return 'nothing_sellable'; end if;
   update lots set status = 'live', live_at = now() where id = p_lot;
   insert into catalog_events (slug, variant_id, lot_id, kind, actor_id) values (l.slug, l.variant_id, l.id, 'lot_live', p_actor);

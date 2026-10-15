@@ -8,8 +8,7 @@ import { catalogContent } from "@/data/catalog";
 import { addVariant, archiveVariant, coaUploaded, correctCount, createCoaUpload, deleteVariant, lotById, putLotLive, receiveLot, restoreVariant, retireLot, setShown, setVariantField, setVariantShown, setVariantWholesale, updateDraftLot, variantRow, lotDefaults } from "@/lib/catalog-ops/data";
 import { fillLotCostFromLine, lineById, linkLot } from "@/lib/wholesale/runs-data";
 import {
-  isCoaPathFor, isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku, parseStrength,
-} from "@/lib/catalog-ops/rules";
+  isCoaPathFor, isDiscrepancy, LOT_NUMBER_RE, parseCorrection, parseLowAt, parsePrice, parseReceive, parseSku, parseStrength, NEEDS_COST } from "@/lib/catalog-ops/rules";
 import { addCertificate, addCorrection, certificateById, deleteDraftCertificate, listLabs, updateDraftCertificate } from "@/lib/coa/data";
 import { CORRECTION_MAX, parseCertificate, TEST_KEYS, type CertInput } from "@/lib/coa/rules";
 import { catalogChangedByOwner } from "@/lib/catalog-live";
@@ -55,6 +54,7 @@ async function pdfOk(lotNumber: string, path: string) {
 const LIVE_REFUSAL: Record<string, string> = {
   needs_purity: "Needs a passing purity certificate.",
   needs_endotoxin: "Needs a passing endotoxin result.",
+  needs_cost: NEEDS_COST,
   nothing_sellable: "Nothing to sell — every vial is damaged.",
 };
 const TAKEN = "That report number is already recorded for this lab.";
