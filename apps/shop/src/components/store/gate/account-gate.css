@@ -188,5 +188,7 @@
 /* The dialog takes focus when it opens (for screen readers); no browser ring around the whole card. */
 .ag:focus,.ag-phone .pc-card:focus{outline:none}
 .ag .a-trust svg{width:18px;height:18px}
-/* Narrowest phones: the logo and the tag don't both fit; the heading below states the offer. */
-@media (max-width:360px){.ag-phone .ag-offer-tag{display:none}}
+/* Phones up to 400px (e.g. 360px Galaxy): the tag drops its small "New account" line so it stays
+   short and clears the tagline; it's hidden only below 350px, where it would touch the logo or tagline. */
+@media (max-width:400px){.ag-phone .ag-offer-tag{width:80px;padding:15px 4px 8px}.ag-phone .ag-offer-tag span{display:none}}
+@media (max-width:349px){.ag-phone .ag-offer-tag{display:none}}
