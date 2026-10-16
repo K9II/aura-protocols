@@ -67,6 +67,7 @@ MOLECULES = {
     "tirzepatide":  {"label": "Tirzepatide", "how": "smiles", "cid": 166567236},
     "retatrutide":  {"label": "Retatrutide", "how": "smiles", "cid": 171390338},
     "cagrilintide": {"label": "Cagrilintide", "how": "smiles", "cid": 171397054},
+    "eloralintide": {"label": "Eloralintide", "how": "smiles", "cid": 175663130},
 }
 
 # product slug -> panel ids. Singles map to themselves; blends list components.

@@ -12,8 +12,8 @@ describe("catalog integrity", () => {
   // hides the six incretin & amylin analogs — tests/data/catalog-ops-sql.test.ts).
   // Strengths live in Aura Store (catalog_variants, managed in /admin/catalog);
   // the seed's strengths are checked in tests/data/catalog-ops-sql.test.ts.
-  it("has the 29 catalog compounds, content only (no strengths, prices, stock or lots)", () => {
-    expect(compounds).toHaveLength(29);
+  it("has the 30 catalog compounds, content only (no strengths, prices, stock or lots)", () => {
+    expect(compounds).toHaveLength(30);
     for (const c of compounds) {
       expect(c, c.slug).not.toHaveProperty("currentLot");
       expect(c, c.slug).not.toHaveProperty("variants");

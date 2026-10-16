@@ -39,6 +39,12 @@ export const IDENTITY: Record<string, Identity> = {
     "molecularWeight": "4409.0 g/mol",
     "source": "https://pubchem.ncbi.nlm.nih.gov/compound/171397054"
   },
+  "eloralintide": {
+    "cas": "2883634-40-8",
+    "formula": "C201H319N49O65S2",
+    "molecularWeight": "4526.0 g/mol",
+    "source": "https://pubchem.ncbi.nlm.nih.gov/compound/175663130"
+  },
   "sermorelin": {
     "cas": "86168-78-7",
     "formula": "C149H246N44O42S",

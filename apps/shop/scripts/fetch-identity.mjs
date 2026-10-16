@@ -13,6 +13,7 @@ const QUERIES = {
   tirzepatide: "tirzepatide",
   retatrutide: "retatrutide",
   cagrilintide: "cagrilintide",
+  eloralintide: "eloralintide",
   sermorelin: "sermorelin",
   tesamorelin: "tesamorelin",
   "igf-1-lr3": "IGF-1 LR3",

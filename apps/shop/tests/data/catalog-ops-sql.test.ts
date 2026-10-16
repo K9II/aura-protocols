@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { catalogContent } from "../../src/data/catalog";
 import { SEED_STRENGTHS, strengthId } from "../helpers/seed-strengths";
 
-const HIDDEN_AT_LAUNCH = ["semaglutide", "tirzepatide", "retatrutide", "cagrilintide", "cagrisema", "retatrutide-cagrilintide"];
+const HIDDEN_AT_LAUNCH = ["semaglutide", "tirzepatide", "retatrutide", "cagrilintide", "cagrisema", "retatrutide-cagrilintide", "eloralintide"];
 
 const sql = readFileSync(join(__dirname, "..", "..", "supabase", "catalog-ops.sql"), "utf8");
 

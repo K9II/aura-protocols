@@ -37,8 +37,10 @@ function row(c: Compound, qty: number, terms: CodeTerms, capPct: number): Basket
   return { label: `${c.name} × ${qty}`, note, listCents: r.listCents, paysCents: r.subtotalCents - r.partnerDiscountCents, offPct: pct(r), capped: r.cappedCents > 0, codeUsed: used };
 }
 
+// A product with no strength yet (just added, strengths come from the admin) has no price to preview.
 function eligible(terms: CodeTerms, list: Compound[]): Compound[] {
-  return list.filter((c) => terms.kind === "ship_only" || lineEligible(terms, { compoundSlug: c.slug, chemicalClass: c.chemicalClass }));
+  return list.filter((c) => c.variants.length > 0
+    && (terms.kind === "ship_only" || lineEligible(terms, { compoundSlug: c.slug, chemicalClass: c.chemicalClass })));
 }
 
 export function typicalBaskets(terms: CodeTerms, list: Compound[], capPct: number): BasketRow[] {

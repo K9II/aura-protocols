@@ -9,6 +9,8 @@ export const SEED_STRENGTHS: Record<string, string[]> = {
   "cagrilintide": ["10 mg"],
   "cagrisema": ["10 mg"],
   "retatrutide-cagrilintide": ["10 mg"],
+  // Added after the seed (2026-10-15): product row only, strengths come from the admin.
+  "eloralintide": [],
   "cjc-1295-ipamorelin": ["10 mg"],
   "sermorelin": ["10 mg"],
   "tesamorelin": ["10 mg"],

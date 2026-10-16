@@ -378,6 +378,8 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 insert into catalog_products (slug, shown) values
   ('semaglutide', false), ('tirzepatide', false), ('retatrutide', false), ('cagrilintide', false),
   ('cagrisema', false), ('retatrutide-cagrilintide', false),
+  -- added 2026-10-15 (amylin analog, hidden; its strengths are added in /admin/catalog)
+  ('eloralintide', false),
   ('cjc-1295-ipamorelin', true), ('sermorelin', true), ('tesamorelin', true), ('igf-1-lr3', true),
   ('bpc-157', true), ('tb-500', true), ('kpv', true), ('aod-9604', true),
   ('ss-31', true), ('mots-c', true), ('slu-pp-332', true),

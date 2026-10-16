@@ -34,4 +34,11 @@ describe("basket previews", () => {
   it("worst case is null when no listed item is eligible", () => {
     expect(worstCase({ ...spring, includeClasses: ["Cofactors & Conjugates"] }, list, 30)).toBeNull();
   });
+
+  it("skips a product with no strength yet instead of crashing", () => {
+    const bare: Compound = { ...mk("eloralintide", "Incretin & Amylin Analogs", 0), variants: [] };
+    expect(worstCase(spring, [bare, ...list], 30)!.offPct).toBe(30);
+    expect(typicalBaskets(spring, [bare, ...list], 30).map((r) => r.label)).not.toContain("ELORALINTIDE × 2");
+    expect(worstCase(spring, [bare], 30)).toBeNull();
+  });
 });

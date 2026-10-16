@@ -58,6 +58,9 @@ export const catalogContent: CatalogEntry<ChemicalClass>[] = [
   entry("tirzepatide", "Tirzepatide", "Incretin & Amylin Analogs"),
   entry("retatrutide", "Retatrutide", "Incretin & Amylin Analogs"),
   entry("cagrilintide", "Cagrilintide", "Incretin & Amylin Analogs"),
+  // Eloralintide (2026-10-15): an amylin analog, not a GLP-1 - same class and the same rule:
+  // never charged through Stripe. Scientific name only (no code name).
+  entry("eloralintide", "Eloralintide", "Incretin & Amylin Analogs"),
   entry("cagrisema", "Cagrilintide / Semaglutide", "Incretin & Amylin Analogs", { components: ["cagrilintide", "semaglutide"] }),
   entry("retatrutide-cagrilintide", "Retatrutide / Cagrilintide", "Incretin & Amylin Analogs", { components: ["retatrutide", "cagrilintide"] }),
   // GH-Axis Peptides
