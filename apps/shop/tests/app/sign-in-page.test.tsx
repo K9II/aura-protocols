@@ -81,4 +81,11 @@ describe("/sign-in", () => {
     getAccountState.mockResolvedValueOnce({ customer: null, blocked: false, unfinished: true });
     await expect(page({ next: "/checkout" })).rejects.toThrow("REDIRECT:/finish-account?next=%2Fcheckout");
   });
+
+  it("with no next (the nav's Sign in link) it lands on the home page, not the account page", async () => {
+    getAccountState.mockResolvedValueOnce({ customer: { id: "u1" }, blocked: false, unfinished: false });
+    await expect(page({})).rejects.toThrow("REDIRECT:/");
+    const { container } = render(await page({}));
+    expect(container.querySelector<HTMLInputElement>('form.g-signin-form input[name="next"]')!.value).toBe("/");
+  });
 });

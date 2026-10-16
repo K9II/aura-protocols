@@ -17,7 +17,9 @@ const ERRORS: Record<string, string> = {
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
   const { next: rawNext, error } = await searchParams;
-  const next = safeNext(rawNext, "/account");
+  // No destination given (the nav's "Sign in" link): land on the home page, not the
+  // account/orders page (Alvester 2026-10-15). Checkout etc. still pass ?next=.
+  const next = safeNext(rawNext, "/");
   const { customer, unfinished } = await getAccountState();
   if (customer) redirect(next);
   if (unfinished) redirect(`/finish-account?next=${encodeURIComponent(next)}`);

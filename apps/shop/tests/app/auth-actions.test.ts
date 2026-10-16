@@ -58,7 +58,7 @@ describe("auth actions", () => {
     expect((await signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "/checkout" })))?.error).toMatch(/email or password/i);
     expect(cookieDelete).not.toHaveBeenCalled();
     auth.signInWithPassword.mockResolvedValueOnce({ error: null });
-    await expect(signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "//evil" }))).rejects.toThrow("REDIRECT:/account");
+    await expect(signInAction(undefined, fd({ email: "j@lab.org", password: "x", next: "//evil" }))).rejects.toThrow("REDIRECT:/");
   });
 
   it("a blocked (banned) account is told it's closed", async () => {

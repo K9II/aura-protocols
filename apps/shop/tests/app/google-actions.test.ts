@@ -32,11 +32,11 @@ describe("startGoogleAction", () => {
     expect(signInWithOAuth.mock.calls[0][0].options.redirectTo).toBe("http://localhost:3100/auth/callback?flow=google&next=%2Fproducts%3Fcat%3Da");
   });
 
-  it("an unsafe next becomes /account", async () => {
+  it("an unsafe or missing next becomes the home page", async () => {
     signInWithOAuth.mockResolvedValue({ data: { url: "https://accounts.google.com/x" }, error: null });
     const { startGoogleAction } = await import("@/app/auth/google-actions");
     await expect(startGoogleAction(fd("https://evil.example"))).rejects.toThrow(/REDIRECT:/);
-    expect(signInWithOAuth.mock.calls[0][0].options.redirectTo).toBe("http://localhost:3100/auth/callback?flow=google&next=%2Faccount");
+    expect(signInWithOAuth.mock.calls[0][0].options.redirectTo).toBe("http://localhost:3100/auth/callback?flow=google&next=%2F");
   });
 
   it("a start failure is loud and lands on the sign-in page's Google message", async () => {
