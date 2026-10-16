@@ -1,13 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { catalogContent } from "@/data/catalog";
 
-// Products shown at launch. The six incretin & amylin analogs are hidden in
-// Aura Store pending processor approval and have no descriptions yet.
-const compounds = catalogContent.filter((c) => c.chemicalClass !== "Incretin & Amylin Analogs");
+// Every product, the incretin & amylin analogs included (described 2026-10-15).
+const compounds = catalogContent;
 import { findViolations } from "../../scripts/compliance-scan.mjs";
 
 describe("product descriptions", () => {
-  it("every product shown at launch has a 1–3 sentence description and an https source", () => {
+  it("every product has a 1–3 sentence description and an https source", () => {
     for (const c of compounds) {
       expect(c.description, c.slug).toBeTruthy();
       const sentences = c.description!.split(/(?<=\.)\s+/).length;

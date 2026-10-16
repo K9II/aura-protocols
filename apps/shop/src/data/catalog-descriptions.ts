@@ -101,4 +101,35 @@ export const DESCRIPTIONS: Record<string, Description> = {
     text: `A fixed-ratio blend of BPC-157, TB-500, GHK-Cu and KPV, supplied as a lyophilized powder in a single sealed vial.`,
     source: PUBCHEM(9941957),
   },
+  // Incretin & Amylin Analogs (2026-10-15). Structure from each compound's primary
+  // chemistry paper; retatrutide's from a peer-reviewed review, with its 39-residue
+  // sequence matching the FDA/NIH GSRS record (UNII NOP2Y096GV).
+  "semaglutide": {
+    text: `Semaglutide is a synthetic analog of human glucagon-like peptide-1, GLP-1(7–37): a 31-residue chain with two amino-acid substitutions, α-aminoisobutyric acid (Aib) at position 8 and arginine at position 34, derivatized at lysine 26 with a fatty-acid side chain. ${SUPPLIED}`,
+    source: "https://pubmed.ncbi.nlm.nih.gov/26308095/",
+  },
+  "tirzepatide": {
+    text: `Tirzepatide is a synthetic 39-residue linear peptide with two non-coded α-aminoisobutyric acid (Aib) residues, at positions 2 and 13, and an amidated C-terminus, conjugated through a linker at lysine 20 to a C20 fatty diacid. ${SUPPLIED}`,
+    source: "https://pubmed.ncbi.nlm.nih.gov/30473097/",
+  },
+  "retatrutide": {
+    text: `Retatrutide is a synthetic 39-residue peptide with three non-coded residues, α-aminoisobutyric acid (Aib) at positions 2 and 20 and α-methyl-L-leucine at position 13, and a C20 fatty diacid attached to lysine 17 through a γ-glutamic acid and AEEA linker. ${SUPPLIED}`,
+    source: "https://doi.org/10.3389/fphar.2026.1930768",
+  },
+  "cagrilintide": {
+    text: `Cagrilintide is a synthetic, lipidated analog of amylin, a 37-residue pancreatic peptide hormone. ${SUPPLIED}`,
+    source: "https://pubmed.ncbi.nlm.nih.gov/34288673/",
+  },
+  "eloralintide": {
+    text: `Eloralintide is a synthetic analog of human amylin: a C-terminally amidated, 37-residue linear peptide with three non-coded residues (positions 11, 15 and 22), a methylene thioacetal bond between cysteines 2 and 7, and lysine 26 acylated with two γ-glutamic acid residues and a saturated 20-carbon diacid. ${SUPPLIED}`,
+    source: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12640043/",
+  },
+  "cagrisema": {
+    text: `A fixed-ratio blend of Cagrilintide and Semaglutide, supplied as a lyophilized powder in a single sealed vial.`,
+    source: PUBCHEM(171397054),
+  },
+  "retatrutide-cagrilintide": {
+    text: `A fixed-ratio blend of Retatrutide and Cagrilintide, supplied as a lyophilized powder in a single sealed vial.`,
+    source: PUBCHEM(171390338),
+  },
 };
