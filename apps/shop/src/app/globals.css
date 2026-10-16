@@ -628,6 +628,8 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-placard-r { margin-top: auto; font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); border-top: 1px solid #DCD5C3; padding-top: 6px; max-width: 58%; }
 /* placard text stays left of the vial, which stands in front of the placard's right side */
 .pharmacopoeia .s-placard-k, .pharmacopoeia .s-placard-n, .pharmacopoeia .s-placard-id { max-width: 76%; }
+/* a two-line blend name (vialName): each line stays whole, so "CJC-1295 /" never breaks at its hyphen */
+.pharmacopoeia .s-name-line { display: block; white-space: nowrap; }
 .pharmacopoeia .s-placard-id span { white-space: nowrap; }
 .pharmacopoeia .s-card-vial { position: absolute; right: 5%; bottom: 9%; width: 37%; filter: drop-shadow(5px 8px 7px rgba(28,26,21,.22)); transition: transform .45s cubic-bezier(.2,.7,.2,1); }
 .pharmacopoeia .s-card-vial svg { display: block; width: 100%; height: auto; filter: none !important; }

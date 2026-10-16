@@ -7,7 +7,7 @@ import type { ChemicalClass, Compound } from "@/data/catalog";
 import { useCart } from "@/components/store/CartProvider";
 import Vial from "@/components/store/Vial";
 import { useFocusTrap } from "@/components/store/useFocusTrap";
-import { compoundTitle, fromPackPriceUsd, isPendingLot, vialCap, vialLabel, vialParts } from "@/lib/catalog";
+import { compoundTitle, fromPackPriceUsd, isPendingLot, vialCap, vialName, vialParts } from "@/lib/catalog";
 import { formatUsd } from "@/lib/cart";
 import { CLASS_COLOR } from "@/lib/class-colors";
 import {
@@ -235,7 +235,7 @@ function Preview({ c, onNavigate }: { c: Compound; onNavigate: () => void }) {
   return (
     <Link href={`/products/${c.slug}`} onClick={onNavigate} className="s-sx-pv" aria-label={`View ${compoundTitle(c)}`} style={{ "--cls": color } as CSSProperties}>
       <span className="s-sx-pv-vial">
-        <Vial id={`sx-${c.slug}`} label={vialLabel(c)} cap={vialCap(c)} rule={color} parts={vialParts(c)} strength={c.variants[0].strength} tilt={-8} width={150} />
+        <Vial id={`sx-${c.slug}`} label={vialName(c)[0]} label2={vialName(c)[1]} cap={vialCap(c)} rule={color} parts={vialParts(c)} strength={c.variants[0].strength} tilt={-8} width={150} />
       </span>
       <span className="s-sx-pv-info">
         <span className="s-micro s-sx-pv-cls"><i aria-hidden />{c.chemicalClass}</span>

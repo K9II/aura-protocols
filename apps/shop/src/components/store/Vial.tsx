@@ -15,7 +15,8 @@ const CAPS = {
 
 type VialProps = {
   id: string;            // unique per page instance (gradient ids)
-  label: string;         // already shortened via vialLabel()
+  label: string;         // already shortened via vialLabel() / vialName()[0]
+  label2?: string;       // vialName()[1]: a two-component blend's second name, on its own line
   strength: string;
   tilt?: number;         // degrees
   width?: number;        // rendered width; height keeps the 120:200 ratio
@@ -24,7 +25,7 @@ type VialProps = {
   parts?: string[];      // a nicknamed blend's components (vialParts()), printed small in place of LYOPHILIZED
 };
 
-export default function Vial({ id, label, strength, tilt = -10, width = 160, cap: capColor = "red", rule = "#A32B1F", parts = [] }: VialProps) {
+export default function Vial({ id, label, label2, strength, tilt = -10, width = 160, cap: capColor = "red", rule = "#A32B1F", parts = [] }: VialProps) {
   // A class colour reads as a band, so it draws a little heavier than the red hairline.
   const ruleWidth = rule === "#A32B1F" ? 0.8 : 1.6;
   const nameSize = label.length > 9 ? 10.5 : label.length > 7 ? 12.5 : 14;
@@ -40,7 +41,7 @@ export default function Vial({ id, label, strength, tilt = -10, width = 160, cap
       height={(width * 200) / 120}
       viewBox="0 0 120 200"
       role="img"
-      aria-label={`${label} ${strength} vial`}
+      aria-label={`${label2 ? `${label} ${label2}` : label} ${strength} vial`}
       style={{ transform: `rotate(${tilt}deg)`, filter: "drop-shadow(0 12px 14px rgba(28,26,21,.09))" }}
     >
       <defs>
@@ -115,8 +116,15 @@ export default function Vial({ id, label, strength, tilt = -10, width = 160, cap
       <text x="43" y="89.5" style={SERIF} fontSize="22" fontWeight="500" fill="#A32B1F" letterSpacing="-.3">ura</text>
       <text x="58" y="98" style={SERIF} fontSize="6.6" fontWeight="500" fill="#4A4438" letterSpacing=".3" textAnchor="middle">Protocols</text>
       <line x1="26" y1="103" x2="94" y2="103" stroke="#C9C2AE" strokeWidth=".8" />
-      <text x="26" y="117" style={SERIF} fontSize={nameSize} fontWeight="600" fill="#1C1A15">{label}</text>
-      <text x="26" y="127" style={{ fontFamily: "var(--font-sans), Inter, sans-serif" }} fontSize="8.5" fill="#A32B1F">{strength}</text>
+      {label2 ? <>
+        {/* Two-line name (a blend without a nickname): both lines and the strength fit between the rules at y=103 and y=133. */}
+        <text x="26" y="113" style={SERIF} fontSize="9.6" fontWeight="600" fill="#1C1A15">{label}</text>
+        <text x="26" y="122.4" style={SERIF} fontSize="9.6" fontWeight="600" fill="#1C1A15">{label2}</text>
+        <text x="26" y="130.6" style={{ fontFamily: "var(--font-sans), Inter, sans-serif" }} fontSize="7.4" fill="#A32B1F">{strength}</text>
+      </> : <>
+        <text x="26" y="117" style={SERIF} fontSize={nameSize} fontWeight="600" fill="#1C1A15">{label}</text>
+        <text x="26" y="127" style={{ fontFamily: "var(--font-sans), Inter, sans-serif" }} fontSize="8.5" fill="#A32B1F">{strength}</text>
+      </>}
       <line x1="26" y1="133" x2="94" y2="133" stroke="#C9C2AE" strokeWidth=".8" />
       {/* Every line must end before x=94 (the paper label's right margin). */}
       {parts.length > 1 ? <>

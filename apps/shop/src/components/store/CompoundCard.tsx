@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import type { Compound } from "@/data/catalog";
-import { fromPackPriceUsd, isPendingLot, vialCap, vialLabel, vialParts } from "@/lib/catalog";
+import { fromPackPriceUsd, isPendingLot, vialCap, vialName, vialParts } from "@/lib/catalog";
 import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import { formatUsd } from "@/lib/cart";
 import Vial from "@/components/store/Vial";
@@ -31,12 +31,12 @@ export default function CompoundCard({ compound: c, index = 0, idScope = "" }: {
         ) : null}
         <div className="s-placard" aria-hidden>
           <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass)}</span>
-          <span className="s-placard-n">{vialLabel(c)}</span>
+          <span className="s-placard-n">{vialName(c).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
           {idLine && <span className="s-placard-id">{idLine}</span>}
           <span className="s-placard-r">Research use only · Not for human use</span>
         </div>
         <div className="s-card-vial">
-          <Vial id={`${idScope}${c.slug}-${index}`} label={vialLabel(c)} cap={vialCap(c)} rule={color} parts={vialParts(c)} strength={c.variants[0].strength} tilt={0} />
+          <Vial id={`${idScope}${c.slug}-${index}`} label={vialName(c)[0]} label2={vialName(c)[1]} cap={vialCap(c)} rule={color} parts={vialParts(c)} strength={c.variants[0].strength} tilt={0} />
         </div>
       </div>
       <div className="s-card-info">
