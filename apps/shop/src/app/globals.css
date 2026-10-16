@@ -894,6 +894,10 @@ main > .pharmacopoeia { overflow-x: clip; }
   .pharmacopoeia .s-about-inner { row-gap: 0; }
   .pharmacopoeia .s-about-inner > div:first-child { position: relative; z-index: 1; }
   .pharmacopoeia .s-about-inner .s-mol-stage { margin-top: -48px; margin-bottom: -40px; }
+  /* a blend's component buttons sit above its stage: keep them clear of the PubChem links */
+  .pharmacopoeia .s-about-inner .s-mol-blend { margin-top: 28px; }
+  /* and their model starts below the buttons, not tucked up under them */
+  .pharmacopoeia .s-about-inner .s-mol-blend .s-mol-stage { margin-top: 0; }
 }
 /* Blends: one full-size stage, the same as a single compound, and a button per component. */
 .pharmacopoeia .s-mol-blend { position: relative; min-width: 0; }
