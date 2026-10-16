@@ -12,7 +12,7 @@ import { alertOwner } from "@/lib/notify";
 // the code verifier in a cookie here; /auth/callback exchanges the code.
 // Google sign-ins are persistent sessions, so the "Remember me" marker goes.
 export async function startGoogleAction(form: FormData): Promise<void> {
-  const next = safeNext(String(form.get("next") ?? ""), "/account");
+  const next = safeNext(String(form.get("next") ?? ""), "/");
   const supabase = await createSupabaseServerClient({ sessionOnly: false });
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
