@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Compound } from "@/data/catalog";
 import {
   findCompound, compoundsInClass, relatedCompounds,
-  isPendingLot, vialLabel, vialParts, vialCap, classCounts, strengthMg, packOptions, strengthInPriceUnit,
+  isPendingLot, vialLabel, vialName, VIAL_LINE_MAX, vialParts, vialCap, classCounts, strengthMg, packOptions, strengthInPriceUnit,
   fromPackPriceUsd, toPackPriceUsd, perVialUsd,
 } from "@/lib/catalog";
 import { catalogContent } from "@/data/catalog";
@@ -52,6 +52,17 @@ describe("catalog helpers", () => {
     expect(vialLabel(fixture[0])).toBe("Alpha");
     expect(vialLabel({ ...fixture[0], name: "PT-141 (Bremelanotide)" })).toBe("PT-141");
     expect(vialLabel({ ...fixture[0], name: "SS-31 (Elamipretide)" })).toBe("SS-31");
+  });
+
+  it("vialName: a two-component blend without a nickname prints both names on two lines", () => {
+    const find = (slug: string) => catalogContent.find((c) => c.slug === slug)!;
+    expect(vialName(find("retatrutide-cagrilintide"))).toEqual(["Retatrutide\u00a0/", "Cagrilintide"]);
+    expect(vialName(find("cagrisema"))).toEqual(["Cagrilintide\u00a0/", "Semaglutide"]);
+    expect(vialName(find("cjc-1295-ipamorelin"))).toEqual(["CJC-1295\u00a0/", "Ipamorelin"]);
+    expect(vialName(find("bpc-157-tb-500-ghk-cu-kpv"))).toEqual(["KLOW"]);
+    expect(vialName(find("bpc-157"))).toEqual(["BPC-157"]);
+    expect(vialName({ name: "BPC-157 / TB-500 / GHK-Cu" })).toEqual(["BPC-157 +"]);
+    for (const c of catalogContent) for (const line of vialName(c)) expect(line.length, `${c.slug}: ${line}`).toBeLessThanOrEqual(VIAL_LINE_MAX);
   });
 
   it("a designation leads the vial label (blend nicknames)", () => {

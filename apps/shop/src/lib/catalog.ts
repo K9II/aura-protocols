@@ -115,6 +115,20 @@ export function vialLabel(c: { name: string; designation?: string | null }): str
   return `${name.split(" / ")[0]} +`;
 }
 
+// The name as printed on the vial: one line, or two for a two-component blend
+// without a nickname ("Retatrutide /" over "Cagrilintide", Alvester 2026-10-15,
+// option A) so its full scientific name shows instead of "Retatrutide +".
+export const VIAL_LINE_MAX = 14; // "Cagrilintide /" at the two-line size, measured 2026-10-15
+export function vialName(c: { name: string; designation?: string | null }): [string] | [string, string] {
+  const one = vialLabel(c);
+  if (c.designation || !one.endsWith(" +")) return [one];
+  const parts = c.name.replace(/\s*\([^)]*\)\s*$/, "").split(" / ");
+  // A no-break space keeps the "/" on the first line when a narrow placard wraps.
+  const lines: [string, string] = [`${parts[0]}\u00a0/`, parts[1]];
+  if (parts.length !== 2 || lines.some((l) => l.length > VIAL_LINE_MAX)) return [one];
+  return lines;
+}
+
 // The small type under a blend's nickname on the vial: its components, two per
 // line ("BPC-157 · TB-500" / "GHK-Cu · KPV"). Nothing for anything else.
 export function vialParts(c: { designation?: string | null; components?: string[] }): string[] {

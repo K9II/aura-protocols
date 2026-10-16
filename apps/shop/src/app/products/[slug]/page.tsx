@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { catalogContent } from "@/data/catalog";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
-import { findCompound, fromPackPriceUsd, isPendingLot, madeBy, relatedCompounds, toPackPriceUsd, vialCap, vialLabel, vialParts } from "@/lib/catalog";
+import { findCompound, fromPackPriceUsd, isPendingLot, madeBy, relatedCompounds, toPackPriceUsd, vialCap, vialName, vialParts } from "@/lib/catalog";
 import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import Vial from "@/components/store/Vial";
 import Unavailable from "@/components/store/Unavailable";
@@ -114,14 +114,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {allOut ? <span className="s-flag s-flag--out s-micro">Out of stock</span> : anyLow ? <span className="s-flag s-micro">Low stock</span> : null}
               <div className="s-pdp-placard" aria-hidden>
                 <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass)}</span>
-                <span className="s-pdp-placard-n">{vialLabel(c)}</span>
+                <span className="s-pdp-placard-n">{vialName(c).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
                 <dl>
                   {placardRows.filter(([, v]) => v).map(([k, v]) => <div key={k} className={k === "Form" ? "s-pdp-form" : k === "Mol. wt" ? "s-pdp-mw" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
                 </dl>
                 <span className="s-placard-r">Research use only · Not for human use</span>
               </div>
               <div className="s-pdp-vial">
-                <Vial id={`pdp-${c.slug}`} label={vialLabel(c)} cap={vialCap(c)} rule={CLASS_COLOR[c.chemicalClass]} parts={vialParts(c)} strength={c.variants[0].strength} tilt={0} />
+                <Vial id={`pdp-${c.slug}`} label={vialName(c)[0]} label2={vialName(c)[1]} cap={vialCap(c)} rule={CLASS_COLOR[c.chemicalClass]} parts={vialParts(c)} strength={c.variants[0].strength} tilt={0} />
               </div>
             </div>
             <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} />
