@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { CLASS_COLOR } from "@/lib/class-colors";
 import type { ChemicalClass } from "@/data/catalog";
-import { KIT_VIALS, QUOTE_REPLY_BUSINESS_DAYS, type Tier } from "@/lib/wholesale/rules";
+import { KIT_VIALS, QUOTE_REPLY_HOURS, type Tier } from "@/lib/wholesale/rules";
 import { cardAllowed } from "@/lib/wholesale/quote";
 
 export type RequestedKit = { key: string; chemicalClass: string; title: string; scientific: string | null; strength: string; kits: number };
@@ -31,7 +31,7 @@ export default function QuoteRequested({ inquiryRef, firstName, email, items, ti
         <section className="s-co-panel">
           <p className="s-micro mb-4">What happens next</p>
           <ol className="s-qr-steps">
-            <li className="now"><span className="n">1</span><b>We price your kits <span className="when">within {QUOTE_REPLY_BUSINESS_DAYS} business days</span></b>
+            <li className="now"><span className="n">1</span><b>We price your kits <span className="when">within {QUOTE_REPLY_HOURS} hours</span></b>
               <p>You get an email with your volume price for each strength, the total and the deposit.</p></li>
             <li><span className="n">2</span><b>You reply yes</b>
               <p>Just answer the email. Change a strength or a kit count in your reply if you need to, and we&apos;ll update the price.</p></li>

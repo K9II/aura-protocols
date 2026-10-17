@@ -21,7 +21,7 @@ export const VOLUME_QUOTE_EVENT = "aura:volume-quote";
 // The inquiry form announces a sent request; the order sheet answers with "Quote requested"
 // (mock "Quote Requested Mock", 2026-10-17) when the message is the one it handed over.
 export const VOLUME_QUOTE_SENT_EVENT = "aura:volume-quote-sent";
-export const QUOTE_REPLY_BUSINESS_DAYS = 2;
+export const QUOTE_REPLY_HOURS = 12;   // Alvester 2026-10-17: volume quotes are priced within 12 hours
 
 // Pricing (2026-10-10): minimum 5 kits, mixed any way; 5-9 30%, 10-19 35%, 20+ 40% —
 // every tier beats every retail offer (10-pack STD_PACKS, new-account %). The first tier starts at the order

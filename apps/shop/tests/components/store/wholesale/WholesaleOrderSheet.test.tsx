@@ -150,7 +150,7 @@ describe("WholesaleOrderSheet", () => {
     const page = screen.getByTestId("ws-quote-requested");
     expect(page.textContent).toContain("Thanks, Dana. Your request is Q-1007");
     expect(page.textContent).toContain("d@lab.org");
-    expect(page.textContent).toContain("within 2 business days");
+    expect(page.textContent).toContain("within 12 hours");
     expect(page.textContent).toContain("pay the 40% deposit by bank transfer or card");
     expect(page.textContent).toContain("the run closing Oct 19; after that, the next one closes Nov 2");
     expect(screen.getByTestId("ws-quote-requested-count").textContent).toBe("50 kits · 500 vials");
