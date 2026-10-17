@@ -1,15 +1,15 @@
 import { describe, it, expect } from "vitest";
 import { VOLUME_NUDGE_MIN_KITS, VOLUME_QUOTE_MIN_KITS, nextCutoffAfter, volumeNudge, volumeQuoteMessage } from "@/lib/wholesale/rules";
 
-// Mock "Volume Quote Mocks", option B (2026-10-11): nudge from 40 kits, quote from 50.
+// Mock "Volume Quote Mocks", option B (2026-10-11); since 2026-10-17 (Alvester): nudge from 20 kits, quote from 30.
 describe("volume quotes", () => {
   it("nudges from the nudge threshold and offers a quote from the quote threshold", () => {
-    expect(VOLUME_NUDGE_MIN_KITS).toBe(40);
-    expect(VOLUME_QUOTE_MIN_KITS).toBe(50);
-    expect(volumeNudge(39)).toBeNull();
-    expect(volumeNudge(40)).toEqual({ kind: "near", kitsNeeded: 10 });
-    expect(volumeNudge(49)).toEqual({ kind: "near", kitsNeeded: 1 });
-    expect(volumeNudge(50)).toEqual({ kind: "quote" });
+    expect(VOLUME_NUDGE_MIN_KITS).toBe(20);
+    expect(VOLUME_QUOTE_MIN_KITS).toBe(30);
+    expect(volumeNudge(19)).toBeNull();
+    expect(volumeNudge(20)).toEqual({ kind: "near", kitsNeeded: 10 });
+    expect(volumeNudge(29)).toEqual({ kind: "near", kitsNeeded: 1 });
+    expect(volumeNudge(30)).toEqual({ kind: "quote" });
     expect(volumeNudge(200)).toEqual({ kind: "quote" });
   });
 

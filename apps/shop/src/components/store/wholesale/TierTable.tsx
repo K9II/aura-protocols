@@ -2,7 +2,7 @@ import type { Tier } from "@/lib/wholesale/rules";
 import { VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_MIN_KITS } from "@/lib/wholesale/rules";
 
 // "5–9 kits / 20% off" — phones get "5–9 / 20%" (mock w8). activePct highlights the current tier.
-// While the top tier starts below the volume-quote threshold, it ends there ("20–49 kits") and a
+// While the top tier starts below the volume-quote threshold, it ends there ("20–29 kits") and a
 // fourth card points larger orders to a quote (mock "Volume Quote Mocks", option B).
 // quoteActive (an order of VOLUME_QUOTE_MIN_KITS+ kits) moves the highlight to that card.
 export default function TierTable({ tiers, activePct, quoteActive = false }: { tiers: Tier[]; activePct?: number | null; quoteActive?: boolean }) {

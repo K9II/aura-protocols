@@ -10,12 +10,12 @@ export const CUTOFF_ANCHOR = "2026-10-05";   // a Monday; runs close every whole
 export const TESTED_BEFORE_SHIP_DAYS = 5;
 export const WHOLESALE_TERMS_VERSION = "2026-10-08";
 
-// Volume quotes (mock "Volume Quote Mocks", option B, Alvester 2026-10-11): orders of
+// Volume quotes (mock "Volume Quote Mocks", option B, Alvester 2026-10-11; from 30 kits since 2026-10-17): orders of
 // VOLUME_QUOTE_MIN_KITS or more kits are invited to ask for a quote instead of paying the top
 // tier; the order sheet starts pointing at it from VOLUME_NUDGE_MIN_KITS. Quotes are priced by
 // hand from AIOS (Kits tab, Volume quote) and never shown on the site.
-export const VOLUME_QUOTE_MIN_KITS = 50;
-export const VOLUME_NUDGE_MIN_KITS = 40;
+export const VOLUME_QUOTE_MIN_KITS = 30;
+export const VOLUME_NUDGE_MIN_KITS = 20;   // = where the top tier starts, so the bar always points somewhere
 export const VOLUME_QUOTE_ANCHOR = "volume-quote";
 export const VOLUME_QUOTE_EVENT = "aura:volume-quote";
 // The inquiry form announces a sent request; the order sheet answers with "Quote requested"

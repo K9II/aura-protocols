@@ -7,7 +7,7 @@ import { GLP_CLASS } from "@/lib/wholesale/margins";
 import { KIT_VIALS, MAX_KITS_PER_LINE, cutoffFor, estimatedDates, tierFor, type KitRow, type Tier } from "@/lib/wholesale/rules";
 
 // The form starts every line here (AIOS → Kits → Volume quote used 45% off
-// retail for 50–99 kits, 2026-10-16); the owner types the quoted percent.
+// retail for 50–99 kits, 2026-10-16; quotes start at VOLUME_QUOTE_MIN_KITS); the owner types the quoted percent.
 export const QUOTE_START_PCT = 45;
 export const QUOTE_MAX_PCT = 70;
 export const QUOTE_VALID_DAYS = 14;        // default "valid until", as the quote reply says
