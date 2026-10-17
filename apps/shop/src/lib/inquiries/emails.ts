@@ -44,6 +44,7 @@ export function ownerNotifyEmail(i: { ref: number; topic: Topic; name: string; e
     html: shell(`New inquiry ${ref}`,
       `<p><b>${e(i.name)}</b> &lt;${e(i.email)}&gt;${i.organization ? ` — ${e(i.organization)}` : ""}${i.orderNumber ? ` · order ${e(i.orderNumber)}` : ""}</p>
 <p>${e(i.message).replace(/\n/g, "<br>")}</p>
-<p><a href="${e(i.link)}" style="color:#A32B1F">Open ${ref} in the admin →</a></p>`),
+<p><a href="${e(i.link)}" style="color:#A32B1F">Open ${ref} in the admin →</a></p>
+<p style="font-size:12px;color:#4A4438">Answer the customer from the admin (Reply on ${ref}): replying to this email doesn't reach them.</p>`),
   };
 }
