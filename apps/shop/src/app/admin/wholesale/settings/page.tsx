@@ -7,13 +7,15 @@ import { getWholesaleSettings } from "@/lib/wholesale/data";
 import { CUTOFF_ANCHOR, cutoffFor } from "@/lib/wholesale/rules";
 import { Crumbs } from "@/components/admin/ui";
 import SettingsForm from "@/components/admin/wholesale/SettingsForm";
+import BankDetailsForm from "@/components/admin/wholesale/BankDetailsForm";
+import { getBankDetails } from "@/lib/wholesale/quote-data";
 
 export const metadata: Metadata = { title: "Wholesale settings", robots: { index: false, follow: false } };
 
 // Owner edits; the Assistant sees the values (mock a6).
 export default async function WholesaleSettingsPage() {
   const staff = await requirePermission("wholesale.view");
-  const s = await getWholesaleSettings();
+  const [s, bank] = await Promise.all([getWholesaleSettings(), getBankDetails()]);
   const auto = cutoffFor(localDate(currentMs()), { runDays: s.runDays, override: null });
   const tiers = s.tiers.map((t, i) => `${t.minKits}${s.tiers[i + 1] ? `–${s.tiers[i + 1].minKits - 1}` : "+"} kits ${t.pct}%`).join(" · ");
   return (
@@ -27,6 +29,10 @@ export default async function WholesaleSettingsPage() {
           <dt>Deposit</dt><dd>{s.depositPct}%</dd><dt>Balance due within</dt><dd>{s.balanceDays} days</dd>
           <dt>Runs</dt><dd>every {s.runDays} days · next order-by {dateLabel(s.nextCutoffOverride ?? auto)}</dd><dt>Order-by → ships</dt><dd>{s.leadDays} days</dd>
         </dl></div></div>
+      )}
+      {can(staff, "wholesale.quote") ? <BankDetailsForm b={bank} /> : (
+        <div className="a-card" style={{ maxWidth: 720, marginTop: 18 }}><div className="a-card-h"><h3>Bank transfer</h3><span className="sub">for quote orders</span></div>
+          <div className="a-card-b muted">{bank ? `Set up: ${bank.bankName} · account ending ${bank.account.slice(-4)}` : "Not set up — quote orders can only be paid by card."}</div></div>
       )}
     </div>
   );

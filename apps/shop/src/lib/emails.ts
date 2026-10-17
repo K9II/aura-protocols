@@ -148,7 +148,9 @@ export function wholesaleDepositEmail(o: OrderRow, d: { testedAbout: string; shi
   const datesLine = cutoff && d
     ? `<p>Order-by date: <b>${e(cutoff)}</b> · lot tested about ${e(dateLabel(d.testedAbout))} · ships about <b>${e(dateLabel(d.shipsAbout))}</b>.</p>`
     : "";
-  const refundableLine = cutoff
+  const refundableLine = cutoff && o.deposit_method === "bank"
+    ? `<p>Your deposit is refundable until ${e(cutoff)}. It was paid by bank transfer, so to cancel, reply to this email and we'll refund it by bank transfer.</p>`
+    : cutoff
     ? `<p>Your deposit is refundable until ${e(cutoff)} — cancel from your order page.</p>`
     : `<p>Your deposit is refundable until the order-by date — we'll confirm it by email.</p>`;
   return {
@@ -164,7 +166,9 @@ export function wholesaleCancelledEmail(o: OrderRow) {
     ...ORDER_REPLY,
     subject: `Order ${o.order_number} cancelled — deposit refunded`,
     html: orderShell(`Order ${o.order_number} cancelled`,
-      `<p>Your wholesale order was cancelled before its order-by date. Your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> is being refunded to the way you paid; it can take 5–10 business days to appear.</p>${kitsTable(o)}`),
+      o.refund_destination === "bank"
+        ? `<p>Your wholesale order was cancelled. Your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> was paid by bank transfer, so we'll send it back by bank transfer; we'll confirm by email when it's on its way.</p>${kitsTable(o)}`
+        : `<p>Your wholesale order was cancelled before its order-by date. Your deposit of <b>${usd(o.deposit_cents ?? 0)}</b> is being refunded to the way you paid; it can take 5–10 business days to appear.</p>${kitsTable(o)}`),
   };
 }
 
@@ -179,6 +183,27 @@ export function ownerNewWholesaleOrderEmail(o: OrderRow, d: { runId: string | nu
 }
 
 const orderLink = (siteUrl: string, n: string) => `${siteUrl}/order/${encodeURIComponent(n)}`;
+
+// Wholesale quote orders (quote-orders.sql): the customer's link to pay the
+// deposit, and the owner's "a transfer is on its way" notice.
+export function quoteOrderReadyEmail(o: OrderRow, d: { siteUrl: string; validUntil: string; note: string | null }) {
+  const link = orderLink(d.siteUrl, o.order_number);
+  return {
+    ...ORDER_REPLY,
+    subject: `Order ${o.order_number} — your volume order is ready`,
+    html: orderShell(`Your volume order is ready`,
+      `<p>Thanks for confirming. Your order is set up at the price we quoted.</p>${d.note ? `<p>${e(d.note)}</p>` : ""}${kitsTable(o)}<p>Total before tax: <b>${usd(o.total_cents)}</b> (includes shipping protection). Deposit to hold your place in the run: <b>${usd(o.deposit_cents ?? 0)}</b>; the balance is due when your lot passes testing.</p><p><a href="${e(link)}">Add your shipping address and pay the deposit</a> on your order page. This quote is good until <b>${e(dateLabel(d.validUntil))}</b>.</p>`),
+  };
+}
+
+export function ownerTransferSentEmail(o: OrderRow, d: { payment: "deposit" | "balance"; base?: string }) {
+  const base = d.base ?? siteUrl();
+  const cents = d.payment === "deposit" ? o.deposit_cents : o.balance_cents;
+  return {
+    subject: `Bank transfer on its way — ${o.order_number} ${d.payment} ${usd(cents ?? 0)}`,
+    html: shell(`Bank transfer on its way`, `<p>${e(o.email)} says the ${d.payment} of <b>${usd(cents ?? 0)}</b> for ${e(o.order_number)} was sent, with ${e(o.order_number)} as the reference. When it reaches the account, open the order and click Record bank transfer.</p>${adminOrderLink(base, o.order_number)}`),
+  };
+}
 
 export function wholesaleBalanceDueEmail(o: OrderRow, d: { dueOn: string; siteUrl: string }) {
   const link = orderLink(d.siteUrl, o.order_number);

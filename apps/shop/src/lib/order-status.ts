@@ -1,13 +1,16 @@
-export const ORDER_STATUSES = ["awaiting_payment", "processing", "deposit_paid", "balance_due", "paid", "shipped", "cancelled", "refunded"] as const;
+export const ORDER_STATUSES = ["awaiting_payment", "processing", "quoted", "deposit_paid", "balance_due", "paid", "shipped", "cancelled", "refunded"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 // The only transitions an order may make. Enforced in lib/orders.ts
 // (transitionOrder) — nothing else writes `status`. deposit_paid and
 // balance_due are wholesale-only (made to order: deposit → lot passes →
-// balance); retail never enters them.
+// balance); retail never enters them. quoted = a wholesale quote order waiting
+// for its deposit (quote-orders.sql): it pays straight to deposit_paid, or is
+// cancelled (expired, or by the owner).
 const ALLOWED: Record<OrderStatus, readonly OrderStatus[]> = {
   awaiting_payment: ["processing", "paid", "deposit_paid", "cancelled"],
   processing: ["paid", "deposit_paid", "cancelled"],
+  quoted: ["deposit_paid", "cancelled"],
   deposit_paid: ["balance_due", "refunded"],
   balance_due: ["paid", "cancelled"],
   paid: ["shipped", "refunded"],
@@ -23,6 +26,7 @@ export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
 export const STATUS_LABEL: Record<OrderStatus, string> = {
   awaiting_payment: "Awaiting payment",
   processing: "Payment processing",
+  quoted: "Awaiting deposit",
   deposit_paid: "Deposit paid — in production",
   balance_due: "Balance due",
   paid: "Paid — preparing to ship",

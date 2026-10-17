@@ -11,12 +11,13 @@ vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: m.getWholesaleSet
 vi.mock("@/lib/wholesale/runs-data", () => ({ listRuns: m.listRuns, runLines: m.runLines, runOrders: m.runOrders, getRun: m.getRun, runEvents: m.runEvents, draftLotsFor: m.draftLotsFor, pastSuppliers: m.pastSuppliers, supplierPricesFor: m.supplierPricesFor }));
 vi.mock("@/lib/catalog-ops/data", () => ({ lotById: m.lotById, lotDefaults: async () => ({ testCents: 25000, inboundPerBoxCents: 1500, labelPerVialCents: 40 }) }));
 vi.mock("@/lib/coa/data", () => ({ listLabs: m.listLabs }));
+vi.mock("@/lib/wholesale/quote-data", () => ({ getBankDetails: async () => null }));
 vi.mock("@/app/admin/catalog/actions", () => ({ receiveLotAction: vi.fn(), coaUploadAction: vi.fn() }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-30T16:00:00Z") }));
 vi.mock("next/navigation", () => ({ notFound: m.notFound, useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/app/admin/wholesale/actions", () => ({
   recordLineOrderAction: vi.fn(), linkLotAction: vi.fn(), passLineAction: vi.fn(), failLineAction: vi.fn(), resourceLineAction: vi.fn(),
-  saveRunNotesAction: vi.fn(), cancelDepositAction: vi.fn(), saveWholesaleSettingsAction: vi.fn(), markWholesaleReviewedAction: vi.fn(),
+  saveRunNotesAction: vi.fn(), cancelDepositAction: vi.fn(), saveWholesaleSettingsAction: vi.fn(), markWholesaleReviewedAction: vi.fn(), saveBankDetailsAction: vi.fn(),
 }));
 
 const RUN = "11111111-1111-4111-8111-111111111111";
@@ -170,5 +171,6 @@ describe("Admin → Wholesale pages", () => {
     m.requirePermission.mockResolvedValue(assistantStaff());
     const { container } = render(await Page());
     expect(container.textContent).toMatch(/5–9 kits 20% · 10–19 kits 25% · 20\+ kits 30%/);
+    expect(container.textContent).toMatch(/Not set up — quote orders can only be paid by card/);
   });
 });

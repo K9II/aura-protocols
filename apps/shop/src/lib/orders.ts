@@ -32,8 +32,15 @@ export type OrderRow = {
   expires_at: string; created_at: string;
   kind: "sale" | "no_charge"; retail_value_cents: number | null; no_charge_reason: NoChargeReason | null; no_charge_note: string | null;
   replaces_order_id: string | null; created_by: string | null;
-  refund_destination: "card" | "store_credit" | null; refund_reason: string | null; refund_note: string | null;
+  refund_destination: "card" | "store_credit" | "bank" | null; refund_reason: string | null; refund_note: string | null;
   refunded_by: string | null; stripe_refund_id: string | null; refund_payment_label: string | null;
+  // Wholesale quote orders (quote-orders.sql). While status is 'quoted' the
+  // ship_* fields and ruo_confirmed_at are null until the customer's pay page.
+  quote_inquiry_id: string | null; quote_valid_until: string | null; quote_note: string | null;
+  quote_pay_bank: boolean; quote_pay_card: boolean; quote_created_by: string | null;
+  deposit_method: "card" | "bank" | null; deposit_bank_ref: string | null; deposit_received_on: string | null;
+  balance_method: "card" | "bank" | null; balance_bank_ref: string | null; balance_received_on: string | null;
+  transfer_recorded_by: string | null; transfer_sent_at: string | null; transfer_sent_for: "deposit" | "balance" | null;
   order_items?: OrderItemRow[];
 };
 

@@ -23,7 +23,7 @@ describe("roles", () => {
   it("the never list covers money, people and secrets", () => {
     expect([...NEVER_FOR_ASSISTANT].sort()).toEqual([
       "credit.adjust", "customers.block", "disputes.submit", "disputes.warnings", "orders.no_charge", "orders.refund",
-      "partners.payout_details", "payouts.mark_paid", "staff.manage", "stock.owner_withdrawal", "w9.open", "wholesale.margins",
+      "partners.payout_details", "payouts.mark_paid", "staff.manage", "stock.owner_withdrawal", "w9.open", "wholesale.margins", "wholesale.quote",
     ]);
   });
   it("only the owner sees wholesale kit costs and margins", () => {

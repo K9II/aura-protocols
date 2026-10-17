@@ -19,7 +19,8 @@ const resolveWarningsForCharge = vi.fn();
 const hasDisputeForCharge = vi.fn();
 const fetchChargeInfo = vi.fn();
 const afterDepositPaid = vi.fn();
-vi.mock("@/lib/wholesale/after-deposit", () => ({ afterDepositPaid }));
+const depositRunPatch = vi.fn(async (_o: unknown): Promise<{ wholesale_cutoff_on?: string }> => ({}));
+vi.mock("@/lib/wholesale/after-deposit", () => ({ afterDepositPaid, depositRunPatch }));
 vi.mock("@/lib/partners/data", () => ({ getPartnerById }));
 vi.mock("@/lib/orders", () => ({ getOrderById, getOrderByPaymentIntent, transitionOrder }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert, alertOwner, alertAddress: () => "owner@example.com" }));
@@ -248,9 +249,25 @@ describe("handleStripeEvent", () => {
     getOrderById.mockResolvedValue(order("awaiting_payment", { channel: "wholesale", tax_calculation_id: "taxcalc_1" }));
     const { handleStripeEvent } = await import("@/lib/stripe-events");
     await handleStripeEvent(ev("checkout.session.completed", session({ metadata: { order_id: "o1", payment: "deposit" }, payment_intent: "pi_dep" })));
-    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "deposit_paid", { deposit_payment_intent: "pi_dep" });
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "awaiting_payment", "deposit_paid", { deposit_payment_intent: "pi_dep", deposit_method: "card", transfer_sent_at: null, transfer_sent_for: null });
     expect(afterDepositPaid).toHaveBeenCalledWith("o1");
     expect(afterOrderPaid).not.toHaveBeenCalled();
+  });
+
+  it("a quote order's card deposit → deposit_paid; a late one joins the run open that day", async () => {
+    getOrderById.mockResolvedValue(order("quoted", { channel: "wholesale", wholesale_cutoff_on: "2026-10-19" }));
+    depositRunPatch.mockResolvedValueOnce({ wholesale_cutoff_on: "2026-11-02" });
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("checkout.session.completed", session({ metadata: { order_id: "o1", payment: "deposit" }, payment_intent: "pi_q" })));
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "quoted", "deposit_paid", { wholesale_cutoff_on: "2026-11-02", deposit_payment_intent: "pi_q", deposit_method: "card", transfer_sent_at: null, transfer_sent_for: null });
+    expect(afterDepositPaid).toHaveBeenCalledWith("o1");
+  });
+
+  it("an expired card page leaves a quote order waiting", async () => {
+    getOrderById.mockResolvedValue(order("quoted", { channel: "wholesale" }));
+    const { handleStripeEvent } = await import("@/lib/stripe-events");
+    await handleStripeEvent(ev("checkout.session.expired", session({ metadata: { order_id: "o1", payment: "deposit" } })));
+    expect(transitionOrder).not.toHaveBeenCalled();
   });
 
   it("a fully refunded deposit → refunded", async () => {
@@ -377,7 +394,7 @@ describe("handleStripeEvent", () => {
     transitionOrder.mockResolvedValue(true);
     const { applyPaid } = await import("@/lib/stripe-events");
     expect(await applyPaid((await getOrderById())!, { id: "cs_b", metadata: { order_id: "o1", payment: "balance" }, payment_intent: "pi_b" } as never)).toBe(true);
-    expect(transitionOrder).toHaveBeenCalledWith("o1", "balance_due", "paid", { balance_payment_intent: "pi_b" });
+    expect(transitionOrder).toHaveBeenCalledWith("o1", "balance_due", "paid", { balance_payment_intent: "pi_b", balance_method: "card", transfer_sent_at: null, transfer_sent_for: null });
     expect(recordPaymentFee).toHaveBeenCalledWith("o1", "balance", "pi_b");
     expect(afterOrderPaid).toHaveBeenCalledWith("o1");
   });

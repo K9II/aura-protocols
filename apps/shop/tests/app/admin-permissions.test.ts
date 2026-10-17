@@ -20,6 +20,7 @@ const PAGE_PERMS: Record<string, string> = {
   "orders/[number]/page.tsx": "orders.view",
   "orders/[number]/pick/page.tsx": "orders.view",
   "orders/new/page.tsx": "orders.no_charge",
+  "orders/new-quote/page.tsx": "wholesale.quote",
   "wholesale/page.tsx": "wholesale.view",
   "wholesale/runs/[id]/page.tsx": "wholesale.view",
   "wholesale/settings/page.tsx": "wholesale.view",
@@ -61,8 +62,9 @@ export const ACTION_PERMS: Record<string, Record<string, string>> = {
   "wholesale/actions.ts": {
     recordLineOrderAction: "wholesale.manage", linkLotAction: "wholesale.manage", passLineAction: "wholesale.manage", failLineAction: "wholesale.manage",
     resourceLineAction: "wholesale.manage", saveRunNotesAction: "wholesale.manage", cancelDepositAction: "wholesale.manage", saveWholesaleSettingsAction: "wholesale.manage",
-    markWholesaleReviewedAction: "wholesale.manage",
+    markWholesaleReviewedAction: "wholesale.manage", saveBankDetailsAction: "wholesale.quote",
   },
+  "orders/quote/actions.ts": { createQuoteOrderAction: "wholesale.quote", recordBankTransferAction: "wholesale.quote", cancelQuoteOrderAction: "wholesale.quote" },
   "disputes/actions.ts": { saveDisputeDraftAction: "disputes.draft", submitDisputeAction: "disputes.submit", refundEarlyWarningAction: "disputes.warnings", watchEarlyWarningAction: "disputes.warnings" },
   "catalog/actions.ts": {
     coaUploadAction: "lots.receive", receiveLotAction: "lots.receive",

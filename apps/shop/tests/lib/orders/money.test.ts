@@ -58,3 +58,20 @@ describe("moneyLines", () => {
     expect(lines.filter((l) => l.kind === "disc")).toEqual([]);
   });
 });
+
+describe("moneyLines — wholesale (deposit + balance)", () => {
+  const ws = { subtotal_cents: 4_757_500, partner_discount_cents: 0, code_discount_cents: 0, shipping_cents: 0, insurance_cents: 550, tax_cents: 0, total_cents: 4_758_050,
+    store_credit_cents: 0, new_account_discount: false, partner_id: null, channel: "wholesale", deposit_cents: 1_903_000, balance_cents: 2_855_050 };
+  const tail = (o: Parameters<typeof moneyLines>[0]) => moneyLines(o, { code: null, partnerCode: null }).slice(-3).map((l) => [l.label, l.note ?? null, l.cents]);
+  it("a quote waiting for its deposit has paid nothing, and tax waits for the address", () => {
+    const lines = moneyLines({ ...ws, status: "quoted", tax_calculation_id: null }, { code: null, partnerCode: null });
+    expect(lines.find((l) => l.label === "Tax")?.note).toMatch(/address/);
+    expect(lines.some((l) => l.label === "Charged")).toBe(false);
+    expect(tail({ ...ws, status: "quoted" })).toEqual([["Deposit", "not paid yet", 1_903_000], ["Balance", "due after the lot passes", 2_855_050], ["Paid so far", null, 0]]);
+  });
+  it("counts each payment once it has come in, and says how", () => {
+    expect(tail({ ...ws, status: "balance_due", deposit_paid_at: "2026-10-18T10:00:00Z", deposit_method: "bank" }))
+      .toEqual([["Deposit", "paid by bank transfer", 1_903_000], ["Balance", "due now", 2_855_050], ["Paid so far", null, 1_903_000]]);
+    expect(tail({ ...ws, status: "paid", deposit_paid_at: "x", paid_at: "y", deposit_method: "bank", balance_method: "card" })[2]).toEqual(["Paid so far", null, 4_758_050]);
+  });
+});
