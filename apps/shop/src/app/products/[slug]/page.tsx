@@ -122,7 +122,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass)}</span>
                 <span className="s-pdp-placard-n">{vialName(c).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
                 <dl>
-                  {placardRows.filter(([, v]) => v).map(([k, v]) => <div key={k} className={k === "Form" ? "s-pdp-form" : k === "Mol. wt" ? "s-pdp-mw" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
+                  {placardRows.filter(([, v]) => v).map(([k, v]) => <div key={k} className={k === "Form" ? "s-pdp-form" : k === "Mol. wt" ? "s-pdp-mw" : k === "Contains" ? "s-pdp-contains" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
                 </dl>
                 <span className="s-placard-r">Research use only · Not for human use</span>
               </div>
