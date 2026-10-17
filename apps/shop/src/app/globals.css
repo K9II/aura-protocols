@@ -1041,8 +1041,7 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-ws-terms { margin: 0 0 14px; padding-left: 18px; list-style: disc; }
 .pharmacopoeia .s-ws-terms li { margin: 4px 0; }
 .pharmacopoeia .s-ws-inq { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 6px; }
-.pharmacopoeia .s-ws-inq .s-ws-note { font-size: 17px; line-height: 1.55; max-width: 62ch; }   /* Alvester 2026-10-17: was 12px, too small to read */
-@media (max-width: 720px) { .pharmacopoeia .s-ws-inq .s-ws-note { font-size: 16px; } }
+.pharmacopoeia .s-ws-inq .s-ws-note { max-width: 62ch; }
 .pharmacopoeia .s-ws-ruo { font: 10px var(--font-jetbrains), ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); text-align: center; margin-top: 12px; }
 @media (max-width: 640px) {
   .pharmacopoeia .s-ws-grid, .pharmacopoeia .s-ws-how { grid-template-columns: minmax(0, 1fr); }
@@ -2089,3 +2088,59 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 }
 .pharmacopoeia .s-qp .s-wo-side .s-ws-run > div { padding: 10px 12px; min-width: 0; }
 .pharmacopoeia .s-qp .s-wo-side .s-ws-run b { font-size: 20px; white-space: nowrap; }
+
+/* ---------- wholesale page: one type scale (Alvester 2026-10-17: "standardization amongst our font size") ----------
+   Every text size on /wholesale (intro, order sheet, checkout, Quote requested) comes from these tokens.
+   Display (Newsreader): title 64 · section 42 · figure-lg 30 · figure 26 · name 21
+   Body (Georgia):       lead 17 · text 15 · fine 13
+   Labels (JetBrains):   label 12 (micro labels, buttons) · tag 11 (class tags, small markers)
+   Phones (≤720px): name 19, figure 22, figure-lg 22, lead 16. Shared pieces (site nav, trust row, human check) keep their own sizes. */
+.pharmacopoeia .s-ws-page {
+  --ws-figure-lg: 30px; --ws-figure: 26px; --ws-name: 21px;
+  --ws-lead: 17px; --ws-text: 15px; --ws-fine: 13px; --ws-label: 12px; --ws-tag: 11px;
+}
+@media (max-width: 720px) { .pharmacopoeia .s-ws-page { --ws-figure-lg: 22px; --ws-figure: 22px; --ws-name: 19px; --ws-lead: 16px; } }
+
+/* lead: the paragraph under each page title and section heading */
+.pharmacopoeia .s-ws-page .s-ws-lede, .pharmacopoeia .s-ws-page .s-ws-inq .s-ws-note { font-size: var(--ws-lead); line-height: 1.55; }
+
+/* text: everything read inside panels, rows and lists */
+.pharmacopoeia .s-ws-page .s-ws-how li, .pharmacopoeia .s-ws-page .s-ws-min .h span,
+.pharmacopoeia .s-ws-page .s-wo-sub, .pharmacopoeia .s-ws-page .s-wo-prog, .pharmacopoeia .s-ws-page .s-wo-lines,
+.pharmacopoeia .s-ws-page .s-wo-tot, .pharmacopoeia .s-ws-page .s-wo-dep, .pharmacopoeia .s-ws-page .s-wo-ruo,
+.pharmacopoeia .s-ws-page .s-wo-back, .pharmacopoeia .s-ws-page .s-wo-pills button,
+.pharmacopoeia .s-ws-page .s-ws-vq .s-ws-note, .pharmacopoeia .s-ws-page .s-co-item, .pharmacopoeia .s-ws-page .s-co-lot,
+.pharmacopoeia .s-ws-page .s-kc-more a,
+.pharmacopoeia .s-ws-page .s-qr-steps p, .pharmacopoeia .s-ws-page .s-qr-note, .pharmacopoeia .s-ws-page .s-qr-alt p,
+.pharmacopoeia .s-ws-page .s-qr-k { font-size: var(--ws-text); }
+.pharmacopoeia .s-ws-page .s-wo-kp { font-size: var(--ws-lead); }   /* the kit price leads its row */
+
+/* fine: notes under buttons, per-vial prices, small print */
+.pharmacopoeia .s-ws-page .s-wo-note, .pharmacopoeia .s-ws-page .s-wo-kp small, .pharmacopoeia .s-ws-page .s-wo-kp span, .pharmacopoeia .s-ws-page .s-ws-min .t,
+.pharmacopoeia .s-ws-page .s-kc-row { font-size: var(--ws-fine); }
+
+/* label: micro labels and every button */
+.pharmacopoeia .s-ws-page .s-ws-btn, .pharmacopoeia .s-ws-page .s-ws-btn-o, .pharmacopoeia .s-ws-page .s-wo-add,
+.pharmacopoeia .s-ws-page .s-wo-mbar button, .pharmacopoeia .s-ws-page .s-ws-vq a, .pharmacopoeia .s-ws-page .s-qr-alt button { font-size: var(--ws-label); }
+
+/* tag: class names, tier markers, step numbers, small caps */
+.pharmacopoeia .s-ws-page .s-wo-cls, .pharmacopoeia .s-ws-page .s-co-cls, .pharmacopoeia .s-ws-page .s-qr-cls, .pharmacopoeia .s-ws-page .s-kc-c,
+.pharmacopoeia .s-ws-page .s-qr-m, .pharmacopoeia .s-ws-page .s-qr-steps .when, .pharmacopoeia .s-ws-page .s-qr-tot span,
+.pharmacopoeia .s-ws-page .s-ws-tiers .s-ws-q a, .pharmacopoeia .s-ws-page .s-kc-row small, .pharmacopoeia .s-ws-page .s-ws-line-k,
+.pharmacopoeia .s-ws-page .s-ws-how li::before { font-size: var(--ws-tag); }
+
+/* name: kit, product and step names */
+.pharmacopoeia .s-ws-page .s-ws-nm, .pharmacopoeia .s-ws-page .s-wo-row .s-ws-nm, .pharmacopoeia .s-ws-page .s-co-name,
+.pharmacopoeia .s-ws-page .s-qr-t, .pharmacopoeia .s-ws-page .s-qr-steps b, .pharmacopoeia .s-ws-page .s-ws-vq b,
+.pharmacopoeia .s-ws-page .s-ws-min .h, .pharmacopoeia .s-ws-page .s-ws-tiers .s-ws-q b { font-size: var(--ws-name); }
+.pharmacopoeia .s-ws-page .s-kc-nm { font-size: var(--ws-name); }
+@media (max-width: 720px) { .pharmacopoeia .s-ws-page .s-kc-nm { font-size: 16px; } }   /* two kit cards side by side on phones */
+
+/* figure: order count and totals; figure-lg: tier percents and run dates */
+.pharmacopoeia .s-ws-page .s-wo-count, .pharmacopoeia .s-ws-page .s-wo-total b, .pharmacopoeia .s-ws-page .s-qr-tot b { font-size: var(--ws-figure); }
+.pharmacopoeia .s-ws-page .s-ws-tiers b:not(.s-ws-q b), .pharmacopoeia .s-ws-page .s-ws-run b { font-size: var(--ws-figure-lg); }
+.pharmacopoeia .s-ws-page .s-wo-lines > div, .pharmacopoeia .s-ws-page .s-ws-inq .s-atc { font-size: var(--ws-text); }
+.pharmacopoeia .s-ws-page .s-qr-steps .n { font-size: var(--ws-name); }
+.pharmacopoeia .s-ws-page .s-ws-min .n { font-size: 42px; }   /* the minimum's numeral = section-heading size */
+@media (max-width: 720px) { .pharmacopoeia .s-ws-page .s-qr-steps .n { font-size: 18px; } }
+.pharmacopoeia .s-ws-page .s-nw { white-space: nowrap; }

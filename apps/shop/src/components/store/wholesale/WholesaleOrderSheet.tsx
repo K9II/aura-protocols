@@ -201,7 +201,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, nextCu
           <aside className="s-wo-side" id="ws-summary">
             <div className={q.belowMinimum ? "s-wo-sum" : "s-wo-sum ok"}>
               <p className="s-micro">Your order</p>
-              <p className="s-wo-count" data-testid="ws-count">{q.kits} kit{q.kits === 1 ? "" : "s"} · {q.kits * KIT_VIALS} vials{q.belowMinimum ? "" : ` · ${q.tier.pct}% off`}</p>
+              <p className="s-wo-count" data-testid="ws-count"><span className="s-nw">{plural(q.kits, "kit")}</span> · <span className="s-nw">{q.kits * KIT_VIALS} vials</span>{q.belowMinimum ? "" : <span className="s-nw">{` · ${q.tier.pct}% off`}</span>}</p>
               <div className={q.belowMinimum ? "s-wo-bar" : "s-wo-bar ok"}><i style={{ width: `${Math.min(100, progress.width)}%` }} /></div>
               <p className="s-wo-prog">{progress.text}</p>
               {nudge?.kind === "quote" && (

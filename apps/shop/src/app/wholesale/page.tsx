@@ -35,7 +35,7 @@ function Inquiry() {
 function ClosedPage() {
   return (
     <div className="pharmacopoeia">
-      <div className="p-container py-16 max-w-3xl">
+      <div className="p-container py-16 max-w-3xl s-ws-page">
         <p className="s-micro s-eyebrow">Wholesale</p>
         <h1 className="s-h1 mb-5">For heavier <em>research.</em></h1>
         <p className="text-[color:var(--ink-soft)] max-w-[56ch] mb-10">
@@ -105,7 +105,7 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="pharmacopoeia">
-      <div className="p-container py-16">
+      <div className="p-container py-16 s-ws-page">
         {onSheet ? (
           // The order sheet (mock "Wholesale Order Sheet Refresh", option A, 2026-10-16): the run dates
           // and the minimum fold into the lede; the tiers and the sheet follow. The checkout step
