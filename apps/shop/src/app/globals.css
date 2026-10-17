@@ -1041,6 +1041,8 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-ws-terms { margin: 0 0 14px; padding-left: 18px; list-style: disc; }
 .pharmacopoeia .s-ws-terms li { margin: 4px 0; }
 .pharmacopoeia .s-ws-inq { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 6px; }
+.pharmacopoeia .s-ws-inq .s-ws-note { font-size: 17px; line-height: 1.55; max-width: 62ch; }   /* Alvester 2026-10-17: was 12px, too small to read */
+@media (max-width: 720px) { .pharmacopoeia .s-ws-inq .s-ws-note { font-size: 16px; } }
 .pharmacopoeia .s-ws-ruo { font: 10px var(--font-jetbrains), ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); text-align: center; margin-top: 12px; }
 @media (max-width: 640px) {
   .pharmacopoeia .s-ws-grid, .pharmacopoeia .s-ws-how { grid-template-columns: minmax(0, 1fr); }
