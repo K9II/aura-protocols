@@ -8,21 +8,27 @@ alter table orders drop constraint if exists orders_status_check;
 alter table orders add constraint orders_status_check check (status in
   ('awaiting_payment','processing','quote_requested','quoted','deposit_paid','balance_due','paid','shipped','cancelled','refunded'));
 
--- No address or research-use confirmation until the buyer's pay page.
-alter table orders drop constraint if exists orders_ship_required_check;
-alter table orders add constraint orders_ship_required_check check (
-  status in ('quote_requested','quoted') or (ship_name is not null and ship_line1 is not null and ship_city is not null
-    and ship_state is not null and ship_zip is not null and ruo_confirmed_at is not null));
-
--- No deposit or balance until it's priced.
-alter table orders drop constraint if exists orders_wholesale_shape_check;
-alter table orders add constraint orders_wholesale_shape_check check (
-  channel = 'retail' or (wholesale_cutoff_on is not null and partner_id is null
-    and (status = 'quote_requested' or (deposit_cents is not null and balance_cents is not null))));
-
 -- How a request ended without being priced (null = priced, or still open).
 alter table orders add column if not exists quote_closed_reason text check (quote_closed_reason is null
   or quote_closed_reason in ('customer_cancelled','ordered_now','owner_cancelled'));
+
+-- No address or research-use confirmation until the buyer's pay page. A request
+-- or quote closed before the deposit (cancelled, expired, ordered at the sheet
+-- price) may never have had one.
+alter table orders drop constraint if exists orders_ship_required_check;
+alter table orders add constraint orders_ship_required_check check (
+  status in ('quote_requested','quoted')
+  or (status = 'cancelled' and channel = 'wholesale' and deposit_paid_at is null)
+  or (ship_name is not null and ship_line1 is not null and ship_city is not null
+    and ship_state is not null and ship_zip is not null and ruo_confirmed_at is not null));
+
+-- No deposit or balance until it's priced (a request closed unpriced never gets one).
+alter table orders drop constraint if exists orders_wholesale_shape_check;
+alter table orders add constraint orders_wholesale_shape_check check (
+  channel = 'retail' or (wholesale_cutoff_on is not null and partner_id is null
+    and (status = 'quote_requested' or (status = 'cancelled' and quote_closed_reason is not null)
+      or (deposit_cents is not null and balance_cents is not null))));
+
 -- When the owner priced it (the request itself is created_at).
 alter table orders add column if not exists quote_priced_at timestamptz;
 

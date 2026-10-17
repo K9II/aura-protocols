@@ -27,7 +27,7 @@ export default function QuoteRequestPage(p: {
     <div className="s-qr" data-testid="quote-request">
       <p className="s-micro s-eyebrow">Order {p.orderNumber} · <span className="s-qr-nw">Volume quote</span></p>
       <h1 className="s-h1 mb-3">Quote <em>requested.</em></h1>
-      <p className="s-ws-lede">Thanks{p.firstName ? `, ${p.firstName}` : ""}. We&apos;re pricing your kits now. Within {QUOTE_REPLY_HOURS} hours we&apos;ll
+      <p className="s-ws-lede">Thanks{p.firstName ? `, ${p.firstName}` : ""}. We&apos;re pricing your kits now. {`Within ${QUOTE_REPLY_HOURS} hours we'll `}
         email <b>{p.email}</b> and this page will show your price for each strength, the total and the deposit. Nothing is charged until you pay the deposit.</p>
       <div className="s-qr-grid">
         <div className="s-qr-col">

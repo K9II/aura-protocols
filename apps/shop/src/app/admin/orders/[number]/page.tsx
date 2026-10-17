@@ -124,7 +124,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
         <h1 className="bigcode">{o.order_number}</h1>
         <OrderStatusChip status={o.status} kind={o.kind} /><Markers list={orderMarkers(o, d.flags)} />
         <div className="actions">
-          {d.run && <Link className="a-btn" href={`/admin/wholesale/runs/${d.run.id}`}>Run {d.run.number} <Icon name="arrow" /></Link>}
+          {d.run && !request && <Link className="a-btn" href={`/admin/wholesale/runs/${d.run.id}`}>Run {d.run.number} <Icon name="arrow" /></Link>}
           {requestOwner && <>
             <ConfirmDialog label="Cancel request" title={`Cancel ${o.order_number}?`} confirmLabel="Cancel request" tone="danger" action={cancelQuoteRequestOwnerAction} fields={{ orderId: o.id }}>
               It won&apos;t be priced. Nothing has been charged. The buyer is emailed that the request is closed.
