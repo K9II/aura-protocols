@@ -30,6 +30,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
   // What the buyer is typing in a kit count box, until they leave it (an empty box mid-edit
   // mustn't flip the row back to "Add kit").
   const [draft, setDraft] = useState<Record<string, string>>({});
+  const [cls, setCls] = useState<string | null>(null);   // class filter (Alvester: less scrolling); kits in other classes stay in the order
   const [step, setStep] = useState<"sheet" | "checkout">("sheet");
   const [addr, setAddr] = useState<Addr>({
     name: ship?.name ?? "", line1: ship?.line1 ?? "", line2: ship?.line2 ?? "", city: ship?.city ?? "", state: ship?.state ?? "", zip: ship?.zip ?? "",
@@ -101,7 +102,13 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
         {error && <p role="alert" className="mb-3 text-sm text-[color:var(--specimen)]">{error}</p>}
         <div className={q.kits >= VOLUME_QUOTE_MIN_KITS ? "s-ws-grid s-wo-grid s-wo-q" : "s-ws-grid s-wo-grid"}>
           <div className="s-wo-list">
-            {classes.map((c) => (
+            <div className="s-kc-pills s-wo-pills" role="group" aria-label="Show kits by class">
+              <button type="button" aria-pressed={cls === null} onClick={() => setCls(null)}>All {rows.length}</button>
+              {classes.map((c) => (
+                <button key={c} type="button" aria-pressed={cls === c} onClick={() => setCls(c)} style={clsVar(c)}><i />{c}</button>
+              ))}
+            </div>
+            {classes.filter((c) => cls === null || c === cls).map((c) => (
               <section key={c} className="s-wo-panel" style={clsVar(c)} aria-label={c}>
                 <p className="s-wo-cls"><i />{c}</p>
                 {rows.filter((r) => r.chemicalClass === c).map((r) => {

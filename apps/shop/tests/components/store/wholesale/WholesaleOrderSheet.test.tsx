@@ -24,7 +24,7 @@ describe("WholesaleOrderSheet", () => {
 
   it("groups strengths by class, shows the APro designation with the scientific name, and no lot-test charge", async () => {
     await sheet();
-    expect(screen.getByText("Incretin & Amylin Analogs")).toBeTruthy();
+    expect(screen.getByText("Incretin & Amylin Analogs", { selector: ".s-wo-cls" })).toBeTruthy();
     expect(screen.getByText("APro-G3RT", { selector: ".s-ws-nm" })).toBeTruthy();
     expect(screen.getByText("Retatrutide · 10 mg · 10 vials")).toBeTruthy();
     expect(screen.queryByText(/lot test/i)).toBeNull();
@@ -62,6 +62,17 @@ describe("WholesaleOrderSheet", () => {
     fireEvent.blur(box);
     expect(screen.getByTestId("ws-count").textContent).toBe("0 kits · 0 vials");
     expect(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }).textContent).toBe("+ Add kit");
+  });
+
+  it("class filter shows one class at a time; kits in other classes stay in the order", async () => {
+    await sheet();
+    fireEvent.click(screen.getByRole("button", { name: "Add a APro-G3RT 10 mg kit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Peptide Fragments" }));
+    expect(screen.queryByRole("region", { name: "Incretin & Amylin Analogs" })).toBeNull();
+    expect(screen.getByRole("region", { name: "Peptide Fragments" })).toBeTruthy();
+    expect(screen.getByTestId("ws-count").textContent).toBe("1 kit · 10 vials");
+    fireEvent.click(screen.getByRole("button", { name: "All 3" }));
+    expect(screen.getByRole("region", { name: "Incretin & Amylin Analogs" })).toBeTruthy();
   });
 
   it("removing the last kit brings the Add kit button back", async () => {
