@@ -7,7 +7,7 @@ import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { createQuoteOrderAction } from "@/app/admin/orders/quote/actions";
 import { CARD_FIXED_CENTS, CARD_PCT, CHARGES_PER_ORDER } from "@/lib/wholesale/margins";
-import { QUOTE_MAX_PCT, QUOTE_START_PCT, cardAllowed, estimateQuoteProfit, priceQuote, type KitCost, type QuoteLine } from "@/lib/wholesale/quote";
+import { QUOTE_MAX_PCT, cardAllowed, estimateQuoteProfit, priceQuote, quoteStartPct, type KitCost, type QuoteLine } from "@/lib/wholesale/quote";
 import { MAX_KITS_PER_LINE, kitTitle, type KitRow, type Tier } from "@/lib/wholesale/rules";
 import { usd } from "@/lib/html";
 
@@ -32,7 +32,7 @@ const key = (l: { slug: string; variantId: string }) => `${l.slug}/${l.variantId
 export default function QuoteOrderForm(p: QuoteFormProps) {
   const [state, action, pending] = useActionState(createQuoteOrderAction, null);
   const [lines, setLines] = useState<Line[]>(p.initialLines.map((l) => ({ slug: l.slug, variantId: l.variantId, kits: String(l.kits), pct: String(l.pct) })));
-  const [allPct, setAllPct] = useState(String(QUOTE_START_PCT));
+  const [allPct, setAllPct] = useState(String(quoteStartPct(p.initialLines.reduce((n, l) => n + l.kits, 0))));
   const [adding, setAdding] = useState("");
   const [depositPct, setDepositPct] = useState(String(p.settings.depositPct));
   const [payBank, setPayBank] = useState(p.bankReady);

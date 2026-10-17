@@ -2,7 +2,7 @@ import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
 import { KIT_VIALS, QUOTE_REPLY_HOURS, VOLUME_NUDGE_MIN_KITS, VOLUME_QUOTE_MIN_KITS } from "@/lib/wholesale/rules";
 import { BALANCE_REMINDER_DAY, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS } from "@/lib/wholesale/runs";
 import { REVIEW_WARN_DAYS } from "@/lib/wholesale/review";
-import { QUOTE_MAX_VALID_DAYS, QUOTE_START_PCT, QUOTE_VALID_DAYS } from "@/lib/wholesale/quote";
+import { QUOTE_BANDS, QUOTE_MAX_VALID_DAYS, QUOTE_VALID_DAYS } from "@/lib/wholesale/quote";
 
 const days = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
 
@@ -44,7 +44,7 @@ export default function Wholesale() {
         </Task>
         <Task title="Turn an accepted quote into an order">
           <Step>When the customer says yes, open the inquiry and choose <Ui>Create quote order</Ui>. (The inquiry must be linked to their account, with wholesale on.) Without an inquiry, use <Ui>Orders</Ui> → <Ui>New quote order</Ui> and pick the customer.</Step>
-          <Step>The kits are copied from the inquiry, each line at {QUOTE_START_PCT}% off retail. Type the percent you quoted on each line (or <Ui>Set every line to</Ui> … <Ui>Apply</Ui>); <Ui>Add a strength…</Ui> adds one the inquiry didn&apos;t name. <Ui>Quote</Ui> on the right shows the total and the deposit; <Ui>Estimated profit</Ui> is for you only.</Step>
+          <Step>The kits are copied from the inquiry, each line at the volume-quote band for the request&apos;s total kits ({QUOTE_BANDS.map((b, i) => `${b.minKits}${QUOTE_BANDS[i + 1] ? `–${QUOTE_BANDS[i + 1].minKits - 1}` : "+"} kits ${b.pct}%`).join(", ")} off retail — the same bands as AIOS). Type the percent you quoted on each line (or <Ui>Set every line to</Ui> … <Ui>Apply</Ui>); <Ui>Add a strength…</Ui> adds one the inquiry didn&apos;t name. <Ui>Quote</Ui> on the right shows the total and the deposit; <Ui>Estimated profit</Ui> is for you only.</Step>
           <Step>Pick the <Ui>Run</Ui>, check the <Ui>Deposit</Ui> and <Ui>Quote valid until</Ui> (default {QUOTE_VALID_DAYS} days), tick how they can pay — <Ui>Bank transfer</Ui>, <Ui>Card</Ui> or both — and add a note if you like. Choose <Ui>Create order and email the customer</Ui>. Nothing is charged; the order waits as <Ui>Awaiting deposit</Ui> under <Ui>Orders</Ui> → <Ui>Wholesale</Ui>, and the customer gets a link to their order page.</Step>
         </Task>
         <Task title="Record a bank transfer">

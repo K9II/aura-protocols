@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  QUOTE_START_PCT, bankReady, cardAllowed, depositCutoff, estimateQuoteProfit, parseBankForm, parseQuoteForm, parseQuoteRequest, parseTransferForm,
+  QUOTE_BANDS, bankReady, cardAllowed, depositCutoff, estimateQuoteProfit, parseBankForm, parseQuoteForm, parseQuoteRequest, parseTransferForm, quoteStartPct,
   priceQuote, quoteCutoffChoices, quoteOpen,
 } from "@/lib/wholesale/quote";
 import { DEFAULT_TIERS, volumeQuoteMessage, type KitRow } from "@/lib/wholesale/rules";
@@ -60,13 +60,31 @@ describe("parseQuoteRequest", () => {
     ]);
     const r = parseQuoteRequest(msg, ROWS);
     expect(r.lines).toEqual([
-      { slug: "ss-31", variantId: "50mg", kits: 20, pct: QUOTE_START_PCT },
-      { slug: "bpc-157-tb-500-ghk-cu", variantId: "70mg", kits: 20, pct: QUOTE_START_PCT },
+      { slug: "ss-31", variantId: "50mg", kits: 20, pct: 50 },   // 44 kits asked for (the unmatched 4 count) → 30–50 band
+      { slug: "bpc-157-tb-500-ghk-cu", variantId: "70mg", kits: 20, pct: 50 },
     ]);
     expect(r.unmatched).toEqual(["Mystery peptide 5 mg"]);
   });
+  it("starts at 55% from 51 kits", () => {
+    const msg = volumeQuoteMessage([
+      { compoundName: "SS-31 (Elamipretide)", strength: "50 mg", quantity: 31 },
+      { compoundName: "BPC-157 / TB-500 / GHK-Cu", strength: "70 mg", quantity: 20 },
+    ]);
+    expect(parseQuoteRequest(msg, ROWS).lines.map((l) => l.pct)).toEqual([55, 55]);
+  });
   it("ignores text that isn't a kit line", () => {
     expect(parseQuoteRequest("Hello, can you do a better price?", ROWS)).toEqual({ lines: [], unmatched: [] });
+  });
+});
+
+describe("quote bands (Alvester 2026-10-17)", () => {
+  it("30–50 kits start at 50% off retail, 51+ at 55%", () => {
+    expect(QUOTE_BANDS).toEqual([{ minKits: 30, pct: 50 }, { minKits: 51, pct: 55 }]);
+    expect(quoteStartPct(30)).toBe(50);
+    expect(quoteStartPct(50)).toBe(50);
+    expect(quoteStartPct(51)).toBe(55);
+    expect(quoteStartPct(400)).toBe(55);
+    expect(quoteStartPct(12)).toBe(50);   // a custom request under 30 kits still starts at the first band
   });
 });
 
