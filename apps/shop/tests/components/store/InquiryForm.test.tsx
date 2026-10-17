@@ -37,4 +37,27 @@ describe("InquiryForm prefill", () => {
     window.removeEventListener("aura:volume-quote-sent", on);
     vi.unstubAllGlobals();
   });
+
+  it("signed in: shows who is sending instead of name/email fields, starts the organization from the account, sends no name/email", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ref: "Q-1009" }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const seen: unknown[] = [];
+    const on = (e: Event) => seen.push((e as CustomEvent).detail);
+    window.addEventListener("aura:volume-quote-sent", on);
+    render(<InquiryForm topic="wholesale" orgLabel="Organization" messageLabel="Kits" sentEvent="aura:volume-quote-sent"
+      signedIn={{ name: "Dana Reyes", email: "d@lab.org", organization: "Reyes Lab" }} />);
+    expect(screen.getByText(/Signed in as/).textContent).toBe("Signed in as Dana Reyes · d@lab.org");
+    expect(screen.queryByLabelText("Name")).toBeNull();
+    expect(screen.queryByLabelText("Email")).toBeNull();
+    expect((screen.getByLabelText("Organization") as HTMLInputElement).value).toBe("Reyes Lab");
+    fireEvent.change(screen.getByLabelText("Kits"), { target: { value: "BPC-157 10 mg: 50 kits" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send →" }));
+    await waitFor(() => expect(seen).toEqual([{ ref: "Q-1009", name: "Dana Reyes", message: "BPC-157 10 mg: 50 kits" }]));
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string);
+    expect(body).toMatchObject({ topic: "wholesale", organization: "Reyes Lab", message: "BPC-157 10 mg: 50 kits" });
+    expect(body.name).toBeUndefined();
+    expect(body.email).toBeUndefined();
+    window.removeEventListener("aura:volume-quote-sent", on);
+    vi.unstubAllGlobals();
+  });
 });

@@ -2144,3 +2144,4 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-ws-page .s-ws-min .n { font-size: 42px; }   /* the minimum's numeral = section-heading size */
 @media (max-width: 720px) { .pharmacopoeia .s-ws-page .s-qr-steps .n { font-size: 18px; } }
 .pharmacopoeia .s-ws-page .s-nw { white-space: nowrap; }
+.pharmacopoeia .s-ws-page .s-contact-who { font-size: var(--ws-text); }

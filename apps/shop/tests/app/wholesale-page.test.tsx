@@ -29,6 +29,7 @@ describe("/wholesale", () => {
 
   it("closed, or settings unreadable: today's inquiry page with the new headline", async () => {
     m.getWholesaleSettings.mockResolvedValue({ ...open, open: false });
+    m.getAccountState.mockResolvedValue({ customer: null, blocked: false, unfinished: false });
     const { container } = await page();
     expect(container.textContent).toMatch(/For heavier research\./);
     expect(screen.getByText("inquiry form")).toBeTruthy();

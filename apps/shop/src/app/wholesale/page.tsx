@@ -26,13 +26,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/wholesale" },
 };
 
-function Inquiry() {
-  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds, strengths and kits" prefillEvent={VOLUME_QUOTE_EVENT} sentEvent={VOLUME_QUOTE_SENT_EVENT}
+function Inquiry({ signedIn }: { signedIn: Who }) {
+  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds, strengths and kits" prefillEvent={VOLUME_QUOTE_EVENT} sentEvent={VOLUME_QUOTE_SENT_EVENT} signedIn={signedIn}
     messagePlaceholder={"One line per strength, e.g.\nRetatrutide 30 mg: 50 kits\nBPC-157 10 mg: 10 kits"} />;
 }
 
 // Today's page: shown until wholesale opens, and whenever its settings can't be read.
-function ClosedPage() {
+type Who = { name: string; email: string; organization: string | null } | null;
+function ClosedPage({ signedIn }: { signedIn: Who }) {
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-16 max-w-3xl s-ws-page">
@@ -42,7 +43,7 @@ function ClosedPage() {
           Volume pricing, lot reservation, and certificates for every lot you receive. Tell us which
           compounds and roughly what quantity you need, and we&apos;ll reply with pricing and lead times.
         </p>
-        <Inquiry />
+        <Inquiry signedIn={signedIn} />
       </div>
     </div>
   );
@@ -54,19 +55,20 @@ const ORDER_HREF = "/wholesale?step=order";
 
 export default async function WholesalePage({ searchParams }: { searchParams: Promise<{ step?: string | string[] }> }) {
   const ordering = (await searchParams).step === "order";
+  const { customer } = await getAccountState();
+  const who: Who = customer ? { name: customer.fullName, email: customer.email, organization: customer.organization } : null;
   let s: WholesaleSettings;
   try {
     s = await getWholesaleSettings();
   } catch (err) {
     console.error("wholesale settings read failed:", err);
-    return <ClosedPage />;
+    return <ClosedPage signedIn={who} />;
   }
-  if (!s.open) return <ClosedPage />;
+  if (!s.open) return <ClosedPage signedIn={who} />;
 
   const today = localDate(currentMs());
   const cutoff = cutoffFor(today, { runDays: s.runDays, override: s.nextCutoffOverride });
   const dates = estimatedDates(cutoff, s.leadDays);
-  const { customer } = await getAccountState();
   const live = await getLiveCatalogOrNull();
   const rows = live ? withArt(kitRows(live.shown)) : null;
   const pricing = { tiers: s.tiers, depositPct: s.depositPct, minKits: s.minKits };
@@ -136,7 +138,7 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
               : <>Wholesale buyers: build your order in the order sheet and choose <b>Ask for a volume quote</b>. It fills this in for you.{" "}
                   <Link href={customer ? ORDER_HREF : `/sign-in?next=${encodeURIComponent(ORDER_HREF)}`} className="p-link">Open the order sheet →</Link></>}
           </p>
-          <Inquiry />
+          <Inquiry signedIn={who} />
         </div>
       </div>
     </div>
