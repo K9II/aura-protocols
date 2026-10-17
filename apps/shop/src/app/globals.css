@@ -913,6 +913,16 @@ main > .pharmacopoeia { overflow-x: clip; }
 .s-drawer-backdrop { position: fixed; inset: 0; background: rgba(28, 26, 21, .45); z-index: 90; }
 .pharmacopoeia.s-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); z-index: 91; border-left: 1px solid var(--line); display: flex; flex-direction: column; }
 .pharmacopoeia .s-cart-line { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: 14px 0; border-top: 1px solid var(--line); font-size: 14px; }
+/* My orders / order pages: the order card (components/account/OrderCard.tsx) */
+.pharmacopoeia .s-ordercard { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "head side" "lines side"; row-gap: 8px; }
+.pharmacopoeia .s-ordercard .oc-head { grid-area: head; }
+.pharmacopoeia .s-ordercard .oc-lines { grid-area: lines; min-width: 0; }
+.pharmacopoeia .s-ordercard .oc-side { grid-area: side; text-align: right; }
+@media (max-width: 560px) {
+  .pharmacopoeia .s-ordercard { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "side" "lines"; row-gap: 6px; }
+  .pharmacopoeia .s-ordercard .oc-side { text-align: left; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+  .pharmacopoeia .s-ordercard .oc-side > .s-micro { margin-top: 0; }
+}
 .pharmacopoeia .s-qty { display: inline-flex; justify-self: start; border: 1px solid var(--line); }
 .pharmacopoeia .s-qty button { width: 28px; background: none; border: 0; cursor: pointer; color: var(--ink); }
 .pharmacopoeia .s-qty span { min-width: 28px; text-align: center; line-height: 28px; }

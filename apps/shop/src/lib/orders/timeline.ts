@@ -21,7 +21,7 @@ export type TimelineSources = {
     quote_valid_until?: string | null; deposit_method?: "card" | "bank" | null; deposit_bank_ref?: string | null;
     balance_method?: "card" | "bank" | null; balance_bank_ref?: string | null; transfer_sent_at?: string | null; transfer_sent_for?: string | null;
     // Volume-quote requests (quote-requests.sql): sent by the buyer, priced later on the same order.
-    status?: string; quote_priced_at?: string | null; quote_closed_reason?: "customer_cancelled" | "ordered_now" | "owner_cancelled" | null;
+    status?: string; quote_priced_at?: string | null; quote_closed_reason?: "customer_cancelled" | "ordered_now" | "owner_cancelled" | "expired" | null;
   };
   // A wholesale order: its production run and that run's entries for it.
   wholesale?: { run: { id: string; number: string } | null; events: Array<{ kind: string; at: string; detail: string | null }> } | null;
@@ -107,7 +107,7 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
   }
   if (o.cancelled_at && o.quote_closed_reason) {
     const e = ev("quote_request_cancelled");
-    const title = { customer_cancelled: "Request cancelled by the buyer", ordered_now: "Request closed · buyer ordered at the sheet price", owner_cancelled: "Request cancelled" }[o.quote_closed_reason];
+    const title = { customer_cancelled: "Request cancelled by the buyer", ordered_now: "Request closed · buyer ordered at the sheet price", owner_cancelled: "Request cancelled", expired: "Request expired · not priced in time" }[o.quote_closed_reason];
     out.push({ key: "cancelled", at: o.cancelled_at, tone: "plain", title, who: o.quote_closed_reason === "owner_cancelled" ? e?.actorName ?? null : null, detail: "never priced · nothing was paid" });
   } else if (o.cancelled_at && o.quote_valid_until && !o.deposit_paid_at) {
     const e = ev("quote_order_cancelled");

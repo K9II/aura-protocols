@@ -4,8 +4,7 @@ import { trackingUrl } from "@/lib/emails";
 import { usd } from "@/lib/html";
 import type { OrderRow } from "@/lib/orders";
 import { compoundTitle } from "@/lib/catalog";
-import { quotePriceBy } from "@/lib/wholesale/quote";
-import { dateTime } from "@/lib/discounts/time";
+import { priceByLabel, quotePriceBy } from "@/lib/wholesale/quote";
 
 const CARRIER_LABEL: Record<string, string> = { usps: "USPS", ups: "UPS", fedex: "FedEx", dhl: "DHL" };
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -20,13 +19,17 @@ export default function OrderCard({ order, link = false }: { order: OrderRow; li
   // A volume-quote request has no prices yet: the amount says when they're coming.
   const requested = order.status === "quote_requested";
   return (
-    <div className="s-cart-line" style={{ gridTemplateColumns: "1fr auto" }}>
-      <div>
+    // Desktop: number, date and lines on the left, amount and status on the right.
+    // Phones: amount and status sit on one line under the number, so the lines get the full width.
+    <div className="s-cart-line s-ordercard">
+      <div className="oc-head">
         {link
           ? <Link href={`/order/${order.order_number}`} className="p-serif text-[17px] underline underline-offset-4">Order {order.order_number}</Link>
           : <span className="p-serif text-[17px]">Order {order.order_number}</span>}
         <div className="s-micro text-[color:var(--ink-soft)] mt-1">{date(order.created_at)}</div>
-        <ul className="text-[13px] mt-2">
+      </div>
+      <div className="oc-lines">
+        <ul className="text-[13px]">
           {items.map((i) => (
             <li key={`${i.compound_slug}-${i.strength}-${i.pack_qty}`}>
               {compoundTitle({ slug: i.compound_slug, name: i.compound_name })} · {i.strength} · {order.channel === "wholesale"
@@ -43,8 +46,8 @@ export default function OrderCard({ order, link = false }: { order: OrderRow; li
           </div>
         )}
       </div>
-      <div className="text-right">
-        <div className={requested ? "text-[color:var(--ink-soft)]" : undefined}>{noCharge ? "No charge" : requested ? `Price by ${dateTime(new Date(quotePriceBy(order.created_at)).toISOString())} MT` : usd(order.total_cents)}</div>
+      <div className="oc-side">
+        <div className={requested ? "text-[color:var(--ink-soft)]" : undefined}>{noCharge ? "No charge" : requested ? `Price by ${priceByLabel(quotePriceBy(order.created_at))}` : usd(order.total_cents)}</div>
         <div className={`s-micro mt-1 ${order.status === "shipped" || requested ? "text-[color:var(--specimen)]" : "text-[color:var(--ink-soft)]"}`}>{label}</div>
         {link && order.status === "balance_due" && (
           <Link href={`/order/${order.order_number}`} className="s-ws-btn" style={{ marginTop: 10, display: "inline-block" }}>Pay balance {usd(order.balance_cents ?? 0)} →</Link>

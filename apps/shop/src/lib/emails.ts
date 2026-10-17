@@ -215,6 +215,16 @@ export function quoteRequestClosedEmail(o: OrderRow, d: { siteUrl: string }) {
   };
 }
 
+// A volume-quote request we didn't price in time closed on its own.
+export function quoteRequestExpiredEmail(d: { orderNumber: string; siteUrl: string }) {
+  return {
+    ...ORDER_REPLY,
+    subject: `Order ${d.orderNumber} — quote request closed`,
+    html: orderShell(`Quote request closed`,
+      `<p>We're sorry: we couldn't price your volume-quote request ${e(d.orderNumber)} in time, so it has closed. Nothing was charged.</p><p>Reply to this email and we'll price it, or <a href="${e(`${d.siteUrl}/wholesale?step=order`)}">send a new request from the order sheet</a>.</p>`),
+  };
+}
+
 // The buyer closed a volume-quote request before it was priced (cancelled it, or
 // ordered the kits at the order-sheet price instead): don't price it.
 export function ownerQuoteRequestClosedEmail(d: { orderNumber: string; name: string; email: string; reason: "customer_cancelled" | "ordered_now"; link: string }) {

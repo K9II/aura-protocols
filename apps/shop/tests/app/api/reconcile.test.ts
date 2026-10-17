@@ -27,7 +27,8 @@ const runWholesaleCron = vi.fn();
 vi.mock("@/lib/wholesale/cron", () => ({ runWholesaleCron }));
 const backfillPaymentFees = vi.hoisted(() => vi.fn(async () => ({ filled: 0, tried: 0 })));
 vi.mock("@/lib/payment-fees", () => ({ backfillPaymentFees }));
-vi.mock("@/lib/wholesale/quote-data", () => ({ expireQuotes: async () => [] }));
+const { runQuoteRequestChecks } = vi.hoisted(() => ({ runQuoteRequestChecks: vi.fn(async () => ({ late: [] as string[], expired: [] as string[] })) }));
+vi.mock("@/lib/wholesale/quote-data", () => ({ expireQuotes: async () => [], runQuoteRequestChecks }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => NOW }));
 
 const get = (auth?: string) => new Request("http://localhost/api/cron/reconcile", { headers: auth ? { authorization: auth } : {} });

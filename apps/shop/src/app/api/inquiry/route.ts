@@ -8,8 +8,8 @@ import { newToken, sendInquiryEmail } from "@/lib/inquiries/send";
 import { ackEmail, ownerNotifyEmail, quoteRequestAckEmail } from "@/lib/inquiries/emails";
 import { getLiveCatalog } from "@/lib/catalog-live";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
-import { QUOTE_REPLY_HOURS, cutoffFor, kitRows } from "@/lib/wholesale/rules";
-import { QUOTE_REQUEST_LINES_MAX, requestLinesOk } from "@/lib/wholesale/quote";
+import { QUOTE_REPLY_TEXT, cutoffFor, kitRows } from "@/lib/wholesale/rules";
+import { QUOTE_REQUEST_LINES_MAX, priceByLabel, quotePriceBy, requestLinesOk } from "@/lib/wholesale/quote";
 import { createQuoteRequest, syncRequestInquiry } from "@/lib/wholesale/quote-data";
 import { localDate } from "@/lib/today/time";
 import type { Customer } from "@/lib/dal";
@@ -117,6 +117,7 @@ export async function POST(request: Request): Promise<Response> {
   }
   const ref = refLabel(created.ref);
   const quote = customer && i.topic === "wholesale" && i.quoteLines?.length ? await quoteRequestOrder(customer, i.quoteLines, created.id, ref) : null;
+  const priceBy = priceByLabel(quotePriceBy(new Date(currentMs()).toISOString()));
 
   // The form takes any address, so cap acknowledgements per recipient
   // regardless of who's submitting — past the limit, the inquiry is still
@@ -129,7 +130,7 @@ export async function POST(request: Request): Promise<Response> {
   if (underAckLimit) {
     try {
       const ack = quote
-        ? quoteRequestAckEmail({ ref: created.ref, firstName: greetingName(name), orderNumber: quote.orderNumber, kits: quote.kits, replyHours: QUOTE_REPLY_HOURS, link: `${siteUrl()}/order/${quote.orderNumber}` })
+        ? quoteRequestAckEmail({ ref: created.ref, firstName: greetingName(name), orderNumber: quote.orderNumber, kits: quote.kits, within: QUOTE_REPLY_TEXT, priceBy, link: `${siteUrl()}/order/${quote.orderNumber}` })
         : ackEmail({ ref: created.ref, firstName: greetingName(name), topic: i.topic });
       await sendInquiryEmail({ to: email, ...ack, token, ignore: [name, email] });
     } catch (err) {
@@ -143,7 +144,7 @@ export async function POST(request: Request): Promise<Response> {
     try {
       await sendEmail({ to, ...ownerNotifyEmail({
         ref: created.ref, topic: i.topic, name, email, organization, orderNumber: quote?.orderNumber ?? orderNumber, message: i.message, link: `${siteUrl()}/admin/inquiries/${ref}`,
-        quote: quote ? { orderNumber: quote.orderNumber, kits: quote.kits, replyHours: QUOTE_REPLY_HOURS, link: `${siteUrl()}/admin/orders/${quote.orderNumber}` } : undefined,
+        quote: quote ? { orderNumber: quote.orderNumber, kits: quote.kits, priceBy, link: `${siteUrl()}/admin/orders/${quote.orderNumber}` } : undefined,
       }) });
     } catch (err) {
       await alertOwner("Inquiry owner notification not sent", `${ref} · ${String(err)}`);

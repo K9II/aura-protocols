@@ -29,6 +29,13 @@ alter table orders add constraint orders_wholesale_shape_check check (
     and (status = 'quote_requested' or (status = 'cancelled' and quote_closed_reason is not null)
       or (deposit_cents is not null and balance_cents is not null))));
 
+-- 'expired' = not priced within QUOTE_REQUEST_EXPIRE_HOURS of its due time (2026-10-17).
+alter table orders drop constraint if exists orders_quote_closed_reason_check;
+alter table orders add constraint orders_quote_closed_reason_check check (quote_closed_reason is null
+  or quote_closed_reason in ('customer_cancelled','ordered_now','owner_cancelled','expired'));
+-- The owner was emailed that this request passed its due time (once per request).
+alter table orders add column if not exists quote_late_alerted_at timestamptz;
+
 -- When the owner priced it (the request itself is created_at).
 alter table orders add column if not exists quote_priced_at timestamptz;
 

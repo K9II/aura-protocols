@@ -21,6 +21,8 @@ const sendCampaignBatch = vi.fn();
 vi.mock("@/lib/email/campaigns/send", () => ({ sendCampaignBatch }));
 const checksFor = vi.fn();
 vi.mock("@/lib/email/campaigns/checks-server", () => ({ checksFor }));
+const { runQuoteRequestChecks } = vi.hoisted(() => ({ runQuoteRequestChecks: vi.fn(async () => ({ late: [] as string[], expired: [] as string[] })) }));
+vi.mock("@/lib/wholesale/quote-data", () => ({ runQuoteRequestChecks }));
 
 const auth = (s = "cron-s") => new Request("http://localhost/api/cron/emails", { headers: { authorization: `Bearer ${s}` } });
 const H = 3600 * 1000, D = 24 * H;

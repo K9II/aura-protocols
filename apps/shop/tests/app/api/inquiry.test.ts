@@ -168,9 +168,9 @@ describe("POST /api/inquiry", () => {
       const ack = m.sendInquiryEmail.mock.calls[0][0];
       expect(ack.subject).toBe("Quote requested: order AP-1063 [Q-1047]");
       expect(ack.html).toContain("https://auraprotocols.com/order/AP-1063");
-      expect(ack.html).toContain("Within 12 hours");
+      expect(ack.html).toContain("Within 12 business hours (by Thu, Oct 8, 11:00 am MT)");   // sent Tue Oct 6, 3 pm MT
       const owner = m.sendEmail.mock.calls[0][0];
-      expect(owner.subject).toContain("Quote request AP-1063 · 30 kits — Dana Reyes");
+      expect(owner.subject).toBe("Quote request AP-1063 · 30 kits — Dana Reyes (price by Thu, Oct 8, 11:00 am MT)");
       expect(owner.html).toContain("https://auraprotocols.com/admin/orders/AP-1063");
       // the order is the to-do: its inquiry is marked answered (one to-do, not two)
       expect(m.syncRequestInquiry).toHaveBeenCalledWith("i1", "requested", "AP-1063");

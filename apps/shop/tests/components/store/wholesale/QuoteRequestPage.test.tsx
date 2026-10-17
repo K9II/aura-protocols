@@ -29,7 +29,8 @@ describe("QuoteRequestPage (mock \"Quote on the Order\")", () => {
     const p = await page();
     const t = p.textContent ?? "";
     expect(t).toContain("Order AP-1063 · Volume quote");
-    expect(t).toContain("Thanks, Dana. We're pricing your kits now. Within 12 hours we'll email d@lab.org");
+    expect(t).toContain("Thanks, Dana. We're pricing your kits now. Within 12 business hours (by 11:39 pm MT) we'll email d@lab.org");
+    expect(t).toContain("We price your kits within 12 business hours");
     expect([...p.querySelectorAll(".s-qr-track li")].map((l) => l.textContent)).toEqual(["RequestedOct 17", "PricingBy 11:39 pm MT", "DepositBy Oct 19", "ShipsAbout Nov 10"]);
     expect(t).toContain("pay the 40% deposit straight from your bank account or by card. Paying the deposit is how you accept the quote.");
     expect(t).toContain("the run closing Oct 19; after that, the next one closes Nov 2.");

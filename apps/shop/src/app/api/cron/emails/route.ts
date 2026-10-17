@@ -17,6 +17,7 @@ import { sendCampaignBatch } from "@/lib/email/campaigns/send";
 import { checksFor } from "@/lib/email/campaigns/checks-server";
 import { isBlocked } from "@/lib/email/campaigns/checks";
 import { SEND_TIME_BUDGET_MS } from "@/lib/email/constants";
+import { runQuoteRequestChecks } from "@/lib/wholesale/quote-data";
 
 // Vercel caps a Hobby/Pro cron function at a lower default; this run can
 // legitimately take a few minutes on a large list (see the time budget below).
@@ -166,6 +167,8 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   if (truncated) failed.push(`run truncated: ${remaining} remaining`);
+  // Volume-quote requests: past due → the owner is emailed; 2 days later → closed (hourly, so the warning is timely).
+  try { await runQuoteRequestChecks(Date.now()); } catch (err) { failed.push(`quote requests: ${err instanceof Error ? err.message : String(err)}`); }
   if (failed.length) await alertOwner("Email run had failures", `${failed.length} failed:\n${failed.join("\n")}`);
   if (runId) {
     try { await finishRun(runId, { welcome, cart, cartSkipped, campaign, failures: failed }); }

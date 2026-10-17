@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default async function ContactPage() {
   const { customer } = await getAccountState().catch(() => ({ customer: null }));
   const orders = customer
-    ? (await listOrdersForCustomer(customer.id)).slice(0, 10).map((o) => ({ number: o.order_number, label: `${o.order_number} · ${shortDate(o.created_at)} · ${usd(o.total_cents)}` }))
+    ? (await listOrdersForCustomer(customer.id)).slice(0, 10).map((o) => ({ number: o.order_number, label: `${o.order_number} · ${shortDate(o.created_at)} · ${o.status === "quote_requested" ? "quote requested" : usd(o.total_cents)}` }))
     : [];
   return (
     <div className="pharmacopoeia">
