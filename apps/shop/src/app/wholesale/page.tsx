@@ -115,8 +115,8 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
             <p className="s-micro s-eyebrow">Wholesale · made to order</p>
             <h1 className="s-h1 mb-5">Build your <em>kits.</em></h1>
             <p className="s-ws-lede">10 vials of one strength per kit. Mix any compounds and strengths — {s.minKits} kits minimum.
-              Order by <b>{dateLabel(cutoff)}</b>; your lot is tested about {dateLabel(dates.testedAbout)} and ships about {dateLabel(dates.shipsAbout)}.
-              Each run is made and tested as one lot, and you receive its certificate.</p>
+              Order by <b>{dateLabel(cutoff)}</b>. Each run is made and tested as one lot — results around {dateLabel(dates.testedAbout)} —
+              and ships around <b>{dateLabel(dates.shipsAbout)}</b> with its certificate.</p>
           </div>
         ) : (
           <>

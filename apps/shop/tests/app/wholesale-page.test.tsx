@@ -91,8 +91,7 @@ describe("/wholesale", () => {
     expect(screen.getAllByRole("heading", { level: 1 }).at(-1)!.textContent).toBe("Build your kits.");  // the earlier render is still mounted
     const lede = [...document.querySelectorAll(".s-ws-lede")].at(-1)!.textContent!;
     expect(lede).toMatch(/5 kits minimum/);
-    expect(lede).toMatch(/Order by Oct 19; your lot is tested about .+ and ships about .+\./);
-    expect(lede).toMatch(/you receive its certificate/);
+    expect(lede).toMatch(/Order by Oct 19\. Each run is made and tested as one lot — results around .+ — and ships around .+ with its certificate\./);
     expect(screen.getAllByRole("link", { name: "← Back to wholesale" }).at(-1)!.getAttribute("href")).toBe("/wholesale");
   });
 
