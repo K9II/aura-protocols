@@ -3,11 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const m = vi.hoisted(() => ({
   getAccountState: vi.fn(), accountIdByEmail: vi.fn(), createInquiry: vi.fn(), underInquiryLimit: vi.fn(), ackCountToday: vi.fn(),
   sendInquiryEmail: vi.fn(), sendEmail: vi.fn(), alertOwner: vi.fn(),
-  getWholesaleSettings: vi.fn(), getLiveCatalog: vi.fn(), createQuoteRequest: vi.fn(),
+  getWholesaleSettings: vi.fn(), getLiveCatalog: vi.fn(), createQuoteRequest: vi.fn(), syncRequestInquiry: vi.fn(),
 }));
 vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: m.getWholesaleSettings }));
 vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog: m.getLiveCatalog }));
-vi.mock("@/lib/wholesale/quote-data", () => ({ createQuoteRequest: m.createQuoteRequest }));
+vi.mock("@/lib/wholesale/quote-data", () => ({ createQuoteRequest: m.createQuoteRequest, syncRequestInquiry: m.syncRequestInquiry }));
 vi.mock("@/lib/dal", () => ({ getAccountState: m.getAccountState }));
 vi.mock("@/lib/account/data", () => ({ accountIdByEmail: m.accountIdByEmail }));
 vi.mock("@/lib/inquiries/data", () => ({ createInquiry: m.createInquiry, underInquiryLimit: m.underInquiryLimit, ackCountToday: m.ackCountToday }));
@@ -172,6 +172,8 @@ describe("POST /api/inquiry", () => {
       const owner = m.sendEmail.mock.calls[0][0];
       expect(owner.subject).toContain("Quote request AP-1063 · 30 kits — Dana Reyes");
       expect(owner.html).toContain("https://auraprotocols.com/admin/orders/AP-1063");
+      // the order is the to-do: its inquiry is marked answered (one to-do, not two)
+      expect(m.syncRequestInquiry).toHaveBeenCalledWith("i1", "requested", "AP-1063");
     });
 
     it("stays a plain inquiry when the buyer isn't a wholesale buyer, wholesale is closed, or the kits don't qualify (owner alerted)", async () => {

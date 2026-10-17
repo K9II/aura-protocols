@@ -7,6 +7,7 @@ import type { BankDetails, QuoteLine, QuotePrice, TransferForm } from "@/lib/who
 import { priceWholesale, type KitRow, type PricingSettings } from "@/lib/wholesale/rules";
 import type { PricedItem } from "@/lib/pricing";
 import { alertOwner } from "@/lib/notify";
+import { applyInquiryEvent, logInquiryEvent } from "@/lib/inquiries/data";
 import { addDays } from "@/lib/today/time";
 import type { ShipAddress } from "@/lib/ship-address";
 
@@ -228,4 +229,27 @@ export async function expireQuotes(today: string): Promise<string[]> {
 export async function getQuoteOrder(orderId: string): Promise<OrderRow | null> {
   const o = await getOrderById(orderId);
   return o && o.channel === "wholesale" ? o : null;
+}
+
+// ---------- the request's inquiry (one to-do, not two) ----------
+// A request arrives as an inquiry too (the conversation). The order is the
+// to-do (Today → Quote to price), so the inquiry moves with it: answered when
+// the request is sent (the buyer got "Quote requested") and again when priced,
+// closed when the request closes. A later email from the buyer reopens it as
+// Needs reply the usual way. Never throws: the order is the record.
+export async function syncRequestInquiry(inquiryId: string | null, step: "requested" | "priced" | "closed", orderNumber: string, actorId: string | null = null, why?: string): Promise<void> {
+  if (!inquiryId) return;
+  try {
+    if (step === "closed") {
+      await applyInquiryEvent(inquiryId, "close", { actorId });
+      await logInquiryEvent({ inquiryId, action: "closed", actorId, detail: `Quote request ${orderNumber} closed${why ? `: ${why}` : ""}` });
+    } else {
+      await applyInquiryEvent(inquiryId, "owner_replied", { actorId });
+      await logInquiryEvent({ inquiryId, action: "replied", actorId, detail: step === "requested"
+        ? `Quote request ${orderNumber} · "Quote requested" email sent automatically; price it on the order`
+        : `Priced ${orderNumber} · "Your volume price is ready" email sent` });
+    }
+  } catch (err) {
+    await alertOwner("Quote request inquiry not updated", `${orderNumber} (${step}): ${String(err)}. The inquiry may still show as a to-do.`);
+  }
 }

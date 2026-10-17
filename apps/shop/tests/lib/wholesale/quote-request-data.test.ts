@@ -11,6 +11,9 @@ vi.mock("@/lib/orders", () => ({ transitionOrder, getOrderById: vi.fn() }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("@/lib/order-paid", () => ({ afterOrderPaid: vi.fn() }));
 vi.mock("@/lib/wholesale/after-deposit", () => ({ afterDepositPaid: vi.fn(), depositRunPatch: vi.fn() }));
+const applyInquiryEvent = vi.fn();
+const logInquiryEvent = vi.fn();
+vi.mock("@/lib/inquiries/data", () => ({ applyInquiryEvent, logInquiryEvent }));
 
 const rows = [{ slug: "bpc-157", name: "BPC-157", designation: null, chemicalClass: "Peptide Fragments", variantId: "10mg", strength: "10 mg", priceUsd: 65 }];
 const pricing = { tiers: [{ minKits: 5, pct: 30 }, { minKits: 20, pct: 40 }], depositPct: 40, minKits: 5 };
@@ -74,5 +77,25 @@ describe("quote request data", () => {
     const { closeQuoteRequest } = await import("@/lib/wholesale/quote-data");
     expect(await closeQuoteRequest("o1", "ordered_now")).toBe(true);
     expect(transitionOrder).toHaveBeenCalledWith("o1", "quote_requested", "cancelled", { quote_closed_reason: "ordered_now" });
+  });
+
+  it("syncRequestInquiry: the request's inquiry is answered when sent and priced, closed with the request; failures alert, never throw", async () => {
+    applyInquiryEvent.mockReset().mockResolvedValue({ from: "new", to: "waiting" });
+    logInquiryEvent.mockReset().mockResolvedValue(undefined);
+    const { syncRequestInquiry } = await import("@/lib/wholesale/quote-data");
+    await syncRequestInquiry("q1", "requested", "AP-1063");
+    expect(applyInquiryEvent).toHaveBeenLastCalledWith("q1", "owner_replied", { actorId: null });
+    expect(logInquiryEvent).toHaveBeenLastCalledWith(expect.objectContaining({ inquiryId: "q1", action: "replied", detail: expect.stringContaining("Quote request AP-1063") }));
+    await syncRequestInquiry("q1", "priced", "AP-1063", "owner");
+    expect(applyInquiryEvent).toHaveBeenLastCalledWith("q1", "owner_replied", { actorId: "owner" });
+    await syncRequestInquiry("q1", "closed", "AP-1063", null, "cancelled by the buyer");
+    expect(applyInquiryEvent).toHaveBeenLastCalledWith("q1", "close", { actorId: null });
+    expect(logInquiryEvent).toHaveBeenLastCalledWith(expect.objectContaining({ action: "closed", detail: "Quote request AP-1063 closed: cancelled by the buyer" }));
+    applyInquiryEvent.mockClear();
+    await syncRequestInquiry(null, "requested", "AP-1063");
+    expect(applyInquiryEvent).not.toHaveBeenCalled();
+    applyInquiryEvent.mockRejectedValue(new Error("db down"));
+    await expect(syncRequestInquiry("q1", "priced", "AP-1063")).resolves.toBeUndefined();
+    expect(alertOwner).toHaveBeenCalledWith("Quote request inquiry not updated", expect.stringContaining("db down"));
   });
 });
