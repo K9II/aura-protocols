@@ -765,6 +765,7 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-pdp-placard dl > div { display: contents; }
 .pharmacopoeia .s-pdp-placard dt { color: var(--ink-soft); letter-spacing: .12em; text-transform: uppercase; font-size: 10.5px; padding-top: 1px; }
 .pharmacopoeia .s-pdp-placard dd { margin: 0; overflow-wrap: anywhere; }
+.pharmacopoeia .s-pdp-part { display: block; }
 .pharmacopoeia .s-pdp-placard .s-placard-r { font-size: 10px; padding-top: 8px; max-width: 54%; }
 .pharmacopoeia .s-pdp-vial { position: absolute; right: 7%; bottom: 4%; width: 38%; filter: drop-shadow(8px 12px 10px rgba(28,26,21,.24)); }
 .pharmacopoeia .s-pdp-vial svg { display: block; width: 100%; height: auto; filter: none !important; }

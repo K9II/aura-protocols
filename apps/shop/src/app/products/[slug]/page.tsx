@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Metadata } from "next";
 import { catalogContent } from "@/data/catalog";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
@@ -51,7 +51,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const hasCertificate = c.variants.some((v) => !isPendingLot(v.lot) && v.lot.coaFile);
   const allOut = c.variants.every((v) => v.stock === "out");
   const anyLow = c.variants.some((v) => v.stock === "low");
-  const placardRows: Array<[string, string | undefined]> = [
+  // A blend has no single CAS, formula or weight: its placard lists what it contains.
+  // (CJC-1295 / Ipamorelin lists no component pages, so its name gives the parts.)
+  const contains = c.components?.length
+    ? c.components.map((s) => catalogContent.find((x) => x.slug === s)?.name ?? s)
+    : c.name.includes(" / ") ? c.name.split(" / ") : [];
+  const placardRows: Array<[string, ReactNode]> = [
+    ["Contains", contains.length ? contains.map((n) => <span key={n} className="s-pdp-part">{n}</span>) : undefined],
     ["CAS", c.identity.cas],
     ["Formula", c.identity.formula],
     ["Mol. wt", c.identity.molecularWeight],
