@@ -1,4 +1,6 @@
 import "server-only";
+import { openQuoteRequests } from "@/lib/wholesale/quote-data";
+import { quotePriceBy } from "@/lib/wholesale/quote";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import type { OrderStatus } from "@/lib/order-status";
 import { balanceTiming, daysSince, kitsByStrength, PAST_CUTOFF_ALERT_DAYS, strengthKey, type RunLine, type RunOrder } from "@/lib/wholesale/runs";
@@ -235,11 +237,14 @@ const strengthLabel = (slug: string, variantId: string): string => {
 
 export async function wholesaleTodos(nowMs: number): Promise<WholesaleTodoInput> {
   const today = localDate(nowMs);
-  const [s, runs, due, pending] = await Promise.all([getWholesaleSettings(), listRuns(), balanceDueOrders(), unreviewedBuyers()]);
+  const [s, runs, due, pending, requests] = await Promise.all([getWholesaleSettings(), listRuns(), balanceDueOrders(), unreviewedBuyers(), openQuoteRequests()]);
   const cutoff = cutoffFor(today, { runDays: s.runDays, override: s.nextCutoffOverride });
   const recent = runs.filter((r) => r.cutoff_on >= addDays(today, -120));
   const orders = await runOrders(recent.map((r) => r.cutoff_on));
-  const out: WholesaleTodoInput = { collecting: null, toOrder: [], failed: [], balances: { due: due.length, overdue: 0 }, newBuyers: [] };
+  const out: WholesaleTodoInput = {
+    collecting: null, toOrder: [], failed: [], balances: { due: due.length, overdue: 0 }, newBuyers: [], nowMs,
+    quoteRequests: requests.map((r) => ({ id: r.id, number: r.number, name: r.name, kits: r.kits, priceBy: quotePriceBy(r.createdAt) })),
+  };
   for (const o of due) if (o.balance_due_at && nowMs >= balanceTiming(o.balance_due_at, s.balanceDays).overdueAt) out.balances.overdue++;
   for (const r of recent) {
     const mine = orders.filter((o) => o.wholesale_cutoff_on === r.cutoff_on);

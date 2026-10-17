@@ -190,9 +190,9 @@ export function quoteOrderReadyEmail(o: OrderRow, d: { siteUrl: string; validUnt
   const link = orderLink(d.siteUrl, o.order_number);
   return {
     ...ORDER_REPLY,
-    subject: `Order ${o.order_number} — your volume order is ready`,
-    html: orderShell(`Your volume order is ready`,
-      `<p>Thanks for confirming. Your order is set up at the price we quoted.</p>${d.note ? `<p>${e(d.note)}</p>` : ""}${kitsTable(o)}<p>Total before tax: <b>${usd(o.total_cents)}</b> (includes shipping protection). Deposit to hold your place in the run: <b>${usd(o.deposit_cents ?? 0)}</b>; the balance is due when your lot passes testing.</p><p><a href="${e(link)}">Add your shipping address and pay the deposit</a> on your order page. This quote is good until <b>${e(dateLabel(d.validUntil))}</b>.</p>`),
+    subject: `Order ${o.order_number} — your volume price is ready`,
+    html: orderShell(`Your volume price is ready`,
+      `<p>Your volume price is ready. Paying the deposit confirms the order at this price.</p>${d.note ? `<p>${e(d.note)}</p>` : ""}${kitsTable(o)}<p>Total before tax: <b>${usd(o.total_cents)}</b> (includes shipping protection). Deposit to hold your place in the run: <b>${usd(o.deposit_cents ?? 0)}</b>; the balance is due when your lot passes testing.</p><p><a href="${e(link)}">Add your shipping address and pay the deposit</a> on your order page. This quote is good until <b>${e(dateLabel(d.validUntil))}</b>.</p>`),
   };
 }
 
@@ -202,6 +202,26 @@ export function ownerTransferSentEmail(o: OrderRow, d: { payment: "deposit" | "b
   return {
     subject: `Bank transfer on its way — ${o.order_number} ${d.payment} ${usd(cents ?? 0)}`,
     html: shell(`Bank transfer on its way`, `<p>${e(o.email)} says the ${d.payment} of <b>${usd(cents ?? 0)}</b> for ${e(o.order_number)} was sent, with ${e(o.order_number)} as the reference. When it reaches the account, open the order and click Record bank transfer.</p>${adminOrderLink(base, o.order_number)}`),
+  };
+}
+
+// The owner closed a volume-quote request without pricing it.
+export function quoteRequestClosedEmail(o: OrderRow, d: { siteUrl: string }) {
+  return {
+    ...ORDER_REPLY,
+    subject: `Order ${o.order_number} — quote request closed`,
+    html: orderShell(`Quote request closed`,
+      `<p>We've closed your volume-quote request ${e(o.order_number)}. Nothing was charged.</p><p>Reply to this email if you have any questions, or <a href="${e(`${d.siteUrl}/wholesale?step=order`)}">order kits on the order sheet</a>.</p>`),
+  };
+}
+
+// The buyer closed a volume-quote request before it was priced (cancelled it, or
+// ordered the kits at the order-sheet price instead): don't price it.
+export function ownerQuoteRequestClosedEmail(d: { orderNumber: string; name: string; email: string; reason: "customer_cancelled" | "ordered_now"; link: string }) {
+  const why = d.reason === "ordered_now" ? "is ordering these kits at the order-sheet price instead" : "cancelled the request";
+  return {
+    subject: `Quote request ${d.orderNumber} closed by the buyer — no need to price it`,
+    html: shell(`Quote request closed`, `<p>${e(d.name)} (${e(d.email)}) ${why}, so ${e(d.orderNumber)} is closed and doesn't need a price.</p><p><a href="${e(d.link)}" style="color:#A32B1F">Open ${e(d.orderNumber)} →</a></p>`),
   };
 }
 

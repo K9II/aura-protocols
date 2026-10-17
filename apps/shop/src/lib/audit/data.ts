@@ -12,7 +12,8 @@ export type AdminAction =
   | "inquiries_seen"
   | "staff_disabled" | "staff_enabled" | "staff_signed_out"
   | "no_charge_created" | "no_charge_cancelled"
-  | "quote_order_created" | "bank_transfer_recorded" | "quote_order_cancelled" | "bank_details_saved";
+  | "quote_order_created" | "bank_transfer_recorded" | "quote_order_cancelled" | "bank_details_saved"
+  | "quote_priced" | "quote_request_cancelled";
 export type AdminEventInput = { area: AdminArea; action: AdminAction; targetId?: string | null; label?: string | null; detail?: string | null; actorId: string };
 
 const db = () => getSupabaseAdminClient();

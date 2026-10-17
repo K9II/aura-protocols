@@ -64,7 +64,7 @@ export const ACTION_PERMS: Record<string, Record<string, string>> = {
     resourceLineAction: "wholesale.manage", saveRunNotesAction: "wholesale.manage", cancelDepositAction: "wholesale.manage", saveWholesaleSettingsAction: "wholesale.manage",
     markWholesaleReviewedAction: "wholesale.manage", saveBankDetailsAction: "wholesale.quote",
   },
-  "orders/quote/actions.ts": { createQuoteOrderAction: "wholesale.quote", recordBankTransferAction: "wholesale.quote", cancelQuoteOrderAction: "wholesale.quote" },
+  "orders/quote/actions.ts": { createQuoteOrderAction: "wholesale.quote", recordBankTransferAction: "wholesale.quote", cancelQuoteOrderAction: "wholesale.quote", cancelQuoteRequestOwnerAction: "wholesale.quote" },
   "disputes/actions.ts": { saveDisputeDraftAction: "disputes.draft", submitDisputeAction: "disputes.submit", refundEarlyWarningAction: "disputes.warnings", watchEarlyWarningAction: "disputes.warnings" },
   "catalog/actions.ts": {
     coaUploadAction: "lots.receive", receiveLotAction: "lots.receive",

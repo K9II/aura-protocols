@@ -3,37 +3,43 @@
 import { useEffect, useRef, useState } from "react";
 import type { Topic } from "@/lib/inquiries/topics";
 
+type QuoteLineIn = { slug: string; variantId: string; kits: number };
+const norm = (t: string) => t.replace(/\r\n/g, "\n").trim();
+
 export default function InquiryForm({
   topic,
   orgLabel,
   messageLabel,
   prefillEvent,
   messagePlaceholder,
-  sentEvent,
   signedIn,
 }: {
   topic: Topic;
   orgLabel: string;
   messageLabel: string;
-  // A window event whose detail (a string) fills the message, e.g. the wholesale order sheet's
-  // "Ask for a volume quote". The buyer can still edit it before sending; nothing sends by itself.
+  // A window event that fills the message, e.g. the wholesale order sheet's "Ask for a volume
+  // quote": detail is the text, or { message, lines } with the kits it was written from. The
+  // buyer can still edit it before sending; nothing sends by itself.
   prefillEvent?: string;
   messagePlaceholder?: string;
-  // Announced on window after a successful send, detail { ref, name, message } — the order
-  // sheet uses it to show "Quote requested" for the request it filled in.
-  sentEvent?: string;
   // Signed in: name and email come from the account (the API uses the account's anyway, like
   // /contact), and the organization starts from the account's.
   signedIn?: { name: string; email: string; organization: string | null } | null;
 }) {
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const message = useRef<HTMLTextAreaElement>(null);
+  // The kits behind a filled-in volume-quote request. Sent with the message only if it
+  // wasn't edited: then the request becomes an order and the buyer goes to its page.
+  const handed = useRef<{ message: string; lines: QuoteLineIn[] } | null>(null);
 
   useEffect(() => {
     if (!prefillEvent) return;
     const fill = (e: Event) => {
-      const text = (e as CustomEvent<unknown>).detail;
-      if (typeof text !== "string" || !message.current) return;
+      const d = (e as CustomEvent<unknown>).detail;
+      const text = typeof d === "string" ? d : d && typeof d === "object" && typeof (d as { message?: unknown }).message === "string" ? (d as { message: string }).message : null;
+      if (text == null || !message.current) return;
+      const lines = typeof d === "object" && d && Array.isArray((d as { lines?: unknown }).lines) ? (d as { lines: QuoteLineIn[] }).lines : null;
+      handed.current = lines ? { message: text, lines } : null;
       message.current.value = text;
       message.current.focus({ preventScroll: true });
     };
@@ -45,6 +51,9 @@ export default function InquiryForm({
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    const text = String(f.get("message") ?? "");
+    const h = handed.current;
+    const quoteLines = h && norm(h.message) === norm(text) ? h.lines : undefined;
     setState("sending");
     const res = await fetch("/api/inquiry", {
       method: "POST",
@@ -53,16 +62,18 @@ export default function InquiryForm({
         topic,
         ...(signedIn ? {} : { name: f.get("name"), email: f.get("email") }),
         organization: (f.get("organization") as string) || undefined,
-        message: f.get("message"),
+        message: text,
         website: f.get("website"),
+        ...(quoteLines ? { quoteLines } : {}),
       }),
     }).catch(() => null);
     const data = res ? await res.json().catch(() => ({})) : {};
     if (res?.ok) {
-      const sentRef = (data as { ref?: string | null }).ref ?? null;
-      setRef(sentRef);
+      const d = data as { ref?: string | null; orderNumber?: string | null };
+      // A volume-quote request became an order: its page is where the buyer follows it.
+      if (d.orderNumber) { window.location.assign(`/order/${encodeURIComponent(d.orderNumber)}`); return; }
+      setRef(d.ref ?? null);
       setState("sent");
-      if (sentEvent) window.dispatchEvent(new CustomEvent(sentEvent, { detail: { ref: sentRef, name: signedIn?.name ?? String(f.get("name") ?? ""), message: String(f.get("message") ?? "") } }));
     } else {
       setState("error");
     }
@@ -71,7 +82,7 @@ export default function InquiryForm({
   if (state === "sent") {
     return (
       <p role="status" className="text-[color:var(--specimen)]">
-        Thanks — {ref ? <>your message is <b>{ref}</b>. </> : null}We&apos;ve emailed you a copy; we&apos;ll reply within two business days.
+        Thanks — {ref ? <>your message is <b>{ref}</b>. </> : null}We&apos;ve emailed you a copy; we usually reply within one business day.
       </p>
     );
   }

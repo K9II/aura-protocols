@@ -23,7 +23,12 @@ import QuotePay, { type QuotePayItem } from "@/components/store/wholesale/QuoteP
 import QuoteBalanceBank from "@/components/store/wholesale/QuoteBalanceBank";
 import { getLiveCatalog } from "@/lib/catalog-live";
 import { CLASS_COLOR } from "@/lib/class-colors";
-import { depositCutoff, quoteOpen } from "@/lib/wholesale/quote";
+import { cardAllowed, depositCutoff, quotePriceBy, quoteOpen } from "@/lib/wholesale/quote";
+import QuoteRequestPage, { type RequestedKit } from "@/components/store/wholesale/QuoteRequestPage";
+import { cutoffFor, kitTitle, nextCutoffAfter } from "@/lib/wholesale/rules";
+import { dateTime } from "@/lib/discounts/time";
+import { refLabel } from "@/lib/inquiries/rules";
+import { getInquiry } from "@/lib/inquiries/data";
 import { getBankDetails } from "@/lib/wholesale/quote-data";
 import { tierFor } from "@/lib/wholesale/rules";
 import type { Customer } from "@/lib/dal";
@@ -38,6 +43,7 @@ export default async function OrderPage({ params, searchParams }: {
   const customer = await requireCustomer(`/order/${number}`);
   const order = await getOrderForCustomer(number, customer.id);
   if (!order) notFound();
+  if (order.channel === "wholesale" && order.status === "quote_requested") return await quoteRequestPage(order, customer);
   if (order.channel === "wholesale" && order.status === "quoted") return await quotePayPage(order, customer, session_id);
   if (order.channel === "wholesale") return await wholesaleOrder(order);
 
@@ -131,6 +137,7 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
     : failed.length ? <>One lot needs <em>re-sourcing.</em></>
     : order.status === "deposit_paid" ? <>Deposit <em>received.</em></>
     : order.status === "paid" ? <>Balance <em>received.</em></>
+    : order.quote_closed_reason ? <>Request <em>closed.</em></>
     : closed ? <>Order <em>cancelled.</em></>
     : order.status === "awaiting_payment" ? <>Awaiting <em>deposit.</em></>
     : <>Thank <em>you.</em></>;
@@ -140,7 +147,7 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
         <p className="s-micro text-[color:var(--specimen)] mb-2.5">Order {order.order_number} · wholesale</p>
         <h1 className="s-h1 mb-6" style={{ fontSize: 48 }}>{head}</h1>
         {order.status === "refunded" && <p className="s-ws-lede">Your deposit of {deposit} is being refunded to the way you paid; it can take 5–10 business days to appear.</p>}
-        {order.status === "cancelled" && <p className="s-ws-lede">This order was cancelled.</p>}
+        {order.status === "cancelled" && <p className="s-ws-lede">{CLOSED_REQUEST[order.quote_closed_reason ?? ""] ?? "This order was cancelled."}</p>}
         {order.status === "awaiting_payment" && <p className="s-ws-lede">We haven&apos;t received your deposit yet. If you just paid, a confirmation email is on its way.</p>}
         {order.status === "balance_due" && <p className="s-ws-lede">Your production lot passed independent testing and your kits are set aside for you. Pay the balance to ship them.</p>}
         {failed.length > 0 && <p className="s-ws-lede">The lot for <b>{failed.join(", ")}</b> didn&apos;t pass our independent testing, so it won&apos;t be sold. We&apos;re re-sourcing it.</p>}
@@ -184,6 +191,52 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
           <CancelWholesaleButton orderNumber={order.order_number} cutoffLabel={dateLabel(cutoff)} depositLabel={deposit} failedLot={failed.length > 0} />
         )}
         <Link href="/account" className="s-ws-btn-o" style={{ marginTop: 14 }}>My orders →</Link>
+      </div>
+    </div>
+  );
+}
+
+// A volume-quote request that was closed before it was priced (quote-requests.sql).
+const CLOSED_REQUEST: Record<string, string> = {
+  customer_cancelled: "You cancelled this quote request. Nothing was charged.",
+  ordered_now: "You chose to order these kits at the order-sheet price instead, so this request is closed. Nothing was charged here.",
+  owner_cancelled: "We closed this quote request. Nothing was charged. Reply to our email if you have any questions.",
+};
+
+// A volume-quote request not priced yet (mock "Quote on the Order", 2026-10-17):
+// progress, next steps, how to change it, the kits asked for.
+async function quoteRequestPage(order: NonNullable<Awaited<ReturnType<typeof getOrderForCustomer>>>, customer: Customer) {
+  const nowMs = currentMs();
+  const today = localDate(nowMs);
+  const [settings, live, inquiryRef] = await Promise.all([
+    getWholesaleSettings().catch((err) => { console.error("wholesale settings read failed:", err); return null; }),
+    getLiveCatalog().catch((err) => { console.error("live catalog read failed:", err); return null; }),
+    order.quote_inquiry_id ? getInquiry({ id: order.quote_inquiry_id }).then((q) => q?.ref ?? null).catch(() => null) : Promise.resolve(null),
+  ]);
+  const items: RequestedKit[] = (order.order_items ?? []).map((i) => {
+    const c = live?.shown.find((x) => x.slug === i.compound_slug);
+    const t = kitTitle({ name: i.compound_name, designation: c?.designation ?? null });
+    return { key: i.id, chemicalClass: c?.chemicalClass ?? "", title: t.title, scientific: t.scientific, strength: i.strength, kits: i.quantity };
+  });
+  const priceBy = quotePriceBy(order.created_at);
+  const cutoff = settings ? cutoffFor(today, { runDays: settings.runDays, override: settings.nextCutoffOverride }) : null;
+  const ships = cutoff && settings ? estimatedDates(cutoff, settings.leadDays).shipsAbout : null;
+  const top = settings?.tiers[settings.tiers.length - 1] ?? null;
+  const sameDay = localDate(priceBy) === today;
+  return (
+    <div className="pharmacopoeia">
+      <div className="p-container py-16 s-ws-page">
+        <QuoteRequestPage
+          orderNumber={order.order_number} firstName={customer.fullName.trim().split(/\s+/)[0] ?? ""} email={customer.email}
+          inquiryRef={inquiryRef != null ? refLabel(inquiryRef) : null}
+          requestedLabel={dateLabel(localDate(Date.parse(order.created_at)))}
+          priceByLabel={`${sameDay ? dateTime(new Date(priceBy).toISOString()).split(", ")[1] : dateTime(new Date(priceBy).toISOString())} MT`}
+          late={nowMs > priceBy}
+          cutoffLabel={cutoff ? dateLabel(cutoff) : null} nextCutoffLabel={cutoff && settings ? dateLabel(nextCutoffAfter(cutoff, settings.runDays)) : null}
+          shipsAboutLabel={ships ? dateLabel(ships) : null}
+          depositPct={settings?.depositPct ?? 40} cardAllowed={cardAllowed(items)} items={items}
+          sheetPct={top?.pct ?? 40} sheetMinKits={top?.minKits ?? 20}
+        />
       </div>
     </div>
   );

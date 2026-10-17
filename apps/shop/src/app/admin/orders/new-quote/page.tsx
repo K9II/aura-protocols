@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getOrderByNumber } from "@/lib/orders";
 import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
 import { getInquiry } from "@/lib/inquiries/data";
@@ -13,7 +14,7 @@ import { lotDefaults } from "@/lib/catalog-ops/data";
 import { aiosReference } from "@/lib/wholesale/margins-data";
 import { kitCostCents } from "@/lib/wholesale/margins";
 import { kitRows } from "@/lib/wholesale/rules";
-import { QUOTE_VALID_DAYS, parseQuoteRequest, quoteCutoffChoices, type KitCost } from "@/lib/wholesale/quote";
+import { QUOTE_VALID_DAYS, parseQuoteRequest, quoteCutoffChoices, quoteStartPct, type KitCost, type QuoteLine } from "@/lib/wholesale/quote";
 import { firstCustomerMessage, getBankDetails } from "@/lib/wholesale/quote-data";
 import { PROTECTION_CENTS } from "@/lib/pricing";
 import { currentMs } from "@/lib/clock";
@@ -28,14 +29,16 @@ const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2)
 
 // Mocks 2026-10-17 "Quote Order Mocks", screen 2. Opened from an inquiry
 // (?inquiry=Q-1006: the customer and the kits come from it) or for a customer
-// (?customer=<id>); with neither, a customer search first.
-export default async function NewQuoteOrderPage({ searchParams }: { searchParams: Promise<{ inquiry?: string | string[]; customer?: string | string[]; q?: string | string[] }> }) {
+// (?customer=<id>); with neither, a customer search first. ?order=AP-1063 prices a
+// volume-quote request (quote-requests.sql): its kits, customer and inquiry are filled in.
+export default async function NewQuoteOrderPage({ searchParams }: { searchParams: Promise<{ inquiry?: string | string[]; customer?: string | string[]; q?: string | string[]; order?: string | string[] }> }) {
   await requirePermission("wholesale.quote");
   const sp = await searchParams;
+  const pricing = (first(sp.order) ?? "").trim().toUpperCase();
   const head = (
     <>
-      <Crumbs items={[{ label: "Orders", href: "/admin/orders" }, { label: "New quote order" }]} />
-      <div className="a-ph"><div><h1>New quote order</h1><p>A wholesale order at the prices you quoted. Nothing is charged now. The customer gets a link to pay the deposit, and once it&apos;s paid the order joins its run like any wholesale order.</p></div></div>
+      <Crumbs items={[{ label: "Orders", href: "/admin/orders" }, ...(pricing ? [{ label: pricing, href: `/admin/orders/${pricing}` }] : []), { label: pricing ? "Price this quote" : "New quote order" }]} />
+      <div className="a-ph"><div><h1>{pricing ? `Price ${pricing}` : "New quote order"}</h1><p>{pricing ? "The kits this buyer asked for, at the volume band. Set the prices you're quoting; saving prices this same order and emails the buyer their pay link." : null}{pricing ? null : <>A wholesale order at the prices you quoted. Nothing is charged now. The customer gets a link to pay the deposit, and once it&apos;s paid the order joins its run like any wholesale order.</>}</p></div></div>
     </>
   );
 
@@ -43,7 +46,22 @@ export default async function NewQuoteOrderPage({ searchParams }: { searchParams
   let customerId = (first(sp.customer) ?? "").trim();
   let inquiry: { id: string; ref: number } | null = null;
   let message: string | null = null;
-  if (inqRaw) {
+  let request: { id: string; orderNumber: string; lines: QuoteLine[] } | null = null;
+  const orderRaw = (first(sp.order) ?? "").trim().toUpperCase();
+  if (orderRaw) {
+    if (!/^AP-\d{1,10}$/.test(orderRaw)) notFound();
+    const o = await getOrderByNumber(orderRaw);
+    if (!o || o.channel !== "wholesale") notFound();
+    if (o.status !== "quote_requested") redirect(`/admin/orders/${o.order_number}`);
+    const kits = (o.order_items ?? []).reduce((n, i) => n + i.quantity, 0);
+    const pct = quoteStartPct(kits);
+    request = { id: o.id, orderNumber: o.order_number, lines: (o.order_items ?? []).map((i) => ({ slug: i.compound_slug, variantId: i.variant_id, kits: i.quantity, pct })) };
+    customerId = o.customer_id;
+    if (o.quote_inquiry_id) {
+      const inq = await getInquiry({ id: o.quote_inquiry_id });
+      if (inq) inquiry = { id: inq.id, ref: inq.ref };
+    }
+  } else if (inqRaw) {
     const ref = Number(inqRaw);
     const inq = Number.isInteger(ref) ? await getInquiry({ ref }) : null;
     if (!inq) notFound();
@@ -54,6 +72,11 @@ export default async function NewQuoteOrderPage({ searchParams }: { searchParams
           <p style={{ marginTop: 12 }}><Link className="a-ulink" href={`/admin/inquiries/Q-${inq.ref}`}>Back to Q-{inq.ref}</Link></p>
         </div>
       );
+    }
+    // Sent from the order sheet: it's already an order waiting to be priced.
+    if (inq.order_number) {
+      const linked = await getOrderByNumber(inq.order_number);
+      if (linked?.status === "quote_requested") redirect(`/admin/orders/new-quote?order=${linked.order_number}`);
     }
     inquiry = { id: inq.id, ref: inq.ref };
     customerId = inq.customer_id;
@@ -97,7 +120,7 @@ export default async function NewQuoteOrderPage({ searchParams }: { searchParams
     );
   }
   const rows = kitRows(live.shown);
-  const parsed = message ? parseQuoteRequest(message, rows) : { lines: [], unmatched: [] };
+  const parsed = request ? { lines: request.lines, unmatched: [] } : message ? parseQuoteRequest(message, rows) : { lines: [], unmatched: [] };
 
   // The owner's profit estimate: a failed read leaves the costs out (the form says so).
   let costs: Record<string, KitCost | undefined> = {};
@@ -128,6 +151,7 @@ export default async function NewQuoteOrderPage({ searchParams }: { searchParams
         inquiry={inquiry} unmatched={parsed.unmatched} rows={rows} initialLines={parsed.lines}
         settings={{ depositPct: settings.depositPct, tiers: settings.tiers, balanceDays: settings.balanceDays }}
         runs={runs} bankReady={!!bank} costs={costs} validUntil={addDays(today, QUOTE_VALID_DAYS)}
+        request={request ? { id: request.id, orderNumber: request.orderNumber } : null}
       />
     </div>
   );

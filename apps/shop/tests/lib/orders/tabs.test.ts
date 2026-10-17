@@ -4,7 +4,7 @@ import { ORDER_TABS, TAB_STATUSES, cleanOrderSearch, itemsSummary, orderMarkers,
 describe("order tabs", () => {
   it("maps every tab to statuses; awaiting payment is never listed", () => {
     expect(ORDER_TABS).toEqual(["to_ship", "processing", "wholesale", "shipped", "closed", "all"]);
-    expect(TAB_STATUSES.wholesale).toEqual(["quoted", "deposit_paid", "balance_due"]);   // quote orders awaiting their deposit (quote-orders.sql)
+    expect(TAB_STATUSES.wholesale).toEqual(["quote_requested", "quoted", "deposit_paid", "balance_due"]);   // requests to price, quote orders awaiting their deposit
     expect(TAB_STATUSES.to_ship).toEqual(["paid"]);
     expect(TAB_STATUSES.closed).toEqual(["cancelled", "refunded"]);
     for (const t of ORDER_TABS) expect(TAB_STATUSES[t]).not.toContain("awaiting_payment");

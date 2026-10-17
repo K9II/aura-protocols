@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 
 const startWholesaleCheckoutAction = vi.fn();
 vi.mock("@/app/wholesale/actions", () => ({ startWholesaleCheckoutAction }));
@@ -14,9 +14,9 @@ const rows = [
 const pricing = { tiers: [{ minKits: 5, pct: 25 }, { minKits: 10, pct: 30 }, { minKits: 20, pct: 35 }], depositPct: 40, minKits: 5 };
 const ship = { name: "Dana", line1: "1 Elm", line2: null, city: "Boulder", state: "CO", zip: "80302" };
 
-async function sheet() {
+async function sheet(initialKits?: Record<string, number>) {
   const { default: Sheet } = await import("@/components/store/wholesale/WholesaleOrderSheet");
-  render(<Sheet rows={rows} pricing={pricing} cutoffLabel="Oct 19" nextCutoffLabel="Nov 2" ship={ship} email="d@lab.org" />);
+  render(<Sheet rows={rows} pricing={pricing} cutoffLabel="Oct 19" ship={ship} email="d@lab.org" initialKits={initialKits} />);
 }
 
 describe("WholesaleOrderSheet", () => {
@@ -120,61 +120,23 @@ describe("WholesaleOrderSheet", () => {
     // 30+: the quote section shows and the highlight moves to the "Volume quote" tag
     expect(document.querySelector(".s-wo-grid")!.classList.contains("s-wo-q")).toBe(true);
     expect([...document.querySelectorAll(".s-ws-tiers .on")].map((e) => e.textContent)).toEqual([expect.stringMatching(/Volume quote/)]);
-    const seen: string[] = [];
-    const on = (e: Event) => seen.push((e as CustomEvent<string>).detail);
+    const seen: unknown[] = [];
+    const on = (e: Event) => seen.push((e as CustomEvent).detail);
     window.addEventListener("aura:volume-quote", on);
     fireEvent.click(screen.getByRole("link", { name: "Ask for a volume quote →" }));
     window.removeEventListener("aura:volume-quote", on);
-    expect(seen).toEqual(["Volume quote request (30 kits):\n- BPC-157 10 mg: 22 kits\n- TB-500 10 mg: 8 kits"]);
+    // the text for the form, and the kits it was written from (sent unchanged, the request becomes an order)
+    expect(seen).toEqual([{
+      message: "Volume quote request (30 kits):\n- BPC-157 10 mg: 22 kits\n- TB-500 10 mg: 8 kits",
+      lines: [{ slug: "bpc-157", variantId: "10mg", kits: 22 }, { slug: "tb-500", variantId: "10mg", kits: 8 }],
+    }]);
     // checkout stays open: the quote is an offer, not a gate
     expect((screen.getByRole("button", { name: "Continue to checkout" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
-  async function askAt30(first = "BPC-157") {
-    await sheet();
-    for (let i = 0; i < 22; i++) fireEvent.click(screen.getByRole("button", { name: `Add a ${first} 10 mg kit` }));
-    for (let i = 0; i < 8; i++) fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
-    let message = "";
-    const on = (e: Event) => { message = (e as CustomEvent<string>).detail; };
-    window.addEventListener("aura:volume-quote", on);
-    fireEvent.click(screen.getByRole("link", { name: "Ask for a volume quote →" }));
-    window.removeEventListener("aura:volume-quote", on);
-    return message;
-  }
-  const sent = (detail: { ref: string | null; name: string; message: string }) =>
-    act(() => { window.dispatchEvent(new CustomEvent("aura:volume-quote-sent", { detail })); });
-
-  it("after the handed-over request is sent, Quote requested replaces the sheet; Order now puts the kits back", async () => {
-    const message = await askAt30();
-    sent({ ref: "Q-1007", name: "Dana Reyes", message: message.replace(/\n/g, "\r\n") });
-    const page = screen.getByTestId("ws-quote-requested");
-    expect(page.textContent).toContain("Thanks, Dana. Your request is Q-1007");
-    expect(page.textContent).toContain("d@lab.org");
-    expect(page.textContent).toContain("within 12 hours");
-    expect(page.textContent).toContain("pay the 40% deposit by bank transfer or card");
-    expect(page.textContent).toContain("the run closing Oct 19; after that, the next one closes Nov 2");
-    expect(screen.getByTestId("ws-quote-requested-count").textContent).toBe("30 kits · 300 vials");
-    expect(page.textContent).toContain("BPC-157");
-    expect(page.textContent).toContain("22 kits");
-    expect(page.textContent).toContain("Order these kits now at the listed price: 35% off for 20+ kits.");
-    expect(screen.queryByTestId("ws-count")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: /^Order now at the listed price/ }));
+  it("starts with a closed request's kits (Order now at the listed price)", async () => {
+    await sheet({ "bpc-157/10mg": 22, "tb-500/10mg": 8 });
     expect(screen.getByTestId("ws-count").textContent).toBe("30 kits · 300 vials · 35% off");
-  });
-
-  it("an edited request, or one never handed over, leaves the sheet as it is", async () => {
-    const message = await askAt30();
-    sent({ ref: "Q-1008", name: "Dana", message: message + "\nAlso 5 kits of something custom" });
-    expect(screen.queryByTestId("ws-quote-requested")).toBeNull();
-    expect(screen.getByTestId("ws-count").textContent).toBe("30 kits · 300 vials · 35% off");
-  });
-
-  it("with an incretin analog in the request, the deposit is by bank transfer only", async () => {
-    const message = await askAt30("APro-G3RT");
-    sent({ ref: null, name: "", message });
-    const page = screen.getByTestId("ws-quote-requested");
-    expect(page.textContent).toContain("Thanks. A copy is in your inbox");
-    expect(page.textContent).toContain("pay the 40% deposit by bank transfer. ");
-    expect(page.textContent).toContain("Retatrutide");
+    expect((screen.getByRole("button", { name: "Continue to checkout" }) as HTMLButtonElement).disabled).toBe(false);
   });
 });

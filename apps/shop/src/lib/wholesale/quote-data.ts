@@ -3,7 +3,9 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { getOrderById, transitionOrder, type OrderRow } from "@/lib/orders";
 import { afterOrderPaid } from "@/lib/order-paid";
 import { afterDepositPaid, depositRunPatch } from "@/lib/wholesale/after-deposit";
-import type { BankDetails, QuotePrice, TransferForm } from "@/lib/wholesale/quote";
+import type { BankDetails, QuoteLine, QuotePrice, TransferForm } from "@/lib/wholesale/quote";
+import { priceWholesale, type KitRow, type PricingSettings } from "@/lib/wholesale/rules";
+import type { PricedItem } from "@/lib/pricing";
 import { alertOwner } from "@/lib/notify";
 import { addDays } from "@/lib/today/time";
 import type { ShipAddress } from "@/lib/ship-address";
@@ -58,11 +60,7 @@ export async function createQuoteOrder(input: {
   }).select("id, order_number").single();
   if (error || !data) throw new Error(`quote order insert failed: ${JSON.stringify(error)}`);
   const order = data as { id: string; order_number: string };
-  const { error: itemsError } = await db().from("order_items").insert(p.items.map((i) => ({
-    order_id: order.id, compound_slug: i.compoundSlug, compound_name: i.compoundName, variant_id: i.variantId,
-    strength: i.strength, pack_qty: i.packQty, quantity: i.quantity, unit_price_cents: i.unitPriceCents,
-    line_total_cents: i.lineTotalCents, lot_number: i.lotNumber, retail_unit_cents: i.listUnitCents,
-  })));
+  const { error: itemsError } = await db().from("order_items").insert(itemRows(order.id, p.items));
   if (itemsError) {
     await db().from("orders").delete().eq("id", order.id);
     throw new Error(`quote order_items insert failed: ${JSON.stringify(itemsError)}`);
@@ -72,6 +70,95 @@ export async function createQuoteOrder(input: {
     if (e) await alertOwner("Quote order not linked to its inquiry", `${order.order_number}: inquiry ${input.inquiryId}: ${JSON.stringify(e)}`);
   }
   return { id: order.id, orderNumber: order.order_number };
+}
+
+const itemRows = (orderId: string, items: PricedItem[], unpriced = false) => items.map((i) => ({
+  order_id: orderId, compound_slug: i.compoundSlug, compound_name: i.compoundName, variant_id: i.variantId,
+  strength: i.strength, pack_qty: i.packQty, quantity: i.quantity,
+  unit_price_cents: unpriced ? 0 : i.unitPriceCents, line_total_cents: unpriced ? 0 : i.lineTotalCents,
+  lot_number: i.lotNumber, retail_unit_cents: i.listUnitCents,
+}));
+
+// ---------- quote requests (quote-requests.sql) ----------
+// Sent from the order sheet: an order with the kits asked for and no prices
+// (status quote_requested). Lines must already pass requestLinesOk.
+export async function createQuoteRequest(input: {
+  customerId: string; email: string; lines: QuoteLine[]; rows: KitRow[]; pricing: PricingSettings;
+  cutoffOn: string; inquiryId: string | null; kitBoxCents: number;
+}): Promise<{ id: string; orderNumber: string }> {
+  const sheet = priceWholesale(input.lines.map((l) => ({ slug: l.slug, variantId: l.variantId, kits: l.kits })), input.rows, input.pricing);
+  if (sheet.rejected.length || !sheet.items.length) throw new Error(`quote request lines rejected: ${JSON.stringify(sheet.rejected)}`);
+  const { data, error } = await db().from("orders").insert({
+    customer_id: input.customerId, email: input.email, status: "quote_requested", channel: "wholesale", kind: "sale", wholesale_cutoff_on: input.cutoffOn,
+    subtotal_cents: 0, shipping_cents: 0, insurance_cents: 0, tax_cents: 0, total_cents: 0,
+    partner_id: null, attributed_by: null, partner_discount_cents: 0, new_account_discount: false, store_credit_cents: 0,
+    deposit_cents: null, balance_cents: null, packaging_cents: sheet.kits * input.kitBoxCents, quote_inquiry_id: input.inquiryId,
+    // Never used for a request (nothing cancels one by expires_at); set for the not-null column.
+    expires_at: new Date(Date.now() + 60 * 86_400_000).toISOString(),
+  }).select("id, order_number").single();
+  if (error || !data) throw new Error(`quote request insert failed: ${JSON.stringify(error)}`);
+  const order = data as { id: string; order_number: string };
+  const { error: itemsError } = await db().from("order_items").insert(itemRows(order.id, sheet.items, true));
+  if (itemsError) {
+    await db().from("orders").delete().eq("id", order.id);
+    throw new Error(`quote request order_items insert failed: ${JSON.stringify(itemsError)}`);
+  }
+  if (input.inquiryId) {
+    const { error: e } = await db().from("inquiries").update({ order_number: order.order_number }).eq("id", input.inquiryId);
+    if (e) await alertOwner("Quote request not linked to its inquiry", `${order.order_number}: inquiry ${input.inquiryId}: ${JSON.stringify(e)}`);
+  }
+  return { id: order.id, orderNumber: order.order_number };
+}
+
+// The owner prices a request: same order, its lines replaced by the quoted ones,
+// then quote_requested -> quoted (Awaiting deposit). "stale" = no longer a request
+// (the buyer cancelled or ordered at the sheet price meanwhile).
+export async function priceQuoteRequest(order: OrderRow, input: {
+  price: QuotePrice; cutoffOn: string; depositPct: number; validUntil: string;
+  payBank: boolean; payCard: boolean; note: string | null; kitBoxCents: number; actorId: string;
+}): Promise<"priced" | "stale"> {
+  if (order.status !== "quote_requested") return "stale";
+  const p = input.price;
+  const { error: delError } = await db().from("order_items").delete().eq("order_id", order.id);
+  if (delError) throw new Error(`quote request lines clear failed: ${JSON.stringify(delError)}`);
+  const { error: itemsError } = await db().from("order_items").insert(itemRows(order.id, p.items));
+  if (itemsError) {
+    // Put the request's own lines back so the order still shows what was asked for.
+    const { error: back } = await db().from("order_items").insert((order.order_items ?? []).map(({ id: _id, ...rest }) => rest));
+    if (back) await alertOwner("Quote request lines lost", `${order.order_number}: pricing failed and the requested kits couldn't be put back. ${JSON.stringify(back)}`);
+    throw new Error(`quote request lines save failed: ${JSON.stringify(itemsError)}`);
+  }
+  const depositCents = Math.round(p.subtotalCents * input.depositPct / 100);
+  const moved = await transitionOrder(order.id, "quote_requested", "quoted", {
+    wholesale_cutoff_on: input.cutoffOn,
+    subtotal_cents: p.subtotalCents, shipping_cents: p.shippingCents, insurance_cents: p.insuranceCents, tax_cents: 0, total_cents: p.totalBeforeTaxCents,
+    deposit_cents: depositCents, balance_cents: p.totalBeforeTaxCents - depositCents, packaging_cents: p.kits * input.kitBoxCents,
+    quote_valid_until: input.validUntil, quote_note: input.note, quote_pay_bank: input.payBank, quote_pay_card: input.payCard,
+    quote_created_by: input.actorId, quote_priced_at: new Date().toISOString(),
+    expires_at: new Date(Date.parse(`${addDays(input.validUntil, 1)}T12:00:00Z`)).toISOString(),
+  });
+  if (!moved) {
+    await alertOwner("Quote priced after the request closed", `${order.order_number}: the buyer closed the request while it was being priced. Nothing was sent; the order stays closed.`);
+    return "stale";
+  }
+  return "priced";
+}
+
+// The buyer (Cancel this request / Order now at the listed price) or the owner
+// closes a request that wasn't priced. False = it wasn't a request any more.
+export async function closeQuoteRequest(orderId: string, reason: "customer_cancelled" | "ordered_now" | "owner_cancelled"): Promise<boolean> {
+  return transitionOrder(orderId, "quote_requested", "cancelled", { quote_closed_reason: reason });
+}
+
+export type OpenQuoteRequest = { id: string; number: string; createdAt: string; name: string; kits: number };
+export async function openQuoteRequests(): Promise<OpenQuoteRequest[]> {
+  const { data, error } = await db().from("orders").select("id, order_number, created_at, customers!orders_customer_id_fkey(full_name), order_items(quantity)")
+    .eq("status", "quote_requested").order("created_at", { ascending: true }).limit(50);
+  if (error) throw new Error(`quote requests read failed: ${JSON.stringify(error)}`);
+  type Row = { id: string; order_number: string; created_at: string; customers: { full_name: string } | null; order_items: Array<{ quantity: number }> };
+  return ((data ?? []) as unknown as Row[]).map((r) => ({
+    id: r.id, number: r.order_number, createdAt: r.created_at, name: r.customers?.full_name ?? "", kits: r.order_items.reduce((n, i) => n + i.quantity, 0),
+  }));
 }
 
 // ---------- the customer's pay page ----------

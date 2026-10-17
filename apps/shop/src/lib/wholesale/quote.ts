@@ -4,7 +4,7 @@
 import { FREE_SHIPPING_MIN_CENTS, PROTECTION_CENTS, SHIPPING_FLAT_CENTS, type PricedItem } from "@/lib/pricing";
 import { addDays } from "@/lib/today/time";
 import { GLP_CLASS } from "@/lib/wholesale/margins";
-import { KIT_VIALS, MAX_KITS_PER_LINE, cutoffFor, estimatedDates, tierFor, type KitRow, type Tier } from "@/lib/wholesale/rules";
+import { KIT_VIALS, MAX_KITS_PER_LINE, QUOTE_REPLY_HOURS, VOLUME_QUOTE_MIN_KITS, cutoffFor, estimatedDates, tierFor, type KitRow, type Tier } from "@/lib/wholesale/rules";
 
 // Volume-quote bands, % off retail by the request's total kits (Alvester 2026-10-17: 30–50
 // kits 45%, 51–99 50%, 100+ 55% — the order sheet's 5-point steps continued; same bands as
@@ -212,4 +212,50 @@ export function quoteCutoffChoices(today: string, s: { runDays: number; nextCuto
     const d = estimatedDates(cutoffOn, s.leadDays);
     return { cutoffOn, ...d };
   });
+}
+
+// ---------- quote requests (quote-requests.sql) ----------
+// A volume-quote request is an order from the moment it's sent: status
+// quote_requested, the kits the buyer asked for, no prices. The owner prices the
+// same order within QUOTE_REPLY_HOURS.
+export const QUOTE_REQUEST_LINES_MAX = 60;
+
+export function quotePriceBy(createdAtIso: string): number {
+  return Date.parse(createdAtIso) + QUOTE_REPLY_HOURS * 3_600_000;
+}
+
+// The lines a request may be made from: whole kits of strengths offered as kits,
+// at least VOLUME_QUOTE_MIN_KITS in all (below that the order sheet prices them).
+export function requestLinesOk(lines: Array<{ slug: string; variantId: string; kits: number }>, rows: KitRow[]):
+  { ok: true; lines: QuoteLine[]; kits: number } | { ok: false; reason: string } {
+  if (lines.length === 0 || lines.length > QUOTE_REQUEST_LINES_MAX) return { ok: false, reason: "no kits" };
+  const merged = new Map<string, QuoteLine>();
+  for (const l of lines) {
+    if (!rows.some((r) => r.slug === l.slug && r.variantId === l.variantId)) return { ok: false, reason: `${l.slug} ${l.variantId} isn't offered as a kit` };
+    if (!Number.isInteger(l.kits) || l.kits < 1) return { ok: false, reason: "bad kit count" };
+    const k = `${l.slug}/${l.variantId}`;
+    const kits = (merged.get(k)?.kits ?? 0) + l.kits;
+    if (kits > MAX_KITS_PER_LINE) return { ok: false, reason: "too many kits on one line" };
+    merged.set(k, { slug: l.slug, variantId: l.variantId, kits, pct: 0 });
+  }
+  const out = [...merged.values()];
+  const kits = out.reduce((n, l) => n + l.kits, 0);
+  if (kits < VOLUME_QUOTE_MIN_KITS) return { ok: false, reason: `under ${VOLUME_QUOTE_MIN_KITS} kits` };
+  return { ok: true, lines: out, kits };
+}
+
+// The kits a closed request asked for, as the order sheet's ?kits= value
+// ("bpc-157/10mg:20,tb-500/10mg:12"); the sheet reads it back with parseSheetKits.
+export function sheetKitsParam(items: Array<{ compound_slug: string; variant_id: string; quantity: number }>): string {
+  return items.map((i) => `${i.compound_slug}/${i.variant_id}:${i.quantity}`).join(",");
+}
+export function parseSheetKits(v: string | undefined, rows: Array<{ slug: string; variantId: string }>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const part of (v ?? "").split(",").slice(0, QUOTE_REQUEST_LINES_MAX)) {
+    const m = /^([a-z0-9-]+)\/([a-z0-9.-]+):(\d{1,3})$/i.exec(part.trim());
+    if (!m) continue;
+    const kits = Math.min(MAX_KITS_PER_LINE, Number(m[3]));
+    if (kits > 0 && rows.some((r) => r.slug === m[1] && r.variantId === m[2])) out[`${m[1]}/${m[2]}`] = kits;
+  }
+  return out;
 }

@@ -117,8 +117,8 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
     openDisputeId: ds.find((x) => !x.closed_at)?.id ?? null,
     refundedBy: refunderRow?.full_name ?? null,
     run,
-    quote: order.quote_valid_until
-      ? { createdBy: ev.find((e) => e.action === "quote_order_created")?.actor?.full_name ?? null, inquiryRef: iq[0]?.ref ?? null }
+    quote: order.quote_valid_until || order.status === "quote_requested" || order.quote_closed_reason
+      ? { createdBy: ev.find((e) => e.action === "quote_order_created" || e.action === "quote_priced")?.actor?.full_name ?? null, inquiryRef: iq[0]?.ref ?? null }
       : null,
     timeline: buildOrderTimeline({
       order,

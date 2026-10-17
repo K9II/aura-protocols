@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { CLASS_COLOR } from "@/lib/class-colors";
 import type { ChemicalClass } from "@/data/catalog";
@@ -8,9 +8,8 @@ import HumanCheck from "@/components/account/HumanCheck";
 import Vial from "@/components/store/Vial";
 import TierTable from "@/components/store/wholesale/TierTable";
 import TrustRow from "@/components/store/TrustRow";
-import QuoteRequested, { type RequestedKit } from "@/components/store/wholesale/QuoteRequested";
 import { startWholesaleCheckoutAction } from "@/app/wholesale/actions";
-import { KIT_VIALS, MAX_KITS_PER_LINE, VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_EVENT, VOLUME_QUOTE_MIN_KITS, VOLUME_QUOTE_SENT_EVENT, kitTitle, nextTier, priceWholesale, volumeNudge, volumeQuoteMessage, type KitSheetRow, type PricingSettings, type Tier } from "@/lib/wholesale/rules";
+import { KIT_VIALS, MAX_KITS_PER_LINE, VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_EVENT, VOLUME_QUOTE_MIN_KITS, kitTitle, nextTier, priceWholesale, volumeNudge, volumeQuoteMessage, type KitSheetRow, type PricingSettings } from "@/lib/wholesale/rules";
 import { PROTECTION_LABEL } from "@/lib/shipping-protection";
 import type { Rejection } from "@/lib/pricing";
 import { usd } from "@/lib/html";
@@ -23,20 +22,18 @@ const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
 
 // Order sheet → checkout, ported from the approved mock "Wholesale Order Sheet Refresh"
 // (Option A + checkout step, 2026-10-16). Prices here are a preview; the server re-prices every order.
-export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, nextCutoffLabel, ship, email }: {
-  rows: KitSheetRow[]; pricing: PricingSettings; cutoffLabel: string; nextCutoffLabel: string;
+// initialKits ("slug/variant" → kits): a closed quote request's kits, via "Order now at the listed price".
+export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, email, initialKits }: {
+  rows: KitSheetRow[]; pricing: PricingSettings; cutoffLabel: string;
   ship: { name: string; line1: string; line2: string | null; city: string; state: string; zip: string } | null; email: string;
+  initialKits?: Record<string, number>;
 }) {
-  const [kits, setKits] = useState<Record<string, number>>({});
+  const [kits, setKits] = useState<Record<string, number>>(initialKits ?? {});
   // What the buyer is typing in a kit count box, until they leave it (an empty box mid-edit
   // mustn't flip the row back to "Add kit").
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [cls, setCls] = useState<string | null>(null);   // class filter (Alvester: less scrolling); kits in other classes stay in the order
-  const [step, setStep] = useState<"sheet" | "checkout" | "quoted">("sheet");
-  // The request handed to the inquiry form, and — once it's sent unchanged — "Quote requested".
-  type Asked = { message: string; kits: Record<string, number>; items: RequestedKit[]; tier: Tier };
-  const asked = useRef<Asked | null>(null);
-  const [quoted, setQuoted] = useState<(Asked & { ref: string | null; firstName: string }) | null>(null);
+  const [step, setStep] = useState<"sheet" | "checkout">("sheet");
   const [addr, setAddr] = useState<Addr>({
     name: ship?.name ?? "", line1: ship?.line1 ?? "", line2: ship?.line2 ?? "", city: ship?.city ?? "", state: ship?.state ?? "", zip: ship?.zip ?? "",
   });
@@ -80,37 +77,11 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, nextCu
     : next ? { width: (q.kits / (q.kits + next.kitsNeeded)) * 100, text: `${next.kitsNeeded} more kit${next.kitsNeeded === 1 ? "" : "s"} for ${next.pct}% off` }
     : nudge?.kind === "near" ? { width: (q.kits / VOLUME_QUOTE_MIN_KITS) * 100, text: `${nudge.kitsNeeded} more kit${nudge.kitsNeeded === 1 ? "" : "s"} and you can ask for a volume quote` }
     : { width: 100, text: "Top tier" };
-  // Hands the sheet to the inquiry form below (the buyer reviews it and presses Send).
-  const askForQuote = () => {
-    const message = volumeQuoteMessage(q.items);
-    asked.current = {
-      message, kits: { ...kits }, tier: q.tier,
-      items: q.items.map((i) => ({ key: key({ slug: i.compoundSlug, variantId: i.variantId }), chemicalClass: i.chemicalClass, strength: i.strength, kits: i.quantity,
-        ...kitTitle(rowOf(i) ?? { name: i.compoundName, designation: null }) })),
-    };
-    window.dispatchEvent(new CustomEvent(VOLUME_QUOTE_EVENT, { detail: message }));
-  };
-  // Sent as handed over → the sheet is cleared and "Quote requested" takes its place. An edited
-  // message (other kits, a custom compound) only gets the form's own thank-you line.
-  useEffect(() => {
-    const norm = (t: string) => t.replace(/\r\n/g, "\n").trim();
-    const onSent = (e: Event) => {
-      const d = (e as CustomEvent<{ ref: string | null; name: string; message: string }>).detail;
-      const a = asked.current;
-      if (!a || !d || norm(d.message) !== norm(a.message)) return;
-      setQuoted({ ...a, ref: d.ref, firstName: d.name.trim().split(/\s+/)[0] ?? "" });
-      setKits({}); setDraft({}); setRejected([]); setError(null);
-      setStep("quoted");
-      window.scrollTo?.({ top: 0 });
-    };
-    window.addEventListener(VOLUME_QUOTE_SENT_EVENT, onSent);
-    return () => window.removeEventListener(VOLUME_QUOTE_SENT_EVENT, onSent);
-  }, []);
-  const orderNow = () => {
-    if (quoted) setKits(quoted.kits);
-    asked.current = null; setQuoted(null); setStep("sheet");
-    window.scrollTo?.({ top: 0 });
-  };
+  // Hands the sheet to the inquiry form below with the kits it was written from (the buyer
+  // reviews it and presses Send). Sent unchanged, it becomes an order and opens its page.
+  const askForQuote = () => window.dispatchEvent(new CustomEvent(VOLUME_QUOTE_EVENT, {
+    detail: { message: volumeQuoteMessage(q.items), lines: q.items.map((i) => ({ slug: i.compoundSlug, variantId: i.variantId, kits: i.quantity })) },
+  }));
   const toCheckout = () => { setError(null); setStep("checkout"); window.scrollTo?.({ top: 0 }); };
   const payLabel = busy ? "Starting secure payment…" : !verified ? "Complete the human check" : !ruo ? "Confirm research use" : `Pay deposit ${usd(q.depositCents)} →`;
 
@@ -128,11 +99,6 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, nextCu
       </div>
     </>
   );
-
-  if (step === "quoted" && quoted) {
-    return <QuoteRequested inquiryRef={quoted.ref} firstName={quoted.firstName} email={email} items={quoted.items} tier={quoted.tier}
-      depositPct={pricing.depositPct} cutoffLabel={cutoffLabel} nextCutoffLabel={nextCutoffLabel} onOrderNow={orderNow} />;
-  }
 
   if (step === "sheet") {
     return (
