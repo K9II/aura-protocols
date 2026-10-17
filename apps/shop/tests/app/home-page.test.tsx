@@ -63,6 +63,25 @@ describe("/ (home)", () => {
     }
   });
 
+  const cardSlugs = (where: "desk" | "phone") => [...new Set(Array.from(lineupIn(where).querySelectorAll<HTMLAnchorElement>('a[href^="/products/"]'))
+    .map((a) => a.getAttribute("href")!.replace("/products/", "")))];
+
+  it("phones show MOTS-c, Wolverine, SS-31 and KLOW in that order; desktop keeps the featured four", async () => {
+    await renderHome();
+    expect(cardSlugs("phone")).toEqual(["mots-c", "bpc-157-tb-500-blend", "ss-31", "bpc-157-tb-500-ghk-cu-kpv"]);
+    expect(cardSlugs("desk")).toEqual(liveFixture().filter((c) => c.featured).map((c) => c.slug));
+  });
+
+  it("phones: a hidden pick is skipped and the gap filled from the featured list", async () => {
+    const shown = liveFixture().filter((c) => c.slug !== "ss-31");
+    live.mockResolvedValue({ all: liveFixture(), shown, lots: [] });
+    await renderHome();
+    const slugs = cardSlugs("phone");
+    expect(slugs.slice(0, 3)).toEqual(["mots-c", "bpc-157-tb-500-blend", "bpc-157-tb-500-ghk-cu-kpv"]);
+    expect(slugs).toHaveLength(4);
+    expect(shown.find((c) => c.slug === slugs[3])!.featured).toBe(true);
+  });
+
   it("shows how an order runs after the lineup, then the Aura letter; the FAQ moved to /faq", async () => {
     await renderHome();
     const lineup = deskLineupHeading();

@@ -1,10 +1,15 @@
-import type { CSSProperties } from "react";
+import { Fragment, type CSSProperties } from "react";
 import Link from "next/link";
 import type { Compound } from "@/data/catalog";
 import { fromPackPriceUsd, isPendingLot, vialCap, vialName, vialParts } from "@/lib/catalog";
 import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import { formatUsd } from "@/lib/cart";
 import Vial from "@/components/store/Vial";
+
+// A blend's name breaks only around its slashes, never inside a part ("TB-" / "500").
+const nameParts = (name: string) => !name.includes(" / ") ? name : name.split(" / ").map((p, i) => (
+  <Fragment key={i}>{i ? " / " : ""}<span className="s-card-nw">{p}</span></Fragment>
+));
 
 // Monograph card (approved 2026-10-10): a placard with the compound's identity
 // stands behind an upright vial on a raised tile; the text below sits on a
@@ -41,7 +46,7 @@ export default function CompoundCard({ compound: c, index = 0, idScope = "" }: {
       </div>
       <div className="s-card-info">
         <div className="s-cat s-micro"><i />{c.chemicalClass}</div>
-        <h3 className="s-card-name">{c.name}</h3>
+        <h3 className="s-card-name">{nameParts(c.name)}</h3>
         <div className="s-card-meta">
           <span><small className="s-micro">Price</small><span className="s-card-price">{price}</span></span>
           <span>

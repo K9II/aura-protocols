@@ -27,6 +27,7 @@ export default async function HomePage() {
   const live = await getLiveCatalogOrNull();
   if (!live) return <Unavailable />;
   const featured = live.shown.filter((c) => c.featured);
+  const phoneLineup = pickPhoneLineup(live.shown, featured);
   const sphere = sphereNodes(live.shown);
   const spherePairsActive = spherePairs(sphere);
   return (
@@ -49,7 +50,7 @@ export default async function HomePage() {
           {/* Phones (under 900px): the lineup comes right after the headline block, before the
               sphere (mock P1, 2026-10-14, https://claude.ai/artifact/8V1LaYJ4UXD1SeGooF4WN8).
               Desktop shows the copy further down instead; CSS shows one of the two. */}
-          <HomeLineup featured={featured} total={live.shown.length} where="phone" />
+          <HomeLineup featured={phoneLineup} total={live.shown.length} where="phone" />
           <div className="load-in load-5 s-hero-sphere">
             <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
           </div>
@@ -73,6 +74,16 @@ export default async function HomePage() {
       </div>
     </div>
   );
+}
+
+// Phones show their own four, in this order (2026-10-17); desktop keeps the featured ones.
+// One that isn't shown is skipped and the gap filled from the featured list.
+const PHONE_LINEUP = ["mots-c", "bpc-157-tb-500-blend", "ss-31", "bpc-157-tb-500-ghk-cu-kpv"];
+
+function pickPhoneLineup(shown: Compound[], featured: Compound[]): Compound[] {
+  const picked = PHONE_LINEUP.flatMap((slug) => shown.filter((c) => c.slug === slug));
+  const fill = featured.filter((c) => !picked.includes(c));
+  return [...picked, ...fill].slice(0, PHONE_LINEUP.length);
 }
 
 // The featured lineup. Rendered twice on the home page: inside the hero on phones,

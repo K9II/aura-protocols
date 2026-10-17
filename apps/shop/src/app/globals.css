@@ -674,6 +674,7 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia .s-cat { font-size: 11px; }
 }
 .pharmacopoeia .s-card-name { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 20px; text-align: center; line-height: 1.15; margin: 0 10px 12px; }
+.pharmacopoeia .s-card-nw { white-space: nowrap; }
 .pharmacopoeia .s-card-meta { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #DCD5C3; }
 .pharmacopoeia .s-card-meta > span { display: grid; gap: 2px; align-content: start; padding: 9px 12px 10px; }
 .pharmacopoeia .s-card-meta > span + span { border-left: 1px solid #DCD5C3; text-align: right; }
