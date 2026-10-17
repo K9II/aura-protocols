@@ -158,7 +158,7 @@ describe("WholesaleOrderSheet", () => {
     expect(page.textContent).toContain("42 kits");
     expect(page.textContent).toContain("Order these kits now at the listed price: 35% off for 20+ kits.");
     expect(screen.queryByTestId("ws-count")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Order now at the listed price →" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Order now at the listed price/ }));
     expect(screen.getByTestId("ws-count").textContent).toBe("50 kits · 500 vials · 35% off");
   });
 

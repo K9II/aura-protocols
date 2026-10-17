@@ -59,7 +59,7 @@ export default function QuoteRequested({ inquiryRef, firstName, email, items, ti
           <p className="s-wo-note">Prices come in our reply. Your order sheet was cleared so nothing is charged by mistake.</p>
           <div className="s-qr-alt">
             <p>Rather not wait? Order these kits now at the listed price: {tier.pct}% off for {tier.minKits}+ kits.</p>
-            <button type="button" onClick={onOrderNow}>Order now at the listed price →</button>
+            <button type="button" onClick={onOrderNow}>Order now at the listed price&nbsp;→</button>
           </div>
           <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
         </aside>
