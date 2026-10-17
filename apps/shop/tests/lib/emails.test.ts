@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl, orderRefundedEmail, orderRefundedAfterShipEmail, noChargeEmail } from "@/lib/emails";
+import { orderConfirmationEmail, shippedEmail, ownerNewOrderEmail, storeCreditAddedEmail, trackingUrl, orderRefundedEmail, orderRefundedAfterShipEmail, noChargeEmail, ownerNewWholesaleOrderEmail } from "@/lib/emails";
 import type { OrderRow } from "@/lib/orders";
 import { findViolations } from "../../scripts/compliance-scan.mjs";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
@@ -61,6 +61,17 @@ describe("emails", () => {
 
   it("owner alert names the order and total", () => {
     expect(ownerNewOrderEmail(order).subject).toBe("New order AP-1042 — $311.09");
+    expect(ownerNewOrderEmail(order, "https://shop.test").html).toContain('href="https://shop.test/admin/orders/AP-1042"');
+    expect(ownerNewOrderEmail(order, "https://shop.test").html).toContain("Open AP-1042 in the admin →");
+  });
+
+  it("new wholesale order alert links the order and its production run in the admin", () => {
+    const ws = { ...order, channel: "wholesale", deposit_cents: 21513, wholesale_cutoff_on: "2026-10-19" } as unknown as OrderRow;
+    const withRun = ownerNewWholesaleOrderEmail(ws, { runId: "run-1", base: "https://shop.test" }).html;
+    expect(withRun).toContain('href="https://shop.test/admin/orders/AP-1042"');
+    expect(withRun).toContain('href="https://shop.test/admin/wholesale/runs/run-1"');
+    // no run yet: the runs list instead
+    expect(ownerNewWholesaleOrderEmail(ws, { runId: null, base: "https://shop.test" }).html).toContain('href="https://shop.test/admin/wholesale"');
   });
 
   it("templates carry no banned phrases", () => {

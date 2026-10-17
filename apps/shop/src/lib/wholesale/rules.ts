@@ -103,7 +103,8 @@ export function kitRows(shown: LiveLike[]): KitRow[] {
 
 // Picture data for a kit (cap colour + vial label), filled server-side from the
 // catalog content by lib/wholesale/art.ts so the client never loads it.
-export type KitArt = { cap: "red" | "black" | "white"; vialLabel: string };
+// vialLines/parts (the order sheet's vial) are optional so older callers and tests keep working.
+export type KitArt = { cap: "red" | "black" | "white"; vialLabel: string; vialLines?: [string] | [string, string]; parts?: string[] };
 export type KitSheetRow = KitRow & { art: KitArt };
 
 // APro-designated compounds lead with the designation; the scientific name always shows alongside.

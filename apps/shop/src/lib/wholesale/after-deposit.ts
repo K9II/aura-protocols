@@ -22,10 +22,11 @@ export async function afterDepositPaid(orderId: string): Promise<{ emailed: bool
   // owner is alerted to set the run by hand rather than this throwing after
   // the order is already deposit_paid (Stripe would never retry the emails).
   let dates: { testedAbout: string; shipsAbout: string } | null = null;
+  let runId: string | null = null;
   if (order.wholesale_cutoff_on) {
     dates = estimatedDates(order.wholesale_cutoff_on, leadDays);
     try {
-      await ensureRun(order.wholesale_cutoff_on);
+      runId = await ensureRun(order.wholesale_cutoff_on);
     } catch (err) {
       await alertOwner("Wholesale run not created", `${order.order_number}: run for ${order.wholesale_cutoff_on} — ${String(err)}. The cron creates it on its next pass.`);
     }
@@ -34,6 +35,6 @@ export async function afterDepositPaid(orderId: string): Promise<{ emailed: bool
   }
   const emailed = await sendOrAlert({ to: order.email, ...wholesaleDepositEmail(order, dates) }, `wholesale deposit ${order.order_number}`);
   const owner = alertAddress();
-  if (owner) await sendOrAlert({ to: owner, ...ownerNewWholesaleOrderEmail(order) }, `owner wholesale ${order.order_number}`);
+  if (owner) await sendOrAlert({ to: owner, ...ownerNewWholesaleOrderEmail(order, { runId }) }, `owner wholesale ${order.order_number}`);
   return { emailed };
 }

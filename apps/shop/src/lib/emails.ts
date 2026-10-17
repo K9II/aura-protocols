@@ -5,6 +5,7 @@ import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 import { dateLabel } from "@/lib/today/time";
 import { compoundTitle } from "@/lib/catalog";
 import { PROTECTION_DECLINED_SHORT, PROTECTION_LABEL } from "@/lib/shipping-protection";
+import { siteUrl } from "@/lib/supabase/env";
 
 export const CARRIERS = ["usps", "ups", "fedex", "dhl"] as const;
 export type Carrier = (typeof CARRIERS)[number];
@@ -73,10 +74,14 @@ export function noChargeEmail(o: OrderRow) {
   };
 }
 
-export function ownerNewOrderEmail(o: OrderRow) {
+// Owner alerts end with a link straight to the order in the admin (Alvester 2026-10-16).
+const adminLink = (href: string, label: string) => `<p><a href="${e(href)}" style="color:#A32B1F">${e(label)} →</a></p>`;
+const adminOrderLink = (base: string, n: string) => adminLink(`${base}/admin/orders/${encodeURIComponent(n)}`, `Open ${n} in the admin`);
+
+export function ownerNewOrderEmail(o: OrderRow, base: string = siteUrl()) {
   return {
     subject: `New order ${o.order_number} — ${usd(o.total_cents)}`,
-    html: shell(`New order ${o.order_number}`, `<p>${e(o.email)}</p>${itemsTable(o)}${shipTo(o)}`),
+    html: shell(`New order ${o.order_number}`, `<p>${e(o.email)}</p>${itemsTable(o)}${shipTo(o)}${adminOrderLink(base, o.order_number)}`),
   };
 }
 
@@ -163,10 +168,13 @@ export function wholesaleCancelledEmail(o: OrderRow) {
   };
 }
 
-export function ownerNewWholesaleOrderEmail(o: OrderRow) {
+// runId: the production run the order joined (its admin page lists every order and kit in it).
+export function ownerNewWholesaleOrderEmail(o: OrderRow, d: { runId: string | null; base?: string } = { runId: null }) {
+  const base = d.base ?? siteUrl();
+  const run = d.runId ? adminLink(`${base}/admin/wholesale/runs/${encodeURIComponent(d.runId)}`, "Open its production run") : adminLink(`${base}/admin/wholesale`, "Production runs");
   return {
     subject: `New wholesale order ${o.order_number} — deposit ${usd(o.deposit_cents ?? 0)}`,
-    html: shell(`New wholesale order ${o.order_number}`, `<p>${e(o.email)} · run ${e(o.wholesale_cutoff_on ?? "")} · total ${usd(o.total_cents)}</p>${kitsTable(o)}${shipTo(o)}`),
+    html: shell(`New wholesale order ${o.order_number}`, `<p>${e(o.email)} · run ${e(o.wholesale_cutoff_on ?? "")} · total ${usd(o.total_cents)}</p>${kitsTable(o)}${shipTo(o)}${adminOrderLink(base, o.order_number)}${run}`),
   };
 }
 
