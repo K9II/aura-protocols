@@ -11,7 +11,7 @@ import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
 import { ownerQuoteRequestClosedEmail, ownerTransferSentEmail } from "@/lib/emails";
 import { bookkeep } from "@/lib/checkout-shared";
 import { quoteOpen, sheetKitsParam } from "@/lib/wholesale/quote";
-import { closeQuoteRequest, getBankDetails, markTransferSent, saveQuoteShip } from "@/lib/wholesale/quote-data";
+import { closeQuoteRequest, getBankDetails, markTransferSent, saveQuoteShip, syncRequestInquiry } from "@/lib/wholesale/quote-data";
 import { currentMs } from "@/lib/clock";
 import { localDate } from "@/lib/today/time";
 
@@ -129,6 +129,8 @@ async function closeRequest(orderNumber: string, reason: "customer_cancelled" | 
   if ("error" in me) return me;
   const { order } = me;
   if (!(await closeQuoteRequest(order.id, reason))) return { error: "This request changed — reload the page." };
+  await syncRequestInquiry(order.quote_inquiry_id, "closed", order.order_number, null,
+    reason === "ordered_now" ? "the buyer is ordering these kits at the order-sheet price" : "cancelled by the buyer");
   // Tell the owner so nobody prices a closed request (the alert, not a failure, is the record).
   const to = alertAddress();
   if (to) await sendOrAlert({ to, ...ownerQuoteRequestClosedEmail({ orderNumber: order.order_number, name: me.fullName, email: me.email, reason, link: `${siteUrl()}/admin/orders/${order.order_number}` }) }, `quote request ${order.order_number} closed`);

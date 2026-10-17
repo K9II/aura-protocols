@@ -11,7 +11,7 @@ import { getLiveCatalog } from "@/lib/catalog-live";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
 import { kitRows } from "@/lib/wholesale/rules";
 import { cardAllowed, parseQuoteForm, parseTransferForm, priceQuote, quoteCutoffChoices } from "@/lib/wholesale/quote";
-import { closeQuoteRequest, createQuoteOrder, getBankDetails, priceQuoteRequest, recordBankTransfer } from "@/lib/wholesale/quote-data";
+import { closeQuoteRequest, createQuoteOrder, getBankDetails, priceQuoteRequest, recordBankTransfer, syncRequestInquiry } from "@/lib/wholesale/quote-data";
 import { recordAdminEvent } from "@/lib/audit/data";
 import { replyBlockedMessage, replyViolation } from "@/lib/inquiries/checks";
 import { quoteOrderReadyEmail, quoteRequestClosedEmail } from "@/lib/emails";
@@ -71,6 +71,7 @@ export async function createQuoteOrderAction(_prev: QuoteActionState, f: FormDat
       return { error: "The price couldn't be saved — nothing was sent. Try again." };
     }
     if (r === "stale") return { error: `${req.order_number} was closed by the buyer before it was priced — nothing was sent.` };
+    await syncRequestInquiry(req.quote_inquiry_id, "priced", req.order_number, owner.id);
     const priced = await getOrderById(req.id);
     const emailed = priced ? await sendOrAlert({ to: who.email, ...quoteOrderReadyEmail(priced, { siteUrl: siteUrl(), validUntil: v.validUntil, note: v.note }) }, `quote order ${req.order_number}`) : false;
     await recordAdminEvent({
@@ -163,6 +164,7 @@ export async function cancelQuoteRequestOwnerAction(f: FormData): Promise<void> 
   if (!order || order.status !== "quote_requested") throw new Error("That request isn't open any more — reload the page.");
   if (await closeQuoteRequest(order.id, "owner_cancelled")) {
     const emailed = await sendOrAlert({ to: order.email, ...quoteRequestClosedEmail(order, { siteUrl: siteUrl() }) }, `quote request ${order.order_number} closed`);
+    await syncRequestInquiry(order.quote_inquiry_id, "closed", order.order_number, owner.id, "cancelled by us, never priced");
     await recordAdminEvent({ area: "orders", action: "quote_request_cancelled", targetId: order.id, label: order.order_number, actorId: owner.id, detail: `never priced · email: ${emailed ? "sent" : "failed"}` });
   }
   revalidatePath(`/admin/orders/${order.order_number}`);

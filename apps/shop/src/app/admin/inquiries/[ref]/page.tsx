@@ -100,7 +100,10 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
     listSavedReplies(),
     i.order_number ? getOrderByNumber(i.order_number) : null,
   ]);
-  const chip = STATUS_CHIP[status];
+  // A volume-quote request sent from the order sheet is an order (quote-requests.sql):
+  // while it waits for a price, the order is the to-do and this page points to it.
+  const request = order?.status === "quote_requested" ? order : null;
+  const chip = request ? { tone: "q-needs", text: `Quote to price · ${request.order_number}` } : STATUS_CHIP[status];
   const wholesale = i.topic === "wholesale";
   const firstMsg = t.messages[0];
   // Sales only: a no-charge order isn't one of the customer's orders.
@@ -121,7 +124,10 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
         </div>
         <div className="actions">
           {/* A wholesale inquiry the customer said yes to becomes a quote order (quote-orders.sql). */}
-          {wholesale && can(owner, "wholesale.quote") && !(order && order.quote_valid_until) && (
+          {wholesale && can(owner, "wholesale.quote") && request && (
+            <Link className="a-btn primary" href={`/admin/orders/new-quote?order=${request.order_number}`}>Price {request.order_number} <Icon name="arrow" /></Link>
+          )}
+          {wholesale && can(owner, "wholesale.quote") && !request && !(order && (order.quote_valid_until || order.quote_closed_reason)) && (
             <Link className="a-btn primary" href={`/admin/orders/new-quote?inquiry=${refLabel(i.ref)}`}><Icon name="plus" />Create quote order</Link>
           )}
           {canReply && <form action={statusAction}>

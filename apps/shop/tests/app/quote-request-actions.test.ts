@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const m = vi.hoisted(() => ({
   getCustomer: vi.fn(), getOrderForCustomer: vi.fn(), getOrderById: vi.fn(), closeQuoteRequest: vi.fn(), priceQuoteRequest: vi.fn(),
   sendOrAlert: vi.fn(), requirePermission: vi.fn(), recordAdminEvent: vi.fn(), getCustomerDetail: vi.fn(),
-  getWholesaleSettings: vi.fn(), getBankDetails: vi.fn(), getLiveCatalog: vi.fn(), redirect: vi.fn(),
+  getWholesaleSettings: vi.fn(), getBankDetails: vi.fn(), getLiveCatalog: vi.fn(), redirect: vi.fn(), syncRequestInquiry: vi.fn(),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: (u: string) => { m.redirect(u); throw new Error(`REDIRECT ${u}`); } }));
@@ -13,7 +13,7 @@ vi.mock("@/lib/dal", () => ({ getCustomer: m.getCustomer, requirePermission: m.r
 vi.mock("@/lib/orders", () => ({ getOrderForCustomer: m.getOrderForCustomer, getOrderById: m.getOrderById, attachCheckoutSession: vi.fn(), saveShipAddress: vi.fn(), saveStripeCustomerId: vi.fn(), transitionOrder: vi.fn() }));
 vi.mock("@/lib/wholesale/quote-data", () => ({
   closeQuoteRequest: m.closeQuoteRequest, priceQuoteRequest: m.priceQuoteRequest, createQuoteOrder: vi.fn(),
-  getBankDetails: m.getBankDetails, markTransferSent: vi.fn(), saveQuoteShip: vi.fn(), recordBankTransfer: vi.fn(),
+  getBankDetails: m.getBankDetails, markTransferSent: vi.fn(), saveQuoteShip: vi.fn(), recordBankTransfer: vi.fn(), syncRequestInquiry: m.syncRequestInquiry,
 }));
 vi.mock("@/lib/notify", () => ({ sendOrAlert: m.sendOrAlert, alertOwner: vi.fn(), alertAddress: () => "admin@auraprotocols.com" }));
 vi.mock("@/lib/commerce", () => ({ getCommerceAdapter: vi.fn() }));
@@ -27,7 +27,7 @@ vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: vi.fn() }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-17T18:00:00Z") }));
 
 const items = [{ id: "it1", compound_slug: "bpc-157", variant_id: "10mg", quantity: 22 }, { id: "it2", compound_slug: "tb-500", variant_id: "10mg", quantity: 8 }];
-const request = { id: "11111111-1111-4111-8111-111111111111", order_number: "AP-1063", channel: "wholesale", status: "quote_requested", customer_id: "c1", email: "d@lab.org", order_items: items };
+const request = { id: "11111111-1111-4111-8111-111111111111", order_number: "AP-1063", channel: "wholesale", status: "quote_requested", customer_id: "c1", email: "d@lab.org", quote_inquiry_id: "q1", order_items: items };
 
 describe("buyer: close a request", () => {
   beforeEach(() => {
@@ -46,6 +46,7 @@ describe("buyer: close a request", () => {
     const mail = m.sendOrAlert.mock.calls[0][0];
     expect(mail.to).toBe("admin@auraprotocols.com");
     expect(mail.subject).toBe("Quote request AP-1063 closed by the buyer — no need to price it");
+    expect(m.syncRequestInquiry).toHaveBeenCalledWith("q1", "closed", "AP-1063", null, "the buyer is ordering these kits at the order-sheet price");
   });
 
   it("Cancel closes it as cancelled by the buyer", async () => {
@@ -104,6 +105,7 @@ describe("owner: price or cancel a request", () => {
     expect(m.priceQuoteRequest).toHaveBeenCalledWith(request, expect.objectContaining({ cutoffOn: "2026-10-19", depositPct: 40, validUntil: "2026-10-31", actorId: "owner" }));
     expect(m.sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "d@lab.org", subject: "Order AP-1063 — your volume price is ready" });
     expect(m.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ action: "quote_priced", label: "AP-1063", actorId: "owner" }));
+    expect(m.syncRequestInquiry).toHaveBeenCalledWith("q1", "priced", "AP-1063", "owner");
   });
 
   it("a request the buyer closed while it was being priced: nothing sent, the owner is told", async () => {
@@ -132,6 +134,7 @@ describe("owner: price or cancel a request", () => {
     const f = new FormData(); f.set("orderId", request.id);
     await cancelQuoteRequestOwnerAction(f);
     expect(m.closeQuoteRequest).toHaveBeenCalledWith(request.id, "owner_cancelled");
+    expect(m.syncRequestInquiry).toHaveBeenCalledWith("q1", "closed", "AP-1063", "owner", "cancelled by us, never priced");
     expect(m.sendOrAlert.mock.calls[0][0]).toMatchObject({ to: "d@lab.org", subject: "Order AP-1063 — quote request closed" });
     expect(m.recordAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ action: "quote_request_cancelled", detail: "never priced · email: sent" }));
   });

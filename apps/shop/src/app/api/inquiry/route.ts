@@ -10,7 +10,7 @@ import { getLiveCatalog } from "@/lib/catalog-live";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
 import { QUOTE_REPLY_HOURS, cutoffFor, kitRows } from "@/lib/wholesale/rules";
 import { QUOTE_REQUEST_LINES_MAX, requestLinesOk } from "@/lib/wholesale/quote";
-import { createQuoteRequest } from "@/lib/wholesale/quote-data";
+import { createQuoteRequest, syncRequestInquiry } from "@/lib/wholesale/quote-data";
 import { localDate } from "@/lib/today/time";
 import type { Customer } from "@/lib/dal";
 import { TOPICS, inquirySubject } from "@/lib/inquiries/topics";
@@ -63,6 +63,7 @@ async function quoteRequestOrder(customer: Customer, lines: Array<{ slug: string
       cutoffOn: cutoffFor(today, { runDays: settings.runDays, override: settings.nextCutoffOverride }),
       inquiryId, kitBoxCents: settings.kitBoxCents,
     });
+    await syncRequestInquiry(inquiryId, "requested", order.orderNumber);
     return { orderNumber: order.orderNumber, kits: ok.kits };
   } catch (err) {
     await alertOwner("Quote request not made into an order", `${ref} · ${customer.email}: ${String(err)}. Price it from the inquiry.`);
