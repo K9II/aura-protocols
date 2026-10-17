@@ -166,7 +166,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
                   {customer.orders.slice(0, 3).map((o) => (
                     <div key={o.id} className="a-row-o">
                       <Link className="a-mono" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link>
-                      <span className="muted">{shortDate(o.created_at)} · {usd(o.total_cents)}</span>
+                      <span className="muted">{shortDate(o.created_at)} · {o.status === "quote_requested" || o.quote_closed_reason ? "not priced" : usd(o.total_cents)}</span>
                       <span className={`a-chip o-${o.kind === "no_charge" && o.status === "refunded" ? "cancelled" : o.status}`}>{statusLabelFor(o)}</span>
                     </div>
                   ))}

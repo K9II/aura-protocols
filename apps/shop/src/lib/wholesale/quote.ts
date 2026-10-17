@@ -4,7 +4,7 @@
 import { FREE_SHIPPING_MIN_CENTS, PROTECTION_CENTS, SHIPPING_FLAT_CENTS, type PricedItem } from "@/lib/pricing";
 import { addDays } from "@/lib/today/time";
 import { GLP_CLASS } from "@/lib/wholesale/margins";
-import { KIT_VIALS, MAX_KITS_PER_LINE, QUOTE_REPLY_HOURS, VOLUME_QUOTE_MIN_KITS, cutoffFor, estimatedDates, tierFor, type KitRow, type Tier } from "@/lib/wholesale/rules";
+import { KIT_VIALS, MAX_KITS_PER_LINE, QUOTE_BUSINESS_DAY, QUOTE_REPLY_HOURS, QUOTE_REQUEST_EXPIRE_HOURS, VOLUME_QUOTE_MIN_KITS, cutoffFor, estimatedDates, tierFor, type KitRow, type Tier } from "@/lib/wholesale/rules";
 
 // Volume-quote bands, % off retail by the request's total kits (Alvester 2026-10-17: 30–50
 // kits 45%, 51–99 50%, 100+ 55% — the order sheet's 5-point steps continued; same bands as
@@ -220,9 +220,49 @@ export function quoteCutoffChoices(today: string, s: { runDays: number; nextCuto
 // same order within QUOTE_REPLY_HOURS.
 export const QUOTE_REQUEST_LINES_MAX = 60;
 
-export function quotePriceBy(createdAtIso: string): number {
-  return Date.parse(createdAtIso) + QUOTE_REPLY_HOURS * 3_600_000;
+// Due = 12 business hours after the request, counting only Mon–Fri 9–5 Mountain
+// (3 pm Monday → 11 am Wednesday; Friday afternoon → Tuesday).
+const SHOP_TZ = "America/Denver";
+const mtParts = (ms: number) => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: SHOP_TZ, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+    .formatToParts(new Date(ms)).filter((x) => x.type !== "literal").map((x) => [x.type, Number(x.value)]));
+  return { y: p.year, m: p.month, d: p.day, min: p.hour * 60 + p.minute };
+};
+// Mountain wall time → UTC ms (correct across DST: the offset is re-read at the guess).
+function mtToUtc(y: number, m: number, d: number, minutes: number): number {
+  let t = Date.UTC(y, m - 1, d, 0, minutes);
+  for (let i = 0; i < 2; i++) {
+    const p = mtParts(t);
+    t += Date.UTC(y, m - 1, d, 0, minutes) - Date.UTC(p.y, p.m - 1, p.d, 0, p.min);
+  }
+  return t;
 }
+export function quotePriceBy(createdAtIso: string): number {
+  const open = QUOTE_BUSINESS_DAY.startHour * 60, close = QUOTE_BUSINESS_DAY.endHour * 60;
+  const start = mtParts(Date.parse(createdAtIso));
+  let day = Date.UTC(start.y, start.m - 1, start.d);   // the Mountain calendar date, as UTC midnight
+  let at = start.min;
+  let left = QUOTE_REPLY_HOURS * 60;
+  for (let guard = 0; guard < 60; guard++) {
+    const wd = new Date(day).getUTCDay();
+    if (wd === 0 || wd === 6 || at >= close) { day += 86_400_000; at = open; continue; }
+    if (at < open) at = open;
+    if (left <= close - at) {
+      const d = new Date(day);
+      return mtToUtc(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), at + left);
+    }
+    left -= close - at;
+    day += 86_400_000; at = open;
+  }
+  throw new Error("quotePriceBy: no business hours found");
+}
+// "Tue, Oct 20, 1:00 pm MT" — the due time as buyers and the owner read it.
+export function priceByLabel(ms: number): string {
+  const s = new Date(ms).toLocaleString("en-US", { timeZone: SHOP_TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return `${s.replace(" AM", " am").replace(" PM", " pm")} MT`;
+}
+// An unpriced request closes QUOTE_REQUEST_EXPIRE_HOURS after it was due.
+export const quoteRequestExpiresAt = (createdAtIso: string): number => quotePriceBy(createdAtIso) + QUOTE_REQUEST_EXPIRE_HOURS * 3_600_000;
 
 // The lines a request may be made from: whole kits of strengths offered as kits,
 // at least VOLUME_QUOTE_MIN_KITS in all (below that the order sheet prices them).

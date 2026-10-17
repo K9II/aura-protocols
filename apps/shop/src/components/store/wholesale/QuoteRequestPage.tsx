@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CLASS_COLOR } from "@/lib/class-colors";
 import type { ChemicalClass } from "@/data/catalog";
 import { ORDERS_EMAIL } from "@/lib/constants";
-import { KIT_VIALS, QUOTE_REPLY_HOURS } from "@/lib/wholesale/rules";
+import { KIT_VIALS, QUOTE_REPLY_TEXT } from "@/lib/wholesale/rules";
 import QuoteRequestActions from "@/components/store/wholesale/QuoteRequestActions";
 
 export type RequestedKit = { key: string; chemicalClass: string; title: string; scientific: string | null; strength: string; kits: number };
@@ -27,7 +27,7 @@ export default function QuoteRequestPage(p: {
     <div className="s-qr" data-testid="quote-request">
       <p className="s-micro s-eyebrow">Order {p.orderNumber} · <span className="s-qr-nw">Volume quote</span></p>
       <h1 className="s-h1 mb-3">Quote <em>requested.</em></h1>
-      <p className="s-ws-lede">Thanks{p.firstName ? `, ${p.firstName}` : ""}. We&apos;re pricing your kits now. {`Within ${QUOTE_REPLY_HOURS} hours we'll `}
+      <p className="s-ws-lede">Thanks{p.firstName ? `, ${p.firstName}` : ""}. We&apos;re pricing your kits now. {`Within ${QUOTE_REPLY_TEXT} (by ${p.priceByLabel}) we'll `}
         email <b>{p.email}</b> and this page will show your price for each strength, the total and the deposit. Nothing is charged until you pay the deposit.</p>
       <div className="s-qr-grid">
         <div className="s-qr-col">
@@ -43,7 +43,7 @@ export default function QuoteRequestPage(p: {
           <section className="s-co-panel">
             <p className="s-micro mb-4">What happens next</p>
             <ol className="s-qr-steps">
-              <li className="now"><span className="n">1</span><b>We price your kits <span className="when">within {QUOTE_REPLY_HOURS} hours</span></b>
+              <li className="now"><span className="n">1</span><b>We price your kits <span className="when">within {QUOTE_REPLY_TEXT}</span></b>
                 <p>Your price for each strength, the total and the deposit appear on this page. We email you when they&apos;re ready.</p></li>
               <li><span className="n">2</span><b>You pay the deposit here</b>
                 <p>Check the price, add the shipping address and pay the {p.depositPct}% deposit {pay}. Paying the deposit is how you accept the quote.</p></li>

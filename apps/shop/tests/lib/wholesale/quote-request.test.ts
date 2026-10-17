@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { QUOTE_REQUEST_LINES_MAX, parseSheetKits, quotePriceBy, requestLinesOk, sheetKitsParam } from "@/lib/wholesale/quote";
+import { QUOTE_REQUEST_LINES_MAX, parseSheetKits, quotePriceBy, quoteRequestExpiresAt, requestLinesOk, sheetKitsParam } from "@/lib/wholesale/quote";
 import { canTransition, STATUS_LABEL } from "@/lib/order-status";
 import { buildOrderTimeline } from "@/lib/orders/timeline";
 import { wholesaleSection } from "@/lib/today/todos";
@@ -25,8 +25,19 @@ describe("quote request rules", () => {
     expect(requestLinesOk([], rows).ok).toBe(false);
     expect(requestLinesOk(Array.from({ length: QUOTE_REQUEST_LINES_MAX + 1 }, () => ({ slug: "bpc-157", variantId: "10mg", kits: 1 })), rows).ok).toBe(false);
   });
-  it("is priced within 12 hours of the request", () => {
-    expect(quotePriceBy("2026-10-17T17:39:00Z")).toBe(Date.parse("2026-10-18T05:39:00Z"));
+  // 12 business hours: Mon–Fri 9–5 Mountain (Alvester 2026-10-17). MDT = UTC−6 until Nov 1 2026, MST = UTC−7 after.
+  it("is due 12 business hours after the request (Mon–Fri 9–5 Mountain)", () => {
+    expect(quotePriceBy("2026-10-19T21:00:00Z")).toBe(Date.parse("2026-10-21T17:00:00Z"));   // Mon 3 pm → Wed 11 am
+    expect(quotePriceBy("2026-10-20T13:00:00Z")).toBe(Date.parse("2026-10-21T19:00:00Z"));   // Tue 7 am (before opening) → Wed 1 pm
+    expect(quotePriceBy("2026-10-17T19:18:00Z")).toBe(Date.parse("2026-10-20T19:00:00Z"));   // Sat → counts from Mon 9 am → Tue 1 pm
+    expect(quotePriceBy("2026-10-23T21:00:00Z")).toBe(Date.parse("2026-10-27T17:00:00Z"));   // Fri 3 pm → Tue 11 am
+    expect(quotePriceBy("2026-10-19T23:30:00Z")).toBe(Date.parse("2026-10-21T19:00:00Z"));   // Mon 5:30 pm (after close) → Wed 1 pm
+  });
+  it("keeps the wall-clock time across the switch back to standard time", () => {
+    expect(quotePriceBy("2026-10-30T21:00:00Z")).toBe(Date.parse("2026-11-03T18:00:00Z"));   // Fri 3 pm MDT → Tue 11 am MST
+  });
+  it("closes an unpriced request 48 hours after it was due", () => {
+    expect(quoteRequestExpiresAt("2026-10-19T21:00:00Z")).toBe(Date.parse("2026-10-23T17:00:00Z"));
   });
   it("hands a closed request's kits to the order sheet and reads them back (unknown strengths dropped)", () => {
     const param = sheetKitsParam([{ compound_slug: "bpc-157", variant_id: "10mg", quantity: 22 }, { compound_slug: "tb-500", variant_id: "10mg", quantity: 8 }]);

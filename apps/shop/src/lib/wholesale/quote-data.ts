@@ -6,7 +6,10 @@ import { afterDepositPaid, depositRunPatch } from "@/lib/wholesale/after-deposit
 import type { BankDetails, QuoteLine, QuotePrice, TransferForm } from "@/lib/wholesale/quote";
 import { priceWholesale, type KitRow, type PricingSettings } from "@/lib/wholesale/rules";
 import type { PricedItem } from "@/lib/pricing";
-import { alertOwner } from "@/lib/notify";
+import { alertOwner, sendOrAlert } from "@/lib/notify";
+import { quoteRequestExpiredEmail } from "@/lib/emails";
+import { siteUrl } from "@/lib/supabase/env";
+import { priceByLabel, quotePriceBy, quoteRequestExpiresAt } from "@/lib/wholesale/quote";
 import { applyInquiryEvent, logInquiryEvent } from "@/lib/inquiries/data";
 import { addDays } from "@/lib/today/time";
 import type { ShipAddress } from "@/lib/ship-address";
@@ -147,7 +150,7 @@ export async function priceQuoteRequest(order: OrderRow, input: {
 
 // The buyer (Cancel this request / Order now at the listed price) or the owner
 // closes a request that wasn't priced. False = it wasn't a request any more.
-export async function closeQuoteRequest(orderId: string, reason: "customer_cancelled" | "ordered_now" | "owner_cancelled"): Promise<boolean> {
+export async function closeQuoteRequest(orderId: string, reason: "customer_cancelled" | "ordered_now" | "owner_cancelled" | "expired"): Promise<boolean> {
   return transitionOrder(orderId, "quote_requested", "cancelled", { quote_closed_reason: reason });
 }
 
@@ -252,4 +255,30 @@ export async function syncRequestInquiry(inquiryId: string | null, step: "reques
   } catch (err) {
     await alertOwner("Quote request inquiry not updated", `${orderNumber} (${step}): ${String(err)}. The inquiry may still show as a to-do.`);
   }
+}
+
+// ---------- the 12-business-hour promise (hourly email cron + daily reconcile) ----------
+// Past due: the owner is emailed once per request (orders.quote_late_alerted_at).
+// QUOTE_REQUEST_EXPIRE_HOURS past due: the request closes ("expired"), the buyer
+// is emailed, its inquiry closes. One alert per kind per run.
+export async function runQuoteRequestChecks(nowMs: number): Promise<{ late: string[]; expired: string[] }> {
+  const { data, error } = await db().from("orders").select("id, order_number, created_at, email, quote_inquiry_id, quote_late_alerted_at").eq("status", "quote_requested");
+  if (error) throw new Error(`quote requests read failed: ${JSON.stringify(error)}`);
+  type Row = { id: string; order_number: string; created_at: string; email: string; quote_inquiry_id: string | null; quote_late_alerted_at: string | null };
+  const late: string[] = [], expired: string[] = [];
+  for (const o of (data ?? []) as Row[]) {
+    if (nowMs > quoteRequestExpiresAt(o.created_at)) {
+      if (!(await closeQuoteRequest(o.id, "expired"))) continue;
+      await sendOrAlert({ to: o.email, ...quoteRequestExpiredEmail({ orderNumber: o.order_number, siteUrl: siteUrl() }) }, `quote request ${o.order_number} expired`);
+      await syncRequestInquiry(o.quote_inquiry_id, "closed", o.order_number, null, "expired, not priced in time");
+      expired.push(o.order_number);
+    } else if (nowMs > quotePriceBy(o.created_at) && !o.quote_late_alerted_at) {
+      const { error: e } = await db().from("orders").update({ quote_late_alerted_at: new Date(nowMs).toISOString() }).eq("id", o.id).is("quote_late_alerted_at", null);
+      if (e) throw new Error(`quote late flag failed: ${JSON.stringify(e)}`);
+      late.push(`${o.order_number} (was due ${priceByLabel(quotePriceBy(o.created_at))})`);
+    }
+  }
+  if (late.length) await alertOwner("Quote requests past due", `${late.join(", ")}: the buyer was promised a price by then. Price it from Today → Wholesale or the order; it closes on its own 2 days after it was due.`);
+  if (expired.length) await alertOwner("Quote requests expired", `${expired.join(", ")}: not priced within 2 days of the due time, so the request closed and the buyer was emailed. Nothing was charged.`);
+  return { late, expired };
 }

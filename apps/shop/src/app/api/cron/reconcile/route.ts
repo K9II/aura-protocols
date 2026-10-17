@@ -14,7 +14,7 @@ import { shortDate } from "@/lib/discounts/time";
 import { autoCloseInquiries } from "@/lib/inquiries/data";
 import { runWholesaleCron } from "@/lib/wholesale/cron";
 import { backfillPaymentFees } from "@/lib/payment-fees";
-import { expireQuotes } from "@/lib/wholesale/quote-data";
+import { expireQuotes, runQuoteRequestChecks } from "@/lib/wholesale/quote-data";
 import { localDate } from "@/lib/today/time";
 
 // Daily safety net (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`):
@@ -74,6 +74,12 @@ export async function GET(request: Request): Promise<Response> {
     if (expired.length) await alertOwner("Wholesale quotes expired", `${expired.join(", ")}: no deposit by the quote's valid-until date, so the order was cancelled. Nothing was paid. Make a new quote order if the customer still wants it.`);
   } catch (err) {
     failed.push(`expire quotes: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  // Volume-quote requests (also hourly in the email run; this is the daily safety net).
+  try {
+    await runQuoteRequestChecks(currentMs());
+  } catch (err) {
+    failed.push(`quote requests: ${err instanceof Error ? err.message : String(err)}`);
   }
   // Email-check rate-limit rows older than two days are no longer needed.
   try {

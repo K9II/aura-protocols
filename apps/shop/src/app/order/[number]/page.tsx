@@ -23,10 +23,9 @@ import QuotePay, { type QuotePayItem } from "@/components/store/wholesale/QuoteP
 import QuoteBalanceBank from "@/components/store/wholesale/QuoteBalanceBank";
 import { getLiveCatalog } from "@/lib/catalog-live";
 import { CLASS_COLOR } from "@/lib/class-colors";
-import { cardAllowed, depositCutoff, quotePriceBy, quoteOpen } from "@/lib/wholesale/quote";
+import { cardAllowed, depositCutoff, priceByLabel, quotePriceBy, quoteOpen } from "@/lib/wholesale/quote";
 import QuoteRequestPage, { type RequestedKit } from "@/components/store/wholesale/QuoteRequestPage";
 import { cutoffFor, kitTitle, nextCutoffAfter } from "@/lib/wholesale/rules";
-import { dateTime } from "@/lib/discounts/time";
 import { refLabel } from "@/lib/inquiries/rules";
 import { getInquiry } from "@/lib/inquiries/data";
 import { getBankDetails } from "@/lib/wholesale/quote-data";
@@ -201,6 +200,7 @@ const CLOSED_REQUEST: Record<string, string> = {
   customer_cancelled: "You cancelled this quote request. Nothing was charged.",
   ordered_now: "You chose to order these kits at the order-sheet price instead, so this request is closed. Nothing was charged here.",
   owner_cancelled: "We closed this quote request. Nothing was charged. Reply to our email if you have any questions.",
+  expired: "We couldn't price this request in time, so it closed. Nothing was charged. Send a new request from the order sheet, or reply to our email and we'll price it.",
 };
 
 // A volume-quote request not priced yet (mock "Quote on the Order", 2026-10-17):
@@ -222,7 +222,6 @@ async function quoteRequestPage(order: NonNullable<Awaited<ReturnType<typeof get
   const cutoff = settings ? cutoffFor(today, { runDays: settings.runDays, override: settings.nextCutoffOverride }) : null;
   const ships = cutoff && settings ? estimatedDates(cutoff, settings.leadDays).shipsAbout : null;
   const top = settings?.tiers[settings.tiers.length - 1] ?? null;
-  const sameDay = localDate(priceBy) === today;
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-16 s-ws-page">
@@ -230,7 +229,7 @@ async function quoteRequestPage(order: NonNullable<Awaited<ReturnType<typeof get
           orderNumber={order.order_number} firstName={customer.fullName.trim().split(/\s+/)[0] ?? ""} email={customer.email}
           inquiryRef={inquiryRef != null ? refLabel(inquiryRef) : null}
           requestedLabel={dateLabel(localDate(Date.parse(order.created_at)))}
-          priceByLabel={`${sameDay ? dateTime(new Date(priceBy).toISOString()).split(", ")[1] : dateTime(new Date(priceBy).toISOString())} MT`}
+          priceByLabel={priceByLabel(priceBy)}
           late={nowMs > priceBy}
           cutoffLabel={cutoff ? dateLabel(cutoff) : null} nextCutoffLabel={cutoff && settings ? dateLabel(nextCutoffAfter(cutoff, settings.runDays)) : null}
           shipsAboutLabel={ships ? dateLabel(ships) : null}

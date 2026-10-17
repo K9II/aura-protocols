@@ -19,7 +19,12 @@ export const VOLUME_NUDGE_MIN_KITS = 20;   // = where the top tier starts, so th
 export const VOLUME_QUOTE_ANCHOR = "volume-quote";
 export const VOLUME_QUOTE_EVENT = "aura:volume-quote";
 // A volume-quote request is priced within this many hours (Alvester 2026-10-17).
-export const QUOTE_REPLY_HOURS = 12;   // Alvester 2026-10-17: volume quotes are priced within 12 hours
+export const QUOTE_REPLY_HOURS = 12;   // Alvester 2026-10-17: priced within 12 BUSINESS hours
+// Business hours for that clock: Mon–Fri, 9 am–5 pm shop time (Mountain). No holidays yet.
+export const QUOTE_BUSINESS_DAY = { startHour: 9, endHour: 17 } as const;
+export const QUOTE_REPLY_TEXT = `${QUOTE_REPLY_HOURS} business hours`;
+// An unpriced request closes this long after it was due (Alvester 2026-10-17).
+export const QUOTE_REQUEST_EXPIRE_HOURS = 48;
 
 // Pricing (2026-10-10): minimum 5 kits, mixed any way; 5-9 30%, 10-19 35%, 20+ 40% —
 // every tier beats every retail offer (10-pack STD_PACKS, new-account %). The first tier starts at the order

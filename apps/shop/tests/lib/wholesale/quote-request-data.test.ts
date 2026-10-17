@@ -8,7 +8,9 @@ const transitionOrder = vi.fn();
 const alertOwner = vi.fn();
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
 vi.mock("@/lib/orders", () => ({ transitionOrder, getOrderById: vi.fn() }));
-vi.mock("@/lib/notify", () => ({ alertOwner }));
+const sendOrAlert = vi.fn(async () => true);
+vi.mock("@/lib/notify", () => ({ alertOwner, sendOrAlert }));
+vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
 vi.mock("@/lib/order-paid", () => ({ afterOrderPaid: vi.fn() }));
 vi.mock("@/lib/wholesale/after-deposit", () => ({ afterDepositPaid: vi.fn(), depositRunPatch: vi.fn() }));
 const applyInquiryEvent = vi.fn();
@@ -97,5 +99,30 @@ describe("quote request data", () => {
     applyInquiryEvent.mockRejectedValue(new Error("db down"));
     await expect(syncRequestInquiry("q1", "priced", "AP-1063")).resolves.toBeUndefined();
     expect(alertOwner).toHaveBeenCalledWith("Quote request inquiry not updated", expect.stringContaining("db down"));
+  });
+
+  it("runQuoteRequestChecks: past due → owner emailed once; 2 days past due → closed, buyer emailed, inquiry closed", async () => {
+    // AP-1 due Wed Oct 21 11 am MT (sent Mon 3 pm); AP-2 due the same, already flagged; AP-3 sent a week earlier → expired.
+    const rows = [
+      { id: "o1", order_number: "AP-1", created_at: "2026-10-19T21:00:00Z", email: "a@x.org", quote_inquiry_id: "q1", quote_late_alerted_at: null },
+      { id: "o2", order_number: "AP-2", created_at: "2026-10-19T21:00:00Z", email: "b@x.org", quote_inquiry_id: null, quote_late_alerted_at: "2026-10-21T18:00:00Z" },
+      { id: "o3", order_number: "AP-3", created_at: "2026-10-12T21:00:00Z", email: "c@x.org", quote_inquiry_id: "q3", quote_late_alerted_at: "2026-10-14T18:00:00Z" },
+    ];
+    const read = query({ data: rows });
+    const flag = query({ data: [{ id: "o1" }] });
+    from = fromQueue({ orders: [read, flag] });
+    transitionOrder.mockResolvedValue(true);
+    applyInquiryEvent.mockReset().mockResolvedValue(null);
+    logInquiryEvent.mockReset().mockResolvedValue(undefined);
+    sendOrAlert.mockClear(); alertOwner.mockReset();
+    const { runQuoteRequestChecks } = await import("@/lib/wholesale/quote-data");
+    const r = await runQuoteRequestChecks(Date.parse("2026-10-21T20:00:00Z"));   // Wed 2 pm MT
+    expect(r).toEqual({ late: ["AP-1 (was due Wed, Oct 21, 11:00 am MT)"], expired: ["AP-3"] });
+    expect(callArgs(flag, "update")?.[0]).toEqual({ quote_late_alerted_at: "2026-10-21T20:00:00.000Z" });
+    expect(transitionOrder).toHaveBeenCalledWith("o3", "quote_requested", "cancelled", { quote_closed_reason: "expired" });
+    expect(sendOrAlert).toHaveBeenCalledWith(expect.objectContaining({ to: "c@x.org", subject: "Order AP-3 — quote request closed" }), "quote request AP-3 expired");
+    expect(applyInquiryEvent).toHaveBeenCalledWith("q3", "close", { actorId: null });
+    expect(alertOwner).toHaveBeenCalledWith("Quote requests past due", expect.stringContaining("AP-1 (was due Wed, Oct 21, 11:00 am MT)"));
+    expect(alertOwner).toHaveBeenCalledWith("Quote requests expired", expect.stringContaining("AP-3"));
   });
 });
