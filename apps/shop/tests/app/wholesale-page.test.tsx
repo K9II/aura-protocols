@@ -87,6 +87,13 @@ describe("/wholesale", () => {
     expect(props.pricing).toEqual({ tiers: open.tiers, depositPct: 40, minKits: 5 });
     expect(props.cutoffLabel).toBe("Oct 19");
     expect(props.rows.find((r) => r.slug === "retatrutide")?.art.vialLabel).toBe("APro-G3RT");
+    // the sheet's own header: the run dates and the minimum fold into the lede (mock option A, 2026-10-16)
+    expect(screen.getAllByRole("heading", { level: 1 }).at(-1)!.textContent).toBe("Build your kits.");  // the earlier render is still mounted
+    const lede = [...document.querySelectorAll(".s-ws-lede")].at(-1)!.textContent!;
+    expect(lede).toMatch(/5 kits minimum/);
+    expect(lede).toMatch(/Order by Oct 19; your lot is tested about .+ and ships about .+\./);
+    expect(lede).toMatch(/you receive its certificate/);
+    expect(screen.getAllByRole("link", { name: "← Back to wholesale" }).at(-1)!.getAttribute("href")).toBe("/wholesale");
   });
 
   it("owner switched wholesale off for the customer: no sheet, inquiry stays", async () => {

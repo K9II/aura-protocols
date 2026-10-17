@@ -26,20 +26,21 @@ describe("WholesaleOrderSheet", () => {
     await sheet();
     expect(screen.getByText("Incretin & Amylin Analogs")).toBeTruthy();
     expect(screen.getByText("APro-G3RT", { selector: ".s-ws-nm" })).toBeTruthy();
-    expect(screen.getByText("· Retatrutide · 10 mg")).toBeTruthy();
+    expect(screen.getByText("Retatrutide · 10 mg · 10 vials")).toBeTruthy();
     expect(screen.queryByText(/lot test/i)).toBeNull();
-    expect(screen.getByText(/Every batch is independently tested/)).toBeTruthy();
+    // each class is its own panel, every strength starts with an Add kit button (no checkboxes)
+    expect(screen.getByRole("region", { name: "Peptide Fragments" })).toBeTruthy();
+    expect(screen.queryByRole("checkbox")).toBeNull();
   });
 
-  it("a checkbox adds one kit; checkout stays locked until the 5-kit minimum", async () => {
+  it("Add kit adds one kit; checkout stays locked until the 5-kit minimum", async () => {
     await sheet();
-    fireEvent.click(screen.getByRole("checkbox", { name: "Order BPC-157 10 mg kits" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     expect(screen.getByTestId("ws-count").textContent).toBe("1 kit · 10 vials");
     expect(screen.getByText("4 more kits to reach the 5-kit minimum")).toBeTruthy();
     expect((screen.getByRole("button", { name: "Minimum 5 kits" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByText(/mix any compounds and strengths/)).toBeTruthy();
     for (let i = 0; i < 2; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Order TB-500 10 mg kits" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
     fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
     // 3 x $487.50 + 2 x $675 = $2,812.50 at 25% off; deposit 40%
     expect(screen.getByTestId("ws-count").textContent).toBe("5 kits · 50 vials · 25% off");
@@ -48,24 +49,42 @@ describe("WholesaleOrderSheet", () => {
     expect((screen.getByRole("button", { name: "Continue to checkout" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
-  it("unticking removes the strength", async () => {
+  it("the kit count can be typed (20 kits without 20 clicks); clearing it and leaving removes the strength", async () => {
     await sheet();
-    const cb = screen.getByRole("checkbox", { name: "Order APro-G3RT 10 mg kits" });
-    fireEvent.click(cb);
-    fireEvent.click(cb);
+    fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
+    const box = screen.getByRole("textbox", { name: "BPC-157 10 mg kits" }) as HTMLInputElement;
+    fireEvent.change(box, { target: { value: "20" } });
+    expect(screen.getByTestId("ws-count").textContent).toBe("20 kits · 200 vials · 35% off");
+    fireEvent.change(box, { target: { value: "2a" } });   // digits only
+    expect(screen.getByTestId("ws-count").textContent).toBe("2 kits · 20 vials");
+    fireEvent.change(box, { target: { value: "" } });     // mid-edit: the box stays
+    expect(screen.getByRole("textbox", { name: "BPC-157 10 mg kits" })).toBeTruthy();
+    fireEvent.blur(box);
     expect(screen.getByTestId("ws-count").textContent).toBe("0 kits · 0 vials");
+    expect(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }).textContent).toBe("+ Add kit");
+  });
+
+  it("removing the last kit brings the Add kit button back", async () => {
+    await sheet();
+    fireEvent.click(screen.getByRole("button", { name: "Add a APro-G3RT 10 mg kit" }));
+    expect(screen.getByText("Line $937.50")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Remove a APro-G3RT 10 mg kit" }));
+    expect(screen.getByTestId("ws-count").textContent).toBe("0 kits · 0 vials");
+    expect(screen.getByRole("button", { name: "Add a APro-G3RT 10 mg kit" }).textContent).toBe("+ Add kit");
   });
 
   it("checkout: human check, then Pay deposit sends the kits and address to the server", async () => {
     startWholesaleCheckoutAction.mockResolvedValue({ error: "Card declined" });
     await sheet();
-    fireEvent.click(screen.getByRole("checkbox", { name: "Order BPC-157 10 mg kits" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     for (let i = 0; i < 4; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     fireEvent.click(screen.getByRole("button", { name: "Continue to checkout" }));
-    const pay = screen.getByRole("button", { name: /Pay deposit \$975\.00/ }) as HTMLButtonElement;
-    expect(pay.disabled).toBe(true);
+    // the custom-request form is hidden on this step (CSS :has(.s-wo-co)); the button says what's missing
+    expect((screen.getByRole("button", { name: "Complete the human check" }) as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(screen.getByText("pass check"));
+    expect((screen.getByRole("button", { name: "Confirm research use" }) as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(screen.getByRole("checkbox", { name: /laboratory research use only/ }));
+    expect(screen.getByRole("button", { name: /Pay deposit \$975\.00/ })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Pay deposit/ }));
     await screen.findByText("Card declined");
     expect(startWholesaleCheckoutAction).toHaveBeenCalledWith(expect.objectContaining({
@@ -76,11 +95,11 @@ describe("WholesaleOrderSheet", () => {
 
   it("from 40 kits it counts down to a volume quote; at 50 it offers one and hands the sheet to the form", async () => {
     await sheet();
-    fireEvent.click(screen.getByRole("checkbox", { name: "Order BPC-157 10 mg kits" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     for (let i = 1; i < 42; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     expect(screen.getByText("8 more kits and you can ask for a volume quote")).toBeTruthy();
     expect(screen.queryByTestId("ws-volume-quote")).toBeNull();
-    fireEvent.click(screen.getByRole("checkbox", { name: "Order TB-500 10 mg kits" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
     for (let i = 1; i < 8; i++) fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
     expect(screen.getByTestId("ws-count").textContent).toBe("50 kits · 500 vials · 35% off");
     expect(screen.getByTestId("ws-volume-quote").textContent).toContain("This order qualifies for a volume quote.");

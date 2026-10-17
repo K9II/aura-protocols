@@ -106,10 +106,26 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
   return (
     <div className="pharmacopoeia">
       <div className="p-container py-16">
-        <p className="s-micro s-eyebrow">Wholesale · made to order</p>
-        <h1 className="s-h1 mb-5">Research <em>kits.</em></h1>
-        <p className="s-ws-lede">10 vials of one strength per kit. Each production run is made and tested as one lot, and you receive its certificate.</p>
-        <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} today={today} />
+        {onSheet ? (
+          // The order sheet (mock "Wholesale Order Sheet Refresh", option A, 2026-10-16): the run dates
+          // and the minimum fold into the lede; the tiers and the sheet follow. The checkout step
+          // brings its own header and hides this one (globals.css, .s-wo-hd).
+          <div className="s-wo-hd">
+            <Link href="/wholesale" className="s-wo-back">← Back to wholesale</Link>
+            <p className="s-micro s-eyebrow">Wholesale · made to order</p>
+            <h1 className="s-h1 mb-5">Build your <em>kits.</em></h1>
+            <p className="s-ws-lede">10 vials of one strength per kit. Mix any compounds and strengths — {s.minKits} kits minimum.
+              Order by <b>{dateLabel(cutoff)}</b>; your lot is tested about {dateLabel(dates.testedAbout)} and ships about {dateLabel(dates.shipsAbout)}.
+              Each run is made and tested as one lot, and you receive its certificate.</p>
+          </div>
+        ) : (
+          <>
+            <p className="s-micro s-eyebrow">Wholesale · made to order</p>
+            <h1 className="s-h1 mb-5">Research <em>kits.</em></h1>
+            <p className="s-ws-lede">10 vials of one strength per kit. Each production run is made and tested as one lot, and you receive its certificate.</p>
+            <RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} today={today} />
+          </>
+        )}
         {body}
         <div className="s-ws-inq" id={VOLUME_QUOTE_ANCHOR}>
           <h2 className="s-h2 mt-6 mb-3">Volume quotes and <em>custom requests.</em></h2>
