@@ -24,6 +24,8 @@ export type OrderDetail = {
   refundedBy: string | null;
   // A wholesale order's production run (by its order-by date), if one exists.
   run: { id: string; number: string } | null;
+  // A wholesale quote order (quote-orders.sql): who created it and the inquiry it came from.
+  quote: { createdBy: string | null; inquiryRef: number | null } | null;
   timeline: TimelineEntry[];
 };
 
@@ -115,6 +117,9 @@ export async function getOrderDetail(orderNumber: string): Promise<OrderDetail |
     openDisputeId: ds.find((x) => !x.closed_at)?.id ?? null,
     refundedBy: refunderRow?.full_name ?? null,
     run,
+    quote: order.quote_valid_until
+      ? { createdBy: ev.find((e) => e.action === "quote_order_created")?.actor?.full_name ?? null, inquiryRef: iq[0]?.ref ?? null }
+      : null,
     timeline: buildOrderTimeline({
       order,
       adminEvents: ev.map((e) => ({ action: e.action, at: e.at, detail: e.detail, actorName: e.actor?.full_name ?? null })),

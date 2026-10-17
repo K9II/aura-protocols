@@ -19,6 +19,14 @@ import { currentMs } from "@/lib/clock";
 import { dateLabel, localDate } from "@/lib/today/time";
 import { usd } from "@/lib/html";
 import { PROTECTION_DECLINED_SHORT, PROTECTION_LABEL } from "@/lib/shipping-protection";
+import QuotePay, { type QuotePayItem } from "@/components/store/wholesale/QuotePay";
+import QuoteBalanceBank from "@/components/store/wholesale/QuoteBalanceBank";
+import { getLiveCatalog } from "@/lib/catalog-live";
+import { CLASS_COLOR } from "@/lib/class-colors";
+import { depositCutoff, quoteOpen } from "@/lib/wholesale/quote";
+import { getBankDetails } from "@/lib/wholesale/quote-data";
+import { tierFor } from "@/lib/wholesale/rules";
+import type { Customer } from "@/lib/dal";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false, follow: false } };
 
@@ -30,6 +38,7 @@ export default async function OrderPage({ params, searchParams }: {
   const customer = await requireCustomer(`/order/${number}`);
   const order = await getOrderForCustomer(number, customer.id);
   if (!order) notFound();
+  if (order.channel === "wholesale" && order.status === "quoted") return await quotePayPage(order, customer, session_id);
   if (order.channel === "wholesale") return await wholesaleOrder(order);
 
   // Display only: if the webhook hasn't landed yet, ask Stripe so the page can
@@ -113,6 +122,10 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
     }
   }
   const dueOn = order.balance_due_at && settings ? addDays(localDate(Date.parse(order.balance_due_at)), settings.balanceDays) : null;
+  let bank: Awaited<ReturnType<typeof getBankDetails>> = null;
+  if (order.status === "balance_due" && order.quote_pay_bank) {
+    try { bank = await getBankDetails(); } catch (err) { console.error("bank details read failed:", err); }
+  }
   const newShips = failed.length && settings ? estimatedDates(today, settings.leadDays).shipsAbout : null;
   const head = order.status === "balance_due" ? <>Your kits <em>passed.</em></>
     : failed.length ? <>One lot needs <em>re-sourcing.</em></>
@@ -151,7 +164,8 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
             <div className="s-ws-ln"><span>Deposit paid</span><span>{deposit}</span></div>
             <div className="s-ws-ln b t"><span>Balance due{dueOn ? ` by ${dateLabel(dueOn)}` : ""}</span><span>{balance}</span></div>
             <p className="s-ws-note" style={{ margin: "2px 0 6px" }}>Includes {order.shipping_cents ? `${usd(order.shipping_cents)} shipping` : "free shipping"}, {usd(order.insurance_cents)} shipping protection and sales tax.</p>
-            <PayBalanceButton orderNumber={order.order_number} label={balance} />
+            {order.quote_pay_bank && bank && <QuoteBalanceBank orderNumber={order.order_number} amountCents={order.balance_cents ?? 0} bank={bank} transferSent={!!order.transfer_sent_at && order.transfer_sent_for === "balance"} />}
+            {(!order.quote_valid_until || order.quote_pay_card) && <PayBalanceButton orderNumber={order.order_number} label={balance} />}
             <p className="s-ws-note" style={{ marginTop: 8 }}>Unpaid orders are cancelled after {dueOn ? dateLabel(dueOn) : "the due date"} and the deposit is kept.</p>
           </div>
         )}
@@ -163,10 +177,79 @@ async function wholesaleOrder(order: NonNullable<Awaited<ReturnType<typeof getOr
             {cutoff && dates && <div style={{ marginTop: 10 }}><RunStrip cutoff={cutoff} testedAbout={dates.testedAbout} shipsAbout={dates.shipsAbout} style={{ margin: 0 }} /></div>}
           </div>
         )}
-        {cutoff && canCancelWholesale(order, today, { failed: failed.length > 0 }) && (
+        {cutoff && order.deposit_method === "bank" && canCancelWholesale(order, today, { failed: failed.length > 0 }) && (
+          <p className="s-ws-note" style={{ marginTop: 14 }}>Your deposit was paid by bank transfer. To cancel before {dateLabel(cutoff)}, reply to your order email and we&apos;ll refund it by bank transfer.</p>
+        )}
+        {cutoff && order.deposit_method !== "bank" && canCancelWholesale(order, today, { failed: failed.length > 0 }) && (
           <CancelWholesaleButton orderNumber={order.order_number} cutoffLabel={dateLabel(cutoff)} depositLabel={deposit} failedLot={failed.length > 0} />
         )}
         <Link href="/account" className="s-ws-btn-o" style={{ marginTop: 14 }}>My orders →</Link>
+      </div>
+    </div>
+  );
+}
+
+// A wholesale quote order waiting for its deposit (mocks 2026-10-17 "Quote Order
+// Mocks", screens 4–5): ship to, research use, then bank transfer or card.
+async function quotePayPage(order: NonNullable<Awaited<ReturnType<typeof getOrderForCustomer>>>, customer: Customer, sessionId: string | undefined) {
+  const today = localDate(currentMs());
+  const open = quoteOpen(order, today);
+  // Back from the card page before the webhook landed: say "confirming" (display only).
+  let confirming = false;
+  if (sessionId && sessionId === order.stripe_session_id) {
+    try { confirming = (await getStripe().checkout.sessions.retrieve(sessionId)).payment_status === "paid"; } catch { confirming = false; }
+  }
+  const [settings, live] = await Promise.all([
+    getWholesaleSettings().catch((err) => { console.error("wholesale settings read failed:", err); return null; }),
+    getLiveCatalog().catch((err) => { console.error("live catalog read failed:", err); return null; }),
+  ]);
+  const saved = !!order.ruo_confirmed_at && !!order.ship_name;
+  let bank: Awaited<ReturnType<typeof getBankDetails>> = null;
+  if (saved && order.quote_pay_bank) {
+    try { bank = await getBankDetails(); } catch (err) { console.error("bank details read failed:", err); }
+  }
+  const items = order.order_items ?? [];
+  const kits = items.reduce((n, i) => n + i.quantity, 0);
+  const sheetPct = settings ? tierFor(kits, settings.tiers).pct : null;
+  const rows: QuotePayItem[] = items.map((i) => {
+    const c = live?.shown.find((x) => x.slug === i.compound_slug);
+    const cls = c?.chemicalClass ?? "";
+    return {
+      key: i.id, cls, color: CLASS_COLOR[cls as keyof typeof CLASS_COLOR] ?? "var(--ink)",
+      title: c?.designation ?? i.compound_name, parts: c?.designation ? i.compound_name : null,
+      strength: i.strength, kits: i.quantity, unitCents: i.unit_price_cents, lineCents: i.line_total_cents,
+    };
+  });
+  const sheetCents = sheetPct == null ? 0 : items.reduce((n, i) => n + Math.round((i.retail_unit_cents ?? i.unit_price_cents) * (1 - sheetPct / 100)) * i.quantity, 0);
+  const cutoff = order.wholesale_cutoff_on && settings ? depositCutoff(order.wholesale_cutoff_on, today, { runDays: settings.runDays, override: settings.nextCutoffOverride }) : null;
+  const dates = cutoff && settings ? estimatedDates(cutoff, settings.leadDays) : null;
+  const ship = order.ship_name
+    ? { name: order.ship_name, line1: order.ship_line1, line2: order.ship_line2 ?? "", city: order.ship_city, state: order.ship_state, zip: order.ship_zip }
+    : customer.ship ? { name: customer.ship.name, line1: customer.ship.line1, line2: customer.ship.line2 ?? "", city: customer.ship.city, state: customer.ship.state, zip: customer.ship.zip }
+    : { name: customer.fullName, line1: "", line2: "", city: "", state: "", zip: "" };
+  const depositPct = order.subtotal_cents > 0 ? Math.round(((order.deposit_cents ?? 0) / order.subtotal_cents) * 100) : 40;
+  return (
+    <div className="pharmacopoeia">
+      <div className="p-container py-16">
+        <p className="s-micro text-[color:var(--specimen)] mb-2.5">Order {order.order_number} · wholesale quote</p>
+        <h1 className="s-h1 mb-3">{open ? <>Pay your <em>deposit.</em></> : <>This quote has <em>expired.</em></>}</h1>
+        {open
+          ? <p className="s-ws-lede" style={{ marginBottom: 26 }}>Your volume price is ready. Add where it ships, then pay the {depositPct}% deposit{cutoff ? <> by <b>{dateLabel(cutoff)}</b></> : null} to hold your place in the run. This quote is good until {dateLabel(order.quote_valid_until!)}.</p>
+          : <p className="s-ws-lede">The quote was good until {dateLabel(order.quote_valid_until!)}. Reply to your order email and we&apos;ll set up a new one.</p>}
+        {open && (
+          <QuotePay
+            orderNumber={order.order_number} email={customer.email} note={order.quote_note}
+            noteBy={order.quote_note ? `Aura Protocols · ${dateLabel(localDate(Date.parse(order.created_at)))}` : null}
+            items={rows}
+            money={{ goodsCents: order.subtotal_cents, savedCents: Math.max(0, sheetCents - order.subtotal_cents), shippingCents: order.shipping_cents, protectionCents: order.insurance_cents,
+              taxCents: saved ? order.tax_cents : null, depositCents: order.deposit_cents ?? 0, balanceCents: order.balance_cents ?? 0, depositPct }}
+            run={cutoff && dates ? { cutoffOn: cutoff, testedAbout: dates.testedAbout, shipsAbout: dates.shipsAbout, cutoffLabel: dateLabel(cutoff) } : null}
+            validUntilLabel={dateLabel(order.quote_valid_until!)}
+            ship={ship} saved={saved} pay={{ bank: order.quote_pay_bank, card: order.quote_pay_card }} bank={bank}
+            transferSent={!!order.transfer_sent_at && order.transfer_sent_for === "deposit"} confirming={confirming}
+          />
+        )}
+        <Link href="/account" className="s-ws-btn-o" style={{ marginTop: 24 }}>My orders →</Link>
       </div>
     </div>
   );

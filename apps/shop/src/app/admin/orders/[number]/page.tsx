@@ -23,6 +23,11 @@ import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { Markers, OrderStatusChip } from "@/components/admin/orders/bits";
 import RefundDialog from "@/components/admin/orders/RefundDialog";
 import OrderMore, { type MoreItem } from "@/components/admin/orders/OrderMore";
+import { CopyPayLink, RecordTransferDialog } from "@/components/admin/orders/QuoteControls";
+import { cancelQuoteOrderAction } from "@/app/admin/orders/quote/actions";
+import { siteUrl } from "@/lib/supabase/env";
+import { currentMs } from "@/lib/clock";
+import { dateLabel, localDate } from "@/lib/today/time";
 
 export const metadata: Metadata = { title: "Order", robots: { index: false, follow: false } };
 
@@ -51,8 +56,15 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const vials = items.reduce((s, i) => s + i.pack_qty * i.quantity, 0);
   const stripeUrl = o.stripe_payment_intent ? stripePaymentUrl(o.stripe_payment_intent) : null;
   const nc = o.kind === "no_charge" ? d.noCharge : null;
-  const charged = o.total_cents - o.store_credit_cents;
+  // Wholesale: only what has come in so far (the deposit, then the balance).
+  const charged = o.channel === "wholesale" ? (o.deposit_paid_at ? o.deposit_cents ?? 0 : 0) + (o.paid_at ? o.balance_cents ?? 0 : 0) : o.total_cents - o.store_credit_cents;
   const summary = `${o.ship_name} · ${o.ship_city}, ${o.ship_state} · ${vials} vial${vials === 1 ? "" : "s"}`;
+  // A wholesale quote order (quote-orders.sql): waits as quoted until its deposit;
+  // bank transfers are recorded here by the owner.
+  const quote = o.quote_valid_until ? o : null;
+  const quoteOwner = !!quote && can(staff, "wholesale.quote");
+  const today = localDate(currentMs());
+  const noShipYet = "The customer hasn't added their shipping address and research-use confirmation yet. Ask them to finish their order page, then record the transfer.";
   // Refunds (mock 2026-10-07-admin-refunds r1–r3, r5): owner only; orders
   // with an open chargeback or fraud warning are refunded from Disputes; a lost
   // chargeback is never refunded.
@@ -97,6 +109,14 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
         <OrderStatusChip status={o.status} kind={o.kind} /><Markers list={orderMarkers(o, d.flags)} />
         <div className="actions">
           {d.run && <Link className="a-btn" href={`/admin/wholesale/runs/${d.run.id}`}>Run {d.run.number} <Icon name="arrow" /></Link>}
+          {quoteOwner && o.status === "quoted" && <>
+            <CopyPayLink url={`${siteUrl()}/order/${o.order_number}`} />
+            <ConfirmDialog label="Cancel quote order" title={`Cancel ${o.order_number}?`} confirmLabel="Cancel order" tone="danger" action={cancelQuoteOrderAction} fields={{ orderId: o.id }}>
+              Nothing has been paid, so nothing is refunded. The customer&apos;s pay link stops working. Nothing is emailed — tell them yourself if you need to.
+            </ConfirmDialog>
+            {o.quote_pay_bank && <RecordTransferDialog orderId={o.id} orderNumber={o.order_number} payment="deposit" dueCents={o.deposit_cents ?? 0} today={today} blocked={o.ruo_confirmed_at ? null : noShipYet} />}
+          </>}
+          {quoteOwner && o.status === "balance_due" && o.quote_pay_bank && <RecordTransferDialog orderId={o.id} orderNumber={o.order_number} payment="balance" dueCents={o.balance_cents ?? 0} today={today} blocked={null} />}
           {nc && o.status === "paid" && can(staff, "orders.no_charge") && <ConfirmDialog label="Cancel order" title={`Cancel ${o.order_number}?`} confirmLabel="Cancel order" tone="danger" action={cancelNoChargeOrderAction} fields={{ orderId: o.id }}>
             The {vials} vial{vials === 1 ? "" : "s"} go{vials === 1 ? "es" : ""} back to stock. Nothing is emailed.
           </ConfirmDialog>}
@@ -111,6 +131,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
       {nc
         ? <div className="a-dsub">Created {dateTime(o.created_at)}{nc.createdBy && <> by {nc.createdBy}</>}<span className="dot" />{c.fullName}<span className="dot" />
           {nc.replaces ? <span>Replacement for <Link className="a-ulink" href={`/admin/orders/${nc.replaces}`}>{nc.replaces}</Link></span> : REASON_LABEL[nc.reason]}</div>
+        : quote ? <div className="a-dsub">Created {dateTime(o.created_at)}{d.quote?.createdBy && <> by {d.quote.createdBy}</>}<span className="dot" />{c.fullName}{d.quote?.inquiryRef && <><span className="dot" />from inquiry <Link className="a-ulink" href={`/admin/inquiries/Q-${d.quote.inquiryRef}`}>Q-{d.quote.inquiryRef}</Link></>}{o.status === "quoted" && <><span className="dot" />quote valid until {dateLabel(o.quote_valid_until!)}</>}</div>
         : <div className="a-dsub">Placed {dateTime(o.created_at)}<span className="dot" />{c.fullName}<span className="dot" />{usd(charged)} charged</div>}
       {canRefund && offer.blockedBy === "warning" && (
         <div className="a-callout warn a-refund-note"><Icon name="warn" /><div>Stripe flagged this card as possibly stolen. To cancel and refund, use <Link className="a-ulink" href="/admin/disputes">Disputes → warning on {o.order_number}</Link> — it refunds as fraud so Radar blocks the card.</div></div>
@@ -207,7 +228,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
           <div className="a-card">
             <div className="a-card-h"><h3>Ship to</h3></div>
             <div className="a-card-b" style={{ fontSize: 12.5, lineHeight: 1.55 }}>
-              {o.ship_name}<br />{o.ship_line1}{o.ship_line2 ? `, ${o.ship_line2}` : ""}<br />{o.ship_city}, {o.ship_state} {o.ship_zip}
+              {!o.ship_name ? <span className="muted">The customer adds it on their order page with the deposit.</span> : <>{o.ship_name}<br /></>}{o.ship_name && <>{o.ship_line1}{o.ship_line2 ? `, ${o.ship_line2}` : ""}<br />{o.ship_city}, {o.ship_state} {o.ship_zip}</>}
               {o.tracking_number && <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--line)" }}>{(o.carrier ?? "").toUpperCase()} · <span className="a-mono">{o.tracking_number}</span></div>}
             </div>
           </div>
@@ -244,7 +265,22 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
               </dl></div>
             </div>
           )}
-          <div className="a-card"><div className="a-card-b muted" style={{ fontSize: 12.5, display: "flex", gap: 8 }}><Icon name="check" />Research use confirmed {dateTime(o.ruo_confirmed_at)}</div></div>
+          {quote && (
+            <div className="a-card">
+              <div className="a-card-h"><h3>Quote</h3></div>
+              <div className="a-card-b"><dl className="a-kv">
+                <dt>Valid until</dt><dd>{dateLabel(quote.quote_valid_until!)}</dd>
+                <dt>Can pay by</dt><dd>{[quote.quote_pay_bank && "bank transfer", quote.quote_pay_card && "card"].filter(Boolean).join(" or ")}</dd>
+                {quote.quote_pay_bank && <><dt>Reference</dt><dd className="a-mono">{o.order_number}</dd></>}
+                {o.deposit_method && <><dt>Deposit</dt><dd>{o.deposit_method === "bank" ? `bank transfer${o.deposit_received_on ? ` · arrived ${dateLabel(o.deposit_received_on)}` : ""}${o.deposit_bank_ref ? ` · ${o.deposit_bank_ref}` : ""}` : "card"}</dd></>}
+                {o.balance_method && <><dt>Balance</dt><dd>{o.balance_method === "bank" ? `bank transfer${o.balance_received_on ? ` · arrived ${dateLabel(o.balance_received_on)}` : ""}${o.balance_bank_ref ? ` · ${o.balance_bank_ref}` : ""}` : "card"}</dd></>}
+                {quote.quote_note && <><dt>Note</dt><dd>“{quote.quote_note}”</dd></>}
+              </dl>
+              {o.transfer_sent_at && (o.status === "quoted" || o.status === "balance_due") && <div className="a-callout info" style={{ marginTop: 10 }}><span>The customer says the {o.transfer_sent_for ?? "payment"} was sent {dateTime(o.transfer_sent_at)}. Record it when it reaches the account.</span></div>}
+              </div>
+            </div>
+          )}
+          {o.ruo_confirmed_at && <div className="a-card"><div className="a-card-b muted" style={{ fontSize: 12.5, display: "flex", gap: 8 }}><Icon name="check" />Research use confirmed {dateTime(o.ruo_confirmed_at)}</div></div>}
         </div>
       </div>
     </div>

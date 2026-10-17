@@ -17,6 +17,9 @@ export type TimelineSources = {
     // Stamped by a refund made here (refundOrderAction); null for a Stripe-dashboard refund.
     refund_reason?: string | null; refund_note?: string | null;
     channel?: string; deposit_cents?: number | null; balance_cents?: number | null; deposit_paid_at?: string | null; balance_due_at?: string | null;
+    // Wholesale quote orders (quote-orders.sql).
+    quote_valid_until?: string | null; deposit_method?: "card" | "bank" | null; deposit_bank_ref?: string | null;
+    balance_method?: "card" | "bank" | null; balance_bank_ref?: string | null; transfer_sent_at?: string | null; transfer_sent_for?: string | null;
   };
   // A wholesale order: its production run and that run's entries for it.
   wholesale?: { run: { id: string; number: string } | null; events: Array<{ kind: string; at: string; detail: string | null }> } | null;
@@ -47,13 +50,15 @@ const WS_EVENT: Record<string, { title: string; tone: TimelineEntry["tone"] }> =
 function wholesaleEntries(o: TimelineSources["order"], w: NonNullable<TimelineSources["wholesale"]>, out: TimelineEntry[]) {
   const run = w.run;
   const link = run ? { href: `/admin/wholesale/runs/${run.id}`, hrefLabel: run.number } : {};
-  if (o.deposit_paid_at) out.push({ key: "deposit", at: o.deposit_paid_at, tone: "ok", title: `Deposit paid · ${usd(o.deposit_cents ?? 0)}`, detail: run ? `joined run ${run.number}` : undefined, ...link });
+  const how = (m: "card" | "bank" | null | undefined, ref: string | null | undefined) => (m === "bank" ? `bank transfer${ref ? ` · ref ${ref}` : ""}` : m === "card" ? "card" : null);
+  if (o.deposit_paid_at) out.push({ key: "deposit", at: o.deposit_paid_at, tone: "ok", title: `Deposit paid · ${usd(o.deposit_cents ?? 0)}`, detail: [how(o.deposit_method, o.deposit_bank_ref), run ? `joined run ${run.number}` : null].filter(Boolean).join(" · ") || undefined, ...link });
+  if (o.transfer_sent_at) out.push({ key: "transfer-sent", at: o.transfer_sent_at, tone: "plain", title: `Customer says the ${o.transfer_sent_for ?? "payment"} was sent`, detail: "by bank transfer · from their order page" });
   if (o.balance_due_at) out.push({ key: "balance-due", at: o.balance_due_at, tone: "plain", title: `Kits passed · balance of ${usd(o.balance_cents ?? 0)} requested`, detail: "buyer emailed a link to pay", ...link });
   for (const [i, e] of w.events.entries()) {
     const m = WS_EVENT[e.kind];
     if (m) out.push({ key: `ws-${e.kind}-${i}`, at: e.at, tone: m.tone, title: m.title, detail: e.detail ?? undefined, ...link });
   }
-  if (o.paid_at) out.push({ key: "paid", at: o.paid_at, tone: "ok", title: `Balance paid · ${usd(o.balance_cents ?? 0)}`, detail: "ready to ship" });
+  if (o.paid_at) out.push({ key: "paid", at: o.paid_at, tone: "ok", title: `Balance paid · ${usd(o.balance_cents ?? 0)}`, detail: [how(o.balance_method, o.balance_bank_ref), "ready to ship"].filter(Boolean).join(" · ") });
 }
 
 export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
@@ -74,7 +79,13 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
     if (e && email === "sent") out.push({ key: "email", at: e.at, tone: "plain", title: "Email sent", sub: "“On its way soon”", detail: `to ${nc.email}` });
     if (e && email === "failed") out.push({ key: "email", at: e.at, tone: "red", title: "Email failed", sub: "“On its way soon”", detail: `to ${nc.email}` });
   } else {
-    out.push({ key: "placed", at: o.created_at, tone: "plain", title: "Placed", detail: "checkout started · research use confirmed" });
+    const q = o.quote_valid_until ? ev("quote_order_created") : undefined;
+    out.push(o.quote_valid_until
+      ? { key: "placed", at: o.created_at, tone: "plain", title: "Created from a quote", who: q?.actorName ?? null, detail: q?.detail ?? undefined }
+      : { key: "placed", at: o.created_at, tone: "plain", title: "Placed", detail: "checkout started · research use confirmed" });
+    for (const [i, e] of s.adminEvents.filter((x) => x.action === "bank_transfer_recorded").entries()) {
+      out.push({ key: `transfer-${i}`, at: e.at, tone: "plain", title: "Bank transfer recorded", who: e.actorName, detail: e.detail ?? undefined });
+    }
     if (s.wholesale) wholesaleEntries(o, s.wholesale, out);
     else if (o.paid_at) out.push({ key: "paid", at: o.paid_at, tone: "ok", title: "Paid", detail: o.stripe_payment_intent ? "Stripe payment" : "paid in store credit" });
   }
@@ -88,7 +99,10 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
     const carrier = (o.carrier ?? "").toUpperCase();
     out.push({ key: "shipped", at: o.shipped_at, tone: "ok", title: `Shipped · ${carrier} ${o.tracking_number ?? ""}`.trim(), who: e?.actorName ?? null, href: o.tracking_number ? trackingUrl(o.carrier ?? "usps", o.tracking_number) : undefined });
   }
-  if (o.cancelled_at) out.push({ key: "cancelled", at: o.cancelled_at, tone: "plain", title: "Cancelled", detail: "checkout closed · no money moved" });
+  if (o.cancelled_at && o.quote_valid_until && !o.deposit_paid_at) {
+    const e = ev("quote_order_cancelled");
+    out.push({ key: "cancelled", at: o.cancelled_at, tone: "plain", title: "Cancelled before the deposit", who: e?.actorName ?? null, detail: e ? "nothing was paid" : "the quote's valid-until date passed · nothing was paid" });
+  } else if (o.cancelled_at) out.push({ key: "cancelled", at: o.cancelled_at, tone: "plain", title: "Cancelled", detail: "checkout closed · no money moved" });
   if (o.refunded_at && nc) {
     out.push({ key: "refunded", at: o.refunded_at, tone: "plain", title: "Cancelled (no charge)", detail: "vials back in stock", who: ev("no_charge_cancelled")?.actorName ?? null });
   } else if (o.refunded_at && o.refund_reason) {

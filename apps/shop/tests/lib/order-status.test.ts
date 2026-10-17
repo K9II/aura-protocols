@@ -10,6 +10,7 @@ describe("order status machine", () => {
       "deposit_paid>balance_due", "deposit_paid>refunded",
       "paid>refunded", "paid>shipped",
       "processing>cancelled", "processing>deposit_paid", "processing>paid",
+      "quoted>cancelled", "quoted>deposit_paid",
       "shipped>refunded",
     ]);
   });

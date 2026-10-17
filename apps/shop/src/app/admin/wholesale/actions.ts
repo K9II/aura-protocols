@@ -13,6 +13,7 @@ import { wholesaleCancelledEmail } from "@/lib/emails";
 import { lotById, lotDefaults, variantRow } from "@/lib/catalog-ops/data";
 import { currentMs } from "@/lib/clock";
 import { localDate } from "@/lib/today/time";
+import { usd } from "@/lib/html";
 import { kitsByStrength, strengthKey, suppliersOk } from "@/lib/wholesale/runs";
 import {
   draftLotsFor, failLine, fillLotCostFromLine, getRun, lineById, linkLot, logEvent, passLine, recordLineOrder, resourceLine, runByCutoff, runLines, runOrders, saveRunNotes,
@@ -20,6 +21,9 @@ import {
 import { afterLineFailed, releaseReadyOrders } from "@/lib/wholesale/balance";
 import { parseSettingsForm } from "@/lib/wholesale/rules";
 import { markWholesaleReviewed, saveWholesaleSettings } from "@/lib/wholesale/data";
+import { parseBankForm } from "@/lib/wholesale/quote";
+import { saveBankDetails } from "@/lib/wholesale/quote-data";
+import { recordAdminEvent } from "@/lib/audit/data";
 
 // Admin → Wholesale (spec 2026-10-08-wholesale-kits-design.md, Part 2). Every
 // action asks for wholesale.manage first (owner only).
@@ -167,6 +171,16 @@ export async function cancelDepositAction(_prev: ActionState, f: FormData): Prom
   const reason = (REFUND_REASONS as readonly string[]).includes(reasonRaw) ? (reasonRaw as RefundReason) : null;
   if (!reason) return { fieldErrors: { reason: "Pick a reason." } };
   const note = str(f, "note").slice(0, 300) || null;
+  // Paid by bank transfer: nothing to refund in Stripe — the owner sends it back.
+  if (order.deposit_method === "bank") {
+    const moved = await transitionOrder(order.id, "deposit_paid", "refunded", { refund_destination: "bank", refund_reason: reason, refund_note: note, refunded_by: owner.id });
+    if (!moved) return { error: `${order.order_number} changed — reload the page.` };
+    await sendOrAlert({ to: order.email, ...wholesaleCancelledEmail({ ...order, refund_destination: "bank" }) }, `wholesale cancelled ${order.order_number}`);
+    catalogStockChanged();
+    revalidatePath(`/admin/orders/${order.order_number}`);
+    if (order.wholesale_cutoff_on) { try { const r = await runByCutoff(order.wholesale_cutoff_on); if (r) refresh(r.id); } catch (err) { console.error("run refresh failed:", err); } }
+    return { ok: `${order.order_number} cancelled. Send the ${usd(order.deposit_cents ?? 0)} deposit back by bank transfer.` };
+  }
   if (!order.deposit_payment_intent || !order.deposit_cents) {
     return { error: `${order.order_number} has no deposit payment on record — refund it in Stripe.` };
   }
@@ -229,4 +243,22 @@ export async function saveWholesaleSettingsAction(_prev: ActionState, f: FormDat
   revalidatePath("/admin/wholesale");
   revalidatePath("/admin/wholesale/settings");
   return { ok: "Settings saved." };
+}
+
+// The account quote-order customers send transfers to. Empty fields clear it
+// (bank transfer then can't be offered). Owner only.
+export async function saveBankDetailsAction(_prev: ActionState, f: FormData): Promise<ActionState> {
+  const owner = await requirePermission("wholesale.quote");
+  const parsed = parseBankForm((k) => { const v = f.get(k); return typeof v === "string" ? v : null; });
+  if (!parsed.ok) return { fieldErrors: parsed.errors };
+  try {
+    await saveBankDetails(parsed.value);
+  } catch (err) {
+    console.error("bank details save failed:", err);
+    return { error: "The bank details couldn't be saved. Nothing changed." };
+  }
+  await recordAdminEvent({ area: "orders", action: "bank_details_saved", label: "Bank transfer details", actorId: owner.id,
+    detail: parsed.value ? `${parsed.value.bankName} · account ending ${parsed.value.account.slice(-4)}` : "cleared" });
+  revalidatePath("/admin/wholesale/settings");
+  return { ok: parsed.value ? "Bank details saved." : "Bank details cleared. Bank transfer can't be offered until they're added again." };
 }

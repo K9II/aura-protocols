@@ -8,7 +8,10 @@ export type MoneyOrder = {
   tax_cents: number; total_cents: number; store_credit_cents: number; new_account_discount: boolean; partner_id: string | null;
   protection?: "accepted" | "declined" | null;
   // For the Refunded line (r4). A refund made in the Stripe dashboard has no reason/destination.
-  status?: string; refund_reason?: string | null; refund_destination?: RefundDestination | null; stripe_payment_intent?: string | null;
+  status?: string; refund_reason?: string | null; refund_destination?: RefundDestination | "bank" | null; deposit_cents?: number | null;
+  // Wholesale: a deposit and a balance instead of one charge.
+  channel?: string; balance_cents?: number | null; deposit_paid_at?: string | null; paid_at?: string | null;
+  deposit_method?: "card" | "bank" | null; balance_method?: "card" | "bank" | null; quote_valid_until?: string | null; tax_calculation_id?: string | null; stripe_payment_intent?: string | null;
 };
 export type MoneyCode = { code: string; kind: string; value: number; stack_on_top: boolean; free_shipping: boolean };
 export type MoneyLine = { label: string; note?: string; cents: number; kind: "plain" | "disc" | "total" | "charged" | "refund" };
@@ -24,6 +27,8 @@ export function codeText(c: Pick<MoneyCode, "kind" | "value" | "stack_on_top" | 
 // Null for a refund made in the Stripe dashboard (nothing stamped).
 export function refundParts(o: MoneyOrder, paymentLabel?: string | null): Array<{ cents: number; where: string }> | null {
   if (!o.refund_reason || !o.refund_destination) return null;
+  // A wholesale deposit paid by bank transfer goes back by bank transfer (sent by hand).
+  if (o.refund_destination === "bank") return [{ cents: o.deposit_cents ?? o.total_cents, where: "bank transfer" }];
   const s = splitRefund({ status: "refunded", kind: "sale", total_cents: o.total_cents, store_credit_cents: o.store_credit_cents, stripe_payment_intent: o.stripe_payment_intent ?? null }, o.refund_destination);
   const credit = s.creditBackCents + s.cardToCreditCents;
   const parts: Array<{ cents: number; where: string }> = [];
@@ -44,11 +49,24 @@ export function moneyLines(o: MoneyOrder, ctx: { code: MoneyCode | null; partner
   lines.push(
     { label: "Shipping", cents: o.shipping_cents, kind: "plain" },
     { label: "Shipping protection", note: o.protection === "declined" ? "declined" : undefined, cents: o.insurance_cents, kind: "plain" },
-    { label: "Tax", cents: o.tax_cents, kind: "plain" },
+    { label: "Tax", note: o.status === "quoted" && !o.tax_calculation_id ? "added when the customer enters their address" : undefined, cents: o.tax_cents, kind: "plain" },
     { label: "Total", cents: o.total_cents, kind: "total" },
-    { label: "Store credit applied", cents: o.store_credit_cents, kind: "plain" },
-    { label: "Charged", cents: o.total_cents - o.store_credit_cents, kind: "charged" },
   );
+  if (o.channel === "wholesale" && o.deposit_cents != null) {
+    // Two payments: what each was, and what has actually come in so far.
+    const how = (m: "card" | "bank" | null | undefined) => (m === "bank" ? "by bank transfer" : m === "card" ? "by card" : "");
+    const depPaid = !!o.deposit_paid_at, balPaid = !!o.paid_at;
+    lines.push(
+      { label: "Deposit", note: depPaid ? `paid ${how(o.deposit_method)}`.trim() : "not paid yet", cents: o.deposit_cents, kind: "plain" },
+      { label: "Balance", note: balPaid ? `paid ${how(o.balance_method)}`.trim() : o.status === "balance_due" ? "due now" : "due after the lot passes", cents: o.balance_cents ?? 0, kind: "plain" },
+      { label: "Paid so far", cents: (depPaid ? o.deposit_cents : 0) + (balPaid ? o.balance_cents ?? 0 : 0), kind: "charged" },
+    );
+  } else {
+    lines.push(
+      { label: "Store credit applied", cents: o.store_credit_cents, kind: "plain" },
+      { label: "Charged", cents: o.total_cents - o.store_credit_cents, kind: "charged" },
+    );
+  }
   if (o.status === "refunded") {
     const parts = refundParts(o, ctx.paymentLabel);
     lines.push({ label: "Refunded", note: parts ? parts.map((p) => `${usd(p.cents)} to ${p.where}`).join(" · ") : "in Stripe", cents: -o.total_cents, kind: "refund" });

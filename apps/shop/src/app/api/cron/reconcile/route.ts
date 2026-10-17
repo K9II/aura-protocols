@@ -14,6 +14,8 @@ import { shortDate } from "@/lib/discounts/time";
 import { autoCloseInquiries } from "@/lib/inquiries/data";
 import { runWholesaleCron } from "@/lib/wholesale/cron";
 import { backfillPaymentFees } from "@/lib/payment-fees";
+import { expireQuotes } from "@/lib/wholesale/quote-data";
+import { localDate } from "@/lib/today/time";
 
 // Daily safety net (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`):
 // any Stripe session paid in the last 3 days whose order we never marked paid
@@ -37,7 +39,8 @@ export async function GET(request: Request): Promise<Response> {
         if (!order) continue;
         const missedPaid = session.payment_status === "paid" && (
           order.status === "awaiting_payment" || order.status === "processing"
-          || (order.channel === "wholesale" && order.status === "balance_due" && session.metadata?.payment === "balance"));
+          || (order.channel === "wholesale" && order.status === "balance_due" && session.metadata?.payment === "balance")
+          || (order.channel === "wholesale" && order.status === "quoted" && session.metadata?.payment === "deposit"));
         if (missedPaid) {
           if (await applyPaid(order, session)) fixedPaid.push(order.order_number);
         } else if (session.status === "expired" && order.status === "awaiting_payment") {
@@ -64,6 +67,13 @@ export async function GET(request: Request): Promise<Response> {
     }
   } catch (err) {
     failed.push(`orphaned pending orders: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  // Wholesale quote orders still waiting for a deposit past their "valid until" date.
+  try {
+    const expired = await expireQuotes(localDate(currentMs()));
+    if (expired.length) await alertOwner("Wholesale quotes expired", `${expired.join(", ")}: no deposit by the quote's valid-until date, so the order was cancelled. Nothing was paid. Make a new quote order if the customer still wants it.`);
+  } catch (err) {
+    failed.push(`expire quotes: ${err instanceof Error ? err.message : String(err)}`);
   }
   // Email-check rate-limit rows older than two days are no longer needed.
   try {

@@ -120,6 +120,10 @@ export default async function InquiryPage({ params }: { params: Promise<{ ref: s
           <p><span className="a-qref">{refLabel(i.ref)}</span> · {firstMsg?.source === "form" ? `from the ${wholesale ? "wholesale" : "contact"} form` : "by email"} {whenText(i.created_at, nowMs)} · {plural(t.messages.length, "message")}</p>
         </div>
         <div className="actions">
+          {/* A wholesale inquiry the customer said yes to becomes a quote order (quote-orders.sql). */}
+          {wholesale && can(owner, "wholesale.quote") && !(order && order.quote_valid_until) && (
+            <Link className="a-btn primary" href={`/admin/orders/new-quote?inquiry=${refLabel(i.ref)}`}><Icon name="plus" />Create quote order</Link>
+          )}
           {canReply && <form action={statusAction}>
             <input type="hidden" name="id" value={i.id} />
             {status === "closed"

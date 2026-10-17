@@ -1,7 +1,8 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
-import { KIT_VIALS, VOLUME_NUDGE_MIN_KITS, VOLUME_QUOTE_MIN_KITS } from "@/lib/wholesale/rules";
+import { KIT_VIALS, QUOTE_REPLY_HOURS, VOLUME_NUDGE_MIN_KITS, VOLUME_QUOTE_MIN_KITS } from "@/lib/wholesale/rules";
 import { BALANCE_REMINDER_DAY, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS } from "@/lib/wholesale/runs";
 import { REVIEW_WARN_DAYS } from "@/lib/wholesale/review";
+import { QUOTE_BANDS, QUOTE_MAX_VALID_DAYS, QUOTE_VALID_DAYS } from "@/lib/wholesale/quote";
 
 const days = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
 
@@ -38,8 +39,20 @@ export default function Wholesale() {
         </Task>
         <Task title="Answer a volume quote request">
           <Step>Orders of {VOLUME_QUOTE_MIN_KITS} or more kits are invited to ask for a quote: the wholesale page shows a <Ui>Volume quote</Ui> card next to the tiers, and from {VOLUME_NUDGE_MIN_KITS} kits the buyer&apos;s order summary counts down to it. <Ui>Ask for a volume quote</Ui> copies their kits into the inquiry form, so the request arrives in <Ui>Inquiries</Ui> (topic Wholesale) starting &ldquo;Volume quote request&rdquo;.</Step>
+          <Step>Once they press <Ui>Send</Ui>, their order sheet is cleared and a <Ui>Quote requested</Ui> page tells them what happens next: you price it within {QUOTE_REPLY_HOURS} hours, they reply yes, then you email a link to pay the deposit. It shows their Q-number and which run the order would join. If they edited the request before sending, they get the form&apos;s thank-you line instead.</Step>
           <Step>Price it in AIOS: <Ui>Aura Shop</Ui> → <Ui>Kits</Ui> → <Ui>Volume quote</Ui>. Add each strength and its kits; <Ui>Quote at</Ui> <Ui>Volume tier</Ui> gives the volume price, never below the floor it shows. Choose <Ui>Copy quote</Ui> and paste it into your reply.</Step>
-          <Step>An accepted quote can&apos;t be paid in the store yet: collect the deposit and balance by invoice and record the order with Claude, so it joins the run and its stock is held.</Step>
+        </Task>
+        <Task title="Turn an accepted quote into an order">
+          <Step>When the customer says yes, open the inquiry and choose <Ui>Create quote order</Ui>. (The inquiry must be linked to their account, with wholesale on.) Without an inquiry, use <Ui>Orders</Ui> → <Ui>New quote order</Ui> and pick the customer.</Step>
+          <Step>The kits are copied from the inquiry, each line at the volume-quote band for the request&apos;s total kits ({QUOTE_BANDS.map((b, i) => `${b.minKits}${QUOTE_BANDS[i + 1] ? `–${QUOTE_BANDS[i + 1].minKits - 1}` : "+"} kits ${b.pct}%`).join(", ")} off retail — the same bands as AIOS). Type the percent you quoted on each line (or <Ui>Set every line to</Ui> … <Ui>Apply</Ui>); <Ui>Add a strength…</Ui> adds one the inquiry didn&apos;t name. <Ui>Quote</Ui> on the right shows the total and the deposit; <Ui>Estimated profit</Ui> is for you only.</Step>
+          <Step>Pick the <Ui>Run</Ui>, check the <Ui>Deposit</Ui> and <Ui>Quote valid until</Ui> (default {QUOTE_VALID_DAYS} days), tick how they can pay — <Ui>Bank transfer</Ui>, <Ui>Card</Ui> or both — and add a note if you like. Choose <Ui>Create order and email the customer</Ui>. Nothing is charged; the order waits as <Ui>Awaiting deposit</Ui> under <Ui>Orders</Ui> → <Ui>Wholesale</Ui>, and the customer gets a link to their order page.</Step>
+        </Task>
+        <Task title="Record a bank transfer">
+          <Step>When a deposit or balance reaches the business account, open the order and choose <Ui>Record bank transfer…</Ui>. Check the amount, the day it arrived and the bank&apos;s reference, then <Ui>Record deposit</Ui> (or <Ui>Record balance</Ui>).</Step>
+          <Step>A deposit moves the order to <Ui>Deposit paid</Ui> and into its run; a balance moves it to <Ui>To ship</Ui>. The customer gets a receipt either way. If the customer pressed <Ui>I&apos;ve sent the transfer</Ui>, you were emailed and the order&apos;s <Ui>Quote</Ui> card says so.</Step>
+        </Task>
+        <Task title="Set up the bank details">
+          <Step>In <Ui>Wholesale</Ui> → <Ui>Settings</Ui>, fill in <Ui>Bank transfer</Ui>: account name, bank, routing number and account number, plus an optional note. Until all four are set, quote orders can only be paid by card.</Step>
         </Task>
         <Task title="Turn wholesale off for a customer">
           <Step>In <Ui>Customers</Ui>, open the customer and choose <Ui>Turn off wholesale…</Ui> with a reason. Orders already placed carry on. <Ui>Allow wholesale again</Ui> undoes it.</Step>
@@ -57,6 +70,8 @@ export default function Wholesale() {
           ["Refunds", <>After the balance, <Ui>Refund…</Ui> in <Ui>Orders</Ui> refunds both payments, the deposit and the balance. Sales tax is recorded when the balance is paid.</>],
           ["Margins", <>The page recalculates on every visit. Kit price is the retail vial price × {KIT_VIALS}, less the tier; cost is the supplier box, inbound freight and customs, labels and their application, the kit box, card fees on both charges (GLP-1 kits at the GLP-1 processor&apos;s percent, never Stripe) and the 3PL&apos;s pick, pack, postage and insurance per order, less what the buyer pays for insurance. The lot test, at the default lab&apos;s price for each strength, is absorbed and shared by every kit of that strength in the run. Monthly 3PL fees and receiving aren&apos;t counted.</>],
           ["Where the figures come from", <>Supplier prices, the 3PL, the GLP-1 processor, the lab and competitor prices are kept in AIOS and copied to the store by the price sync; the date of the last sync is at the foot of the page. Competitor prices are single vials, scaled to our strength when they only sell a different size (shown under the price).</>],
+          ["Quote orders", <>Priced line by line at the percent off retail you type, never from the order sheet. The deposit is a share of the kits; sales tax is added when the customer enters their address on their order page, and carried in the balance. A deposit that lands after the run&apos;s order-by date joins the run open that day. A quote not paid by its valid-until date (at most {QUOTE_MAX_VALID_DAYS} days out) is cancelled overnight and you get an alert. Card is never offered on an order with an incretin or amylin analog.</>],
+          ["Bank transfers", <>Bank details show to the customer only after they&apos;ve entered their address and confirmed research use, with the order number as the reference. Recording a transfer records no card fee, so profit is exact. A deposit paid by bank transfer can&apos;t be cancelled by the customer; <Ui>Cancel deposit…</Ui> on the run marks it refunded and you send the money back by bank transfer yourself.</>],
           ["Alerts", <>A run still not ordered {days(PAST_CUTOFF_ALERT_DAYS)} after its order-by date, a lot too short to cover its orders, an overdue balance and every forfeit alert you once each.</>],
           ["New buyers", <>Reviewed once per buyer, never per order: later orders from a reviewed buyer don&apos;t show. The line turns red {days(REVIEW_WARN_DAYS)} before the run&apos;s order-by date. The run page lists unreviewed buyers next to <Ui>Record order</Ui>, but never blocks it.</>],
         ]} />
@@ -67,6 +82,7 @@ export default function Wholesale() {
         <>The minimum is per order, not per strength: an order at the minimum can be all different strengths, each paying its own lot test. <Ui>Margins</Ui> with the slider at 1 shows that worst case.</>,
         <>Keep ordering off in <Ui>Settings</Ui> until the payment processor approves the deposit and balance charges.</>,
         <>The site never shows the volume discount; it&apos;s only in your quotes. Quote from the AIOS helper so every price is above its floor.</>,
+        <>Only record a bank transfer once the money is in the account — recording it starts the order and emails the customer a receipt.</>,
         <>Review new buyers before <Ui>Record order</Ui>: after that you&apos;ve paid the supplier for their kits.</>,
       ]}
     />

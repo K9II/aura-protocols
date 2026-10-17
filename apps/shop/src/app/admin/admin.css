@@ -1429,6 +1429,7 @@
 /* ---------- Wholesale (Admin → Wholesale; mock 2026-10-08-wholesale-mocks/wholesale-admin.html) ---------- */
 .adm .a-chip.o-deposit_paid { color: var(--slate); background: var(--slate-bg); border-color: #B5C3D3; }
 .adm .a-chip.o-balance_due { color: var(--ochre); background: var(--ochre-bg); border-color: #DEC98F; }
+.adm .a-chip.o-quoted { color: var(--ochre); background: var(--ochre-bg); border-color: #DEC98F; }
 .adm tr.a-ws-failed td { background: var(--specimen-bg); }
 .adm .a-ws-fail-note { display: block; color: var(--specimen); font-size: 12px; margin-top: 2px; }
 .adm .a-ws-acts { display: inline-flex; gap: 6px; justify-content: flex-end; white-space: nowrap; }
@@ -1523,3 +1524,59 @@
    .a-flag — admin.css already has a general .a-flag for inquiry message
    flags (.warn/.mut); this one is certificate-specific styling only. */
 .adm .a-recv .a-flag { margin-top: 10px; padding: 7px 10px; font-size: 12.5px; color: var(--specimen); background: var(--specimen-bg); border: 1px solid #E3B9B1; }
+
+/* ---------- wholesale quote orders (mocks 2026-10-17 "Quote Order Mocks") ---------- */
+.adm .a-qo-grid { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+.adm .a-qo-main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.adm .a-qo-side { flex: 1 1 320px; max-width: 380px; display: flex; flex-direction: column; gap: 14px; position: sticky; top: 72px; }
+.adm .a-qo-step { width: 22px; height: 22px; display: grid; place-items: center; background: var(--ink); color: var(--bg); font: 500 11px var(--mono); flex: none; }
+.adm .a-qo-t { width: 100%; border-collapse: collapse; min-width: 720px; }
+.adm .a-qo-t th { padding: 8px 12px; text-align: left; vertical-align: bottom; line-height: 1.3; font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); border-bottom: 1px solid var(--line); white-space: nowrap; }
+.adm .a-qo-t th small { display: block; font: 400 11px var(--sans); letter-spacing: 0; text-transform: none; color: var(--faint); }
+.adm .a-qo-t th.num, .adm .a-qo-t td.num { text-align: right; }
+.adm .a-qo-t td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.adm .a-qo-t td:first-child { min-width: 220px; }
+.adm .a-qo-t td.num { font: 500 12.5px var(--mono); white-space: nowrap; }
+.adm .a-qo-t td.strike { text-decoration: line-through; color: var(--muted); }
+.adm .a-qo-t td b { font-weight: 600; }
+.adm .a-qo-t td .sub { display: block; color: var(--muted); font-size: 12px; }
+.adm .a-qo-t .a-input { display: inline-flex; width: auto; }
+.adm .a-qo-t input.kits { width: 64px; text-align: right; font: 500 13px var(--mono); }
+.adm .a-qo-t input.pct { width: 44px; text-align: right; font: 500 13px var(--mono); padding: 0 6px; }
+.adm .a-qo-t .rm { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px; }
+.adm .a-qo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.adm .a-qo-bar select { height: 30px; max-width: 100%; border: 1px solid var(--line-strong); background: #fff; padding: 0 8px; }
+.adm .a-qo-opt { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; cursor: pointer; background: var(--surface); border: 1px solid var(--line-strong); }
+.adm .a-qo-opt.on { background: var(--surface-2); border-color: var(--ink); }
+.adm .a-qo-opt.dis { cursor: not-allowed; opacity: .6; }
+.adm .a-qo-opt input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--ink); flex: none; }
+.adm .a-qo-opt b { font-weight: 600; } .adm .a-qo-opt small { display: block; color: var(--muted); font-size: 12.5px; }
+.adm .a-qo-rows { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; }
+.adm .a-qo-rows .row { display: flex; justify-content: space-between; gap: 12px; }
+.adm .a-qo-rows .row > :last-child { white-space: nowrap; text-align: right; font-family: var(--mono); }
+.adm .a-qo-rows .row.tot { border-top: 1px solid var(--ink); padding-top: 9px; margin-top: 2px; font-weight: 600; }
+.adm .a-qo-rows .row.save { color: var(--moss); }
+.adm .a-qo-dep { margin: 0 16px 16px; border: 1px solid #B9CDB0; border-top: 3px solid var(--moss); background: #F3F6EF; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; }
+.adm .a-qo-dep .row { display: flex; justify-content: space-between; gap: 12px; }
+.adm .a-qo-dep .row > :last-child { white-space: nowrap; font-family: var(--mono); }
+.adm .a-qo-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.adm .a-qo-grid2 .full { grid-column: 1 / -1; }
+.adm .a-qo-grid2 input.a-qo-in, .adm .a-qo-grid2 select.a-qo-in, .adm textarea.a-qo-in, .adm input.a-qo-in { width: 100%; height: 32px; border: 1px solid var(--line-strong); background: #fff; padding: 0 10px; }
+.adm textarea.a-qo-in { height: auto; padding: 8px 10px; resize: vertical; font: 13px/1.5 var(--sans); }
+.adm .a-qo-help { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.adm .a-qo-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--line-strong); }
+.adm .a-qo-seg label { padding: 7px 10px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
+.adm .a-qo-seg label.on { background: var(--ink); color: var(--bg); font-weight: 500; }
+.adm .a-qo-seg label.off { color: var(--faint); cursor: not-allowed; }
+.adm .a-qo-seg input { position: absolute; opacity: 0; pointer-events: none; }
+@media (max-width: 860px) {
+  .adm .a-qo-side { max-width: none; position: static; }
+  .adm .a-qo-t { min-width: 0; }
+  .adm .a-qo-t thead { display: none; }
+  .adm .a-qo-t tr { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .adm .a-qo-t td { display: flex; flex-direction: column; gap: 4px; padding: 0; border: 0; text-align: left !important; min-width: 0 !important; }
+  .adm .a-qo-t td:first-child { grid-column: 1 / -1; }
+  .adm .a-qo-t td[data-l]::before { content: attr(data-l); font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .adm .a-qo-dlg .a-modal-f .r { flex-direction: column-reverse; align-items: stretch; width: 100%; }
+  .adm .a-qo-dlg .a-modal-f .r .a-btn { justify-content: center; height: 40px; }
+}

@@ -4,6 +4,10 @@ import { ownerNewWholesaleOrderEmail, wholesaleDepositEmail } from "@/lib/emails
 import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
 import { estimatedDates } from "@/lib/wholesale/rules";
+import { depositCutoff } from "@/lib/wholesale/quote";
+import { currentMs } from "@/lib/clock";
+import { localDate } from "@/lib/today/time";
+import type { OrderRow } from "@/lib/orders";
 import { ensureRun } from "@/lib/wholesale/runs-data";
 
 // Runs once a wholesale deposit is paid. No commission (wholesale pays none),
@@ -37,4 +41,18 @@ export async function afterDepositPaid(orderId: string): Promise<{ emailed: bool
   const owner = alertAddress();
   if (owner) await sendOrAlert({ to: owner, ...ownerNewWholesaleOrderEmail(order, { runId }) }, `owner wholesale ${order.order_number}`);
   return { emailed };
+}
+
+// The card deposit / a recorded deposit: a deposit that lands after the order's
+// run closed joins the run open that day (the deposit email carries its dates).
+export async function depositRunPatch(order: Pick<OrderRow, "order_number" | "wholesale_cutoff_on">): Promise<{ wholesale_cutoff_on?: string }> {
+  if (!order.wholesale_cutoff_on) return {};
+  try {
+    const s = await getWholesaleSettings();
+    const next = depositCutoff(order.wholesale_cutoff_on, localDate(currentMs()), { runDays: s.runDays, override: s.nextCutoffOverride });
+    return next === order.wholesale_cutoff_on ? {} : { wholesale_cutoff_on: next };
+  } catch (err) {
+    await alertOwner("Quote order run not moved", `${order.order_number}: the deposit landed but the run couldn't be checked (${String(err)}). It stays in the run for ${order.wholesale_cutoff_on}; move it by hand if that run already closed.`);
+    return {};
+  }
 }

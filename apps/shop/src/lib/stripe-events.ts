@@ -14,7 +14,7 @@ import { closedNote, efwSuggestion, fraudTypeLabel, reasonLabel } from "@/lib/di
 import { disputeParams, eventAt, feeCents, idOf, warningParams } from "@/lib/disputes/stripe-map";
 import { hasDisputeForCharge, logDisputeEvent, recordDispute, recordDisputeCard, recordFunds, recordWarning, resolveWarningsForCharge } from "@/lib/disputes/data";
 import { fetchChargeInfo } from "@/lib/disputes/stripe";
-import { afterDepositPaid } from "@/lib/wholesale/after-deposit";
+import { afterDepositPaid, depositRunPatch } from "@/lib/wholesale/after-deposit";
 
 function paymentIntentId(pi: string | { id: string } | null | undefined): string | null {
   return typeof pi === "string" ? pi : pi?.id ?? null;
@@ -52,22 +52,24 @@ export async function applyPaid(order: OrderRow, session: Stripe.Checkout.Sessio
 // Wholesale: the deposit moves the order into its production run; the
 // balance moves it to paid (then the usual after-payment steps: tax record,
 // held-vials check, the balance-received email). A retried event is a no-op;
-// anything else is the owner's to check.
+// anything else is the owner's to check. A quote order (status quoted) pays its
+// deposit on a card page too; a late one joins the run open that day.
 async function applyWholesalePaid(order: OrderRow, session: Stripe.Checkout.Session): Promise<boolean> {
   const kind = session.metadata?.payment;
-  if (kind === "deposit" && (order.status === "awaiting_payment" || order.status === "processing")) {
-    if (!(await transitionOrder(order.id, order.status, "deposit_paid", { deposit_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
+  if (kind === "deposit" && (order.status === "awaiting_payment" || order.status === "processing" || order.status === "quoted")) {
+    const run = order.status === "quoted" ? await depositRunPatch(order) : {};
+    if (!(await transitionOrder(order.id, order.status, "deposit_paid", { ...run, deposit_payment_intent: paymentIntentId(session.payment_intent), deposit_method: "card", transfer_sent_at: null, transfer_sent_for: null }))) return false;
     await recordPaymentFee(order.id, "deposit", paymentIntentId(session.payment_intent));
     await afterDepositPaid(order.id);
     return true;
   }
   if (kind === "balance" && order.status === "balance_due") {
-    if (!(await transitionOrder(order.id, "balance_due", "paid", { balance_payment_intent: paymentIntentId(session.payment_intent) }))) return false;
+    if (!(await transitionOrder(order.id, "balance_due", "paid", { balance_payment_intent: paymentIntentId(session.payment_intent), balance_method: "card", transfer_sent_at: null, transfer_sent_for: null }))) return false;
     await recordPaymentFee(order.id, "balance", paymentIntentId(session.payment_intent));
     await afterOrderPaid(order.id);
     return true;
   }
-  const retry = (kind === "deposit" && order.status !== "awaiting_payment" && order.status !== "processing" && !!order.deposit_payment_intent)
+  const retry = (kind === "deposit" && order.status !== "awaiting_payment" && order.status !== "processing" && order.status !== "quoted" && !!order.deposit_payment_intent)
     || (kind === "balance" && (order.status === "paid" || order.status === "shipped"));
   if (retry) return false;
   await alertOwner("Wholesale payment not handled", `${order.order_number}: Stripe session ${session.id} (${kind ?? "no payment tag"}) was paid while the order is ${order.status}. Check it in Stripe.`);

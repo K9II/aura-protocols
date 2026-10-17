@@ -10,10 +10,10 @@ export const ORDER_PAGE_SIZE = 50;
 export const TAB_STATUSES: Record<OrderTab, readonly OrderStatus[]> = {
   to_ship: ["paid"],
   processing: ["processing"],
-  wholesale: ["deposit_paid", "balance_due"],   // made-to-order kits in production or awaiting the balance
+  wholesale: ["quoted", "deposit_paid", "balance_due"],   // quote orders awaiting the deposit, kits in production, or awaiting the balance
   shipped: ["shipped"],
   closed: ["cancelled", "refunded"],
-  all: ["processing", "deposit_paid", "balance_due", "paid", "shipped", "cancelled", "refunded"],
+  all: ["processing", "quoted", "deposit_paid", "balance_due", "paid", "shipped", "cancelled", "refunded"],
 };
 
 // Old links used ?status=<order status>; they keep working.

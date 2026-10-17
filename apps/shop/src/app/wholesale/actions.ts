@@ -28,6 +28,7 @@ import type { Rejection } from "@/lib/pricing";
 
 const CLOSED = "Wholesale ordering is not open yet — send us an inquiry below.";
 const SETTINGS_DOWN = "Wholesale is briefly unavailable — please try again.";
+const BANK_CANCEL = "Your deposit was paid by bank transfer, so we cancel and refund it for you. Reply to your order email or contact us.";
 
 async function openSettings(): Promise<WholesaleSettings | { error: string }> {
   try {
@@ -197,6 +198,8 @@ export async function cancelWholesaleOrderAction(orderNumber: string): Promise<{
   if (!canCancelWholesale(order, localDate(currentMs()), { failed })) {
     return { error: "This order is past its order-by date, so it can't be cancelled here. Contact us if something is wrong." };
   }
+  // A deposit sent by bank transfer goes back by bank transfer, by hand: the owner cancels it.
+  if (order.deposit_method === "bank") return { error: BANK_CANCEL };
   if (!order.deposit_payment_intent || !order.deposit_cents) {
     await alertOwner("Wholesale cancel: no deposit payment on record", `${order.order_number} is deposit_paid but has no deposit payment intent. Refund by hand in Stripe.`);
     return { error: "We couldn't cancel this order — we've been alerted and will contact you." };

@@ -10,14 +10,18 @@ export const CUTOFF_ANCHOR = "2026-10-05";   // a Monday; runs close every whole
 export const TESTED_BEFORE_SHIP_DAYS = 5;
 export const WHOLESALE_TERMS_VERSION = "2026-10-08";
 
-// Volume quotes (mock "Volume Quote Mocks", option B, Alvester 2026-10-11): orders of
+// Volume quotes (mock "Volume Quote Mocks", option B, Alvester 2026-10-11; from 30 kits since 2026-10-17): orders of
 // VOLUME_QUOTE_MIN_KITS or more kits are invited to ask for a quote instead of paying the top
 // tier; the order sheet starts pointing at it from VOLUME_NUDGE_MIN_KITS. Quotes are priced by
 // hand from AIOS (Kits tab, Volume quote) and never shown on the site.
-export const VOLUME_QUOTE_MIN_KITS = 50;
-export const VOLUME_NUDGE_MIN_KITS = 40;
+export const VOLUME_QUOTE_MIN_KITS = 30;
+export const VOLUME_NUDGE_MIN_KITS = 20;   // = where the top tier starts, so the bar always points somewhere
 export const VOLUME_QUOTE_ANCHOR = "volume-quote";
 export const VOLUME_QUOTE_EVENT = "aura:volume-quote";
+// The inquiry form announces a sent request; the order sheet answers with "Quote requested"
+// (mock "Quote Requested Mock", 2026-10-17) when the message is the one it handed over.
+export const VOLUME_QUOTE_SENT_EVENT = "aura:volume-quote-sent";
+export const QUOTE_REPLY_HOURS = 12;   // Alvester 2026-10-17: volume quotes are priced within 12 hours
 
 // Pricing (2026-10-10): minimum 5 kits, mixed any way; 5-9 30%, 10-19 35%, 20+ 40% —
 // every tier beats every retail offer (10-pack STD_PACKS, new-account %). The first tier starts at the order
@@ -172,6 +176,11 @@ export function cutoffFor(today: string, s: { runDays: number; override: string 
   const since = daysBetween(CUTOFF_ANCHOR, today);
   const k = Math.max(0, Math.ceil(since / s.runDays));
   return addDays(CUTOFF_ANCHOR, k * s.runDays);
+}
+
+// The run after `cutoff` (an override only moves the current run; later ones keep the cycle).
+export function nextCutoffAfter(cutoff: string, runDays: number): string {
+  return cutoffFor(addDays(cutoff, 1), { runDays, override: null });
 }
 
 export function estimatedDates(cutoff: string, leadDays: number): { testedAbout: string; shipsAbout: string } {
