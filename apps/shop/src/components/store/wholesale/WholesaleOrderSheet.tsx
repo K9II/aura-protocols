@@ -97,9 +97,9 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
   if (step === "sheet") {
     return (
       <>
-        <TierTable tiers={pricing.tiers} activePct={q.belowMinimum ? null : q.tier.pct} />
+        <TierTable tiers={pricing.tiers} activePct={q.belowMinimum ? null : q.tier.pct} quoteActive={q.kits >= VOLUME_QUOTE_MIN_KITS} />
         {error && <p role="alert" className="mb-3 text-sm text-[color:var(--specimen)]">{error}</p>}
-        <div className="s-ws-grid s-wo-grid">
+        <div className={q.kits >= VOLUME_QUOTE_MIN_KITS ? "s-ws-grid s-wo-grid s-wo-q" : "s-ws-grid s-wo-grid"}>
           <div className="s-wo-list">
             {classes.map((c) => (
               <section key={c} className="s-wo-panel" style={clsVar(c)} aria-label={c}>

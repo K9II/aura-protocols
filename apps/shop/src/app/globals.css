@@ -1970,6 +1970,11 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-wo-co .s-ruo { text-align: center; }
 /* the custom-request form belongs to the sheet, not the payment step */
 .pharmacopoeia:has(.s-wo-co) .s-ws-inq, .pharmacopoeia:has(.s-wo-co) .s-wo-hd { display: none; }
+/* on the sheet, volume quotes and custom requests appear only once the order reaches the
+   volume-quote threshold (.s-wo-q, Alvester 2026-10-16); below it the tag's "Ask us" goes too */
+.pharmacopoeia:has(.s-wo-grid:not(.s-wo-q)) .s-ws-inq, .pharmacopoeia:has(.s-wo-grid:not(.s-wo-q)) .s-ws-q a { display: none; }
+.pharmacopoeia .s-ws-tiers .s-ws-q.on { background: var(--ink); color: var(--paper); border-color: var(--ink); border-top-style: solid; }
+.pharmacopoeia .s-ws-tiers .s-ws-q.on .s-micro, .pharmacopoeia .s-ws-tiers .s-ws-q.on a { color: var(--line); }
 .pharmacopoeia .s-wo-cohd { grid-column: 1 / -1; }
 .pharmacopoeia .s-wo-hd .s-wo-back { display: inline-block; margin-bottom: 18px; }
 .pharmacopoeia .s-wo-cohd .s-h1 { margin: 0 0 6px; }

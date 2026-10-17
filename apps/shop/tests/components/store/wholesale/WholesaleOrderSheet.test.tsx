@@ -99,10 +99,16 @@ describe("WholesaleOrderSheet", () => {
     for (let i = 1; i < 42; i++) fireEvent.click(screen.getByRole("button", { name: "Add a BPC-157 10 mg kit" }));
     expect(screen.getByText("8 more kits and you can ask for a volume quote")).toBeTruthy();
     expect(screen.queryByTestId("ws-volume-quote")).toBeNull();
+    // under the threshold: the page's quote section stays hidden (CSS keys on .s-wo-q) and the 35% tag is lit
+    expect(document.querySelector(".s-wo-grid")!.classList.contains("s-wo-q")).toBe(false);
+    expect(document.querySelector(".s-ws-tiers .on")!.textContent).toMatch(/35%/);
     fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
     for (let i = 1; i < 8; i++) fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
     expect(screen.getByTestId("ws-count").textContent).toBe("50 kits · 500 vials · 35% off");
     expect(screen.getByTestId("ws-volume-quote").textContent).toContain("This order qualifies for a volume quote.");
+    // 50+: the quote section shows and the highlight moves to the "Volume quote" tag
+    expect(document.querySelector(".s-wo-grid")!.classList.contains("s-wo-q")).toBe(true);
+    expect([...document.querySelectorAll(".s-ws-tiers .on")].map((e) => e.textContent)).toEqual([expect.stringMatching(/Volume quote/)]);
     const seen: string[] = [];
     const on = (e: Event) => seen.push((e as CustomEvent<string>).detail);
     window.addEventListener("aura:volume-quote", on);
