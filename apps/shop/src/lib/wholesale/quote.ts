@@ -6,10 +6,11 @@ import { addDays } from "@/lib/today/time";
 import { GLP_CLASS } from "@/lib/wholesale/margins";
 import { KIT_VIALS, MAX_KITS_PER_LINE, cutoffFor, estimatedDates, tierFor, type KitRow, type Tier } from "@/lib/wholesale/rules";
 
-// Volume-quote bands, % off retail by the request's total kits (Alvester 2026-10-17:
-// 30–50 kits 50%, 51+ 55%; same bands as AIOS → Kits → Volume quote). The form starts
+// Volume-quote bands, % off retail by the request's total kits (Alvester 2026-10-17: 30–50
+// kits 45%, 51–99 50%, 100+ 55% — the order sheet's 5-point steps continued; same bands as
+// AIOS → Kits → Volume quote). The form starts
 // every line at the band's percent; the owner types the percent actually quoted.
-export const QUOTE_BANDS: Tier[] = [{ minKits: 30, pct: 50 }, { minKits: 51, pct: 55 }];
+export const QUOTE_BANDS: Tier[] = [{ minKits: 30, pct: 45 }, { minKits: 51, pct: 50 }, { minKits: 100, pct: 55 }];
 export function quoteStartPct(kits: number): number {
   return [...QUOTE_BANDS].reverse().find((b) => kits >= b.minKits)?.pct ?? QUOTE_BANDS[0].pct;
 }

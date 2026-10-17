@@ -60,17 +60,17 @@ describe("parseQuoteRequest", () => {
     ]);
     const r = parseQuoteRequest(msg, ROWS);
     expect(r.lines).toEqual([
-      { slug: "ss-31", variantId: "50mg", kits: 20, pct: 50 },   // 44 kits asked for (the unmatched 4 count) → 30–50 band
-      { slug: "bpc-157-tb-500-ghk-cu", variantId: "70mg", kits: 20, pct: 50 },
+      { slug: "ss-31", variantId: "50mg", kits: 20, pct: 45 },   // 44 kits asked for (the unmatched 4 count) → 30–50 band
+      { slug: "bpc-157-tb-500-ghk-cu", variantId: "70mg", kits: 20, pct: 45 },
     ]);
     expect(r.unmatched).toEqual(["Mystery peptide 5 mg"]);
   });
-  it("starts at 55% from 51 kits", () => {
+  it("starts at 50% from 51 kits", () => {
     const msg = volumeQuoteMessage([
       { compoundName: "SS-31 (Elamipretide)", strength: "50 mg", quantity: 31 },
       { compoundName: "BPC-157 / TB-500 / GHK-Cu", strength: "70 mg", quantity: 20 },
     ]);
-    expect(parseQuoteRequest(msg, ROWS).lines.map((l) => l.pct)).toEqual([55, 55]);
+    expect(parseQuoteRequest(msg, ROWS).lines.map((l) => l.pct)).toEqual([50, 50]);
   });
   it("ignores text that isn't a kit line", () => {
     expect(parseQuoteRequest("Hello, can you do a better price?", ROWS)).toEqual({ lines: [], unmatched: [] });
@@ -78,13 +78,14 @@ describe("parseQuoteRequest", () => {
 });
 
 describe("quote bands (Alvester 2026-10-17)", () => {
-  it("30–50 kits start at 50% off retail, 51+ at 55%", () => {
-    expect(QUOTE_BANDS).toEqual([{ minKits: 30, pct: 50 }, { minKits: 51, pct: 55 }]);
-    expect(quoteStartPct(30)).toBe(50);
-    expect(quoteStartPct(50)).toBe(50);
-    expect(quoteStartPct(51)).toBe(55);
-    expect(quoteStartPct(400)).toBe(55);
-    expect(quoteStartPct(12)).toBe(50);   // a custom request under 30 kits still starts at the first band
+  it("30–50 kits start at 45% off retail, 51–99 at 50%, 100+ at 55%", () => {
+    expect(QUOTE_BANDS).toEqual([{ minKits: 30, pct: 45 }, { minKits: 51, pct: 50 }, { minKits: 100, pct: 55 }]);
+    expect(quoteStartPct(30)).toBe(45);
+    expect(quoteStartPct(50)).toBe(45);
+    expect(quoteStartPct(51)).toBe(50);
+    expect(quoteStartPct(99)).toBe(50);
+    expect(quoteStartPct(100)).toBe(55);
+    expect(quoteStartPct(12)).toBe(45);   // a custom request under 30 kits still starts at the first band
   });
 });
 
