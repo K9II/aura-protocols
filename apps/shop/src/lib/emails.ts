@@ -253,7 +253,7 @@ export function wholesaleBalanceReceivedEmail(o: OrderRow, d: { shipsAbout: stri
 }
 
 export function opsAlertEmail(title: string, detail: string) {
-  return { subject: `[Aura shop] ${title}`, html: shell(title, `<pre style="white-space:pre-wrap;font-size:13px">${e(detail)}</pre>`) };
+  return { subject: `[Aura shop] ${title}`, html: shell(title, `<pre style="white-space:pre-wrap;font-size:13px">${e(detail)}</pre><p style="font-size:12px;color:#4A4438">An automatic alert from the shop. Mark it done on Today in the admin; replies go to ${SUPPORT_EMAIL}.</p>`) };
 }
 
 export function verifyEmail(url: string) {

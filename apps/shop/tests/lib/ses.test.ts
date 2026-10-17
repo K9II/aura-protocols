@@ -39,6 +39,8 @@ describe("sendEmail", () => {
     expect(command.input).toMatchObject({
       FromEmailAddress: "support@send.auraprotocols.com",
       Destination: { ToAddresses: ["reader@example.com"] },
+      // the From is sending-only (no mailbox): replies always go to a real one
+      ReplyToAddresses: ["support@auraprotocols.com"],
       Content: {
         Simple: {
           Subject: { Data: "Your weight-loss starting protocol — 3 compounds, real doses" },

@@ -1,4 +1,5 @@
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import { SUPPORT_EMAIL } from "@/lib/constants";
 
 let client: SESv2Client | null = null;
 
@@ -16,7 +17,7 @@ export async function sendEmail(params: {
   text?: string;            // plain-text part (inquiry replies)
   fromName?: string;        // display name, e.g. "Alvester at Aura Protocols"
   fromEmail?: string;       // another verified SES identity; default SES_FROM_EMAIL
-  replyTo?: string;
+  replyTo?: string;         // default SUPPORT_EMAIL: SES_FROM_EMAIL is a sending-only address with no mailbox
   unsubscribeUrl?: string;  // marketing mail: adds RFC 8058 one-click headers
   headers?: Array<{ name: string; value: string }>;
 }): Promise<{ messageId: string | undefined }> {
@@ -37,7 +38,9 @@ export async function sendEmail(params: {
   const command = new SendEmailCommand({
     FromEmailAddress: params.fromName ? `"${params.fromName.replace(/"/g, "")}" <${from}>` : from,
     Destination: { ToAddresses: [params.to] },
-    ...(params.replyTo ? { ReplyToAddresses: [params.replyTo] } : {}),
+    // Always a real mailbox: a reply to the sending-only From address bounces
+    // ("Domain not found" — Alvester, 2026-10-17).
+    ReplyToAddresses: [params.replyTo ?? SUPPORT_EMAIL],
     Content: {
       Simple: {
         Subject: { Data: params.subject },
