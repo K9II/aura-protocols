@@ -114,7 +114,7 @@ export default function WholesaleOrderSheet({ rows, pricing, cutoffLabel, ship, 
                   return (
                     <div key={key(r)} className={n ? "s-wo-row on" : "s-wo-row"}>
                       <div className="s-wo-pic" aria-hidden="true">
-                        <Vial id={`ws-${r.slug}-${r.variantId}`} label={vl[0]} label2={vl[1]} cap={r.art.cap} rule={CLASS_COLOR[r.chemicalClass as ChemicalClass]} parts={r.art.parts} strength={r.strength} tilt={0} width={44} />
+                        <Vial id={`ws-${r.slug}-${r.variantId}`} label={vl[0]} label2={vl[1]} cap={r.art.cap} rule={CLASS_COLOR[r.chemicalClass as ChemicalClass]} parts={r.art.parts} strength={r.strength} tilt={0} width={88} />
                       </div>
                       <div className="s-wo-txt">
                         <span className="s-ws-nm">{t.title}</span>
