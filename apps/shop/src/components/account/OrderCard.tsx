@@ -18,6 +18,7 @@ export default function OrderCard({ order, link = false }: { order: OrderRow; li
   const label = noCharge && order.status === "paid" ? "Preparing to ship" : statusLabelFor(order);
   // A volume-quote request has no prices yet: the amount says when they're coming.
   const requested = order.status === "quote_requested";
+  const unpriced = requested || !!order.quote_closed_reason;   // a request, open or closed without a price
   return (
     // Desktop: number, date and lines on the left, amount and status on the right.
     // Phones: amount and status sit on one line under the number, so the lines get the full width.
@@ -33,7 +34,7 @@ export default function OrderCard({ order, link = false }: { order: OrderRow; li
           {items.map((i) => (
             <li key={`${i.compound_slug}-${i.strength}-${i.pack_qty}`}>
               {compoundTitle({ slug: i.compound_slug, name: i.compound_name })} · {i.strength} · {order.channel === "wholesale"
-                ? <>kit × {i.quantity}{requested ? "" : ` · ${usd(i.line_total_cents)}`}{i.lot_number ? " · " : ""}</> : <>{i.pack_qty}-pack × {i.quantity} ·{" "}</>}
+                ? <>kit × {i.quantity}{unpriced ? "" : ` · ${usd(i.line_total_cents)}`}{i.lot_number ? " · " : ""}</> : <>{i.pack_qty}-pack × {i.quantity} ·{" "}</>}
               {i.lot_number.split(", ").filter(Boolean).map((lot, n) => (
                 <span key={lot}>{n > 0 && ", "}<Link className="underline" href={`/coa?lot=${encodeURIComponent(lot)}`}>Lot {lot}</Link></span>
               ))}
@@ -47,7 +48,7 @@ export default function OrderCard({ order, link = false }: { order: OrderRow; li
         )}
       </div>
       <div className="oc-side">
-        <div className={requested ? "text-[color:var(--ink-soft)]" : undefined}>{noCharge ? "No charge" : requested ? `Price by ${priceByLabel(quotePriceBy(order.created_at))}` : usd(order.total_cents)}</div>
+        <div className={unpriced ? "text-[color:var(--ink-soft)]" : undefined}>{noCharge ? "No charge" : requested ? `Price by ${priceByLabel(quotePriceBy(order.created_at))}` : unpriced ? "Not priced" : usd(order.total_cents)}</div>
         <div className={`s-micro mt-1 ${order.status === "shipped" || requested ? "text-[color:var(--specimen)]" : "text-[color:var(--ink-soft)]"}`}>{label}</div>
         {link && order.status === "balance_due" && (
           <Link href={`/order/${order.order_number}`} className="s-ws-btn" style={{ marginTop: 10, display: "inline-block" }}>Pay balance {usd(order.balance_cents ?? 0)} →</Link>

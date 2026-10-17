@@ -144,7 +144,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                     <td>{shortDate(o.created_at)}</td>
                     <td>{o.kind === "no_charge" && o.status === "refunded" ? <OrderStatusChip status={o.status} kind={o.kind} /> : <span className={`a-chip o-${o.status}`}>{STATUS_TEXT[o.status] ?? o.status}</span>}</td>
                     <td className="num a-only-desk">{o.order_items.reduce((s, i) => s + i.quantity, 0)}</td>
-                    <td className={`num${PAID.has(o.status) ? "" : " muted"}`}>{o.status === "quote_requested" ? "not priced" : usd(o.total_cents)}</td>
+                    <td className={`num${PAID.has(o.status) ? "" : " muted"}`}>{o.status === "quote_requested" || o.quote_closed_reason ? "not priced" : usd(o.total_cents)}</td>
                     <td className="num a-only-desk">{o.store_credit_cents ? usd(o.store_credit_cents) : <span className="muted">—</span>}</td>
                   </tr>
                 ))}</tbody>
