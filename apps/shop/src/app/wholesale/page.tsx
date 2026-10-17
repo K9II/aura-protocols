@@ -9,7 +9,7 @@ import MinimumKits from "@/components/store/wholesale/MinimumKits";
 import WholesaleOrderSheet from "@/components/store/wholesale/WholesaleOrderSheet";
 import WholesaleTurnOn from "@/components/store/wholesale/WholesaleTurnOn";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
-import { VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_EVENT, VOLUME_QUOTE_MIN_KITS, cutoffFor, estimatedDates, kitRows, type WholesaleSettings } from "@/lib/wholesale/rules";
+import { VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_EVENT, VOLUME_QUOTE_MIN_KITS, VOLUME_QUOTE_SENT_EVENT, cutoffFor, nextCutoffAfter, estimatedDates, kitRows, type WholesaleSettings } from "@/lib/wholesale/rules";
 import { withArt } from "@/lib/wholesale/art";
 import { getAccountState } from "@/lib/dal";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 function Inquiry() {
-  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds, strengths and kits" prefillEvent={VOLUME_QUOTE_EVENT}
+  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds, strengths and kits" prefillEvent={VOLUME_QUOTE_EVENT} sentEvent={VOLUME_QUOTE_SENT_EVENT}
     messagePlaceholder={"One line per strength, e.g.\nRetatrutide 30 mg: 50 kits\nBPC-157 10 mg: 10 kits"} />;
 }
 
@@ -100,7 +100,7 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
     body = <><TierTable tiers={s.tiers} />{rules}<p role="alert" className="text-[15px]">Wholesale ordering is briefly unavailable — please try again shortly.</p></>;
   } else {
     onSheet = true;
-    body = <WholesaleOrderSheet rows={rows} pricing={pricing} cutoffLabel={dateLabel(cutoff)} ship={customer.ship} email={customer.email} />;
+    body = <WholesaleOrderSheet rows={rows} pricing={pricing} cutoffLabel={dateLabel(cutoff)} nextCutoffLabel={dateLabel(nextCutoffAfter(cutoff, s.runDays))} ship={customer.ship} email={customer.email} />;
   }
 
   return (

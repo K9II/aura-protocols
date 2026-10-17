@@ -1,5 +1,5 @@
 import { Chapter, Rules, Step, Task, Ui } from "@/components/admin/guide/parts";
-import { KIT_VIALS, VOLUME_NUDGE_MIN_KITS, VOLUME_QUOTE_MIN_KITS } from "@/lib/wholesale/rules";
+import { KIT_VIALS, QUOTE_REPLY_BUSINESS_DAYS, VOLUME_NUDGE_MIN_KITS, VOLUME_QUOTE_MIN_KITS } from "@/lib/wholesale/rules";
 import { BALANCE_REMINDER_DAY, MAX_SUPPLIERS_PER_RUN, PAST_CUTOFF_ALERT_DAYS } from "@/lib/wholesale/runs";
 import { REVIEW_WARN_DAYS } from "@/lib/wholesale/review";
 import { QUOTE_MAX_VALID_DAYS, QUOTE_START_PCT, QUOTE_VALID_DAYS } from "@/lib/wholesale/quote";
@@ -39,6 +39,7 @@ export default function Wholesale() {
         </Task>
         <Task title="Answer a volume quote request">
           <Step>Orders of {VOLUME_QUOTE_MIN_KITS} or more kits are invited to ask for a quote: the wholesale page shows a <Ui>Volume quote</Ui> card next to the tiers, and from {VOLUME_NUDGE_MIN_KITS} kits the buyer&apos;s order summary counts down to it. <Ui>Ask for a volume quote</Ui> copies their kits into the inquiry form, so the request arrives in <Ui>Inquiries</Ui> (topic Wholesale) starting &ldquo;Volume quote request&rdquo;.</Step>
+          <Step>Once they press <Ui>Send</Ui>, their order sheet is cleared and a <Ui>Quote requested</Ui> page tells them what happens next: you price it within {QUOTE_REPLY_BUSINESS_DAYS} business days, they reply yes, then you email a link to pay the deposit. It shows their Q-number and which run the order would join. If they edited the request before sending, they get the form&apos;s thank-you line instead.</Step>
           <Step>Price it in AIOS: <Ui>Aura Shop</Ui> → <Ui>Kits</Ui> → <Ui>Volume quote</Ui>. Add each strength and its kits; <Ui>Quote at</Ui> <Ui>Volume tier</Ui> gives the volume price, never below the floor it shows. Choose <Ui>Copy quote</Ui> and paste it into your reply.</Step>
         </Task>
         <Task title="Turn an accepted quote into an order">

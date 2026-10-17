@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 
 const startWholesaleCheckoutAction = vi.fn();
 vi.mock("@/app/wholesale/actions", () => ({ startWholesaleCheckoutAction }));
@@ -16,7 +16,7 @@ const ship = { name: "Dana", line1: "1 Elm", line2: null, city: "Boulder", state
 
 async function sheet() {
   const { default: Sheet } = await import("@/components/store/wholesale/WholesaleOrderSheet");
-  render(<Sheet rows={rows} pricing={pricing} cutoffLabel="Oct 19" ship={ship} email="d@lab.org" />);
+  render(<Sheet rows={rows} pricing={pricing} cutoffLabel="Oct 19" nextCutoffLabel="Nov 2" ship={ship} email="d@lab.org" />);
 }
 
 describe("WholesaleOrderSheet", () => {
@@ -128,5 +128,53 @@ describe("WholesaleOrderSheet", () => {
     expect(seen).toEqual(["Volume quote request (50 kits):\n- BPC-157 10 mg: 42 kits\n- TB-500 10 mg: 8 kits"]);
     // checkout stays open: the quote is an offer, not a gate
     expect((screen.getByRole("button", { name: "Continue to checkout" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  async function askAt50(first = "BPC-157") {
+    await sheet();
+    for (let i = 0; i < 42; i++) fireEvent.click(screen.getByRole("button", { name: `Add a ${first} 10 mg kit` }));
+    for (let i = 0; i < 8; i++) fireEvent.click(screen.getByRole("button", { name: "Add a TB-500 10 mg kit" }));
+    let message = "";
+    const on = (e: Event) => { message = (e as CustomEvent<string>).detail; };
+    window.addEventListener("aura:volume-quote", on);
+    fireEvent.click(screen.getByRole("link", { name: "Ask for a volume quote →" }));
+    window.removeEventListener("aura:volume-quote", on);
+    return message;
+  }
+  const sent = (detail: { ref: string | null; name: string; message: string }) =>
+    act(() => { window.dispatchEvent(new CustomEvent("aura:volume-quote-sent", { detail })); });
+
+  it("after the handed-over request is sent, Quote requested replaces the sheet; Order now puts the kits back", async () => {
+    const message = await askAt50();
+    sent({ ref: "Q-1007", name: "Dana Reyes", message: message.replace(/\n/g, "\r\n") });
+    const page = screen.getByTestId("ws-quote-requested");
+    expect(page.textContent).toContain("Thanks, Dana. Your request is Q-1007");
+    expect(page.textContent).toContain("d@lab.org");
+    expect(page.textContent).toContain("within 2 business days");
+    expect(page.textContent).toContain("pay the 40% deposit by bank transfer or card");
+    expect(page.textContent).toContain("the run closing Oct 19; after that, the next one closes Nov 2");
+    expect(screen.getByTestId("ws-quote-requested-count").textContent).toBe("50 kits · 500 vials");
+    expect(page.textContent).toContain("BPC-157");
+    expect(page.textContent).toContain("42 kits");
+    expect(page.textContent).toContain("Order these kits now at the listed price: 35% off for 20+ kits.");
+    expect(screen.queryByTestId("ws-count")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Order now at the listed price →" }));
+    expect(screen.getByTestId("ws-count").textContent).toBe("50 kits · 500 vials · 35% off");
+  });
+
+  it("an edited request, or one never handed over, leaves the sheet as it is", async () => {
+    const message = await askAt50();
+    sent({ ref: "Q-1008", name: "Dana", message: message + "\nAlso 5 kits of something custom" });
+    expect(screen.queryByTestId("ws-quote-requested")).toBeNull();
+    expect(screen.getByTestId("ws-count").textContent).toBe("50 kits · 500 vials · 35% off");
+  });
+
+  it("with an incretin analog in the request, the deposit is by bank transfer only", async () => {
+    const message = await askAt50("APro-G3RT");
+    sent({ ref: null, name: "", message });
+    const page = screen.getByTestId("ws-quote-requested");
+    expect(page.textContent).toContain("Thanks. A copy is in your inbox");
+    expect(page.textContent).toContain("pay the 40% deposit by bank transfer. ");
+    expect(page.textContent).toContain("Retatrutide");
   });
 });

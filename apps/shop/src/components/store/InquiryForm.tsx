@@ -9,6 +9,7 @@ export default function InquiryForm({
   messageLabel,
   prefillEvent,
   messagePlaceholder,
+  sentEvent,
 }: {
   topic: Topic;
   orgLabel: string;
@@ -17,6 +18,9 @@ export default function InquiryForm({
   // "Ask for a volume quote". The buyer can still edit it before sending; nothing sends by itself.
   prefillEvent?: string;
   messagePlaceholder?: string;
+  // Announced on window after a successful send, detail { ref, name, message } — the order
+  // sheet uses it to show "Quote requested" for the request it filled in.
+  sentEvent?: string;
 }) {
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const message = useRef<HTMLTextAreaElement>(null);
@@ -52,8 +56,10 @@ export default function InquiryForm({
     }).catch(() => null);
     const data = res ? await res.json().catch(() => ({})) : {};
     if (res?.ok) {
-      setRef((data as { ref?: string | null }).ref ?? null);
+      const sentRef = (data as { ref?: string | null }).ref ?? null;
+      setRef(sentRef);
       setState("sent");
+      if (sentEvent) window.dispatchEvent(new CustomEvent(sentEvent, { detail: { ref: sentRef, name: String(f.get("name") ?? ""), message: String(f.get("message") ?? "") } }));
     } else {
       setState("error");
     }
