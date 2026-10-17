@@ -18,9 +18,7 @@ export const VOLUME_QUOTE_MIN_KITS = 30;
 export const VOLUME_NUDGE_MIN_KITS = 20;   // = where the top tier starts, so the bar always points somewhere
 export const VOLUME_QUOTE_ANCHOR = "volume-quote";
 export const VOLUME_QUOTE_EVENT = "aura:volume-quote";
-// The inquiry form announces a sent request; the order sheet answers with "Quote requested"
-// (mock "Quote Requested Mock", 2026-10-17) when the message is the one it handed over.
-export const VOLUME_QUOTE_SENT_EVENT = "aura:volume-quote-sent";
+// A volume-quote request is priced within this many hours (Alvester 2026-10-17).
 export const QUOTE_REPLY_HOURS = 12;   // Alvester 2026-10-17: volume quotes are priced within 12 hours
 
 // Pricing (2026-10-10): minimum 5 kits, mixed any way; 5-9 30%, 10-19 35%, 20+ 40% —

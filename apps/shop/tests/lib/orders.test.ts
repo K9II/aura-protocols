@@ -100,7 +100,7 @@ describe("orders", () => {
     from = fromQueue({ orders: [q] });
     const { searchOrdersForOwner } = await import("@/lib/orders");
     await searchOrdersForOwner({ tab: "to_ship", q: "whitfield", page: 1 });
-    expect(callArgs(q, "in")).toEqual(["status", ["processing", "quoted", "deposit_paid", "balance_due", "paid", "shipped", "cancelled", "refunded"]]);
+    expect(callArgs(q, "in")).toEqual(["status", ["processing", "quote_requested", "quoted", "deposit_paid", "balance_due", "paid", "shipped", "cancelled", "refunded"]]);
     expect(callArgs(q, "or")).toEqual(["order_number.ilike.%whitfield%,email.ilike.%whitfield%,ship_name.ilike.%whitfield%,tracking_number.ilike.%whitfield%"]);
     expect(q.calls.filter(([m]) => m === "order").map(([, a]) => a)).toEqual([["created_at", { ascending: false }], ["id"]]);
   });

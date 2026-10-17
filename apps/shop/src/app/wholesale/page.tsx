@@ -9,8 +9,9 @@ import MinimumKits from "@/components/store/wholesale/MinimumKits";
 import WholesaleOrderSheet from "@/components/store/wholesale/WholesaleOrderSheet";
 import WholesaleTurnOn from "@/components/store/wholesale/WholesaleTurnOn";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
-import { VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_EVENT, VOLUME_QUOTE_MIN_KITS, VOLUME_QUOTE_SENT_EVENT, cutoffFor, nextCutoffAfter, estimatedDates, kitRows, type WholesaleSettings } from "@/lib/wholesale/rules";
+import { VOLUME_QUOTE_ANCHOR, VOLUME_QUOTE_EVENT, VOLUME_QUOTE_MIN_KITS, cutoffFor, estimatedDates, kitRows, type WholesaleSettings } from "@/lib/wholesale/rules";
 import { withArt } from "@/lib/wholesale/art";
+import { parseSheetKits } from "@/lib/wholesale/quote";
 import { getAccountState } from "@/lib/dal";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { currentMs } from "@/lib/clock";
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 function Inquiry({ signedIn }: { signedIn: Who }) {
-  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds, strengths and kits" prefillEvent={VOLUME_QUOTE_EVENT} sentEvent={VOLUME_QUOTE_SENT_EVENT} signedIn={signedIn}
+  return <InquiryForm topic="wholesale" orgLabel="Organization / institution" messageLabel="Compounds, strengths and kits" prefillEvent={VOLUME_QUOTE_EVENT} signedIn={signedIn}
     messagePlaceholder={"One line per strength, e.g.\nRetatrutide 30 mg: 50 kits\nBPC-157 10 mg: 10 kits"} />;
 }
 
@@ -53,8 +54,9 @@ function ClosedPage({ signedIn }: { signedIn: Who }) {
 // "Start an order" (or signing in) moves on to ?step=order.
 const ORDER_HREF = "/wholesale?step=order";
 
-export default async function WholesalePage({ searchParams }: { searchParams: Promise<{ step?: string | string[] }> }) {
-  const ordering = (await searchParams).step === "order";
+export default async function WholesalePage({ searchParams }: { searchParams: Promise<{ step?: string | string[]; kits?: string | string[] }> }) {
+  const sp = await searchParams;
+  const ordering = sp.step === "order";
   const { customer } = await getAccountState();
   const who: Who = customer ? { name: customer.fullName, email: customer.email, organization: customer.organization } : null;
   let s: WholesaleSettings;
@@ -102,7 +104,8 @@ export default async function WholesalePage({ searchParams }: { searchParams: Pr
     body = <><TierTable tiers={s.tiers} />{rules}<p role="alert" className="text-[15px]">Wholesale ordering is briefly unavailable — please try again shortly.</p></>;
   } else {
     onSheet = true;
-    body = <WholesaleOrderSheet rows={rows} pricing={pricing} cutoffLabel={dateLabel(cutoff)} nextCutoffLabel={dateLabel(nextCutoffAfter(cutoff, s.runDays))} ship={customer.ship} email={customer.email} />;
+    body = <WholesaleOrderSheet rows={rows} pricing={pricing} cutoffLabel={dateLabel(cutoff)} ship={customer.ship} email={customer.email}
+      initialKits={parseSheetKits(typeof sp.kits === "string" ? sp.kits : undefined, rows)} />;
   }
 
   return (

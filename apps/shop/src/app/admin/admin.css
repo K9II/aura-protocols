@@ -1430,6 +1430,7 @@
 .adm .a-chip.o-deposit_paid { color: var(--slate); background: var(--slate-bg); border-color: #B5C3D3; }
 .adm .a-chip.o-balance_due { color: var(--ochre); background: var(--ochre-bg); border-color: #DEC98F; }
 .adm .a-chip.o-quoted { color: var(--ochre); background: var(--ochre-bg); border-color: #DEC98F; }
+.adm .a-chip.o-quote_requested { color: var(--specimen); background: var(--specimen-bg); border-color: #E2BDB5; }   /* a request waiting to be priced (12-hour promise) */
 .adm tr.a-ws-failed td { background: var(--specimen-bg); }
 .adm .a-ws-fail-note { display: block; color: var(--specimen); font-size: 12px; margin-top: 2px; }
 .adm .a-ws-acts { display: inline-flex; gap: 6px; justify-content: flex-end; white-space: nowrap; }

@@ -8,10 +8,10 @@ import { shipAddressSchema } from "@/lib/ship-address";
 import { getCommerceAdapter } from "@/lib/commerce";
 import { siteUrl } from "@/lib/supabase/env";
 import { alertAddress, alertOwner, sendOrAlert } from "@/lib/notify";
-import { ownerTransferSentEmail } from "@/lib/emails";
+import { ownerQuoteRequestClosedEmail, ownerTransferSentEmail } from "@/lib/emails";
 import { bookkeep } from "@/lib/checkout-shared";
-import { quoteOpen } from "@/lib/wholesale/quote";
-import { getBankDetails, markTransferSent, saveQuoteShip } from "@/lib/wholesale/quote-data";
+import { quoteOpen, sheetKitsParam } from "@/lib/wholesale/quote";
+import { closeQuoteRequest, getBankDetails, markTransferSent, saveQuoteShip } from "@/lib/wholesale/quote-data";
 import { currentMs } from "@/lib/clock";
 import { localDate } from "@/lib/today/time";
 
@@ -109,4 +109,40 @@ export async function markTransferSentAction(orderNumber: string): Promise<Resul
   if (to) await sendOrAlert({ to, ...ownerTransferSentEmail(order, { payment }) }, `transfer sent ${order.order_number}`);
   revalidatePath(`/order/${order.order_number}`);
   return { ok: true };
+}
+
+// ---------- a volume-quote request not priced yet (quote-requests.sql) ----------
+// "Cancel this request" and "Order now at the listed price" close it; the second
+// then opens the order sheet with the same kits. Either says what happened if the
+// owner priced it first.
+async function myRequest(orderNumber: string): Promise<{ order: OrderRow; email: string; fullName: string } | { error: string }> {
+  const customer = await getCustomer();
+  if (!customer) return { error: "Please sign in." };
+  const order = await getOrderForCustomer(String(orderNumber).slice(0, 20), customer.id);
+  if (!order || order.channel !== "wholesale") return { error: "Order not found." };
+  if (order.status !== "quote_requested") return { error: order.status === "quoted" ? "We've just priced this order — reload the page to see your price." : "This request is already closed. Reload the page." };
+  return { order, email: customer.email, fullName: customer.fullName };
+}
+
+async function closeRequest(orderNumber: string, reason: "customer_cancelled" | "ordered_now"): Promise<Result & { kits?: string }> {
+  const me = await myRequest(orderNumber);
+  if ("error" in me) return me;
+  const { order } = me;
+  if (!(await closeQuoteRequest(order.id, reason))) return { error: "This request changed — reload the page." };
+  // Tell the owner so nobody prices a closed request (the alert, not a failure, is the record).
+  const to = alertAddress();
+  if (to) await sendOrAlert({ to, ...ownerQuoteRequestClosedEmail({ orderNumber: order.order_number, name: me.fullName, email: me.email, reason, link: `${siteUrl()}/admin/orders/${order.order_number}` }) }, `quote request ${order.order_number} closed`);
+  revalidatePath(`/order/${order.order_number}`);
+  revalidatePath("/account");
+  return { ok: true, kits: sheetKitsParam(order.order_items ?? []) };
+}
+
+export async function cancelQuoteRequestAction(orderNumber: string): Promise<Result> {
+  const r = await closeRequest(orderNumber, "customer_cancelled");
+  return r.error ? { error: r.error } : { ok: true };
+}
+
+export async function orderNowAtSheetPriceAction(orderNumber: string): Promise<Result> {
+  const r = await closeRequest(orderNumber, "ordered_now");
+  return r.error ? { error: r.error } : { ok: true, url: `/wholesale?step=order&kits=${encodeURIComponent(r.kits ?? "")}` };
 }

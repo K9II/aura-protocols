@@ -41,6 +41,8 @@ export type OrderRow = {
   deposit_method: "card" | "bank" | null; deposit_bank_ref: string | null; deposit_received_on: string | null;
   balance_method: "card" | "bank" | null; balance_bank_ref: string | null; balance_received_on: string | null;
   transfer_recorded_by: string | null; transfer_sent_at: string | null; transfer_sent_for: "deposit" | "balance" | null;
+  // Volume-quote requests (quote-requests.sql): no prices while quote_requested.
+  quote_closed_reason: "customer_cancelled" | "ordered_now" | "owner_cancelled" | null; quote_priced_at: string | null;
   order_items?: OrderItemRow[];
 };
 

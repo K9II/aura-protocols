@@ -4,6 +4,8 @@ import { trackingUrl } from "@/lib/emails";
 import { usd } from "@/lib/html";
 import type { OrderRow } from "@/lib/orders";
 import { compoundTitle } from "@/lib/catalog";
+import { quotePriceBy } from "@/lib/wholesale/quote";
+import { dateTime } from "@/lib/discounts/time";
 
 const CARRIER_LABEL: Record<string, string> = { usps: "USPS", ups: "UPS", fedex: "FedEx", dhl: "DHL" };
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -15,6 +17,8 @@ export default function OrderCard({ order, link = false }: { order: OrderRow; li
   const items = order.order_items ?? [];
   const noCharge = order.kind === "no_charge";
   const label = noCharge && order.status === "paid" ? "Preparing to ship" : statusLabelFor(order);
+  // A volume-quote request has no prices yet: the amount says when they're coming.
+  const requested = order.status === "quote_requested";
   return (
     <div className="s-cart-line" style={{ gridTemplateColumns: "1fr auto" }}>
       <div>
@@ -26,7 +30,7 @@ export default function OrderCard({ order, link = false }: { order: OrderRow; li
           {items.map((i) => (
             <li key={`${i.compound_slug}-${i.strength}-${i.pack_qty}`}>
               {compoundTitle({ slug: i.compound_slug, name: i.compound_name })} · {i.strength} · {order.channel === "wholesale"
-                ? <>kit × {i.quantity} · {usd(i.line_total_cents)}{i.lot_number ? " · " : ""}</> : <>{i.pack_qty}-pack × {i.quantity} ·{" "}</>}
+                ? <>kit × {i.quantity}{requested ? "" : ` · ${usd(i.line_total_cents)}`}{i.lot_number ? " · " : ""}</> : <>{i.pack_qty}-pack × {i.quantity} ·{" "}</>}
               {i.lot_number.split(", ").filter(Boolean).map((lot, n) => (
                 <span key={lot}>{n > 0 && ", "}<Link className="underline" href={`/coa?lot=${encodeURIComponent(lot)}`}>Lot {lot}</Link></span>
               ))}
@@ -40,8 +44,8 @@ export default function OrderCard({ order, link = false }: { order: OrderRow; li
         )}
       </div>
       <div className="text-right">
-        <div>{noCharge ? "No charge" : usd(order.total_cents)}</div>
-        <div className={`s-micro mt-1 ${order.status === "shipped" ? "text-[color:var(--specimen)]" : "text-[color:var(--ink-soft)]"}`}>{label}</div>
+        <div className={requested ? "text-[color:var(--ink-soft)]" : undefined}>{noCharge ? "No charge" : requested ? `Price by ${dateTime(new Date(quotePriceBy(order.created_at)).toISOString())} MT` : usd(order.total_cents)}</div>
+        <div className={`s-micro mt-1 ${order.status === "shipped" || requested ? "text-[color:var(--specimen)]" : "text-[color:var(--ink-soft)]"}`}>{label}</div>
         {link && order.status === "balance_due" && (
           <Link href={`/order/${order.order_number}`} className="s-ws-btn" style={{ marginTop: 10, display: "inline-block" }}>Pay balance {usd(order.balance_cents ?? 0)} →</Link>
         )}

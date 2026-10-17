@@ -24,7 +24,10 @@ import { Markers, OrderStatusChip } from "@/components/admin/orders/bits";
 import RefundDialog from "@/components/admin/orders/RefundDialog";
 import OrderMore, { type MoreItem } from "@/components/admin/orders/OrderMore";
 import { CopyPayLink, RecordTransferDialog } from "@/components/admin/orders/QuoteControls";
-import { cancelQuoteOrderAction } from "@/app/admin/orders/quote/actions";
+import { cancelQuoteOrderAction, cancelQuoteRequestOwnerAction } from "@/app/admin/orders/quote/actions";
+import { getWholesaleSettings } from "@/lib/wholesale/data";
+import { tierFor } from "@/lib/wholesale/rules";
+import { quotePriceBy, quoteStartPct } from "@/lib/wholesale/quote";
 import { siteUrl } from "@/lib/supabase/env";
 import { currentMs } from "@/lib/clock";
 import { dateLabel, localDate } from "@/lib/today/time";
@@ -64,6 +67,19 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const quote = o.quote_valid_until ? o : null;
   const quoteOwner = !!quote && can(staff, "wholesale.quote");
   const today = localDate(currentMs());
+  // A volume-quote request (quote-requests.sql): no prices yet. The owner prices
+  // this same order from the quote form; the table shows what the order sheet would charge.
+  const request = o.status === "quote_requested";
+  const requestOwner = request && can(staff, "wholesale.quote");
+  const reqKits = items.reduce((n, i) => n + i.quantity, 0);
+  let sheetPct: number | null = null;
+  if (request) {
+    try { sheetPct = tierFor(reqKits, (await getWholesaleSettings()).tiers).pct; } catch (err) { console.error("wholesale settings read failed:", err); }
+  }
+  const sheetUnit = (retail: number | null) => (sheetPct == null || retail == null ? null : Math.round(retail * (1 - sheetPct / 100)));
+  const sheetTotal = items.reduce((n, i) => n + (sheetUnit(i.retail_unit_cents) ?? 0) * i.quantity, 0);
+  const priceBy = request ? quotePriceBy(o.created_at) : 0;
+  const priceLate = request && currentMs() > priceBy;
   const noShipYet = "The customer hasn't added their shipping address and research-use confirmation yet. Ask them to finish their order page, then record the transfer.";
   // Refunds (mock 2026-10-07-admin-refunds r1–r3, r5): owner only; orders
   // with an open chargeback or fraud warning are refunded from Disputes; a lost
@@ -108,7 +124,13 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
         <h1 className="bigcode">{o.order_number}</h1>
         <OrderStatusChip status={o.status} kind={o.kind} /><Markers list={orderMarkers(o, d.flags)} />
         <div className="actions">
-          {d.run && <Link className="a-btn" href={`/admin/wholesale/runs/${d.run.id}`}>Run {d.run.number} <Icon name="arrow" /></Link>}
+          {d.run && !request && <Link className="a-btn" href={`/admin/wholesale/runs/${d.run.id}`}>Run {d.run.number} <Icon name="arrow" /></Link>}
+          {requestOwner && <>
+            <ConfirmDialog label="Cancel request" title={`Cancel ${o.order_number}?`} confirmLabel="Cancel request" tone="danger" action={cancelQuoteRequestOwnerAction} fields={{ orderId: o.id }}>
+              It won&apos;t be priced. Nothing has been charged. The buyer is emailed that the request is closed.
+            </ConfirmDialog>
+            <Link className="a-btn primary" href={`/admin/orders/new-quote?order=${o.order_number}`}>Price this quote <Icon name="arrow" /></Link>
+          </>}
           {quoteOwner && o.status === "quoted" && <>
             <CopyPayLink url={`${siteUrl()}/order/${o.order_number}`} />
             <ConfirmDialog label="Cancel quote order" title={`Cancel ${o.order_number}?`} confirmLabel="Cancel order" tone="danger" action={cancelQuoteOrderAction} fields={{ orderId: o.id }}>
@@ -131,6 +153,9 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
       {nc
         ? <div className="a-dsub">Created {dateTime(o.created_at)}{nc.createdBy && <> by {nc.createdBy}</>}<span className="dot" />{c.fullName}<span className="dot" />
           {nc.replaces ? <span>Replacement for <Link className="a-ulink" href={`/admin/orders/${nc.replaces}`}>{nc.replaces}</Link></span> : REASON_LABEL[nc.reason]}</div>
+        : request || o.quote_closed_reason ? <div className="a-dsub">Requested {dateTime(o.created_at)}<span className="dot" />{c.fullName}<span className="dot" />from the order sheet{d.quote?.inquiryRef && <> · <Link className="a-ulink" href={`/admin/inquiries/Q-${d.quote.inquiryRef}`}>Q-{d.quote.inquiryRef}</Link></>}
+          {request && <><span className="dot" /><span style={{ color: "var(--specimen)" }}>{priceLate ? `Price was due ${dateTime(new Date(priceBy).toISOString())}` : `Price by ${dateTime(new Date(priceBy).toISOString())}`}</span></>}</div>
+        : quote && o.quote_priced_at ? <div className="a-dsub">Requested {dateTime(o.created_at)}<span className="dot" />{c.fullName}{d.quote?.inquiryRef && <><span className="dot" />from the order sheet · <Link className="a-ulink" href={`/admin/inquiries/Q-${d.quote.inquiryRef}`}>Q-{d.quote.inquiryRef}</Link></>}<span className="dot" />priced {dateTime(o.quote_priced_at)}{d.quote?.createdBy && <> by {d.quote.createdBy}</>}{o.status === "quoted" && <><span className="dot" />quote valid until {dateLabel(o.quote_valid_until!)}</>}</div>
         : quote ? <div className="a-dsub">Created {dateTime(o.created_at)}{d.quote?.createdBy && <> by {d.quote.createdBy}</>}<span className="dot" />{c.fullName}{d.quote?.inquiryRef && <><span className="dot" />from inquiry <Link className="a-ulink" href={`/admin/inquiries/Q-${d.quote.inquiryRef}`}>Q-{d.quote.inquiryRef}</Link></>}{o.status === "quoted" && <><span className="dot" />quote valid until {dateLabel(o.quote_valid_until!)}</>}</div>
         : <div className="a-dsub">Placed {dateTime(o.created_at)}<span className="dot" />{c.fullName}<span className="dot" />{usd(charged)} charged</div>}
       {canRefund && offer.blockedBy === "warning" && (
@@ -148,7 +173,7 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
           <div className="a-card">
             <div className="a-card-h"><h3>Items</h3><span className="sub">{items.length} line{items.length === 1 ? "" : "s"} · {vials} vial{vials === 1 ? "" : "s"}{backInStock && " · back in stock"}</span></div>
             <table className="a-it">
-              <thead><tr><th>Item</th><th className="num a-only-desk">{nc ? "Retail" : "Unit"}</th><th className="num a-only-desk">Qty</th><th className="num">{nc ? "Charged" : "Line"}</th></tr></thead>
+              <thead><tr><th>Item</th><th className="num a-only-desk">{nc ? "Retail" : request ? "Order sheet" : "Unit"}</th><th className="num a-only-desk">{request ? "Kits" : "Qty"}</th><th className="num">{nc ? "Charged" : request ? `At ${sheetPct ?? "—"}%` : "Line"}</th></tr></thead>
               <tbody>{items.map((i) => {
                 const l = d.lots.get(i.id);
                 return (
@@ -156,9 +181,9 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
                     <td><b>{i.compound_name} · {i.strength}</b> <span className="muted">· {o.channel === "wholesale" ? `kit (${i.pack_qty} vials)` : i.pack_qty === 1 ? "single vial" : `pack of ${i.pack_qty}`}</span>
                       <Lots allocated={l?.allocated ?? []} shipped={l?.shipped ?? []} returned={l?.returned ?? []} />
                       {!l?.allocated.length && !l?.shipped.length && !l?.returned?.length && <div className="lots">Lot <span className="a-lotpill">{i.lot_number}</span></div>}</td>
-                    <td className="num a-only-desk">{usd(nc ? i.retail_unit_cents ?? 0 : i.unit_price_cents)}</td>
+                    <td className="num a-only-desk">{request ? (sheetUnit(i.retail_unit_cents) == null ? "—" : usd(sheetUnit(i.retail_unit_cents)!)) : usd(nc ? i.retail_unit_cents ?? 0 : i.unit_price_cents)}</td>
                     <td className="num a-only-desk">{i.quantity}</td>
-                    <td className="num">{usd(i.line_total_cents)}</td>
+                    <td className="num">{request ? (sheetUnit(i.retail_unit_cents) == null ? "—" : usd(sheetUnit(i.retail_unit_cents)! * i.quantity)) : usd(i.line_total_cents)}</td>
                   </tr>
                 );
               })}</tbody>
@@ -167,7 +192,11 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
 
           <div className="a-card">
             <div className="a-card-h"><h3>Money</h3></div>
-            {nc ? (
+            {request ? (
+              <div className="a-money">
+                <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.55 }}>Not priced yet. {reqKits} kits{sheetPct != null && <> · order-sheet total at {sheetPct}%: <b style={{ color: "var(--ink)" }}>{usd(sheetTotal)}</b></>}. The volume band starts this request at <b style={{ color: "var(--ink)" }}>{quoteStartPct(reqKits)}%</b> off retail.</p>
+              </div>
+            ) : nc ? (
               <div className="a-money">
                 <div className="ml"><span>Retail value<small>not a sale · kept for the record</small></span><span>{usd(o.retail_value_cents ?? 0)}</span></div>
                 <div className="ml"><span>Shipping</span><span>{usd(o.shipping_cents)}</span></div>

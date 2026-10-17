@@ -5,7 +5,8 @@ import { can } from "@/lib/staff/roles";
 import { countOrderTabs, searchOrdersForOwner, type OrderRow } from "@/lib/orders";
 import { ORDER_PAGE_SIZE, ORDER_TABS, ORDER_TAB_LABEL, cleanOrderSearch, itemsSummary, orderMarkers, parseOrderTab, type OrderTab } from "@/lib/orders/tabs";
 import { orderFlags } from "@/lib/disputes/data";
-import { businessDaysSince, paidText, shipAge } from "@/lib/today/time";
+import { businessDaysSince, paidText, shipAge, whenText } from "@/lib/today/time";
+import { quotePriceBy } from "@/lib/wholesale/quote";
 import { shortDate } from "@/lib/discounts/time";
 import { currentMs } from "@/lib/clock";
 import { usd } from "@/lib/html";
@@ -17,7 +18,13 @@ export const metadata: Metadata = { title: "Orders", robots: { index: false, fol
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 const vials = (o: OrderRow) => (o.order_items ?? []).reduce((s, i) => s + i.pack_qty * i.quantity, 0);
-const EMPTY: Record<OrderTab, string> = { to_ship: "Nothing to ship.", processing: "No payments clearing.", wholesale: "No wholesale orders in production or waiting on a balance.", shipped: "Nothing shipped yet.", closed: "No refunded or cancelled orders.", all: "No orders yet." };
+const EMPTY: Record<OrderTab, string> = { to_ship: "Nothing to ship.", processing: "No payments clearing.", wholesale: "No quote requests, and no wholesale orders waiting on a deposit, in production or waiting on a balance.", shipped: "Nothing shipped yet.", closed: "No refunded or cancelled orders.", all: "No orders yet." };
+
+// A volume-quote request's 12-hour promise (quote-requests.sql): "price by 9:15 pm" or "late · was due 9:15 pm".
+function priceByText(createdAt: string, now: number): string {
+  const by = quotePriceBy(createdAt);
+  return `${now > by ? "late · was due" : "price by"} ${whenText(new Date(by).toISOString(), now)}`;
+}
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[]; status?: string | string[]; q?: string | string[]; page?: string | string[] }> }) {
   const staff = await requirePermission("orders.view");
@@ -79,11 +86,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   <td className="a-nw"><Link className="a-ord" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link><Markers list={marks(o)} /></td>
                   <td>{shipping && age && o.paid_at
                     ? <span className={`a-wait${age.late ? " red" : ""}`}>{age.text}<small>{paidText(o.paid_at, now)}</small></span>
+                    : o.status === "quote_requested" ? <span className="a-wait red">{priceByText(o.created_at, now)}<small>requested {shortDate(o.created_at)}</small></span>
                     : shortDate(o.created_at)}</td>
-                  <td>{o.ship_name}<span className="sub">{o.email}</span></td>
-                  <td>{o.ship_city}, {o.ship_state}</td>
+                  <td>{o.ship_name ?? <span className="muted">no address yet</span>}<span className="sub">{o.email}</span></td>
+                  <td>{o.ship_city ? `${o.ship_city}, ${o.ship_state}` : "—"}</td>
                   <td>{itemsSummary(o.order_items ?? [])}</td>
-                  <td className="num">{usd(o.total_cents)}</td>
+                  <td className="num">{o.status === "quote_requested" ? <span className="muted">not priced</span> : usd(o.total_cents)}</td>
                   <td><OrderStatusChip status={o.status} kind={o.kind} /></td>
                   <td>{o.status === "paid" && <div className="a-acts">
                     <Link className="a-ulink" href={`/admin/orders/${o.order_number}/pick`}>Pick list</Link>
@@ -98,10 +106,11 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
             return (
               <div key={o.id} className="a-pord">
                 <span><Link className="a-ord" href={`/admin/orders/${o.order_number}`}>{o.order_number}</Link><Markers list={marks(o)} /></span>
-                <span className="tot">{usd(o.total_cents)}</span>
-                <span className="nm">{o.ship_name} · {o.ship_city}, {o.ship_state}</span>
+                <span className="tot">{o.status === "quote_requested" ? "not priced" : usd(o.total_cents)}</span>
+                <span className="nm">{o.ship_name ? `${o.ship_name} · ${o.ship_city}, ${o.ship_state}` : o.email}</span>
                 <div className="row2">
                   {shipping && age ? <span className={`a-wait${age.late ? " red" : ""}`}>{age.text}</span> : <OrderStatusChip status={o.status} kind={o.kind} />}
+                  {o.status === "quote_requested" && <span className="a-wait red">{priceByText(o.created_at, now)}</span>}
                   <span>{vials(o)} vial{vials(o) === 1 ? "" : "s"}</span>
                   {o.status === "paid" && can(staff, "orders.ship") && <ShipDialog orderId={o.id} orderNumber={o.order_number} summary={summary(o)} small />}
                 </div>

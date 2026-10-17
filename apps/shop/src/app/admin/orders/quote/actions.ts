@@ -11,10 +11,10 @@ import { getLiveCatalog } from "@/lib/catalog-live";
 import { getWholesaleSettings } from "@/lib/wholesale/data";
 import { kitRows } from "@/lib/wholesale/rules";
 import { cardAllowed, parseQuoteForm, parseTransferForm, priceQuote, quoteCutoffChoices } from "@/lib/wholesale/quote";
-import { createQuoteOrder, getBankDetails, recordBankTransfer } from "@/lib/wholesale/quote-data";
+import { closeQuoteRequest, createQuoteOrder, getBankDetails, priceQuoteRequest, recordBankTransfer } from "@/lib/wholesale/quote-data";
 import { recordAdminEvent } from "@/lib/audit/data";
 import { replyBlockedMessage, replyViolation } from "@/lib/inquiries/checks";
-import { quoteOrderReadyEmail } from "@/lib/emails";
+import { quoteOrderReadyEmail, quoteRequestClosedEmail } from "@/lib/emails";
 import { sendOrAlert } from "@/lib/notify";
 import { siteUrl } from "@/lib/supabase/env";
 import { currentMs } from "@/lib/clock";
@@ -53,6 +53,36 @@ export async function createQuoteOrderAction(_prev: QuoteActionState, f: FormDat
     const hit = replyViolation(v.note, [who.fullName, who.email]);
     if (hit) return { fieldErrors: { note: replyBlockedMessage(hit.phrase) }, error: "Fix the marked fields — nothing was created." };
   }
+  // Pricing a volume-quote request (quote-requests.sql): the same order, priced.
+  const requestId = uuid(f.get("requestOrderId"));
+  if (requestId) {
+    const req = await getOrderById(requestId);
+    if (!req || req.customer_id !== who.id) return { error: "That request couldn't be found — reload the page." };
+    if (req.status === "quoted") redirect(`/admin/orders/${req.order_number}`);   // a double submit opens the priced order
+    if (req.status !== "quote_requested") return { error: `${req.order_number} was closed by the buyer before it was priced — nothing was sent.` };
+    let r: "priced" | "stale";
+    try {
+      r = await priceQuoteRequest(req, {
+        price, cutoffOn: v.cutoffOn, depositPct: v.depositPct, validUntil: v.validUntil,
+        payBank: v.payBank, payCard: v.payCard, note: v.note, kitBoxCents: settings.kitBoxCents, actorId: owner.id,
+      });
+    } catch (err) {
+      console.error("quote request pricing failed:", err);
+      return { error: "The price couldn't be saved — nothing was sent. Try again." };
+    }
+    if (r === "stale") return { error: `${req.order_number} was closed by the buyer before it was priced — nothing was sent.` };
+    const priced = await getOrderById(req.id);
+    const emailed = priced ? await sendOrAlert({ to: who.email, ...quoteOrderReadyEmail(priced, { siteUrl: siteUrl(), validUntil: v.validUntil, note: v.note }) }, `quote order ${req.order_number}`) : false;
+    await recordAdminEvent({
+      area: "orders", action: "quote_priced", targetId: req.id, label: req.order_number, actorId: owner.id,
+      detail: `${price.kits} kits · ${usd(price.totalBeforeTaxCents)} before tax · email: ${emailed ? "sent" : "failed"}`,
+    });
+    revalidatePath("/admin/orders");
+    revalidatePath("/admin");
+    revalidatePath("/admin/inquiries", "layout");
+    redirect(`/admin/orders/${req.order_number}`);
+  }
+
   // One open quote order per inquiry: a second submit opens the first.
   if (v.inquiryId) {
     const { data } = await getSupabaseAdminClient().from("orders").select("order_number").eq("quote_inquiry_id", v.inquiryId).eq("status", "quoted").limit(1);
@@ -123,4 +153,19 @@ export async function cancelQuoteOrderAction(f: FormData): Promise<void> {
   }
   revalidatePath(`/admin/orders/${order.order_number}`);
   revalidatePath("/admin/orders");
+}
+
+// A volume-quote request the owner won't price (quote-requests.sql). The buyer is emailed.
+export async function cancelQuoteRequestOwnerAction(f: FormData): Promise<void> {
+  const owner = await requirePermission("wholesale.quote");
+  const id = uuid(f.get("orderId"));
+  const order = id ? await getOrderById(id) : null;
+  if (!order || order.status !== "quote_requested") throw new Error("That request isn't open any more — reload the page.");
+  if (await closeQuoteRequest(order.id, "owner_cancelled")) {
+    const emailed = await sendOrAlert({ to: order.email, ...quoteRequestClosedEmail(order, { siteUrl: siteUrl() }) }, `quote request ${order.order_number} closed`);
+    await recordAdminEvent({ area: "orders", action: "quote_request_cancelled", targetId: order.id, label: order.order_number, actorId: owner.id, detail: `never priced · email: ${emailed ? "sent" : "failed"}` });
+  }
+  revalidatePath(`/admin/orders/${order.order_number}`);
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin");
 }

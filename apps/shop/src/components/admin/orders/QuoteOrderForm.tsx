@@ -23,6 +23,8 @@ export type QuoteFormProps = {
   bankReady: boolean;
   costs: Record<string, KitCost | undefined>;
   validUntil: string;
+  // Pricing a volume-quote request: the same order is priced (no new order).
+  request?: { id: string; orderNumber: string } | null;
 };
 
 const num = (s: string) => { const n = Number(s.trim()); return Number.isFinite(n) ? n : NaN; };
@@ -57,6 +59,7 @@ export default function QuoteOrderForm(p: QuoteFormProps) {
     <form action={action}>
       <input type="hidden" name="customerId" value={p.customer.id} />
       {p.inquiry && <input type="hidden" name="inquiryId" value={p.inquiry.id} />}
+      {p.request && <input type="hidden" name="requestOrderId" value={p.request.id} />}
       <input type="hidden" name="lineCount" value={lines.length} />
       {lines.map((l, i) => <span key={`h${i}`}><input type="hidden" name={`slug${i}`} value={l.slug} /><input type="hidden" name={`variant${i}`} value={l.variantId} /></span>)}
       {state?.error && <div className="a-err-banner" role="alert" style={{ marginBottom: 14 }}>{state.error}</div>}
@@ -188,7 +191,7 @@ export default function QuoteOrderForm(p: QuoteFormProps) {
               <div className="a-qo-help" style={{ margin: 0 }}>Cheapest supplier box, inbound, labels, kit box, and each strength&apos;s full lab test. Shipping labels and 3PL fees aren&apos;t included.</div>
             </div>
           </section>
-          <button type="submit" className="a-btn primary" disabled={pending || valid.length === 0} style={{ height: 40, justifyContent: "center" }}>{pending ? "Creating…" : "Create order and email the customer"}</button>
+          <button type="submit" className="a-btn primary" disabled={pending || valid.length === 0} style={{ height: 40, justifyContent: "center" }}>{pending ? (p.request ? "Saving…" : "Creating…") : p.request ? `Price ${p.request.orderNumber} and email the customer` : "Create order and email the customer"}</button>
           <p className="muted" style={{ margin: 0, fontSize: 12, textAlign: "center" }}>Nothing is charged. The order waits as <b style={{ fontWeight: 500, color: "var(--ink-soft)" }}>Awaiting deposit</b>{p.inquiry ? ", and the inquiry links to it" : ""}.</p>
         </aside>
       </div>

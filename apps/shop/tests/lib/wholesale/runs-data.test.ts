@@ -4,8 +4,10 @@ import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
 let from: ReturnType<typeof fromQueue>;
 let unreviewed: unknown[] = [];
 const rpc = vi.fn();
+let openRequests: Array<{ id: string; number: string; createdAt: string; name: string; kits: number }> = [];
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t), rpc }) }));
 vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: async () => ({ runDays: 14, nextCutoffOverride: null, balanceDays: 7 }), unreviewedBuyers: async () => unreviewed }));
+vi.mock("@/lib/wholesale/quote-data", () => ({ openQuoteRequests: async () => openRequests }));
 
 describe("run data", () => {
   beforeEach(() => { vi.resetModules(); rpc.mockReset(); unreviewed = []; });
@@ -60,6 +62,7 @@ describe("run data", () => {
     const { wholesaleTodos } = await import("@/lib/wholesale/runs-data");
     expect(await wholesaleTodos(Date.parse("2026-10-13T16:00:00Z"))).toEqual({
       collecting: { id: "r3", number: "R-1003", cutoff: "2026-10-19", orders: 1, kits: 5 },
+      nowMs: Date.parse("2026-10-13T16:00:00Z"), quoteRequests: [],
       toOrder: [{ id: "r2", number: "R-1002", days: 8, strengths: ["TB-500 10 mg"] }],
       failed: [{ runId: "r2", number: "R-1002", label: "Retatrutide 10 mg" }],
       balances: { due: 2, overdue: 1 },

@@ -20,6 +20,8 @@ export type TimelineSources = {
     // Wholesale quote orders (quote-orders.sql).
     quote_valid_until?: string | null; deposit_method?: "card" | "bank" | null; deposit_bank_ref?: string | null;
     balance_method?: "card" | "bank" | null; balance_bank_ref?: string | null; transfer_sent_at?: string | null; transfer_sent_for?: string | null;
+    // Volume-quote requests (quote-requests.sql): sent by the buyer, priced later on the same order.
+    status?: string; quote_priced_at?: string | null; quote_closed_reason?: "customer_cancelled" | "ordered_now" | "owner_cancelled" | null;
   };
   // A wholesale order: its production run and that run's entries for it.
   wholesale?: { run: { id: string; number: string } | null; events: Array<{ kind: string; at: string; detail: string | null }> } | null;
@@ -79,8 +81,12 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
     if (e && email === "sent") out.push({ key: "email", at: e.at, tone: "plain", title: "Email sent", sub: "“On its way soon”", detail: `to ${nc.email}` });
     if (e && email === "failed") out.push({ key: "email", at: e.at, tone: "red", title: "Email failed", sub: "“On its way soon”", detail: `to ${nc.email}` });
   } else {
-    const q = o.quote_valid_until ? ev("quote_order_created") : undefined;
-    out.push(o.quote_valid_until
+    const request = o.status === "quote_requested" || !!o.quote_priced_at || !!o.quote_closed_reason;
+    const q = o.quote_valid_until ? ev(request ? "quote_priced" : "quote_order_created") : undefined;
+    if (request) {
+      out.push({ key: "placed", at: o.created_at, tone: "plain", title: "Quote requested", detail: "from the order sheet · kits only, no prices yet" });
+      if (o.quote_priced_at) out.push({ key: "priced", at: o.quote_priced_at, tone: "ok", title: "Priced", who: q?.actorName ?? null, detail: q?.detail ?? undefined });
+    } else out.push(o.quote_valid_until
       ? { key: "placed", at: o.created_at, tone: "plain", title: "Created from a quote", who: q?.actorName ?? null, detail: q?.detail ?? undefined }
       : { key: "placed", at: o.created_at, tone: "plain", title: "Placed", detail: "checkout started · research use confirmed" });
     for (const [i, e] of s.adminEvents.filter((x) => x.action === "bank_transfer_recorded").entries()) {
@@ -99,7 +105,11 @@ export function buildOrderTimeline(s: TimelineSources): TimelineEntry[] {
     const carrier = (o.carrier ?? "").toUpperCase();
     out.push({ key: "shipped", at: o.shipped_at, tone: "ok", title: `Shipped · ${carrier} ${o.tracking_number ?? ""}`.trim(), who: e?.actorName ?? null, href: o.tracking_number ? trackingUrl(o.carrier ?? "usps", o.tracking_number) : undefined });
   }
-  if (o.cancelled_at && o.quote_valid_until && !o.deposit_paid_at) {
+  if (o.cancelled_at && o.quote_closed_reason) {
+    const e = ev("quote_request_cancelled");
+    const title = { customer_cancelled: "Request cancelled by the buyer", ordered_now: "Request closed · buyer ordered at the sheet price", owner_cancelled: "Request cancelled" }[o.quote_closed_reason];
+    out.push({ key: "cancelled", at: o.cancelled_at, tone: "plain", title, who: o.quote_closed_reason === "owner_cancelled" ? e?.actorName ?? null : null, detail: "never priced · nothing was paid" });
+  } else if (o.cancelled_at && o.quote_valid_until && !o.deposit_paid_at) {
     const e = ev("quote_order_cancelled");
     out.push({ key: "cancelled", at: o.cancelled_at, tone: "plain", title: "Cancelled before the deposit", who: e?.actorName ?? null, detail: e ? "nothing was paid" : "the quote's valid-until date passed · nothing was paid" });
   } else if (o.cancelled_at) out.push({ key: "cancelled", at: o.cancelled_at, tone: "plain", title: "Cancelled", detail: "checkout closed · no money moved" });

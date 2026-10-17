@@ -269,9 +269,20 @@ export type WholesaleTodoInput = {
   failed: Array<{ runId: string; number: string; label: string }>;
   balances: { due: number; overdue: number };
   newBuyers: Array<ReviewLine & { runId: string | null }>;   // spec 2026-10-10: unreviewed buyers with a paid deposit
+  // Volume-quote requests to price (quote-requests.sql), oldest first; priceBy = the 12-hour promise.
+  quoteRequests?: Array<{ id: string; number: string; name: string; kits: number; priceBy: number }>;
+  nowMs?: number;
 };
 export function wholesaleSection(i: WholesaleTodoInput): TodoSection | null {
   const lines: TodoLine[] = [];
+  const now = i.nowMs ?? 0;
+  for (const r of i.quoteRequests ?? []) {
+    const late = now > r.priceBy;
+    lines.push({ key: `quote-${r.id}`, icon: "orders", tone: late ? "red" : "amb", mono: r.number, href: `/admin/orders/${r.number}`,
+      title: `Quote to price · ${r.name}`, detail: plural(r.kits, "kit"),
+      age: { text: `${late ? "late · was due" : "price by"} ${whenText(new Date(r.priceBy).toISOString(), now)}`, late },
+      action: { label: "Price it", href: `/admin/orders/new-quote?order=${r.number}` } });
+  }
   for (const r of i.toOrder) lines.push({ key: `order-${r.id}`, icon: "orders", tone: "red", mono: r.number, href: `/admin/wholesale/runs/${r.id}`,
     title: "Past cutoff, not ordered", detail: `${plural(r.days, "day")} since the cutoff · ${r.strengths.join(", ")}`, action: { label: "Open run", href: `/admin/wholesale/runs/${r.id}` } });
   for (const f of i.failed) lines.push({ key: `failed-${f.runId}-${f.label}`, icon: "warn", tone: "red", mono: f.number, href: `/admin/wholesale/runs/${f.runId}`,
@@ -289,5 +300,5 @@ export function wholesaleSection(i: WholesaleTodoInput): TodoSection | null {
     detail: "Buyers pay from their order page", action: { label: "Orders", href: "/admin/orders?tab=wholesale" } });
   if (i.collecting && i.collecting.orders) lines.push({ key: "collecting", icon: "orders", tone: "slate", mono: i.collecting.number, href: `/admin/wholesale/runs/${i.collecting.id}`,
     title: `Closes ${dateLabel(i.collecting.cutoff)}`, detail: `${plural(i.collecting.orders, "order")} · ${plural(i.collecting.kits, "kit")}` });
-  return build({ key: "wholesale", title: "Wholesale", icon: "orders", n: i.toOrder.length + i.failed.length + i.newBuyers.length + i.balances.overdue, link: { label: "Wholesale", href: "/admin/wholesale" } }, lines);
+  return build({ key: "wholesale", title: "Wholesale", icon: "orders", n: (i.quoteRequests?.length ?? 0) + i.toOrder.length + i.failed.length + i.newBuyers.length + i.balances.overdue, link: { label: "Wholesale", href: "/admin/wholesale" } }, lines);
 }

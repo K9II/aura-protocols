@@ -3,7 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const m = vi.hoisted(() => ({
   getAccountState: vi.fn(), accountIdByEmail: vi.fn(), createInquiry: vi.fn(), underInquiryLimit: vi.fn(), ackCountToday: vi.fn(),
   sendInquiryEmail: vi.fn(), sendEmail: vi.fn(), alertOwner: vi.fn(),
+  getWholesaleSettings: vi.fn(), getLiveCatalog: vi.fn(), createQuoteRequest: vi.fn(),
 }));
+vi.mock("@/lib/wholesale/data", () => ({ getWholesaleSettings: m.getWholesaleSettings }));
+vi.mock("@/lib/catalog-live", () => ({ getLiveCatalog: m.getLiveCatalog }));
+vi.mock("@/lib/wholesale/quote-data", () => ({ createQuoteRequest: m.createQuoteRequest }));
 vi.mock("@/lib/dal", () => ({ getAccountState: m.getAccountState }));
 vi.mock("@/lib/account/data", () => ({ accountIdByEmail: m.accountIdByEmail }));
 vi.mock("@/lib/inquiries/data", () => ({ createInquiry: m.createInquiry, underInquiryLimit: m.underInquiryLimit, ackCountToday: m.ackCountToday }));
@@ -58,7 +62,7 @@ describe("POST /api/inquiry", () => {
     m.accountIdByEmail.mockResolvedValue("c9");
     const { POST } = await import("@/app/api/inquiry/route");
     const res = await POST(post(valid));
-    expect(await res.json()).toEqual({ ok: true, ref: "Q-1047" });
+    expect(await res.json()).toEqual({ ok: true, ref: "Q-1047", orderNumber: null });
     expect(m.createInquiry).toHaveBeenCalledWith({
       topic: "order", subject: "Order question — AP-1052", name: "Dana Whitfield", email: "dana.w@example.com", organization: null,
       orderNumber: "AP-1052", message: "Two vials arrived cracked.", customerId: "c9", token: "f".repeat(32), ipHash: "hash:1.2.3.4",
@@ -115,7 +119,7 @@ describe("POST /api/inquiry", () => {
     const { POST } = await import("@/app/api/inquiry/route");
     const res = await POST(post(valid));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, ref: "Q-1047" });
+    expect(await res.json()).toEqual({ ok: true, ref: "Q-1047", orderNumber: null });
     expect(m.createInquiry).toHaveBeenCalled();
     expect(m.sendInquiryEmail).not.toHaveBeenCalled();
     expect(m.sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: "owner@example.com" }));
@@ -141,5 +145,54 @@ describe("POST /api/inquiry", () => {
     const { POST } = await import("@/app/api/inquiry/route");
     await POST(post({ topic: "wholesale", name: "Dr. Lab", email: "lab@example.edu", organization: "Example University", message: "Quarterly volume." }));
     expect(m.createInquiry).toHaveBeenCalledWith(expect.objectContaining({ topic: "wholesale", subject: "Wholesale inquiry — Example University", organization: "Example University" }));
+  });
+
+  // ---------- volume-quote requests (quote-requests.sql) ----------
+  describe("a volume-quote request from the order sheet", () => {
+    const buyer = { id: "c1", fullName: "Dana Reyes", email: "dana@lab.org", wholesale: { enabledAt: "2026-10-01T00:00:00Z", disabledAt: null } };
+    const kit = (slug: string) => ({ slug, name: slug.toUpperCase(), designation: null, chemicalClass: "Peptide Fragments", variants: [{ id: "10mg", strength: "10 mg", priceUsd: 65, wholesale: true }] });
+    const req = { topic: "wholesale", message: "Volume quote request (30 kits):\n- BPC-157 10 mg: 30 kits", quoteLines: [{ slug: "bpc-157", variantId: "10mg", kits: 30 }] };
+    beforeEach(() => {
+      m.getAccountState.mockResolvedValue({ customer: buyer, blocked: false, unfinished: false });
+      m.getWholesaleSettings.mockResolvedValue({ open: true, tiers: [{ minKits: 5, pct: 30 }, { minKits: 20, pct: 40 }], depositPct: 40, minKits: 5, runDays: 14, leadDays: 22, nextCutoffOverride: null, kitBoxCents: 150 });
+      m.getLiveCatalog.mockResolvedValue({ shown: [kit("bpc-157")] });
+      m.createQuoteRequest.mockResolvedValue({ id: "o1", orderNumber: "AP-1063" });
+    });
+
+    it("becomes an order: the buyer gets the Quote requested email with its link, the owner a pricing link", async () => {
+      const { POST } = await import("@/app/api/inquiry/route");
+      const res = await POST(post(req));
+      expect(await res.json()).toEqual({ ok: true, ref: "Q-1047", orderNumber: "AP-1063" });
+      expect(m.createQuoteRequest).toHaveBeenCalledWith(expect.objectContaining({ customerId: "c1", inquiryId: "i1", kitBoxCents: 150,
+        lines: [{ slug: "bpc-157", variantId: "10mg", kits: 30, pct: 0 }], cutoffOn: "2026-10-19" }));
+      const ack = m.sendInquiryEmail.mock.calls[0][0];
+      expect(ack.subject).toBe("Quote requested: order AP-1063 [Q-1047]");
+      expect(ack.html).toContain("https://auraprotocols.com/order/AP-1063");
+      expect(ack.html).toContain("Within 12 hours");
+      const owner = m.sendEmail.mock.calls[0][0];
+      expect(owner.subject).toContain("Quote request AP-1063 · 30 kits — Dana Reyes");
+      expect(owner.html).toContain("https://auraprotocols.com/admin/orders/AP-1063");
+    });
+
+    it("stays a plain inquiry when the buyer isn't a wholesale buyer, wholesale is closed, or the kits don't qualify (owner alerted)", async () => {
+      const { POST } = await import("@/app/api/inquiry/route");
+      m.getAccountState.mockResolvedValue({ customer: { ...buyer, wholesale: { enabledAt: null, disabledAt: null } }, blocked: false, unfinished: false });
+      expect((await (await POST(post(req))).json()).orderNumber).toBeNull();
+      m.getAccountState.mockResolvedValue({ customer: buyer, blocked: false, unfinished: false });
+      m.getWholesaleSettings.mockResolvedValue({ open: false });
+      expect((await (await POST(post(req))).json()).orderNumber).toBeNull();
+      m.getWholesaleSettings.mockResolvedValue({ open: true, tiers: [{ minKits: 5, pct: 30 }], depositPct: 40, minKits: 5, runDays: 14, leadDays: 22, nextCutoffOverride: null, kitBoxCents: 150 });
+      expect((await (await POST(post({ ...req, quoteLines: [{ slug: "bpc-157", variantId: "10mg", kits: 12 }] }))).json()).orderNumber).toBeNull();
+      expect(m.alertOwner).toHaveBeenCalledWith("Quote request not made into an order", expect.stringContaining("under 30 kits"));
+      expect(m.createQuoteRequest).not.toHaveBeenCalled();
+    });
+
+    it("a failed order save keeps the inquiry and alerts the owner", async () => {
+      m.createQuoteRequest.mockRejectedValue(new Error("db down"));
+      const { POST } = await import("@/app/api/inquiry/route");
+      expect(await (await POST(post(req))).json()).toEqual({ ok: true, ref: "Q-1047", orderNumber: null });
+      expect(m.alertOwner).toHaveBeenCalledWith("Quote request not made into an order", expect.stringContaining("db down"));
+      expect(m.sendInquiryEmail.mock.calls[0][0].subject).toBe("We've got your message [Q-1047]");
+    });
   });
 });
