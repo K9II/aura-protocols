@@ -68,7 +68,7 @@ describe("SiteSearch", () => {
   it("offers a COA lookup for a lot number", () => {
     const dialog = open();
     type(LOT.lot);
-    expect(within(dialog).getByRole("link", { name: new RegExp(`Lot ${LOT.lot}`) })).toHaveAttribute("href", `/coa?lot=${LOT.lot}`);
+    expect(within(dialog).getByRole("link", { name: new RegExp(`Lot ${LOT.lot}`) })).toHaveAttribute("href", `/coa/${LOT.lot}`);
   });
 
   it("says when nothing matches", () => {

@@ -63,7 +63,7 @@ describe("site search", () => {
   });
 
   it("builds links", () => {
-    expect(coaLookupHref("AP 1")).toBe("/coa?lot=AP%201");
+    expect(coaLookupHref("AP 1")).toBe("/coa/AP%201");
     expect(shopClassHref("Cofactors & Conjugates")).toBe("/products?cat=Cofactors%20%26%20Conjugates");
   });
 

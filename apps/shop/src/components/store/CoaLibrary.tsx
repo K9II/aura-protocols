@@ -19,7 +19,7 @@ export default function CoaLibrary({ certs }: { certs: PublicCert[] }) {
   const count = (k: TestFilter) => certs.filter((c) => k === "any" || c.tests[k] === "pass").length;
   const clear = () => { setProduct(""); setLab(""); setTest("any"); setShipping(false); setShown(LIBRARY_PAGE); };
   return (
-    <section className="s-coa-lib" aria-labelledby="coa-lib-h">
+    <section id="library" className="s-coa-lib" aria-labelledby="coa-lib-h">
       <div className="s-coa-libh"><h2 id="coa-lib-h" className="s-coa-h">The certificate <em>library</em></h2>
         <p className="s-micro">{plural(certs.length, "certificate")} · {plural(new Set(certs.map((c) => c.lot)).size, "lot")} · {plural(labs.length, "lab")}</p></div>
       <div className="s-coa-filters">

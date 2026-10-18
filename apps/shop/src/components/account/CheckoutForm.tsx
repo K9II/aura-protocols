@@ -226,7 +226,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
                     </span>
                     <span className="s-micro text-[color:var(--ink-soft)]" style={{ gridColumn: "1 / -1" }}>{i.strength}{pack}{lineNote}{i.quantity > 1 ? ` × ${i.quantity}` : ""}</span>
                     {/* The lot the store sells from now (oldest live lot with stock): the first lot the stock hold takes. */}
-                    {i.lotNumber && <Link href={`/coa?lot=${encodeURIComponent(i.lotNumber)}`} className="s-co-lot">{CERT_ICON}Lot {i.lotNumber} · certificate on file</Link>}
+                    {i.lotNumber && <Link href={`/coa/${encodeURIComponent(i.lotNumber)}`} className="s-co-lot">{CERT_ICON}Lot {i.lotNumber} · certificate on file</Link>}
                   </div>
                 );
               })}

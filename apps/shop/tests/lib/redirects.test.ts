@@ -19,8 +19,8 @@ describe("redirects", () => {
     expect(find(list, "/quality-standards")).toEqual({ source: "/quality-standards", destination: "/about#testing", permanent: true });
   });
 
-  it("sends a vial QR scan (/L/<lot>) to that lot on the COA lookup, temporarily", () => {
-    expect(find(list, "/L/:lot")).toEqual({ source: "/L/:lot", destination: "/coa?lot=:lot", permanent: false });
+  it("sends a vial QR scan (/L/<lot>) to that lot's certificate page, temporarily", () => {
+    expect(find(list, "/L/:lot")).toEqual({ source: "/L/:lot", destination: "/coa/:lot", permanent: false });
   });
 
   it("renames the old blend slugs", () => {

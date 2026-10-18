@@ -18,17 +18,38 @@ function cardHead(c: PublicCert): string {
   return passed.map((label, i) => (i === 0 ? label : label.toLowerCase())).join(" & ");
 }
 
+// One lot's certificates: the lookup's result, and the whole of the lot certificate page.
+export function LotResult({ hit, certs }: { hit: LotHit; certs: PublicCert[] }) {
+  const hitCerts = certs.filter((c) => c.lot === hit.lot);
+  const hitLabs = new Set(hitCerts.map((c) => c.labName)).size;
+  return (
+    <div className="s-coa-hit" style={{ "--cls": CLASS_COLOR[hit.chemicalClass as keyof typeof CLASS_COLOR] } as CSSProperties}>
+      <div className="s-coa-hith">
+        <div>
+          <p className="s-cert-cls"><i />{hit.chemicalClass}</p>
+          <p className="s-micro">Lot {hit.lot} · {hit.status}</p>
+          <p className="s-coa-hitn"><Link href={`/products/${hit.slug}`}>{hit.name}</Link> <small>{hit.strength}</small></p>
+        </div>
+        <p className="s-micro s-coa-hitc">{hitCerts.length} certificate{hitCerts.length === 1 ? "" : "s"} · {hitLabs} lab{hitLabs === 1 ? "" : "s"}</p>
+      </div>
+      {hitCerts.length ? (
+        <div className="s-certs">{hitCerts.map((c) => <CertCard key={c.id} cert={c} showName={false} head={cardHead(c)} />)}</div>
+      ) : (
+        <p className="mt-4 text-sm text-[color:var(--specimen)]">No certificate is published for this lot yet.</p>
+      )}
+    </div>
+  );
+}
+
 export default function CoaLookup({ lots, certs }: { lots: LotHit[]; certs: PublicCert[] }) {
-  // ?lot= (a vial QR scan via /L/<lot>, or an order page's lot link) is looked up on arrival
-  // until the visitor types or searches.
+  // ?lot= (an older link; vial scans and lot links now open /coa/<lot>, and an unknown lot
+  // there comes back here) is looked up on arrival until the visitor types or searches.
   const urlLot = new URLSearchParams(useSearch()).get("lot")?.trim() ?? "";
   const [typed, setValue] = useState<string | null>(null);
   const [submitted, setSearched] = useState<string | null>(null);
   const value = typed ?? urlLot;
   const searched = submitted ?? (urlLot || null);
   const hit = searched ? lots.find((l) => l.lot.toUpperCase() === searched.toUpperCase()) : undefined;
-  const hitCerts = hit ? certs.filter((c) => c.lot === hit.lot) : [];
-  const hitLabs = new Set(hitCerts.map((c) => c.labName)).size;
 
   return (
     <div>
@@ -47,21 +68,7 @@ export default function CoaLookup({ lots, certs }: { lots: LotHit[]; certs: Publ
       </form>
       <div role="status" aria-live="polite">
         {searched && (hit ? (
-          <div className="s-coa-hit" style={{ "--cls": CLASS_COLOR[hit.chemicalClass as keyof typeof CLASS_COLOR] } as CSSProperties}>
-            <div className="s-coa-hith">
-              <div>
-                <p className="s-cert-cls"><i />{hit.chemicalClass}</p>
-                <p className="s-micro">Lot {hit.lot} · {hit.status}</p>
-                <p className="s-coa-hitn"><Link href={`/products/${hit.slug}`}>{hit.name}</Link> <small>{hit.strength}</small></p>
-              </div>
-              <p className="s-micro s-coa-hitc">{hitCerts.length} certificate{hitCerts.length === 1 ? "" : "s"} · {hitLabs} lab{hitLabs === 1 ? "" : "s"}</p>
-            </div>
-            {hitCerts.length ? (
-              <div className="s-certs">{hitCerts.map((c) => <CertCard key={c.id} cert={c} showName={false} head={cardHead(c)} />)}</div>
-            ) : (
-              <p className="mt-4 text-sm text-[color:var(--specimen)]">No certificate is published for this lot yet.</p>
-            )}
-          </div>
+          <LotResult hit={hit} certs={certs} />
         ) : (
           <p className="mt-8 text-[color:var(--specimen)]">No lot “{searched}” found. Check the number printed on your vial label.</p>
         ))}

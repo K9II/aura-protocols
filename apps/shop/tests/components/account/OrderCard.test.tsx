@@ -12,7 +12,7 @@ describe("OrderCard", () => {
     expect(screen.getByText("Order AP-1042")).toBeInTheDocument();
     expect(screen.getByText("Paid — preparing to ship")).toBeInTheDocument();
     expect(screen.getByText("$282.30")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /lot AP-0001/i })).toHaveAttribute("href", "/coa?lot=AP-0001");
+    expect(screen.getByRole("link", { name: /lot AP-0001/i })).toHaveAttribute("href", "/coa/AP-0001");
   });
 
   it("on My account the order number opens the order page; a wholesale balance due gets Pay balance", () => {
@@ -42,8 +42,8 @@ describe("OrderCard", () => {
   it("links each lot of a split line to COA lookup", () => {
     const ITEM = base.order_items![0];
     render(<OrderCard order={{ ...base, status: "paid", order_items: [{ ...ITEM, lot_number: "BPC-2609-01, BPC-2610-02" }] }} />);
-    expect(screen.getByRole("link", { name: "Lot BPC-2609-01" })).toHaveAttribute("href", "/coa?lot=BPC-2609-01");
-    expect(screen.getByRole("link", { name: "Lot BPC-2610-02" })).toHaveAttribute("href", "/coa?lot=BPC-2610-02");
+    expect(screen.getByRole("link", { name: "Lot BPC-2609-01" })).toHaveAttribute("href", "/coa/BPC-2609-01");
+    expect(screen.getByRole("link", { name: "Lot BPC-2610-02" })).toHaveAttribute("href", "/coa/BPC-2610-02");
   });
 
   it("a no-charge order reads No charge and Preparing to ship, never Paid", () => {

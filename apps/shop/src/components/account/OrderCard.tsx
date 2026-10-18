@@ -36,7 +36,7 @@ export default function OrderCard({ order, link = false }: { order: OrderRow; li
               {compoundTitle({ slug: i.compound_slug, name: i.compound_name })} · {i.strength} · {order.channel === "wholesale"
                 ? <>kit × {i.quantity}{unpriced ? "" : ` · ${usd(i.line_total_cents)}`}{i.lot_number ? " · " : ""}</> : <>{i.pack_qty}-pack × {i.quantity} ·{" "}</>}
               {i.lot_number.split(", ").filter(Boolean).map((lot, n) => (
-                <span key={lot}>{n > 0 && ", "}<Link className="underline" href={`/coa?lot=${encodeURIComponent(lot)}`}>Lot {lot}</Link></span>
+                <span key={lot}>{n > 0 && ", "}<Link className="underline" href={`/coa/${encodeURIComponent(lot)}`}>Lot {lot}</Link></span>
               ))}
             </li>
           ))}
