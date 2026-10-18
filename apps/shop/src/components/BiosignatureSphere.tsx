@@ -70,7 +70,9 @@ function makeCloudPoints(n: number, R: number): CloudPoint[] {
   return points;
 }
 
-export default function BiosignatureSphere({ nodes, pairs }: { nodes: SphereNode[]; pairs: SpherePair[] }) {
+// sidePull (desktop only): pulls the side labels toward the centre — inside the home hero's
+// certificate rings "CJC-1295 / Ipamorelin" otherwise reached the red ring (2026-10-18).
+export default function BiosignatureSphere({ nodes, pairs, sidePull = 1 }: { nodes: SphereNode[]; pairs: SpherePair[]; sidePull?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const labelHostRef = useRef<HTMLDivElement>(null);
   const tensionTextRef = useRef<HTMLSpanElement>(null);
@@ -188,9 +190,9 @@ export default function BiosignatureSphere({ nodes, pairs }: { nodes: SphereNode
       // labels pulled in, or "CJC-1295 / Ipamorelin" clips on the left.
       if (compact) return (canvas.getBoundingClientRect().width || W) < 350 ? 0.88 : 1;
       const dispW = canvas.getBoundingClientRect().width || W;
-      if (dispW >= 460) return 1;
-      if (dispW <= 320) return 0.62;
-      return 0.62 + ((dispW - 320) / (460 - 320)) * (1 - 0.62);
+      if (dispW >= 460) return sidePull;
+      if (dispW <= 320) return 0.62 * sidePull;
+      return (0.62 + ((dispW - 320) / (460 - 320)) * (1 - 0.62)) * sidePull;
     }
 
     function layoutRing() {
@@ -496,7 +498,7 @@ export default function BiosignatureSphere({ nodes, pairs }: { nodes: SphereNode
       window.removeEventListener("pointerup", onPointerUp);
       labelHost.innerHTML = "";
     };
-  }, [nodes, pairs]);
+  }, [nodes, pairs, sidePull]);
 
   return (
     <div className="overflow-hidden">

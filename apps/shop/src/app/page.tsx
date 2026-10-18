@@ -61,7 +61,7 @@ export default async function HomePage() {
           <div className="load-in load-5 s-hero-sphere">
             <HeroLight where="sphere" />
             <HeroAura rings={auraRings(live.lots, SEVEN_TEST_PANEL)}>
-              <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
+              <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} sidePull={0.88} />
             </HeroAura>
           </div>
           {/* Phones (under 900px): the lineup comes after the sphere, which sits under the lot
