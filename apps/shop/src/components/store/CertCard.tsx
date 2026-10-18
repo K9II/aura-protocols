@@ -31,8 +31,11 @@ export default function CertCard({ cert: c, showName = true, head }: { cert: Pub
         ))}</ul>
         {c.note && <p className={c.failed ? "s-cert-note" : "s-cert-corr"}><b>Note</b>{c.note}</p>}
         {c.correction && <p className="s-cert-corr"><b>Correction{c.correctedAt ? ` · ${monthDay(c.correctedAt.slice(0, 10))}` : ""}</b>{c.correction}</p>}
-        <div className="s-cert-lab"><b>{c.labName === NOT_RECORDED_LAB ? "Lab not recorded" : c.labName}</b>{c.labCity ? ` · ${c.labCity}` : ""}
-          {c.labName !== NOT_RECORDED_LAB && <small>{c.labIso ? "Tested by an ISO/IEC 17025-accredited US lab" : "Independent US lab"}</small>}</div>
+        {/* the old test lots' placeholder lab ("Not recorded") isn't named (2026-10-18) */}
+        {c.labName !== NOT_RECORDED_LAB && (
+          <div className="s-cert-lab"><b>{c.labName}</b>{c.labCity ? ` · ${c.labCity}` : ""}
+            <small>{c.labIso ? "Tested by an ISO/IEC 17025-accredited US lab" : "Independent US lab"}</small></div>
+        )}
       </div>
       <div className="s-cert-f">
         <a href={c.coaFile} target="_blank" rel="noopener noreferrer">◇ Open certificate</a>

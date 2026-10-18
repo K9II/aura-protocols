@@ -12,15 +12,19 @@ import { MAX_DPR, QR_FACING_TURN } from "@/lib/vial-label";
 // Paused while off screen or in a background tab. It follows the size picker: each strength
 // shows its own strength, lot and QR code (redrawn in place, without restarting the turn).
 export type VialStrength = { id: string; strength: string; lot: string | null; qr: string[] };
+// Home page (2026-10-17): `turns` 2 and `restOn` "qr" — it turns twice, then comes to rest
+// with the QR code facing out (the dotted line to the certificate points at it); after a
+// drag it eases back there. Reduce-motion starts and stays on the QR code.
 type Props = {
   id: string; slug: string; label: string; label2?: string; parts?: string[];
   cap?: VialLabelInput["cap"]; rule?: string; strengths: VialStrength[];
+  turns?: number; restOn?: "front" | "qr";
 };
 
 // Turning speed in radians a second, by how far the vial has turned from its front: slow
 // while the front panel (the compound) faces out, quicker round the barcode and QR code,
 // easing smoothly between (one turn takes about 18 s with the QR hold, 8 of them within 45° of
-// the front). After MAX_TURNS it rests facing front.
+// the front). After MAX_TURNS (two) it rests facing front.
 // It also eases into the QR code and holds there (QR_HOLD_MS) while the caption under the
 // picture lights up ("aura:vial-qr" event → QrNote), then eases out.
 const SLOW = 0.15, FAST = 1.1;
@@ -28,7 +32,7 @@ const HOLD_MS = 2000; // when the page opens, the front holds still this long be
 const QR_HOLD_MS = 1500;
 // After this many full turns it comes to rest facing front (the compound) and stays there;
 // dragging still turns it.
-export const MAX_TURNS = 6;
+export const MAX_TURNS = 2; // was 6; two everywhere since 2026-10-18 (Alvester)
 const TAU = 2 * Math.PI;
 const turnedOf = (angle: number) => ((-angle % TAU) + TAU) % TAU; // 0 = front facing out
 const speedAt = (angle: number) => {
@@ -60,7 +64,7 @@ function webgl2(): boolean {
   try { return !!document.createElement("canvas").getContext("webgl2"); } catch { return false; }
 }
 
-export default function VialTurn({ id, slug, label, label2, parts = [], cap = "red", rule = "#A32B1F", strengths }: Props) {
+export default function VialTurn({ id, slug, label, label2, parts = [], cap = "red", rule = "#A32B1F", strengths, turns = MAX_TURNS, restOn = "front" }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
   const chosenId = useChosenStrength(slug, strengths[0].id);
@@ -74,31 +78,55 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !webgl2()) return;
-    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = 0, onScreen = true, startAt = 0, qrUntil = 0, qrArmed = true, laps = 0, resting = false;
-    let drag: { x: number; angle: number } | null = null;
+    const onQr = restOn === "qr";
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = onQr && still ? -QR_FACING_TURN : 0, onScreen = true, startAt = 0, qrUntil = 0, qrArmed = true, laps = 0, resting = false, finishing = false;
+    let drag: { x: number; angle: number } | null = null;
+    // While the page scrolls the vial holds still and draws nothing, so the phone's graphics
+    // go to the scroll (2026-10-18: the turning vial made phones stutter); it picks up again
+    // a moment after the scroll stops.
+    let scrollingUntil = 0, scrollTimer: ReturnType<typeof setTimeout> | undefined;
+    const onScroll = () => {
+      scrollingUntil = performance.now() + 180;
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => wake(), 200);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    // the code turns the store's red while the vial pauses on it, as the caption under it lights
+    const lightQr = (on: boolean) => vial?.setLabel({ ...inputRef.current, qrLit: on });
 
     const frame = (t: number) => {
       raf = 0;
       if (!vial || !alive) return;
+      if (!drag && performance.now() < scrollingUntil) return; // resumes via the scroll timer
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
       last = t;
-      if (qrUntil && (t >= qrUntil || drag)) { qrUntil = 0; announceQr(slug, false); }
+      if (qrUntil && (t >= qrUntil || drag)) { qrUntil = 0; announceQr(slug, false); lightQr(false); }
       if (!still && !resting && !drag && t >= startAt && !qrUntil) {
         const step = advanceTurn(angle, dt, qrArmed);
         angle = step.angle; qrArmed = step.armed;
-        // reached the QR code: it faces out exactly; hold and light the caption
-        if (step.atQr) { qrUntil = t + QR_HOLD_MS; announceQr(slug, true); }
-        // the last full turn ends facing front, where it rests
-        if (step.lapDone && ++laps >= MAX_TURNS) { angle = 0; resting = true; }
+        // reached the QR code: it faces out exactly; hold and light the caption —
+        // or, after the last turn of a vial that rests on its QR code, stop there
+        if (step.atQr && finishing) { resting = true; announceQr(slug, true); }
+        else if (step.atQr) { qrUntil = t + QR_HOLD_MS; announceQr(slug, true); lightQr(true); }
+        // the last full turn ends facing front, where it rests (or goes on to its QR code)
+        if (step.lapDone && ++laps >= turns) { if (onQr) finishing = true; else { angle = 0; resting = true; } }
+      }
+      // resting on its QR code: after a drag it eases back
+      let easing = false;
+      if (onQr && (resting || still) && !drag) {
+        const off = -QR_FACING_TURN - angle;
+        if (Math.abs(off) > 0.002) { angle += still ? off : off * Math.min(1, dt * 5); easing = true; }
+        else if (angle !== -QR_FACING_TURN) { angle = -QR_FACING_TURN; announceQr(slug, true); }
       }
       vial.setAngle(angle);
       vial.render();
-      if (onScreen && !document.hidden && ((!still && !resting) || drag || qrUntil)) raf = requestAnimationFrame(frame);
+      if (onScreen && !document.hidden && ((!still && !resting) || drag || qrUntil || easing)) raf = requestAnimationFrame(frame);
     };
     const wake = () => { if (!raf && vial && onScreen && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } };
 
-    const down = (e: PointerEvent) => { drag = { x: e.clientX, angle }; canvas.setPointerCapture(e.pointerId); wake(); };
+    const down = (e: PointerEvent) => { drag = { x: e.clientX, angle }; canvas.setPointerCapture(e.pointerId); if (onQr && (resting || still)) announceQr(slug, false); wake(); };
     const move = (e: PointerEvent) => { if (drag) { angle = drag.angle + (e.clientX - drag.x) * 0.012; wake(); } };
     const up = () => { drag = null; wake(); };
     canvas.addEventListener("pointerdown", down);
@@ -116,12 +144,19 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
       const want = e.contentRect.width * (window.devicePixelRatio || 1);
       px = box && Math.abs(box.inlineSize - want) <= 2 ? { w: box.inlineSize, h: box.blockSize } : {};
       vial?.resize(px.w, px.h);
+      start();
       wake();
     });
     try { sized.observe(canvas, { box: "device-pixel-content-box" }); } catch { sized.observe(canvas); }
     document.addEventListener("visibilitychange", wake);
 
-    import("@/components/store/vial-3d")
+    // Started only once it's on the page: a vial inside something hidden (the desktop strip on a
+    // phone) never builds its 3D scene until it's shown.
+    let started = false;
+    const start = () => {
+      if (started || !canvas.getClientRects().length) return;
+      started = true;
+      import("@/components/store/vial-3d")
       .then(({ mountVial3D }) => mountVial3D(canvas, inputRef.current))
       .then((v) => {
         if (!alive) { v.dispose(); return; }
@@ -129,13 +164,18 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
         v.resize(px.w, px.h);
         v.setLabel(inputRef.current); // a size picked while it loaded
         startAt = performance.now() + HOLD_MS; setReady(true); wake();
+        if (onQr && still) announceQr(slug, true);
       })
       .catch((err) => console.error("turning vial unavailable; showing the still vial", err));
+    };
+    start();
 
     return () => {
       alive = false;
       if (qrUntil) announceQr(slug, false);
       if (raf) cancelAnimationFrame(raf);
+      clearTimeout(scrollTimer);
+      window.removeEventListener("scroll", onScroll);
       seen.disconnect(); sized.disconnect();
       document.removeEventListener("visibilitychange", wake);
       canvas.removeEventListener("pointerdown", down);
@@ -147,7 +187,7 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
     };
     // the product is fixed for the page; parts is a new array each render, so key on its text
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, label, label2, parts.join("|"), cap, rule]);
+  }, [slug, label, label2, parts.join("|"), cap, rule, turns, restOn]);
 
   // a new size: redraw the label where it is
   const qrKey = qr.join("");
@@ -167,7 +207,7 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
         className="s-vialturn-3d"
         role="img"
         aria-hidden={!ready || undefined}
-        aria-label={`${label2 ? `${label} ${label2}` : label} ${strength} vial, turning to show its barcode and ${lot ? `the QR code for lot ${lot}'s certificate of analysis` : "a QR code to the certificate lookup"}`}
+        aria-label={`${label2 ? `${label} ${label2}` : label} ${strength} vial, ${restOn === "qr" ? "turning to show" : "turning to show its barcode and"} ${lot ? `the QR code for lot ${lot}'s certificate of analysis` : "a QR code to the certificate lookup"}`}
       />
     </div>
   );

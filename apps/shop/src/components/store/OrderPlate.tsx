@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 // "How an order runs" (home, after The lineup; mock "Option B · Engraved
 // plate steps + journal masthead", approved 2026-10-14). Drawn as an
@@ -11,7 +11,8 @@ const STEPS = [
   { title: "Pick a compound", body: "By class, or search by name, nickname or lot." },
   { title: "Read the lot's certificate", body: "Independent lab COA for the lot shipping now." },
   { title: "Check out securely", body: "Your vials are held from that same lot." },
-  { title: "Tracked from the US", body: "The lot on your vial opens the same certificate." },
+  // never delivery days or a city (2026-10-18: the QR line moved out; this step is shipping only)
+  { title: "Tracked from the US", body: `Ships from the US with tracking on every order. Free over $${FREE_SHIPPING_THRESHOLD_USD}.` },
 ];
 
 function Rack() {
@@ -28,15 +29,35 @@ function Rack() {
   );
 }
 
-function Certificate() {
+// Fig. 2 (2026-10-18): a phone scanning the QR code on the vial's label — the code opens the
+// lot's certificate (the green check under it).
+const QR_DOTS = [
+  [57, 53], [60, 56], [57, 59], [60, 62], [63, 59], [66, 66], [69, 63], [72, 66], [75, 69], [69, 69],
+  [57, 69], [60, 72], [63, 75], [66, 72], [72, 75], [75, 78], [69, 78], [66, 81], [72, 81], [57, 75],
+];
+function QrScan() {
   return (
     <svg viewBox="0 0 120 150" fill="none" stroke={SEPIA} strokeWidth="1.1" aria-hidden>
-      <path d="M26 20 H84 L96 32 V132 H26 Z M84 20 V32 H96" />
-      <path d="M36 44 H86 M36 54 H80 M36 64 H86 M36 74 H70" />
-      <path d="M36 86 L44 86 L48 78 L52 96 L56 86 H86" stroke="#2F6B3A" />
-      <circle cx="76" cy="112" r="12" /><circle cx="76" cy="112" r="8" strokeWidth=".6" />
-      <path d="M70 122 L66 136 L72 132 L76 138 L78 124 M82 122 L86 136 L80 132" strokeWidth=".9" />
-      <path d="M28 24 L92 128 M40 24 L94 112" strokeWidth=".3" opacity=".5" />
+      {/* the phone */}
+      <rect x="30" y="16" width="60" height="120" rx="9" />
+      <rect x="35" y="27" width="50" height="96" strokeWidth=".6" />
+      <path d="M53 21.5 H67" strokeWidth="1" />
+      <path d="M54 129.5 H66" strokeWidth="1.4" />
+      <path d="M91 24 L93 28 V124 L91 130" strokeWidth=".4" opacity=".7" />
+      {/* the camera's frame round the code */}
+      <path d="M41 44 V38 H47 M73 38 H79 V44 M79 86 V92 H73 M47 92 H41 V86" />
+      {/* the code: three finder squares and its modules */}
+      <rect x="44" y="41" width="11" height="11" /><rect x="47" y="44" width="5" height="5" fill={SEPIA} stroke="none" />
+      <rect x="65" y="41" width="11" height="11" /><rect x="68" y="44" width="5" height="5" fill={SEPIA} stroke="none" />
+      <rect x="44" y="78" width="11" height="11" /><rect x="47" y="81" width="5" height="5" fill={SEPIA} stroke="none" />
+      {QR_DOTS.map(([x, y]) => <rect key={`${x}-${y}`} x={x} y={y} width="2.6" height="2.6" fill={SEPIA} stroke="none" />)}
+      {/* the scan line */}
+      <path d="M38 65 H82" stroke={RED} strokeWidth="1.2" />
+      <path d="M38 63 H82 M38 67 H82" stroke={RED} strokeWidth=".3" opacity=".6" />
+      {/* the certificate it opens */}
+      <circle cx="60" cy="106" r="7" stroke="#2F6B3A" />
+      <path d="M56.5 106 L59 108.5 L63.5 103.5" stroke="#2F6B3A" strokeWidth="1.3" />
+      <path d="M44 118 H76" strokeWidth=".5" />
     </svg>
   );
 }
@@ -72,7 +93,7 @@ function Parcel() {
 // The word over each figure (2026-10-14).
 const FIGURES = [
   { Fig: Rack, word: "Pick" },
-  { Fig: Certificate, word: "Verify" },
+  { Fig: QrScan, word: "Verify" },
   { Fig: SealedVial, word: "Secure" },
   { Fig: Parcel, word: "Receive" },
 ];
@@ -94,12 +115,9 @@ export default function OrderPlate() {
             </li>
           ))}
         </ol>
-        <Link href="/products" className="s-micro s-record-link">Shop the lineup →</Link>
-        <p className="s-plate-cap">Plate I. An order, from the catalog to the bench.</p>
       </div>
       <div className="s-plate-art">
         <div className="s-plate-sheet">
-          <span className="s-plate-taf" aria-hidden>Taf. I.</span>
           <div className="s-plate-figs">
             <svg className="s-plate-ground" viewBox="0 0 1000 20" preserveAspectRatio="none" aria-hidden>
               <path d="M0 10 H440 L452 10 L458 2 L466 18 L472 10 H1000" fill="none" stroke={SEPIA} strokeWidth="1" vectorEffect="non-scaling-stroke" />

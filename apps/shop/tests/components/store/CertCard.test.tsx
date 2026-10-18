@@ -44,9 +44,9 @@ describe("CertCard", () => {
     expect(screen.getByText("Report number corrected.")).toBeInTheDocument();
   });
 
-  it("the Not recorded placeholder lab says Lab not recorded, with no accreditation claim", () => {
+  it("the Not recorded placeholder lab isn't named, and makes no accreditation claim", () => {
     const { container } = render(<CertCard cert={pc({ labName: "Not recorded", labIso: false, labCity: null })} />);
-    expect(screen.getByText("Lab not recorded")).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/not recorded/i);
     expect(container.textContent).not.toMatch(/Independent US lab|accredited US lab/);
   });
 });

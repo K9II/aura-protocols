@@ -544,15 +544,199 @@ main:has(> .pharmacopoeia) {
    unlayered margin would override every mb-/mt- utility put on these headings. */
 .pharmacopoeia .s-h1 { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: clamp(42px, 5.6vw, 64px); line-height: 1.02; letter-spacing: -.01em; }
 .pharmacopoeia .s-h1 em { color: var(--specimen); }
-.pharmacopoeia .s-sub { font-size: 17px; line-height: 1.55; max-width: 40ch; margin: 18px 0 24px; color: var(--ink-soft); }
 .pharmacopoeia .s-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
 .pharmacopoeia .s-ctas a { font-size: 16px; padding: 13px 22px; }
 @media (max-width: 900px) { .pharmacopoeia .s-hero { grid-template-columns: 1fr; } }
+/* Dictionary hero (mock v4 "1 · Dictionary", 2026-10-17, Mha5JnMX9YXXAcsXEqgAwN):
+   the au·ra entry, the 7-test panel and the rings of certificate text round the sphere. */
+.pharmacopoeia .s-hero > * { min-width: 0; }
+.pharmacopoeia .s-dict { margin: 0 0 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); max-width: 30em; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 2px; }
+.pharmacopoeia .s-dict-hw { font-family: var(--font-newsreader), Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1; letter-spacing: .01em; }
+.pharmacopoeia .s-dict-hw i { font-style: normal; color: var(--specimen); padding: 0 .04em; }
+.pharmacopoeia .s-dict-pr { font-family: Georgia, serif; font-size: 16px; color: var(--ink-soft); }
+.pharmacopoeia .s-dict-pos { font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 18px; color: var(--specimen); }
+.pharmacopoeia .s-dict-def { flex-basis: 100%; font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 20px; line-height: 1.3; color: var(--ink-soft); margin-top: 6px; }
+.pharmacopoeia .s-dict-n { font-style: normal; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .1em; color: var(--ink-soft); margin-right: 8px; vertical-align: 2px; }
+.pharmacopoeia .s-h1 + .s-ctas { margin-top: 28px; }
+.pharmacopoeia .s-hero .load-in:has(> .s-proof):not(.s-proof-phone-only) + .s-ctas { margin-top: 0; }
+.pharmacopoeia .s-hero .s-proof-phone-only + .s-ctas { margin-top: 28px; }
+/* The newest lot under the headline (option C, 2026-10-17, 9QomoXo9brSgbXvQEfD13c): the vial
+   turns twice and rests on its QR code; a dotted line runs from the code to the lot's card.
+   Side by side at every width. */
+.pharmacopoeia .s-proof { margin: 28px 0 26px; max-width: 34em; }
+.pharmacopoeia .s-proof-h { margin: 0 0 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 4px 16px; flex-wrap: wrap; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
+.pharmacopoeia .s-proof-h span:first-child { color: var(--specimen); font-weight: 500; }
+.pharmacopoeia .s-proof-h span:last-child { color: var(--ink-soft); }
+.pharmacopoeia .s-proof-body { display: grid; grid-template-columns: 132px minmax(0, 1fr); column-gap: 22px; align-items: start; }
+.pharmacopoeia .s-proof-vial { padding-top: 26px; }
+.pharmacopoeia .s-proof-vialbox { position: relative; filter: drop-shadow(6px 10px 9px rgba(28,26,21,.2)); }
+.pharmacopoeia .s-proof-vialbox svg { display: block; width: 100%; height: auto; }
+/* from the QR code's right edge (65% across, 46.4% down the vial) to the card */
+.pharmacopoeia .s-proof-lead { position: absolute; top: 46.4%; left: 65%; width: calc(35% + 22px); height: 1px; opacity: 0; transition: opacity .5s ease;
+  background: repeating-linear-gradient(90deg, var(--tested) 0 4px, transparent 4px 8px); pointer-events: none; }
+.pharmacopoeia .s-proof-lead.is-on { opacity: 1; }
+.pharmacopoeia .s-proof-lead::before { content: ''; position: absolute; left: -4px; top: -3px; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--tested); background: var(--label); }
+.pharmacopoeia .s-proof-cert { background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--tested); box-shadow: 0 1px 0 rgba(28,26,21,.05), 8px 12px 24px -12px rgba(28,26,21,.30); min-width: 0; }
+.pharmacopoeia .s-proof-ch { padding: 12px 16px 10px; border-bottom: 1px solid var(--line); display: grid; gap: 3px; }
+.pharmacopoeia .s-proof-k { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pharmacopoeia .s-proof-n { font-family: var(--font-newsreader), Georgia, serif; font-size: 26px; line-height: 1.1; }
+.pharmacopoeia .s-proof-n small { font-size: .62em; color: var(--ink-soft); }
+.pharmacopoeia .s-proof-nums { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
+.pharmacopoeia .s-proof-nums div { padding: 10px 16px; display: grid; gap: 2px; min-width: 0; }
+.pharmacopoeia .s-proof-nums div + div { border-left: 1px solid var(--line); }
+.pharmacopoeia .s-proof-nums b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 26px; line-height: 1; }
+.pharmacopoeia .s-proof-nums span { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
+.pharmacopoeia .s-proof-list { list-style: none; margin: 0; padding: 2px 16px 6px; counter-reset: t; }
+.pharmacopoeia .s-proof-list li { counter-increment: t; display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dotted var(--line); font-size: 14.5px; }
+.pharmacopoeia .s-proof-list li:last-child { border-bottom: 0; }
+.pharmacopoeia .s-proof-list li::before { content: counter(t); font-family: var(--font-newsreader), Georgia, serif; color: var(--tested); font-size: 16px; }
+.pharmacopoeia .s-proof-list li span { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--tested); white-space: nowrap; }
+.pharmacopoeia .s-proof-list li.is-open { color: var(--ink-soft); }
+.pharmacopoeia .s-proof-list li.is-open::before, .pharmacopoeia .s-proof-list li.is-open span { color: var(--ink-soft); }
+.pharmacopoeia .s-proof-f { padding: 10px 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; align-items: center; background: var(--record); }
+.pharmacopoeia .s-proof-f small { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-proof-link { color: var(--tested); border-bottom: 1px solid var(--tested); font-size: 15px; }
+.pharmacopoeia .s-proof-ph { display: none; }
+/* Desktop home, option A "Scan strip" (2026-10-17): three figures in the plate style of
+   "How an order runs" beside a side column; the newest lot's row under it. Desktop only. */
+.pharmacopoeia .s-scan { margin: 8px 0 48px; }
+.pharmacopoeia .s-scan-plate { display: grid; grid-template-columns: minmax(0, 1fr) 340px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.pharmacopoeia .s-scan-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-right: 1px solid var(--line); background: #F2EEE5; }
+.pharmacopoeia .s-scan-figs figure { margin: 0; padding: 18px 18px 16px; display: grid; grid-template-rows: auto 1fr auto; gap: 10px; min-width: 0; }
+.pharmacopoeia .s-scan-figs figure + figure { border-left: 1px solid var(--line); }
+.pharmacopoeia .s-scan-tag { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); display: flex; justify-content: space-between; }
+.pharmacopoeia .s-scan-tag b { color: var(--specimen); font-weight: 500; }
+.pharmacopoeia .s-scan-art { display: grid; place-items: center; min-height: 320px; }
+.pharmacopoeia .s-scan-figs figcaption { font-size: 15px; line-height: 1.45; }
+.pharmacopoeia .s-scan-figs figcaption b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 18px; display: block; margin-bottom: 2px; }
+.pharmacopoeia .s-scan-vial .s-vialturn { width: 150px; filter: drop-shadow(6px 10px 9px rgba(28,26,21,.2)); }
+.pharmacopoeia .s-scan-vial .s-vialturn svg { display: block; width: 100%; height: auto; }
+/* Fig. 2: the lot's certificate as a phone shows it, drawn in the store's type (crisp at any size) */
+.pharmacopoeia .s-scan-phone { width: 240px; height: 444px; border: 7px solid #1C1A15; border-radius: 26px; overflow: hidden; background: var(--paper); box-shadow: 0 12px 24px -12px rgba(28,26,21,.45); }
+.pharmacopoeia .s-scan-screen { display: flex; flex-direction: column; gap: 6px; height: 100%; padding: 0 12px 12px; font-family: Georgia, serif; }
+.pharmacopoeia .s-scan-screen .bar { margin: 0 -12px 6px; padding: 6px 8px 5px; background: #1C1A15; color: var(--paper); text-align: center; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 7.5px; letter-spacing: .14em; text-transform: uppercase; }
+.pharmacopoeia .s-scan-screen .eye { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 7.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--specimen); }
+.pharmacopoeia .s-scan-screen .h { font-family: var(--font-newsreader), Georgia, serif; font-size: 23px; line-height: 1.02; margin-bottom: 4px; }
+.pharmacopoeia .s-scan-screen .h em { color: var(--specimen); }
+.pharmacopoeia .s-scan-screen .card { background: var(--label); border: 1px solid var(--line); border-top: 2px solid var(--tested); padding: 8px 10px 9px; display: flex; flex-direction: column; gap: 4px; }
+.pharmacopoeia .s-scan-screen .lot { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-screen .n { font-family: var(--font-newsreader), Georgia, serif; font-size: 17px; line-height: 1.1; }
+.pharmacopoeia .s-scan-screen .n small { font-size: .65em; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-screen .nums { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 2px 0; }
+.pharmacopoeia .s-scan-screen .nums span { display: grid; padding: 4px 0; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 6.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-screen .nums span + span { border-left: 1px solid var(--line); padding-left: 8px; }
+.pharmacopoeia .s-scan-screen .nums b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 16px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.pharmacopoeia .s-scan-screen ol { list-style: none; margin: 0; padding: 0; }
+.pharmacopoeia .s-scan-screen li { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; border-bottom: 1px dotted var(--line); font-size: 11px; }
+.pharmacopoeia .s-scan-screen li:last-child { border-bottom: 0; }
+.pharmacopoeia .s-scan-screen li i { font-style: normal; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--tested); }
+.pharmacopoeia .s-scan-screen li.is-open i { color: var(--ink-soft); }
+.pharmacopoeia .s-scan-screen .link { margin-top: 2px; align-self: flex-start; color: var(--tested); border-bottom: 1px solid var(--tested); font-size: 10.5px; }
+.pharmacopoeia .s-scan-lab { width: 86%; max-width: 236px; background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--tested); padding: 14px; display: grid; gap: 8px; box-shadow: 0 12px 24px -16px rgba(28,26,21,.4); font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-lab .v { font-family: var(--font-newsreader), Georgia, serif; font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.pharmacopoeia .s-scan-lab .r { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding-top: 7px; border-top: 1px dotted var(--line); }
+.pharmacopoeia .s-scan-lab .r > span:nth-child(2) { color: var(--ink); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pharmacopoeia .s-scan-seven { list-style: none; margin: 0; padding: 0; }
+.pharmacopoeia .s-scan-seven li { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-top: 1px dotted var(--line); color: var(--ink); }
+.pharmacopoeia .s-scan-lab .ck { width: 10px; height: 5px; margin: 0 2px 3px 2px; border-left: 1.5px solid var(--tested); border-bottom: 1.5px solid var(--tested); transform: rotate(-45deg); align-self: center; }
+/* when the strip comes into view the seven tick off one by one, then the seal shows */
+@media (prefers-reduced-motion: no-preference) {
+  .pharmacopoeia .s-scan .s-scan-seven .ck, .pharmacopoeia .s-scan .s-scan-ok { opacity: 0; }
+  .pharmacopoeia .s-scan.in-view .s-scan-seven .ck { animation: s-scan-tick .35s ease-out forwards; animation-delay: calc(.6s + var(--i) * .28s); }
+  .pharmacopoeia .s-scan.in-view .s-scan-ok { animation: s-scan-tick .5s ease-out 2.7s forwards; }
+}
+@keyframes s-scan-tick { from { opacity: 0; } to { opacity: 1; } }
+.pharmacopoeia .s-scan-ok { display: flex; align-items: center; gap: 10px; color: var(--tested); font-size: 13px; letter-spacing: .14em; font-weight: 500; padding: 4px 0 6px; }
+.pharmacopoeia .s-scan-ok i { width: 34px; height: 34px; border: 1.5px solid var(--tested); border-radius: 50%; position: relative; flex-shrink: 0; }
+.pharmacopoeia .s-scan-ok i::after { content: ''; position: absolute; left: 11px; top: 9px; width: 11px; height: 6px; border-left: 2px solid var(--tested); border-bottom: 2px solid var(--tested); transform: rotate(-45deg); }
+.pharmacopoeia .s-scan-side { padding: 22px 20px; display: flex; flex-direction: column; gap: 14px; background: var(--record); }
+.pharmacopoeia .s-scan-side p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-side .s-record-link { align-self: flex-start; }
+.pharmacopoeia .s-scan-eyebrow { color: var(--specimen); }
+.pharmacopoeia .s-scan-row { margin-top: 18px; }
+@media (max-width: 1180px) {
+  /* narrower desktops: the words go above the three figures */
+  .pharmacopoeia .s-scan-plate { grid-template-columns: 1fr; }
+  .pharmacopoeia .s-scan-side { order: -1; border-bottom: 1px solid var(--line); }
+  .pharmacopoeia .s-scan-figs { border-right: 0; }
+}
+@media (max-width: 900px) { .pharmacopoeia .s-scan { display: none; } }
+@media (min-width: 901px) { .pharmacopoeia .s-proof-phone-only { display: none; } }
+/* phones: the hero's trust row is left out (2026-10-17); the lot card above carries the proof */
+@media (max-width: 640px) { .pharmacopoeia .s-hero .s-trust { display: none; } }
+/* phones (the width the phone lineup shows at): the hero's two buttons are left out; the
+   lineup below leads with "Shop the lineup" in their place (2026-10-17) */
+@media (max-width: 900px) { .pharmacopoeia .s-hero .s-ctas { display: none; } }
+.pharmacopoeia .s-lineup-btn { font-size: 16px; padding: 13px 22px; }
+@media (max-width: 640px) {
+  /* the vial grows with the screen (112px at 360, 121 at 390) as far as the card's rows stay on one line */
+  .pharmacopoeia .s-proof-body { grid-template-columns: clamp(96px, 31vw, 136px) minmax(0, 1fr); column-gap: 14px; }
+  .pharmacopoeia .s-proof-vial { padding-top: 34px; }
+  .pharmacopoeia .s-proof-lead { width: calc(35% + 14px); }
+  .pharmacopoeia .s-proof-dk { display: none; }
+  .pharmacopoeia .s-proof-ph { display: inline; }
+  .pharmacopoeia .s-proof-ch { padding: 10px 12px 9px; }
+  .pharmacopoeia .s-proof-n { font-size: 22px; }
+  .pharmacopoeia .s-proof-nums div { padding: 8px 12px; }
+  .pharmacopoeia .s-proof-nums b { font-size: 21px; }
+  .pharmacopoeia .s-proof-nums span { font-size: 9px; letter-spacing: .1em; }
+  .pharmacopoeia .s-proof-list { padding: 2px 12px 4px; }
+  .pharmacopoeia .s-proof-list li { grid-template-columns: 16px minmax(0, 1fr) auto; gap: 6px; padding: 5px 0; font-size: 13.5px; }
+  .pharmacopoeia .s-proof-list li::before { font-size: 14px; }
+  .pharmacopoeia .s-proof-list li span { font-size: 9.5px; letter-spacing: .08em; }
+  .pharmacopoeia .s-proof-f { padding: 9px 12px; }
+  .pharmacopoeia .s-proof-link { font-size: 13.5px; }
+}
+.pharmacopoeia .s-aura { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 8px; min-width: 0; }
+.pharmacopoeia .s-aura-pic { position: relative; width: 100%; max-width: 620px; aspect-ratio: 1; margin-bottom: 38px; }
+.pharmacopoeia .s-aura-rings { position: absolute; inset: 0; pointer-events: none; }
+.pharmacopoeia .s-aura-in, .pharmacopoeia .s-aura-ring { position: absolute; inset: 0; }
+.pharmacopoeia .s-aura-ring svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.pharmacopoeia .s-aura-rings text { font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; }
+/* the canvas (719 × 639) is 504 wide in the 640 box, centred: top = (320 − 224) / 640 */
+.pharmacopoeia .s-aura-core { position: absolute; left: 10.625%; width: 78.75%; top: 15%; }
+/* the canvas frame hides overflow; inside the rings the side labels may reach past the canvas */
+.pharmacopoeia .s-aura-core > .overflow-hidden { overflow: visible; }
+/* the sphere's own caption line drops from under the canvas to just below the picture
+   (canvas height 448 → the box's bottom edge is (448 + 96) / 448 of it) */
+.pharmacopoeia .s-aura-core > div > div:last-child { position: absolute; left: -13.5%; right: -13.5%; top: 121.43%; }
+.pharmacopoeia .s-aura figcaption { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); text-align: center; line-height: 1.6; max-width: 46ch; }
+.pharmacopoeia .s-aura figcaption b { color: var(--specimen); font-weight: 500; }
+/* the sphere's compound links read over the ring text */
+.pharmacopoeia .s-aura .p-biosig-peptide { text-shadow: 0 0 4px var(--paper), 0 0 8px var(--paper), 0 0 12px var(--paper); }
+.pharmacopoeia .s-aura-ring { will-change: transform; animation: s-aura-spin 200s linear infinite; }
+.pharmacopoeia .s-aura-in { animation: s-aura-in 1.3s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes s-aura-spin { to { transform: rotate(360deg); } }
+/* fade only: growing a layer that's turned by the compositor leaves its text
+   rasterised at the starting size, so phones showed the rings pixelated */
+@keyframes s-aura-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .pharmacopoeia .s-aura-ring, .pharmacopoeia .s-aura-in { animation: none; }
+}
+@media (max-width: 900px) { .pharmacopoeia .s-aura-pic { max-width: 520px; } }
+@media (max-width: 640px) {
+  .pharmacopoeia .s-dict-hw { font-size: 26px; }
+  .pharmacopoeia .s-dict-def { font-size: 18px; }
+  /* Phones: the whole picture fits the screen (nothing clipped, 2026-10-17). The sphere's
+     compact canvas (460 × 470, BiosignatureSphere) is 64% of it, centred; its labels
+     sit over the faint outer rings with a paper glow. Its caption drops below the picture. */
+  .pharmacopoeia .s-aura-pic { width: calc(100% - 8px); max-width: none; }
+  .pharmacopoeia .s-aura-core { left: 18%; width: 64%; top: 17.3%; }
+  .pharmacopoeia .s-aura-core > div > div:last-child { left: -28.125%; right: -28.125%; top: 126.45%; }
+  /* the sphere's side labels ("CJC-1295 / Ipamorelin") reach the inner ring here, so the rings
+     move outward (252→286, 274→300, 295→314) and the faintest, outermost one ("Scan the vial ·
+     read the certificate" — the lot card says it) is left out (2026-10-17) */
+  .pharmacopoeia .s-aura-rings > :nth-child(1) { transform: scale(1.135); }
+  .pharmacopoeia .s-aura-rings > :nth-child(2) { transform: scale(1.095); }
+  .pharmacopoeia .s-aura-rings > :nth-child(3) { transform: scale(1.064); }
+  .pharmacopoeia .s-aura-rings > :nth-child(4) { display: none; }
+  .pharmacopoeia .s-aura figcaption { padding-inline: 16px; }
+}
 /* Home lineup (mock P1, 2026-10-14): phones see it inside the hero, between the
-   headline block and the sphere; desktop sees it after the 1906 plate. */
+   headline block and the sphere; desktop sees it further down the page. */
 .pharmacopoeia .s-lineup--phone { display: none; }
 @media (max-width: 900px) {
-  .pharmacopoeia .s-lineup--phone { display: block; padding-top: 28px; padding-bottom: 12px; }
+  .pharmacopoeia .s-lineup--phone { display: block; padding-top: 4px; padding-bottom: 12px; }
   .pharmacopoeia .s-lineup--desk { display: none; }
 }
 /* Home hero north light (option D, chosen 2026-10-11; mock AXG9ymUY7hnEVpDyrqDU7g).
@@ -565,7 +749,7 @@ main:has(> .pharmacopoeia) {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 72px, #000 calc(100% - 180px), transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 72px, #000 calc(100% - 180px), transparent 100%); }
 .pharmacopoeia .s-hl-shade { position: absolute; inset: 0; background: radial-gradient(120% 90% at 85% 0%, rgba(255,252,244,0) 0%, rgba(70,58,32,.04) 75%); }
-.pharmacopoeia .s-hl-window { position: absolute; left: 44%; top: -300px; width: 760px; height: 980px; transform-origin: 50% 0; mix-blend-mode: screen; animation: s-hl-drift 24s ease-in-out infinite alternate; }
+.pharmacopoeia .s-hl-window { position: absolute; width: 760px; height: 980px; transform-origin: 50% 0; mix-blend-mode: screen; animation: s-hl-drift 24s ease-in-out infinite alternate; }
 .pharmacopoeia .s-hl-clouds { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 30px; filter: blur(9px); animation: s-hl-clouds 20s ease-in-out infinite; }
 .pharmacopoeia .s-hl-clouds i { background: rgba(255,251,240,.82);
   -webkit-mask-image: repeating-linear-gradient(95deg, #000 0, #000 34px, rgba(0,0,0,.42) 72px, #000 112px); mask-image: repeating-linear-gradient(95deg, #000 0, #000 34px, rgba(0,0,0,.42) 72px, #000 112px);
@@ -575,10 +759,30 @@ main:has(> .pharmacopoeia) {
 @keyframes s-hl-drift { from { transform: translate(0, 0) rotate(-17deg) skewX(-10deg); } to { transform: translate(-130px, 44px) rotate(-12.5deg) skewX(-12deg); } }
 @keyframes s-hl-clouds { 0%, 34%, 84%, 100% { opacity: 1; } 52% { opacity: .5; } 62% { opacity: .58; } }
 @keyframes s-hl-sway { from { -webkit-mask-position: 0 0; mask-position: 0 0; } to { -webkit-mask-position: 112px 0; mask-position: 112px 0; } }
+.pharmacopoeia .s-hl-window { left: 302px; top: -160px; }
+/* The window light always stays with the sphere (Alvester, 2026-10-17): it's laid behind the
+   sphere itself (HeroLight where="sphere"), wherever the sphere sits; the band keeps only its
+   shade and grain. Desktop: the window starts about 100px left of the sphere and 360px above
+   it, as the original design had it (the layer reaches 400px left so its turn never meets an edge, and fades in over its top
+   200px, inside the band, so the light never meets the band's top edge). The layer reaches well past the sphere and fades out. */
+.pharmacopoeia .s-hero-band > .s-hero-light .s-hl-window { display: none; }
+.pharmacopoeia .s-hero-sphere { position: relative; }
+.pharmacopoeia .s-hero-sphere > .s-aura { position: relative; z-index: 1; }
+/* the words and the lot card stay above the light */
+.pharmacopoeia .s-hero > div:first-child { position: relative; z-index: 2; }
+.pharmacopoeia .s-hero-light--sphere { inset: -200px -40vw -160px -400px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 200px, #000 calc(100% - 160px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 200px, #000 calc(100% - 160px), transparent 100%); }
 @media (max-width: 900px) {
-  /* phones: the sphere sits under the text, so the window falls across it from lower down */
+  /* phones: the window falls across the sphere from lower down */
+  .pharmacopoeia .s-hero-light--sphere { inset: -40px 0 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 110px, #000 calc(100% - 150px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 110px, #000 calc(100% - 150px), transparent 100%); }
   .pharmacopoeia .s-hl-window { left: 6%; top: auto; bottom: 40px; width: 471px; height: 608px; }
   .pharmacopoeia .s-hl-clouds { gap: 19px; }
+  /* phones keep the drift and the passing cloud but not the curtain's sway: animating the mask
+     redraws the blurred light every frame, which made phones stutter while scrolling (2026-10-18) */
+  .pharmacopoeia .s-hl-clouds i { animation: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pharmacopoeia .s-hl-window, .pharmacopoeia .s-hl-clouds, .pharmacopoeia .s-hl-clouds i { animation: none; }
@@ -590,31 +794,8 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-h2 em { color: var(--specimen); }
 .pharmacopoeia .s-h2-link { color: inherit; text-decoration: none; }
 .pharmacopoeia .s-h2-link:hover, .pharmacopoeia .s-h2-link:focus-visible { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; text-decoration-color: var(--specimen); }
-.pharmacopoeia .s-record { display: grid; grid-template-columns: minmax(0, 1fr) 340px; margin-top: 8px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--paper-deep); }
-.pharmacopoeia .s-record-plate { position: relative; margin: 0; display: flex; align-items: center; justify-content: center; padding: 64px 22px 22px; border-right: 1px solid var(--line); }
-.pharmacopoeia .s-record-plate img { display: block; width: 100%; height: auto; mix-blend-mode: multiply; filter: sepia(.25) saturate(.7) contrast(1.05); box-shadow: 0 1px 0 var(--line), 0 10px 24px rgba(28, 26, 21, .10); }
-.pharmacopoeia .s-record-tag { position: absolute; left: 22px; top: 16px; display: flex; align-items: baseline; gap: 12px; color: var(--ink-soft); }
-.pharmacopoeia .s-record-tag b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1; color: var(--ink); }
-.pharmacopoeia .s-record-tag--today { position: static; margin-bottom: 4px; }
-.pharmacopoeia .s-record-side { display: flex; flex-direction: column; gap: 14px; padding: 22px 20px; background: #F4F1EA; }
 .pharmacopoeia .s-record-eyebrow { color: var(--specimen); }
-.pharmacopoeia .s-record-side .s-h2 { margin: 0; font-size: 34px; }
-.pharmacopoeia .s-record-side > p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-soft); }
-.pharmacopoeia .s-record-trace { border: 1px solid var(--line); background: var(--paper); padding: 10px 10px 12px; }
-.pharmacopoeia .s-trace { display: block; width: 100%; height: auto; }
-.pharmacopoeia .s-trace--phone { display: none; }
 .pharmacopoeia .s-record-link { display: inline-block; margin-top: 6px; color: var(--tested); border-bottom: 1px solid var(--tested); }
-.pharmacopoeia .s-record-side > .s-record-cite { border-top: 1px solid var(--line); padding-top: 12px; font-size: 12px; font-style: italic; }
-@media (max-width: 860px) {
-  .pharmacopoeia .s-record { grid-template-columns: 1fr; }
-  .pharmacopoeia .s-record-plate { border-right: 0; border-bottom: 1px solid var(--line); padding: 58px 12px 12px; }
-  .pharmacopoeia .s-record-tag { left: 12px; }
-  .pharmacopoeia .s-trace--wide { display: none; }
-  .pharmacopoeia .s-trace--phone { display: block; }
-  .pharmacopoeia .s-record-plate { padding-top: 52px; }
-  .pharmacopoeia .s-record-side { gap: 12px; padding: 18px 16px; }
-  .pharmacopoeia .s-record-tag b { font-size: 30px; }
-}
 .pharmacopoeia .s-lh p { font-size: 16px; max-width: 38ch; margin: 0; color: var(--ink-soft); }
 
 /* compound cards */
@@ -909,11 +1090,6 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-data td:first-child { width: 38%; color: var(--ink-soft); }
 .pharmacopoeia .s-data td.s-mono { font-size: 12.5px; word-break: break-all; }
 /* Compound data as a raised panel (2026-10-10) */
-.pharmacopoeia .s-data table.s-panel { align-self: start; background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--cls); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.22); }
-.pharmacopoeia .s-data .s-panel td { padding: 12px 18px; border-top: 1px solid #E3DDCD; }
-.pharmacopoeia .s-data .s-panel tr:first-child td { border-top: 0; }
-.pharmacopoeia .s-data .s-panel tr:last-child td { border-bottom: 0; }
-.pharmacopoeia .s-data .s-panel td:first-child { width: 34%; padding-top: 14px; }
 
 /* About this compound — full-bleed band with the rotating 3D model (layout 2, 2026-10-01 mock) */
 .pharmacopoeia .s-about { background: var(--paper-deep); }
@@ -1341,7 +1517,6 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   .pharmacopoeia .s-nav-cart,
   .pharmacopoeia .p-biosig-peptide,
   .pharmacopoeia .p-see-all,
-  .pharmacopoeia .s-record a,
   .pharmacopoeia .p-link,
   .pharmacopoeia details > summary,
   footer.pharmacopoeia li > a { position: relative; }
@@ -1349,7 +1524,6 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   .pharmacopoeia .s-nav-cart::after,
   .pharmacopoeia .p-biosig-peptide::after,
   .pharmacopoeia .p-see-all::after,
-  .pharmacopoeia .s-record a::after,
   .pharmacopoeia .p-link::after,
   .pharmacopoeia details > summary::after,
   footer.pharmacopoeia li > a::after { content: ""; position: absolute; inset: -5px -4px; z-index: 1; }
@@ -1848,7 +2022,7 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   .pharmacopoeia .s-nav-actions { gap: 7px; }
 }
 
-/* ── How an order runs: engraved plate + side column (mock approved 2026-10-14; built like .s-record) ── */
+/* ── How an order runs: engraved plate + side column (mock approved 2026-10-14) ── */
 .pharmacopoeia .s-plate { display: grid; grid-template-columns: minmax(0, 1fr) 360px; margin: 24px 0 56px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--paper-deep); }
 .pharmacopoeia .s-plate-art { display: flex; padding: 26px 22px 22px; border-right: 1px solid var(--line); }
 /* The side panel is first in the page (phones read it before the figures); desktop puts the art back on the left. */
@@ -1871,8 +2045,6 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-plate-steps span { grid-row: span 2; font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 15px; color: #5A4A2E; }
 .pharmacopoeia .s-plate-steps b { font-weight: 400; font-size: 17px; }
 .pharmacopoeia .s-plate-steps small { font-size: 14.5px; line-height: 1.5; color: var(--ink-soft); }
-.pharmacopoeia .s-plate-side .s-record-link { align-self: flex-start; margin-top: 0; }
-.pharmacopoeia .s-plate-cap { margin: auto 0 0; padding-top: 12px; border-top: 1px solid var(--line); font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
 @media (max-width: 960px) {
   .pharmacopoeia .s-plate { grid-template-columns: minmax(0, 1fr); }
   .pharmacopoeia .s-plate-art { border-right: 0; }

@@ -12,18 +12,77 @@ import HomePage from "@/app/page";
 import { liveFixture } from "../helpers/live-catalog";
 
 const renderHome = async () => render(await HomePage());
-// The lineup is on the page twice (phones: inside the hero; desktop: after the 1906 plate); CSS shows one.
+// The lineup is on the page twice (phones: inside the hero; desktop: further down); CSS shows one.
 const lineupIn = (where: "desk" | "phone") => document.querySelector<HTMLElement>(`.s-lineup--${where}`)!;
 const deskLineupHeading = () => within(lineupIn("desk")).getByRole("heading", { level: 2, name: /the lineup/i });
 
 describe("/ (home)", () => {
-  beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [] }); });
+  beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [], certificates: [] }); });
 
-  it("leads with the 1906 receipt headline and the independent third-party US lab line", async () => {
+  it("leads with the au·ra dictionary entry and the proof headline; no paragraph, no 7-test panel", async () => {
     await renderHome();
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("1906 gave us the test.We added the receipt.");
-    expect(screen.getByText(/separated and measured by an independent third-party US lab before it goes out for research/i)).toBeInTheDocument();
-    expect(screen.getByText(/published under the lot number on your vial/i)).toBeInTheDocument();
+    expect(screen.getByText("the distinct quality that surrounds something.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^Our compounds come surrounded by\sproof\.$/);
+    expect(screen.queryByRole("group", { name: /seven tests every lot passes/i })).not.toBeInTheDocument();
+    expect(document.querySelector(".s-hero .s-sub")).toBeNull();
+    // no lot released yet: no lot card, and the old lot chart is gone
+    expect(document.querySelector(".s-proof")).toBeNull();
+    expect(document.querySelector(".s-rec--home")).toBeNull();
+  });
+
+  it("under the headline: the newest live lot's vial and its own certificate results, linking its certificate", async () => {
+    const lots = [
+      { slug: "mots-c", compoundName: "MOTS-c", variantId: "10mg", strength: "10 mg", lot: "MOT-2611-02", purityPct: 99.5, method: "HPLC+MS", testedOn: "2026-11-08", coaFile: "/c.pdf", status: "live", liveAt: "2026-11-09T10:00:00Z", onStore: true },
+      { slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", lot: "BPC-2610-01", purityPct: 99.2, method: "HPLC", testedOn: "2026-10-02", coaFile: "/d.pdf", status: "live", liveAt: "2026-10-03T10:00:00Z", onStore: true },
+    ];
+    const cert = { lot: "MOT-2611-02", measuredMg: null, tests: { identity: "pass", endotoxin: "pass", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested" } };
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots, certificates: [cert] });
+    await renderHome();
+    const card = screen.getByRole("group", { name: /lot MOT-2611-02: the code on its vial/i });
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const rows = within(card).getAllByRole("listitem").map((li) => li.textContent);
+    expect(rows).toEqual(["IdentityPass", "PurityPass", "QuantityNot tested", "EndotoxinPass", "SterilityNot tested", "Heavy metalsNot tested", "FentanylNot tested"]);
+    expect(card).toHaveTextContent("99.5%");
+    expect(within(card).getByRole("link", { name: /open/i })).toHaveAttribute("href", "/coa/MOT-2611-02");
+  });
+
+  it("desktop: the scan strip right under the hero, the lab's copy verifying all seven tests; the lot card is phones-only", async () => {
+    const lots = [{ slug: "mots-c", compoundName: "MOTS-c", variantId: "10mg", strength: "10 mg", lot: "MOT-2611-02", purityPct: 99.5, method: "HPLC+MS", testedOn: "2026-11-08", coaFile: "/c.pdf", status: "live", liveAt: "2026-11-09T10:00:00Z", onStore: true }];
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots, certificates: [] });
+    await renderHome();
+    const strip = screen.getByRole("region", { name: /scan the vial/i });
+    expect(document.querySelector(".s-hero-band")!.compareDocumentPosition(strip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(strip.compareDocumentPosition(lineupIn("desk")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect([...strip.querySelectorAll(".s-scan-seven li")].map((li) => li.textContent)).toEqual(["Identity", "Purity", "Quantity", "Endotoxin", "Sterility", "Heavy metals", "Fentanyl"]);
+    expect(strip).not.toHaveTextContent(/not tested|not recorded/i);
+    expect(document.querySelector(".s-proof")!.closest(".s-proof-phone-only")).not.toBeNull();
+  });
+
+  it("rings the sphere with real lots selling now, and never example lots before the first release", async () => {
+    await renderHome();
+    const rings = screen.getByRole("img", { name: /ringed by lines of text from each lot/i });
+    expect(rings).toHaveTextContent(/COMPOUND · LOT NUMBER · PURITY/);
+    expect(document.querySelector(".s-hero-sphere .s-aura-core")).not.toBeNull();
+
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), certificates: [], lots: [
+      { slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", lot: "BPC-2611-03", purityPct: 99.4, method: "HPLC", testedOn: "2026-11-02", coaFile: "/c.pdf", status: "live", liveAt: "2026-11-03", onStore: true },
+      { slug: "mots-c", compoundName: "MOTS-c", variantId: "10mg", strength: "10 mg", lot: "MOT-2601-01", purityPct: 99.1, method: "HPLC", testedOn: "2026-01-02", coaFile: "/d.pdf", status: "sold_out", liveAt: "2026-01-03", onStore: true },
+    ] });
+    document.body.innerHTML = "";
+    await renderHome();
+    const ring = screen.getByRole("img", { name: /ringed by lines of text from each lot/i });
+    expect(ring).toHaveTextContent(/BPC-157 · LOT BPC-2611-03 · 99\.4%/);
+    expect(ring).not.toHaveTextContent(/MOT-2601-01/);
+    expect(ring).not.toHaveTextContent(/COMPOUND · LOT NUMBER/);
+  });
+
+  it("phones: the lineup leads with the Shop the lineup button instead of its heading", async () => {
+    await renderHome();
+    const phone = lineupIn("phone");
+    expect(within(phone).queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
+    expect(within(phone).getByRole("link", { name: "Shop the lineup →" })).toHaveAttribute("href", "/products");
+    expect(phone).not.toHaveTextContent(/No matching COA/);
   });
 
   it("links the lineup heading to the full inventory", async () => {
@@ -34,17 +93,10 @@ describe("/ (home)", () => {
     expect(link!.getAttribute("href")).toBe("/products");
   });
 
-  it("shows Tsvet's 1906 plate before the lineup, credited, with an HPLC trace linking to the real certificates", async () => {
+  it("no longer shows Tsvet's 1906 plate band (removed 2026-10-17)", async () => {
     await renderHome();
-    const record = screen.getByRole("region", { name: /purity has a method/i });
-    expect(within(record).getByRole("img", { name: /tsvet.*1906/i })).toBeInTheDocument();
-    expect(within(record).getByRole("img", { name: /hplc chromatogram/i })).toBeInTheDocument();
-    expect(record).toHaveTextContent(/Berichte der Deutschen Botanischen Gesellschaft 24 \(1906\)/);
-    expect(record).toHaveTextContent(/public domain/i);
-    expect(within(record).getByRole("link", { name: /certificate/i })).toHaveAttribute("href", "/coa");
-    // Comes before the (desktop) lineup.
-    const lineup = deskLineupHeading();
-    expect(record.compareDocumentPosition(lineup) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("region", { name: /purity has a method/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /tsvet/i })).not.toBeInTheDocument();
   });
 
   it("fails closed when the live catalog can't be read", async () => {
@@ -53,12 +105,13 @@ describe("/ (home)", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Unavailable right now");
   });
 
-  it("counts and features from the live shown catalog", async () => {
+  it("features from the live shown catalog", async () => {
     const shown = liveFixture().filter((c) => c.chemicalClass !== "Incretin & Amylin Analogs");
-    live.mockResolvedValue({ all: liveFixture(), shown, lots: [] });
+    live.mockResolvedValue({ all: liveFixture(), shown, lots: [], certificates: [] });
     await renderHome();
+    // the "See all N compounds" link is gone (phones 2026-10-17, desktop 2026-10-18)
+    for (const where of ["desk", "phone"] as const) expect(lineupIn(where)).not.toHaveTextContent(/See all/);
     for (const where of ["desk", "phone"] as const) {
-      expect(within(lineupIn(where)).getByText(`See all ${shown.length} compounds →`)).toBeInTheDocument();
       expect(within(lineupIn(where)).getAllByRole("heading", { level: 3 })).toHaveLength(shown.filter((c) => c.featured).length);
     }
   });
@@ -74,7 +127,7 @@ describe("/ (home)", () => {
 
   it("phones: a hidden pick is skipped and the gap filled from the featured list", async () => {
     const shown = liveFixture().filter((c) => c.slug !== "ss-31");
-    live.mockResolvedValue({ all: liveFixture(), shown, lots: [] });
+    live.mockResolvedValue({ all: liveFixture(), shown, lots: [], certificates: [] });
     await renderHome();
     const slugs = cardSlugs("phone");
     expect(slugs.slice(0, 3)).toEqual(["mots-c", "bpc-157-tb-500-blend", "bpc-157-tb-500-ghk-cu-kpv"]);
@@ -97,13 +150,14 @@ describe("/ (home)", () => {
     expect(screen.queryByText(/straight/i)).not.toBeInTheDocument();
   });
 
-  it("phones get the lineup inside the hero, after the headline block and before the sphere (mock P1)", async () => {
+  it("phones get the lineup inside the hero, after the headline block and the sphere", async () => {
     await renderHome();
     const phone = lineupIn("phone");
     const hero = document.querySelector(".s-hero")!;
+    const sphere = document.querySelector(".s-hero-sphere")!;
     expect(hero).toContainElement(phone);
-    expect(hero.firstElementChild!.compareDocumentPosition(phone) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(phone.compareDocumentPosition(document.querySelector(".s-hero-sphere")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(hero.firstElementChild!.compareDocumentPosition(sphere) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(sphere.compareDocumentPosition(phone) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(hero).not.toContainElement(lineupIn("desk"));
     // the two copies' vial SVGs never share ids (a hidden copy's gradients would blank the visible one)
     const ids = [...document.querySelectorAll(".s-lineup [id]")].map((e) => e.id);

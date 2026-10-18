@@ -93,11 +93,12 @@ describe("LotCertificates", () => {
     expect(screen.queryByText(/^Failed ·/)).toBeNull();
   });
 
-  it("shows 'Lab not recorded' instead of the placeholder lab name", () => {
+  it("shows a dash instead of the placeholder lab name", () => {
     render(<LotCertificates certs={[cert({ labName: NOT_RECORDED_LAB })]} />);
-    expect(table().getByText("Lab not recorded")).toBeInTheDocument();
-    expect(within(cardsEl()).getByText("Lab not recorded")).toBeInTheDocument();
+    expect(table().getAllByText("—").length).toBeGreaterThan(0);
+    expect(within(cardsEl()).getAllByText("—").length).toBeGreaterThan(0);
     expect(screen.queryByText(NOT_RECORDED_LAB)).toBeNull();
+    expect(screen.queryByText("Lab not recorded")).toBeNull();
   });
 
   it("phones: one stacked card per certificate with lab, report, tested, purity, the test marks and Open / Verify", () => {

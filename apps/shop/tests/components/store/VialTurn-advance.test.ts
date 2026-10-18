@@ -40,6 +40,7 @@ describe("advanceTurn (the turning vial's automatic turn)", () => {
       if (s.lapDone) { done++; expect(turned(angle)).toBeLessThan(0.02); } // just past the front
     }
     expect(done).toBe(MAX_TURNS);
-    expect(frames / 60).toBeGreaterThan(80); // about six slow turns (pauses not counted here)
+    expect(MAX_TURNS).toBe(2); // two turns, then it rests (2026-10-18)
+    expect(frames / 60).toBeGreaterThan(25); // two slow turns, about 13-17 s each (pauses not counted here)
   });
 });
