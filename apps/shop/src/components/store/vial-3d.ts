@@ -12,7 +12,7 @@ import { EXAMPLE_UPC_BARS, EXAMPLE_UPC_DIGITS, LABEL } from "@/lib/vial-label";
 export type VialLabelInput = {
   label: string; label2?: string; strength: string; parts: string[];
   rule: string; cap: "red" | "black" | "white";
-  lot: string | null; qr: string[] | null;
+  lot: string | null; qr: string[];
 };
 
 const PULSE = "M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86";
@@ -75,7 +75,7 @@ function drawLabel(ctx: CanvasRenderingContext2D, k: number, p: VialLabelInput, 
 
   ctx.fillStyle = "#4A4438"; ctx.font = `3.4px ${f.mono}`; ctx.fillText("LOT", LABEL.qrX, 48.5);
   ctx.fillStyle = "#1C1A15"; ctx.font = `4.4px ${f.mono}`; ctx.fillText(p.lot ?? "——————", LABEL.qrX, 54.5);
-  if (p.qr) {
+  {
     const m = LABEL.qrSize / p.qr.length;
     p.qr.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (row[x] === "1") ctx.fillRect(LABEL.qrX + x * m, LABEL.qrY + y * m, m + 0.01, m + 0.01); });
     ctx.fillStyle = "#4A4438"; ctx.font = `2.3px ${f.mono}`;

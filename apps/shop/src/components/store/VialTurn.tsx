@@ -73,7 +73,7 @@ export default function VialTurn({ id, label, label2, strength, parts = [], cap 
     };
     // the label is fixed for the page; parts is a new array each render, so key on its text
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [label, label2, strength, parts.join("|"), cap, rule, lot, qr?.join("")]);
+  }, [label, label2, strength, parts.join("|"), cap, rule, lot, qr.join("")]);
 
   return (
     <div className={`s-vialturn${ready ? " is-3d" : ""}`}>
@@ -85,7 +85,7 @@ export default function VialTurn({ id, label, label2, strength, parts = [], cap 
         className="s-vialturn-3d"
         role="img"
         aria-hidden={!ready || undefined}
-        aria-label={`${label2 ? `${label} ${label2}` : label} ${strength} vial, turning to show its barcode and ${lot ? `the QR code for lot ${lot}'s certificate of analysis` : "the space for its lot's QR code"}`}
+        aria-label={`${label2 ? `${label} ${label2}` : label} ${strength} vial, turning to show its barcode and ${lot ? `the QR code for lot ${lot}'s certificate of analysis` : "a QR code to the certificate lookup"}`}
       />
     </div>
   );

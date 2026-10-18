@@ -8,6 +8,12 @@ export function lotQrUrl(lot: string, base: string = siteUrl()): string {
   return `${base}/L/${encodeURIComponent(lot)}`.toUpperCase();
 }
 
+// Before a strength has its first lot (only before launch: the release check needs a live lot
+// on every strength for sale) the code opens the certificate lookup instead.
+export function coaLookupQrUrl(base: string = siteUrl()): string {
+  return `${base}/coa`;
+}
+
 // Rows of "1" (dark) and "0" (light), no quiet zone; small enough to pass to the browser.
 export function qrRows(text: string): string[] {
   const { modules } = QRCode.create(text, { errorCorrectionLevel: "M" });

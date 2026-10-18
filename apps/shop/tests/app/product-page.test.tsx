@@ -101,12 +101,12 @@ describe("product page", () => {
     expect(container.querySelector(".s-pdp-qrnote")).toHaveTextContent("Every vial carries a QR code that opens its lot's certificate of analysis.");
   });
 
-  it("before a first lot there is no scan code", async () => {
+  it("before a first lot the scan code opens the certificate lookup", async () => {
     const pending = { lot: { pending: true as const } };
     const shown = liveFixture(Object.fromEntries(liveFixture().find((c) => c.slug === "bpc-157")!.variants.map((v) => [`bpc-157:${v.id}`, pending])));
     live.mockResolvedValue({ all: shown, shown, lots: [], certificates: [] });
     const { container } = await renderSlug("bpc-157");
-    expect(container.querySelector(".s-pdp-scan")).toBeNull();
+    expect(container.querySelector(".s-pdp-scan")).not.toBeNull();
   });
 
   it("a single compound's placard has no Contains row", async () => {

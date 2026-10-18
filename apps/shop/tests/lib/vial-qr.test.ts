@@ -1,9 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { lotQrUrl, qrRows } from "@/lib/vial-qr";
+import { coaLookupQrUrl, lotQrUrl, qrRows } from "@/lib/vial-qr";
 
 describe("vial QR", () => {
   it("links to the lot's certificate through /L/, in capitals like the printed label", () => {
     expect(lotQrUrl("bpc-2609-01", "https://auraprotocols.com")).toBe("HTTPS://AURAPROTOCOLS.COM/L/BPC-2609-01");
+  });
+
+  it("before a first lot, opens the certificate lookup", () => {
+    expect(coaLookupQrUrl("https://auraprotocols.com")).toBe("https://auraprotocols.com/coa");
   });
 
   it("is a square of rows small enough for the 0.40 in label (at most 29 squares a side for a lot link)", () => {

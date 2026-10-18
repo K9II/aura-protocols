@@ -7,7 +7,7 @@ import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { findCompound, fromPackPriceUsd, isPendingLot, madeBy, relatedCompounds, toPackPriceUsd, vialCap, vialName, vialParts } from "@/lib/catalog";
 import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import VialTurn from "@/components/store/VialTurn";
-import { lotQrUrl, qrRows } from "@/lib/vial-qr";
+import { coaLookupQrUrl, lotQrUrl, qrRows } from "@/lib/vial-qr";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
 import LotRecord from "@/components/store/LotRecord";
@@ -57,10 +57,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const contains = c.components?.length
     ? c.components.map((s) => catalogContent.find((x) => x.slug === s)?.name ?? s)
     : c.name.includes(" / ") ? c.name.split(" / ") : [];
-  // The vial shows its strength's lot (the one selling now, else the last live one) and
-  // that lot's QR code; before a first lot there's neither.
+  // The vial shows its strength's lot (the one selling now, else the last live one) and a QR
+  // code to that lot's certificate; before a first lot, "LOT ——" and a code to the lookup.
   const vialLot = isPendingLot(c.variants[0].lot) ? null : c.variants[0].lot.lot;
-  const vialQr = vialLot ? qrRows(lotQrUrl(vialLot)) : null;
+  const vialQr = qrRows(vialLot ? lotQrUrl(vialLot) : coaLookupQrUrl());
   const placardRows: Array<[string, ReactNode]> = [
     ["Contains", contains.length ? contains.map((n) => <span key={n} className="s-pdp-part">{n}</span>) : undefined],
     ["CAS", c.identity.cas],
@@ -129,12 +129,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <dl>
                   {placardRows.filter(([, v]) => v).map(([k, v]) => <div key={k} className={k === "Form" ? "s-pdp-form" : k === "Mol. wt" ? "s-pdp-mw" : k === "Contains" ? "s-pdp-contains" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
                 </dl>
-                {vialQr && (
-                  <div className="s-pdp-scan">
-                    <QrSvg rows={vialQr} />
-                    <span>Scan for lot&apos;s certificate of analysis</span>
-                  </div>
-                )}
+                <div className="s-pdp-scan">
+                  <QrSvg rows={vialQr} />
+                  <span>Scan for lot&apos;s certificate of analysis</span>
+                </div>
                 <span className="s-placard-r">Research use only · Not for human use</span>
               </div>
               <div className="s-pdp-vial">
