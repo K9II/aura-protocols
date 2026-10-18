@@ -70,6 +70,7 @@ describe("/ (home)", () => {
     const phone = lineupIn("phone");
     expect(within(phone).queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
     expect(within(phone).getByRole("link", { name: "Shop the lineup →" })).toHaveAttribute("href", "/products");
+    expect(phone).not.toHaveTextContent(/No matching COA/);
   });
 
   it("links the lineup heading to the full inventory", async () => {
