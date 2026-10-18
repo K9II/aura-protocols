@@ -8,6 +8,7 @@ import { findCompound, fromPackPriceUsd, isPendingLot, madeBy, relatedCompounds,
 import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import VialTurn, { type VialStrength } from "@/components/store/VialTurn";
 import PlacardScan from "@/components/store/PlacardScan";
+import QrNote from "@/components/store/QrNote";
 import { coaLookupQrUrl, lotQrUrl, qrRows } from "@/lib/vial-qr";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
@@ -140,7 +141,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <VialTurn id={`pdp-${c.slug}`} slug={c.slug} label={vialName(c)[0]} label2={vialName(c)[1]} cap={vialCap(c)} rule={CLASS_COLOR[c.chemicalClass]} parts={vialParts(c)} strengths={vialStrengths} />
               </div>
             </div>
-            <p className="s-micro s-pdp-qrnote">◇ Every vial carries a QR code that opens its lot&apos;s certificate of analysis.</p>
+            <QrNote slug={c.slug} />
             <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} />
           </div>
           <div className="relative">

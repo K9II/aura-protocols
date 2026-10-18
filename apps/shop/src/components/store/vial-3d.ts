@@ -7,7 +7,7 @@ import {
   CanvasTexture, CylinderGeometry, Group, LatheGeometry, Mesh, OrthographicCamera, Scene,
   ShaderMaterial, Vector2, Vector4, WebGLRenderer, type IUniform,
 } from "three";
-import { EXAMPLE_UPC_BARS, EXAMPLE_UPC_DIGITS, LABEL, MAX_DPR } from "@/lib/vial-label";
+import { EXAMPLE_UPC_BARS, EXAMPLE_UPC_DIGITS, LABEL, MAX_DPR, VIAL_LABEL_HEIGHT, VIAL_LABEL_RADIUS } from "@/lib/vial-label";
 
 export type VialLabelInput = {
   label: string; label2?: string; strength: string; parts: string[];
@@ -125,7 +125,7 @@ export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput):
     mat(body("float k=clamp((vY-10.0)/14.0,0.0,1.0); vec3 col=mix(vec3(.902,.882,.831),vec3(.984,.980,.965),k); float d = t<.2 ? mix(.14,0.0,t/.2) : t>.75 ? mix(0.0,.18,(t-.75)/.25) : 0.0; gl_FragColor=vec4(col*(1.0-d),1.0);"))));
 
   // the label: the store label's height (y 66-160), wrapped round with the front panel facing out
-  const H = 94, R = 40.4, span = ((LABEL.width / 80) * H) / R;
+  const H = VIAL_LABEL_HEIGHT, R = VIAL_LABEL_RADIUS, span = ((LABEL.width / 80) * H) / R;
   const art = document.createElement("canvas"); art.width = LABEL.width * 16; art.height = LABEL.height * 16;
   const paint = (q: VialLabelInput) => { const ctx = art.getContext("2d")!; ctx.clearRect(0, 0, art.width, art.height); drawLabel(ctx, 16, q, fonts); };
   paint(p);
