@@ -109,7 +109,8 @@ export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput):
   const fonts = pageFonts(canvas);
   if (document.fonts) await Promise.all([`500 22px ${fonts.serif}`, `600 14px ${fonts.serif}`, `10px ${fonts.mono}`, `10px ${fonts.sans}`].map((s) => document.fonts.load(s).catch(() => [])));
 
-  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, premultipliedAlpha: false });
+  // default premultiplied alpha: the see-through glass then composites over the page exactly like the SVG
+  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   const scene = new Scene();
   const cam = new OrthographicCamera(-60, 60, 200, 0, -500, 500);
