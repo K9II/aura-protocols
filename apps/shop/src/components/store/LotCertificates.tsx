@@ -48,7 +48,7 @@ export default function LotCertificates({ certs }: { certs: PublicCert[] }) {
                 <tbody>
                   {rows.map((c) => (
                     <tr key={c.id}>
-                      <td>{c.labName === NOT_RECORDED_LAB ? "Lab not recorded" : c.labName}{c.failed && <> · <span className="s-cert-failed">Failed</span></>}</td>
+                      <td>{c.labName === NOT_RECORDED_LAB ? "—" : c.labName}{c.failed && <> · <span className="s-cert-failed">Failed</span></>}</td>
                       <td>{c.reportNumber}</td>
                       <td>{monthDay(c.testedOn)}</td>
                       <td className={c.purityPct == null ? "s-nt" : undefined}>{c.purityPct != null ? `${c.purityPct}% · ${c.method}` : "—"}</td>
@@ -76,7 +76,7 @@ export default function LotCertificates({ certs }: { certs: PublicCert[] }) {
               {rows.map((c) => (
                 <li key={c.id} className="s-lc-card">
                   <dl>
-                    <div><dt className="s-micro">Lab</dt><dd>{c.labName === NOT_RECORDED_LAB ? "Lab not recorded" : c.labName}{c.failed && <> · <span className="s-cert-failed">Failed</span></>}</dd></div>
+                    <div><dt className="s-micro">Lab</dt><dd>{c.labName === NOT_RECORDED_LAB ? "—" : c.labName}{c.failed && <> · <span className="s-cert-failed">Failed</span></>}</dd></div>
                     <div><dt className="s-micro">Report</dt><dd className="s-mono">{c.reportNumber}</dd></div>
                     <div><dt className="s-micro">Tested</dt><dd>{monthDay(c.testedOn)}</dd></div>
                     <div><dt className="s-micro">Purity</dt><dd>{c.purityPct != null ? `${c.purityPct}% · ${c.method}` : "—"}</dd></div>
