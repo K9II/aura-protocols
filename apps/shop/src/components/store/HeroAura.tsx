@@ -19,7 +19,7 @@ export function DictionaryEntry({ className = "" }: { className?: string }) {
 // the 640 box (78.75%), centred; its own caption line drops below the picture.
 // The certificate rings wait for the sphere, then fade in one after another (Alvester, 2026-10-18: 3.5 s — time to read the definition and the headline first).
 const RINGS_IN_AFTER_S = 3.5;
-const RING_STAGGER_S = 0.25;
+const RING_STAGGER_S = 0.4;
 
 export function HeroAura({ rings, children }: { rings: AuraRing[]; children: ReactNode }) {
   const C = 320;
