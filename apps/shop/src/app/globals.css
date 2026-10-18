@@ -685,22 +685,24 @@ main:has(> .pharmacopoeia) {
 @keyframes s-hl-drift { from { transform: translate(0, 0) rotate(-17deg) skewX(-10deg); } to { transform: translate(-130px, 44px) rotate(-12.5deg) skewX(-12deg); } }
 @keyframes s-hl-clouds { 0%, 34%, 84%, 100% { opacity: 1; } 52% { opacity: .5; } 62% { opacity: .58; } }
 @keyframes s-hl-sway { from { -webkit-mask-position: 0 0; mask-position: 0 0; } to { -webkit-mask-position: 112px 0; mask-position: 112px 0; } }
-.pharmacopoeia .s-hl-window { left: 22px; top: 0; }
+.pharmacopoeia .s-hl-window { left: 302px; top: 0; }
 /* The window light always stays with the sphere (Alvester, 2026-10-17): it's laid behind the
    sphere itself (HeroLight where="sphere"), wherever the sphere sits; the band keeps only its
    shade and grain. Desktop: the window starts about 100px left of the sphere and 360px above
-   it, as the original design had it. The layer reaches well past the sphere and fades out. */
+   it, as the original design had it (the layer reaches 400px left so its turn never meets an edge). The layer reaches well past the sphere and fades out. */
 .pharmacopoeia .s-hero-band > .s-hero-light .s-hl-window { display: none; }
 .pharmacopoeia .s-hero-sphere { position: relative; }
 .pharmacopoeia .s-hero-sphere > .s-aura { position: relative; z-index: 1; }
-.pharmacopoeia .s-hero-light--sphere { inset: -360px -40vw -160px -120px;
+/* the words and the lot card stay above the light */
+.pharmacopoeia .s-hero > div:first-child { position: relative; z-index: 2; }
+.pharmacopoeia .s-hero-light--sphere { inset: -360px -40vw -160px -400px;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 200px, #000 calc(100% - 160px), transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 200px, #000 calc(100% - 160px), transparent 100%); }
 @media (max-width: 900px) {
   /* phones: the window falls across the sphere from lower down */
-  .pharmacopoeia .s-hero-light--sphere { inset: -160px 0 -60px;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 140px, #000 calc(100% - 140px), transparent 100%);
-    mask-image: linear-gradient(to bottom, transparent 0, #000 140px, #000 calc(100% - 140px), transparent 100%); }
+  .pharmacopoeia .s-hero-light--sphere { inset: -40px 0 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 110px, #000 calc(100% - 150px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 110px, #000 calc(100% - 150px), transparent 100%); }
   .pharmacopoeia .s-hl-window { left: 6%; top: auto; bottom: 40px; width: 471px; height: 608px; }
   .pharmacopoeia .s-hl-clouds { gap: 19px; }
 }
