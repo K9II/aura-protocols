@@ -287,16 +287,49 @@ export default function BiosignatureSphere({ nodes, pairs }: { nodes: SphereNode
           ctx.strokeStyle = it.color; ctx.lineWidth = it.w; ctx.stroke();
           ctx.strokeStyle = shade(it.color, 0.28); ctx.lineWidth = it.w * 0.35; ctx.stroke(); // cylinder highlight
         } else {
-          const g = ctx.createRadialGradient(it.x - it.r * 0.35, it.y - it.r * 0.4, it.r * 0.1, it.x, it.y, it.r);
-          g.addColorStop(0, shade(it.color, 0.45));
-          g.addColorStop(0.45, it.color);
-          g.addColorStop(1, shade(it.color, -0.45));
-          ctx.beginPath(); ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+          const ball = atomSprite(it.color, it.r);
+          ctx.drawImage(ball, it.x - it.r, it.y - it.r, it.r * 2, it.r * 2);
         }
       }
     }
 
+    // A shaded atom is painted once per colour and size (to the nearest half unit) and
+    // reused: a fresh gradient for every atom on every frame kept phones busy while scrolling.
+    const atomSprites = new Map<string, HTMLCanvasElement>();
+    function atomSprite(color: string, r: number) {
+      const rr = Math.max(0.5, Math.round(r * 2) / 2);
+      const key = `${color}|${rr}`;
+      let c = atomSprites.get(key);
+      if (c) return c;
+      if (atomSprites.size > 400) atomSprites.clear();
+      const px = Math.ceil(rr * 2 * dpr);
+      c = document.createElement("canvas");
+      c.width = c.height = px;
+      const g2 = c.getContext("2d");
+      if (g2) {
+        g2.scale(px / (rr * 2), px / (rr * 2));
+        const g = g2.createRadialGradient(rr * 0.65, rr * 0.6, rr * 0.1, rr, rr, rr);
+        g.addColorStop(0, shade(color, 0.45));
+        g.addColorStop(0.45, color);
+        g.addColorStop(1, shade(color, -0.45));
+        g2.beginPath(); g2.arc(rr, rr, rr, 0, Math.PI * 2); g2.fillStyle = g; g2.fill();
+      }
+      atomSprites.set(key, c);
+      return c;
+    }
+
+    // Phones: while the page is scrolling, the sphere draws every other frame so the
+    // scroll keeps the processor first.
+    let lastScroll = 0;
+    let skipFrame = false;
+    const onScroll = () => { lastScroll = performance.now(); };
+    if (compact) window.addEventListener("scroll", onScroll, { passive: true });
+
     function draw(now: number) {
+      if (compact && running && now - lastScroll < 160) {
+        skipFrame = !skipFrame;
+        if (skipFrame) { raf = requestAnimationFrame(draw); return; }
+      }
       const dt = Math.min((now - lastFrame) / 1000, 0.05);
       lastFrame = now;
       const t = (now - t0) / 1000;
@@ -455,6 +488,7 @@ export default function BiosignatureSphere({ nodes, pairs }: { nodes: SphereNode
       running = false;
       visObs.disconnect();
       document.removeEventListener("visibilitychange", syncRunning);
+      window.removeEventListener("scroll", onScroll);
       if (raf) cancelAnimationFrame(raf);
       resizeObs.disconnect();
       canvas.removeEventListener("pointerdown", onPointerDown);
