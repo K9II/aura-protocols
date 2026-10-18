@@ -56,15 +56,15 @@ export default async function HomePage() {
             </div>
             <TrustRow className="load-in load-5" />
           </div>
-          {/* Phones (under 900px): the lineup comes right after the headline block, before the
-              sphere (mock P1, 2026-10-14, https://claude.ai/artifact/8V1LaYJ4UXD1SeGooF4WN8).
-              Desktop shows the copy further down instead; CSS shows one of the two. */}
-          <HomeLineup featured={phoneLineup} total={live.shown.length} where="phone" />
           <div className="load-in load-5 s-hero-sphere">
             <HeroAura rings={auraRings(live.lots, SEVEN_TEST_PANEL)}>
               <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
             </HeroAura>
           </div>
+          {/* Phones (under 900px): the lineup comes after the sphere, which sits under the lot
+              card (2026-10-17; before that the lineup came first, mock P1 2026-10-14).
+              Desktop shows the copy further down instead; CSS shows one of the two. */}
+          <HomeLineup featured={phoneLineup} total={live.shown.length} where="phone" />
         </section>
         </div>
       </div>

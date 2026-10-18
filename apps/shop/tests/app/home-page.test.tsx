@@ -138,13 +138,14 @@ describe("/ (home)", () => {
     expect(screen.queryByText(/straight/i)).not.toBeInTheDocument();
   });
 
-  it("phones get the lineup inside the hero, after the headline block and before the sphere (mock P1)", async () => {
+  it("phones get the lineup inside the hero, after the headline block and the sphere", async () => {
     await renderHome();
     const phone = lineupIn("phone");
     const hero = document.querySelector(".s-hero")!;
+    const sphere = document.querySelector(".s-hero-sphere")!;
     expect(hero).toContainElement(phone);
-    expect(hero.firstElementChild!.compareDocumentPosition(phone) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(phone.compareDocumentPosition(document.querySelector(".s-hero-sphere")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(hero.firstElementChild!.compareDocumentPosition(sphere) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(sphere.compareDocumentPosition(phone) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(hero).not.toContainElement(lineupIn("desk"));
     // the two copies' vial SVGs never share ids (a hidden copy's gradients would blank the visible one)
     const ids = [...document.querySelectorAll(".s-lineup [id]")].map((e) => e.id);
