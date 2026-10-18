@@ -3,7 +3,7 @@ import { revalidateTag, unstable_cache, updateTag } from "next/cache";
 import { catalogContent, type ChemicalClass } from "@/data/catalog";
 import { mergeCatalog, type LiveCatalog } from "@/lib/catalog-merge";
 import { fetchCatalogOps } from "@/lib/catalog-ops/data";
-import { withDemoResults } from "@/lib/demo-lots";
+import { demoResultsOn, withDemoResults } from "@/lib/demo-lots";
 import { alertOwner } from "@/lib/notify";
 import { publicSupabaseEnv } from "@/lib/supabase/env";
 
@@ -21,7 +21,7 @@ export function coaPublicUrl(path: string): string {
 export async function getLiveCatalog(): Promise<LiveCatalog<ChemicalClass>> {
   const live = mergeCatalog(catalogContent, await cachedOps(), coaPublicUrl);
   // the demo server only: demo lots read as fully tested (lib/demo-lots.ts)
-  return process.env.NODE_ENV === "development" ? withDemoResults(live) : live;
+  return demoResultsOn() ? withDemoResults(live) : live;
 }
 
 // Storefront pages: null means "show Unavailable" — never fall back to code
