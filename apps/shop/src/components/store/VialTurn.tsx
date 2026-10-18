@@ -24,7 +24,7 @@ type Props = {
 // Turning speed in radians a second, by how far the vial has turned from its front: slow
 // while the front panel (the compound) faces out, quicker round the barcode and QR code,
 // easing smoothly between (one turn takes about 18 s with the QR hold, 8 of them within 45° of
-// the front). After MAX_TURNS it rests facing front.
+// the front). After MAX_TURNS (two) it rests facing front.
 // It also eases into the QR code and holds there (QR_HOLD_MS) while the caption under the
 // picture lights up ("aura:vial-qr" event → QrNote), then eases out.
 const SLOW = 0.15, FAST = 1.1;
@@ -32,7 +32,7 @@ const HOLD_MS = 2000; // when the page opens, the front holds still this long be
 const QR_HOLD_MS = 1500;
 // After this many full turns it comes to rest facing front (the compound) and stays there;
 // dragging still turns it.
-export const MAX_TURNS = 6;
+export const MAX_TURNS = 2; // was 6; two everywhere since 2026-10-18 (Alvester)
 const TAU = 2 * Math.PI;
 const turnedOf = (angle: number) => ((-angle % TAU) + TAU) % TAU; // 0 = front facing out
 const speedAt = (angle: number) => {
@@ -82,10 +82,21 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = onQr && still ? -QR_FACING_TURN : 0, onScreen = true, startAt = 0, qrUntil = 0, qrArmed = true, laps = 0, resting = false, finishing = false;
     let drag: { x: number; angle: number } | null = null;
+    // While the page scrolls the vial holds still and draws nothing, so the phone's graphics
+    // go to the scroll (2026-10-18: the turning vial made phones stutter); it picks up again
+    // a moment after the scroll stops.
+    let scrollingUntil = 0, scrollTimer: ReturnType<typeof setTimeout> | undefined;
+    const onScroll = () => {
+      scrollingUntil = performance.now() + 180;
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => wake(), 200);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     const frame = (t: number) => {
       raf = 0;
       if (!vial || !alive) return;
+      if (!drag && performance.now() < scrollingUntil) return; // resumes via the scroll timer
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
       last = t;
       if (qrUntil && (t >= qrUntil || drag)) { qrUntil = 0; announceQr(slug, false); }
@@ -130,12 +141,19 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
       const want = e.contentRect.width * (window.devicePixelRatio || 1);
       px = box && Math.abs(box.inlineSize - want) <= 2 ? { w: box.inlineSize, h: box.blockSize } : {};
       vial?.resize(px.w, px.h);
+      start();
       wake();
     });
     try { sized.observe(canvas, { box: "device-pixel-content-box" }); } catch { sized.observe(canvas); }
     document.addEventListener("visibilitychange", wake);
 
-    import("@/components/store/vial-3d")
+    // Started only once it's on the page: a vial inside something hidden (the desktop strip on a
+    // phone) never builds its 3D scene until it's shown.
+    let started = false;
+    const start = () => {
+      if (started || !canvas.getClientRects().length) return;
+      started = true;
+      import("@/components/store/vial-3d")
       .then(({ mountVial3D }) => mountVial3D(canvas, inputRef.current))
       .then((v) => {
         if (!alive) { v.dispose(); return; }
@@ -146,11 +164,15 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
         if (onQr && still) announceQr(slug, true);
       })
       .catch((err) => console.error("turning vial unavailable; showing the still vial", err));
+    };
+    start();
 
     return () => {
       alive = false;
       if (qrUntil) announceQr(slug, false);
       if (raf) cancelAnimationFrame(raf);
+      clearTimeout(scrollTimer);
+      window.removeEventListener("scroll", onScroll);
       seen.disconnect(); sized.disconnect();
       document.removeEventListener("visibilitychange", wake);
       canvas.removeEventListener("pointerdown", down);

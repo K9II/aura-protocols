@@ -780,6 +780,9 @@ main:has(> .pharmacopoeia) {
     mask-image: linear-gradient(to bottom, transparent 0, #000 110px, #000 calc(100% - 150px), transparent 100%); }
   .pharmacopoeia .s-hl-window { left: 6%; top: auto; bottom: 40px; width: 471px; height: 608px; }
   .pharmacopoeia .s-hl-clouds { gap: 19px; }
+  /* phones keep the drift and the passing cloud but not the curtain's sway: animating the mask
+     redraws the blurred light every frame, which made phones stutter while scrolling (2026-10-18) */
+  .pharmacopoeia .s-hl-clouds i { animation: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pharmacopoeia .s-hl-window, .pharmacopoeia .s-hl-clouds, .pharmacopoeia .s-hl-clouds i { animation: none; }
