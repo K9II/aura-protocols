@@ -618,7 +618,7 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-scan-lab .v { font-family: var(--font-newsreader), Georgia, serif; font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--ink); }
 .pharmacopoeia .s-scan-lab .r { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding-top: 7px; border-top: 1px dotted var(--line); }
 .pharmacopoeia .s-scan-lab .r > span:nth-child(2) { color: var(--ink); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pharmacopoeia .s-scan-lab .r b { font-weight: 500; color: var(--tested); }
+.pharmacopoeia .s-scan-lab .r .ck { width: 10px; height: 5px; margin: 0 2px 3px 2px; border-left: 1.5px solid var(--tested); border-bottom: 1.5px solid var(--tested); transform: rotate(-45deg); align-self: center; }
 .pharmacopoeia .s-scan-ok { display: flex; align-items: center; gap: 10px; color: var(--tested); font-size: 13px; letter-spacing: .14em; font-weight: 500; padding: 4px 0 6px; }
 .pharmacopoeia .s-scan-ok i { width: 34px; height: 34px; border: 1.5px solid var(--tested); border-radius: 50%; position: relative; flex-shrink: 0; }
 .pharmacopoeia .s-scan-ok i::after { content: ''; position: absolute; left: 11px; top: 9px; width: 11px; height: 6px; border-left: 2px solid var(--tested); border-bottom: 2px solid var(--tested); transform: rotate(-45deg); }
@@ -627,6 +627,12 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-scan-side .s-record-link { align-self: flex-start; }
 .pharmacopoeia .s-scan-eyebrow { color: var(--specimen); }
 .pharmacopoeia .s-scan-row { margin-top: 18px; }
+@media (max-width: 1180px) {
+  /* narrower desktops: the words go above the three figures */
+  .pharmacopoeia .s-scan-plate { grid-template-columns: 1fr; }
+  .pharmacopoeia .s-scan-side { order: -1; border-bottom: 1px solid var(--line); }
+  .pharmacopoeia .s-scan-figs { border-right: 0; }
+}
 @media (max-width: 900px) { .pharmacopoeia .s-scan { display: none; } }
 @media (min-width: 901px) { .pharmacopoeia .s-proof-phone-only { display: none; } }
 /* phones: the hero's trust row is left out (2026-10-17); the lot card above carries the proof */

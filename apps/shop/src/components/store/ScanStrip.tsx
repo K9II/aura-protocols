@@ -48,9 +48,9 @@ export default function ScanStrip({ lot, compound, certs, row = true }: { lot: P
                 <span className="k">The lab&apos;s own copy</span>
                 {lab && <span className="v">{lab}</span>}
                 <span className="s-scan-ok"><i />Verified</span>
-                <span className="r"><span>Lot</span><span>{lot.lot}</span><b>Matches</b></span>
-                <span className="r"><span>Purity</span><span>{lot.purityPct}%</span><b>Matches</b></span>
-                <span className="r"><span>Tested</span><span>{tested}</span><b>Matches</b></span>
+                <span className="r"><span>Lot</span><span>{lot.lot}</span><i className="ck" title="Matches" /></span>
+                <span className="r"><span>Purity</span><span>{lot.purityPct}%</span><i className="ck" title="Matches" /></span>
+                <span className="r"><span>Tested</span><span>{tested}</span><i className="ck" title="Matches" /></span>
               </div>
             </div>
             <figcaption><b>Check it at the source.</b>Each certificate links to the lab&apos;s own copy.</figcaption>
