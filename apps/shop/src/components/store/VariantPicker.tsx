@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { Compound } from "@/data/catalog";
 import { isPendingLot, packOptions, strengthInPriceUnit } from "@/lib/catalog";
 import { FREE_SHIPPING_THRESHOLD_USD, linePriceUsd } from "@/lib/cart";
 import { useCart } from "@/components/store/CartProvider";
 import SpecBoxes from "@/components/store/SpecBoxes";
 import TrustRow from "@/components/store/TrustRow";
+import { chooseStrength, forgetStrength, useChosenStrength } from "@/lib/chosen-strength";
 
 const MAX_PACKS = 20;
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -22,7 +23,11 @@ const STOCK_LABEL = { in: "In stock", low: "Low stock", out: "Out of stock" } as
 // the terms sit next to Add to cart at every width.
 export default function VariantPicker({ compound: c, notes, certsHref }: { compound: Compound; notes?: ReactNode; certsHref?: string }) {
   const { add } = useCart();
-  const [variantId, setVariantId] = useState(c.variants[0].id);
+  // the choice is shared: the turning vial and the placard's scan code follow it
+  const chosenId = useChosenStrength(c.slug, c.variants[0].id);
+  const variantId = c.variants.some((v) => v.id === chosenId) ? chosenId : c.variants[0].id;
+  const setVariantId = (id: string) => chooseStrength(c.slug, id);
+  useEffect(() => () => forgetStrength(c.slug), [c.slug]);
   const [packQty, setPackQty] = useState(c.packDiscounts[0].qty);
   const [quantity, setQuantity] = useState(1);
   const variant = c.variants.find((v) => v.id === variantId)!;

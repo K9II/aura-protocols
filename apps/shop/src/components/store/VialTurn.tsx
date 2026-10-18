@@ -2,14 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import Vial from "@/components/store/Vial";
+import { useChosenStrength } from "@/lib/chosen-strength";
 import type { Vial3D, VialLabelInput } from "@/components/store/vial-3d";
 
 // Product page vial: the store's <Vial> paints first (and stays when WebGL isn't there);
 // then the same vial in 3D takes its place and turns slowly to show the barcode and the
 // QR code for its lot. Drag to turn it by hand. Reduce-motion keeps it still on the front.
-// Paused while off screen or in a background tab.
-type Props = Omit<VialLabelInput, "parts" | "cap" | "rule"> & {
-  id: string; parts?: string[]; cap?: VialLabelInput["cap"]; rule?: string;
+// Paused while off screen or in a background tab. It follows the size picker: each strength
+// shows its own strength, lot and QR code (redrawn in place, without restarting the turn).
+export type VialStrength = { id: string; strength: string; lot: string | null; qr: string[] };
+type Props = {
+  id: string; slug: string; label: string; label2?: string; parts?: string[];
+  cap?: VialLabelInput["cap"]; rule?: string; strengths: VialStrength[];
 };
 
 // Turning speed in radians a second, by how far the vial has turned from its front: slow
@@ -27,9 +31,16 @@ function webgl2(): boolean {
   try { return !!document.createElement("canvas").getContext("webgl2"); } catch { return false; }
 }
 
-export default function VialTurn({ id, label, label2, strength, parts = [], cap = "red", rule = "#A32B1F", lot, qr }: Props) {
+export default function VialTurn({ id, slug, label, label2, parts = [], cap = "red", rule = "#A32B1F", strengths }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
+  const chosenId = useChosenStrength(slug, strengths[0].id);
+  const { strength, lot, qr } = strengths.find((s) => s.id === chosenId) ?? strengths[0];
+  const input: VialLabelInput = { label, label2, strength, parts, cap, rule, lot, qr };
+  const inputRef = useRef(input);
+  inputRef.current = input;
+  const vialRef = useRef<Vial3D | null>(null);
+  const wakeRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -64,8 +75,13 @@ export default function VialTurn({ id, label, label2, strength, parts = [], cap 
     document.addEventListener("visibilitychange", wake);
 
     import("@/components/store/vial-3d")
-      .then(({ mountVial3D }) => mountVial3D(canvas, { label, label2, strength, parts, cap, rule, lot, qr }))
-      .then((v) => { if (!alive) { v.dispose(); return; } vial = v; startAt = performance.now() + HOLD_MS; setReady(true); wake(); })
+      .then(({ mountVial3D }) => mountVial3D(canvas, inputRef.current))
+      .then((v) => {
+        if (!alive) { v.dispose(); return; }
+        vial = v; vialRef.current = v; wakeRef.current = wake;
+        v.setLabel(inputRef.current); // a size picked while it loaded
+        startAt = performance.now() + HOLD_MS; setReady(true); wake();
+      })
       .catch((err) => console.error("turning vial unavailable; showing the still vial", err));
 
     return () => {
@@ -78,10 +94,19 @@ export default function VialTurn({ id, label, label2, strength, parts = [], cap 
       canvas.removeEventListener("pointerup", up);
       canvas.removeEventListener("pointercancel", up);
       vial?.dispose();
+      vialRef.current = null; wakeRef.current = () => {};
     };
-    // the label is fixed for the page; parts is a new array each render, so key on its text
+    // the product is fixed for the page; parts is a new array each render, so key on its text
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [label, label2, strength, parts.join("|"), cap, rule, lot, qr.join("")]);
+  }, [label, label2, parts.join("|"), cap, rule]);
+
+  // a new size: redraw the label where it is
+  const qrKey = qr.join("");
+  useEffect(() => {
+    if (!vialRef.current) return;
+    vialRef.current.setLabel(inputRef.current);
+    wakeRef.current();
+  }, [strength, lot, qrKey]);
 
   return (
     <div className={`s-vialturn${ready ? " is-3d" : ""}`}>

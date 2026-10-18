@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { liveFixture } from "../helpers/live-catalog";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import ProductPage from "@/app/products/[slug]/page";
 import { CartProvider } from "@/components/store/CartProvider";
 
@@ -99,6 +99,21 @@ describe("product page", () => {
     // the store's still vial paints first (no WebGL in tests)
     expect(within(container.querySelector(".s-pdp-vial") as HTMLElement).getByRole("img", { name: /BPC-157 .* vial$/ })).toBeInTheDocument();
     expect(container.querySelector(".s-pdp-qrnote")).toHaveTextContent("Every vial carries a QR code that opens its lot's certificate of analysis.");
+  });
+
+  it("the vial and the scan code follow the size picker: each strength shows its own lot and code", async () => {
+    const shown = liveFixture({ "ss-31:50mg": { lot: { pending: true } } });
+    live.mockResolvedValue({ all: shown, shown, lots: [], certificates: [] });
+    const { container } = await renderSlug("ss-31");
+    const vial = () => within(container.querySelector(".s-pdp-vial") as HTMLElement).getByRole("img", { name: /vial$/ });
+    const code = () => container.querySelector(".s-pdp-scan svg path")!.getAttribute("d");
+    expect(vial()).toHaveAccessibleName(/10 mg vial$/);
+    const firstCode = code();
+    fireEvent.click(screen.getByRole("button", { name: "50 mg" }));
+    expect(vial()).toHaveAccessibleName(/50 mg vial$/);
+    expect(code()).not.toBe(firstCode); // 50 mg has no lot yet: the lookup's code
+    fireEvent.click(screen.getByRole("button", { name: "10 mg" }));
+    expect(code()).toBe(firstCode);
   });
 
   it("before a first lot the scan code opens the certificate lookup", async () => {

@@ -103,7 +103,7 @@ const mat = (frag: string, uniforms: Record<string, IUniform> = stops([]), trans
 const Y = (y: number) => 200 - y; // SVG y (down) to height (up)
 const f1 = (n: number) => n.toFixed(1);
 
-export type Vial3D = { setAngle(a: number): void; render(): void; resize(): void; dispose(): void };
+export type Vial3D = { setAngle(a: number): void; setLabel(p: VialLabelInput): void; render(): void; resize(): void; dispose(): void };
 
 export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput): Promise<Vial3D> {
   const fonts = pageFonts(canvas);
@@ -126,7 +126,8 @@ export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput):
   // the label: the store label's height (y 66-160), wrapped round with the front panel facing out
   const H = 94, R = 40.4, span = ((LABEL.width / 80) * H) / R;
   const art = document.createElement("canvas"); art.width = LABEL.width * 16; art.height = LABEL.height * 16;
-  drawLabel(art.getContext("2d")!, 16, p, fonts);
+  const paint = (q: VialLabelInput) => { const ctx = art.getContext("2d")!; ctx.clearRect(0, 0, art.width, art.height); drawLabel(ctx, 16, q, fonts); };
+  paint(p);
   const tex = new CanvasTexture(art); tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const label = new Mesh(new CylinderGeometry(R, R, H, 256, 1, true, -span * (40 / LABEL.width), span),
     mat(body("vec4 c=texture2D(uMap,vUv); float d = t<.12 ? mix(.16,0.0,t/.12) : t>.8 ? mix(0.0,.2,(t-.8)/.2) : 0.0; vec3 col=c.rgb*(1.0-d); if(t>.02&&t<.0375) col=mix(col,vec3(1.0),.5); if(t>.944&&t<.959) col=mix(col,vec3(1.0),.3); gl_FragColor=vec4(col,1.0);", "uniform sampler2D uMap; "),
@@ -158,6 +159,7 @@ export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput):
   resize();
   return {
     setAngle: (a) => { vial.rotation.y = a; },
+    setLabel: (q) => { paint(q); tex.needsUpdate = true; },
     render: () => renderer.render(scene, cam),
     resize,
     dispose: () => {
