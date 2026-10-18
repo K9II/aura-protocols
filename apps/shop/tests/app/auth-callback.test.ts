@@ -32,6 +32,15 @@ describe("GET /auth/callback", () => {
     expect((await get("?code=abc&next=/admin")).headers.get("location")).toBe("https://shop.test/admin");
   });
 
+  it("exchanges with the returning sign-in's own verifier (sb_flow_id), so a second sign-in started meanwhile can't break it", async () => {
+    exchangeCodeForSession.mockResolvedValue(ok());
+    customerStatus.mockResolvedValue("ok");
+    await get("?flow=google&next=/products&code=abc&sb_flow_id=ce752f72f063ef30bdea62f42768ec6c", VERIFIER);
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("abc", { flowId: "ce752f72f063ef30bdea62f42768ec6c" });
+    await get("?code=abc&next=/products");
+    expect(exchangeCodeForSession).toHaveBeenLastCalledWith("abc", undefined);
+  });
+
   it("an existing customer goes to the safe next path", async () => {
     exchangeCodeForSession.mockResolvedValue(ok());
     customerStatus.mockResolvedValue("ok");

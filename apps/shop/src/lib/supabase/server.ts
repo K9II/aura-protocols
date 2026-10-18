@@ -17,6 +17,11 @@ export async function createSupabaseServerClient(opts: { sessionOnly?: boolean }
   const { url, anonKey } = publicSupabaseEnv();
   const sessionOnly = opts.sessionOnly ?? cookieStore.get(SESSION_ONLY_COOKIE)?.value === "1";
   return createServerClient(url, anonKey, {
+    // Each PKCE sign-in (Google, email links) keeps its own verifier and puts
+    // its id on the return URL as sb_flow_id; /auth/callback exchanges with
+    // that id. Without it the newest verifier is used, so a double-clicked
+    // Google button (two sign-ins started) failed the first time (2026-10-18).
+    auth: { experimental: { appendPkceFlowIdToRedirects: true } },
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (list) => {

@@ -47,7 +47,9 @@ export async function GET(request: Request): Promise<Response> {
 
   const next = safeNext(q.get("next"));
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+  // The sign-in this return belongs to (lib/supabase/server.ts): its own verifier, not the newest one.
+  const flowId = q.get("sb_flow_id");
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code, flowId ? { flowId } : undefined);
   if ((error as { code?: string } | null)?.code === "user_banned") return go("/sign-in?error=closed");
   if (error || !data?.user) {
     console.error("auth callback: code exchange failed", google ? "google" : "link", error?.message ?? "no user");
