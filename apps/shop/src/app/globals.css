@@ -596,6 +596,8 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-proof-f small { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
 .pharmacopoeia .s-proof-link { color: var(--tested); border-bottom: 1px solid var(--tested); font-size: 15px; }
 .pharmacopoeia .s-proof-ph { display: none; }
+/* phones: the hero's trust row is left out (2026-10-17); the lot card above carries the proof */
+@media (max-width: 640px) { .pharmacopoeia .s-hero .s-trust { display: none; } }
 @media (max-width: 640px) {
   .pharmacopoeia .s-proof-body { grid-template-columns: 96px minmax(0, 1fr); column-gap: 14px; }
   .pharmacopoeia .s-proof-vial { padding-top: 34px; }
