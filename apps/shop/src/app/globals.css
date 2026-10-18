@@ -656,6 +656,13 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia .s-aura-pic { width: calc(100% - 8px); max-width: none; }
   .pharmacopoeia .s-aura-core { left: 18%; width: 64%; top: 17.3%; }
   .pharmacopoeia .s-aura-core > div > div:last-child { left: -28.125%; right: -28.125%; top: 126.45%; }
+  /* the sphere's side labels ("CJC-1295 / Ipamorelin") reach the inner ring here, so the rings
+     move outward (252→286, 274→300, 295→314) and the faintest, outermost one ("Scan the vial ·
+     read the certificate" — the lot card says it) is left out (2026-10-17) */
+  .pharmacopoeia .s-aura-rings > :nth-child(1) { transform: scale(1.135); }
+  .pharmacopoeia .s-aura-rings > :nth-child(2) { transform: scale(1.095); }
+  .pharmacopoeia .s-aura-rings > :nth-child(3) { transform: scale(1.064); }
+  .pharmacopoeia .s-aura-rings > :nth-child(4) { display: none; }
   .pharmacopoeia .s-aura figcaption { padding-inline: 16px; }
 }
 /* Home lineup (mock P1, 2026-10-14): phones see it inside the hero, between the
