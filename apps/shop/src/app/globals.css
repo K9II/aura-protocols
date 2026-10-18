@@ -771,6 +771,20 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-pdp-vial svg { display: block; width: 100%; height: auto; filter: none !important; }
 .pharmacopoeia .s-pdp-tile .s-coa-tag { top: 16px; left: 16px; font-size: 13px; padding: 5px 11px; }
 .pharmacopoeia .s-pdp-tile .s-flag { top: 16px; right: 16px; font-size: 12px; padding: 6px 9px; }
+/* Turning vial (VialTurn, 2026-10-17): the store's still vial paints first; the 3D one sits
+   exactly over it and takes its place once ready. Vertical swipes still scroll the page. */
+.pharmacopoeia .s-vialturn { position: relative; }
+.pharmacopoeia .s-vialturn-3d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; visibility: hidden; cursor: grab; touch-action: pan-y; }
+.pharmacopoeia .s-vialturn-3d:active { cursor: grabbing; }
+.pharmacopoeia .s-vialturn.is-3d .s-vialturn-3d { visibility: visible; }
+.pharmacopoeia .s-vialturn.is-3d .s-vialturn-still { visibility: hidden; }
+/* the placard's scan code: desktop only (phones can't scan their own screen) */
+.pharmacopoeia .s-pdp-scan { margin-top: auto; display: flex; align-items: center; gap: 12px; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); line-height: 1.5; }
+.pharmacopoeia .s-pdp-scan svg { width: 84px; height: 84px; flex: none; border: 1px solid #DCD5C3; padding: 4px; background: #fff; }
+.pharmacopoeia .s-pdp-scan + .s-placard-r { margin-top: 12px; }
+@media (max-width: 900px) { .pharmacopoeia .s-pdp-scan { display: none; } }
+.pharmacopoeia .s-pdp-qrnote { margin: 12px 0 0; font-size: 11px; letter-spacing: .1em; line-height: 1.6; color: var(--ink-soft); }
+@media (max-width: 900px) { .pharmacopoeia .s-pdp-qrnote { order: 1; width: 100%; max-width: 560px; justify-self: center; } }
 /* single column: the tile would fill the width and grow taller than the screen */
 @media (max-width: 900px) { .pharmacopoeia .s-pdp-tile { width: 100%; max-width: 560px; justify-self: center; } }
 @media (max-width: 640px) {

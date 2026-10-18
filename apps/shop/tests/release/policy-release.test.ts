@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GOVERNING_STATE, DISPATCH_BUSINESS_DAYS } from "../../src/lib/constants";
+import { UPC_IS_PLACEHOLDER } from "../../src/lib/vial-label";
 
 // Run before unpausing Vercel:  RELEASE_CHECK=1 pnpm --filter @aura/shop test
 // Fails while the policy pages still carry launch placeholders.
@@ -10,5 +11,9 @@ describe.skipIf(!process.env.RELEASE_CHECK)("release check — policies", () => 
 
   it("states a dispatch time on the Shipping page", () => {
     expect(DISPATCH_BUSINESS_DAYS, "set DISPATCH_BUSINESS_DAYS once Rapid confirms").not.toBeNull();
+  });
+
+  it("shows real UPCs on the product page's turning vial", () => {
+    expect(UPC_IS_PLACEHOLDER, "replace the example UPC in lib/vial-label.ts with each strength's GS1 UPC").toBe(false);
   });
 });
