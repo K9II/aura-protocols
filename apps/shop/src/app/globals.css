@@ -577,6 +577,8 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-aura-rings text { font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; }
 /* the canvas (719 × 639) is 504 wide in the 640 box, centred: top = (320 − 224) / 640 */
 .pharmacopoeia .s-aura-core { position: absolute; left: 10.625%; width: 78.75%; top: 15%; }
+/* the canvas frame hides overflow; inside the rings the side labels may reach past the canvas */
+.pharmacopoeia .s-aura-core > .overflow-hidden { overflow: visible; }
 /* the sphere's own caption line drops from under the canvas to just below the picture
    (canvas height 448 → the box's bottom edge is (448 + 96) / 448 of it) */
 .pharmacopoeia .s-aura-core > div > div:last-child { position: absolute; left: -13.5%; right: -13.5%; top: 121.43%; }
@@ -600,13 +602,12 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia .s-panel-h { padding: 9px 12px; }
   .pharmacopoeia .s-panel-list li { column-gap: 10px; padding: 8px 12px; }
   .pharmacopoeia .s-panel-list span { font-size: 13px; }
-  /* Phones draw the sphere's compact canvas (460 × 470, BiosignatureSphere) at the full
-     phone width, as before; the rings go just outside its side labels, so their sides
-     run off the screen and the top and bottom arcs show. Picture = 4/3 of the width,
-     canvas 75% of it, centred; its caption again drops to just below the picture. */
-  .pharmacopoeia .s-aura-pic { width: 133.333%; max-width: none; margin-inline: -16.667%; }
-  .pharmacopoeia .s-aura-core { left: 12.5%; width: 75%; top: 11.685%; }
-  .pharmacopoeia .s-aura-core > div > div:last-child { left: 0; right: 0; top: 115.25%; }
+  /* Phones: the whole picture fits the screen (nothing clipped, 2026-10-17). The sphere's
+     compact canvas (460 × 470, BiosignatureSphere) is 64% of it, centred; its labels
+     sit over the faint outer rings with a paper glow. Its caption drops below the picture. */
+  .pharmacopoeia .s-aura-pic { width: calc(100% - 8px); max-width: none; }
+  .pharmacopoeia .s-aura-core { left: 18%; width: 64%; top: 17.3%; }
+  .pharmacopoeia .s-aura-core > div > div:last-child { left: -28.125%; right: -28.125%; top: 126.45%; }
   .pharmacopoeia .s-aura figcaption { padding-inline: 16px; }
 }
 /* Home lineup (mock P1, 2026-10-14): phones see it inside the hero, between the
