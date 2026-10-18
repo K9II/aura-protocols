@@ -17,6 +17,10 @@ export function DictionaryEntry({ className = "" }: { className?: string }) {
 
 // The sphere inside rings of certificate text. The sphere's canvas is 504 wide in
 // the 640 box (78.75%), centred; its own caption line drops below the picture.
+// The certificate rings wait for the sphere, then fade in one after another (Alvester, 2026-10-18: 2.5 s).
+const RINGS_IN_AFTER_S = 2.5;
+const RING_STAGGER_S = 0.25;
+
 export function HeroAura({ rings, children }: { rings: AuraRing[]; children: ReactNode }) {
   const C = 320;
   return (
@@ -29,7 +33,7 @@ export function HeroAura({ rings, children }: { rings: AuraRing[]; children: Rea
             const id = `s-aura-r${i}`;
             const circ = 2 * Math.PI * R.r;
             return (
-              <div key={id} className="s-aura-in" style={{ animationDelay: `${0.2 + i * 0.16}s` }}>
+              <div key={id} className="s-aura-in" style={{ animationDelay: `${RINGS_IN_AFTER_S + i * RING_STAGGER_S}s` }}>
                 <div className="s-aura-ring" style={{ animationDuration: `${R.seconds}s`, animationDirection: R.reverse ? "reverse" : "normal" }}>
                   <svg viewBox="0 0 640 640" aria-hidden fill={R.fill} opacity={R.opacity}>
                     <circle cx={C} cy={C} r={R.r + R.size * 0.78} fill="none" stroke="#C9C2AE" strokeWidth=".7" strokeDasharray="1 5" />
