@@ -10,7 +10,7 @@ export function DictionaryEntry({ className = "" }: { className?: string }) {
       <span className="s-dict-hw">au<i>·</i>ra</span>
       <span className="s-dict-pr">/ˈôr-ə/</span>
       <span className="s-dict-pos">noun</span>
-      <span className="s-dict-def"><span className="s-dict-n">1.</span>the distinct quality that surrounds something.</span>
+      <span className="s-dict-def"><span className="s-dict-n">1.</span>the distinct quality that <em>surrounds</em> something.</span>
     </p>
   );
 }

@@ -21,7 +21,9 @@ describe("/ (home)", () => {
 
   it("leads with the au·ra dictionary entry and the proof headline; no paragraph, no 7-test panel", async () => {
     await renderHome();
-    expect(screen.getByText("the distinct quality that surrounds something.")).toBeInTheDocument();
+    const def = document.querySelector(".s-dict-def")!;
+    expect(def).toHaveTextContent("1.the distinct quality that surrounds something.");
+    expect(def.querySelector("em")).toHaveTextContent("surrounds"); // in red (2026-10-18)
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^Our compounds come surrounded by\sproof\.$/);
     expect(screen.queryByRole("group", { name: /seven tests every lot passes/i })).not.toBeInTheDocument();
     expect(document.querySelector(".s-hero .s-sub")).toBeNull();
