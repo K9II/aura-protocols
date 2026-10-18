@@ -709,7 +709,7 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-aura-rings { --rings-after: 3.5s; --ring-gap: .4s; }
 .pharmacopoeia .s-aura-in { animation: s-aura-in 2.6s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--rings-after) + var(--ring-i, 0) * var(--ring-gap)); }
 @media (max-width: 640px) {
-  .pharmacopoeia .s-aura-rings { --rings-after: .5s; }
+  .pharmacopoeia .s-aura-rings { --rings-after: 1.2s; }
   .pharmacopoeia .s-aura-rings:not(.in-view) .s-aura-in { animation-play-state: paused; }
 }
 @keyframes s-aura-spin { to { transform: rotate(360deg); } }

@@ -19,7 +19,7 @@ export function DictionaryEntry({ className = "" }: { className?: string }) {
 // the 640 box (78.75%), centred; its own caption line drops below the picture.
 // The certificate rings fade in one after another, slowly (Alvester, 2026-10-18). Desktop: 3.5 s
 // after load — time to read the definition and the headline first. Phones (the sphere is below
-// the fold): only once the sphere is scrolled into view (ScrollReveal adds .in-view), then 0.5 s.
+// the fold): only once the sphere is scrolled into view (ScrollReveal adds .in-view), then 1.2 s.
 // The timings live in globals.css (.s-aura-in); each ring passes only its place in the order.
 
 export function HeroAura({ rings, children }: { rings: AuraRing[]; children: ReactNode }) {
