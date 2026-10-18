@@ -4,6 +4,7 @@ import type { Compound } from "@/data/catalog";
 import type { PublicCert, PublicLot } from "@/data/catalog-types";
 import { vialCap, vialName, vialParts } from "@/lib/catalog";
 import { CLASS_COLOR } from "@/lib/class-colors";
+import { NOT_RECORDED_LAB } from "@/lib/coa/rules";
 import { lotQrUrl, qrRows } from "@/lib/vial-qr";
 
 // Desktop home, option A "Scan strip" (2026-10-17, https://claude.ai/artifact/9QomoXo9brSgbXvQEfD13c):
@@ -12,7 +13,7 @@ import { lotQrUrl, qrRows } from "@/lib/vial-qr";
 // the lab's own copy — beside a side column; the newest lot's row underneath.
 export default function ScanStrip({ lot, compound, certs, row = true }: { lot: PublicLot; compound: Compound; certs: PublicCert[]; row?: boolean }) {
   const [label, label2] = vialName(compound);
-  const cert = certs.find((c) => c.lot === lot.lot && c.verifyUrl) ?? certs.find((c) => c.lot === lot.lot);
+  const lab = certs.find((c) => c.lot === lot.lot && c.labName !== NOT_RECORDED_LAB)?.labName ?? null;
   const tested = new Date(`${lot.testedOn}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
   return (
     <section className="s-scan" aria-labelledby="scan-strip-h">
@@ -41,13 +42,15 @@ export default function ScanStrip({ lot, compound, certs, row = true }: { lot: P
           <figure>
             <span className="s-scan-tag"><b>Fig. 3</b><span>The lab</span></span>
             <div className="s-scan-art">
+              {/* a successful check against the lab's own copy; the lab is named only when it's a real
+                  lab on file (never the "Not recorded" placeholder of the old test lots) */}
               <div className="s-scan-lab" aria-hidden>
                 <span className="k">The lab&apos;s own copy</span>
-                {cert && <span className="v">{cert.labName}</span>}
-                {cert && <span className="r"><span>Report</span><span>{cert.reportNumber}</span></span>}
-                <span className="r"><span>Lot</span><span>{lot.lot}</span></span>
-                <span className="bar" /><span className="bar s" />
-                <span className="seal">Lab</span>
+                {lab && <span className="v">{lab}</span>}
+                <span className="s-scan-ok"><i />Verified</span>
+                <span className="r"><span>Lot</span><span>{lot.lot}</span><b>Matches</b></span>
+                <span className="r"><span>Purity</span><span>{lot.purityPct}%</span><b>Matches</b></span>
+                <span className="r"><span>Tested</span><span>{tested}</span><b>Matches</b></span>
               </div>
             </div>
             <figcaption><b>Check it at the source.</b>Each certificate links to the lab&apos;s own copy.</figcaption>
