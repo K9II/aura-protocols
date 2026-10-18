@@ -82,6 +82,19 @@ describe("product page", () => {
     expect(within(data).getByText("Solid-phase synthesis, HPLC-purified")).toBeInTheDocument();
   });
 
+  it("a blend's placard lists what it contains, one per line, in place of CAS and formula", async () => {
+    const { container } = await renderSlug("bpc-157-tb-500-ghk-cu-kpv");
+    const placard = container.querySelector(".s-pdp-placard")!;
+    expect(within(placard as HTMLElement).getByText("Contains")).toBeInTheDocument();
+    expect([...placard.querySelectorAll(".s-pdp-part")].map((e) => e.textContent)).toEqual(["BPC-157", "TB-500", "GHK-Cu", "KPV"]);
+    expect(placard.textContent).not.toContain("CAS");
+  });
+
+  it("a single compound's placard has no Contains row", async () => {
+    const { container } = await renderSlug("bpc-157");
+    expect(container.querySelector(".s-pdp-placard")!.textContent).not.toContain("Contains");
+  });
+
   it("buy panel holds the pack choice, Add to cart and shipping line; it comes first (phones), desktop puts the proof above it", async () => {
     const { container } = await renderSlug("bpc-157");
     const buy = container.querySelector(".s-buy")!;
