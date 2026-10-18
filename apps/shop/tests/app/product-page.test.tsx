@@ -90,6 +90,25 @@ describe("product page", () => {
     expect(placard.textContent).not.toContain("CAS");
   });
 
+  it("the vial shows its lot: a scan code for that lot's certificate on the placard and a line under the picture", async () => {
+    const { container } = await renderSlug("bpc-157");
+    const scan = container.querySelector(".s-pdp-placard .s-pdp-scan")!;
+    expect(scan).toHaveTextContent("Scan for lot's certificate of analysis");
+    expect(scan.querySelector("svg path")!.getAttribute("d")).toMatch(/^M\d+,\d+h1v1h-1z/);
+    expect(container.querySelector(".s-pdp-vial .s-vialturn")).not.toBeNull();
+    // the store's still vial paints first (no WebGL in tests)
+    expect(within(container.querySelector(".s-pdp-vial") as HTMLElement).getByRole("img", { name: /BPC-157 .* vial$/ })).toBeInTheDocument();
+    expect(container.querySelector(".s-pdp-qrnote")).toHaveTextContent("Every vial carries a QR code that opens its lot's certificate of analysis.");
+  });
+
+  it("before a first lot there is no scan code", async () => {
+    const pending = { lot: { pending: true as const } };
+    const shown = liveFixture(Object.fromEntries(liveFixture().find((c) => c.slug === "bpc-157")!.variants.map((v) => [`bpc-157:${v.id}`, pending])));
+    live.mockResolvedValue({ all: shown, shown, lots: [], certificates: [] });
+    const { container } = await renderSlug("bpc-157");
+    expect(container.querySelector(".s-pdp-scan")).toBeNull();
+  });
+
   it("a single compound's placard has no Contains row", async () => {
     const { container } = await renderSlug("bpc-157");
     expect(container.querySelector(".s-pdp-placard")!.textContent).not.toContain("Contains");
