@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import type { Metadata } from "next";
 import { catalogContent } from "@/data/catalog";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
@@ -124,7 +124,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {hasCertificate && <span className="s-coa-tag">◇ COA on file</span>}
               {allOut ? <span className="s-flag s-flag--out s-micro">Out of stock</span> : anyLow ? <span className="s-flag s-micro">Low stock</span> : null}
               <div className="s-pdp-placard" aria-hidden>
-                <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass)}</span>
+                <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass).split(" ").map((w, i) => <Fragment key={i}>{i ? " " : ""}<span className="whitespace-nowrap">{w}</span></Fragment>)}</span>
                 <span className="s-pdp-placard-n">{vialName(c).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
                 <dl>
                   {placardRows.filter(([, v]) => v).map(([k, v]) => <div key={k} className={k === "Form" ? "s-pdp-form" : k === "Mol. wt" ? "s-pdp-mw" : k === "Contains" ? "s-pdp-contains" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}

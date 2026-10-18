@@ -35,7 +35,7 @@ export default function CompoundCard({ compound: c, index = 0, idScope = "" }: {
           <span className="s-flag s-micro">Low stock</span>
         ) : null}
         <div className="s-placard" aria-hidden>
-          <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass)}</span>
+          <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass).split(" ").map((w, i) => <Fragment key={i}>{i ? " " : ""}<span className="whitespace-nowrap">{w}</span></Fragment>)}</span>
           <span className="s-placard-n">{vialName(c).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
           {idLine && <span className="s-placard-id">{idLine}</span>}
           <span className="s-placard-r">Research use only · Not for human use</span>
