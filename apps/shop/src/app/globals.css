@@ -611,9 +611,10 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-scan-figs figcaption b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 18px; display: block; margin-bottom: 2px; }
 .pharmacopoeia .s-scan-vial .s-vialturn { width: 150px; filter: drop-shadow(6px 10px 9px rgba(28,26,21,.2)); }
 .pharmacopoeia .s-scan-vial .s-vialturn svg { display: block; width: 100%; height: auto; }
-/* the live certificate page at phone width (390 × 760), shown at half size in a phone */
-.pharmacopoeia .s-scan-phone { width: 209px; height: 394px; border: 7px solid #1C1A15; border-radius: 24px; overflow: hidden; background: var(--paper); box-shadow: 0 12px 24px -12px rgba(28,26,21,.45); position: relative; }
-.pharmacopoeia .s-scan-phone iframe { position: absolute; left: 0; top: 0; width: 390px; height: 760px; border: 0; transform: scale(.5); transform-origin: 0 0; pointer-events: none; }
+/* the live certificate page at a 360-wide phone, shown at 0.628 with `zoom` — the frame's page is
+   laid out and its text drawn at the final size (sharp), where a scale transform blurred it */
+.pharmacopoeia .s-scan-phone { width: 240px; height: 444px; border: 7px solid #1C1A15; border-radius: 26px; overflow: hidden; background: var(--paper); box-shadow: 0 12px 24px -12px rgba(28,26,21,.45); }
+.pharmacopoeia .s-scan-phone iframe { display: block; width: 360px; height: 685px; border: 0; zoom: .628; pointer-events: none; }
 .pharmacopoeia .s-scan-lab { width: 86%; max-width: 236px; background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--tested); padding: 14px; display: grid; gap: 8px; box-shadow: 0 12px 24px -16px rgba(28,26,21,.4); font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
 .pharmacopoeia .s-scan-lab .v { font-family: var(--font-newsreader), Georgia, serif; font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--ink); }
 .pharmacopoeia .s-scan-lab .r { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding-top: 7px; border-top: 1px dotted var(--line); }
