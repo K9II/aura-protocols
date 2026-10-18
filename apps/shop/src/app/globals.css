@@ -2240,4 +2240,5 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   main > .pharmacopoeia > div:first-of-type[class*="py-1"] { padding-top: 24px; }
   .pharmacopoeia .s-shophero { padding-top: 20px; }
   .pharmacopoeia .s-pdp { padding-top: 20px; }
+  .pharmacopoeia .s-about-head { padding-top: 24px; }
 }
