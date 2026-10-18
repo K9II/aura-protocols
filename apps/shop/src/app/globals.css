@@ -704,7 +704,14 @@ main:has(> .pharmacopoeia) {
 /* the sphere's compound links read over the ring text */
 .pharmacopoeia .s-aura .p-biosig-peptide { text-shadow: 0 0 4px var(--paper), 0 0 8px var(--paper), 0 0 12px var(--paper); }
 .pharmacopoeia .s-aura-ring { will-change: transform; animation: s-aura-spin 200s linear infinite; }
-.pharmacopoeia .s-aura-in { animation: s-aura-in 1.3s cubic-bezier(.2,.7,.2,1) both; }
+/* the rings fade in one after another (HeroAura): desktop 3.5 s after load; phones wait until the
+   sphere is scrolled into view (ScrollReveal adds .in-view; the delay doesn't count while paused) */
+.pharmacopoeia .s-aura-rings { --rings-after: 3.5s; --ring-gap: .4s; }
+.pharmacopoeia .s-aura-in { animation: s-aura-in 2.6s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--rings-after) + var(--ring-i, 0) * var(--ring-gap)); }
+@media (max-width: 640px) {
+  .pharmacopoeia .s-aura-rings { --rings-after: 1.2s; }
+  .pharmacopoeia .s-aura-rings:not(.in-view) .s-aura-in { animation-play-state: paused; }
+}
 @keyframes s-aura-spin { to { transform: rotate(360deg); } }
 /* fade only: growing a layer that's turned by the compositor leaves its text
    rasterised at the starting size, so phones showed the rings pixelated */

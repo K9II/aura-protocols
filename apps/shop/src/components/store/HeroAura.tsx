@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ringRepeat, type AuraRing } from "@/lib/hero-aura";
 
 // Home hero, mock v4 "1 · Dictionary" (2026-10-17, https://claude.ai/artifact/Mha5JnMX9YXXAcsXEqgAwN).
@@ -17,6 +17,11 @@ export function DictionaryEntry({ className = "" }: { className?: string }) {
 
 // The sphere inside rings of certificate text. The sphere's canvas is 504 wide in
 // the 640 box (78.75%), centred; its own caption line drops below the picture.
+// The certificate rings fade in one after another, slowly (Alvester, 2026-10-18). Desktop: 3.5 s
+// after load — time to read the definition and the headline first. Phones (the sphere is below
+// the fold): only once the sphere is scrolled into view (ScrollReveal adds .in-view), then 1.2 s.
+// The timings live in globals.css (.s-aura-in); each ring passes only its place in the order.
+
 export function HeroAura({ rings, children }: { rings: AuraRing[]; children: ReactNode }) {
   const C = 320;
   return (
@@ -29,7 +34,7 @@ export function HeroAura({ rings, children }: { rings: AuraRing[]; children: Rea
             const id = `s-aura-r${i}`;
             const circ = 2 * Math.PI * R.r;
             return (
-              <div key={id} className="s-aura-in" style={{ animationDelay: `${0.2 + i * 0.16}s` }}>
+              <div key={id} className="s-aura-in" style={{ "--ring-i": i } as CSSProperties}>
                 <div className="s-aura-ring" style={{ animationDuration: `${R.seconds}s`, animationDirection: R.reverse ? "reverse" : "normal" }}>
                   <svg viewBox="0 0 640 640" aria-hidden fill={R.fill} opacity={R.opacity}>
                     <circle cx={C} cy={C} r={R.r + R.size * 0.78} fill="none" stroke="#C9C2AE" strokeWidth=".7" strokeDasharray="1 5" />
