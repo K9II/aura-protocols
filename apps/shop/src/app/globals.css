@@ -2233,6 +2233,15 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-ws-page .s-nw { white-space: nowrap; }
 .pharmacopoeia .s-ws-page .s-contact-who { font-size: var(--ws-text); }
 
+/* Jumps to a section (#library) and fields scrolled into view for the keyboard stop below
+   the pinned header instead of under it. */
+html { scroll-padding-top: 150px; }
+@media (max-width: 640px) {
+  html { scroll-padding-top: 84px; }
+  /* sections that set their own room for the old 201 px header */
+  .pharmacopoeia #lot-certificates, .pharmacopoeia .s-policy-section, .pharmacopoeia .s-ws-inq, .pharmacopoeia .s-about-body section { scroll-margin-top: 84px; }
+}
+
 /* Kept at the end so it follows the page rules it trims.
    Phones: one even, smaller gap between the header and every page's first line (pages open
    with py-10…py-16 containers; the header row is slim now, 2026-10-17). */
