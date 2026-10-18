@@ -19,12 +19,16 @@ type Props = {
 
 // Turning speed in radians a second, by how far the vial has turned from its front: slow
 // while the front panel (the compound) faces out, quicker round the barcode and QR code,
-// easing smoothly between (one turn takes about 15 s, 8 of them within 45° of the front).
+// easing smoothly between (one turn takes about 18 s with the QR hold, 8 of them within 45° of
+// the front). After MAX_TURNS it rests facing front.
 // It also eases into the QR code and holds there (QR_HOLD_MS) while the caption under the
 // picture lights up ("aura:vial-qr" event → QrNote), then eases out.
 const SLOW = 0.15, FAST = 1.1;
 const HOLD_MS = 2000; // when the page opens, the front holds still this long before it starts to turn
 const QR_HOLD_MS = 1500;
+// After this many full turns it comes to rest facing front (the compound) and stays there;
+// dragging still turns it.
+export const MAX_TURNS = 6;
 const TAU = 2 * Math.PI;
 const turnedOf = (angle: number) => ((-angle % TAU) + TAU) % TAU; // 0 = front facing out
 const speedAt = (angle: number) => {
@@ -32,6 +36,21 @@ const speedAt = (angle: number) => {
   const nearQr = Math.exp(-(((turned - QR_FACING_TURN) / 0.45) ** 2));
   return (SLOW + (FAST - SLOW) * (1 - Math.cos(turned)) / 2) * (1 - 0.7 * nearQr);
 };
+// One frame of the automatic turn. The angle is kept within one turn: a running total grows
+// each lap until rounding made a just-finished pause look like the QR code arriving again, and
+// the vial froze on it (2026-10-17). The QR code pauses it once per turn: `armed` resets only
+// after the vial comes round past its front.
+// `lapDone`: it came round past its front this frame (one full turn).
+export function advanceTurn(angle: number, dt: number, armed: boolean): { angle: number; armed: boolean; atQr: boolean; lapDone: boolean } {
+  const before = turnedOf(angle);
+  const next = -turnedOf(angle - dt * speedAt(angle));
+  const after = turnedOf(next);
+  const lapDone = after < before;
+  if (lapDone) armed = true;
+  if (armed && before < QR_FACING_TURN && after >= QR_FACING_TURN) return { angle: -QR_FACING_TURN, armed: false, atQr: true, lapDone };
+  return { angle: next, armed, atQr: false, lapDone };
+}
+
 export const VIAL_QR_EVENT = "aura:vial-qr";
 const announceQr = (slug: string, showing: boolean) =>
   window.dispatchEvent(new CustomEvent(VIAL_QR_EVENT, { detail: { slug, showing } }));
@@ -55,7 +74,7 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !webgl2()) return;
-    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = 0, onScreen = true, startAt = 0, qrUntil = 0;
+    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = 0, onScreen = true, startAt = 0, qrUntil = 0, qrArmed = true, laps = 0, resting = false;
     let drag: { x: number; angle: number } | null = null;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -65,20 +84,17 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
       last = t;
       if (qrUntil && (t >= qrUntil || drag)) { qrUntil = 0; announceQr(slug, false); }
-      if (!still && !drag && t >= startAt && !qrUntil) {
-        const before = turnedOf(angle);
-        angle -= dt * speedAt(angle);
-        const after = turnedOf(angle);
-        // reached the QR code: stop exactly facing it, hold, light the caption
-        if (before < QR_FACING_TURN && after >= QR_FACING_TURN && after - before < 1) {
-          angle += after - QR_FACING_TURN;
-          qrUntil = t + QR_HOLD_MS;
-          announceQr(slug, true);
-        }
+      if (!still && !resting && !drag && t >= startAt && !qrUntil) {
+        const step = advanceTurn(angle, dt, qrArmed);
+        angle = step.angle; qrArmed = step.armed;
+        // reached the QR code: it faces out exactly; hold and light the caption
+        if (step.atQr) { qrUntil = t + QR_HOLD_MS; announceQr(slug, true); }
+        // the last full turn ends facing front, where it rests
+        if (step.lapDone && ++laps >= MAX_TURNS) { angle = 0; resting = true; }
       }
       vial.setAngle(angle);
       vial.render();
-      if (onScreen && !document.hidden && (!still || drag)) raf = requestAnimationFrame(frame);
+      if (onScreen && !document.hidden && ((!still && !resting) || drag || qrUntil)) raf = requestAnimationFrame(frame);
     };
     const wake = () => { if (!raf && vial && onScreen && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } };
 
