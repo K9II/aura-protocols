@@ -97,8 +97,9 @@ describe("/ (home)", () => {
     const shown = liveFixture().filter((c) => c.chemicalClass !== "Incretin & Amylin Analogs");
     live.mockResolvedValue({ all: liveFixture(), shown, lots: [], certificates: [] });
     await renderHome();
+    expect(within(lineupIn("desk")).getByText(`See all ${shown.length} compounds →`)).toBeInTheDocument();
+    expect(lineupIn("phone")).not.toHaveTextContent(/See all/);
     for (const where of ["desk", "phone"] as const) {
-      expect(within(lineupIn(where)).getByText(`See all ${shown.length} compounds →`)).toBeInTheDocument();
       expect(within(lineupIn(where)).getAllByRole("heading", { level: 3 })).toHaveLength(shown.filter((c) => c.featured).length);
     }
   });

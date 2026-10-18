@@ -112,9 +112,12 @@ function HomeLineup({ featured, total, where }: { featured: Compound[]; total: n
       <div className="s-grid">
         {featured.map((c, i) => <CompoundCard key={c.slug} compound={c} index={i} idScope={where === "phone" ? "m-" : ""} />)}
       </div>
-      <div className="mt-8">
-        <Link href="/products" className="p-see-all s-micro">See all {total} compounds →</Link>
-      </div>
+      {/* phones lead with "Shop the lineup" instead (2026-10-17) */}
+      {where === "desk" && (
+        <div className="mt-8">
+          <Link href="/products" className="p-see-all s-micro">See all {total} compounds →</Link>
+        </div>
+      )}
     </section>
   );
 }
