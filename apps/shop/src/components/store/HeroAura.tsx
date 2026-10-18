@@ -17,8 +17,8 @@ export function DictionaryEntry({ className = "" }: { className?: string }) {
 
 // The sphere inside rings of certificate text. The sphere's canvas is 504 wide in
 // the 640 box (78.75%), centred; its own caption line drops below the picture.
-// The certificate rings wait for the sphere, then fade in one after another (Alvester, 2026-10-18: 2.5 s).
-const RINGS_IN_AFTER_S = 2.5;
+// The certificate rings wait for the sphere, then fade in one after another (Alvester, 2026-10-18: 3.5 s — time to read the definition and the headline first).
+const RINGS_IN_AFTER_S = 3.5;
 const RING_STAGGER_S = 0.25;
 
 export function HeroAura({ rings, children }: { rings: AuraRing[]; children: ReactNode }) {
