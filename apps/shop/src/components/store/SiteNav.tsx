@@ -23,7 +23,7 @@ export default function SiteNav() {
     const header = headerRef.current, bar = barRef.current;
     if (!header || !bar || typeof window.matchMedia !== "function") return;
     const phone = window.matchMedia("(max-width: 640px)");
-    const place = () => { header.style.top = phone.matches ? `-${bar.offsetHeight}px` : ""; };
+    const place = () => { header.style.top = phone.matches ? `-${bar.getBoundingClientRect().height}px` : ""; };
     place();
     const sized = typeof ResizeObserver === "function" ? new ResizeObserver(place) : null;
     sized?.observe(bar);
