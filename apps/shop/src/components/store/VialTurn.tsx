@@ -32,6 +32,19 @@ const speedAt = (angle: number) => {
   const nearQr = Math.exp(-(((turned - QR_FACING_TURN) / 0.45) ** 2));
   return (SLOW + (FAST - SLOW) * (1 - Math.cos(turned)) / 2) * (1 - 0.7 * nearQr);
 };
+// One frame of the automatic turn. The angle is kept within one turn: a running total grows
+// each lap until rounding made a just-finished pause look like the QR code arriving again, and
+// the vial froze on it (2026-10-17). The QR code pauses it once per turn: `armed` resets only
+// after the vial comes round past its front.
+export function advanceTurn(angle: number, dt: number, armed: boolean): { angle: number; armed: boolean; atQr: boolean } {
+  const before = turnedOf(angle);
+  const next = -turnedOf(angle - dt * speedAt(angle));
+  const after = turnedOf(next);
+  if (after < before) armed = true;
+  if (armed && before < QR_FACING_TURN && after >= QR_FACING_TURN) return { angle: -QR_FACING_TURN, armed: false, atQr: true };
+  return { angle: next, armed, atQr: false };
+}
+
 export const VIAL_QR_EVENT = "aura:vial-qr";
 const announceQr = (slug: string, showing: boolean) =>
   window.dispatchEvent(new CustomEvent(VIAL_QR_EVENT, { detail: { slug, showing } }));
@@ -55,7 +68,7 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !webgl2()) return;
-    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = 0, onScreen = true, startAt = 0, qrUntil = 0;
+    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = 0, onScreen = true, startAt = 0, qrUntil = 0, qrArmed = true;
     let drag: { x: number; angle: number } | null = null;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -66,15 +79,10 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
       last = t;
       if (qrUntil && (t >= qrUntil || drag)) { qrUntil = 0; announceQr(slug, false); }
       if (!still && !drag && t >= startAt && !qrUntil) {
-        const before = turnedOf(angle);
-        angle -= dt * speedAt(angle);
-        const after = turnedOf(angle);
-        // reached the QR code: stop exactly facing it, hold, light the caption
-        if (before < QR_FACING_TURN && after >= QR_FACING_TURN && after - before < 1) {
-          angle += after - QR_FACING_TURN;
-          qrUntil = t + QR_HOLD_MS;
-          announceQr(slug, true);
-        }
+        const step = advanceTurn(angle, dt, qrArmed);
+        angle = step.angle; qrArmed = step.armed;
+        // reached the QR code: it faces out exactly; hold and light the caption
+        if (step.atQr) { qrUntil = t + QR_HOLD_MS; announceQr(slug, true); }
       }
       vial.setAngle(angle);
       vial.render();
