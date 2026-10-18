@@ -9,7 +9,9 @@ export const GATE_EXEMPT_PATHS = [
   "/terms", "/refund-policy", "/privacy", "/shipping", "/ruo", "/contact",
   "/sign-in", "/forgot-password", "/reset-password", "/finish-account", "/verified", "/unsubscribed", "/subscribed",
 ] as const;
-const GATE_EXEMPT_PREFIXES = ["/auth/"];
+// "/coa/": one lot's certificate (/coa/<lot>), where a vial's QR code lands — whoever holds
+// the vial can check it without signing in (2026-10-17). COA Lookup (/coa) and the library stay gated.
+const GATE_EXEMPT_PREFIXES = ["/auth/", "/coa/"];
 
 export function isGateExempt(pathname: string): boolean {
   return (GATE_EXEMPT_PATHS as readonly string[]).includes(pathname) || GATE_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p));

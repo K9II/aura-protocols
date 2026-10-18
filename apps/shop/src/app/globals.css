@@ -1691,6 +1691,10 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-cert--fail .s-cert-top { background: #F5E4DF; border-bottom-color: #D9A79F; }
 
 .pharmacopoeia .s-coa-hit { margin-top: 28px; border: 1px solid var(--ink); padding: 20px; background: var(--paper); }
+/* the lot certificate page's two links under the card (/coa/[lot]) */
+.pharmacopoeia .s-lotpage-links { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 28px; }
+.pharmacopoeia .s-lotpage-links a { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.pharmacopoeia .s-lotpage-links a + a { color: var(--specimen); }
 .pharmacopoeia .s-coa-hith { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 20px; margin-bottom: 16px; }
 .pharmacopoeia .s-coa-hith .s-micro { color: var(--ink-soft); }
 .pharmacopoeia .s-coa-hitn { font-family: var(--font-newsreader), Georgia, serif; font-size: 32px; line-height: 1.1; margin-top: 4px; }

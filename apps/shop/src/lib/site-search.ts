@@ -68,8 +68,9 @@ export function lotSuggestion(catalog: Compound[], query: string, compoundHits: 
   return said || compoundHits === 0 ? { lot, compound: null, strength: null } : null;
 }
 
+// the lot's certificate page (an unknown lot comes back to the lookup)
 export function coaLookupHref(lot: string): string {
-  return `/coa?lot=${encodeURIComponent(lot)}`;
+  return `/coa/${encodeURIComponent(lot)}`;
 }
 
 export function shopClassHref(cls: ChemicalClass): string {

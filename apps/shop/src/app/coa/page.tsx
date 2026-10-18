@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import type { ChemicalClass, PublicLot } from "@/data/catalog";
-import type { LiveCatalog } from "@/lib/catalog-merge";
-import CoaLookup, { type LotHit } from "@/components/store/CoaLookup";
+import CoaLookup from "@/components/store/CoaLookup";
+import { coaLots } from "@/lib/coa/public-lots";
 import CoaLibrary from "@/components/store/CoaLibrary";
 import Unavailable from "@/components/store/Unavailable";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
@@ -11,17 +10,6 @@ export const metadata: Metadata = {
   description: "Enter the lot number from your vial to see that lot's certificates, or browse every certificate in the library.",
   alternates: { canonical: "/coa" },
 };
-
-const STATUS: Record<PublicLot["status"], string> = { live: "Current", sold_out: "Sold out", retired: "Retired" };
-
-// Every lot that was ever live, newest first.
-function coaLots(live: LiveCatalog<ChemicalClass>): LotHit[] {
-  return [...live.lots].sort((a, b) => b.liveAt.localeCompare(a.liveAt)).map((l) => ({
-    // A live lot whose strength isn't on the store (hidden/archived) isn't "Current" — it's not for sale.
-    lot: l.lot, name: l.compoundName, slug: l.slug, strength: l.strength, status: l.status === "live" && !l.onStore ? "Not on sale" : STATUS[l.status],
-    chemicalClass: live.all.find((c) => c.slug === l.slug)?.chemicalClass ?? "",
-  }));
-}
 
 export default async function CoaPage() {
   const live = await getLiveCatalogOrNull();

@@ -65,7 +65,7 @@ describe("CheckoutForm", () => {
   it("shows each item's class and its lot certificate, a total before tax, the discount rules tucked away, and two trust claims", () => {
     renderForm();
     expect(screen.getByText("Peptide Fragments")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Lot AP-0001 · certificate on file/ })).toHaveAttribute("href", "/coa?lot=AP-0001");
+    expect(screen.getByRole("link", { name: /Lot AP-0001 · certificate on file/ })).toHaveAttribute("href", "/coa/AP-0001");
     expect(screen.getByText("Total before tax")).toBeInTheDocument();
     const rules = screen.getByText("How discounts work").closest("details")!;
     expect(rules).not.toHaveAttribute("open");
