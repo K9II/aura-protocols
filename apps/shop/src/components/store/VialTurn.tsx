@@ -14,8 +14,8 @@ type Props = Omit<VialLabelInput, "parts" | "cap" | "rule"> & {
 
 // Turning speed in radians a second, by how far the vial has turned from its front: slow
 // while the front panel (the compound) faces out, quicker round the barcode and QR code,
-// easing smoothly between (one turn takes about 11 s, 5 of them within 45° of the front).
-const SLOW = 0.28, FAST = 1.1;
+// easing smoothly between (one turn takes about 13 s, almost 7 of them within 45° of the front).
+const SLOW = 0.2, FAST = 1.1;
 const HOLD_MS = 2000; // when the page opens, the front holds still this long before it starts to turn
 const speedAt = (angle: number) => {
   const turned = ((-angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); // 0 = front facing out
