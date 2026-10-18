@@ -115,7 +115,6 @@ export default function OrderPlate() {
             </li>
           ))}
         </ol>
-        <p className="s-plate-cap">Plate I. An order, from the catalog to the bench.</p>
       </div>
       <div className="s-plate-art">
         <div className="s-plate-sheet">
