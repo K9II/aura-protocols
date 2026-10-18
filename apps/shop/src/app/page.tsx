@@ -27,21 +27,7 @@ export const metadata: Metadata = {
 };
 
 
-// DESKTOP LAYOUT PREVIEW (demo only, 2026-10-17): /?layout=1|2|3 shows the option A arrangements
-// live; the production build never reads the address. Remove once Alvester picks one.
-//   1 = scan strip right under the hero (the hero without the lot card)
-//   2 = the lineup first, then the scan strip (the hero without the lot card)
-//   3 = the hero keeps the lot card; the scan strip under it, without the newest-lot row
-// Phones are the same in every layout (the lot card under the headline; no scan strip).
-type Layout = "" | "1" | "2" | "3";
-async function previewLayout(searchParams: Promise<Record<string, string | string[] | undefined>>): Promise<Layout> {
-  if (process.env.NODE_ENV !== "development") return "";
-  const v = String((await searchParams).layout ?? "");
-  return v === "1" || v === "2" || v === "3" ? v : "";
-}
-
-export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const layout = await previewLayout(searchParams);
+export default async function HomePage() {
   const live = await getLiveCatalogOrNull();
   if (!live) return <Unavailable />;
   const featured = live.shown.filter((c) => c.featured);
@@ -50,7 +36,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const spherePairsActive = spherePairs(sphere);
   const newest = proofLot(live.lots);
   const newestCompound = newest ? live.shown.find((c) => c.slug === newest.slug) : undefined;
-  const strip = (row: boolean) => newest && newestCompound ? <ScanStrip lot={newest} compound={newestCompound} certs={live.certificates} row={row} /> : null;
   return (
     <div className="pharmacopoeia">
       <ScrollReveal />
@@ -61,10 +46,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <div>
             <DictionaryEntry className="load-in load-1" />
             <h1 className="s-h1 load-in load-2">Our compounds come surrounded by&nbsp;<em>proof.</em></h1>
-            {/* the newest lot's vial and the certificate its QR code opens (option C, 2026-10-17);
-                hidden until the first lot is released */}
+            {/* phones: the newest lot's vial and the certificate its QR code opens (option C,
+                2026-10-17); desktop shows the scan strip under the hero instead (2026-10-18).
+                Both hidden until the first lot is released. */}
             {newest && newestCompound && (
-              <div className={`load-in load-3${layout === "1" || layout === "2" ? " s-proof-phone-only" : ""}`}><LotProof lot={newest} compound={newestCompound} certs={live.certificates} /></div>
+              <div className="load-in load-3 s-proof-phone-only"><LotProof lot={newest} compound={newestCompound} certs={live.certificates} /></div>
             )}
             <div className="s-ctas load-in load-4">
               <Link href="/products" className="p-btn-primary">Shop the lineup →</Link>
@@ -90,11 +76,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {/* lots released since the last visit: announced in the top bar */}
         <LotNews lots={homeRecord(live.lots, new Set(featured.map((c) => c.slug)))} />
 
-        {(layout === "1" || layout === "3") && strip(layout === "1")}
+        {/* desktop: how a vial's QR code proves its lot (option A "Scan strip", Layout 1, 2026-10-18) */}
+        {newest && newestCompound && <ScanStrip lot={newest} compound={newestCompound} certs={live.certificates} sevenTests={SEVEN_TEST_PANEL} />}
 
         <HomeLineup featured={featured} total={live.shown.length} where="desk" />
-
-        {layout === "2" && strip(true)}
 
         {/* how an order runs (2026-10-14) */}
         <OrderPlate />

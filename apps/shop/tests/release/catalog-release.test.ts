@@ -6,6 +6,7 @@ import { catalogContent } from "../../src/data/catalog";
 import { catalogReleaseProblems, type CatalogOps } from "../../src/lib/catalog-merge";
 import { MADE_BY_PLACEHOLDER } from "../../src/lib/catalog";
 import { SEVEN_TEST_PANEL } from "../../src/lib/constants";
+import { DEMO_LOT } from "../../src/lib/demo-lots";
 
 // Run before unpausing Vercel:  RELEASE_CHECK=1 pnpm --filter @aura/shop test
 // Reads Aura Store with the service key from .env.local (or the environment).
@@ -32,6 +33,15 @@ describe.skipIf(!process.env.RELEASE_CHECK)("release check", () => {
     expect(p.error ?? v.error ?? l.error).toBeNull();
     const ops = { products: p.data, variants: v.data, lots: l.data } as unknown as CatalogOps;
     expect(catalogReleaseProblems(catalogContent, ops, (path) => path)).toEqual([]);
+  });
+
+  // The demo server shows DEMO-/TEST- lots as fully tested (lib/demo-lots.ts); none may be live at launch.
+  it("no demo or test lot is live", async () => {
+    const e = env();
+    const db = createClient(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+    const lots = await db.from("lots").select("lot_number").eq("status", "live");
+    expect(lots.error).toBeNull();
+    expect((lots.data ?? []).map((l) => l.lot_number).filter((n) => DEMO_LOT.test(n)), "retire the demo and test lots before unpausing").toEqual([]);
   });
 
   // The home hero's 7-test panel says every lot passes all seven. While it's on, each

@@ -11,7 +11,7 @@ vi.mock("@/app/letter-actions", () => ({ letterStatusAction: () => new Promise((
 import HomePage from "@/app/page";
 import { liveFixture } from "../helpers/live-catalog";
 
-const renderHome = async () => render(await HomePage({ searchParams: Promise.resolve({}) }));
+const renderHome = async () => render(await HomePage());
 // The lineup is on the page twice (phones: inside the hero; desktop: further down); CSS shows one.
 const lineupIn = (where: "desk" | "phone") => document.querySelector<HTMLElement>(`.s-lineup--${where}`)!;
 const deskLineupHeading = () => within(lineupIn("desk")).getByRole("heading", { level: 2, name: /the lineup/i });
@@ -45,6 +45,18 @@ describe("/ (home)", () => {
     expect(rows).toEqual(["IdentityPass", "PurityPass", "QuantityNot tested", "EndotoxinPass", "SterilityNot tested", "Heavy metalsNot tested", "FentanylNot tested"]);
     expect(card).toHaveTextContent("99.5%");
     expect(within(card).getByRole("link", { name: /open/i })).toHaveAttribute("href", "/coa/MOT-2611-02");
+  });
+
+  it("desktop: the scan strip right under the hero, the lab's copy verifying all seven tests; the lot card is phones-only", async () => {
+    const lots = [{ slug: "mots-c", compoundName: "MOTS-c", variantId: "10mg", strength: "10 mg", lot: "MOT-2611-02", purityPct: 99.5, method: "HPLC+MS", testedOn: "2026-11-08", coaFile: "/c.pdf", status: "live", liveAt: "2026-11-09T10:00:00Z", onStore: true }];
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots, certificates: [] });
+    await renderHome();
+    const strip = screen.getByRole("region", { name: /scan the vial/i });
+    expect(document.querySelector(".s-hero-band")!.compareDocumentPosition(strip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(strip.compareDocumentPosition(lineupIn("desk")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect([...strip.querySelectorAll(".s-scan-seven li")].map((li) => li.textContent)).toEqual(["Identity", "Purity", "Quantity", "Endotoxin", "Sterility", "Heavy metals", "Fentanyl"]);
+    expect(strip).not.toHaveTextContent(/not tested|not recorded/i);
+    expect(document.querySelector(".s-proof")!.closest(".s-proof-phone-only")).not.toBeNull();
   });
 
   it("rings the sphere with real lots selling now, and never example lots before the first release", async () => {

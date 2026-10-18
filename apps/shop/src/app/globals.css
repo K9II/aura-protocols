@@ -611,15 +611,41 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-scan-figs figcaption b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 18px; display: block; margin-bottom: 2px; }
 .pharmacopoeia .s-scan-vial .s-vialturn { width: 150px; filter: drop-shadow(6px 10px 9px rgba(28,26,21,.2)); }
 .pharmacopoeia .s-scan-vial .s-vialturn svg { display: block; width: 100%; height: auto; }
-/* the live certificate page at a 360-wide phone, shown at 0.628 with `zoom` — the frame's page is
-   laid out and its text drawn at the final size (sharp), where a scale transform blurred it */
+/* Fig. 2: the lot's certificate as a phone shows it, drawn in the store's type (crisp at any size) */
 .pharmacopoeia .s-scan-phone { width: 240px; height: 444px; border: 7px solid #1C1A15; border-radius: 26px; overflow: hidden; background: var(--paper); box-shadow: 0 12px 24px -12px rgba(28,26,21,.45); }
-.pharmacopoeia .s-scan-phone iframe { display: block; width: 360px; height: 685px; border: 0; zoom: .628; pointer-events: none; }
+.pharmacopoeia .s-scan-screen { display: flex; flex-direction: column; gap: 6px; height: 100%; padding: 0 12px 12px; font-family: Georgia, serif; }
+.pharmacopoeia .s-scan-screen .bar { margin: 0 -12px 6px; padding: 6px 8px 5px; background: #1C1A15; color: var(--paper); text-align: center; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 7.5px; letter-spacing: .14em; text-transform: uppercase; }
+.pharmacopoeia .s-scan-screen .eye { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 7.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--specimen); }
+.pharmacopoeia .s-scan-screen .h { font-family: var(--font-newsreader), Georgia, serif; font-size: 23px; line-height: 1.02; margin-bottom: 4px; }
+.pharmacopoeia .s-scan-screen .h em { color: var(--specimen); }
+.pharmacopoeia .s-scan-screen .card { background: var(--label); border: 1px solid var(--line); border-top: 2px solid var(--tested); padding: 8px 10px 9px; display: flex; flex-direction: column; gap: 4px; }
+.pharmacopoeia .s-scan-screen .lot { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-screen .n { font-family: var(--font-newsreader), Georgia, serif; font-size: 17px; line-height: 1.1; }
+.pharmacopoeia .s-scan-screen .n small { font-size: .65em; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-screen .nums { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 2px 0; }
+.pharmacopoeia .s-scan-screen .nums span { display: grid; padding: 4px 0; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 6.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-screen .nums span + span { border-left: 1px solid var(--line); padding-left: 8px; }
+.pharmacopoeia .s-scan-screen .nums b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 16px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.pharmacopoeia .s-scan-screen ol { list-style: none; margin: 0; padding: 0; }
+.pharmacopoeia .s-scan-screen li { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; border-bottom: 1px dotted var(--line); font-size: 11px; }
+.pharmacopoeia .s-scan-screen li:last-child { border-bottom: 0; }
+.pharmacopoeia .s-scan-screen li i { font-style: normal; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--tested); }
+.pharmacopoeia .s-scan-screen li.is-open i { color: var(--ink-soft); }
+.pharmacopoeia .s-scan-screen .link { margin-top: 2px; align-self: flex-start; color: var(--tested); border-bottom: 1px solid var(--tested); font-size: 10.5px; }
 .pharmacopoeia .s-scan-lab { width: 86%; max-width: 236px; background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--tested); padding: 14px; display: grid; gap: 8px; box-shadow: 0 12px 24px -16px rgba(28,26,21,.4); font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
 .pharmacopoeia .s-scan-lab .v { font-family: var(--font-newsreader), Georgia, serif; font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--ink); }
 .pharmacopoeia .s-scan-lab .r { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding-top: 7px; border-top: 1px dotted var(--line); }
 .pharmacopoeia .s-scan-lab .r > span:nth-child(2) { color: var(--ink); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pharmacopoeia .s-scan-lab .r .ck { width: 10px; height: 5px; margin: 0 2px 3px 2px; border-left: 1.5px solid var(--tested); border-bottom: 1.5px solid var(--tested); transform: rotate(-45deg); align-self: center; }
+.pharmacopoeia .s-scan-seven { list-style: none; margin: 0; padding: 0; }
+.pharmacopoeia .s-scan-seven li { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-top: 1px dotted var(--line); color: var(--ink); }
+.pharmacopoeia .s-scan-lab .ck { width: 10px; height: 5px; margin: 0 2px 3px 2px; border-left: 1.5px solid var(--tested); border-bottom: 1.5px solid var(--tested); transform: rotate(-45deg); align-self: center; }
+/* when the strip comes into view the seven tick off one by one, then the seal shows */
+@media (prefers-reduced-motion: no-preference) {
+  .pharmacopoeia .s-scan .s-scan-seven .ck, .pharmacopoeia .s-scan .s-scan-ok { opacity: 0; }
+  .pharmacopoeia .s-scan.in-view .s-scan-seven .ck { animation: s-scan-tick .35s ease-out forwards; animation-delay: calc(.6s + var(--i) * .28s); }
+  .pharmacopoeia .s-scan.in-view .s-scan-ok { animation: s-scan-tick .5s ease-out 2.7s forwards; }
+}
+@keyframes s-scan-tick { from { opacity: 0; } to { opacity: 1; } }
 .pharmacopoeia .s-scan-ok { display: flex; align-items: center; gap: 10px; color: var(--tested); font-size: 13px; letter-spacing: .14em; font-weight: 500; padding: 4px 0 6px; }
 .pharmacopoeia .s-scan-ok i { width: 34px; height: 34px; border: 1.5px solid var(--tested); border-radius: 50%; position: relative; flex-shrink: 0; }
 .pharmacopoeia .s-scan-ok i::after { content: ''; position: absolute; left: 11px; top: 9px; width: 11px; height: 6px; border-left: 2px solid var(--tested); border-bottom: 2px solid var(--tested); transform: rotate(-45deg); }
