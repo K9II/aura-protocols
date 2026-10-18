@@ -701,8 +701,6 @@ main:has(> .pharmacopoeia) {
 /* the sphere's own caption line drops from under the canvas to just below the picture
    (canvas height 448 → the box's bottom edge is (448 + 96) / 448 of it) */
 .pharmacopoeia .s-aura-core > div > div:last-child { position: absolute; left: -13.5%; right: -13.5%; top: 121.43%; }
-.pharmacopoeia .s-aura figcaption { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); text-align: center; line-height: 1.6; max-width: 46ch; }
-.pharmacopoeia .s-aura figcaption b { color: var(--specimen); font-weight: 500; }
 /* the sphere's compound links read over the ring text */
 .pharmacopoeia .s-aura .p-biosig-peptide { text-shadow: 0 0 4px var(--paper), 0 0 8px var(--paper), 0 0 12px var(--paper); }
 .pharmacopoeia .s-aura-ring { will-change: transform; animation: s-aura-spin 200s linear infinite; }
@@ -731,7 +729,6 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia .s-aura-rings > :nth-child(2) { transform: scale(1.095); }
   .pharmacopoeia .s-aura-rings > :nth-child(3) { transform: scale(1.064); }
   .pharmacopoeia .s-aura-rings > :nth-child(4) { display: none; }
-  .pharmacopoeia .s-aura figcaption { padding-inline: 16px; }
 }
 /* Home lineup (mock P1, 2026-10-14): phones see it inside the hero, between the
    headline block and the sphere; desktop sees it further down the page. */

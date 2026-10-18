@@ -45,7 +45,6 @@ export function HeroAura({ rings, children }: { rings: AuraRing[]; children: Rea
         </div>
         <div className="s-aura-core">{children}</div>
       </div>
-      <figcaption><b>Fig. 1 — au·ra.</b> The ring around the catalog is written in its own certificates.</figcaption>
     </figure>
   );
 }
