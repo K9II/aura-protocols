@@ -75,8 +75,10 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
     const exact = (window.devicePixelRatio || 1) <= MAX_DPR;
     let px: { w?: number; h?: number } = {};
     const sized = new ResizeObserver(([e]) => {
+      // trusted only when it agrees with the CSS size × pixel ratio (emulators report 1×)
       const box = exact ? e.devicePixelContentBoxSize?.[0] : undefined;
-      px = { w: box?.inlineSize, h: box?.blockSize };
+      const want = e.contentRect.width * (window.devicePixelRatio || 1);
+      px = box && Math.abs(box.inlineSize - want) <= 2 ? { w: box.inlineSize, h: box.blockSize } : {};
       vial?.resize(px.w, px.h);
       wake();
     });
