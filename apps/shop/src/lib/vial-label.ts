@@ -18,6 +18,10 @@ export const LABEL = {
   qrSize: 32,
 } as const;
 
+// The turning vial renders at up to 3× pixels: phones are 3×, and below their density the
+// label's small type softens.
+export const MAX_DPR = 3;
+
 // PLACEHOLDER: the label proof's example UPC-A (0 85001 23456 2), drawn exactly as the proof
 // does. Each strength gets its own GS1 UPC before launch; the release check fails until then.
 export const UPC_IS_PLACEHOLDER = true;

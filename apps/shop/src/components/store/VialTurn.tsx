@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Vial from "@/components/store/Vial";
 import { useChosenStrength } from "@/lib/chosen-strength";
 import type { Vial3D, VialLabelInput } from "@/components/store/vial-3d";
+import { MAX_DPR } from "@/lib/vial-label";
 
 // Product page vial: the store's <Vial> paints first (and stays when WebGL isn't there);
 // then the same vial in 3D takes its place and turns slowly to show the barcode and the
@@ -70,8 +71,16 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
     canvas.addEventListener("pointercancel", up);
     const seen = new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; wake(); });
     seen.observe(canvas);
-    const sized = new ResizeObserver(() => { vial?.resize(); wake(); });
-    sized.observe(canvas);
+    // exact device pixels where the browser reports them (not Safari): no resampling blur
+    const exact = (window.devicePixelRatio || 1) <= MAX_DPR;
+    let px: { w?: number; h?: number } = {};
+    const sized = new ResizeObserver(([e]) => {
+      const box = exact ? e.devicePixelContentBoxSize?.[0] : undefined;
+      px = { w: box?.inlineSize, h: box?.blockSize };
+      vial?.resize(px.w, px.h);
+      wake();
+    });
+    try { sized.observe(canvas, { box: "device-pixel-content-box" }); } catch { sized.observe(canvas); }
     document.addEventListener("visibilitychange", wake);
 
     import("@/components/store/vial-3d")
@@ -79,6 +88,7 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
       .then((v) => {
         if (!alive) { v.dispose(); return; }
         vial = v; vialRef.current = v; wakeRef.current = wake;
+        v.resize(px.w, px.h);
         v.setLabel(inputRef.current); // a size picked while it loaded
         startAt = performance.now() + HOLD_MS; setReady(true); wake();
       })
