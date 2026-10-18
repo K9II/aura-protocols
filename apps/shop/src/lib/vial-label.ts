@@ -1,20 +1,26 @@
 // The product page's turning vial wears the store's vial label with the back of the real
 // label added: the UPC turned to run up the vial, then the QR code to the lot's certificate.
-// Layout follows the label design proof (option 2, 2026-10-17: a 1.85 in label, so a strip
-// of bare glass at the back shows the powder). Units: 80 = 1 in of label.
+// The real label (option 2, 2026-10-17: 1.85 in on a 17 mm vial) covers about 88% of the way
+// round, leaving a narrow strip of bare glass at the back. The store's drawn vial is wider than
+// the real one, so the website label is laid out longer to cover the same 88%: the front panel
+// fills the front, then the barcode, then the QR panel. Units: 80 = the label's height.
 // Pure data; no imports, safe on server and client.
 
 export const LABEL = {
-  width: 148,      // 1.85 in
-  height: 80,      // 1 in
-  frontEnd: 70,    // the class-colour rules run over the front panel…
-  rightStart: 106, // …and over the QR panel, never across the barcode
-  upcX: 74,        // left edge of the bars
-  upcDigitsX: 101.6,
-  qrX: 110.5,      // QR panel: code, then LOT and SCAN FOR CERTIFICATE under it
+  width: 190,      // 88% of the way round the drawn vial (radius 40.4 at 94 units tall)
+  height: 80,
+  frontEnd: 88,    // the class-colour rules run over the front panel…
+  rightStart: 130, // …and over the QR panel, never across the barcode
+  upcX: 96,        // left edge of the bars: just past the side, so the front stays clean
+  upcDigitsX: 123.6,
+  qrX: 140,        // QR panel: code, then LOT and SCAN FOR LOT'S CERTIFICATE OF ANALYSIS under it
   qrY: 7.5,
-  qrSize: 32,      // 0.40 in
+  qrSize: 32,
 } as const;
+
+// The turning vial renders at up to 3× pixels: phones are 3×, and below their density the
+// label's small type softens.
+export const MAX_DPR = 3;
 
 // PLACEHOLDER: the label proof's example UPC-A (0 85001 23456 2), drawn exactly as the proof
 // does. Each strength gets its own GS1 UPC before launch; the release check fails until then.

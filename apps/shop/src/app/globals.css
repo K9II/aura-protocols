@@ -766,6 +766,10 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-pdp-placard dt { color: var(--ink-soft); letter-spacing: .12em; text-transform: uppercase; font-size: 10.5px; padding-top: 1px; }
 .pharmacopoeia .s-pdp-placard dd { margin: 0; overflow-wrap: anywhere; }
 .pharmacopoeia .s-pdp-part { display: block; white-space: nowrap; }
+/* every label sits above its value, at every size: a CAS number, formula or name keeps one line */
+.pharmacopoeia .s-pdp-placard dl { row-gap: 2px; }
+.pharmacopoeia .s-pdp-placard dl > div > dt, .pharmacopoeia .s-pdp-placard dl > div > dd { grid-column: 1 / -1; }
+.pharmacopoeia .s-pdp-placard dd { white-space: nowrap; overflow-wrap: normal; margin-bottom: 6px; }
 .pharmacopoeia .s-pdp-placard .s-placard-r { font-size: 10px; padding-top: 8px; max-width: 54%; }
 .pharmacopoeia .s-pdp-vial { position: absolute; right: 7%; bottom: 4%; width: 38%; filter: drop-shadow(8px 12px 10px rgba(28,26,21,.24)); }
 .pharmacopoeia .s-pdp-vial svg { display: block; width: 100%; height: auto; filter: none !important; }
@@ -786,6 +790,12 @@ main > .pharmacopoeia { overflow-x: clip; }
 /* the two-column layout just above 900px has a narrow tile: a smaller code, then none */
 @container (max-width: 520px) { .pharmacopoeia .s-pdp-scan { gap: 10px; font-size: 9px; } .pharmacopoeia .s-pdp-scan svg { width: 60px; height: 60px; padding: 3px; } }
 @container (max-width: 430px) { .pharmacopoeia .s-pdp-scan { display: none; } }
+/* where the scan code shows, it needs the bottom of the placard: Form, then Mol. wt make room
+   (both are in Compound data) */
+@media (min-width: 901px) {
+  @container (min-width: 431px) { .pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-form { display: none; } }
+  @container (min-width: 431px) and (max-width: 560px) { .pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-mw { display: none; } }
+}
 .pharmacopoeia .s-pdp-qrnote { margin: 12px 0 0; font-size: 11px; letter-spacing: .1em; line-height: 1.6; color: var(--ink-soft); }
 @media (max-width: 900px) { .pharmacopoeia .s-pdp-qrnote { order: 1; width: 100%; max-width: 560px; justify-self: center; } }
 /* single column: the tile would fill the width and grow taller than the screen */
@@ -794,8 +804,6 @@ main > .pharmacopoeia { overflow-x: clip; }
   .pharmacopoeia .s-pdp-placard { top: max(13%, 42px); bottom: 7%; }
   .pharmacopoeia .s-pdp-placard dl { font-size: 10.5px; gap: 4px 10px; }
   .pharmacopoeia .s-pdp-placard dt { font-size: 9px; }
-  /* phones: "Contains" sits above the names so each name keeps one line */
-  .pharmacopoeia .s-pdp-contains > dt, .pharmacopoeia .s-pdp-contains > dd { grid-column: 1 / -1; }
   .pharmacopoeia .s-pdp-placard .s-placard-r { display: none; }
   .pharmacopoeia .s-pdp-tile .s-coa-tag { font-size: 11px; top: 10px; left: 10px; bottom: auto; padding: 4px 8px; }
   .pharmacopoeia .s-pdp-tile .s-flag { font-size: 10px; top: 10px; right: 10px; }

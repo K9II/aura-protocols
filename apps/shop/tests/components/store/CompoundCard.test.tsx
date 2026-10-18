@@ -25,7 +25,7 @@ describe("CompoundCard", () => {
   it("shows the monograph placard with the CAS number, and Price / Certificate labels", () => {
     render(<CompoundCard compound={c} />);
     expect(document.querySelector(".s-placard-id")?.textContent).toBe("CAS 137525-51-0");
-    expect(screen.getByText("Monograph · Peptide Fragments")).toBeInTheDocument();
+    expect(document.querySelector(".s-placard-k")).toHaveTextContent("Monograph · Peptide Fragments");
     expect(screen.getByText("Price")).toBeInTheDocument();
     expect(screen.getByText("Certificate")).toBeInTheDocument();
   });

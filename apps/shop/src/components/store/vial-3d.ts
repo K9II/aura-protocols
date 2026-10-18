@@ -7,12 +7,12 @@ import {
   CanvasTexture, CylinderGeometry, Group, LatheGeometry, Mesh, OrthographicCamera, Scene,
   ShaderMaterial, Vector2, Vector4, WebGLRenderer, type IUniform,
 } from "three";
-import { EXAMPLE_UPC_BARS, EXAMPLE_UPC_DIGITS, LABEL } from "@/lib/vial-label";
+import { EXAMPLE_UPC_BARS, EXAMPLE_UPC_DIGITS, LABEL, MAX_DPR } from "@/lib/vial-label";
 
 export type VialLabelInput = {
   label: string; label2?: string; strength: string; parts: string[];
   rule: string; cap: "red" | "black" | "white";
-  lot: string | null; qr: string[] | null;
+  lot: string | null; qr: string[];
 };
 
 const PULSE = "M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86";
@@ -75,7 +75,7 @@ function drawLabel(ctx: CanvasRenderingContext2D, k: number, p: VialLabelInput, 
 
   ctx.fillStyle = "#4A4438"; ctx.font = `3.4px ${f.mono}`; ctx.fillText("LOT", LABEL.qrX, 48.5);
   ctx.fillStyle = "#1C1A15"; ctx.font = `4.4px ${f.mono}`; ctx.fillText(p.lot ?? "——————", LABEL.qrX, 54.5);
-  if (p.qr) {
+  {
     const m = LABEL.qrSize / p.qr.length;
     p.qr.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (row[x] === "1") ctx.fillRect(LABEL.qrX + x * m, LABEL.qrY + y * m, m + 0.01, m + 0.01); });
     ctx.fillStyle = "#4A4438"; ctx.font = `2.3px ${f.mono}`;
@@ -103,7 +103,8 @@ const mat = (frag: string, uniforms: Record<string, IUniform> = stops([]), trans
 const Y = (y: number) => 200 - y; // SVG y (down) to height (up)
 const f1 = (n: number) => n.toFixed(1);
 
-export type Vial3D = { setAngle(a: number): void; render(): void; resize(): void; dispose(): void };
+// resize(w, h): the canvas's exact size in device pixels when the browser reports it.
+export type Vial3D = { setAngle(a: number): void; setLabel(p: VialLabelInput): void; render(): void; resize(w?: number, h?: number): void; dispose(): void };
 
 export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput): Promise<Vial3D> {
   const fonts = pageFonts(canvas);
@@ -111,7 +112,7 @@ export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput):
 
   // default premultiplied alpha: the see-through glass then composites over the page exactly like the SVG
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(1); // sized in device pixels by resize(), so the browser never rescales it
   const scene = new Scene();
   const cam = new OrthographicCamera(-60, 60, 200, 0, -500, 500);
   cam.position.set(0, 0, 200); cam.lookAt(0, 0, 0);
@@ -126,10 +127,11 @@ export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput):
   // the label: the store label's height (y 66-160), wrapped round with the front panel facing out
   const H = 94, R = 40.4, span = ((LABEL.width / 80) * H) / R;
   const art = document.createElement("canvas"); art.width = LABEL.width * 16; art.height = LABEL.height * 16;
-  drawLabel(art.getContext("2d")!, 16, p, fonts);
+  const paint = (q: VialLabelInput) => { const ctx = art.getContext("2d")!; ctx.clearRect(0, 0, art.width, art.height); drawLabel(ctx, 16, q, fonts); };
+  paint(p);
   const tex = new CanvasTexture(art); tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const label = new Mesh(new CylinderGeometry(R, R, H, 256, 1, true, -span * (40 / LABEL.width), span),
-    mat(body("vec4 c=texture2D(uMap,vUv); float d = t<.12 ? mix(.16,0.0,t/.12) : t>.8 ? mix(0.0,.2,(t-.8)/.2) : 0.0; vec3 col=c.rgb*(1.0-d); if(t>.02&&t<.0375) col=mix(col,vec3(1.0),.5); if(t>.944&&t<.959) col=mix(col,vec3(1.0),.3); gl_FragColor=vec4(col,1.0);", "uniform sampler2D uMap; "),
+    mat(body("vec4 c=texture2D(uMap,vUv,-0.75); float d = t<.12 ? mix(.16,0.0,t/.12) : t>.8 ? mix(0.0,.2,(t-.8)/.2) : 0.0; vec3 col=c.rgb*(1.0-d); if(t>.02&&t<.0375) col=mix(col,vec3(1.0),.5); if(t>.944&&t<.959) col=mix(col,vec3(1.0),.3); gl_FragColor=vec4(col,1.0);", "uniform sampler2D uMap; "),
       { ...stops([]), uMap: { value: tex } }));
   label.position.y = (Y(66) + Y(160)) / 2; vial.add(label);
 
@@ -154,10 +156,18 @@ export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput):
       stops([[0, "#7f8b92", 0.22], [0.08, "#ffffff", 0.6], [0.16, "#eef3f5", 0.04], [0.6, "#ffffff", 0], [0.88, "#dde4e8", 0.1], [1, "#6f7b82", 0.26]]), true));
   glass.renderOrder = 5; vial.add(glass);
 
-  const resize = () => { const w = canvas.clientWidth; if (w) renderer.setSize(w, (w * 200) / 120, false); };
+  // The drawing buffer matches the canvas pixel for pixel (a buffer the browser has to stretch
+  // blurs the type); the label art is sampled a little sharper than the GPU's default (-0.75
+  // above) so the text stays crisp as it turns away and back.
+  const resize = (w?: number, h?: number) => {
+    const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+    const W = w ?? Math.round(canvas.clientWidth * dpr), H = h ?? Math.round(canvas.clientHeight * dpr);
+    if (W && H) renderer.setSize(W, H, false);
+  };
   resize();
   return {
     setAngle: (a) => { vial.rotation.y = a; },
+    setLabel: (q) => { paint(q); tex.needsUpdate = true; },
     render: () => renderer.render(scene, cam),
     resize,
     dispose: () => {

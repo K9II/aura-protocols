@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import type { Metadata } from "next";
 import { catalogContent } from "@/data/catalog";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { findCompound, fromPackPriceUsd, isPendingLot, madeBy, relatedCompounds, toPackPriceUsd, vialCap, vialName, vialParts } from "@/lib/catalog";
 import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
-import VialTurn from "@/components/store/VialTurn";
-import { lotQrUrl, qrRows } from "@/lib/vial-qr";
+import VialTurn, { type VialStrength } from "@/components/store/VialTurn";
+import PlacardScan from "@/components/store/PlacardScan";
+import { coaLookupQrUrl, lotQrUrl, qrRows } from "@/lib/vial-qr";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
 import LotRecord from "@/components/store/LotRecord";
@@ -57,10 +58,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const contains = c.components?.length
     ? c.components.map((s) => catalogContent.find((x) => x.slug === s)?.name ?? s)
     : c.name.includes(" / ") ? c.name.split(" / ") : [];
-  // The vial shows its strength's lot (the one selling now, else the last live one) and
-  // that lot's QR code; before a first lot there's neither.
-  const vialLot = isPendingLot(c.variants[0].lot) ? null : c.variants[0].lot.lot;
-  const vialQr = vialLot ? qrRows(lotQrUrl(vialLot)) : null;
+  // Each strength's vial shows its lot (the one selling now, else the last live one) and a QR
+  // code to that lot's certificate; before a first lot, "LOT ——" and a code to the lookup.
+  // The vial and the placard's scan code follow the size picker.
+  const vialStrengths: VialStrength[] = c.variants.map((v) => {
+    const lot = isPendingLot(v.lot) ? null : v.lot.lot;
+    return { id: v.id, strength: v.strength, lot, qr: qrRows(lot ? lotQrUrl(lot) : coaLookupQrUrl()) };
+  });
   const placardRows: Array<[string, ReactNode]> = [
     ["Contains", contains.length ? contains.map((n) => <span key={n} className="s-pdp-part">{n}</span>) : undefined],
     ["CAS", c.identity.cas],
@@ -124,21 +128,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {hasCertificate && <span className="s-coa-tag">◇ COA on file</span>}
               {allOut ? <span className="s-flag s-flag--out s-micro">Out of stock</span> : anyLow ? <span className="s-flag s-micro">Low stock</span> : null}
               <div className="s-pdp-placard" aria-hidden>
-                <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass)}</span>
+                <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass).split(" ").map((w, i) => <Fragment key={i}>{i ? " " : ""}<span className="whitespace-nowrap">{w}</span></Fragment>)}</span>
                 <span className="s-pdp-placard-n">{vialName(c).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
                 <dl>
                   {placardRows.filter(([, v]) => v).map(([k, v]) => <div key={k} className={k === "Form" ? "s-pdp-form" : k === "Mol. wt" ? "s-pdp-mw" : k === "Contains" ? "s-pdp-contains" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
                 </dl>
-                {vialQr && (
-                  <div className="s-pdp-scan">
-                    <QrSvg rows={vialQr} />
-                    <span>Scan for lot&apos;s certificate of analysis</span>
-                  </div>
-                )}
+                <PlacardScan slug={c.slug} strengths={vialStrengths} />
                 <span className="s-placard-r">Research use only · Not for human use</span>
               </div>
               <div className="s-pdp-vial">
-                <VialTurn id={`pdp-${c.slug}`} label={vialName(c)[0]} label2={vialName(c)[1]} cap={vialCap(c)} rule={CLASS_COLOR[c.chemicalClass]} parts={vialParts(c)} strength={c.variants[0].strength} lot={vialLot} qr={vialQr} />
+                <VialTurn id={`pdp-${c.slug}`} slug={c.slug} label={vialName(c)[0]} label2={vialName(c)[1]} cap={vialCap(c)} rule={CLASS_COLOR[c.chemicalClass]} parts={vialParts(c)} strengths={vialStrengths} />
               </div>
             </div>
             <p className="s-micro s-pdp-qrnote">◇ Every vial carries a QR code that opens its lot&apos;s certificate of analysis.</p>
@@ -215,17 +214,5 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </section>
       </div>
     </div>
-  );
-}
-
-// The placard's scan code (desktop only; phones can't scan their own screen).
-function QrSvg({ rows }: { rows: string[] }) {
-  const n = rows.length + 2; // one-square margin; the placard's white box adds the rest
-  const d = rows.flatMap((row, y) => [...row].map((v, x) => (v === "1" ? `M${x + 1},${y + 1}h1v1h-1z` : ""))).join("");
-  return (
-    <svg viewBox={`0 0 ${n} ${n}`} shapeRendering="crispEdges" aria-hidden>
-      <rect width={n} height={n} fill="#fff" />
-      <path d={d} fill="#1C1A15" />
-    </svg>
   );
 }
