@@ -580,6 +580,8 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-aura-core > div > div:last-child { position: absolute; left: -13.5%; right: -13.5%; top: 121.43%; }
 .pharmacopoeia .s-aura figcaption { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); text-align: center; line-height: 1.6; max-width: 46ch; }
 .pharmacopoeia .s-aura figcaption b { color: var(--specimen); font-weight: 500; }
+/* the sphere's compound links read over the ring text */
+.pharmacopoeia .s-aura .p-biosig-peptide { text-shadow: 0 0 4px var(--paper), 0 0 8px var(--paper), 0 0 12px var(--paper); }
 .pharmacopoeia .s-aura-ring { transform-origin: 320px 320px; animation: s-aura-spin 200s linear infinite; }
 .pharmacopoeia .s-aura-in { transform-origin: 320px 320px; animation: s-aura-in 1.3s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes s-aura-spin { to { transform: rotate(360deg); } }
@@ -594,8 +596,14 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia .s-panel-h { padding: 9px 12px; }
   .pharmacopoeia .s-panel-list li { column-gap: 10px; padding: 8px 12px; }
   .pharmacopoeia .s-panel-list span { font-size: 13px; }
-  /* phones: the picture bleeds past the gutters so the labels clear the rings */
-  .pharmacopoeia .s-aura-pic { width: 132%; max-width: none; margin-inline: -16%; }
+  /* Phones draw the sphere's compact canvas (460 × 470, BiosignatureSphere) at the full
+     phone width, as before; the rings go just outside its side labels, so their sides
+     run off the screen and the top and bottom arcs show. Picture = 4/3 of the width,
+     canvas 75% of it, centred; its caption again drops to just below the picture. */
+  .pharmacopoeia .s-aura-pic { width: 133.333%; max-width: none; margin-inline: -16.667%; }
+  .pharmacopoeia .s-aura-core { left: 12.5%; width: 75%; top: 11.685%; }
+  .pharmacopoeia .s-aura-core > div > div:last-child { left: 0; right: 0; top: 115.25%; }
+  .pharmacopoeia .s-aura figcaption { padding-inline: 16px; }
 }
 /* Home lineup (mock P1, 2026-10-14): phones see it inside the hero, between the
    headline block and the sphere; desktop sees it after the 1906 plate. */
