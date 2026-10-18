@@ -16,6 +16,7 @@ type Props = Omit<VialLabelInput, "parts" | "cap" | "rule"> & {
 // while the front panel (the compound) faces out, quicker round the barcode and QR code,
 // easing smoothly between (one turn takes about 11 s, 5 of them within 45° of the front).
 const SLOW = 0.28, FAST = 1.1;
+const HOLD_MS = 1500; // when the page opens, the front holds still this long before it starts to turn
 const speedAt = (angle: number) => {
   const turned = ((-angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); // 0 = front facing out
   return SLOW + (FAST - SLOW) * (1 - Math.cos(turned)) / 2;
@@ -33,7 +34,7 @@ export default function VialTurn({ id, label, label2, strength, parts = [], cap 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !webgl2()) return;
-    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = 0, onScreen = true;
+    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = 0, onScreen = true, startAt = 0;
     let drag: { x: number; angle: number } | null = null;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -42,7 +43,7 @@ export default function VialTurn({ id, label, label2, strength, parts = [], cap 
       if (!vial || !alive) return;
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
       last = t;
-      if (!still && !drag) angle -= dt * speedAt(angle);
+      if (!still && !drag && t >= startAt) angle -= dt * speedAt(angle);
       vial.setAngle(angle);
       vial.render();
       if (onScreen && !document.hidden && (!still || drag)) raf = requestAnimationFrame(frame);
@@ -64,7 +65,7 @@ export default function VialTurn({ id, label, label2, strength, parts = [], cap 
 
     import("@/components/store/vial-3d")
       .then(({ mountVial3D }) => mountVial3D(canvas, { label, label2, strength, parts, cap, rule, lot, qr }))
-      .then((v) => { if (!alive) { v.dispose(); return; } vial = v; setReady(true); wake(); })
+      .then((v) => { if (!alive) { v.dispose(); return; } vial = v; startAt = performance.now() + HOLD_MS; setReady(true); wake(); })
       .catch((err) => console.error("turning vial unavailable; showing the still vial", err));
 
     return () => {
