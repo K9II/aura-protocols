@@ -45,23 +45,27 @@ export function HeroAura({ rings, children }: { rings: AuraRing[]; children: Rea
   return (
     <figure className="s-aura">
       <div className="s-aura-pic">
-        <svg className="s-aura-rings" viewBox="0 0 640 640" role="img" aria-label="The compound sphere, ringed by lines of text from each lot’s certificate of analysis">
+        {/* One layer per ring, turned by the compositor: rotating SVG text inside one
+            drawing made phones repaint it every frame under the sphere (glitchy). */}
+        <div className="s-aura-rings" role="img" aria-label="The compound sphere, ringed by lines of text from each lot’s certificate of analysis">
           {rings.map((R, i) => {
             const id = `s-aura-r${i}`;
             const circ = 2 * Math.PI * R.r;
             return (
-              <g key={id} className="s-aura-in" style={{ animationDelay: `${0.2 + i * 0.16}s` }}>
-                <g className="s-aura-ring" style={{ animationDuration: `${R.seconds}s`, animationDirection: R.reverse ? "reverse" : "normal" }} fill={R.fill} opacity={R.opacity}>
-                  <circle cx={C} cy={C} r={R.r + R.size * 0.78} fill="none" stroke="#C9C2AE" strokeWidth=".7" strokeDasharray="1 5" />
-                  <path id={id} d={`M ${C},${C - R.r} a ${R.r},${R.r} 0 1 1 0,${2 * R.r} a ${R.r},${R.r} 0 1 1 0,${-2 * R.r}`} fill="none" />
-                  <text fontSize={R.size} letterSpacing={R.track}>
-                    <textPath href={`#${id}`} textLength={(circ - 1).toFixed(1)} lengthAdjust="spacing">{ringRepeat(R)}</textPath>
-                  </text>
-                </g>
-              </g>
+              <div key={id} className="s-aura-in" style={{ animationDelay: `${0.2 + i * 0.16}s` }}>
+                <div className="s-aura-ring" style={{ animationDuration: `${R.seconds}s`, animationDirection: R.reverse ? "reverse" : "normal" }}>
+                  <svg viewBox="0 0 640 640" aria-hidden fill={R.fill} opacity={R.opacity}>
+                    <circle cx={C} cy={C} r={R.r + R.size * 0.78} fill="none" stroke="#C9C2AE" strokeWidth=".7" strokeDasharray="1 5" />
+                    <path id={id} d={`M ${C},${C - R.r} a ${R.r},${R.r} 0 1 1 0,${2 * R.r} a ${R.r},${R.r} 0 1 1 0,${-2 * R.r}`} fill="none" />
+                    <text fontSize={R.size} letterSpacing={R.track}>
+                      <textPath href={`#${id}`} textLength={(circ - 1).toFixed(1)} lengthAdjust="spacing">{ringRepeat(R)}</textPath>
+                    </text>
+                  </svg>
+                </div>
+              </div>
             );
           })}
-        </svg>
+        </div>
         <div className="s-aura-core">{children}</div>
       </div>
       <figcaption><b>Fig. 1 — au·ra.</b> The ring around the catalog is written in its own certificates.</figcaption>

@@ -571,7 +571,9 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-panel-list span { font-size: 14px; color: var(--ink-soft); line-height: 1.3; text-align: right; white-space: nowrap; }
 .pharmacopoeia .s-aura { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 8px; min-width: 0; }
 .pharmacopoeia .s-aura-pic { position: relative; width: 100%; max-width: 620px; aspect-ratio: 1; margin-bottom: 38px; }
-.pharmacopoeia .s-aura-rings { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.pharmacopoeia .s-aura-rings { position: absolute; inset: 0; pointer-events: none; }
+.pharmacopoeia .s-aura-in, .pharmacopoeia .s-aura-ring { position: absolute; inset: 0; }
+.pharmacopoeia .s-aura-ring svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .pharmacopoeia .s-aura-rings text { font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; }
 /* the canvas (719 × 639) is 504 wide in the 640 box, centred: top = (320 − 224) / 640 */
 .pharmacopoeia .s-aura-core { position: absolute; left: 10.625%; width: 78.75%; top: 15%; }
@@ -582,8 +584,8 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-aura figcaption b { color: var(--specimen); font-weight: 500; }
 /* the sphere's compound links read over the ring text */
 .pharmacopoeia .s-aura .p-biosig-peptide { text-shadow: 0 0 4px var(--paper), 0 0 8px var(--paper), 0 0 12px var(--paper); }
-.pharmacopoeia .s-aura-ring { transform-origin: 320px 320px; animation: s-aura-spin 200s linear infinite; }
-.pharmacopoeia .s-aura-in { transform-origin: 320px 320px; animation: s-aura-in 1.3s cubic-bezier(.2,.7,.2,1) both; }
+.pharmacopoeia .s-aura-ring { will-change: transform; animation: s-aura-spin 200s linear infinite; }
+.pharmacopoeia .s-aura-in { animation: s-aura-in 1.3s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes s-aura-spin { to { transform: rotate(360deg); } }
 @keyframes s-aura-in { from { opacity: 0; transform: scale(.86); } to { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) {
