@@ -8,23 +8,52 @@ const SEPIA = "#5A4A2E";
 const RED = "#A32B1F";
 
 const STEPS = [
-  { title: "Pick a compound", body: "By class, or search by name, nickname or lot." },
-  { title: "Read the lot's certificate", body: "Independent lab COA for the lot shipping now." },
-  { title: "Check out securely", body: "Your vials are held from that same lot." },
+  { title: "Pick a research compound", body: "By class, or search by name, nickname or lot." },
+  // say "ISO/IEC 17025-accredited lab", never call the certificate itself accredited;
+  // the hyphen after 17025 is a non-breaking one (U+2011), so phones keep the phrase together
+  { title: "Read the lot's certificate", body: "Seven-test panel from an independent ISO/IEC 17025‑accredited US lab." },
+  { title: "Checkout process", body: "Secure bank-to-bank transfer." },
   // never delivery days or a city (2026-10-18: the QR line moved out; this step is shipping only)
   { title: "Tracked from the US", body: `Ships from the US with tracking on every order. Free over $${FREE_SHIPPING_THRESHOLD_USD}.` },
 ];
 
-function Rack() {
+// Fig. 1 (2026-10-18): a ball-and-stick molecule — a six-atom ring with a side chain, one
+// atom in red. Bonds stop at each atom's edge, so nothing needs a fill to hide them.
+const ATOMS: [number, number, number][] = [
+  [50, 74, 6.5], [69, 85, 6.5], [69, 107, 6.5], [50, 118, 6.5], [31, 107, 6.5], [31, 85, 6.5],
+  [88, 74, 6], [107, 85, 6], [88, 52, 7.5], [107, 107, 5], [50, 132, 4.5], [13, 74, 5],
+];
+const BONDS: [number, number, boolean?][] = [
+  [0, 1, true], [1, 2], [2, 3, true], [3, 4], [4, 5, true], [5, 0],
+  [1, 6], [6, 7], [6, 8, true], [7, 9], [3, 10], [5, 11],
+];
+function bondPath(i: number, j: number, offset: number) {
+  const [x1, y1, r1] = ATOMS[i];
+  const [x2, y2, r2] = ATOMS[j];
+  const d = Math.hypot(x2 - x1, y2 - y1);
+  const ux = (x2 - x1) / d, uy = (y2 - y1) / d;
+  const ox = -uy * offset, oy = ux * offset;
+  const f = (n: number) => n.toFixed(1);
+  return `M${f(x1 + ux * (r1 + 1) + ox)} ${f(y1 + uy * (r1 + 1) + oy)} L${f(x2 - ux * (r2 + 1) + ox)} ${f(y2 - uy * (r2 + 1) + oy)}`;
+}
+function Molecule() {
+  const RED_ATOM = 8;
   return (
     <svg viewBox="0 0 120 150" fill="none" stroke={SEPIA} strokeWidth="1.1" aria-hidden>
-      <path d="M14 96 H106 M14 104 H106 M18 104 V138 M102 104 V138 M10 138 H110" />
-      <path d="M28 40 V118 Q28 124 33 124 Q38 124 38 118 V40 M26 40 H40" />
-      <path d="M50 30 V118 Q50 124 55 124 Q60 124 60 118 V30 M48 30 H62" />
-      <path d="M72 46 V118 Q72 124 77 124 Q82 124 82 118 V46 M70 46 H84" />
-      <path d="M94 36 V118 Q94 124 99 124 Q104 124 104 118 V36 M92 36 H106" stroke={RED} />
-      <path d="M30 100 H36 M30 106 H36 M30 112 H36 M52 92 H58 M52 98 H58 M52 104 H58 M52 110 H58 M74 104 H80 M74 110 H80" strokeWidth=".6" />
-      <path d="M96 96 H102 M96 102 H102 M96 108 H102 M96 114 H102" stroke={RED} strokeWidth=".6" />
+      {/* raised so it centres on the phone beside it */}
+      <g transform="translate(0 -14)">
+      {BONDS.map(([i, j, double]) => (
+        <path key={`${i}-${j}`} d={double ? `${bondPath(i, j, -2)} ${bondPath(i, j, 2)}` : bondPath(i, j, 0)}
+          strokeWidth={double ? ".8" : "1.1"} />
+      ))}
+      {ATOMS.map(([x, y, r], k) => (
+        <g key={k} stroke={k === RED_ATOM ? RED : SEPIA}>
+          <circle cx={x} cy={y} r={r} />
+          {/* engraved shading: a crescent on the lower right of each atom */}
+          <path d={`M${x + r * 0.2} ${y + r * 0.75} A${r * 0.8} ${r * 0.8} 0 0 0 ${x + r * 0.75} ${y + r * 0.2}`} strokeWidth=".5" />
+        </g>
+      ))}
+      </g>
     </svg>
   );
 }
@@ -62,17 +91,30 @@ function QrScan() {
   );
 }
 
-function SealedVial() {
+// Fig. 3 (2026-10-18): paying bank to bank — two bank facades joined by a locked link.
+function Bank({ x }: { x: number }) {
+  return (
+    <g transform={`translate(${x} 0)`}>
+      <path d="M2 86 L24 73 L46 86 Z" />
+      <rect x="2" y="86" width="44" height="5" />
+      <path d="M8 91 V126 M12 91 V126 M18 91 V126 M22 91 V126 M26 91 V126 M30 91 V126 M36 91 V126 M40 91 V126" strokeWidth=".8" />
+      <path d="M0 126 H48 M-2 131 H50 M-4 136 H52" />
+      <circle cx="24" cy="81" r="2.2" strokeWidth=".6" />
+    </g>
+  );
+}
+function BankToBank() {
   return (
     <svg viewBox="0 0 120 150" fill="none" stroke={SEPIA} strokeWidth="1.1" aria-hidden>
-      <rect x="40" y="14" width="40" height="10" rx="2" stroke={RED} />
-      <rect x="42" y="24" width="36" height="16" />
-      <path d="M46 28 V38 M52 28 V38 M58 28 V38 M64 28 V38 M70 28 V38" strokeWidth=".5" />
-      <path d="M48 40 V46 Q30 48 30 62 V128 Q30 136 38 136 H82 Q90 136 90 128 V62 Q90 48 72 46 V40" />
-      <rect x="30" y="70" width="60" height="44" strokeWidth=".9" />
-      <path d="M36 82 H70 M36 90 H62 M36 100 H76" strokeWidth=".6" />
-      <path d="M32 122 Q46 118 60 121 Q74 118 88 122" strokeWidth=".7" />
-      <path d="M34 66 V130" strokeWidth=".4" />
+      <Bank x={4} />
+      <Bank x={68} />
+      {/* the link, locked in the middle */}
+      <path d="M28 70 Q32 56 51 55 M69 55 Q88 56 92 70" stroke={RED} strokeWidth="1" />
+      <path d="M88.6 66.2 L92 70 L93.4 64.8" stroke={RED} strokeWidth="1" />
+      <path d="M55 49 V44 Q55 38 60 38 Q65 38 65 44 V49" />
+      <rect x="51" y="49" width="18" height="14" />
+      <circle cx="60" cy="54.5" r="1.6" fill={SEPIA} stroke="none" />
+      <path d="M60 56 V59.5" strokeWidth="1.2" />
     </svg>
   );
 }
@@ -92,9 +134,9 @@ function Parcel() {
 
 // The word over each figure (2026-10-14).
 const FIGURES = [
-  { Fig: Rack, word: "Pick" },
+  { Fig: Molecule, word: "Pick" },
   { Fig: QrScan, word: "Verify" },
-  { Fig: SealedVial, word: "Secure" },
+  { Fig: BankToBank, word: "Secure" },
   { Fig: Parcel, word: "Receive" },
 ];
 
