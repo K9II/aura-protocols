@@ -57,6 +57,7 @@ export default async function HomePage() {
             <TrustRow className="load-in load-5" />
           </div>
           <div className="load-in load-5 s-hero-sphere">
+            <HeroLight where="sphere" />
             <HeroAura rings={auraRings(live.lots, SEVEN_TEST_PANEL)}>
               <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
             </HeroAura>
