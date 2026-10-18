@@ -18,6 +18,14 @@ export const LABEL = {
   qrSize: 32,
 } as const;
 
+// The label on the 3D vial: the store label's height (94 of the drawing's 200 units) on a
+// cylinder of radius 40.4, so one label unit is 94/80 units round the vial.
+export const VIAL_LABEL_HEIGHT = 94;
+export const VIAL_LABEL_RADIUS = 40.4;
+// How far the vial turns from its front (radians) until the QR code faces out: the turning
+// vial eases into a pause there.
+export const QR_FACING_TURN = ((LABEL.qrX + LABEL.qrSize / 2 - 40) * (VIAL_LABEL_HEIGHT / 80)) / VIAL_LABEL_RADIUS;
+
 // The turning vial renders at up to 3× pixels: phones are 3×, and below their density the
 // label's small type softens.
 export const MAX_DPR = 3;

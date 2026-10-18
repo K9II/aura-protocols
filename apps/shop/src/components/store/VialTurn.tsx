@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Vial from "@/components/store/Vial";
 import { useChosenStrength } from "@/lib/chosen-strength";
 import type { Vial3D, VialLabelInput } from "@/components/store/vial-3d";
-import { MAX_DPR } from "@/lib/vial-label";
+import { MAX_DPR, QR_FACING_TURN } from "@/lib/vial-label";
 
 // Product page vial: the store's <Vial> paints first (and stays when WebGL isn't there);
 // then the same vial in 3D takes its place and turns slowly to show the barcode and the
@@ -20,12 +20,21 @@ type Props = {
 // Turning speed in radians a second, by how far the vial has turned from its front: slow
 // while the front panel (the compound) faces out, quicker round the barcode and QR code,
 // easing smoothly between (one turn takes about 15 s, 8 of them within 45° of the front).
+// It also eases into the QR code and holds there (QR_HOLD_MS) while the caption under the
+// picture lights up ("aura:vial-qr" event → QrNote), then eases out.
 const SLOW = 0.15, FAST = 1.1;
 const HOLD_MS = 2000; // when the page opens, the front holds still this long before it starts to turn
+const QR_HOLD_MS = 1500;
+const TAU = 2 * Math.PI;
+const turnedOf = (angle: number) => ((-angle % TAU) + TAU) % TAU; // 0 = front facing out
 const speedAt = (angle: number) => {
-  const turned = ((-angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); // 0 = front facing out
-  return SLOW + (FAST - SLOW) * (1 - Math.cos(turned)) / 2;
+  const turned = turnedOf(angle);
+  const nearQr = Math.exp(-(((turned - QR_FACING_TURN) / 0.45) ** 2));
+  return (SLOW + (FAST - SLOW) * (1 - Math.cos(turned)) / 2) * (1 - 0.7 * nearQr);
 };
+export const VIAL_QR_EVENT = "aura:vial-qr";
+const announceQr = (slug: string, showing: boolean) =>
+  window.dispatchEvent(new CustomEvent(VIAL_QR_EVENT, { detail: { slug, showing } }));
 
 function webgl2(): boolean {
   if (typeof WebGL2RenderingContext === "undefined") return false;
@@ -46,7 +55,7 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !webgl2()) return;
-    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = 0, onScreen = true, startAt = 0;
+    let alive = true, vial: Vial3D | null = null, raf = 0, last = 0, angle = 0, onScreen = true, startAt = 0, qrUntil = 0;
     let drag: { x: number; angle: number } | null = null;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -55,7 +64,18 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
       if (!vial || !alive) return;
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
       last = t;
-      if (!still && !drag && t >= startAt) angle -= dt * speedAt(angle);
+      if (qrUntil && (t >= qrUntil || drag)) { qrUntil = 0; announceQr(slug, false); }
+      if (!still && !drag && t >= startAt && !qrUntil) {
+        const before = turnedOf(angle);
+        angle -= dt * speedAt(angle);
+        const after = turnedOf(angle);
+        // reached the QR code: stop exactly facing it, hold, light the caption
+        if (before < QR_FACING_TURN && after >= QR_FACING_TURN && after - before < 1) {
+          angle += after - QR_FACING_TURN;
+          qrUntil = t + QR_HOLD_MS;
+          announceQr(slug, true);
+        }
+      }
       vial.setAngle(angle);
       vial.render();
       if (onScreen && !document.hidden && (!still || drag)) raf = requestAnimationFrame(frame);
@@ -98,6 +118,7 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
 
     return () => {
       alive = false;
+      if (qrUntil) announceQr(slug, false);
       if (raf) cancelAnimationFrame(raf);
       seen.disconnect(); sized.disconnect();
       document.removeEventListener("visibilitychange", wake);
@@ -110,7 +131,7 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
     };
     // the product is fixed for the page; parts is a new array each render, so key on its text
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [label, label2, parts.join("|"), cap, rule]);
+  }, [slug, label, label2, parts.join("|"), cap, rule]);
 
   // a new size: redraw the label where it is
   const qrKey = qr.join("");

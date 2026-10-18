@@ -481,7 +481,7 @@ main:has(> .pharmacopoeia) {
 .s-topbar em { font-style: normal; color: #E8A79E; }
 /* phones get the short wording (2 lines, not 4); each phrase stays whole */
 .s-topbar-phone { display: none; }
-@media (max-width: 640px) { .s-topbar { line-height: 1.45; padding-block: 8px; } .s-topbar-wide { display: none; } .s-topbar-phone { display: inline; } }
+@media (max-width: 640px) { .s-topbar { font-size: 11px; letter-spacing: .12em; line-height: 1.4; padding-block: 6px; } .s-topbar-wide { display: none; } .s-topbar-phone { display: inline; } }
 @media (max-width: 360px) { .s-topbar { letter-spacing: .08em; padding-inline: 10px; } }
 /* Header: logo left · links centered · Shop + Cart right. Equal side columns
    keep the links on the true center of the bar. */
@@ -506,26 +506,33 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-nav-auth { font-size: 16px; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; min-width: 1px; }
 .pharmacopoeia .s-nav-signout { display: flex; margin: 0; }
 .pharmacopoeia .s-nav-signout button { color: var(--ink-soft); white-space: nowrap; }
-/* Phones only: Sign out at the end of the links row (AuthLinks PhoneSignOut). */
-.pharmacopoeia .s-nav-signout-phone { display: none; margin: 0; }
-.pharmacopoeia .s-nav-signout-phone button { background: none; border: 0; padding: 0; font: inherit; color: var(--ink-soft); white-space: nowrap; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .pharmacopoeia .s-nav-shop-link { color: var(--ink); font-weight: 500; }
+/* Phones (2026-10-17, mock https://claude.ai/artifact/Tbn4wSqggmTs7gTWoGSVgZ): one slim pinned row —
+   logo, search, Cart, menu. The banner above it scrolls away (SiteNav sets the header's top);
+   the links and account live in the menu (PhoneMenu). */
+.pharmacopoeia .s-pmenu { display: none; }
 @media (max-width: 640px) {
-  .pharmacopoeia .s-nav { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "logo actions" "links links"; row-gap: 10px; }
-  .pharmacopoeia .s-nav-links { justify-self: center; gap: 4px 14px; font-size: 14px; flex-wrap: wrap; justify-content: center; }
-  .pharmacopoeia .s-nav-links a { white-space: nowrap; }
-  .pharmacopoeia .s-nav-actions { gap: 8px; }
-  .pharmacopoeia .s-nav-shop { padding: 6px 10px; }
-  .pharmacopoeia .s-nav-actions .s-nav-shop, .pharmacopoeia .s-nav-signout { display: none; }
-  .pharmacopoeia .s-nav-signout-phone { display: flex; }
-  .pharmacopoeia .s-nav-actions { white-space: nowrap; }
+  .pharmacopoeia .s-nav-wrap { padding-top: 6px; padding-bottom: 6px; }
+  .pharmacopoeia .s-nav { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "logo actions"; row-gap: 0; padding: 2px 0; }
+  .pharmacopoeia .s-nav-links { display: none; }
+  .pharmacopoeia .s-nav-logo { zoom: .72; }
+  .pharmacopoeia .s-nav-actions { gap: 14px; white-space: nowrap; }
+  .pharmacopoeia .s-nav-actions .s-nav-auth, .pharmacopoeia .s-nav-actions .s-nav-shop, .pharmacopoeia .s-nav-signout { display: none; }
+  .pharmacopoeia .s-pmenu { display: block; }
 }
+.pharmacopoeia .s-pmenu-btn { width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 1px solid var(--line); color: var(--ink); cursor: pointer; }
+.pharmacopoeia .s-pmenu-btn.is-open { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.pharmacopoeia .s-pmenu-btn:focus-visible { outline: 2px solid var(--specimen); outline-offset: 2px; }
+.pharmacopoeia .s-pmenu-panel { position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100dvh - 72px); overflow-y: auto; background: #F9F8F4; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); box-shadow: 0 18px 30px -18px rgba(28,26,21,.45); padding: 4px 16px 12px; font-family: var(--font-newsreader), Georgia, serif; font-size: 19px; }
+.pharmacopoeia .s-pmenu-panel a, .pharmacopoeia .s-pmenu-panel button { display: block; width: 100%; text-align: left; padding: 12px 2px; border: 0; border-bottom: 1px solid var(--paper-deep); background: none; color: var(--ink); font: inherit; cursor: pointer; }
+.pharmacopoeia .s-pmenu-panel form { margin: 0; }
+.pharmacopoeia .s-pmenu-panel button { color: var(--ink-soft); }
+.pharmacopoeia .s-pmenu-shop { font-weight: 500; }
 /* narrowest phones: logo + Admin/Account/Cart must share one row without overlapping */
 @media (max-width: 400px) {
   /* the header already has a 16px gutter; the nav's own side padding would double it */
   .pharmacopoeia .s-nav { column-gap: 10px; padding-left: 0; padding-right: 0; }
-  .pharmacopoeia .s-nav-logo { zoom: .88; }
-  .pharmacopoeia .s-nav-actions { gap: 8px; }
+  .pharmacopoeia .s-nav-actions { gap: 10px; }
   .pharmacopoeia .s-nav-auth, .pharmacopoeia .s-nav-cart { font-size: 14px; }
   .pharmacopoeia .s-nav-cart.s-nav-cart-full { padding: 6px 8px; }
 }
@@ -796,7 +803,9 @@ main > .pharmacopoeia { overflow-x: clip; }
   @container (min-width: 431px) { .pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-form { display: none; } }
   @container (min-width: 431px) and (max-width: 560px) { .pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-mw { display: none; } }
 }
-.pharmacopoeia .s-pdp-qrnote { margin: 12px 0 0; font-size: 11px; letter-spacing: .1em; line-height: 1.6; color: var(--ink-soft); }
+.pharmacopoeia .s-pdp-qrnote { margin: 12px 0 0; font-size: 11px; letter-spacing: .1em; line-height: 1.6; color: var(--ink-soft); transition: color .35s ease; }
+/* lit while the turning vial holds on its QR code */
+.pharmacopoeia .s-pdp-qrnote.is-lit { color: var(--specimen); }
 @media (max-width: 900px) { .pharmacopoeia .s-pdp-qrnote { order: 1; width: 100%; max-width: 560px; justify-self: center; } }
 /* single column: the tile would fill the width and grow taller than the screen */
 @media (max-width: 900px) { .pharmacopoeia .s-pdp-tile { width: 100%; max-width: 560px; justify-self: center; } }
@@ -1527,6 +1536,13 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 /* featured kits: one row of five on wide screens; an odd last card centres on two columns */
 @media (min-width: 1100px) { .pharmacopoeia .s-kc-grid.s-kc-feat { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 28px 16px; } }
 @media (max-width: 900px) { .pharmacopoeia .s-kc-grid.s-kc-feat > :last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 7px); } }
+/* below the wide single row the grid holds four (FEATURED_KITS_NARROW): the fifth would sit alone */
+.pharmacopoeia .s-kc-n-narrow { display: none; }
+@media (max-width: 1099px) {
+  .pharmacopoeia .s-kc-grid.s-kc-feat > :nth-child(n+5) { display: none; }
+  .pharmacopoeia .s-kc-n-wide { display: none; }
+  .pharmacopoeia .s-kc-n-narrow { display: inline; }
+}
 .pharmacopoeia .s-kc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 22px; margin: 0 0 30px; padding: 0; list-style: none; }
 .pharmacopoeia .s-kc-card { display: grid; align-content: start; min-width: 0; }
 .pharmacopoeia .s-kc-tile { height: 220px; display: grid; place-items: center; padding: 16px; background: var(--record); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.28); }
@@ -2225,3 +2241,22 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 @media (max-width: 720px) { .pharmacopoeia .s-ws-page .s-qr-steps .n { font-size: 18px; } }
 .pharmacopoeia .s-ws-page .s-nw { white-space: nowrap; }
 .pharmacopoeia .s-ws-page .s-contact-who { font-size: var(--ws-text); }
+
+/* Jumps to a section (#library) and fields scrolled into view for the keyboard stop below
+   the pinned header instead of under it. */
+html { scroll-padding-top: 150px; }
+@media (max-width: 640px) {
+  html { scroll-padding-top: 84px; }
+  /* sections that set their own room for the old 201 px header */
+  .pharmacopoeia #lot-certificates, .pharmacopoeia .s-policy-section, .pharmacopoeia .s-ws-inq, .pharmacopoeia .s-about-body section { scroll-margin-top: 84px; }
+}
+
+/* Kept at the end so it follows the page rules it trims.
+   Phones: one even, smaller gap between the header and every page's first line (pages open
+   with py-10…py-16 containers; the header row is slim now, 2026-10-17). */
+@media (max-width: 640px) {
+  main > .pharmacopoeia > div:first-of-type[class*="py-1"] { padding-top: 24px; }
+  .pharmacopoeia .s-shophero { padding-top: 20px; }
+  .pharmacopoeia .s-pdp { padding-top: 20px; }
+  .pharmacopoeia .s-about-head { padding-top: 24px; }
+}
