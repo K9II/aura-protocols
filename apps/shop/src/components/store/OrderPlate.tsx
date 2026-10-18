@@ -64,17 +64,30 @@ function QrScan() {
   );
 }
 
-function SealedVial() {
+// Fig. 3 (2026-10-18): paying bank to bank — two bank facades joined by a locked link.
+function Bank({ x }: { x: number }) {
+  return (
+    <g transform={`translate(${x} 0)`}>
+      <path d="M2 86 L24 73 L46 86 Z" />
+      <rect x="2" y="86" width="44" height="5" />
+      <path d="M8 91 V126 M12 91 V126 M18 91 V126 M22 91 V126 M26 91 V126 M30 91 V126 M36 91 V126 M40 91 V126" strokeWidth=".8" />
+      <path d="M0 126 H48 M-2 131 H50 M-4 136 H52" />
+      <circle cx="24" cy="81" r="2.2" strokeWidth=".6" />
+    </g>
+  );
+}
+function BankToBank() {
   return (
     <svg viewBox="0 0 120 150" fill="none" stroke={SEPIA} strokeWidth="1.1" aria-hidden>
-      <rect x="40" y="14" width="40" height="10" rx="2" stroke={RED} />
-      <rect x="42" y="24" width="36" height="16" />
-      <path d="M46 28 V38 M52 28 V38 M58 28 V38 M64 28 V38 M70 28 V38" strokeWidth=".5" />
-      <path d="M48 40 V46 Q30 48 30 62 V128 Q30 136 38 136 H82 Q90 136 90 128 V62 Q90 48 72 46 V40" />
-      <rect x="30" y="70" width="60" height="44" strokeWidth=".9" />
-      <path d="M36 82 H70 M36 90 H62 M36 100 H76" strokeWidth=".6" />
-      <path d="M32 122 Q46 118 60 121 Q74 118 88 122" strokeWidth=".7" />
-      <path d="M34 66 V130" strokeWidth=".4" />
+      <Bank x={4} />
+      <Bank x={68} />
+      {/* the link, locked in the middle */}
+      <path d="M28 70 Q32 56 51 55 M69 55 Q88 56 92 70" stroke={RED} strokeWidth="1" />
+      <path d="M88.6 66.2 L92 70 L93.4 64.8" stroke={RED} strokeWidth="1" />
+      <path d="M55 49 V44 Q55 38 60 38 Q65 38 65 44 V49" />
+      <rect x="51" y="49" width="18" height="14" />
+      <circle cx="60" cy="54.5" r="1.6" fill={SEPIA} stroke="none" />
+      <path d="M60 56 V59.5" strokeWidth="1.2" />
     </svg>
   );
 }
@@ -96,7 +109,7 @@ function Parcel() {
 const FIGURES = [
   { Fig: Rack, word: "Pick" },
   { Fig: QrScan, word: "Verify" },
-  { Fig: SealedVial, word: "Secure" },
+  { Fig: BankToBank, word: "Secure" },
   { Fig: Parcel, word: "Receive" },
 ];
 
