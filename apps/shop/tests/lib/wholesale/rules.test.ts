@@ -110,6 +110,12 @@ describe("wholesale rules", () => {
     expect(() => parseWholesaleSettings({ ...settingsRow, wholesale_tiers: [{ minKits: 4, pct: 25 }, { minKits: 3, pct: 30 }] })).toThrow();
   });
 
+  it("featured kits: Retatrutide comes fifth, the one narrow grids leave out", () => {
+    const r = (slug: string, variantId: string) => ({ slug, variantId }) as Parameters<typeof featuredKits>[0][number];
+    const all = [r("retatrutide", "10mg"), r("ss-31", "50mg"), r("bpc-157", "10mg"), r("bpc-157-tb-500-ghk-cu", "70mg"), r("tesamorelin", "10mg")];
+    expect(featuredKits(all).map((k) => k.slug)).toEqual(["bpc-157", "tesamorelin", "ss-31", "bpc-157-tb-500-ghk-cu", "retatrutide"]);
+  });
+
   it("featured kits: the five on the signed-out page in order; one not offered is replaced by the next kit", () => {
     expect(featuredKits(kitRows(live)).map((r) => r.slug)).toEqual(["bpc-157", "retatrutide", "tb-500"]);
   });

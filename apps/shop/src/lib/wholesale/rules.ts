@@ -47,10 +47,13 @@ export const WHOLESALE_TERMS = [
   "For laboratory research use only. Not for human or animal use, and not for resale for human use.",
 ];
 
-// The kits pictured on the signed-out page, in order (slug, variant id).
+// The kits pictured on the signed-out page, in order (slug, variant id). Below 1100px the grid
+// holds four (two rows of two on phones), so the fifth shows only in the wide single row
+// (Alvester 2026-10-17: Retatrutide alone on a last row wasted the phone's scroll).
 export const FEATURED_KITS: Array<[string, string]> = [
-  ["bpc-157", "10mg"], ["retatrutide", "10mg"], ["tesamorelin", "10mg"], ["ss-31", "50mg"], ["bpc-157-tb-500-ghk-cu", "70mg"],
+  ["bpc-157", "10mg"], ["tesamorelin", "10mg"], ["ss-31", "50mg"], ["bpc-157-tb-500-ghk-cu", "70mg"], ["retatrutide", "10mg"],
 ];
+export const FEATURED_KITS_NARROW = 4;
 
 export function parseWholesaleSettings(row: {
   wholesale_open: boolean; wholesale_tiers: unknown; wholesale_deposit_pct: number; wholesale_balance_days: number;

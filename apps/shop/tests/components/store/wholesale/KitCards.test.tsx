@@ -31,7 +31,11 @@ describe("KitCards (wholesale option C)", () => {
     const many = [...ROWS, ...["tb-500", "ghk-cu", "semax", "selank"].map((s) => row(s, s.toUpperCase(), "Peptide Fragments"))];
     const { container } = render(<KitCards rows={many} tiers={TIERS} seeAllHref="/wholesale?step=order" />);
     expect(container.querySelectorAll(".s-kc-card")).toHaveLength(5);
-    expect(screen.getByText("Featured kits · 5 of 7 strengths")).toBeTruthy();
+    // five on the wide single row; narrower grids hold four (CSS hides the fifth and shows the narrow count)
+    const count = container.querySelector("p.s-micro")!;
+    expect(count.textContent).toBe("Featured kits · 54 of 7 strengths");
+    expect(count.querySelector(".s-kc-n-wide")!.textContent).toBe("5");
+    expect(count.querySelector(".s-kc-n-narrow")!.textContent).toBe("4");
     expect(screen.queryByRole("group", { name: "Show kits by class" })).toBeNull();
     // featured order first: BPC-157, then Retatrutide
     expect([...container.querySelectorAll(".s-kc-nm")].slice(0, 2).map((n) => n.textContent)).toEqual(["BPC-157", "APro-G3RT (Retatrutide)"]);

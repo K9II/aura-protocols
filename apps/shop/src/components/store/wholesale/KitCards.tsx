@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { CSSProperties } from "react";
 import KitBox from "@/components/store/wholesale/KitBox";
-import { featuredKits, kitTitle, type KitSheetRow, type Tier } from "@/lib/wholesale/rules";
+import { FEATURED_KITS_NARROW, featuredKits, kitTitle, type KitSheetRow, type Tier } from "@/lib/wholesale/rules";
 import { CLASS_COLOR } from "@/lib/class-colors";
 import type { ChemicalClass } from "@/data/catalog";
 
@@ -28,7 +28,9 @@ export default function KitCards({ rows, tiers, seeAllHref }: { rows: KitSheetRo
   return (
     <>
       <p className="s-micro" style={{ margin: "8px 0 4px" }}>
-        {short ? `Featured kits · ${featured.length} of ${rows.length} strengths` : `Offered as kits · ${rows.length} strengths`}
+        {short ? <>Featured kits · {featured.length > FEATURED_KITS_NARROW
+          ? <><span className="s-kc-n-wide">{featured.length}</span><span className="s-kc-n-narrow">{FEATURED_KITS_NARROW}</span></>
+          : featured.length} of {rows.length} strengths</> : `Offered as kits · ${rows.length} strengths`}
       </p>
       {!short && (
         <div className="s-kc-pills" role="group" aria-label="Show kits by class">
