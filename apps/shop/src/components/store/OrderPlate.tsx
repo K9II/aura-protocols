@@ -118,7 +118,6 @@ export default function OrderPlate() {
       </div>
       <div className="s-plate-art">
         <div className="s-plate-sheet">
-          <span className="s-plate-taf" aria-hidden>Taf. I.</span>
           <div className="s-plate-figs">
             <svg className="s-plate-ground" viewBox="0 0 1000 20" preserveAspectRatio="none" aria-hidden>
               <path d="M0 10 H440 L452 10 L458 2 L466 18 L472 10 H1000" fill="none" stroke={SEPIA} strokeWidth="1" vectorEffect="non-scaling-stroke" />
