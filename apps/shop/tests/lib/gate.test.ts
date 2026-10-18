@@ -31,4 +31,9 @@ describe("gate", () => {
     }
     for (const p of ["/", "/products", "/products/bpc-157", "/coa", "/cart"]) expect(isGateExempt(p), p).toBe(false);
   });
+
+  it("a vial scan's lot certificate opens without signing in; COA Lookup and the library stay gated", () => {
+    expect(isGateExempt("/coa/DEMO-MOTSC-01")).toBe(true);
+    expect(isGateExempt("/coa")).toBe(false);
+  });
 });
