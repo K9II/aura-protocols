@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { withDemoResults } from "@/lib/demo-lots";
+import { demoResultsOn, withDemoResults } from "@/lib/demo-lots";
 import type { LiveCatalog } from "@/lib/catalog-merge";
 import type { PublicCert } from "@/data/catalog-types";
 
@@ -17,5 +17,15 @@ describe("withDemoResults (demo server only)", () => {
       expect(c.measuredMg).toBe(10);
     }
     expect(real).toEqual(cert("MOT-2611-02"));
+  });
+});
+
+describe("demoResultsOn", () => {
+  it("is on for next dev and for the demo's production build (AURA_DEMO=1), never on Vercel", () => {
+    expect(demoResultsOn({ NODE_ENV: "development" })).toBe(true);
+    expect(demoResultsOn({ NODE_ENV: "production", AURA_DEMO: "1" })).toBe(true);
+    expect(demoResultsOn({ NODE_ENV: "production" })).toBe(false);
+    expect(demoResultsOn({ NODE_ENV: "production", AURA_DEMO: "1", VERCEL: "1" })).toBe(false);
+    expect(demoResultsOn({ NODE_ENV: "development", VERCEL: "1" })).toBe(false);
   });
 });
