@@ -67,7 +67,7 @@ export default async function HomePage() {
           {/* Phones (under 900px): the lineup comes after the sphere, which sits under the lot
               card (2026-10-17; before that the lineup came first, mock P1 2026-10-14).
               Desktop shows the copy further down instead; CSS shows one of the two. */}
-          <HomeLineup featured={phoneLineup} total={live.shown.length} where="phone" />
+          <HomeLineup featured={phoneLineup} where="phone" />
         </section>
         </div>
       </div>
@@ -79,7 +79,7 @@ export default async function HomePage() {
         {/* desktop: how a vial's QR code proves its lot (option A "Scan strip", Layout 1, 2026-10-18) */}
         {newest && newestCompound && <ScanStrip lot={newest} compound={newestCompound} certs={live.certificates} sevenTests={SEVEN_TEST_PANEL} />}
 
-        <HomeLineup featured={featured} total={live.shown.length} where="desk" />
+        <HomeLineup featured={featured} where="desk" />
 
         {/* how an order runs (2026-10-14) */}
         <OrderPlate />
@@ -103,7 +103,7 @@ function pickPhoneLineup(shown: Compound[], featured: Compound[]): Compound[] {
 
 // The featured lineup. Rendered twice on the home page: inside the hero on phones,
 // after the last lot releases on desktop; CSS shows one (.s-lineup--phone / --desk).
-function HomeLineup({ featured, total, where }: { featured: Compound[]; total: number; where: "phone" | "desk" }) {
+function HomeLineup({ featured, where }: { featured: Compound[]; where: "phone" | "desk" }) {
   return (
     <section className={`p-reveal py-14 s-lineup s-lineup--${where}`}>
       <div className="s-lh">
@@ -118,12 +118,6 @@ function HomeLineup({ featured, total, where }: { featured: Compound[]; total: n
       <div className="s-grid">
         {featured.map((c, i) => <CompoundCard key={c.slug} compound={c} index={i} idScope={where === "phone" ? "m-" : ""} />)}
       </div>
-      {/* phones lead with "Shop the lineup" instead (2026-10-17) */}
-      {where === "desk" && (
-        <div className="mt-8">
-          <Link href="/products" className="p-see-all s-micro">See all {total} compounds →</Link>
-        </div>
-      )}
     </section>
   );
 }

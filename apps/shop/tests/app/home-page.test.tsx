@@ -105,12 +105,12 @@ describe("/ (home)", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Unavailable right now");
   });
 
-  it("counts and features from the live shown catalog", async () => {
+  it("features from the live shown catalog", async () => {
     const shown = liveFixture().filter((c) => c.chemicalClass !== "Incretin & Amylin Analogs");
     live.mockResolvedValue({ all: liveFixture(), shown, lots: [], certificates: [] });
     await renderHome();
-    expect(within(lineupIn("desk")).getByText(`See all ${shown.length} compounds →`)).toBeInTheDocument();
-    expect(lineupIn("phone")).not.toHaveTextContent(/See all/);
+    // the "See all N compounds" link is gone (phones 2026-10-17, desktop 2026-10-18)
+    for (const where of ["desk", "phone"] as const) expect(lineupIn(where)).not.toHaveTextContent(/See all/);
     for (const where of ["desk", "phone"] as const) {
       expect(within(lineupIn(where)).getAllByRole("heading", { level: 3 })).toHaveLength(shown.filter((c) => c.featured).length);
     }
