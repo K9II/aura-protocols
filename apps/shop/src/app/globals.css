@@ -783,6 +783,9 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-pdp-scan svg { width: 84px; height: 84px; flex: none; border: 1px solid #DCD5C3; padding: 4px; background: #fff; }
 .pharmacopoeia .s-pdp-scan + .s-placard-r { margin-top: 12px; }
 @media (max-width: 900px) { .pharmacopoeia .s-pdp-scan { display: none; } }
+/* the two-column layout just above 900px has a narrow tile: a smaller code, then none */
+@container (max-width: 520px) { .pharmacopoeia .s-pdp-scan { gap: 10px; font-size: 9px; } .pharmacopoeia .s-pdp-scan svg { width: 60px; height: 60px; padding: 3px; } }
+@container (max-width: 430px) { .pharmacopoeia .s-pdp-scan { display: none; } }
 .pharmacopoeia .s-pdp-qrnote { margin: 12px 0 0; font-size: 11px; letter-spacing: .1em; line-height: 1.6; color: var(--ink-soft); }
 @media (max-width: 900px) { .pharmacopoeia .s-pdp-qrnote { order: 1; width: 100%; max-width: 560px; justify-self: center; } }
 /* single column: the tile would fill the width and grow taller than the screen */
