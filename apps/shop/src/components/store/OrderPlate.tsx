@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 // "How an order runs" (home, after The lineup; mock "Option B · Engraved
 // plate steps + journal masthead", approved 2026-10-14). Drawn as an
@@ -11,7 +12,8 @@ const STEPS = [
   { title: "Pick a compound", body: "By class, or search by name, nickname or lot." },
   { title: "Read the lot's certificate", body: "Independent lab COA for the lot shipping now." },
   { title: "Check out securely", body: "Your vials are held from that same lot." },
-  { title: "Tracked from the US", body: "The lot on your vial opens the same certificate." },
+  // never delivery days or a city (2026-10-18: the QR line moved out; this step is shipping only)
+  { title: "Tracked from the US", body: `Ships from the US with tracking on every order. Free over $${FREE_SHIPPING_THRESHOLD_USD}.` },
 ];
 
 function Rack() {
