@@ -12,7 +12,14 @@ type Props = Omit<VialLabelInput, "parts" | "cap" | "rule"> & {
   id: string; parts?: string[]; cap?: VialLabelInput["cap"]; rule?: string;
 };
 
-const SPEED = 0.55; // radians a second: one turn in about 11 s
+// Turning speed in radians a second, by how far the vial has turned from its front: slow
+// while the front panel (the compound) faces out, quicker round the barcode and QR code,
+// easing smoothly between (one turn takes about 11 s, 5 of them within 45° of the front).
+const SLOW = 0.28, FAST = 1.1;
+const speedAt = (angle: number) => {
+  const turned = ((-angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); // 0 = front facing out
+  return SLOW + (FAST - SLOW) * (1 - Math.cos(turned)) / 2;
+};
 
 function webgl2(): boolean {
   if (typeof WebGL2RenderingContext === "undefined") return false;
@@ -35,7 +42,7 @@ export default function VialTurn({ id, label, label2, strength, parts = [], cap 
       if (!vial || !alive) return;
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
       last = t;
-      if (!still && !drag) angle -= dt * SPEED;
+      if (!still && !drag) angle -= dt * speedAt(angle);
       vial.setAngle(angle);
       vial.render();
       if (onScreen && !document.hidden && (!still || drag)) raf = requestAnimationFrame(frame);
