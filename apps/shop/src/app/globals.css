@@ -2232,3 +2232,12 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 @media (max-width: 720px) { .pharmacopoeia .s-ws-page .s-qr-steps .n { font-size: 18px; } }
 .pharmacopoeia .s-ws-page .s-nw { white-space: nowrap; }
 .pharmacopoeia .s-ws-page .s-contact-who { font-size: var(--ws-text); }
+
+/* Kept at the end so it follows the page rules it trims.
+   Phones: one even, smaller gap between the header and every page's first line (pages open
+   with py-10…py-16 containers; the header row is slim now, 2026-10-17). */
+@media (max-width: 640px) {
+  main > .pharmacopoeia > div:first-of-type[class*="py-1"] { padding-top: 24px; }
+  .pharmacopoeia .s-shophero { padding-top: 20px; }
+  .pharmacopoeia .s-pdp { padding-top: 20px; }
+}
