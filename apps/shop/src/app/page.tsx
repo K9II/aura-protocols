@@ -101,7 +101,10 @@ function HomeLineup({ featured, total, where }: { featured: Compound[]; total: n
   return (
     <section className={`p-reveal py-14 s-lineup s-lineup--${where}`}>
       <div className="s-lh">
-        <h2 className="s-h2"><Link href="/products" className="s-h2-link">The <em>lineup</em></Link></h2>
+        {/* phones: the hero's buttons are left out; this one leads the cards instead (2026-10-17) */}
+        {where === "phone"
+          ? <Link href="/products" className="p-btn-primary s-lineup-btn">Shop the lineup →</Link>
+          : <h2 className="s-h2"><Link href="/products" className="s-h2-link">The <em>lineup</em></Link></h2>}
         <p>No matching COA - No sale</p>
       </div>
       <div className="s-grid">

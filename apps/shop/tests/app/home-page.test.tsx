@@ -65,6 +65,13 @@ describe("/ (home)", () => {
     expect(ring).not.toHaveTextContent(/COMPOUND · LOT NUMBER/);
   });
 
+  it("phones: the lineup leads with the Shop the lineup button instead of its heading", async () => {
+    await renderHome();
+    const phone = lineupIn("phone");
+    expect(within(phone).queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
+    expect(within(phone).getByRole("link", { name: "Shop the lineup →" })).toHaveAttribute("href", "/products");
+  });
+
   it("links the lineup heading to the full inventory", async () => {
     await renderHome();
     const heading = deskLineupHeading();

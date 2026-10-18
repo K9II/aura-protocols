@@ -598,6 +598,10 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-proof-ph { display: none; }
 /* phones: the hero's trust row is left out (2026-10-17); the lot card above carries the proof */
 @media (max-width: 640px) { .pharmacopoeia .s-hero .s-trust { display: none; } }
+/* phones (the width the phone lineup shows at): the hero's two buttons are left out; the
+   lineup below leads with "Shop the lineup" in their place (2026-10-17) */
+@media (max-width: 900px) { .pharmacopoeia .s-hero .s-ctas { display: none; } }
+.pharmacopoeia .s-lineup-btn { font-size: 16px; padding: 13px 22px; }
 @media (max-width: 640px) {
   .pharmacopoeia .s-proof-body { grid-template-columns: 96px minmax(0, 1fr); column-gap: 14px; }
   .pharmacopoeia .s-proof-vial { padding-top: 34px; }
