@@ -14,11 +14,11 @@ export const ORDERS_EMAIL = "orders@auraprotocols.com";
 // The purity the site promises (homepage "99% purity floor"). The receive-a-lot
 // dialog warns below it.
 export const PURITY_FLOOR_PCT = 99;
-// The home hero's "7-test panel" says every lot passes identity, purity, quantity,
-// endotoxin, sterility, heavy metals and fentanyl. On for review; RELEASE_CHECK
-// fails while it's on and a live lot lacks a passing result for any of the seven
-// (going live itself still needs only purity + endotoxin — the owner's call).
-// Set false to take the panel off and keep the claim off the site.
+// The seven tests (identity, purity, quantity, endotoxin, sterility, heavy metals,
+// fentanyl) as a claim about every lot: the home sphere's green ring names them while this
+// is on. RELEASE_CHECK fails while it's on and a live lot lacks a passing result for any of
+// the seven (going live itself still needs only purity + endotoxin — the owner's call).
+// The hero's lot card always shows that lot's own results, whatever this says.
 export const SEVEN_TEST_PANEL = true;
 // Shown at sign-in to a blocked account (admin Customers → Block).
 export const ACCOUNT_CLOSED_MESSAGE = `This account is closed. If you think this is a mistake, email ${SUPPORT_EMAIL} from the address on the account.`;

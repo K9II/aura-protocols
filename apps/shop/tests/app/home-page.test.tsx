@@ -10,7 +10,6 @@ vi.mock("@/app/letter-actions", () => ({ letterStatusAction: () => new Promise((
 
 import HomePage from "@/app/page";
 import { liveFixture } from "../helpers/live-catalog";
-import { PURITY_FLOOR_PCT } from "@/lib/constants";
 
 const renderHome = async () => render(await HomePage());
 // The lineup is on the page twice (phones: inside the hero; desktop: further down); CSS shows one.
@@ -18,17 +17,34 @@ const lineupIn = (where: "desk" | "phone") => document.querySelector<HTMLElement
 const deskLineupHeading = () => within(lineupIn("desk")).getByRole("heading", { level: 2, name: /the lineup/i });
 
 describe("/ (home)", () => {
-  beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [] }); });
+  beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [], certificates: [] }); });
 
-  it("leads with the au·ra dictionary entry, the proof headline and the 7-test panel; no paragraph", async () => {
+  it("leads with the au·ra dictionary entry and the proof headline; no paragraph, no 7-test panel", async () => {
     await renderHome();
     expect(screen.getByText("the distinct quality that surrounds something.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^Our compounds come surrounded by\sproof\.$/);
-    const panel = screen.getByRole("group", { name: /seven tests every lot passes/i });
-    const rows = within(panel).getAllByRole("listitem").map((li) => li.querySelector("b")!.textContent);
-    expect(rows).toEqual(["Identity", "Purity", "Quantity", "Endotoxin", "Sterility", "Heavy metals", "Fentanyl"]);
-    expect(panel).toHaveTextContent(`HPLC, ≥${PURITY_FLOOR_PCT}%`);
+    expect(screen.queryByRole("group", { name: /seven tests every lot passes/i })).not.toBeInTheDocument();
     expect(document.querySelector(".s-hero .s-sub")).toBeNull();
+    // no lot released yet: no lot card, and the old lot chart is gone
+    expect(document.querySelector(".s-proof")).toBeNull();
+    expect(document.querySelector(".s-rec--home")).toBeNull();
+  });
+
+  it("under the headline: the newest live lot's vial and its own certificate results, linking its certificate", async () => {
+    const lots = [
+      { slug: "mots-c", compoundName: "MOTS-c", variantId: "10mg", strength: "10 mg", lot: "MOT-2611-02", purityPct: 99.5, method: "HPLC+MS", testedOn: "2026-11-08", coaFile: "/c.pdf", status: "live", liveAt: "2026-11-09T10:00:00Z", onStore: true },
+      { slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", lot: "BPC-2610-01", purityPct: 99.2, method: "HPLC", testedOn: "2026-10-02", coaFile: "/d.pdf", status: "live", liveAt: "2026-10-03T10:00:00Z", onStore: true },
+    ];
+    const cert = { lot: "MOT-2611-02", measuredMg: null, tests: { identity: "pass", endotoxin: "pass", sterility: "not_tested", heavy_metals: "not_tested", fentanyl: "not_tested" } };
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots, certificates: [cert] });
+    await renderHome();
+    const card = screen.getByRole("group", { name: /lot MOT-2611-02: the code on its vial/i });
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const rows = within(card).getAllByRole("listitem").map((li) => li.textContent);
+    expect(rows).toEqual(["IdentityPass", "PurityPass", "QuantityNot tested", "EndotoxinPass", "SterilityNot tested", "Heavy metalsNot tested", "FentanylNot tested"]);
+    expect(card).toHaveTextContent("99.5%");
+    expect(within(card).getByRole("link", { name: /open/i })).toHaveAttribute("href", "/coa/MOT-2611-02");
   });
 
   it("rings the sphere with real lots selling now, and never example lots before the first release", async () => {
@@ -37,7 +53,7 @@ describe("/ (home)", () => {
     expect(rings).toHaveTextContent(/COMPOUND · LOT NUMBER · PURITY/);
     expect(document.querySelector(".s-hero-sphere .s-aura-core")).not.toBeNull();
 
-    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), certificates: [], lots: [
       { slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", lot: "BPC-2611-03", purityPct: 99.4, method: "HPLC", testedOn: "2026-11-02", coaFile: "/c.pdf", status: "live", liveAt: "2026-11-03", onStore: true },
       { slug: "mots-c", compoundName: "MOTS-c", variantId: "10mg", strength: "10 mg", lot: "MOT-2601-01", purityPct: 99.1, method: "HPLC", testedOn: "2026-01-02", coaFile: "/d.pdf", status: "sold_out", liveAt: "2026-01-03", onStore: true },
     ] });
@@ -71,7 +87,7 @@ describe("/ (home)", () => {
 
   it("counts and features from the live shown catalog", async () => {
     const shown = liveFixture().filter((c) => c.chemicalClass !== "Incretin & Amylin Analogs");
-    live.mockResolvedValue({ all: liveFixture(), shown, lots: [] });
+    live.mockResolvedValue({ all: liveFixture(), shown, lots: [], certificates: [] });
     await renderHome();
     for (const where of ["desk", "phone"] as const) {
       expect(within(lineupIn(where)).getByText(`See all ${shown.length} compounds →`)).toBeInTheDocument();
@@ -90,7 +106,7 @@ describe("/ (home)", () => {
 
   it("phones: a hidden pick is skipped and the gap filled from the featured list", async () => {
     const shown = liveFixture().filter((c) => c.slug !== "ss-31");
-    live.mockResolvedValue({ all: liveFixture(), shown, lots: [] });
+    live.mockResolvedValue({ all: liveFixture(), shown, lots: [], certificates: [] });
     await renderHome();
     const slugs = cardSlugs("phone");
     expect(slugs.slice(0, 3)).toEqual(["mots-c", "bpc-157-tb-500-blend", "bpc-157-tb-500-ghk-cu-kpv"]);

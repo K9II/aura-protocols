@@ -558,17 +558,62 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-dict-def { flex-basis: 100%; font-family: var(--font-newsreader), Georgia, serif; font-style: italic; font-size: 20px; line-height: 1.3; color: var(--ink-soft); margin-top: 6px; }
 .pharmacopoeia .s-dict-n { font-style: normal; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .1em; color: var(--ink-soft); margin-right: 8px; vertical-align: 2px; }
 .pharmacopoeia .s-h1 + .s-ctas { margin-top: 28px; }
-.pharmacopoeia .s-panel { margin: 28px 0 26px; max-width: 30em; border: 1px solid var(--line); background: var(--record); }
-.pharmacopoeia .s-panel-h { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--line); font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
-.pharmacopoeia .s-panel-h span:first-child { color: var(--specimen); font-weight: 500; }
-.pharmacopoeia .s-panel-h span:last-child { color: var(--ink-soft); }
-.pharmacopoeia .s-panel-list { list-style: none; margin: 0; padding: 0; counter-reset: t; }
-.pharmacopoeia .s-panel-list li { counter-increment: t; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto 14px; align-items: center; column-gap: 12px; padding: 8px 16px; }
-.pharmacopoeia .s-panel-list li + li { border-top: 1px solid var(--line); }
-.pharmacopoeia .s-panel-list li::before { content: counter(t); font-family: var(--font-newsreader), Georgia, serif; font-size: 18px; line-height: 1; color: var(--tested); }
-.pharmacopoeia .s-panel-list li::after { content: ''; justify-self: end; width: 9px; height: 5px; margin-bottom: 3px; border-left: 1.5px solid var(--tested); border-bottom: 1.5px solid var(--tested); transform: rotate(-45deg); }
-.pharmacopoeia .s-panel-list b { font-family: var(--font-jetbrains), ui-monospace, monospace; font-weight: 500; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; line-height: 1.3; }
-.pharmacopoeia .s-panel-list span { font-size: 14px; color: var(--ink-soft); line-height: 1.3; text-align: right; white-space: nowrap; }
+.pharmacopoeia .s-hero .load-in:has(> .s-proof) + .s-ctas { margin-top: 0; }
+/* The newest lot under the headline (option C, 2026-10-17, 9QomoXo9brSgbXvQEfD13c): the vial
+   turns twice and rests on its QR code; a dotted line runs from the code to the lot's card.
+   Side by side at every width. */
+.pharmacopoeia .s-proof { margin: 28px 0 26px; max-width: 34em; }
+.pharmacopoeia .s-proof-h { margin: 0 0 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 4px 16px; flex-wrap: wrap; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
+.pharmacopoeia .s-proof-h span:first-child { color: var(--specimen); font-weight: 500; }
+.pharmacopoeia .s-proof-h span:last-child { color: var(--ink-soft); }
+.pharmacopoeia .s-proof-body { display: grid; grid-template-columns: 132px minmax(0, 1fr); column-gap: 22px; align-items: start; }
+.pharmacopoeia .s-proof-vial { padding-top: 26px; }
+.pharmacopoeia .s-proof-vialbox { position: relative; filter: drop-shadow(6px 10px 9px rgba(28,26,21,.2)); }
+.pharmacopoeia .s-proof-vialbox svg { display: block; width: 100%; height: auto; }
+/* from the QR code's right edge (65% across, 46.4% down the vial) to the card */
+.pharmacopoeia .s-proof-lead { position: absolute; top: 46.4%; left: 65%; width: calc(35% + 22px); height: 1px; opacity: 0; transition: opacity .5s ease;
+  background: repeating-linear-gradient(90deg, var(--tested) 0 4px, transparent 4px 8px); pointer-events: none; }
+.pharmacopoeia .s-proof-lead.is-on { opacity: 1; }
+.pharmacopoeia .s-proof-lead::before { content: ''; position: absolute; left: -4px; top: -3px; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--tested); background: var(--label); }
+.pharmacopoeia .s-proof-cert { background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--tested); box-shadow: 0 1px 0 rgba(28,26,21,.05), 8px 12px 24px -12px rgba(28,26,21,.30); min-width: 0; }
+.pharmacopoeia .s-proof-ch { padding: 12px 16px 10px; border-bottom: 1px solid var(--line); display: grid; gap: 3px; }
+.pharmacopoeia .s-proof-k { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pharmacopoeia .s-proof-n { font-family: var(--font-newsreader), Georgia, serif; font-size: 26px; line-height: 1.1; }
+.pharmacopoeia .s-proof-n small { font-size: .62em; color: var(--ink-soft); }
+.pharmacopoeia .s-proof-nums { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
+.pharmacopoeia .s-proof-nums div { padding: 10px 16px; display: grid; gap: 2px; min-width: 0; }
+.pharmacopoeia .s-proof-nums div + div { border-left: 1px solid var(--line); }
+.pharmacopoeia .s-proof-nums b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 26px; line-height: 1; }
+.pharmacopoeia .s-proof-nums span { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
+.pharmacopoeia .s-proof-list { list-style: none; margin: 0; padding: 2px 16px 6px; counter-reset: t; }
+.pharmacopoeia .s-proof-list li { counter-increment: t; display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dotted var(--line); font-size: 14.5px; }
+.pharmacopoeia .s-proof-list li:last-child { border-bottom: 0; }
+.pharmacopoeia .s-proof-list li::before { content: counter(t); font-family: var(--font-newsreader), Georgia, serif; color: var(--tested); font-size: 16px; }
+.pharmacopoeia .s-proof-list li span { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--tested); white-space: nowrap; }
+.pharmacopoeia .s-proof-list li.is-open { color: var(--ink-soft); }
+.pharmacopoeia .s-proof-list li.is-open::before, .pharmacopoeia .s-proof-list li.is-open span { color: var(--ink-soft); }
+.pharmacopoeia .s-proof-f { padding: 10px 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; align-items: center; background: var(--record); }
+.pharmacopoeia .s-proof-f small { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-proof-link { color: var(--tested); border-bottom: 1px solid var(--tested); font-size: 15px; }
+.pharmacopoeia .s-proof-ph { display: none; }
+@media (max-width: 640px) {
+  .pharmacopoeia .s-proof-body { grid-template-columns: 96px minmax(0, 1fr); column-gap: 14px; }
+  .pharmacopoeia .s-proof-vial { padding-top: 34px; }
+  .pharmacopoeia .s-proof-lead { width: calc(35% + 14px); }
+  .pharmacopoeia .s-proof-dk { display: none; }
+  .pharmacopoeia .s-proof-ph { display: inline; }
+  .pharmacopoeia .s-proof-ch { padding: 10px 12px 9px; }
+  .pharmacopoeia .s-proof-n { font-size: 22px; }
+  .pharmacopoeia .s-proof-nums div { padding: 8px 12px; }
+  .pharmacopoeia .s-proof-nums b { font-size: 21px; }
+  .pharmacopoeia .s-proof-nums span { font-size: 9px; letter-spacing: .1em; }
+  .pharmacopoeia .s-proof-list { padding: 2px 12px 4px; }
+  .pharmacopoeia .s-proof-list li { grid-template-columns: 16px minmax(0, 1fr) auto; gap: 6px; padding: 5px 0; font-size: 13.5px; }
+  .pharmacopoeia .s-proof-list li::before { font-size: 14px; }
+  .pharmacopoeia .s-proof-list li span { font-size: 9.5px; letter-spacing: .08em; }
+  .pharmacopoeia .s-proof-f { padding: 9px 12px; }
+  .pharmacopoeia .s-proof-link { font-size: 13.5px; }
+}
 .pharmacopoeia .s-aura { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 8px; min-width: 0; }
 .pharmacopoeia .s-aura-pic { position: relative; width: 100%; max-width: 620px; aspect-ratio: 1; margin-bottom: 38px; }
 .pharmacopoeia .s-aura-rings { position: absolute; inset: 0; pointer-events: none; }
@@ -599,9 +644,6 @@ main:has(> .pharmacopoeia) {
 @media (max-width: 640px) {
   .pharmacopoeia .s-dict-hw { font-size: 26px; }
   .pharmacopoeia .s-dict-def { font-size: 18px; }
-  .pharmacopoeia .s-panel-h { padding: 9px 12px; }
-  .pharmacopoeia .s-panel-list li { column-gap: 10px; padding: 8px 12px; }
-  .pharmacopoeia .s-panel-list span { font-size: 13px; }
   /* Phones: the whole picture fits the screen (nothing clipped, 2026-10-17). The sphere's
      compact canvas (460 × 470, BiosignatureSphere) is 64% of it, centred; its labels
      sit over the faint outer rings with a paper glow. Its caption drops below the picture. */
@@ -948,11 +990,6 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-data td:first-child { width: 38%; color: var(--ink-soft); }
 .pharmacopoeia .s-data td.s-mono { font-size: 12.5px; word-break: break-all; }
 /* Compound data as a raised panel (2026-10-10) */
-.pharmacopoeia .s-data table.s-panel { align-self: start; background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--cls); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.22); }
-.pharmacopoeia .s-data .s-panel td { padding: 12px 18px; border-top: 1px solid #E3DDCD; }
-.pharmacopoeia .s-data .s-panel tr:first-child td { border-top: 0; }
-.pharmacopoeia .s-data .s-panel tr:last-child td { border-bottom: 0; }
-.pharmacopoeia .s-data .s-panel td:first-child { width: 34%; padding-top: 14px; }
 
 /* About this compound — full-bleed band with the rotating 3D model (layout 2, 2026-10-01 mock) */
 .pharmacopoeia .s-about { background: var(--paper-deep); }

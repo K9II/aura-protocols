@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { PURITY_FLOOR_PCT } from "@/lib/constants";
 import { ringRepeat, type AuraRing } from "@/lib/hero-aura";
 
 // Home hero, mock v4 "1 · Dictionary" (2026-10-17, https://claude.ai/artifact/Mha5JnMX9YXXAcsXEqgAwN).
@@ -13,28 +12,6 @@ export function DictionaryEntry({ className = "" }: { className?: string }) {
       <span className="s-dict-pos">noun</span>
       <span className="s-dict-def"><span className="s-dict-n">1.</span>the distinct quality that surrounds something.</span>
     </p>
-  );
-}
-
-// The tests every lot passes, as a certificate's test table. Shown only while
-// SEVEN_TEST_PANEL is on (lib/constants.ts) — the release check holds it to the lots.
-export function TestPanel({ className = "" }: { className?: string }) {
-  const tests: [string, string][] = [
-    ["Identity", "Mass spec"],
-    ["Purity", `HPLC, ≥${PURITY_FLOOR_PCT}%`],
-    ["Quantity", "mg per vial"],
-    ["Endotoxin", "LAL"],
-    ["Sterility", "Microbial"],
-    ["Heavy metals", "ICP-MS"],
-    ["Fentanyl", "Screened"],
-  ];
-  return (
-    <div className={`s-panel ${className}`} role="group" aria-label="The seven tests every lot passes">
-      <p className="s-panel-h"><span>The 7-test panel</span><span>Every lot · before it ships</span></p>
-      <ol className="s-panel-list">
-        {tests.map(([t, m]) => <li key={t}><b>{t}</b><span>{m}</span></li>)}
-      </ol>
-    </div>
   );
 }
 

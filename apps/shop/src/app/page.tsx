@@ -6,15 +6,16 @@ import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import OrderPlate from "@/components/store/OrderPlate";
 import AuraLetter from "@/components/store/AuraLetter";
-import LotRecord from "@/components/store/LotRecord";
+import LotNews from "@/components/store/LotNews";
+import LotProof from "@/components/store/LotProof";
 import TrustRow from "@/components/store/TrustRow";
-import { DictionaryEntry, HeroAura, TestPanel } from "@/components/store/HeroAura";
+import { DictionaryEntry, HeroAura } from "@/components/store/HeroAura";
 import Unavailable from "@/components/store/Unavailable";
 import type { Compound } from "@/data/catalog";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
-import { currentMs } from "@/lib/clock";
 import { SEVEN_TEST_PANEL } from "@/lib/constants";
 import { auraRings } from "@/lib/hero-aura";
+import { proofLot } from "@/lib/lot-proof";
 import { homeRecord } from "@/lib/lot-record";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 
@@ -32,6 +33,8 @@ export default async function HomePage() {
   const phoneLineup = pickPhoneLineup(live.shown, featured);
   const sphere = sphereNodes(live.shown);
   const spherePairsActive = spherePairs(sphere);
+  const newest = proofLot(live.lots);
+  const newestCompound = newest ? live.shown.find((c) => c.slug === newest.slug) : undefined;
   return (
     <div className="pharmacopoeia">
       <ScrollReveal />
@@ -42,7 +45,11 @@ export default async function HomePage() {
           <div>
             <DictionaryEntry className="load-in load-1" />
             <h1 className="s-h1 load-in load-2">Our compounds come surrounded by&nbsp;<em>proof.</em></h1>
-            {SEVEN_TEST_PANEL && <TestPanel className="load-in load-3" />}
+            {/* the newest lot's vial and the certificate its QR code opens (option C, 2026-10-17);
+                hidden until the first lot is released */}
+            {newest && newestCompound && (
+              <div className="load-in load-3"><LotProof lot={newest} compound={newestCompound} certs={live.certificates} /></div>
+            )}
             <div className="s-ctas load-in load-4">
               <Link href="/products" className="p-btn-primary">Shop the lineup →</Link>
               <Link href="/coa" className="p-btn-outline">See the COAs</Link>
@@ -63,8 +70,8 @@ export default async function HomePage() {
       </div>
       <div className="p-container">
 
-        {/* last lot releases; hidden until the first lot is released */}
-        <LotRecord lots={homeRecord(live.lots, new Set(featured.map((c) => c.slug)))} variant="home" nowMs={currentMs()} />
+        {/* lots released since the last visit: announced in the top bar */}
+        <LotNews lots={homeRecord(live.lots, new Set(featured.map((c) => c.slug)))} />
 
         <HomeLineup featured={featured} total={live.shown.length} where="desk" />
 
