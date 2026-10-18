@@ -13,7 +13,7 @@ import { liveFixture } from "../helpers/live-catalog";
 import { PURITY_FLOOR_PCT } from "@/lib/constants";
 
 const renderHome = async () => render(await HomePage());
-// The lineup is on the page twice (phones: inside the hero; desktop: after the 1906 plate); CSS shows one.
+// The lineup is on the page twice (phones: inside the hero; desktop: further down); CSS shows one.
 const lineupIn = (where: "desk" | "phone") => document.querySelector<HTMLElement>(`.s-lineup--${where}`)!;
 const deskLineupHeading = () => within(lineupIn("desk")).getByRole("heading", { level: 2, name: /the lineup/i });
 
@@ -57,17 +57,10 @@ describe("/ (home)", () => {
     expect(link!.getAttribute("href")).toBe("/products");
   });
 
-  it("shows Tsvet's 1906 plate before the lineup, credited, with an HPLC trace linking to the real certificates", async () => {
+  it("no longer shows Tsvet's 1906 plate band (removed 2026-10-17)", async () => {
     await renderHome();
-    const record = screen.getByRole("region", { name: /purity has a method/i });
-    expect(within(record).getByRole("img", { name: /tsvet.*1906/i })).toBeInTheDocument();
-    expect(within(record).getByRole("img", { name: /hplc chromatogram/i })).toBeInTheDocument();
-    expect(record).toHaveTextContent(/Berichte der Deutschen Botanischen Gesellschaft 24 \(1906\)/);
-    expect(record).toHaveTextContent(/public domain/i);
-    expect(within(record).getByRole("link", { name: /certificate/i })).toHaveAttribute("href", "/coa");
-    // Comes before the (desktop) lineup.
-    const lineup = deskLineupHeading();
-    expect(record.compareDocumentPosition(lineup) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("region", { name: /purity has a method/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /tsvet/i })).not.toBeInTheDocument();
   });
 
   it("fails closed when the live catalog can't be read", async () => {

@@ -4,7 +4,6 @@ import ScrollReveal from "@/components/ScrollReveal";
 import HeroLight from "@/components/store/HeroLight";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
-import FromTheRecord from "@/components/store/FromTheRecord";
 import OrderPlate from "@/components/store/OrderPlate";
 import AuraLetter from "@/components/store/AuraLetter";
 import LotRecord from "@/components/store/LotRecord";
@@ -67,8 +66,6 @@ export default async function HomePage() {
         {/* last lot releases; hidden until the first lot is released */}
         <LotRecord lots={homeRecord(live.lots, new Set(featured.map((c) => c.slug)))} variant="home" nowMs={currentMs()} />
 
-        <FromTheRecord />
-
         <HomeLineup featured={featured} total={live.shown.length} where="desk" />
 
         {/* how an order runs (2026-10-14) */}
@@ -92,7 +89,7 @@ function pickPhoneLineup(shown: Compound[], featured: Compound[]): Compound[] {
 }
 
 // The featured lineup. Rendered twice on the home page: inside the hero on phones,
-// after the 1906 plate on desktop; CSS shows one (.s-lineup--phone / --desk).
+// after the last lot releases on desktop; CSS shows one (.s-lineup--phone / --desk).
 function HomeLineup({ featured, total, where }: { featured: Compound[]; total: number; where: "phone" | "desk" }) {
   return (
     <section className={`p-reveal py-14 s-lineup s-lineup--${where}`}>

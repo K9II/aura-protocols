@@ -3,7 +3,7 @@ import { PURITY_FLOOR_PCT } from "@/lib/constants";
 
 // Four claims the site already makes, with "Bench line" icons (approved 2026-10-10).
 // Lab vocabulary on purpose: parcel with a stamp, a purity chart with the floor line,
-// a separation column (Tsvet's 1906 plate on the home page), a certificate with a seal.
+// a separation column (Tsvet's 1906 column), a certificate with a seal.
 // One proof-green accent per icon. Never promise delivery days or a city.
 const ACC = "var(--tested)";
 
