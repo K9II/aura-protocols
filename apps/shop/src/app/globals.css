@@ -790,9 +790,12 @@ main > .pharmacopoeia { overflow-x: clip; }
 /* the two-column layout just above 900px has a narrow tile: a smaller code, then none */
 @container (max-width: 520px) { .pharmacopoeia .s-pdp-scan { gap: 10px; font-size: 9px; } .pharmacopoeia .s-pdp-scan svg { width: 60px; height: 60px; padding: 3px; } }
 @container (max-width: 430px) { .pharmacopoeia .s-pdp-scan { display: none; } }
-/* the scan code needs the bottom of the placard: Form, then Mol. wt make room (both are in Compound data) */
-.pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-form { display: none; }
-@container (max-width: 560px) { .pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-mw { display: none; } }
+/* where the scan code shows, it needs the bottom of the placard: Form, then Mol. wt make room
+   (both are in Compound data) */
+@media (min-width: 901px) {
+  @container (min-width: 431px) { .pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-form { display: none; } }
+  @container (min-width: 431px) and (max-width: 560px) { .pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-mw { display: none; } }
+}
 .pharmacopoeia .s-pdp-qrnote { margin: 12px 0 0; font-size: 11px; letter-spacing: .1em; line-height: 1.6; color: var(--ink-soft); }
 @media (max-width: 900px) { .pharmacopoeia .s-pdp-qrnote { order: 1; width: 100%; max-width: 560px; justify-self: center; } }
 /* single column: the tile would fill the width and grow taller than the screen */
