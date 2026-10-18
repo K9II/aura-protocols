@@ -10,6 +10,7 @@ vi.mock("@/app/letter-actions", () => ({ letterStatusAction: () => new Promise((
 
 import HomePage from "@/app/page";
 import { liveFixture } from "../helpers/live-catalog";
+import { PURITY_FLOOR_PCT } from "@/lib/constants";
 
 const renderHome = async () => render(await HomePage());
 // The lineup is on the page twice (phones: inside the hero; desktop: after the 1906 plate); CSS shows one.
@@ -19,11 +20,33 @@ const deskLineupHeading = () => within(lineupIn("desk")).getByRole("heading", { 
 describe("/ (home)", () => {
   beforeEach(() => { live.mockReset(); live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [] }); });
 
-  it("leads with the 1906 receipt headline and the independent third-party US lab line", async () => {
+  it("leads with the au·ra dictionary entry, the proof headline and the 7-test panel; no paragraph", async () => {
     await renderHome();
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("1906 gave us the test.We added the receipt.");
-    expect(screen.getByText(/separated and measured by an independent third-party US lab before it goes out for research/i)).toBeInTheDocument();
-    expect(screen.getByText(/published under the lot number on your vial/i)).toBeInTheDocument();
+    expect(screen.getByText("the distinct quality that surrounds something.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^Our compounds come surrounded by\sproof\.$/);
+    const panel = screen.getByRole("group", { name: /seven tests every lot passes/i });
+    const rows = within(panel).getAllByRole("listitem").map((li) => li.querySelector("b")!.textContent);
+    expect(rows).toEqual(["Identity", "Purity", "Quantity", "Endotoxin", "Sterility", "Heavy metals", "Fentanyl"]);
+    expect(panel).toHaveTextContent(`HPLC, ≥${PURITY_FLOOR_PCT}%`);
+    expect(document.querySelector(".s-hero .s-sub")).toBeNull();
+  });
+
+  it("rings the sphere with real lots selling now, and never example lots before the first release", async () => {
+    await renderHome();
+    const rings = screen.getByRole("img", { name: /ringed by lines of text from each lot/i });
+    expect(rings).toHaveTextContent(/COMPOUND · LOT NUMBER · PURITY/);
+    expect(document.querySelector(".s-hero-sphere .s-aura-core")).not.toBeNull();
+
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots: [
+      { slug: "bpc-157", compoundName: "BPC-157", variantId: "10mg", strength: "10 mg", lot: "BPC-2611-03", purityPct: 99.4, method: "HPLC", testedOn: "2026-11-02", coaFile: "/c.pdf", status: "live", liveAt: "2026-11-03", onStore: true },
+      { slug: "mots-c", compoundName: "MOTS-c", variantId: "10mg", strength: "10 mg", lot: "MOT-2601-01", purityPct: 99.1, method: "HPLC", testedOn: "2026-01-02", coaFile: "/d.pdf", status: "sold_out", liveAt: "2026-01-03", onStore: true },
+    ] });
+    document.body.innerHTML = "";
+    await renderHome();
+    const ring = screen.getByRole("img", { name: /ringed by lines of text from each lot/i });
+    expect(ring).toHaveTextContent(/BPC-157 · LOT BPC-2611-03 · 99\.4%/);
+    expect(ring).not.toHaveTextContent(/MOT-2601-01/);
+    expect(ring).not.toHaveTextContent(/COMPOUND · LOT NUMBER/);
   });
 
   it("links the lineup heading to the full inventory", async () => {

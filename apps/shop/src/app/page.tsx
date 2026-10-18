@@ -9,10 +9,13 @@ import OrderPlate from "@/components/store/OrderPlate";
 import AuraLetter from "@/components/store/AuraLetter";
 import LotRecord from "@/components/store/LotRecord";
 import TrustRow from "@/components/store/TrustRow";
+import { DictionaryEntry, HeroAura, TestPanel } from "@/components/store/HeroAura";
 import Unavailable from "@/components/store/Unavailable";
 import type { Compound } from "@/data/catalog";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { currentMs } from "@/lib/clock";
+import { SEVEN_TEST_PANEL } from "@/lib/constants";
+import { auraRings } from "@/lib/hero-aura";
 import { homeRecord } from "@/lib/lot-record";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 
@@ -38,9 +41,9 @@ export default async function HomePage() {
         <div className="p-container">
         <section className="s-hero">
           <div>
-            <p className="s-micro s-eyebrow load-in load-1">Research Peptides · Certified COA</p>
-            <h1 className="s-h1 load-in load-2">1906 gave us the&nbsp;test.<br /><em>We added the receipt.</em></h1>
-            <p className="s-sub load-in load-3">Every lot is separated and measured by an independent third-party US lab before it goes out for research. Its certificate is published under the lot number on your vial.</p>
+            <DictionaryEntry className="load-in load-1" />
+            <h1 className="s-h1 load-in load-2">Our compounds come surrounded by&nbsp;<em>proof.</em></h1>
+            {SEVEN_TEST_PANEL && <TestPanel className="load-in load-3" />}
             <div className="s-ctas load-in load-4">
               <Link href="/products" className="p-btn-primary">Shop the lineup →</Link>
               <Link href="/coa" className="p-btn-outline">See the COAs</Link>
@@ -52,7 +55,9 @@ export default async function HomePage() {
               Desktop shows the copy further down instead; CSS shows one of the two. */}
           <HomeLineup featured={phoneLineup} total={live.shown.length} where="phone" />
           <div className="load-in load-5 s-hero-sphere">
-            <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
+            <HeroAura rings={auraRings(live.lots, SEVEN_TEST_PANEL)}>
+              <BiosignatureSphere nodes={sphere} pairs={spherePairsActive} />
+            </HeroAura>
           </div>
         </section>
         </div>

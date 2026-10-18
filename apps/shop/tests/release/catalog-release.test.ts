@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { catalogContent } from "../../src/data/catalog";
 import { catalogReleaseProblems, type CatalogOps } from "../../src/lib/catalog-merge";
 import { MADE_BY_PLACEHOLDER } from "../../src/lib/catalog";
+import { SEVEN_TEST_PANEL } from "../../src/lib/constants";
 
 // Run before unpausing Vercel:  RELEASE_CHECK=1 pnpm --filter @aura/shop test
 // Reads Aura Store with the service key from .env.local (or the environment).
@@ -31,6 +32,32 @@ describe.skipIf(!process.env.RELEASE_CHECK)("release check", () => {
     expect(p.error ?? v.error ?? l.error).toBeNull();
     const ops = { products: p.data, variants: v.data, lots: l.data } as unknown as CatalogOps;
     expect(catalogReleaseProblems(catalogContent, ops, (path) => path)).toEqual([]);
+  });
+
+  // The home hero's 7-test panel says every lot passes all seven. While it's on, each
+  // live lot needs passing certificates covering them: purity, measured mg (quantity),
+  // identity, endotoxin, sterility, heavy metals and fentanyl.
+  it.skipIf(!SEVEN_TEST_PANEL)("every live lot passed the seven tests the home page lists", async () => {
+    const e = env();
+    const db = createClient(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+    const lots = await db.from("lots").select("id, lot_number").eq("status", "live");
+    expect(lots.error).toBeNull();
+    const certs = await db.from("lot_certificates")
+      .select("lot_id, result, purity_pct, measured_mg, identity, endotoxin, sterility, heavy_metals, fentanyl")
+      .in("lot_id", (lots.data ?? []).map((l) => l.id)).eq("result", "pass");
+    expect(certs.error).toBeNull();
+    const missing = (lots.data ?? []).flatMap((l) => {
+      const mine = (certs.data ?? []).filter((c) => c.lot_id === l.id);
+      const has = {
+        purity: mine.some((c) => c.purity_pct !== null),
+        quantity: mine.some((c) => c.measured_mg !== null),
+        ...Object.fromEntries((["identity", "endotoxin", "sterility", "heavy_metals", "fentanyl"] as const)
+          .map((t) => [t, mine.some((c) => c[t] === "pass")])),
+      };
+      const lacking = Object.entries(has).filter(([, ok]) => !ok).map(([t]) => t);
+      return lacking.length ? [`${l.lot_number}: ${lacking.join(", ")}`] : [];
+    });
+    expect(missing, "test these lots for every row of the panel, or set SEVEN_TEST_PANEL to false in lib/constants.ts").toEqual([]);
   });
 
   it("\"Made by\" values are confirmed by sourcing (not placeholders)", () => {
