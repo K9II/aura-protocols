@@ -10,7 +10,9 @@ vi.mock("@/lib/supabase/client", () => ({
 vi.mock("@/app/auth/actions", () => ({ signOutAction: vi.fn() }));
 let pathname = "/";
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
-import AuthLinks, { PhoneSignOut } from "@/components/store/AuthLinks";
+import AuthLinks from "@/components/store/AuthLinks";
+import PhoneMenu from "@/components/store/PhoneMenu";
+import { fireEvent } from "@testing-library/react";
 
 describe("AuthLinks", () => {
   beforeEach(() => { getSession.mockReset(); unsubscribe.mockReset(); onAuthStateChange.mockClear(); pathname = "/"; });
@@ -48,16 +50,44 @@ describe("AuthLinks", () => {
     expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
   });
 
-  it("phone links row: Sign out only when signed in", async () => {
+  it("phone menu: the store links, then Account and Sign out when signed in", async () => {
     getSession.mockResolvedValue({ data: { session: { user: { id: "u1" } } } });
-    const { container, unmount } = render(<PhoneSignOut />);
-    expect(await screen.findByRole("button", { name: "Sign out" })).toBeInTheDocument();
-    expect(container.querySelector("form.s-nav-signout-phone")).not.toBeNull();
-    unmount();
+    render(<PhoneMenu />);
+    const btn = screen.getByRole("button", { name: "Menu" });
+    expect(btn).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("navigation", { name: "Menu" })).toBeNull();
+    fireEvent.click(btn);
+    expect(screen.getByRole("button", { name: "Close menu" })).toHaveAttribute("aria-expanded", "true");
+    const nav = screen.getByRole("navigation", { name: "Menu" });
+    expect([...nav.querySelectorAll("a")].map((a) => [a.textContent, a.getAttribute("href")])).toEqual(expect.arrayContaining([
+      ["Shop", "/products"], ["COA Lookup", "/coa"], ["Wholesale", "/wholesale"], ["Affiliate Program", "/affiliates"],
+    ]));
+    expect(await screen.findByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Sign in" })).toBeNull();
+  });
+
+  it("phone menu: Sign in when signed out; Escape and a tap outside close it", async () => {
     getSession.mockResolvedValue({ data: { session: null } });
-    const out = render(<PhoneSignOut />);
-    await Promise.resolve(); await Promise.resolve();
-    expect(out.container.querySelector("form")).toBeNull();
+    render(<PhoneMenu />);
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    expect(await screen.findByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/sign-in");
+    expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("navigation", { name: "Menu" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole("navigation", { name: "Menu" })).toBeNull();
+  });
+
+  it("phone menu: closes when a link takes you to another page", async () => {
+    getSession.mockResolvedValue({ data: { session: null } });
+    const { rerender } = render(<PhoneMenu />);
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    expect(screen.getByRole("navigation", { name: "Menu" })).toBeInTheDocument();
+    pathname = "/coa";
+    rerender(<PhoneMenu />);
+    expect(screen.queryByRole("navigation", { name: "Menu" })).toBeNull();
   });
 
   it("adds an Admin link for the owner account", async () => {

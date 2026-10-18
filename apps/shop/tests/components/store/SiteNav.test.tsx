@@ -5,7 +5,7 @@ import { CartProvider, useCart } from "@/components/store/CartProvider";
 import SiteNav from "@/components/store/SiteNav";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
-vi.mock("@/components/store/AuthLinks", () => ({ default: () => <a href="/sign-in">Sign in</a>, PhoneSignOut: () => <form className="s-nav-signout-phone"><button type="submit">Sign out</button></form> }));
+vi.mock("@/components/store/AuthLinks", () => ({ default: () => <a href="/sign-in">Sign in</a>, useSessionState: () => "out", useOwner: () => false }));
 let pathname = "/";
 vi.mock("next/navigation", () => ({ usePathname: () => pathname, useRouter: () => ({ push: vi.fn() }) }));
 
@@ -55,11 +55,11 @@ describe("SiteNav", () => {
     expect(actions).toContainElement(screen.getByRole("button", { name: /cart/i }));
   });
 
-  it("puts Shop first in the links row, ahead of COA Lookup; Search, sign-in then Cart on the right", () => {
+  it("puts Shop first in the links row, ahead of COA Lookup; Search, sign-in, Cart, then the phone menu button on the right", () => {
     render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
     const actions = screen.getByRole("navigation", { name: "Main" }).children[2] as HTMLElement;
     const labels = [...actions.querySelectorAll("a, button")].map((el) => el.getAttribute("aria-label") ?? el.textContent);
-    expect(labels).toEqual(["Search the catalog", "Sign in", "Cart (0)"]);
+    expect(labels).toEqual(["Search the catalog", "Sign in", "Cart (0)", "Menu"]); // CSS shows the menu button on phones only, the sign-in link everywhere else
     const links = screen.getByRole("navigation", { name: "Main" }).children[1] as HTMLElement;
     expect([...links.querySelectorAll("a")].map((a) => a.textContent)).toEqual(["Shop", "COA Lookup", "Wholesale", "Affiliate Program"]);
   });
