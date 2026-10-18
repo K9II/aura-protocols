@@ -13,6 +13,7 @@ export type VialLabelInput = {
   label: string; label2?: string; strength: string; parts: string[];
   rule: string; cap: "red" | "black" | "white";
   lot: string | null; qr: string[];
+  qrLit?: boolean; // the code in the store's red while the turning vial pauses on it (2026-10-18)
 };
 
 const PULSE = "M44,110 L56,86 L68,86 L74,68 L80,108 L86,86 L100,86";
@@ -77,6 +78,7 @@ function drawLabel(ctx: CanvasRenderingContext2D, k: number, p: VialLabelInput, 
   ctx.fillStyle = "#1C1A15"; ctx.font = `4.4px ${f.mono}`; ctx.fillText(p.lot ?? "——————", LABEL.qrX, 54.5);
   {
     const m = LABEL.qrSize / p.qr.length;
+    ctx.fillStyle = p.qrLit ? "#A32B1F" : "#1C1A15";
     p.qr.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (row[x] === "1") ctx.fillRect(LABEL.qrX + x * m, LABEL.qrY + y * m, m + 0.01, m + 0.01); });
     ctx.fillStyle = "#4A4438"; ctx.font = `2.3px ${f.mono}`;
     ctx.fillText("SCAN FOR LOT'S", LABEL.qrX, 71.8); ctx.fillText("CERTIFICATE OF ANALYSIS", LABEL.qrX, 75.3);

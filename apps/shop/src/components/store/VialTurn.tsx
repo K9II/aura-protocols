@@ -93,20 +93,23 @@ export default function VialTurn({ id, slug, label, label2, parts = [], cap = "r
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
+    // the code turns the store's red while the vial pauses on it, as the caption under it lights
+    const lightQr = (on: boolean) => vial?.setLabel({ ...inputRef.current, qrLit: on });
+
     const frame = (t: number) => {
       raf = 0;
       if (!vial || !alive) return;
       if (!drag && performance.now() < scrollingUntil) return; // resumes via the scroll timer
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
       last = t;
-      if (qrUntil && (t >= qrUntil || drag)) { qrUntil = 0; announceQr(slug, false); }
+      if (qrUntil && (t >= qrUntil || drag)) { qrUntil = 0; announceQr(slug, false); lightQr(false); }
       if (!still && !resting && !drag && t >= startAt && !qrUntil) {
         const step = advanceTurn(angle, dt, qrArmed);
         angle = step.angle; qrArmed = step.armed;
         // reached the QR code: it faces out exactly; hold and light the caption —
         // or, after the last turn of a vial that rests on its QR code, stop there
         if (step.atQr && finishing) { resting = true; announceQr(slug, true); }
-        else if (step.atQr) { qrUntil = t + QR_HOLD_MS; announceQr(slug, true); }
+        else if (step.atQr) { qrUntil = t + QR_HOLD_MS; announceQr(slug, true); lightQr(true); }
         // the last full turn ends facing front, where it rests (or goes on to its QR code)
         if (step.lapDone && ++laps >= turns) { if (onQr) finishing = true; else { angle = 0; resting = true; } }
       }
