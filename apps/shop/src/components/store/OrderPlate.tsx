@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
 
 // "How an order runs" (home, after The lineup; mock "Option B · Engraved
@@ -116,7 +115,6 @@ export default function OrderPlate() {
             </li>
           ))}
         </ol>
-        <Link href="/products" className="s-micro s-record-link">Shop the lineup →</Link>
         <p className="s-plate-cap">Plate I. An order, from the catalog to the bench.</p>
       </div>
       <div className="s-plate-art">
