@@ -11,7 +11,7 @@ vi.mock("@/app/letter-actions", () => ({ letterStatusAction: () => new Promise((
 import HomePage from "@/app/page";
 import { liveFixture } from "../helpers/live-catalog";
 
-const renderHome = async () => render(await HomePage());
+const renderHome = async () => render(await HomePage({ searchParams: Promise.resolve({}) }));
 // The lineup is on the page twice (phones: inside the hero; desktop: further down); CSS shows one.
 const lineupIn = (where: "desk" | "phone") => document.querySelector<HTMLElement>(`.s-lineup--${where}`)!;
 const deskLineupHeading = () => within(lineupIn("desk")).getByRole("heading", { level: 2, name: /the lineup/i });

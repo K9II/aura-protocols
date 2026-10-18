@@ -596,6 +596,36 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-proof-f small { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
 .pharmacopoeia .s-proof-link { color: var(--tested); border-bottom: 1px solid var(--tested); font-size: 15px; }
 .pharmacopoeia .s-proof-ph { display: none; }
+/* Desktop home, option A "Scan strip" (2026-10-17): three figures in the plate style of
+   "How an order runs" beside a side column; the newest lot's row under it. Desktop only. */
+.pharmacopoeia .s-scan { margin: 8px 0 48px; }
+.pharmacopoeia .s-scan-plate { display: grid; grid-template-columns: minmax(0, 1fr) 340px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.pharmacopoeia .s-scan-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-right: 1px solid var(--line); background: #F2EEE5; }
+.pharmacopoeia .s-scan-figs figure { margin: 0; padding: 18px 18px 16px; display: grid; grid-template-rows: auto 1fr auto; gap: 10px; min-width: 0; }
+.pharmacopoeia .s-scan-figs figure + figure { border-left: 1px solid var(--line); }
+.pharmacopoeia .s-scan-tag { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); display: flex; justify-content: space-between; }
+.pharmacopoeia .s-scan-tag b { color: var(--specimen); font-weight: 500; }
+.pharmacopoeia .s-scan-art { display: grid; place-items: center; min-height: 320px; }
+.pharmacopoeia .s-scan-figs figcaption { font-size: 15px; line-height: 1.45; }
+.pharmacopoeia .s-scan-figs figcaption b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 18px; display: block; margin-bottom: 2px; }
+.pharmacopoeia .s-scan-vial .s-vialturn { width: 150px; filter: drop-shadow(6px 10px 9px rgba(28,26,21,.2)); }
+.pharmacopoeia .s-scan-vial .s-vialturn svg { display: block; width: 100%; height: auto; }
+/* the live certificate page at phone width (390 × 760), shown at half size in a phone */
+.pharmacopoeia .s-scan-phone { width: 209px; height: 394px; border: 7px solid #1C1A15; border-radius: 24px; overflow: hidden; background: var(--paper); box-shadow: 0 12px 24px -12px rgba(28,26,21,.45); position: relative; }
+.pharmacopoeia .s-scan-phone iframe { position: absolute; left: 0; top: 0; width: 390px; height: 760px; border: 0; transform: scale(.5); transform-origin: 0 0; pointer-events: none; }
+.pharmacopoeia .s-scan-lab { width: 86%; max-width: 236px; background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--tested); padding: 14px; display: grid; gap: 8px; box-shadow: 0 12px 24px -16px rgba(28,26,21,.4); font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-lab .v { font-family: var(--font-newsreader), Georgia, serif; font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.pharmacopoeia .s-scan-lab .r { display: flex; justify-content: space-between; gap: 8px; }
+.pharmacopoeia .s-scan-lab .bar { height: 9px; background: #E7E2D6; width: 80%; }
+.pharmacopoeia .s-scan-lab .bar.s { width: 55%; }
+.pharmacopoeia .s-scan-lab .seal { justify-self: end; width: 42px; height: 42px; border: 1.5px solid var(--tested); border-radius: 50%; display: grid; place-items: center; color: var(--tested); font-size: 9px; }
+.pharmacopoeia .s-scan-side { padding: 22px 20px; display: flex; flex-direction: column; gap: 14px; background: var(--record); }
+.pharmacopoeia .s-scan-side p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-soft); }
+.pharmacopoeia .s-scan-side .s-record-link { align-self: flex-start; }
+.pharmacopoeia .s-scan-eyebrow { color: var(--specimen); }
+.pharmacopoeia .s-scan-row { margin-top: 18px; }
+@media (max-width: 900px) { .pharmacopoeia .s-scan { display: none; } }
+@media (min-width: 901px) { .pharmacopoeia .s-proof-phone-only { display: none; } }
 /* phones: the hero's trust row is left out (2026-10-17); the lot card above carries the proof */
 @media (max-width: 640px) { .pharmacopoeia .s-hero .s-trust { display: none; } }
 /* phones (the width the phone lineup shows at): the hero's two buttons are left out; the
