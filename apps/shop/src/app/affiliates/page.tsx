@@ -7,7 +7,7 @@ import { CASH_MIN_CENTS, CLEARING_DAYS, CODE_DISCOUNT_PCT, CREDIT_MULTIPLIER, RE
 
 export const metadata: Metadata = {
   title: "Partner program",
-  description: "Researchers, clinicians and publishers earn 10–20% commission sharing Aura Protocols; their audience saves 10%.",
+  description: "Researchers and publishers earn 10–20% commission sharing Aura Protocols; their audience saves 10%.",
   alternates: { canonical: "/affiliates" },
 };
 
@@ -42,7 +42,7 @@ export default async function AffiliatesPage() {
           <div>
             <p className="s-micro s-eyebrow">Partner program</p>
             <h1 className="s-h1 mb-5" style={{ fontSize: 52 }}>Partner with <em>Aura.</em></h1>
-            <p className="s-pp-lede">For researchers, clinicians and publishers who cover research compounds responsibly. Share your code, your audience saves {CODE_DISCOUNT_PCT}%, and you earn on every order it brings in.</p>
+            <p className="s-pp-lede">For researchers and publishers who cover research compounds responsibly. Share your code, your audience saves {CODE_DISCOUNT_PCT}%, and you earn on every order it brings in.</p>
             <dl className="s-pp-facts">
               <div><dt className="s-micro">Commission clears</dt><dd>{CLEARING_DAYS} days after shipping</dd></div>
               <div><dt className="s-micro">Store credit</dt><dd>as soon as it clears</dd></div>
