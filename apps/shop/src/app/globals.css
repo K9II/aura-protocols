@@ -803,7 +803,9 @@ main > .pharmacopoeia { overflow-x: clip; }
   @container (min-width: 431px) { .pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-form { display: none; } }
   @container (min-width: 431px) and (max-width: 560px) { .pharmacopoeia .s-pdp-placard:has(.s-pdp-scan) .s-pdp-mw { display: none; } }
 }
-.pharmacopoeia .s-pdp-qrnote { margin: 12px 0 0; font-size: 11px; letter-spacing: .1em; line-height: 1.6; color: var(--ink-soft); }
+.pharmacopoeia .s-pdp-qrnote { margin: 12px 0 0; font-size: 11px; letter-spacing: .1em; line-height: 1.6; color: var(--ink-soft); transition: color .35s ease; }
+/* lit while the turning vial holds on its QR code */
+.pharmacopoeia .s-pdp-qrnote.is-lit { color: var(--specimen); }
 @media (max-width: 900px) { .pharmacopoeia .s-pdp-qrnote { order: 1; width: 100%; max-width: 560px; justify-self: center; } }
 /* single column: the tile would fill the width and grow taller than the screen */
 @media (max-width: 900px) { .pharmacopoeia .s-pdp-tile { width: 100%; max-width: 560px; justify-self: center; } }
