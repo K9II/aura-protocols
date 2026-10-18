@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { advanceTurn } from "@/components/store/VialTurn";
+import { advanceTurn, MAX_TURNS } from "@/components/store/VialTurn";
 import { QR_FACING_TURN } from "@/lib/vial-label";
 
 const TAU = 2 * Math.PI;
@@ -31,5 +31,15 @@ describe("advanceTurn (the turning vial's automatic turn)", () => {
     let angle = 0, armed = true, pauses = 0;
     for (let i = 0; i < 20000; i++) { const s = advanceTurn(angle, i % 7 === 0 ? 0.05 : 0.008, armed); angle = s.angle; armed = s.armed; if (s.atQr) pauses++; }
     expect(pauses).toBeGreaterThan(5);
+  });
+
+  it("reports each full turn as it comes round past the front, where the last of MAX_TURNS rests", () => {
+    let angle = 0, armed = true, done = 0, frames = 0;
+    while (done < MAX_TURNS && frames < 60 * 600) {
+      const s = advanceTurn(angle, 1 / 60, armed); angle = s.angle; armed = s.armed; frames++;
+      if (s.lapDone) { done++; expect(turned(angle)).toBeLessThan(0.02); } // just past the front
+    }
+    expect(done).toBe(MAX_TURNS);
+    expect(frames / 60).toBeGreaterThan(80); // about six slow turns (pauses not counted here)
   });
 });
