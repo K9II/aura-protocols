@@ -14,13 +14,14 @@ const send = () => { fireEvent.click(screen.getByRole("checkbox")); fireEvent.cl
 describe("AuraLetter", () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
-  it("pitches promotions, research and store news — lots are one item — and says no spam", async () => {
+  it("pitches research updates and research news — lots are one item — and says no spam", async () => {
     letterStatusAction.mockResolvedValue(me("none"));
     render(<AuraLetter />);
     expect(screen.getByRole("heading", { name: /the aura letter/i })).toBeInTheDocument();
-    for (const t of [/promotions & member pricing/i, /research updates/i, /lot releases/i, /store news/i, /no spam/i]) {
+    for (const t of [/research updates/i, /lot releases/i, /research news/i, /no spam/i]) {
       expect(screen.getAllByText(t).length).toBeGreaterThan(0);
     }
+    expect(screen.queryByText(/member pricing/i)).not.toBeInTheDocument();
     await ready();
   });
 

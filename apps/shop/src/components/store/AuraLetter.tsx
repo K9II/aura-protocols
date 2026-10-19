@@ -5,14 +5,15 @@ import { useEffect, useState, useTransition } from "react";
 import { letterStatusAction, subscribeLetterAction, type LetterStatus } from "@/app/letter-actions";
 
 // "The Aura letter" (home, above the footer; mock "Option B · Engraved plate
-// steps + journal masthead", approved 2026-10-14). Promotions, research
-// updates, store news and lot releases — never pitched as lots only.
+// steps + journal masthead", approved 2026-10-14). Research updates, store
+// news and lot releases — never pitched as lots only. The "Promotions &
+// member pricing" line came off the list 2026-10-18; the consent still
+// covers promotions.
 
 const CONTENTS: Array<[React.ReactNode, string]> = [
-  ["Promotions & member pricing", "i"],
-  ["Research updates", "ii"],
-  [<>New compounds &amp; lot releases, <span key="c" className="s-letter-proof">with certificates</span></>, "iii"],
-  ["Store news", "iv"],
+  ["Research updates", "i"],
+  [<>New compounds &amp; lot releases, <span key="c" className="s-letter-proof">with certificates</span></>, "ii"],
+  ["Research news", "iii"],
 ];
 
 const norm = (e: string) => e.trim().toLowerCase();
