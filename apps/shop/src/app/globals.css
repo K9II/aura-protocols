@@ -670,10 +670,10 @@ main:has(> .pharmacopoeia) {
 @media (max-width: 900px) { .pharmacopoeia .s-hero .s-ctas { display: none; } }
 .pharmacopoeia .s-lineup-btn { font-size: 16px; padding: 13px 22px; }
 @media (max-width: 640px) {
-  /* the vial grows with the screen (112px at 360, 121 at 390) as far as the card's rows stay on one line */
-  .pharmacopoeia .s-proof-body { grid-template-columns: clamp(96px, 31vw, 136px) minmax(0, 1fr); column-gap: 14px; }
+  /* the vial as large as the card allows (Alvester, 2026-10-18: 112 → 144px wide at 360) */
+  .pharmacopoeia .s-proof-body { grid-template-columns: clamp(124px, 40vw, 172px) minmax(0, 1fr); column-gap: 10px; }
   .pharmacopoeia .s-proof-vial { padding-top: 34px; }
-  .pharmacopoeia .s-proof-lead { width: calc(35% + 14px); }
+  .pharmacopoeia .s-proof-lead { width: calc(35% + 10px); }
   .pharmacopoeia .s-proof-dk { display: none; }
   .pharmacopoeia .s-proof-ph { display: inline; }
   .pharmacopoeia .s-proof-ch { padding: 10px 12px 9px; }
