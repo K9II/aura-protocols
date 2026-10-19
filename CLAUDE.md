@@ -57,6 +57,7 @@ apps/shop/src/
 - `pnpm --filter @aura/shop build` runs `scripts/compliance-scan.mjs` and FAILS on banned phrases. Fix copy, don't widen the allowlist.
 - Account gate: browsing needs an account; the sign-up agreement (21+, RUO, dispute policy) is recorded in `account_agreements` (`gate_attestations` kept for history). The gate fails closed (a failed status check shows it).
 - Before unpausing Vercel: `RELEASE_CHECK=1 pnpm --filter @aura/shop test` must pass (every strength on the store has a live certified lot; no placeholder "Made by" process values — `MADE_BY_PLACEHOLDER` in `lib/catalog.ts`).
+- **Before launch — Retatrutide / Cagrilintide 10 mg (`retatrutide-cagrilintide`)**: no supplier since Nana was dropped (2026-10-19); LKZ, Uther and Chengdu don't list it. Alvester hides it in Admin → Catalog & lots (owner-only; the Assistant can't) unless a supplier and a passing certificate are found first. Asking Chengdu/LKZ about a custom 5 + 5 mg blend.
 
 ## Conventions
 - **Relative imports only** in anything reachable from `next.config.ts` (`data/catalog*.ts`, `lib/catalog.ts`, `lib/redirects.ts`, `lib/constants.ts`). Always verify with a real `next build`.
