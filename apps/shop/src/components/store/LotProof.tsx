@@ -10,7 +10,8 @@ import { lotQrUrl, qrRows } from "@/lib/vial-qr";
 
 // Home hero, under the headline (option C "Vial + certificate", chosen 2026-10-17,
 // https://claude.ai/artifact/9QomoXo9brSgbXvQEfD13c): the newest lot's vial turns twice and
-// rests on its QR code, a dotted line from the code to that lot's certificate. Side by side on phones too.
+// rests facing front (Alvester, 2026-10-18; it rested on its QR code); a dotted line runs from
+// the code to that lot's certificate while it pauses on the code. Side by side on phones too.
 // Every row is the lot's own result — "Not tested" where its certificates don't show one.
 export default function LotProof({ lot, compound, certs }: { lot: PublicLot; compound: Compound; certs: PublicCert[] }) {
   const rows = lotProofRows(lot, certs);
@@ -26,7 +27,7 @@ export default function LotProof({ lot, compound, certs }: { lot: PublicLot; com
               id={`proof-${compound.slug}`} slug={compound.slug} label={label} label2={label2}
               cap={vialCap(compound)} rule={CLASS_COLOR[compound.chemicalClass]} parts={vialParts(compound)}
               strengths={[{ id: lot.variantId, strength: lot.strength, lot: lot.lot, qr: qrRows(lotQrUrl(lot.lot)) }]}
-              turns={2} restOn="qr"
+              turns={2}
             />
             <ProofLead slug={compound.slug} />
           </div>

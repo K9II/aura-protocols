@@ -562,7 +562,7 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-hero .load-in:has(> .s-proof):not(.s-proof-phone-only) + .s-ctas { margin-top: 0; }
 .pharmacopoeia .s-hero .s-proof-phone-only + .s-ctas { margin-top: 28px; }
 /* The newest lot under the headline (option C, 2026-10-17, 9QomoXo9brSgbXvQEfD13c): the vial
-   turns twice and rests on its QR code; a dotted line runs from the code to the lot's card.
+   turns twice and rests on its front; a dotted line runs from the code to the lot's card while it pauses on the code.
    Side by side at every width. */
 .pharmacopoeia .s-proof { margin: 28px 0 26px; max-width: 34em; }
 .pharmacopoeia .s-proof-h { margin: 0 0 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 4px 16px; flex-wrap: wrap; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
@@ -670,10 +670,10 @@ main:has(> .pharmacopoeia) {
 @media (max-width: 900px) { .pharmacopoeia .s-hero .s-ctas { display: none; } }
 .pharmacopoeia .s-lineup-btn { font-size: 16px; padding: 13px 22px; }
 @media (max-width: 640px) {
-  /* the vial grows with the screen (112px at 360, 121 at 390) as far as the card's rows stay on one line */
-  .pharmacopoeia .s-proof-body { grid-template-columns: clamp(96px, 31vw, 136px) minmax(0, 1fr); column-gap: 14px; }
+  /* the vial as large as the card allows (Alvester, 2026-10-18: 112 → 144px wide at 360) */
+  .pharmacopoeia .s-proof-body { grid-template-columns: clamp(124px, 40vw, 172px) minmax(0, 1fr); column-gap: 10px; }
   .pharmacopoeia .s-proof-vial { padding-top: 34px; }
-  .pharmacopoeia .s-proof-lead { width: calc(35% + 14px); }
+  .pharmacopoeia .s-proof-lead { width: calc(35% + 10px); }
   .pharmacopoeia .s-proof-dk { display: none; }
   .pharmacopoeia .s-proof-ph { display: inline; }
   .pharmacopoeia .s-proof-ch { padding: 10px 12px 9px; }
@@ -2072,6 +2072,8 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   .pharmacopoeia .s-plate-sheet { padding: 30px 12px 22px; }
   .pharmacopoeia .s-plate-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 18px; }
   .pharmacopoeia .s-plate-ground { display: none; }
+  /* the bank and box drawings start lower in their frames: their words sit closer, as Verify does (2026-10-18) */
+  .pharmacopoeia .s-plate-figs figure:nth-of-type(3) .s-plate-word, .pharmacopoeia .s-plate-figs figure:nth-of-type(4) .s-plate-word { transform: translateY(23px); }
 }
 
 /* ── The Aura letter: journal masthead (mock approved 2026-10-14) ── */
