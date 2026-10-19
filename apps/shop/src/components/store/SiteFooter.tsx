@@ -14,8 +14,8 @@ export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
             {/* "seven-point panel" (Alvester, 2026-10-18 — the term the sellers whose tests match ours use;
                 not "7X"). The number shows only while the seven-test claim is on (RELEASE_CHECK holds it). */}
             {SEVEN_TEST_PANEL
-              ? "Research-grade peptides, each lot put through a seven-point panel using an independent ISO/IEC 17025-accredited US laboratory."
-              : "Research-grade peptides, each lot tested using an independent ISO/IEC 17025-accredited US laboratory."}
+              ? "Research-grade peptides, each lot put through a seven-point panel by independent US labs, including an ISO/IEC 17025-accredited lab."
+              : "Research-grade peptides, each lot tested by independent US labs, including an ISO/IEC 17025-accredited lab."}
           </p>
         </div>
         <div>
