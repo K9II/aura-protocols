@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AuraLockup from "@/components/AuraLockup";
 import type { Compound } from "@/data/catalog";
+import { SEVEN_TEST_PANEL } from "@/lib/constants";
 
 export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
   return (
@@ -10,7 +11,11 @@ export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
           {/* live pulse on desktop only — .aura-desk-only stills it below 1181px */}
           <AuraLockup size={70} mode="loop" className="aura-desk-only" />
           <p className="text-[15px] text-[color:var(--ink-soft)] mt-5 max-w-[30ch]">
-            Research-grade peptides. No lot is sold until an independent lab has tested it and its certificate is on the page.
+            {/* "seven-point panel" (Alvester, 2026-10-18 — the term the sellers whose tests match ours use;
+                not "7X"). The number shows only while the seven-test claim is on (RELEASE_CHECK holds it). */}
+            {SEVEN_TEST_PANEL
+              ? "Research-grade peptides, each lot put through a seven-point panel by independent ISO/IEC 17025-accredited US labs."
+              : "Research-grade peptides, each lot tested by independent ISO/IEC 17025-accredited US labs."}
           </p>
         </div>
         <div>
