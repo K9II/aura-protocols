@@ -12,9 +12,9 @@ import { MAX_DPR, QR_FACING_TURN } from "@/lib/vial-label";
 // Paused while off screen or in a background tab. It follows the size picker: each strength
 // shows its own strength, lot and QR code (redrawn in place, without restarting the turn).
 export type VialStrength = { id: string; strength: string; lot: string | null; qr: string[] };
-// Home page (2026-10-17): `turns` 2 and `restOn` "qr" — it turns twice, then comes to rest
-// with the QR code facing out (the dotted line to the certificate points at it); after a
-// drag it eases back there. Reduce-motion starts and stays on the QR code.
+// `restOn` "qr" (unused since 2026-10-18, when the home lot card went back to resting on its
+// front): it comes to rest with the QR code facing out; after a drag it eases back there.
+// Reduce-motion starts and stays on the QR code.
 type Props = {
   id: string; slug: string; label: string; label2?: string; parts?: string[];
   cap?: VialLabelInput["cap"]; rule?: string; strengths: VialStrength[];

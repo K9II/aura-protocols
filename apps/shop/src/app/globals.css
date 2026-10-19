@@ -562,7 +562,7 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-hero .load-in:has(> .s-proof):not(.s-proof-phone-only) + .s-ctas { margin-top: 0; }
 .pharmacopoeia .s-hero .s-proof-phone-only + .s-ctas { margin-top: 28px; }
 /* The newest lot under the headline (option C, 2026-10-17, 9QomoXo9brSgbXvQEfD13c): the vial
-   turns twice and rests on its QR code; a dotted line runs from the code to the lot's card.
+   turns twice and rests on its front; a dotted line runs from the code to the lot's card while it pauses on the code.
    Side by side at every width. */
 .pharmacopoeia .s-proof { margin: 28px 0 26px; max-width: 34em; }
 .pharmacopoeia .s-proof-h { margin: 0 0 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 4px 16px; flex-wrap: wrap; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
