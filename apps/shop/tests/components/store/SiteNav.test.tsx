@@ -64,11 +64,11 @@ describe("SiteNav", () => {
     expect([...links.querySelectorAll("a")].map((a) => a.textContent)).toEqual(["Shop", "COA Lookup", "Wholesale", "Affiliate Program"]);
   });
 
-  it("shows the banner: ISO/IEC 17025-accredited US lab, COA on every lot, fast domestic shipping, free-shipping threshold", () => {
+  it("shows the banner: testing includes ISO/IEC 17025-accredited US lab, COA on every lot, fast domestic shipping, free-shipping threshold", () => {
     render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
     const bar = document.querySelector(".s-topbar .s-topbar-wide") as HTMLElement;
     expect(bar.textContent?.replace(/\s+/g, " ").trim()).toBe(
-      `Tested by an ISO/IEC 17025-accredited US lab · COA on every lot · Fast domestic shipping · Free over $${FREE_SHIPPING_THRESHOLD_USD}`,
+      `Testing includes ISO/IEC 17025-accredited US lab · COA on every lot · Fast domestic shipping · Free over $${FREE_SHIPPING_THRESHOLD_USD}`,
     );
     expect(within(bar).getByText("Fast domestic shipping").tagName).toBe("EM");
   });
@@ -77,7 +77,7 @@ describe("SiteNav", () => {
     render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
     const phone = document.querySelector(".s-topbar .s-topbar-phone") as HTMLElement;
     expect(phone.textContent?.replace(/\s+/g, " ").trim()).toBe(
-      `Accredited US lab · COA every lot · Free shipping over $${FREE_SHIPPING_THRESHOLD_USD}`,
+      `Testing includes accredited US lab · COA every lot · Free shipping over $${FREE_SHIPPING_THRESHOLD_USD}`,
     );
   });
 });

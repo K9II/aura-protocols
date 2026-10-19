@@ -43,7 +43,7 @@ export default function ScanStrip({ lot, compound, certs, sevenTests }: { lot: P
               {/* the lot's certificate page as a phone shows it, drawn in the store's own type */}
               <div className="s-scan-phone" aria-hidden>
                 <div className="s-scan-screen">
-                  <span className="bar">Accredited US lab · COA every lot</span>
+                  <span className="bar">Testing includes accredited US lab · COA every lot</span>
                   <span className="eye">Certificate of analysis</span>
                   <span className="h">Your lot&apos;s <em>certificate.</em></span>
                   <div className="card">
