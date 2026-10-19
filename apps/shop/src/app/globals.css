@@ -1031,6 +1031,13 @@ main > .pharmacopoeia { overflow-x: clip; }
   .pharmacopoeia .s-specs b.s-mono { font-size: 12px; }
 }
 .pharmacopoeia .s-certlink { display: inline-block; margin: 14px 0 24px; font-size: 15px; color: var(--tested); border-bottom: 1px solid var(--tested); }
+/* Phones: no purity / method / lot boxes — the lot's certificate card just below shows all three
+   (Alvester, 2026-10-18); the certificate link takes their place. A lot only goes live with a
+   passing purity certificate, so a lot on sale always has that card. */
+@media (max-width: 640px) {
+  .pharmacopoeia .s-pick > .s-specs { display: none; }
+  .pharmacopoeia .s-pick > .s-certlink { margin-top: 24px; }
+}
 .pharmacopoeia .s-trust--pdp { margin: 0 0 22px; background: var(--record); border: 1px solid var(--line); }
 /* buy box: one raised object, class-colour top edge */
 .pharmacopoeia .s-buy { background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--cls); box-shadow: 0 1px 0 rgba(28,26,21,.05), 8px 12px 24px -12px rgba(28,26,21,.30); padding: 22px 22px 20px; }
