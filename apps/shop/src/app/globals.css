@@ -784,7 +784,12 @@ main:has(> .pharmacopoeia) {
     -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 110px, #000 calc(100% - 150px), transparent 100%);
     mask-image: linear-gradient(to bottom, transparent 0, #000 110px, #000 calc(100% - 150px), transparent 100%); }
   .pharmacopoeia .s-hl-window { left: 6%; top: auto; bottom: 40px; width: 471px; height: 608px; }
-  .pharmacopoeia .s-hl-clouds { gap: 19px; }
+  /* the window is ~62% of desktop size, so its blur and curtain stripes shrink with it — at the
+     desktop's 9px blur and 224px stripes the panes went soft and the stripes vanished (2026-10-18) */
+  .pharmacopoeia .s-hl-clouds { gap: 19px; filter: blur(5.5px); }
+  .pharmacopoeia .s-hl-clouds i { background: rgba(255,251,240,.9);
+    -webkit-mask-image: repeating-linear-gradient(95deg, #000 0, #000 21px, rgba(0,0,0,.38) 45px, #000 70px); mask-image: repeating-linear-gradient(95deg, #000 0, #000 21px, rgba(0,0,0,.38) 45px, #000 70px);
+    -webkit-mask-size: 140px 100%; mask-size: 140px 100%; }
   /* phones keep the drift and the passing cloud but not the curtain's sway: animating the mask
      redraws the blurred light every frame, which made phones stutter while scrolling (2026-10-18) */
   .pharmacopoeia .s-hl-clouds i { animation: none; }
