@@ -2072,6 +2072,8 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   .pharmacopoeia .s-plate-sheet { padding: 30px 12px 22px; }
   .pharmacopoeia .s-plate-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 18px; }
   .pharmacopoeia .s-plate-ground { display: none; }
+  /* the bank and box drawings start lower in their frames: their words sit closer, as Verify does (2026-10-18) */
+  .pharmacopoeia .s-plate-figs figure:nth-of-type(3) .s-plate-word, .pharmacopoeia .s-plate-figs figure:nth-of-type(4) .s-plate-word { transform: translateY(23px); }
 }
 
 /* ── The Aura letter: journal masthead (mock approved 2026-10-14) ── */
