@@ -45,15 +45,16 @@ export default function SiteNav() {
         ) : <>
         {/* Narrow screens wrap between phrases; each dot stays at the end of the
             phrase before it, so no line starts with one. Phones get the short
-            wording so the bar is two lines, not four (2026-10-10). */}
+            wording so the bar is two lines, not four (2026-10-10). "Testing includes" (2026-10-18):
+            stays true if the seven-point panel is split across labs. */}
         <span className="s-topbar-wide">
-          <span>Tested by an ISO/IEC 17025-accredited US lab ·</span>{" "}
+          <span>Testing includes an ISO/IEC 17025-accredited US lab ·</span>{" "}
           <span className="whitespace-nowrap">COA on every lot ·</span>{" "}
           <span className="whitespace-nowrap"><em>Fast domestic shipping</em> ·</span>{" "}
           <span className="whitespace-nowrap">Free over ${FREE_SHIPPING_THRESHOLD_USD}</span>
         </span>
         <span className="s-topbar-phone">
-          <span className="whitespace-nowrap">Accredited US lab ·</span>{" "}
+          <span className="whitespace-nowrap">Testing includes an accredited US lab ·</span>{" "}
           <span className="whitespace-nowrap">COA every lot ·</span>{" "}
           <span className="whitespace-nowrap"><em>Free shipping over ${FREE_SHIPPING_THRESHOLD_USD}</em></span>
         </span>
