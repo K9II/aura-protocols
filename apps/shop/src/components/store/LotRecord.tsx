@@ -294,7 +294,8 @@ export default function LotRecord({ lots, variant, nowMs, compoundName, certs = 
           </>
         )}
       </div>
-      {product && (
+      {/* the lot table only once there's a choice to make: two or more lots (2026-10-19) */}
+      {product && n > 1 && (
         <div className="s-rec-table">
           <table>
             <thead><tr><th>Lot</th><th>Strength</th><th>Purity</th><th>Released</th><th>Status</th></tr></thead>

@@ -102,7 +102,8 @@ export default function VariantPicker({ compound: c, notes }: { compound: Compou
       {/* No certificate link here (Alvester, 2026-10-19): the Lot record opens the lot's
           certificate. A lot still waiting on its results says so. */}
       {pending && <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>}
-      <TrustRow className="s-trust--pdp" />
+      {/* phones; desktop shows the stamps in the left column under the Lot record (2026-10-19) */}
+      <TrustRow className="s-trust--pdp s-trust--pdp-phone" />
     </div>
   );
 }

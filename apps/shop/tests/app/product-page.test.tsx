@@ -68,6 +68,9 @@ describe("product page", () => {
     expect(within(rec as HTMLElement).getByRole("link", { name: "Open certificate →" })).toHaveAttribute("href", "https://x/coa/AP-1107/1.pdf");
     expect(within(rec as HTMLElement).getByRole("link", { name: "Verify at the lab ↗" })).toHaveAttribute("href", "https://x/verify/VGD-24117");
     expect(rec).toHaveTextContent("Vanguard Laboratory: tested by an ISO/IEC 17025-accredited US lab");
+    // one lot: no lot table (it would only repeat the box); desktop stamps sit under the record
+    expect(rec.querySelector(".s-rec-table")).toBeNull();
+    expect(container.querySelector(".s-media > .s-trust--pdp-desk")).not.toBeNull();
   });
 
   it("orders sections: hero, About this compound, Compound data, Researchers also added (no Material & testing)", async () => {

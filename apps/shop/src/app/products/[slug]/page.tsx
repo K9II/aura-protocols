@@ -9,6 +9,7 @@ import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import VialTurn, { type VialStrength } from "@/components/store/VialTurn";
 import PlacardScan from "@/components/store/PlacardScan";
 import QrNote from "@/components/store/QrNote";
+import TrustRow from "@/components/store/TrustRow";
 import { coaLookupQrUrl, lotQrUrl, qrRows } from "@/lib/vial-qr";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
@@ -141,6 +142,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
             <QrNote slug={c.slug} />
             <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} certs={productCerts} />
+            {/* desktop: the four stamps under the Lot record (2026-10-19); phones keep them under the buy box */}
+            <TrustRow className="s-trust--pdp s-trust--pdp-desk" />
           </div>
           <div className="relative">
             <p className="s-micro s-pdp-kick">

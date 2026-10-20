@@ -969,13 +969,17 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-pick > .s-buy { order: 3; }
 .pharmacopoeia .s-pick > .s-pick-notes { order: 4; }
 .pharmacopoeia .s-pick > .s-trust { order: 5; }
+/* the four stamps: under the buy box on phones, in the left column under the Lot record on
+   desktop, at a size that fits it (2026-10-19) */
+.pharmacopoeia .s-trust--pdp-desk { display: none; }
 @media (min-width: 901px) {
   .pharmacopoeia .s-pick > .s-specs { margin-bottom: 22px; }
-  .pharmacopoeia .s-pick > .s-trust--pdp { margin: 26px 0 0; }
-  .pharmacopoeia .s-trust--pdp li { gap: 4px; padding: 10px 6px 9px; }
-  .pharmacopoeia .s-trust--pdp svg { height: 24px; }
-  .pharmacopoeia .s-trust--pdp b { font-size: 9.5px; letter-spacing: .11em; }
-  .pharmacopoeia .s-trust--pdp span { font-size: 11px; }
+  .pharmacopoeia .s-trust--pdp-phone { display: none; }
+  .pharmacopoeia .s-media > .s-trust--pdp-desk { display: grid; margin: 30px 0 0; }
+  .pharmacopoeia .s-trust--pdp-desk li { gap: 6px; padding: 13px 8px 12px; }
+  .pharmacopoeia .s-trust--pdp-desk svg { height: 32px; }
+  .pharmacopoeia .s-trust--pdp-desk b { font-size: 10.5px; letter-spacing: .12em; }
+  .pharmacopoeia .s-trust--pdp-desk span { font-size: 12.5px; }
 }
 /* Phones: unwrap the two columns so the lot record can follow the buying area. The page
    order inside .s-pick is already the phone order: buy box, research-use notes + Before
