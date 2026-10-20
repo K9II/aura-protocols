@@ -9,7 +9,7 @@
 import { SHIPPING_PROTECTION_USD, formatUsd } from "@/lib/cart";
 
 // Bump when any wording below changes; each order records the version it showed.
-export const PROTECTION_TERMS_VERSION = "2026-10-13";
+export const PROTECTION_TERMS_VERSION = "2026-10-19";
 export type ProtectionChoice = "accepted" | "declined";
 
 export const PROTECTION_LABEL = "Shipping protection";
@@ -23,6 +23,11 @@ export const PROTECTION_OFFER =
 
 export const PROTECTION_DECLINED_NOTICE =
   "Your order will ship without shipping protection. Once the carrier has your package, Aura Protocols is not responsible for loss, theft or damage in transit, including packages marked delivered. We can't replace or refund unprotected orders; we'll share tracking and carrier details to help you contact the carrier.";
+
+// Product page, Before ordering (2026-10-19): wrong items are always put right; transit damage
+// only on a protected order — it used to promise a replacement for any damaged item.
+export const PROTECTION_PDP_NOTE =
+  `Wrong item? We send the correct one. Damaged in transit? Covered when your order has shipping protection. Either way, photograph the packaging and vial labels and email support within ${DAMAGE_REPORT_HOURS} hours of delivery.`;
 
 export const PROTECTION_DECLINED_SHORT = "Declined. This order is not covered for loss, theft or damage in transit.";
 

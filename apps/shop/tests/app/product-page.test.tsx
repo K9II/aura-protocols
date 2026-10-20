@@ -193,6 +193,7 @@ describe("product page", () => {
     expect(items[1]).toMatch(/full refund until your order ships/i);
     expect(items[1]).toMatch(/sale is final/i);
     expect(items[2]).toMatch(/within 48 hours of delivery/i);
-    expect(items[2]).toMatch(/one replacement/i);
+    expect(items[2]).toMatch(/wrong item\? we send the correct one/i);
+    expect(items[2]).toMatch(/damaged in transit\? covered when your order has shipping protection/i);
   });
 });
