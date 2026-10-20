@@ -24,7 +24,7 @@ export const PROTECTION_OFFER =
 export const PROTECTION_DECLINED_NOTICE =
   "Your order will ship without shipping protection. Once the carrier has your package, Aura Protocols is not responsible for loss, theft or damage in transit, including packages marked delivered. We can't replace or refund unprotected orders; we'll share tracking and carrier details to help you contact the carrier.";
 
-// Product page, After you order (2026-10-19): wrong items are always put right; transit damage
+// Product page, Cancellations & claims (2026-10-19): wrong items are always put right; transit damage
 // only on a protected order — it used to promise a replacement for any damaged item.
 export const PROTECTION_PDP_NOTE =
   `Wrong item? We send the correct one. Damaged in transit? Covered when your order has shipping protection. Either way, photograph the packaging and vial labels and email support within ${DAMAGE_REPORT_HOURS} hours of delivery.`;
