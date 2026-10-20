@@ -1133,6 +1133,15 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-before .s-micro { color: var(--specimen); margin-bottom: 8px; }
 .pharmacopoeia .s-before ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); list-style: square; }
 .pharmacopoeia .s-before li + li { margin-top: 6px; }
+/* Desktop (2026-10-19): the full notes move to the left column under the Lot record, as a
+   panel that pairs with it; the buy box keeps the one-line summary. Phones: the list stays
+   under the buy box (the left column comes first there, above the price). */
+.pharmacopoeia .s-before--side { margin-top: 28px; padding-top: 0; border-top: 0; }
+.pharmacopoeia .s-before--side ul { margin-top: 14px; padding: 16px 18px 16px 34px; border: 1px solid var(--line); background: var(--label); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.18); font-size: 14.5px; color: var(--ink); }
+.pharmacopoeia .s-before-line { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+.pharmacopoeia .s-before-line a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); }
+@media (min-width: 901px) { .pharmacopoeia .s-pick-notes .s-before--buy { display: none; } }
+@media (max-width: 900px) { .pharmacopoeia .s-before--side, .pharmacopoeia .s-before-line { display: none; } }
 .pharmacopoeia .s-ship { margin-top: 14px; background: var(--paper-deep); padding: 11px 14px; font-size: 13px; }
 .pharmacopoeia .s-ship b { display: block; font-size: 13.5px; }
 .pharmacopoeia .s-ruo { margin-top: 14px; color: var(--specimen); }
