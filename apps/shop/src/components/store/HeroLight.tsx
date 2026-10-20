@@ -4,7 +4,9 @@
 // stills for visitors who turn motion off.
 // where="sphere": just the window, laid behind the sphere itself — phones, where the sphere
 // sits mid-hero and the band's window (pinned to the band's foot) would miss it (2026-10-17).
-export default function HeroLight({ where = "band" }: { where?: "band" | "sphere" }) {
+// where="about": the product page's "About this compound" band, the window falling across the
+// text and the molecule (2026-10-19).
+export default function HeroLight({ where = "band" }: { where?: "band" | "sphere" | "about" }) {
   const windowLight = (
     <div className="s-hl-window">
       <div className="s-hl-clouds"><i /><i /><i /><i /><i /><i /></div>
@@ -12,7 +14,7 @@ export default function HeroLight({ where = "band" }: { where?: "band" | "sphere
   );
   if (where === "sphere") return <div className="s-hero-light s-hero-light--sphere" aria-hidden>{windowLight}</div>;
   return (
-    <div className="s-hero-light" aria-hidden>
+    <div className={`s-hero-light${where === "about" ? " s-hero-light--about" : ""}`} aria-hidden>
       <div className="s-hl-shade" />
       {windowLight}
       <div className="s-hl-grain" />

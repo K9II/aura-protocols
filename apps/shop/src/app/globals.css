@@ -820,6 +820,17 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia.s-home-lit .s-hero-band > .s-hero-light:not(.s-hero-light--sphere) { display: none; }
 }
 @media (max-width: 900px) { .pharmacopoeia .s-page-light { display: none; } }
+/* Product page: the north light through "About this compound" (2026-10-19). The band clips it;
+   the molecule's stage drops its solid glow to a sheer one so the light passes behind the model. */
+.pharmacopoeia .s-about { position: relative; overflow: hidden; isolation: isolate; }
+.pharmacopoeia .s-about > .p-container { position: relative; z-index: 1; }
+.pharmacopoeia .s-hero-light--about { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%); }
+.pharmacopoeia .s-hero-light--about .s-hl-window { left: 24%; top: -240px; }
+.pharmacopoeia .s-about .s-mol-stage { background: radial-gradient(circle at 50% 50%, rgba(237,233,224,.55) 0, rgba(237,233,224,0) 70%); }
+@media (max-width: 900px) {
+  .pharmacopoeia .s-hero-light--about .s-hl-window { left: 10%; top: auto; bottom: -60px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .pharmacopoeia .s-hl-window, .pharmacopoeia .s-hl-clouds, .pharmacopoeia .s-hl-clouds i { animation: none; }
 }
