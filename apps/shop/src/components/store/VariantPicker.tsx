@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { Compound } from "@/data/catalog";
 import { isPendingLot, packOptions, strengthInPriceUnit } from "@/lib/catalog";
-import { FREE_SHIPPING_THRESHOLD_USD, linePriceUsd } from "@/lib/cart";
+import { linePriceUsd } from "@/lib/cart";
 import { useCart } from "@/components/store/CartProvider";
 import SpecBoxes from "@/components/store/SpecBoxes";
 import TrustRow from "@/components/store/TrustRow";
@@ -95,13 +95,14 @@ export default function VariantPicker({ compound: c, notes }: { compound: Compou
             {pending ? "COA pending — available soon" : out ? "Out of stock" : <>Add to cart — <span className="whitespace-nowrap">${total.toFixed(2)} →</span></>}
           </button>
         </div>
-        <div className="s-ship"><b>Ships from the US</b>Tracked shipping · free on orders of ${FREE_SHIPPING_THRESHOLD_USD} or more</div>
+        {/* the four stamps under Add to cart, every width (Alvester, 2026-10-19; they replace the
+            "Ships from the US" box — its tracked / free-over line is the first stamp) */}
+        <TrustRow className="s-trust--buy" />
       </div>
       {notes && <div className="s-pick-notes">{notes}</div>}
       <SpecBoxes lot={lot} />
       {/* No certificate line here (Alvester, 2026-10-19): the Lot record follows the chosen
           strength and says when its certificate is still on the way. */}
-      <TrustRow className="s-trust--pdp s-trust--pdp-phone" />
     </div>
   );
 }
