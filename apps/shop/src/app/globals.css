@@ -946,16 +946,6 @@ main:has(> .pharmacopoeia) {
 
 /* product page */
 .pharmacopoeia .s-pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 64px; padding: 48px 0 72px; position: relative; }
-/* Lot's certificates (mock c5, 2026-10-11 live check): full width below the
-   two-column section, not squeezed into the half-width media column where
-   the 11-column table scrolled sideways and touched the lot record above it.
-   s-pdp's own bottom padding already clears it from the grid; this adds a
-   touch more so the heading never sits flush against that padding edge. */
-.pharmacopoeia .s-pdp-certs { padding-top: 4px; padding-bottom: 56px; }
-.pharmacopoeia .s-pdp-certs:empty { display: none; }
-/* "See this lot's certificates ↓" lands below the pinned site header. */
-.pharmacopoeia #lot-certificates { scroll-margin-top: 150px; }
-@media (max-width: 640px) { .pharmacopoeia #lot-certificates { scroll-margin-top: 200px; } }
 /* minmax(0,…) lets the single mobile column shrink below its content's min width
    (a bare 1fr kept the spec boxes wider than the screen and they were clipped). */
 @media (max-width: 900px) { .pharmacopoeia .s-pdp { grid-template-columns: minmax(0, 1fr); } }
@@ -1526,18 +1516,14 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-rec--product { margin-top: 30px; }
 .pharmacopoeia .s-rec--product .s-rec-detail { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; }
 /* Stacked sheets (Alvester, 2026-10-19, option B): the selected lot's details as a certificate
-   lying on earlier ones, a green "Tested" seal on the corner; the purity box carries the
+   lying on earlier ones (no seal, 2026-10-19); the purity box carries the
    instrument plate's chromatogram peak and the purity as its headline number (from option C). */
 .pharmacopoeia .s-rec--product .s-rec-detail { position: relative; background: var(--label); margin-bottom: 18px;
   box-shadow: 6px 6px 0 -1px #F4F1EA, 6px 6px 0 0 var(--line), 12px 12px 0 -1px #EFEBE2, 12px 12px 0 0 var(--line), 16px 22px 26px -14px rgba(28,26,21,.32); }
-.pharmacopoeia .s-rec--product .s-rec-detail::after { content: "✓\ATested"; white-space: pre; position: absolute; top: -30px; right: -16px; width: 66px; height: 66px; border-radius: 50%;
-  display: grid; place-items: center; text-align: center; line-height: 1.15; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--tested); background: rgba(251,250,247,.9); border: 2px solid var(--tested); outline: 1px solid var(--tested); outline-offset: 3px; transform: rotate(-12deg); pointer-events: none; }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3) { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='120' viewBox='0 0 360 120'><path d='M0 112 H120 C140 112 146 110 152 100 C160 80 164 8 170 8 C176 8 180 80 188 100 C194 110 200 112 220 112 H250 C256 112 258 104 262 104 C266 104 268 112 274 112 H360' fill='none' stroke='%232F6B3A' stroke-opacity='.22' stroke-width='1.6'/><path d='M0 116 H360' stroke='%23C9C2AE' stroke-width='1'/></svg>");
   background-repeat: no-repeat; background-position: center bottom 6px; background-size: 100% auto; }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3) b { font-size: 34px; line-height: 1; color: var(--tested); }
 .pharmacopoeia .s-rec--product .s-rec-table { margin-top: 26px; }
-@media (max-width: 900px) { .pharmacopoeia .s-rec--product .s-rec-detail::after { right: 10px; top: -28px; width: 58px; height: 58px; font-size: 9px; } }
 .pharmacopoeia .s-rec--product .s-rec-detail > div { border-bottom: 1px solid var(--line); }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3n) { border-right: 0; }
 .pharmacopoeia .s-rec--product .s-rec-detail a { grid-column: 1 / -1; justify-self: start; margin: 12px 16px; }
@@ -1993,22 +1979,6 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-rec-table td.s-ok { color: var(--tested); } .pharmacopoeia .s-rec-table td.s-nt { color: #9C9483; }
 .pharmacopoeia .s-rec-table td.s-bad { color: var(--specimen); }
 .pharmacopoeia .s-cert-link { color: var(--tested); border-bottom: 1px solid currentColor; }
-/* Product page certificates on phones (≤900px): stacked cards instead of the wide table (2026-10-14). */
-.pharmacopoeia .s-lc-cards { display: none; list-style: none; margin: 14px 0 0; padding: 0; }
-@media (max-width: 900px) {
-  .pharmacopoeia .s-lc-table { display: none; }
-  .pharmacopoeia .s-lc-cards { display: grid; gap: 12px; }
-}
-.pharmacopoeia .s-lc-card { background: var(--label); border: 1px solid var(--line); box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.18); padding: 14px 16px 16px; }
-.pharmacopoeia .s-lc-card dl { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; }
-.pharmacopoeia .s-lc-card dl > div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line); }
-.pharmacopoeia .s-lc-card dt { color: var(--ink-soft); }
-.pharmacopoeia .s-lc-card dd { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
-.pharmacopoeia .s-lc-card dd.s-mono { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 13.5px; }
-.pharmacopoeia .s-lc-tests { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 0; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 12px; letter-spacing: .04em; }
-.pharmacopoeia .s-lc-tests .s-ok { color: var(--tested); } .pharmacopoeia .s-lc-tests .s-bad { color: var(--specimen); } .pharmacopoeia .s-lc-tests .s-nt { color: #9C9483; }
-.pharmacopoeia .s-lc-links { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 14px 0 0; }
-.pharmacopoeia .s-lc-open { display: inline-block; padding: 10px 16px; background: var(--ink); color: var(--paper); font-size: 15px; }
 @media (max-width: 640px) { .pharmacopoeia .s-coa-sel { min-width: 0; flex: 1 1 140px; } }
 
 /* refresh language: class-colour top edge + raised tile, class dash line, green proof rule on purity */
@@ -2522,7 +2492,7 @@ html { scroll-padding-top: 150px; }
 @media (max-width: 640px) {
   html { scroll-padding-top: 84px; }
   /* sections that set their own room for the old 201 px header */
-  .pharmacopoeia #lot-certificates, .pharmacopoeia .s-policy-section, .pharmacopoeia .s-ws-inq, .pharmacopoeia .s-about-body section { scroll-margin-top: 84px; }
+  .pharmacopoeia .s-policy-section, .pharmacopoeia .s-ws-inq, .pharmacopoeia .s-about-body section { scroll-margin-top: 84px; }
 }
 
 /* Kept at the end so it follows the page rules it trims.
