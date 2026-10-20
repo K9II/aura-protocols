@@ -99,10 +99,8 @@ export default function VariantPicker({ compound: c, notes }: { compound: Compou
       </div>
       {notes && <div className="s-pick-notes">{notes}</div>}
       <SpecBoxes lot={lot} />
-      {/* No certificate link here (Alvester, 2026-10-19): the Lot record opens the lot's
-          certificate. A lot still waiting on its results says so. */}
-      {pending && <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>}
-      {/* phones; desktop shows the stamps in the left column under the Lot record (2026-10-19) */}
+      {/* No certificate line here (Alvester, 2026-10-19): the Lot record follows the chosen
+          strength and says when its certificate is still on the way. */}
       <TrustRow className="s-trust--pdp s-trust--pdp-phone" />
     </div>
   );

@@ -9,6 +9,7 @@ import { setLotNews, visitBaseline } from "@/lib/lot-news";
 import Link from "next/link";
 import type { PublicCert } from "@/data/catalog-types";
 import { SUMMARY_TESTS, lotCertSummary } from "@/lib/coa/lot-summary";
+import { useChosenStrength } from "@/lib/chosen-strength";
 
 // The lot record (approved 2026-10-10, ported from the home + MOTS-c demos): every
 // released lot drawn as a chromatogram run from its certificate's purity, stacked
@@ -26,12 +27,17 @@ type Props = {
   // product: the compound's visible certificates — the selected lot's tests and links show in
   // its detail box (2026-10-19; the separate certificates table was folded in here)
   certs?: PublicCert[];
+  // product: each strength and the lot the store sells it from (null = waiting on its results).
+  // The box follows the size picker (2026-10-19): choosing a strength shows its lot, or says
+  // its certificate is on the way.
+  variants?: Array<{ id: string; strength: string; lot: string | null }>;
+  slug?: string;
 };
 const MARK = { pass: "✓", fail: "✕", not_tested: "—" } as const;
 
 const STATUS_LABEL = { live: "In stock", sold_out: "Sold out" } as const;
 
-export default function LotRecord({ lots, variant, nowMs, compoundName, certs = [] }: Props) {
+export default function LotRecord({ lots, variant, nowMs, compoundName, certs = [], variants = [], slug = "" }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
   const [fresh, setFresh] = useState<Set<string>>(() => new Set());
@@ -48,6 +54,14 @@ export default function LotRecord({ lots, variant, nowMs, compoundName, certs = 
   const [live, setLive] = useState(false);
   const n = lots.length;
   const product = variant === "product";
+  // product: follow the size picker. sel = -1 when the chosen strength has no released lot yet.
+  const chosenId = useChosenStrength(slug, variants[0]?.id ?? "");
+  const chosen = variants.find((v) => v.id === chosenId);
+  useEffect(() => {
+    if (!product || !chosen) return;
+    const i = chosen.lot ? lots.findIndex((l) => l.lot === chosen.lot) : -1;
+    setSel(i >= 0 ? i : chosen.lot ? lots.findIndex((l) => l.variantId === chosen.id) : -1);
+  }, [product, chosen, lots]);
 
   // Home: what's new since the last visit (browser storage), and tell the top bar.
   useEffect(() => {
@@ -216,11 +230,12 @@ export default function LotRecord({ lots, variant, nowMs, compoundName, certs = 
     return best;
   };
 
-  if (!n) return null;
+  // a product page keeps its record (and says the certificate is on the way) even before its first lot
+  if (!n && !(product && variants.length)) return null;
   const g = recordGeo(size.W, size.H, n);
-  const L = lots[sel] ?? lots[0];
+  const L: RecordLot | undefined = product ? lots[sel] : lots[sel] ?? lots[0];
   const statusOf = (l: RecordLot) => (fresh.has(l.lot) ? "New" : STATUS_LABEL[l.status]);
-  const sum = product ? lotCertSummary(certs, L.lot) : null;
+  const sum = product && L ? lotCertSummary(certs, L.lot) : null;
   const capLeft = product
     ? `${compoundName} lots · drawn from each certificate's purity`
     : `${n === 1 ? "First lot release" : `Last ${n} lot releases`} · drawn from each certificate's purity`;
@@ -265,6 +280,11 @@ export default function LotRecord({ lots, variant, nowMs, compoundName, certs = 
           <p className="s-rec-first">The first {compoundName} lot. Each new lot joins the record here, in front, with its own certificate.</p>
         )}
       </div>}
+      {!L ? (
+        <div className="s-rec-detail s-rec-detail--pending" aria-live="polite">
+          <p className="s-rec-pending"><b>{compoundName} {chosen?.strength}</b>Certificate posted when lab results return</p>
+        </div>
+      ) : (
       <div className="s-rec-detail" aria-live="polite">
         <div><small className="s-micro">Lot</small><b className="s-mono">{L.lot}</b></div>
         <div><small className="s-micro">Compound</small><b>{L.compound} {L.strength}</b></div>
@@ -294,6 +314,7 @@ export default function LotRecord({ lots, variant, nowMs, compoundName, certs = 
           </>
         )}
       </div>
+      )}
       {/* the lot table only once there's a choice to make: two or more lots (2026-10-19) */}
       {product && n > 1 && (
         <div className="s-rec-table">

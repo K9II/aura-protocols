@@ -48,7 +48,7 @@ describe("lot record", () => {
 
   it("never sends stock counts or flags to the browser", () => {
     const [r] = homeRecord([lot({})]);
-    expect(Object.keys(r).sort()).toEqual(["coaFile", "compound", "liveAt", "lot", "method", "purityPct", "slug", "status", "strength", "testedOn"]);
+    expect(Object.keys(r).sort()).toEqual(["coaFile", "compound", "liveAt", "lot", "method", "purityPct", "slug", "status", "strength", "testedOn", "variantId"]);
   });
 
   it("new since last visit: none on a first visit, only later releases otherwise", () => {

@@ -24,6 +24,7 @@ export type RecordStatus = "live" | "sold_out";
 export type RecordLot = {
   lot: string;
   slug: string;
+  variantId: string;
   compound: string;
   strength: string;
   purityPct: number;
@@ -40,7 +41,7 @@ const newestFirst = (a: PublicLot, b: PublicLot) => b.liveAt.localeCompare(a.liv
 function toRecord(l: PublicLot): RecordLot | null {
   if (l.status === "retired" || !l.liveAt) return null;
   return {
-    lot: l.lot, slug: l.slug, compound: l.compoundName, strength: l.strength, purityPct: l.purityPct,
+    lot: l.lot, slug: l.slug, variantId: l.variantId, compound: l.compoundName, strength: l.strength, purityPct: l.purityPct,
     method: l.method, testedOn: l.testedOn, liveAt: l.liveAt, coaFile: l.coaFile, status: l.status,
   };
 }

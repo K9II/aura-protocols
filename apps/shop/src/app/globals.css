@@ -1524,6 +1524,10 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   background-repeat: no-repeat; background-position: right 10px bottom 10px; background-size: 46% 46px; }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3) b { font-size: 34px; line-height: 1; color: var(--tested); }
 .pharmacopoeia .s-rec--product .s-rec-table { margin-top: 26px; }
+/* the chosen strength has no released lot yet */
+.pharmacopoeia .s-rec--product .s-rec-detail--pending { display: block; }
+.pharmacopoeia .s-rec-pending { margin: 0; padding: 18px 16px; display: grid; gap: 6px; color: var(--ink-soft); font-size: 15px; }
+.pharmacopoeia .s-rec-pending b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 20px; color: var(--ink); }
 .pharmacopoeia .s-rec--product .s-rec-detail > div { border-bottom: 1px solid var(--line); }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3n) { border-right: 0; }
 .pharmacopoeia .s-rec--product .s-rec-detail a { grid-column: 1 / -1; justify-self: start; margin: 12px 16px; }

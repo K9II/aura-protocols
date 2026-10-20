@@ -3,10 +3,11 @@ import { render, screen, within, fireEvent, act } from "@testing-library/react";
 import LotRecord from "@/components/store/LotRecord";
 import { setLotNews } from "@/lib/lot-news";
 import type { RecordLot } from "@/lib/lot-record";
+import { chooseStrength, forgetStrength } from "@/lib/chosen-strength";
 
 const NOW = Date.parse("2026-10-10T12:00:00Z");
 const mk = (lot: string, compound: string, liveAt: string, status: RecordLot["status"] = "live"): RecordLot => ({
-  lot, slug: "x", compound, strength: "10 mg", purityPct: 99.4, method: "HPLC+MS", testedOn: liveAt.slice(0, 10),
+  lot, slug: "x", variantId: "10mg", compound, strength: "10 mg", purityPct: 99.4, method: "HPLC+MS", testedOn: liveAt.slice(0, 10),
   liveAt, coaFile: `https://coa/${lot}.pdf`, status,
 });
 const LOTS = [mk("SX10-2610-01", "Semax", "2026-10-08T16:00:00Z"), mk("BP10-2609-01", "BPC-157", "2026-09-11T16:00:00Z", "sold_out")];
@@ -64,5 +65,25 @@ describe("LotRecord", () => {
     expect(screen.getByRole("link", { name: /open this lot's certificate/i })).toBeInTheDocument();
     expect(document.querySelector(".s-rec canvas")).not.toBeNull();
     expect(document.querySelector(".s-rec")).not.toHaveClass("s-rec--nochart");
+  });
+
+  it("product: follows the size picker — the chosen strength's lot, or its certificate on the way", () => {
+    const lots = [mk("MC10-01", "MOTS-c", "2026-10-08T16:00:00Z"), { ...mk("MC40-01", "MOTS-c", "2026-10-01T16:00:00Z"), variantId: "40mg", strength: "40 mg" }];
+    const variants = [{ id: "10mg", strength: "10 mg", lot: "MC10-01" }, { id: "40mg", strength: "40 mg", lot: "MC40-01" }, { id: "80mg", strength: "80 mg", lot: null }];
+    render(<LotRecord lots={lots} variant="product" nowMs={NOW} compoundName="MOTS-c" slug="mots-c" variants={variants} />);
+    const box = () => document.querySelector(".s-rec-detail") as HTMLElement;
+    expect(within(box()).getByText("MC10-01")).toBeInTheDocument();
+    act(() => chooseStrength("mots-c", "40mg"));
+    expect(within(box()).getByText("MC40-01")).toBeInTheDocument();
+    act(() => chooseStrength("mots-c", "80mg"));
+    expect(box()).toHaveTextContent("MOTS-c 80 mg");
+    expect(box()).toHaveTextContent("Certificate posted when lab results return");
+    act(() => forgetStrength("mots-c"));
+  });
+
+  it("product with no released lot yet still says its certificate is on the way", () => {
+    render(<LotRecord lots={[]} variant="product" nowMs={NOW} compoundName="Eloralintide" slug="elo" variants={[{ id: "5mg", strength: "5 mg", lot: null }]} />);
+    expect(document.querySelector(".s-rec-detail")).toHaveTextContent("Eloralintide 5 mg");
+    expect(document.querySelector(".s-rec-detail")).toHaveTextContent("Certificate posted when lab results return");
   });
 });

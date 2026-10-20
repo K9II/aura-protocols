@@ -37,7 +37,8 @@ describe("VariantPicker", () => {
     const pending = { ...bpc, variants: bpc.variants.map((v) => ({ ...v, stock: "out" as const, lot: { pending: true as const } })) };
     rerender(<CartProvider catalog={liveFixture()}><VariantPicker compound={pending} /></CartProvider>);
     expect(screen.getByRole("button", { name: /coa pending/i })).toBeDisabled();
-    expect(screen.getByText(/certificate posted when lab results return/i)).toBeInTheDocument();
+    // the Lot record says the certificate is on the way, not the picker
+    expect(screen.queryByText(/certificate posted when lab results return/i)).toBeNull();
   });
 
   it("has no certificate link: the Lot record opens the certificate", () => {
@@ -66,7 +67,8 @@ describe("VariantPicker", () => {
     const pending = { ...bpc, variants: bpc.variants.map((v) => ({ ...v, stock: "out" as const, lot: { pending: true as const } })) };
     render(<CartProvider catalog={liveFixture()}><VariantPicker compound={pending} /></CartProvider>);
     expect(screen.queryByText("Out of stock")).toBeNull();
-    expect(screen.getByText(/certificate posted when lab results return/i)).toBeInTheDocument();
+    // the Lot record says the certificate is on the way, not the picker
+    expect(screen.queryByText(/certificate posted when lab results return/i)).toBeNull();
   });
 
   it("lists 2-, 5- and 10-packs with mg, $/mg, pack price and discount, and no single vial", () => {
