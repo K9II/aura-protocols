@@ -11,6 +11,11 @@ vi.mock("@/components/store/MoleculeViewer", () => ({
   default: ({ structure }: { structure: { label: string } }) => <div data-testid="mol">{structure.label}</div>,
 }));
 
+const LOTS = [{
+  lot: "AP-1107", slug: "bpc-157", compoundName: "BPC-157", strength: "10 mg", variantId: "10mg", purityPct: 99.62, method: "HPLC+MS",
+  testedOn: "2026-10-06", liveAt: "2026-10-07T12:00:00Z", coaFile: "https://x/coa/AP-1107/1.pdf", status: "live", onStore: true,
+}];
+
 async function renderSlug(slug: string) {
   const ui = await ProductPage({ params: Promise.resolve({ slug }) });
   return render(<CartProvider catalog={liveFixture()}>{ui}</CartProvider>);
@@ -43,9 +48,9 @@ describe("product page", () => {
     expect(screen.getByText("BPC-2609-01")).toBeInTheDocument();
   });
 
-  it("renders the lot's certificates full width below the two-column section, not inside the media column", async () => {
+  it("folds the selected lot's certificate into the Lot record: tests, links, ISO lab; no separate table", async () => {
     live.mockResolvedValue({
-      all: liveFixture(), shown: liveFixture(), lots: [], certificates: [{
+      all: liveFixture(), shown: liveFixture(), lots: LOTS, certificates: [{
         id: "c1", lot: "AP-1107", slug: "bpc-157", compoundName: "BPC-157", chemicalClass: "Peptide Fragments", strength: "10 mg",
         lotStatus: "live", shipping: true, labName: "Vanguard Laboratory", labCity: "Olympia, WA", labIso: true, reportNumber: "VGD-24117",
         verifyUrl: "https://x/verify/VGD-24117", testedOn: "2026-10-06", coaFile: "https://x/coa/AP-1107/1.pdf",
@@ -55,14 +60,17 @@ describe("product page", () => {
       }],
     });
     const { container } = await renderSlug("bpc-157");
-    expect(container.querySelector(".s-media")).not.toHaveTextContent("Certificates ·");
-    const certsBlock = container.querySelector(".s-pdp-certs")!;
-    // the link by the price jumps to the certificates; the cards/table are the one place that opens the PDF
-    expect(certsBlock.id).toBe("lot-certificates");
-    expect(container.querySelector(".s-certlink")).toHaveAttribute("href", "#lot-certificates");
-    expect(certsBlock).toHaveTextContent("Certificates · 10 mg · lot AP-1107 · on sale now");
-    // A sibling of .s-pdp (not nested inside it), so it spans the full container width.
-    expect(certsBlock.previousElementSibling).toHaveClass("s-pdp");
+    expect(container.querySelector(".s-pdp-certs")).toBeNull();
+    const rec = container.querySelector(".s-rec--product")!;
+    // the Lot record is the one place that opens the certificate (no link by the price)
+    expect(container.querySelector(".s-certlink")).toBeNull();
+    expect(rec.querySelector(".s-rec-tests")).toHaveTextContent(/Identity ✓.*Endotoxin ✓.*Sterility —/);
+    expect(within(rec as HTMLElement).getByRole("link", { name: "Open certificate →" })).toHaveAttribute("href", "https://x/coa/AP-1107/1.pdf");
+    expect(within(rec as HTMLElement).getByRole("link", { name: "Verify at the lab ↗" })).toHaveAttribute("href", "https://x/verify/VGD-24117");
+    expect(rec).toHaveTextContent("Vanguard Laboratory: tested by an ISO/IEC 17025-accredited US lab");
+    // one lot: no lot table (it would only repeat the box); desktop stamps sit under the record
+    expect(rec.querySelector(".s-rec-table")).toBeNull();
+    expect(container.querySelector(".s-media > .s-trust--pdp-desk")).not.toBeNull();
   });
 
   it("orders sections: hero, About this compound, Compound data, Researchers also added (no Material & testing)", async () => {
@@ -134,23 +142,22 @@ describe("product page", () => {
     const buy = container.querySelector(".s-buy")!;
     expect(buy.querySelector(".s-atc")).not.toBeNull();
     expect(buy.querySelector(".s-ship")?.textContent).toContain("Ships from the US");
-    // page order = the phone order (mock Q1): name, buy box, then specs, certificate link, trust row
+    // page order = the phone order (mock Q1): name, buy box, then specs, trust row
     const pick = buy.parentElement!;
     expect(pick).toHaveClass("s-pick");
-    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-pick-notes", "s-specs", "s-certlink", "s-trust"]);
-    // the research-use line, disclaimer and Before ordering sit right under the buy box
+    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-pick-notes", "s-specs", "s-trust"]);
+    // the research-use line, disclaimer and Cancellations & claims sit right under the buy box
     const notes = pick.querySelector(".s-pick-notes")!;
     expect(notes.querySelector(".s-ruo")).toHaveTextContent("For research use only · Not for human consumption · 21+");
     expect(notes).toHaveTextContent("All products currently listed on this site are for research purposes only.");
     expect(notes.querySelector(".s-before")).not.toBeNull();
     expect(container.querySelector(".s-pdp-h1")!.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    // desktop: CSS order puts specs, certificate link and trust row back above the buy box
+    // desktop: CSS order puts the spec boxes above the buy box, then the notes, then the stamps
     const css = readFileSync("src/app/globals.css", "utf8");
     const order = (sel: string) => Number(new RegExp(`\\.s-pick > \\.${sel} \\{ order: (\\d)`).exec(css)?.[1]);
     expect(order("s-specs")).toBeLessThan(order("s-buy"));
-    expect(order("s-certlink")).toBeLessThan(order("s-buy"));
-    expect(order("s-trust")).toBeLessThan(order("s-buy"));
     expect(order("s-pick-notes")).toBeGreaterThan(order("s-buy"));
+    expect(order("s-trust")).toBeGreaterThan(order("s-pick-notes"));
   });
 
   it("About band shows the description, caption, legend and source link", async () => {
@@ -179,15 +186,17 @@ describe("product page", () => {
     expect(screen.getByRole("link", { name: /crystal structure paper/i })).toHaveAttribute("href", expect.stringContaining("sciencedirect.com"));
   });
 
-  it("lists what to know before ordering, in line with the refund and shipping policies", async () => {
-    await renderSlug("bpc-157");
-    const box = screen.getByRole("heading", { level: 3, name: "Before ordering" }).parentElement!;
-    const items = within(box).getAllByRole("listitem").map((li) => li.textContent);
-    expect(items).toHaveLength(3);
-    expect(items[0]).toMatch(/certificate for this lot/i);
-    expect(items[1]).toMatch(/full refund until your order ships/i);
-    expect(items[1]).toMatch(/sale is final/i);
-    expect(items[2]).toMatch(/within 48 hours of delivery/i);
-    expect(items[2]).toMatch(/one replacement/i);
+  it("lists cancellations and claims, in line with the refund and shipping policies", async () => {
+    const { container } = await renderSlug("bpc-157");
+    const box = container.querySelector(".s-pick-notes .s-before")!;
+    expect(container.querySelector(".s-media .s-before")).toBeNull();
+    const items = within(box as HTMLElement).getAllByRole("listitem").map((li) => li.textContent);
+    expect(box.querySelector("h3")).toHaveTextContent("Cancellations & claims");
+    expect(items).toHaveLength(2);
+    expect(items[0]).toMatch(/full refund until your order ships/i);
+    expect(items[0]).toMatch(/sale is final/i);
+    expect(items[1]).toMatch(/within 48 hours of delivery/i);
+    expect(items[1]).toMatch(/wrong item\? we send the correct one/i);
+    expect(items[1]).toMatch(/damaged in transit\? covered when your order has shipping protection/i);
   });
 });

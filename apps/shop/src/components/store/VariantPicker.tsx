@@ -19,9 +19,9 @@ const STOCK_LABEL = { in: "In stock", low: "Low stock", out: "Out of stock" } as
 // the total and the bulk saving are visible before anything is clicked. The
 // lot boxes and certificate link follow the selected strength. Everything you
 // choose sits on one raised panel (s-buy, class-colour top edge; 2026-10-10).
-// `notes` (research-use line, disclaimer, Before ordering) render right after the buy box so
+// `notes` (research-use line, disclaimer, Cancellations & claims) render right after the buy box so
 // the terms sit next to Add to cart at every width.
-export default function VariantPicker({ compound: c, notes, certsHref }: { compound: Compound; notes?: ReactNode; certsHref?: string }) {
+export default function VariantPicker({ compound: c, notes }: { compound: Compound; notes?: ReactNode }) {
   const { add } = useCart();
   // the choice is shared: the turning vial and the placard's scan code follow it
   const chosenId = useChosenStrength(c.slug, c.variants[0].id);
@@ -99,15 +99,11 @@ export default function VariantPicker({ compound: c, notes, certsHref }: { compo
       </div>
       {notes && <div className="s-pick-notes">{notes}</div>}
       <SpecBoxes lot={lot} />
-      {!pending && lot.coaFile ? (
-        // One place opens certificates: the certificate cards/table lower down (Alvester,
-        // 2026-10-14). This link jumps there; it only opens the PDF if the page has none to show.
-        certsHref ? <a className="s-certlink" href={certsHref}>◇ See this lot&apos;s certificates ↓</a>
-          : <a className="s-certlink" href={lot.coaFile} target="_blank" rel="noopener noreferrer">◇ View this lot&apos;s certificate</a>
-      ) : (
-        <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>
-      )}
-      <TrustRow className="s-trust--pdp" />
+      {/* No certificate link here (Alvester, 2026-10-19): the Lot record opens the lot's
+          certificate. A lot still waiting on its results says so. */}
+      {pending && <p className="s-certlink" style={{ borderBottom: "none" }}>◇ Certificate posted when lab results return</p>}
+      {/* phones; desktop shows the stamps in the left column under the Lot record (2026-10-19) */}
+      <TrustRow className="s-trust--pdp s-trust--pdp-phone" />
     </div>
   );
 }
