@@ -9,7 +9,6 @@ import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import VialTurn, { type VialStrength } from "@/components/store/VialTurn";
 import PlacardScan from "@/components/store/PlacardScan";
 import QrNote from "@/components/store/QrNote";
-import TrustRow from "@/components/store/TrustRow";
 import { coaLookupQrUrl, lotQrUrl, qrRows } from "@/lib/vial-qr";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
@@ -115,15 +114,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   // The Lot record opens the selected lot's certificate (its tests and links, 2026-10-19).
   const productCerts = live.certificates.filter((x) => x.slug === c.slug);
-  // Two or more lots: the Lot record shows its lot table, so on desktop the four stamps move to
-  // the right column (small, at its foot) to keep the columns level (2026-10-19).
   const recordLots = productRecord(live.lots, c.slug);
-  const multiLot = recordLots.length > 1;
   return (
     <div className="pharmacopoeia" style={{ "--cls": CLASS_COLOR[c.chemicalClass] } as CSSProperties}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="p-container">
-        <section className={`s-pdp${multiLot ? " s-pdp--multilot" : ""}`}>
+        <section className="s-pdp">
           <div className="s-ghost" aria-hidden>{c.name}</div>
           {/* Monograph placard (approved 2026-10-10): identity card behind an upright
               vial on a raised tile; the tile is slightly see-through so the ghost name shows. */}
@@ -147,9 +143,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <QrNote slug={c.slug} />
             <LotRecord lots={recordLots} variant="product" nowMs={currentMs()} compoundName={c.name} certs={productCerts} slug={c.slug}
               variants={c.variants.map((v) => ({ id: v.id, strength: v.strength, lot: isPendingLot(v.lot) ? null : v.lot.lot }))} />
-            {/* desktop: the four stamps under the Lot record (one lot; with two or more they sit at the
-                foot of the right column); phones keep them under the buy box (2026-10-19) */}
-            <TrustRow className="s-trust--pdp s-trust--pdp-desk" />
           </div>
           <div className="relative">
             <p className="s-micro s-pdp-kick">

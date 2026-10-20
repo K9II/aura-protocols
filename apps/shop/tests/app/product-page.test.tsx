@@ -68,9 +68,8 @@ describe("product page", () => {
     expect(within(rec as HTMLElement).getByRole("link", { name: "Open certificate →" })).toHaveAttribute("href", "https://x/coa/AP-1107/1.pdf");
     expect(within(rec as HTMLElement).getByRole("link", { name: "Verify at the lab ↗" })).toHaveAttribute("href", "https://x/verify/VGD-24117");
     expect(rec).toHaveTextContent("Vanguard Laboratory: tested by an ISO/IEC 17025-accredited US lab");
-    // one lot: no lot table (it would only repeat the box); desktop stamps sit under the record
+    // one lot: no lot table (it would only repeat the box)
     expect(rec.querySelector(".s-rec-table")).toBeNull();
-    expect(container.querySelector(".s-media > .s-trust--pdp-desk")).not.toBeNull();
   });
 
   it("orders sections: hero, About this compound, Compound data, Researchers also added (no Material & testing)", async () => {
@@ -141,23 +140,24 @@ describe("product page", () => {
     const { container } = await renderSlug("bpc-157");
     const buy = container.querySelector(".s-buy")!;
     expect(buy.querySelector(".s-atc")).not.toBeNull();
-    expect(buy.querySelector(".s-ship")?.textContent).toContain("Ships from the US");
-    // page order = the phone order (mock Q1): name, buy box, then specs, trust row
+    // the four stamps sit inside the buy box, under Add to cart (every width)
+    expect(buy.querySelector(".s-trust--buy")?.textContent).toContain("Ships from the USA");
+    expect(buy.querySelector(".s-trust--buy")?.textContent).toContain("Tracked · free over $250");
+    // page order = the phone order (mock Q1): name, buy box, notes, then specs
     const pick = buy.parentElement!;
     expect(pick).toHaveClass("s-pick");
-    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-pick-notes", "s-specs", "s-trust"]);
+    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-pick-notes", "s-specs"]);
     // the research-use line, disclaimer and Cancellations & claims sit right under the buy box
     const notes = pick.querySelector(".s-pick-notes")!;
     expect(notes.querySelector(".s-ruo")).toHaveTextContent("For research use only · Not for human consumption · 21+");
     expect(notes).toHaveTextContent("All products currently listed on this site are for research purposes only.");
     expect(notes.querySelector(".s-before")).not.toBeNull();
     expect(container.querySelector(".s-pdp-h1")!.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    // desktop: CSS order puts the spec boxes above the buy box, then the notes, then the stamps
+    // desktop: CSS order puts the spec boxes above the buy box, then the notes
     const css = readFileSync("src/app/globals.css", "utf8");
     const order = (sel: string) => Number(new RegExp(`\\.s-pick > \\.${sel} \\{ order: (\\d)`).exec(css)?.[1]);
     expect(order("s-specs")).toBeLessThan(order("s-buy"));
     expect(order("s-pick-notes")).toBeGreaterThan(order("s-buy"));
-    expect(order("s-trust")).toBeGreaterThan(order("s-pick-notes"));
   });
 
   it("About band shows the description, caption, legend and source link", async () => {

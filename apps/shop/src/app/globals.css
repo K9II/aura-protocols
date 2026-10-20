@@ -952,37 +952,24 @@ main:has(> .pharmacopoeia) {
 /* Product page buy area (mock Q1, 2026-10-14). VariantPicker renders the buy box first;
    desktop shows the proof above it, phones show it right under the name. */
 .pharmacopoeia .s-pick { display: flex; flex-direction: column; }
-/* desktop (2026-10-19): spec boxes, then the buy box right under them, the research-use
-   notes and Cancellations & claims, and the four stamps, small, at the foot */
+/* desktop (2026-10-19): spec boxes, then the buy box (stamps inside it, under Add to cart),
+   then the research-use notes and Cancellations & claims */
 .pharmacopoeia .s-pick > .s-specs { order: 1; }
 .pharmacopoeia .s-pick > .s-certlink { order: 2; align-self: flex-start; }
 .pharmacopoeia .s-pick > .s-buy { order: 3; }
 .pharmacopoeia .s-pick > .s-pick-notes { order: 4; }
-.pharmacopoeia .s-pick > .s-trust { order: 5; }
-/* the four stamps: under the buy box on phones, in the left column under the Lot record on
-   desktop, at a size that fits it (2026-10-19) */
-.pharmacopoeia .s-trust--pdp-desk { display: none; }
-@media (min-width: 901px) {
-  .pharmacopoeia .s-pick > .s-specs { margin-bottom: 22px; }
-  .pharmacopoeia .s-trust--pdp-phone { display: none; }
-  .pharmacopoeia .s-media > .s-trust--pdp-desk { display: grid; margin: 30px 0 0; }
-  .pharmacopoeia .s-trust--pdp-desk li { gap: 6px; padding: 13px 8px 12px; }
-  .pharmacopoeia .s-trust--pdp-desk svg { height: 32px; }
-  .pharmacopoeia .s-trust--pdp-desk b { font-size: 10.5px; letter-spacing: .12em; }
-  .pharmacopoeia .s-trust--pdp-desk span { font-size: 12.5px; }
-  /* two or more lots: the stamps go to the foot of the right column, small */
-  .pharmacopoeia .s-pdp--multilot .s-media > .s-trust--pdp-desk { display: none; }
-  .pharmacopoeia .s-pdp--multilot .s-pick > .s-trust--pdp-phone { display: grid; margin: 26px 0 0; }
-  .pharmacopoeia .s-pdp--multilot .s-trust--pdp-phone li { gap: 4px; padding: 10px 6px 9px; }
-  .pharmacopoeia .s-pdp--multilot .s-trust--pdp-phone svg { height: 24px; }
-  .pharmacopoeia .s-pdp--multilot .s-trust--pdp-phone b { font-size: 9.5px; letter-spacing: .11em; }
-  .pharmacopoeia .s-pdp--multilot .s-trust--pdp-phone span { font-size: 11px; }
-}
+@media (min-width: 901px) { .pharmacopoeia .s-pick > .s-specs { margin-bottom: 22px; } }
+/* the four stamps inside the buy box, under Add to cart (2026-10-19) */
+.pharmacopoeia .s-buy .s-trust--buy { margin: 14px 0 0; background: var(--record); border: 1px solid var(--line); }
+.pharmacopoeia .s-trust--buy li { gap: 4px; padding: 11px 6px 10px; }
+.pharmacopoeia .s-trust--buy svg { height: 26px; }
+.pharmacopoeia .s-trust--buy b { font-size: 9.5px; letter-spacing: .11em; }
+.pharmacopoeia .s-trust--buy span { font-size: 11.5px; }
 /* Phones: unwrap the two columns so the lot record can follow the buying area. The page
    order inside .s-pick is already the phone order: buy box, research-use notes + Before
    ordering (the terms stay next to Add to cart, 2026-10-14), specs, certificate link, trust row. */
 @media (max-width: 900px) {
-  .pharmacopoeia .s-pick > .s-buy, .pharmacopoeia .s-pick > .s-pick-notes, .pharmacopoeia .s-pick > .s-specs, .pharmacopoeia .s-pick > .s-certlink, .pharmacopoeia .s-pick > .s-trust { order: 0; }
+  .pharmacopoeia .s-pick > .s-buy, .pharmacopoeia .s-pick > .s-pick-notes, .pharmacopoeia .s-pick > .s-specs, .pharmacopoeia .s-pick > .s-certlink { order: 0; }
   .pharmacopoeia .s-pick > .s-specs { margin-top: 26px; }
   .pharmacopoeia .s-pdp { row-gap: 0; }
   .pharmacopoeia .s-pdp > .s-media, .pharmacopoeia .s-pdp > .relative { display: contents; }
@@ -1092,7 +1079,6 @@ main > .pharmacopoeia { overflow-x: clip; }
   .pharmacopoeia .s-pick > .s-specs { display: none; }
   .pharmacopoeia .s-pick > .s-certlink { margin-top: 24px; }
 }
-.pharmacopoeia .s-trust--pdp { margin: 0 0 22px; background: var(--record); border: 1px solid var(--line); }
 /* buy box: one raised object, class-colour top edge */
 .pharmacopoeia .s-buy { background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--cls); box-shadow: 0 1px 0 rgba(28,26,21,.05), 8px 12px 24px -12px rgba(28,26,21,.30); padding: 22px 22px 20px; }
 .pharmacopoeia .s-buy > .s-optlabel:first-child { margin-top: 0; }
@@ -1100,7 +1086,6 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-buy .s-pack:hover, .pharmacopoeia .s-buy .s-pack[aria-pressed="true"] { background: #EFEBE2; }
 .pharmacopoeia .s-buy .s-seg button[aria-pressed="true"] { background: var(--ink); }
 .pharmacopoeia .s-buy .s-stepper { background: var(--paper); }
-.pharmacopoeia .s-buy .s-ship { background: var(--record); border: 1px solid var(--line); }
 @media (max-width: 480px) { .pharmacopoeia .s-buy { padding: 16px 14px; } }
 .pharmacopoeia .s-optlabel { margin: 20px 0 9px; color: var(--ink-soft); }
 .pharmacopoeia .s-optlabel--split { display: flex; justify-content: space-between; }
@@ -1144,8 +1129,6 @@ main > .pharmacopoeia { overflow-x: clip; }
 .pharmacopoeia .s-before .s-micro { color: var(--specimen); margin-bottom: 8px; }
 .pharmacopoeia .s-before ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); list-style: square; }
 .pharmacopoeia .s-before li + li { margin-top: 6px; }
-.pharmacopoeia .s-ship { margin-top: 14px; background: var(--paper-deep); padding: 11px 14px; font-size: 13px; }
-.pharmacopoeia .s-ship b { display: block; font-size: 13.5px; }
 .pharmacopoeia .s-ruo { margin-top: 14px; color: var(--specimen); }
 .pharmacopoeia .s-data { padding: 72px 0; display: grid; grid-template-columns: 1fr 1.4fr; gap: 48px; }
 @media (max-width: 900px) { .pharmacopoeia .s-data { grid-template-columns: 1fr; } }
