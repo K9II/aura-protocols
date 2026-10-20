@@ -971,7 +971,7 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-pick > .s-trust { order: 5; }
 @media (min-width: 901px) {
   .pharmacopoeia .s-pick > .s-specs { margin-bottom: 22px; }
-  .pharmacopoeia .s-trust--pdp { margin: 24px 0 0; }
+  .pharmacopoeia .s-pick > .s-trust--pdp { margin: 26px 0 0; }
   .pharmacopoeia .s-trust--pdp li { gap: 4px; padding: 10px 6px 9px; }
   .pharmacopoeia .s-trust--pdp svg { height: 24px; }
   .pharmacopoeia .s-trust--pdp b { font-size: 9.5px; letter-spacing: .11em; }
@@ -1519,7 +1519,7 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
    instrument plate's chromatogram peak and the purity as its headline number (from option C). */
 .pharmacopoeia .s-rec--product .s-rec-detail { position: relative; background: var(--label); margin-bottom: 18px;
   box-shadow: 6px 6px 0 -1px #F4F1EA, 6px 6px 0 0 var(--line), 12px 12px 0 -1px #EFEBE2, 12px 12px 0 0 var(--line), 16px 22px 26px -14px rgba(28,26,21,.32); }
-.pharmacopoeia .s-rec--product .s-rec-detail::after { content: "✓\ATested"; white-space: pre; position: absolute; top: -18px; right: 18px; width: 66px; height: 66px; border-radius: 50%;
+.pharmacopoeia .s-rec--product .s-rec-detail::after { content: "✓\ATested"; white-space: pre; position: absolute; top: -30px; right: -16px; width: 66px; height: 66px; border-radius: 50%;
   display: grid; place-items: center; text-align: center; line-height: 1.15; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
   color: var(--tested); background: rgba(251,250,247,.9); border: 2px solid var(--tested); outline: 1px solid var(--tested); outline-offset: 3px; transform: rotate(-12deg); pointer-events: none; }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3) { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='120' viewBox='0 0 360 120'><path d='M0 112 H120 C140 112 146 110 152 100 C160 80 164 8 170 8 C176 8 180 80 188 100 C194 110 200 112 220 112 H250 C256 112 258 104 262 104 C266 104 268 112 274 112 H360' fill='none' stroke='%232F6B3A' stroke-opacity='.22' stroke-width='1.6'/><path d='M0 116 H360' stroke='%23C9C2AE' stroke-width='1'/></svg>");
