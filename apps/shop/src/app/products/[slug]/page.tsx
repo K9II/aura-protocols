@@ -16,7 +16,7 @@ import LotRecord from "@/components/store/LotRecord";
 import ResearchSummary from "@/components/store/ResearchSummary";
 import { currentMs } from "@/lib/clock";
 import { productRecord } from "@/lib/lot-record";
-import BeforeOrdering from "@/components/store/BeforeOrdering";
+import AfterYouOrder from "@/components/store/AfterYouOrder";
 import CompoundCard from "@/components/store/CompoundCard";
 import MoleculeViewer from "@/components/store/MoleculeViewer";
 import HeroLight from "@/components/store/HeroLight";
@@ -150,7 +150,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <VariantPicker compound={c} notes={<>
               <p className="s-micro s-ruo">For research use only · Not for human consumption · 21+</p>
               <p className="text-[12.5px] text-[color:var(--ink-soft)] mt-1.5">All products currently listed on this site are for research purposes only.</p>
-              <BeforeOrdering />
+              <AfterYouOrder />
             </>} />
           </div>
         </section>

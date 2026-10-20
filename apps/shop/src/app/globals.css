@@ -963,7 +963,7 @@ main:has(> .pharmacopoeia) {
    desktop shows the proof above it, phones show it right under the name. */
 .pharmacopoeia .s-pick { display: flex; flex-direction: column; }
 /* desktop (2026-10-19): spec boxes, then the buy box right under them, the research-use
-   notes and Before ordering, and the four stamps, small, at the foot */
+   notes and After you order, and the four stamps, small, at the foot */
 .pharmacopoeia .s-pick > .s-specs { order: 1; }
 .pharmacopoeia .s-pick > .s-certlink { order: 2; align-self: flex-start; }
 .pharmacopoeia .s-pick > .s-buy { order: 3; }

@@ -19,7 +19,7 @@ const STOCK_LABEL = { in: "In stock", low: "Low stock", out: "Out of stock" } as
 // the total and the bulk saving are visible before anything is clicked. The
 // lot boxes and certificate link follow the selected strength. Everything you
 // choose sits on one raised panel (s-buy, class-colour top edge; 2026-10-10).
-// `notes` (research-use line, disclaimer, Before ordering) render right after the buy box so
+// `notes` (research-use line, disclaimer, After you order) render right after the buy box so
 // the terms sit next to Add to cart at every width.
 export default function VariantPicker({ compound: c, notes }: { compound: Compound; notes?: ReactNode }) {
   const { add } = useCart();

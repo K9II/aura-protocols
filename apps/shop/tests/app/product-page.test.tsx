@@ -143,7 +143,7 @@ describe("product page", () => {
     const pick = buy.parentElement!;
     expect(pick).toHaveClass("s-pick");
     expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-pick-notes", "s-specs", "s-trust"]);
-    // the research-use line, disclaimer and Before ordering sit right under the buy box
+    // the research-use line, disclaimer and After you order sit right under the buy box
     const notes = pick.querySelector(".s-pick-notes")!;
     expect(notes.querySelector(".s-ruo")).toHaveTextContent("For research use only · Not for human consumption · 21+");
     expect(notes).toHaveTextContent("All products currently listed on this site are for research purposes only.");
@@ -183,17 +183,17 @@ describe("product page", () => {
     expect(screen.getByRole("link", { name: /crystal structure paper/i })).toHaveAttribute("href", expect.stringContaining("sciencedirect.com"));
   });
 
-  it("lists what to know before ordering, in line with the refund and shipping policies", async () => {
+  it("lists what to know after ordering, in line with the refund and shipping policies", async () => {
     const { container } = await renderSlug("bpc-157");
     const box = container.querySelector(".s-pick-notes .s-before")!;
     expect(container.querySelector(".s-media .s-before")).toBeNull();
     const items = within(box as HTMLElement).getAllByRole("listitem").map((li) => li.textContent);
-    expect(items).toHaveLength(3);
-    expect(items[0]).toMatch(/certificate for this lot/i);
-    expect(items[1]).toMatch(/full refund until your order ships/i);
-    expect(items[1]).toMatch(/sale is final/i);
-    expect(items[2]).toMatch(/within 48 hours of delivery/i);
-    expect(items[2]).toMatch(/wrong item\? we send the correct one/i);
-    expect(items[2]).toMatch(/damaged in transit\? covered when your order has shipping protection/i);
+    expect(box.querySelector("h3")).toHaveTextContent("After you order");
+    expect(items).toHaveLength(2);
+    expect(items[0]).toMatch(/full refund until your order ships/i);
+    expect(items[0]).toMatch(/sale is final/i);
+    expect(items[1]).toMatch(/within 48 hours of delivery/i);
+    expect(items[1]).toMatch(/wrong item\? we send the correct one/i);
+    expect(items[1]).toMatch(/damaged in transit\? covered when your order has shipping protection/i);
   });
 });
