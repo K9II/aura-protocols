@@ -19,3 +19,21 @@ export default function HeroLight({ where = "band" }: { where?: "band" | "sphere
     </div>
   );
 }
+
+// The same light carried through the whole home page (Alvester, 2026-10-19, "Behind panels"):
+// the window falls again down the page, left and right in turn, as if the room had a row of
+// tall windows. It sits behind the sections, so it shows on the paper between the panels.
+// Desktop only; phones keep the hero light alone.
+export function PageLight() {
+  return (
+    <div className="s-page-light" aria-hidden>
+      <div className="s-hl-shade" />
+      {[1, 2, 3, 4, 5].map((k) => (
+        <div key={k} className={`s-hl-window s-pl-w s-pl-w${k}`}>
+          <div className="s-hl-clouds"><i /><i /><i /><i /><i /><i /></div>
+        </div>
+      ))}
+      <div className="s-hl-grain" />
+    </div>
+  );
+}
