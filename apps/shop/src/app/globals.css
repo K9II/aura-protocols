@@ -1516,6 +1516,17 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-rec--product .s-rec-detail > div { border-bottom: 1px solid var(--line); }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3n) { border-right: 0; }
 .pharmacopoeia .s-rec--product .s-rec-detail a { grid-column: 1 / -1; justify-self: start; margin: 12px 16px; }
+/* the selected lot's certificate, folded in from the old certificates table (2026-10-19) */
+.pharmacopoeia .s-rec-tests { grid-column: 1 / -1; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px 18px;
+  font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.pharmacopoeia .s-rec-tests i { font-style: normal; margin-left: 3px; }
+.pharmacopoeia .s-rec-tests .s-ok i { color: var(--tested); }
+.pharmacopoeia .s-rec-tests .s-bad i { color: var(--specimen); }
+.pharmacopoeia .s-rec-tests .s-nt i { color: #9C9483; }
+.pharmacopoeia .s-rec-links { grid-column: 1 / -1; margin: 0; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.pharmacopoeia .s-rec--product .s-rec-links a { grid-column: auto; margin: 0; justify-self: auto; }
+.pharmacopoeia .s-rec-note { grid-column: 1 / -1; margin: 0; padding: 0 16px 12px; color: var(--ink-soft); font-size: 10.5px; }
+.pharmacopoeia .s-rec-note--bad { color: var(--specimen); }
 .pharmacopoeia .s-rec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 6px; padding-top: 18px; border-top: 1px solid var(--line); }
 .pharmacopoeia .s-rec-h { margin: 0; font-family: var(--font-newsreader), Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1; }
 .pharmacopoeia .s-rec-h em { color: var(--specimen); }

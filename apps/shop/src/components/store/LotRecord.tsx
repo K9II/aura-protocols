@@ -6,6 +6,9 @@ import {
   type RecordLot,
 } from "@/lib/lot-record";
 import { setLotNews, visitBaseline } from "@/lib/lot-news";
+import Link from "next/link";
+import type { PublicCert } from "@/data/catalog-types";
+import { SUMMARY_TESTS, lotCertSummary } from "@/lib/coa/lot-summary";
 
 // The lot record (approved 2026-10-10, ported from the home + MOTS-c demos): every
 // released lot drawn as a chromatogram run from its certificate's purity, stacked
@@ -20,11 +23,15 @@ type Props = {
   variant: "home" | "product";
   nowMs: number;
   compoundName?: string;
+  // product: the compound's visible certificates — the selected lot's tests and links show in
+  // its detail box (2026-10-19; the separate certificates table was folded in here)
+  certs?: PublicCert[];
 };
+const MARK = { pass: "✓", fail: "✕", not_tested: "—" } as const;
 
 const STATUS_LABEL = { live: "In stock", sold_out: "Sold out" } as const;
 
-export default function LotRecord({ lots, variant, nowMs, compoundName }: Props) {
+export default function LotRecord({ lots, variant, nowMs, compoundName, certs = [] }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
   const [fresh, setFresh] = useState<Set<string>>(() => new Set());
@@ -213,12 +220,13 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
   const g = recordGeo(size.W, size.H, n);
   const L = lots[sel] ?? lots[0];
   const statusOf = (l: RecordLot) => (fresh.has(l.lot) ? "New" : STATUS_LABEL[l.status]);
+  const sum = product ? lotCertSummary(certs, L.lot) : null;
   const capLeft = product
     ? `${compoundName} lots · drawn from each certificate's purity`
     : `${n === 1 ? "First lot release" : `Last ${n} lot releases`} · drawn from each certificate's purity`;
 
   return (
-    <div className={`s-rec s-rec--${variant}${chart ? "" : " s-rec--nochart"}`} ref={bandRef}>
+    <div className={`s-rec s-rec--${variant}${chart ? "" : " s-rec--nochart"}`} ref={bandRef} id={product ? "lot-certificates" : undefined}>
       {product && (
         <div className="s-rec-head"><h3 className="s-rec-h">Lot <em>record</em></h3>{chart && <span className="s-micro"><span className="s-rec-hint-wide">Hover or tap a run</span><span className="s-rec-hint-phone">Tap a run</span></span>}</div>
       )}
@@ -264,8 +272,27 @@ export default function LotRecord({ lots, variant, nowMs, compoundName }: Props)
         <div><small className="s-micro">Method</small><b>{L.method}</b></div>
         <div><small className="s-micro">Tested</small><b>{shortDate(L.testedOn, nowMs)}</b></div>
         <div><small className="s-micro">Status</small><b>{statusOf(L)}</b></div>
-        {/* Product pages open certificates from the certificate cards only (2026-10-14). */}
         {!product && L.coaFile && <a href={L.coaFile} target="_blank" rel="noopener noreferrer">Open this lot&apos;s certificate →</a>}
+        {sum && (
+          <>
+            <p className="s-rec-tests">
+              {SUMMARY_TESTS.map(([k, label]) => {
+                const r = sum.tests[k];
+                return <span key={k} className={r === "pass" ? "s-ok" : r === "fail" ? "s-bad" : "s-nt"}>{label} <i>{MARK[r]}</i></span>;
+              })}
+              {sum.headline.measuredMg != null && (
+                <span>Measured <i>{sum.headline.measuredMg} mg{sum.headline.measuredPct != null ? ` · ${sum.headline.measuredPct}%` : ""}</i></span>
+              )}
+            </p>
+            <p className="s-rec-links">
+              <a href={sum.headline.coaFile} target="_blank" rel="noopener noreferrer">Open certificate →</a>
+              {sum.headline.verifyUrl && <a href={sum.headline.verifyUrl} target="_blank" rel="noopener noreferrer">Verify at the lab ↗</a>}
+              {sum.count > 1 && <Link href={`/coa/${encodeURIComponent(L.lot)}`}>All {sum.count} certificates for this lot →</Link>}
+            </p>
+            {sum.isoLab && <p className="s-rec-note s-micro">{sum.isoLab}: tested by an ISO/IEC 17025-accredited US lab</p>}
+            {sum.failed.map((c) => <p key={c.id} className="s-rec-note s-rec-note--bad s-micro">Failed · {c.reportNumber}{c.note ? `: ${c.note}` : ""}</p>)}
+          </>
+        )}
       </div>
       {product && (
         <div className="s-rec-table">

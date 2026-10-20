@@ -13,7 +13,6 @@ import { coaLookupQrUrl, lotQrUrl, qrRows } from "@/lib/vial-qr";
 import Unavailable from "@/components/store/Unavailable";
 import VariantPicker from "@/components/store/VariantPicker";
 import LotRecord from "@/components/store/LotRecord";
-import LotCertificates from "@/components/store/LotCertificates";
 import ResearchSummary from "@/components/store/ResearchSummary";
 import { currentMs } from "@/lib/clock";
 import { productRecord } from "@/lib/lot-record";
@@ -113,8 +112,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ["Storage", c.storage],
   ];
 
-  // The certificate cards/table are the one place that opens a certificate; the link by the
-  // price jumps to them when there are any to show.
+  // The Lot record opens the selected lot's certificate (its tests and links, 2026-10-19); the
+  // link by the price jumps there when the shipping lot has certificates to show.
   const productCerts = live.certificates.filter((x) => x.slug === c.slug);
   const hasShippingCerts = productCerts.some((x) => x.shipping);
   return (
@@ -143,7 +142,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
             <QrNote slug={c.slug} />
-            <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} />
+            <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} certs={productCerts} />
             <BeforeOrdering where="side" />
           </div>
           <div className="relative">
@@ -159,10 +158,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </>} />
           </div>
         </section>
-        {/* Full width below the two-column section (mock c5), not squeezed into the half-width media column. */}
-        <div className="s-pdp-certs" id="lot-certificates">
-          <LotCertificates certs={productCerts} />
-        </div>
       </div>
 
       <section className="s-about">
