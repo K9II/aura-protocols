@@ -126,9 +126,10 @@ export default function MoleculeViewer({ structure, className = "s-mol-stage" }:
         // Antialiasing costs a lot of GPU on phones and their dense screens
         // don't need it.
         const coarse = window.matchMedia?.("(pointer: coarse)").matches;
-        // see-through, so the band's window light passes behind the model (2026-10-19); the
-        // colour still sets the depth fog, matched to the band
-        const v = createViewer(el, { backgroundColor: "#E2DCCC", backgroundAlpha: 0, antialias: !coarse });
+        // see-through, so the band's window light passes behind the model (2026-10-19). It must
+        // clear to transparent BLACK: a coloured clear at alpha 0 is added on top by the browser
+        // and showed as a white box. Fog is off, or far atoms would fade toward that black.
+        const v = createViewer(el, { backgroundColor: "#000000", backgroundAlpha: 0, disableFog: true, antialias: !coarse });
         if (!v) { setStatus("unavailable"); return; }
         if (coarse) capPixelRatio(v as unknown as Parameters<typeof capPixelRatio>[0], TOUCH_MAX_DPR);
         v.addModel(text, "sdf");
