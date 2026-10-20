@@ -20,6 +20,7 @@ import { productRecord } from "@/lib/lot-record";
 import BeforeOrdering from "@/components/store/BeforeOrdering";
 import CompoundCard from "@/components/store/CompoundCard";
 import MoleculeViewer from "@/components/store/MoleculeViewer";
+import HeroLight from "@/components/store/HeroLight";
 import MoleculeGrid from "@/components/store/MoleculeGrid";
 import { ELEMENT_COLORS, ELEMENT_NAMES, legendElements, structureCaption, structurePanels } from "@/lib/structure";
 
@@ -163,6 +164,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <section className="s-about">
+        <HeroLight where="about" />
         <div className="p-container s-about-inner">
           <div>
             <h2 className="s-h2">About this <em>compound</em></h2>
