@@ -980,6 +980,13 @@ main:has(> .pharmacopoeia) {
   .pharmacopoeia .s-trust--pdp-desk svg { height: 32px; }
   .pharmacopoeia .s-trust--pdp-desk b { font-size: 10.5px; letter-spacing: .12em; }
   .pharmacopoeia .s-trust--pdp-desk span { font-size: 12.5px; }
+  /* two or more lots: the stamps go to the foot of the right column, small */
+  .pharmacopoeia .s-pdp--multilot .s-media > .s-trust--pdp-desk { display: none; }
+  .pharmacopoeia .s-pdp--multilot .s-pick > .s-trust--pdp-phone { display: grid; margin: 26px 0 0; }
+  .pharmacopoeia .s-pdp--multilot .s-trust--pdp-phone li { gap: 4px; padding: 10px 6px 9px; }
+  .pharmacopoeia .s-pdp--multilot .s-trust--pdp-phone svg { height: 24px; }
+  .pharmacopoeia .s-pdp--multilot .s-trust--pdp-phone b { font-size: 9.5px; letter-spacing: .11em; }
+  .pharmacopoeia .s-pdp--multilot .s-trust--pdp-phone span { font-size: 11px; }
 }
 /* Phones: unwrap the two columns so the lot record can follow the buying area. The page
    order inside .s-pick is already the phone order: buy box, research-use notes + Before

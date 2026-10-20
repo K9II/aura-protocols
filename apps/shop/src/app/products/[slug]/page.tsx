@@ -115,11 +115,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   // The Lot record opens the selected lot's certificate (its tests and links, 2026-10-19).
   const productCerts = live.certificates.filter((x) => x.slug === c.slug);
+  // Two or more lots: the Lot record shows its lot table, so on desktop the four stamps move to
+  // the right column (small, at its foot) to keep the columns level (2026-10-19).
+  const recordLots = productRecord(live.lots, c.slug);
+  const multiLot = recordLots.length > 1;
   return (
     <div className="pharmacopoeia" style={{ "--cls": CLASS_COLOR[c.chemicalClass] } as CSSProperties}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="p-container">
-        <section className="s-pdp">
+        <section className={`s-pdp${multiLot ? " s-pdp--multilot" : ""}`}>
           <div className="s-ghost" aria-hidden>{c.name}</div>
           {/* Monograph placard (approved 2026-10-10): identity card behind an upright
               vial on a raised tile; the tile is slightly see-through so the ghost name shows. */}
@@ -141,8 +145,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
             <QrNote slug={c.slug} />
-            <LotRecord lots={productRecord(live.lots, c.slug)} variant="product" nowMs={currentMs()} compoundName={c.name} certs={productCerts} />
-            {/* desktop: the four stamps under the Lot record (2026-10-19); phones keep them under the buy box */}
+            <LotRecord lots={recordLots} variant="product" nowMs={currentMs()} compoundName={c.name} certs={productCerts} />
+            {/* desktop: the four stamps under the Lot record (one lot; with two or more they sit at the
+                foot of the right column); phones keep them under the buy box (2026-10-19) */}
             <TrustRow className="s-trust--pdp s-trust--pdp-desk" />
           </div>
           <div className="relative">
