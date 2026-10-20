@@ -226,7 +226,7 @@ export default function LotRecord({ lots, variant, nowMs, compoundName, certs = 
     : `${n === 1 ? "First lot release" : `Last ${n} lot releases`} · drawn from each certificate's purity`;
 
   return (
-    <div className={`s-rec s-rec--${variant}${chart ? "" : " s-rec--nochart"}`} ref={bandRef} id={product ? "lot-certificates" : undefined}>
+    <div className={`s-rec s-rec--${variant}${chart ? "" : " s-rec--nochart"}`} ref={bandRef}>
       {product && (
         <div className="s-rec-head"><h3 className="s-rec-h">Lot <em>record</em></h3>{chart && <span className="s-micro"><span className="s-rec-hint-wide">Hover or tap a run</span><span className="s-rec-hint-phone">Tap a run</span></span>}</div>
       )}

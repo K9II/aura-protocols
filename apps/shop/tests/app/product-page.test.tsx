@@ -62,9 +62,8 @@ describe("product page", () => {
     const { container } = await renderSlug("bpc-157");
     expect(container.querySelector(".s-pdp-certs")).toBeNull();
     const rec = container.querySelector(".s-rec--product")!;
-    // the link by the price jumps to the Lot record, which opens the certificate
-    expect(rec.id).toBe("lot-certificates");
-    expect(container.querySelector(".s-certlink")).toHaveAttribute("href", "#lot-certificates");
+    // the Lot record is the one place that opens the certificate (no link by the price)
+    expect(container.querySelector(".s-certlink")).toBeNull();
     expect(rec.querySelector(".s-rec-tests")).toHaveTextContent(/Identity ✓.*Endotoxin ✓.*Sterility —/);
     expect(within(rec as HTMLElement).getByRole("link", { name: "Open certificate →" })).toHaveAttribute("href", "https://x/coa/AP-1107/1.pdf");
     expect(within(rec as HTMLElement).getByRole("link", { name: "Verify at the lab ↗" })).toHaveAttribute("href", "https://x/verify/VGD-24117");
@@ -140,10 +139,10 @@ describe("product page", () => {
     const buy = container.querySelector(".s-buy")!;
     expect(buy.querySelector(".s-atc")).not.toBeNull();
     expect(buy.querySelector(".s-ship")?.textContent).toContain("Ships from the US");
-    // page order = the phone order (mock Q1): name, buy box, then specs, certificate link, trust row
+    // page order = the phone order (mock Q1): name, buy box, then specs, trust row
     const pick = buy.parentElement!;
     expect(pick).toHaveClass("s-pick");
-    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-pick-notes", "s-specs", "s-certlink", "s-trust"]);
+    expect([...pick.children].map((e) => e.className.split(" ")[0])).toEqual(["s-buy", "s-pick-notes", "s-specs", "s-trust"]);
     // the research-use line, disclaimer and Before ordering sit right under the buy box
     const notes = pick.querySelector(".s-pick-notes")!;
     expect(notes.querySelector(".s-ruo")).toHaveTextContent("For research use only · Not for human consumption · 21+");
@@ -154,7 +153,6 @@ describe("product page", () => {
     const css = readFileSync("src/app/globals.css", "utf8");
     const order = (sel: string) => Number(new RegExp(`\\.s-pick > \\.${sel} \\{ order: (\\d)`).exec(css)?.[1]);
     expect(order("s-specs")).toBeLessThan(order("s-buy"));
-    expect(order("s-certlink")).toBeLessThan(order("s-buy"));
     expect(order("s-trust")).toBeLessThan(order("s-buy"));
     expect(order("s-pick-notes")).toBeGreaterThan(order("s-buy"));
   });

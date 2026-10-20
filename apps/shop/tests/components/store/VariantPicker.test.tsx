@@ -40,22 +40,17 @@ describe("VariantPicker", () => {
     expect(screen.getByText(/certificate posted when lab results return/i)).toBeInTheDocument();
   });
 
-  it("with certificate cards on the page, the link jumps to them instead of opening the PDF", () => {
-    render(<CartProvider catalog={liveFixture()}><VariantPicker compound={ss31} certsHref="#lot-certificates" /></CartProvider>);
-    const link = screen.getByRole("link", { name: /see this lot's certificates/i });
-    expect(link).toHaveAttribute("href", "#lot-certificates");
-    expect(link).not.toHaveAttribute("target");
-    expect(screen.queryByRole("link", { name: /view this lot's certificate$/i })).toBeNull();
+  it("has no certificate link: the Lot record opens the certificate", () => {
+    render(<CartProvider catalog={liveFixture()}><VariantPicker compound={ss31} /></CartProvider>);
+    expect(screen.queryByRole("link", { name: /certificate/i })).toBeNull();
   });
 
-  it("shows the selected strength's lot and certificate", () => {
+  it("shows the selected strength's lot", () => {
     render(<CartProvider catalog={liveFixture()}><VariantPicker compound={ss31} /></CartProvider>);
     expect(screen.getByText(LOT.lot)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /view this lot's certificate/i })).toHaveAttribute("href", LOT.coaFile);
     fireEvent.click(screen.getByRole("button", { name: "50 mg" }));
     expect(screen.getByText(LOT_50.lot)).toBeInTheDocument();
     expect(screen.getByText("98.7%")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /view this lot's certificate/i })).toHaveAttribute("href", LOT_50.coaFile);
   });
 
   it("shows the selected strength's stock label and switches it with the strength", () => {
