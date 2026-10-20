@@ -1526,6 +1526,7 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
   background-repeat: no-repeat; background-position: center bottom 6px; background-size: 100% auto; }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3) b { font-size: 34px; line-height: 1; color: var(--tested); }
 .pharmacopoeia .s-rec--product .s-rec-table { margin-top: 26px; }
+@media (max-width: 900px) { .pharmacopoeia .s-rec--product .s-rec-detail::after { right: 10px; top: -28px; width: 58px; height: 58px; font-size: 9px; } }
 .pharmacopoeia .s-rec--product .s-rec-detail > div { border-bottom: 1px solid var(--line); }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3n) { border-right: 0; }
 .pharmacopoeia .s-rec--product .s-rec-detail a { grid-column: 1 / -1; justify-self: start; margin: 12px 16px; }
