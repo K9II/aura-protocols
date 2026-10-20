@@ -1517,11 +1517,11 @@ button.g-signin:disabled { opacity: .6; cursor: default; }
 .pharmacopoeia .s-rec--product .s-rec-detail { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; }
 /* Stacked sheets (Alvester, 2026-10-19, option B): the selected lot's details as a certificate
    lying on earlier ones (no seal, 2026-10-19); the purity box carries the
-   instrument plate's chromatogram peak (a fixed 64px tall, so a short box doesn't squash it) and the purity as its headline number (from option C). */
+   instrument plate's chromatogram peak (beside the number, a fixed size, so a short box never hides or squashes it) and the purity as its headline number (from option C). */
 .pharmacopoeia .s-rec--product .s-rec-detail { position: relative; background: var(--label); margin-bottom: 18px;
   box-shadow: 6px 6px 0 -1px #F4F1EA, 6px 6px 0 0 var(--line), 12px 12px 0 -1px #EFEBE2, 12px 12px 0 0 var(--line), 16px 22px 26px -14px rgba(28,26,21,.32); }
-.pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3) { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='120' viewBox='0 0 360 120' preserveAspectRatio='none'><path d='M0 112 H120 C140 112 146 110 152 100 C160 80 164 8 170 8 C176 8 180 80 188 100 C194 110 200 112 220 112 H250 C256 112 258 104 262 104 C266 104 268 112 274 112 H360' fill='none' stroke='%232F6B3A' stroke-opacity='.22' stroke-width='1.6'/><path d='M0 116 H360' stroke='%23C9C2AE' stroke-width='1'/></svg>");
-  background-repeat: no-repeat; background-position: center bottom 6px; background-size: 100% 64px; }
+.pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3) { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='120' viewBox='0 0 360 120' preserveAspectRatio='none'><path d='M0 112 H120 C140 112 146 110 152 100 C160 80 164 8 170 8 C176 8 180 80 188 100 C194 110 200 112 220 112 H250 C256 112 258 104 262 104 C266 104 268 112 274 112 H360' fill='none' stroke='%232F6B3A' stroke-opacity='.4' stroke-width='1.6' vector-effect='non-scaling-stroke'/><path d='M0 116 H360' stroke='%23C9C2AE' stroke-width='1'/></svg>");
+  background-repeat: no-repeat; background-position: right 10px bottom 10px; background-size: 46% 46px; }
 .pharmacopoeia .s-rec--product .s-rec-detail > div:nth-child(3) b { font-size: 34px; line-height: 1; color: var(--tested); }
 .pharmacopoeia .s-rec--product .s-rec-table { margin-top: 26px; }
 .pharmacopoeia .s-rec--product .s-rec-detail > div { border-bottom: 1px solid var(--line); }
