@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ScrollReveal from "@/components/ScrollReveal";
-import HeroLight from "@/components/store/HeroLight";
+import HeroLight, { PageLight } from "@/components/store/HeroLight";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import CompoundCard from "@/components/store/CompoundCard";
 import OrderPlate from "@/components/store/OrderPlate";
@@ -37,7 +37,9 @@ export default async function HomePage() {
   const newest = proofLot(live.lots);
   const newestCompound = newest ? live.shown.find((c) => c.slug === newest.slug) : undefined;
   return (
-    <div className="pharmacopoeia">
+    <div className="pharmacopoeia s-home-lit">
+      {/* the hero's north light carried down the whole page (Alvester, 2026-10-19) */}
+      <PageLight />
       <ScrollReveal />
       <div className="s-hero-band">
         <HeroLight />

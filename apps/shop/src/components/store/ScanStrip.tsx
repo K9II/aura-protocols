@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import ProofLead from "@/components/store/ProofLead";
 import VialTurn from "@/components/store/VialTurn";
 import type { Compound } from "@/data/catalog";
 import type { PublicCert, PublicLot } from "@/data/catalog-types";
@@ -29,11 +30,15 @@ export default function ScanStrip({ lot, compound, certs, sevenTests }: { lot: P
           <figure>
             <span className="s-scan-tag"><b>Fig. 1</b><span>The vial</span></span>
             <div className="s-scan-art s-scan-vial">
-              <VialTurn
-                id={`scan-${compound.slug}`} slug={`scan-${compound.slug}`} label={label} label2={label2}
-                cap={vialCap(compound)} rule={CLASS_COLOR[compound.chemicalClass]} parts={vialParts(compound)}
-                strengths={[{ id: lot.variantId, strength: lot.strength, lot: lot.lot, qr: qrRows(lotQrUrl(lot.lot)) }]}
-              />
+              {/* the dotted line from the QR code to Fig. 2 while the vial pauses on it, as on phones (2026-10-19) */}
+              <div className="s-scan-vialbox">
+                <VialTurn
+                  id={`scan-${compound.slug}`} slug={`scan-${compound.slug}`} label={label} label2={label2}
+                  cap={vialCap(compound)} rule={CLASS_COLOR[compound.chemicalClass]} parts={vialParts(compound)}
+                  strengths={[{ id: lot.variantId, strength: lot.strength, lot: lot.lot, qr: qrRows(lotQrUrl(lot.lot)) }]}
+                />
+                <ProofLead slug={`scan-${compound.slug}`} />
+              </div>
             </div>
             <figcaption><b>Scan the code.</b>It&apos;s printed on every vial, under the lot number.</figcaption>
           </figure>

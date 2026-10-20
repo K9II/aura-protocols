@@ -610,7 +610,13 @@ main:has(> .pharmacopoeia) {
 .pharmacopoeia .s-scan-art { display: grid; place-items: center; min-height: 320px; }
 .pharmacopoeia .s-scan-figs figcaption { font-size: 15px; line-height: 1.45; }
 .pharmacopoeia .s-scan-figs figcaption b { font-family: var(--font-newsreader), Georgia, serif; font-weight: 500; font-size: 18px; display: block; margin-bottom: 2px; }
-.pharmacopoeia .s-scan-vial .s-vialturn { width: 150px; filter: drop-shadow(6px 10px 9px rgba(28,26,21,.2)); }
+.pharmacopoeia .s-scan-figs figure:first-child { container-type: inline-size; }
+.pharmacopoeia .s-scan-vialbox { position: relative; width: 150px; filter: drop-shadow(6px 10px 9px rgba(28,26,21,.2)); }
+.pharmacopoeia .s-scan-vial .s-vialturn { width: 150px; }
+/* the lead runs from the QR code (65% across the vial) to Fig. 2's phone: the rest of this
+   figure (100cqw is its content width), both figures' padding and the border, and the gap
+   beside the centred 240px phone — 100cqw − 105px in all */
+.pharmacopoeia .s-scan-vialbox .s-proof-lead { width: calc(100cqw - 105px); z-index: 2; }
 .pharmacopoeia .s-scan-vial .s-vialturn svg { display: block; width: 100%; height: auto; }
 /* Fig. 2: the lot's certificate as a phone shows it, drawn in the store's type (crisp at any size) */
 .pharmacopoeia .s-scan-phone { width: 240px; height: 444px; border: 7px solid #1C1A15; border-radius: 26px; overflow: hidden; background: var(--paper); box-shadow: 0 12px 24px -12px rgba(28,26,21,.45); }
@@ -794,6 +800,26 @@ main:has(> .pharmacopoeia) {
      redraws the blurred light every frame, which made phones stutter while scrolling (2026-10-18) */
   .pharmacopoeia .s-hl-clouds i { animation: none; }
 }
+/* The north light through the whole home page (PageLight, 2026-10-19), desktop only — phones
+   keep the hero light alone. On desktop the hero band drops its own shade and grain so they
+   aren't doubled; the sphere keeps its window. */
+.pharmacopoeia.s-home-lit { position: relative; isolation: isolate; }
+.pharmacopoeia.s-home-lit > :not(.s-page-light) { position: relative; z-index: 1; }
+.pharmacopoeia .s-page-light { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 72px, #000 calc(100% - 240px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 72px, #000 calc(100% - 240px), transparent 100%); }
+.pharmacopoeia .s-page-light .s-hl-shade { background: radial-gradient(140% 60% at 85% 0%, rgba(255,252,244,0) 0%, rgba(70,58,32,.04) 75%); }
+/* five windows down the page, alternating sides, each drifting on its own clock */
+.pharmacopoeia .s-pl-w1 { left: -14%; top: 13%; animation-delay: -6s; }
+.pharmacopoeia .s-pl-w2 { left: auto; right: -6%; top: 30%; animation-delay: -15s; }
+.pharmacopoeia .s-pl-w3 { left: -10%; top: 48%; animation-delay: -3s; }
+.pharmacopoeia .s-pl-w4 { left: auto; right: -10%; top: 65%; animation-delay: -19s; }
+.pharmacopoeia .s-pl-w5 { left: 4%; top: 80%; animation-delay: -10s; }
+.pharmacopoeia .s-pl-w2 .s-hl-clouds, .pharmacopoeia .s-pl-w4 .s-hl-clouds { animation-delay: -12s; }
+@media (min-width: 901px) {
+  .pharmacopoeia.s-home-lit .s-hero-band > .s-hero-light:not(.s-hero-light--sphere) { display: none; }
+}
+@media (max-width: 900px) { .pharmacopoeia .s-page-light { display: none; } }
 @media (prefers-reduced-motion: reduce) {
   .pharmacopoeia .s-hl-window, .pharmacopoeia .s-hl-clouds, .pharmacopoeia .s-hl-clouds i { animation: none; }
 }
