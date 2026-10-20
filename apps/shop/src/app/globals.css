@@ -2509,3 +2509,39 @@ html { scroll-padding-top: 150px; }
   .pharmacopoeia .s-pdp { padding-top: 20px; }
   .pharmacopoeia .s-about-head { padding-top: 24px; }
 }
+
+/* MOCK 2026-10-19: three options for depth on the product page's Lot record (?rec=a|b|c) */
+.pharmacopoeia .s-mock-tabs { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 60; display: flex; background: var(--ink); border: 1px solid var(--ink); box-shadow: 0 10px 24px -8px rgba(28,26,21,.45); max-width: calc(100vw - 32px); overflow-x: auto; }
+.pharmacopoeia .s-mock-tabs a { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #EDE9E0; padding: 11px 14px; white-space: nowrap; }
+.pharmacopoeia .s-mock-tabs a + a { border-left: 1px solid rgba(237,233,224,.2); }
+.pharmacopoeia .s-mock-tabs a.is-on { background: var(--paper); color: var(--ink); }
+@media (max-width: 640px) { .pharmacopoeia .s-mock-tabs a { font-size: 10px; padding: 10px 9px; letter-spacing: .04em; } }
+
+/* A · Raised card: the whole record on one raised tile, like the buy box — class-colour top
+   edge, label paper, soft shadow; the lot table sits inside it */
+.pharmacopoeia .s-recv--a .s-rec--product { margin-top: 26px; background: var(--label); border: 1px solid var(--line); border-top: 3px solid var(--cls, var(--ink));
+  box-shadow: 0 1px 0 rgba(28,26,21,.05), 10px 14px 28px -14px rgba(28,26,21,.34); padding: 20px 20px 22px; }
+.pharmacopoeia .s-recv--a .s-rec--product .s-rec-head { border-top: 0; padding-top: 0; }
+.pharmacopoeia .s-recv--a .s-rec--product .s-rec-detail { background: #F6F3EC; }
+.pharmacopoeia .s-recv--a .s-rec--product .s-rec-table { box-shadow: none; background: #FDFCF9; }
+.pharmacopoeia .s-recv--a .s-rec--product .s-rec-detail > div:nth-child(3) b { color: var(--tested); }
+
+/* B · Stacked sheets: the lot's details as a certificate lying on earlier ones (the record's
+   history, literally), with a green "Tested" seal pressed on the corner */
+.pharmacopoeia .s-recv--b .s-rec--product .s-rec-detail { position: relative; background: var(--label); margin-bottom: 18px;
+  box-shadow: 6px 6px 0 -1px #F4F1EA, 6px 6px 0 0 var(--line), 12px 12px 0 -1px #EFEBE2, 12px 12px 0 0 var(--line), 16px 22px 26px -14px rgba(28,26,21,.32); }
+.pharmacopoeia .s-recv--b .s-rec--product .s-rec-detail::after { content: "✓\ATested"; white-space: pre; position: absolute; top: -18px; right: 18px; width: 66px; height: 66px; border-radius: 50%;
+  display: grid; place-items: center; text-align: center; line-height: 1.15; font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--tested); background: rgba(251,250,247,.9); border: 2px solid var(--tested); outline: 1px solid var(--tested); outline-offset: 3px; transform: rotate(-12deg); }
+.pharmacopoeia .s-recv--b .s-rec--product .s-rec-table { margin-top: 26px; }
+
+/* C · Instrument plate: the record engraved on a tinted plate like the home page's figures —
+   a double rule, the purity as the headline number, and a chromatogram peak traced behind it */
+.pharmacopoeia .s-recv--c .s-rec--product { margin-top: 26px; background: #F2EEE5; border: 1px solid var(--line); padding: 18px 20px 22px; position: relative; }
+.pharmacopoeia .s-recv--c .s-rec--product::before { content: ""; position: absolute; inset: 5px; border: 1px solid var(--line); pointer-events: none; }
+.pharmacopoeia .s-recv--c .s-rec--product .s-rec-head { border-top: 0; padding-top: 0; border-bottom: 2px solid var(--ink); padding-bottom: 10px; }
+.pharmacopoeia .s-recv--c .s-rec--product .s-rec-detail { position: relative; background-color: var(--label);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='120' viewBox='0 0 360 120'><path d='M0 112 H120 C140 112 146 110 152 100 C160 80 164 8 170 8 C176 8 180 80 188 100 C194 110 200 112 220 112 H250 C256 112 258 104 262 104 C266 104 268 112 274 112 H360' fill='none' stroke='%232F6B3A' stroke-opacity='.22' stroke-width='1.6'/><path d='M0 116 H360' stroke='%23C9C2AE' stroke-width='1'/></svg>");
+  background-repeat: no-repeat; background-position: right 12px top 10px; background-size: 58% auto; box-shadow: 0 1px 0 rgba(28,26,21,.05), 6px 8px 16px -8px rgba(28,26,21,.18); }
+.pharmacopoeia .s-recv--c .s-rec--product .s-rec-detail > div:nth-child(3) b { font-size: 34px; line-height: 1; color: var(--tested); }
+.pharmacopoeia .s-recv--c .s-rec--product .s-rec-detail > div { background: transparent; }

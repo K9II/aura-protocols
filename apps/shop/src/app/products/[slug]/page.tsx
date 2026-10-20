@@ -45,7 +45,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ProductPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams?: Promise<{ rec?: string }> }) {
+  // MOCK 2026-10-19: ?rec=a|b|c — three ways to give the Lot record more depth
+  const recRaw = (await searchParams)?.rec;
+  const recV = recRaw === "b" || recRaw === "c" || recRaw === "now" ? recRaw : "a";
   const { slug } = await params;
   const live = await getLiveCatalogOrNull();
   if (!live) return <Unavailable />;
@@ -124,7 +127,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="s-ghost" aria-hidden>{c.name}</div>
           {/* Monograph placard (approved 2026-10-10): identity card behind an upright
               vial on a raised tile; the tile is slightly see-through so the ghost name shows. */}
-          <div className="s-media">
+          <div className={`s-media s-recv--${recV}`}>
             <div className="s-pdp-tile">
               {hasCertificate && <span className="s-coa-tag">◇ COA on file</span>}
               {allOut ? <span className="s-flag s-flag--out s-micro">Out of stock</span> : anyLow ? <span className="s-flag s-micro">Low stock</span> : null}
@@ -158,6 +161,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </>} />
           </div>
         </section>
+        {/* MOCK 2026-10-19: tabs to switch the Lot record options */}
+        <nav className="s-mock-tabs" aria-label="Lot record options">
+          {([["a", "A · Raised card"], ["b", "B · Stacked sheets"], ["c", "C · Instrument plate"], ["now", "Today"]] as const).map(([v, t]) => (
+            <Link key={v} href={`/products/${c.slug}?rec=${v}`} scroll={false} className={recV === v ? "is-on" : ""}>{t}</Link>
+          ))}
+        </nav>
       </div>
 
       <section className="s-about">
