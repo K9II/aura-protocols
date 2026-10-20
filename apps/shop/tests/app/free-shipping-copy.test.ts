@@ -5,9 +5,9 @@ import { join } from "node:path";
 // The free-shipping threshold lives in lib/cart.ts. Pages must render the
 // constant, never a hard-coded amount, so a threshold change can't drift.
 const SRC = join(__dirname, "..", "..", "src");
-// The product page's shipping line lives in the buy panel (VariantPicker).
+// The product page's shipping line is the first stamp (TrustRow) in the buy panel, 2026-10-19.
 // The FAQ (moved off the home page 2026-10-14) answers "How fast do you ship?".
-const FILES = ["app/faq/page.tsx", "components/store/VariantPicker.tsx"];
+const FILES = ["app/faq/page.tsx", "components/store/TrustRow.tsx"];
 
 describe("free-shipping copy", () => {
   it.each(FILES)("%s has no hard-coded threshold and uses the constant", (rel) => {
