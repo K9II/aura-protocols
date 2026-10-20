@@ -145,7 +145,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
             <QrNote slug={c.slug} />
-            <LotRecord lots={recordLots} variant="product" nowMs={currentMs()} compoundName={c.name} certs={productCerts} />
+            <LotRecord lots={recordLots} variant="product" nowMs={currentMs()} compoundName={c.name} certs={productCerts} slug={c.slug}
+              variants={c.variants.map((v) => ({ id: v.id, strength: v.strength, lot: isPendingLot(v.lot) ? null : v.lot.lot }))} />
             {/* desktop: the four stamps under the Lot record (one lot; with two or more they sit at the
                 foot of the right column); phones keep them under the buy box (2026-10-19) */}
             <TrustRow className="s-trust--pdp s-trust--pdp-desk" />
