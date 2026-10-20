@@ -149,12 +149,12 @@ describe("product page", () => {
     expect(notes).toHaveTextContent("All products currently listed on this site are for research purposes only.");
     expect(notes.querySelector(".s-before")).not.toBeNull();
     expect(container.querySelector(".s-pdp-h1")!.compareDocumentPosition(buy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    // desktop: CSS order puts specs, certificate link and trust row back above the buy box
+    // desktop: CSS order puts the spec boxes above the buy box, then the notes, then the stamps
     const css = readFileSync("src/app/globals.css", "utf8");
     const order = (sel: string) => Number(new RegExp(`\\.s-pick > \\.${sel} \\{ order: (\\d)`).exec(css)?.[1]);
     expect(order("s-specs")).toBeLessThan(order("s-buy"));
-    expect(order("s-trust")).toBeLessThan(order("s-buy"));
     expect(order("s-pick-notes")).toBeGreaterThan(order("s-buy"));
+    expect(order("s-trust")).toBeGreaterThan(order("s-pick-notes"));
   });
 
   it("About band shows the description, caption, legend and source link", async () => {
@@ -185,21 +185,14 @@ describe("product page", () => {
 
   it("lists what to know before ordering, in line with the refund and shipping policies", async () => {
     const { container } = await renderSlug("bpc-157");
-    // phones: the list under the buy box; desktop: the same list in the left column (CSS shows one)
-    const buy = container.querySelector(".s-pick-notes .s-before--buy")!;
-    const side = container.querySelector(".s-media .s-before--side")!;
-    for (const box of [buy, side]) {
-      const items = within(box as HTMLElement).getAllByRole("listitem").map((li) => li.textContent);
-      expect(items).toHaveLength(3);
-      expect(items[0]).toMatch(/certificate for this lot/i);
-      expect(items[1]).toMatch(/full refund until your order ships/i);
-      expect(items[1]).toMatch(/sale is final/i);
-      expect(items[2]).toMatch(/within 48 hours of delivery/i);
-      expect(items[2]).toMatch(/one replacement/i);
-    }
-    // desktop keeps the key terms next to Add to cart in one line
-    const line = container.querySelector(".s-pick-notes .s-before-line")!;
-    expect(line).toHaveTextContent(/full refund until your order ships · final once shipped/);
-    expect(within(line as HTMLElement).getByRole("link", { name: "Refund policy →" })).toHaveAttribute("href", "/refund-policy");
+    const box = container.querySelector(".s-pick-notes .s-before")!;
+    expect(container.querySelector(".s-media .s-before")).toBeNull();
+    const items = within(box as HTMLElement).getAllByRole("listitem").map((li) => li.textContent);
+    expect(items).toHaveLength(3);
+    expect(items[0]).toMatch(/certificate for this lot/i);
+    expect(items[1]).toMatch(/full refund until your order ships/i);
+    expect(items[1]).toMatch(/sale is final/i);
+    expect(items[2]).toMatch(/within 48 hours of delivery/i);
+    expect(items[2]).toMatch(/one replacement/i);
   });
 });
