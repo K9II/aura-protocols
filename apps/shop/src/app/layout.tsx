@@ -74,7 +74,10 @@ export default async function RootLayout({
   const live = await getLiveCatalogOrNull();
   const shown = live?.shown ?? [];
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable} ${jetbrains.variable}`}>
+    // data-scroll-behavior: Next 16 turns off globals.css smooth scrolling while it
+    // changes pages; without it a new page kept the old scroll position (Sign in
+    // landed at the bottom of home, 2026-10-21). In-page #section links stay smooth.
+    <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable} ${jetbrains.variable}`}>
       <body className="min-h-screen flex flex-col bg-[#EDE9E0]">
         <CartProvider catalog={shown}>
           <HideOnAdmin><SiteNav /></HideOnAdmin>
