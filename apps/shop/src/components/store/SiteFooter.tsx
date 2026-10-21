@@ -12,10 +12,10 @@ export default function SiteFooter({ catalog }: { catalog: Compound[] }) {
           <AuraLockup size={70} mode="loop" className="aura-desk-only" />
           <p className="text-[15px] text-[color:var(--ink-soft)] mt-5 max-w-[30ch]">
             {/* "seven-point panel" (Alvester, 2026-10-18 — the term the sellers whose tests match ours use;
-                not "7X"). The number shows only while the seven-test claim is on (RELEASE_CHECK holds it). */}
+                not "7X"). "Up to" while the every-lot claim is off (2026-10-20: range lots get Vanguard Gold). */}
             {SEVEN_TEST_PANEL
               ? "Research-grade peptides, each lot put through a seven-point panel. Testing includes ISO/IEC 17025-accredited US lab."
-              : "Research-grade peptides, each lot tested. Testing includes ISO/IEC 17025-accredited US lab."}
+              : "Research-grade peptides, each lot put through up to a seven-point panel. Testing includes ISO/IEC 17025-accredited US lab."}
           </p>
         </div>
         <div>

@@ -32,15 +32,14 @@ export function lotRingText(lots: PublicLot[], maxChars: number): string {
   return entries.length ? entries.join("") : RING1_FALLBACK + SEP;
 }
 
-export function auraRings(lots: PublicLot[], sevenTests: boolean): AuraRing[] {
+export function auraRings(lots: PublicLot[]): AuraRing[] {
   const r1 = { r: 252, size: 11, track: 1.2 };
   return [
     { ...r1, fill: "#A32B1F", opacity: 0.95, seconds: 200, reverse: false, text: lotRingText(lots, capacity(r1.r, r1.size, r1.track)) },
     { r: 274, size: 10, track: 1.3, fill: "#2F6B3A", opacity: 0.8, seconds: 260, reverse: true,
-      // Only what every lot really gets: the seven tests once the panel is on, else what going live requires.
-      text: sevenTests
-        ? "Identity confirmed · quantity measured · endotoxin pass · sterility pass · heavy metals pass · fentanyl screen clear · "
-        : "Purity by HPLC · endotoxin pass · certificate on file · " },
+      // The panel's tests (Alvester, 2026-10-20: kept when the "every lot" seven-test claim went
+      // off — the ring names what we test for, it doesn't say every lot gets all of them).
+      text: "Identity confirmed · quantity measured · endotoxin pass · sterility pass · heavy metals pass · fentanyl screen clear · " },
     { r: 295, size: 9.5, track: 1.4, fill: "#4A4438", opacity: 0.5, seconds: 340, reverse: false, text: "Independent third-party US lab · certificate published under every lot number · " },
     { r: 314, size: 9, track: 1.5, fill: "#4A4438", opacity: 0.26, seconds: 420, reverse: true, text: "Scan the vial · read the certificate · " },
   ];
