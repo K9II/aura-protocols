@@ -16,7 +16,7 @@ import type { Compound } from "@/data/catalog";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
 import { SEVEN_TEST_PANEL } from "@/lib/constants";
 import { auraRings } from "@/lib/hero-aura";
-import { proofLot } from "@/lib/lot-proof";
+import { isNewestLot, proofLot } from "@/lib/lot-proof";
 import { homeRecord } from "@/lib/lot-record";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 
@@ -34,7 +34,9 @@ export default async function HomePage() {
   const phoneLineup = pickPhoneLineup(live.shown, featured);
   const sphere = sphereNodes(live.shown);
   const spherePairsActive = spherePairs(sphere);
-  const newest = proofLot(live.lots);
+  // the newest lot that passed all seven tests (Tier 1), else the newest lot
+  const newest = proofLot(live.lots, live.certificates);
+  const isNewest = newest ? isNewestLot(newest, live.lots) : true;
   const newestCompound = newest ? live.shown.find((c) => c.slug === newest.slug) : undefined;
   return (
     <div className="pharmacopoeia s-home-lit">
@@ -52,7 +54,7 @@ export default async function HomePage() {
                 2026-10-17); desktop shows the scan strip under the hero instead (2026-10-18).
                 Both hidden until the first lot is released. */}
             {newest && newestCompound && (
-              <div className="load-in load-3 s-proof-phone-only"><LotProof lot={newest} compound={newestCompound} certs={live.certificates} /></div>
+              <div className="load-in load-3 s-proof-phone-only"><LotProof lot={newest} compound={newestCompound} certs={live.certificates} newest={isNewest} /></div>
             )}
             <div className="s-ctas load-in load-4">
               <Link href="/products" className="p-btn-primary">Shop the lineup →</Link>
@@ -79,7 +81,7 @@ export default async function HomePage() {
         <LotNews lots={homeRecord(live.lots, new Set(featured.map((c) => c.slug)))} />
 
         {/* desktop: how a vial's QR code proves its lot (option A "Scan strip", Layout 1, 2026-10-18) */}
-        {newest && newestCompound && <ScanStrip lot={newest} compound={newestCompound} certs={live.certificates} sevenTests={SEVEN_TEST_PANEL} />}
+        {newest && newestCompound && <ScanStrip lot={newest} compound={newestCompound} certs={live.certificates} sevenTests={SEVEN_TEST_PANEL} newest={isNewest} />}
 
         <HomeLineup featured={featured} where="desk" />
 

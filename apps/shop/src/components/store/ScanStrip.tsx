@@ -16,10 +16,13 @@ import { lotQrUrl, qrRows } from "@/lib/vial-qr";
 // the lab's own copy — beside a side column; the newest lot's row underneath.
 const SEVEN = ["Identity", "Purity", "Quantity", "Endotoxin", "Sterility", "Heavy metals", "Fentanyl"];
 
-export default function ScanStrip({ lot, compound, certs, sevenTests }: { lot: PublicLot; compound: Compound; certs: PublicCert[]; sevenTests: boolean }) {
+export default function ScanStrip({ lot, compound, certs, sevenTests, newest = true }: { lot: PublicLot; compound: Compound; certs: PublicCert[]; sevenTests: boolean; newest?: boolean }) {
   // Fig. 2's rows: all seven passed while the seven-test claim is on (the release check holds
-  // every live lot to it); otherwise the lot's own results.
-  const rows = sevenTests ? SEVEN.map((test) => ({ test, result: test === "Fentanyl" ? "Clear" : "Pass", done: true })) : lotProofRows(lot, certs);
+  // every live lot to it); otherwise the lot's own results. Fig. 3 ticks off the seven whenever
+  // this lot passed all seven (a Tier 1 lot, 2026-10-20), whatever the claim switch says.
+  const own = lotProofRows(lot, certs);
+  const seven = sevenTests || own.every((r) => r.done);
+  const rows = seven ? SEVEN.map((test) => ({ test, result: test === "Fentanyl" ? "Clear" : "Pass", done: true })) : own;
   const [label, label2] = vialName(compound);
   const lab = certs.find((c) => c.lot === lot.lot && c.labName !== NOT_RECORDED_LAB)?.labName ?? null;
   const tested = new Date(`${lot.testedOn}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
@@ -73,7 +76,7 @@ export default function ScanStrip({ lot, compound, certs, sevenTests }: { lot: P
               <div className="s-scan-lab" aria-hidden>
                 <span className="k">The lab&apos;s own copy</span>
                 {lab && <span className="v">{lab}</span>}
-                {sevenTests ? (
+                {seven ? (
                   <ol className="s-scan-seven">
                     {SEVEN.map((t, i) => <li key={t} style={{ "--i": i } as CSSProperties}>{t}<i className="ck" /></li>)}
                   </ol>
@@ -98,7 +101,7 @@ export default function ScanStrip({ lot, compound, certs, sevenTests }: { lot: P
         </div>
       </div>
       <div className="s-rec-detail s-scan-row">
-          <div><small>Newest lot</small><b className="s-mono">{lot.lot}</b></div>
+          <div><small>{newest ? "Newest lot" : "Featured lot"}</small><b className="s-mono">{lot.lot}</b></div>
           <div><small>Compound</small><b>{compound.name} {lot.strength}</b></div>
           <div><small>Purity</small><b>{lot.purityPct}%</b></div>
           <div><small>Method</small><b>{lot.method}</b></div>

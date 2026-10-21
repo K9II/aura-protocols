@@ -14,7 +14,7 @@ import { lotQrUrl, qrRows } from "@/lib/vial-qr";
 // rests facing front (Alvester, 2026-10-18; it rested on its QR code); a dotted line runs from
 // the code to that lot's certificate while it pauses on the code. Side by side on phones too.
 // Every row is the lot's own result — "Not tested" where its certificates don't show one.
-export default function LotProof({ lot, compound, certs }: { lot: PublicLot; compound: Compound; certs: PublicCert[] }) {
+export default function LotProof({ lot, compound, certs, newest = true }: { lot: PublicLot; compound: Compound; certs: PublicCert[]; newest?: boolean }) {
   const rows = lotProofRows(lot, certs);
   const tested = new Date(`${lot.testedOn}T12:00:00Z`);
   const [label, label2] = vialName(compound);
@@ -35,7 +35,7 @@ export default function LotProof({ lot, compound, certs }: { lot: PublicLot; com
         </div>
         <div className="s-proof-cert">
           <div className="s-proof-ch">
-            <span className="s-proof-k">Lot {lot.lot}<span className="s-proof-dk"> · newest</span></span>
+            <span className="s-proof-k">Lot {lot.lot}{newest && <span className="s-proof-dk"> · newest</span>}</span>
             <span className="s-proof-n"><NameParts name={compound.name} /> <small>{lot.strength}</small></span>
           </div>
           <div className="s-proof-nums">
