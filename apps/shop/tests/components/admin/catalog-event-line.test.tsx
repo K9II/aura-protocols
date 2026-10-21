@@ -48,3 +48,16 @@ describe("catalogEventLine certificate events", () => {
       .toBe('Alvester added a correction to a certificate on AP-1105: "Report number was mistyped."');
   });
 });
+
+describe("catalogEventLine AIOS Store tab changes", () => {
+  it("marks show/hide and add-strength sent from AIOS", () => {
+    expect(text(certEvent("hidden", { note: "Sent from AIOS" }))).toBe("Alvester hid it from the store · from AIOS");
+    expect(text(certEvent("shown", { note: "Sent from AIOS" }))).toBe("Alvester showed it on the store · from AIOS");
+    expect(text(certEvent("strength_hidden", { note: "Sent from AIOS", after: { strength: "40 mg" } }))).toBe("Alvester hid 40 mg from the store · from AIOS");
+    expect(text(certEvent("strength_added", { note: "Sent from AIOS", after: { strength: "20 mg", price_cents: 9900 } })))
+      .toBe("Alvester added 20 mg · $99.00 · hidden · from AIOS");
+  });
+  it("an Admin change has no mark", () => {
+    expect(text(certEvent("strength_shown", { after: { strength: "40 mg" } }))).toBe("Alvester showed 40 mg on the store");
+  });
+});

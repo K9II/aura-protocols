@@ -4,7 +4,7 @@ import type { CatalogEvent } from "@/lib/catalog-ops/data";
 import { COUNT_REASON_LABEL, type CountReason } from "@/lib/catalog-ops/rules";
 import { usd } from "@/lib/html";
 
-// AIOS "Send to store" (admin_set_variant_price, aios-price.sql) notes its price changes with this.
+// AIOS (aios-price.sql, aios-store.sql) notes its price, show/hide and add-strength changes with this.
 const AIOS_NOTE = "Sent from AIOS";
 const MISMATCH_NOTE: Record<string, string> = { moved: "vials moved to the shipped lot", "not moved": "not moved — check stock" };
 
@@ -14,10 +14,11 @@ export function catalogEventLine(e: CatalogEvent, strengthOf: (variantId: string
   const a = (e.after ?? {}) as Record<string, number | string>, b = (e.before ?? {}) as Record<string, number | string>;
   // Strength events carry the label, so a deleted strength still reads right.
   const st = <b>{String(a.strength ?? b.strength ?? strengthOf(e.variant_id))}</b>;
+  const aios = e.note === AIOS_NOTE ? " · from AIOS" : "";
   switch (e.kind) {
-    case "strength_added": return <>{who} added {st} · {usd(Number(a.price_cents))} · hidden</>;
-    case "strength_shown": return <>{who} showed {st} on the store</>;
-    case "strength_hidden": return <>{who} hid {st} from the store</>;
+    case "strength_added": return <>{who} added {st} · {usd(Number(a.price_cents))} · hidden{aios}</>;
+    case "strength_shown": return <>{who} showed {st} on the store{aios}</>;
+    case "strength_hidden": return <>{who} hid {st} from the store{aios}</>;
     case "strength_archived": return <>{who} archived {st}</>;
     case "strength_restored": return <>{who} restored {st} · hidden</>;
     case "strength_deleted": return <>{who} deleted {st}</>;
@@ -33,11 +34,11 @@ export function catalogEventLine(e: CatalogEvent, strengthOf: (variantId: string
     case "certificate_edited": return <>{who} edited certificate <b>{String(a.report)}</b> on {lot}</>;
     case "certificate_deleted": return <>{who} deleted certificate <b>{String(b.report)}</b> from {lot}</>;
     case "certificate_corrected": return <>{who} added a correction to a certificate on {lot}: &quot;{String(a.correction)}&quot;</>;
-    case "price_changed": return <>{who} changed {strengthOf(e.variant_id)} price <b>{usd(Number(b.price_cents))} → {usd(Number(a.price_cents))}</b>{e.note === AIOS_NOTE ? " · from AIOS" : ""}</>;
+    case "price_changed": return <>{who} changed {strengthOf(e.variant_id)} price <b>{usd(Number(b.price_cents))} → {usd(Number(a.price_cents))}</b>{aios}</>;
     case "low_at_changed": return <>{who} set {strengthOf(e.variant_id)} low level to {a.low_at}</>;
     case "threepl_sku_changed": return <>{who} set {strengthOf(e.variant_id)} 3PL SKU to <span className="a-nw">{a.threepl_sku ?? "none"}</span></>;
-    case "shown": return <>{who} showed it on the store</>;
-    case "hidden": return <>{who} hid it from the store</>;
+    case "shown": return <>{who} showed it on the store{aios}</>;
+    case "hidden": return <>{who} hid it from the store{aios}</>;
     case "oversold": return <>Oversold on {e.note}: {a.need} ordered, {a.covered} held</>;
     case "lot_mismatch": return <>{who === "System" ? "Shipped" : `${who} shipped`} a different lot than allocated · {MISMATCH_NOTE[e.note ?? ""] ?? e.note}{a.order_number ? <> · <Link href={`/admin/orders/${a.order_number}`}>{a.order_number}</Link></> : null}</>;
     default: return e.kind;
