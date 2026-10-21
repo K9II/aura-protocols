@@ -18,7 +18,7 @@ import HumanCheck from "@/components/account/HumanCheck";
 import TrustRow, { ICONS } from "@/components/store/TrustRow";
 import { CLASS_COLOR } from "@/lib/class-colors";
 import { PROTECTION_DECLINED_NOTICE, PROTECTION_DEFAULT, PROTECTION_LABEL, PROTECTION_OFFER, PROTECTION_PRICE_TEXT } from "@/lib/shipping-protection";
-import { DEFAULT_RESEARCH_FIELD, INDEPENDENT_ORG, RESEARCH_FIELDS, RESEARCH_FIELD_LABEL, RESEARCH_ORG_MAX, type ResearchField } from "@/lib/account/research";
+import { DEFAULT_RESEARCH_FIELD, RESEARCH_FIELDS, RESEARCH_FIELD_LABEL, type ResearchField } from "@/lib/account/research";
 
 const field = "w-full border border-[color:var(--ink)] bg-[color:var(--paper)] px-3.5 py-3 text-sm mb-4";
 const smallBtn: React.CSSProperties = { padding: "7px 13px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: "1px solid var(--ink)", background: "transparent", color: "var(--ink)" };
@@ -57,9 +57,6 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const verified = !!humanToken;
   // Research verification, asked once on the first order.
   const [researchField, setResearchField] = useState<ResearchField>(DEFAULT_RESEARCH_FIELD);
-  // Company or institution: asked only when the field isn't Independent Researcher.
-  const [orgName, setOrgName] = useState("");
-  const independent = researchField === DEFAULT_RESEARCH_FIELD;
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
   const base = useMemo(() => priceOrder(lines, catalog, { protection }), [lines, catalog, protection]);
@@ -113,7 +110,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
       const r = await startCheckoutAction({
         lines, ship: addr, ruoConfirmed: ruo, termsAgreed, protection, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit,
         humanToken: humanToken ?? undefined,
-        research: needsResearch ? { field: researchField, org: independent ? INDEPENDENT_ORG : orgName.trim() } : undefined,
+        research: needsResearch ? { field: researchField } : undefined,
       });
       if (r.url) { leaving = true; window.location.assign(r.url); return; }
       setError(r.error ?? "Something went wrong — please try again.");
@@ -185,10 +182,6 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
                     <select id="co-field" value={researchField} onChange={(e) => setResearchField(e.target.value as ResearchField)} required className={field} style={{ marginBottom: 0 }}>
                       {RESEARCH_FIELDS.map((f) => <option key={f} value={f}>{RESEARCH_FIELD_LABEL[f]}</option>)}
                     </select>
-                    {!independent && <>
-                      <label htmlFor="co-org" className="s-micro block mb-1.5 mt-4">Company or institution *</label>
-                      <input id="co-org" value={orgName} onChange={(e) => setOrgName(e.target.value)} maxLength={RESEARCH_ORG_MAX} required autoComplete="organization" className={field} style={{ marginBottom: 0 }} />
-                    </>}
                   </div>
                 </div>
               )}

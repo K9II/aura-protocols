@@ -29,7 +29,7 @@ import { holdVials, type HoldResult } from "@/lib/catalog-ops/data";
 import { soldOutMessage } from "@/lib/catalog-ops/rules";
 import { verifyHumanCheck } from "@/lib/turnstile";
 import { HUMAN_CHECK_FAILED, HUMAN_CHECK_UNAVAILABLE } from "@/lib/human-check";
-import { RESEARCH_FIELDS, RESEARCH_ORG_MAX, RESEARCH_REQUIRED, RESEARCH_SAVE_FAILED } from "@/lib/account/research";
+import { RESEARCH_FIELDS, RESEARCH_REQUIRED, RESEARCH_SAVE_FAILED } from "@/lib/account/research";
 import { saveResearchVerification } from "@/lib/account/research-data";
 
 const OFFER_CHECK_FAILED = "We couldn't check your new-account discount — please try again.";
@@ -48,7 +48,7 @@ const schema = z.object({
   partnerCode: z.string().max(40).optional(),
   useCredit: z.boolean().optional(),
   humanToken: z.string().max(4096).optional(),
-  research: z.object({ field: z.enum(RESEARCH_FIELDS), org: z.string().trim().min(1).max(RESEARCH_ORG_MAX) }).optional(),
+  research: z.object({ field: z.enum(RESEARCH_FIELDS) }).optional(),
 });
 
 type TypedCode =

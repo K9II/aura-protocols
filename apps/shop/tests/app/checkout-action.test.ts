@@ -129,11 +129,8 @@ describe("startCheckoutAction", () => {
     expect(createPendingOrder).not.toHaveBeenCalled();
     expect((await startCheckoutAction({ ...input, research: { field: "astrology", org: "X" } })).error).toBeTruthy();
     expect(createPendingOrder).not.toHaveBeenCalled();
-    expect((await startCheckoutAction({ ...input, research: { field: "independent" } })).error).toBeTruthy(); // company is required
-    expect((await startCheckoutAction({ ...input, research: { field: "independent", org: "  " } })).error).toBeTruthy();
-    expect(createPendingOrder).not.toHaveBeenCalled();
-    expect(await startCheckoutAction({ ...input, research: { field: "independent", org: "Independent Researcher" } })).toEqual({ url: "https://checkout.stripe.com/x" });
-    expect(saveResearchVerification).toHaveBeenCalledWith("u1", { field: "independent", org: "Independent Researcher" });
+    expect(await startCheckoutAction({ ...input, research: { field: "independent" } })).toEqual({ url: "https://checkout.stripe.com/x" });
+    expect(saveResearchVerification).toHaveBeenCalledWith("u1", { field: "independent" }); // no company asked at checkout
     expect(saveResearchVerification.mock.invocationCallOrder[0]).toBeLessThan(createPendingOrder.mock.invocationCallOrder[0]);
   });
 

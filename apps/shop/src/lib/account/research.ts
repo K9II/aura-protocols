@@ -20,15 +20,11 @@ export const RESEARCH_FIELD_LABEL: Record<ResearchField, string> = {
 
 export const DEFAULT_RESEARCH_FIELD: ResearchField = "independent";
 export const RESEARCH_ORG_MAX = 120;
-export const INDEPENDENT_ORG = "Independent Researcher";
 
-// org: the company or institution. Checkout asks for it on the first order only
-// when the field isn't Independent Researcher (the default); an independent
-// researcher is saved as INDEPENDENT_ORG (processor rule, 2026-10-20).
-// The wholesale sign-up asks for the name itself.
+// org: asked on the wholesale sign-up only (retail checkout dropped it 2026-10-13: no competitor asks).
 export type ResearchInfo = { field: ResearchField; org: string | null; verifiedAt: string };
 
-export const RESEARCH_REQUIRED = "Please choose your field of research (and your company or institution, unless you research independently).";
+export const RESEARCH_REQUIRED = "Please choose your field of research.";
 export const WHOLESALE_RESEARCH_REQUIRED = "Please choose your field of research and enter your company or institution.";
 export const RESEARCH_SAVE_FAILED = "We couldn't save your research details — please try again.";
 
