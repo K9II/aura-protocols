@@ -58,12 +58,23 @@ describe("/ (home)", () => {
     const strip = screen.getByRole("region", { name: /scan the vial/i });
     expect(document.querySelector(".s-hero-band")!.compareDocumentPosition(strip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(strip.compareDocumentPosition(lineupIn("desk")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // no certificate with all seven on file: the lab's copy shows the lot's own match
     expect(strip.querySelector(".s-scan-seven")).toBeNull();
     const lab = strip.querySelector(".s-scan-lab")!;
     expect(lab).toHaveTextContent("MOT-2611-02");
     expect(lab).toHaveTextContent("99.5%");
     expect(strip).not.toHaveTextContent(/not recorded/i);
     expect(document.querySelector(".s-proof")!.closest(".s-proof-phone-only")).not.toBeNull();
+  });
+
+  it("desktop: a lot that passed all seven ticks the seven off in the lab's copy (Tier 1, 2026-10-20)", async () => {
+    const lots = [{ slug: "mots-c", compoundName: "MOTS-c", variantId: "10mg", strength: "10 mg", lot: "MOT-2611-02", purityPct: 99.5, method: "HPLC+MS", testedOn: "2026-11-08", coaFile: "/c.pdf", status: "live", liveAt: "2026-11-09T10:00:00Z", onStore: true }];
+    const cert = { lot: "MOT-2611-02", measuredMg: 10, tests: { identity: "pass", endotoxin: "pass", sterility: "pass", heavy_metals: "pass", fentanyl: "pass" } };
+    live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots, certificates: [cert] });
+    await renderHome();
+    const strip = screen.getByRole("region", { name: /scan the vial/i });
+    expect([...strip.querySelectorAll(".s-scan-seven li")].map((li) => li.textContent)).toEqual(["Identity", "Purity", "Quantity", "Endotoxin", "Sterility", "Heavy metals", "Fentanyl"]);
+    expect(strip).toHaveTextContent("Newest lot");
   });
 
   it("rings the sphere with real lots selling now, and never example lots before the first release", async () => {
