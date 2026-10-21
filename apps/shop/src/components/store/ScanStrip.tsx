@@ -43,7 +43,7 @@ export default function ScanStrip({ lot, compound, certs, sevenTests, newest = t
                 <ProofLead slug={`scan-${compound.slug}`} />
               </div>
             </div>
-            <figcaption><b>Scan the code.</b>It&apos;s printed on every vial, under the lot number.</figcaption>
+            <figcaption><b>Scan the code.</b>It&apos;s printed on every vial, above the lot number.</figcaption>
           </figure>
           <figure>
             <span className="s-scan-tag"><b>Fig. 2</b><span>Your phone</span></span>
