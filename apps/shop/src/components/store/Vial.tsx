@@ -1,3 +1,5 @@
+import { VIAL_LINE_MAX } from "@/lib/constants";
+
 // SVG stand-in for product photography: clear glass vial, flip-off cap
 // (red, black or white — see vialCap()), powder cake visible below the label, lot printed on glass.
 // Label = full Aura Protocols lockup (same A geometry + pulse path as
@@ -16,19 +18,23 @@ const CAPS = {
 type VialProps = {
   id: string;            // unique per page instance (gradient ids)
   label: string;         // already shortened via vialLabel() / vialName()[0]
-  label2?: string;       // vialName()[1]: a two-component blend's second name, on its own line
+  label2?: string;       // vialName()[1]: a blend's second line ("TB-500", or "GHK-Cu · KPV")
   strength: string;
   tilt?: number;         // degrees
   width?: number;        // rendered width; height keeps the 120:200 ratio
   cap?: keyof typeof CAPS;
   rule?: string;         // label hairlines: the chemical class colour (lib/class-colors.ts); specimen red by default
-  parts?: string[];      // a nicknamed blend's components (vialParts()), printed small in place of LYOPHILIZED
+  parts?: string[];      // a nicknamed blend's nickname in capitals (vialParts()), printed small in place of LYOPHILIZED
 };
 
 export default function Vial({ id, label, label2, strength, tilt = -10, width = 160, cap: capColor = "red", rule = "#A32B1F", parts = [] }: VialProps) {
   // A class colour reads as a band, so it draws a little heavier than the red hairline.
   const ruleWidth = rule === "#A32B1F" ? 0.8 : 1.6;
   const nameSize = label.length > 9 ? 10.5 : label.length > 7 ? 12.5 : 14;
+  // Two lines: 9.6 ("Retatrutide /" over "Cagrilintide"), or 6.9 when a line runs past
+  // VIAL_LINE_MAX ("BPC-157 · TB-500", a three- or four-part blend) so it ends before x=94.
+  const twoSmall = !!label2 && Math.max(label.length, label2.length) > VIAL_LINE_MAX;
+  const twoSize = twoSmall ? 6.9 : 9.6;
   const glass = `vial-glass-${id}`;
   const alu = `vial-alu-${id}`;
   const cap = `vial-cap-${id}`;
@@ -117,9 +123,9 @@ export default function Vial({ id, label, label2, strength, tilt = -10, width = 
       <text x="58" y="98" style={SERIF} fontSize="6.6" fontWeight="500" fill="#4A4438" letterSpacing=".3" textAnchor="middle">Protocols</text>
       <line x1="26" y1="103" x2="94" y2="103" stroke="#C9C2AE" strokeWidth=".8" />
       {label2 ? <>
-        {/* Two-line name (a blend without a nickname): both lines and the strength fit between the rules at y=103 and y=133. */}
-        <text x="26" y="113" style={SERIF} fontSize="9.6" fontWeight="600" fill="#1C1A15">{label}</text>
-        <text x="26" y="122.4" style={SERIF} fontSize="9.6" fontWeight="600" fill="#1C1A15">{label2}</text>
+        {/* Two-line name (a blend's scientific name): both lines and the strength fit between the rules at y=103 and y=133. */}
+        <text x="26" y={twoSmall ? 113.4 : 113} style={SERIF} fontSize={twoSize} fontWeight="600" fill="#1C1A15">{label}</text>
+        <text x="26" y={twoSmall ? 122 : 122.4} style={SERIF} fontSize={twoSize} fontWeight="600" fill="#1C1A15">{label2}</text>
         <text x="26" y="130.6" style={{ fontFamily: "var(--font-sans), Inter, sans-serif" }} fontSize="7.4" fill="#A32B1F">{strength}</text>
       </> : <>
         <text x="26" y="117" style={SERIF} fontSize={nameSize} fontWeight="600" fill="#1C1A15">{label}</text>
@@ -133,7 +139,8 @@ export default function Vial({ id, label, label2, strength, tilt = -10, width = 
         <text x="26" y="151.6" style={MONO} fontSize="5" fill="#4A4438" letterSpacing=".4">RESEARCH USE ONLY</text>
         <text x="26" y="157.4" style={MONO} fontSize="5" fill="#4A4438" letterSpacing=".2">NOT FOR HUMAN USE</text>
       </> : <>
-        <text x="26" y="141.5" style={MONO} fontSize="5.4" fill={parts.length ? "#1C1A15" : "#4A4438"} letterSpacing=".4">{parts[0] ?? "LYOPHILIZED"}</text>
+        {/* A blend's nickname ("WOLVERINE") in ink and a little wider; LYOPHILIZED otherwise. */}
+        <text x="26" y="141.5" style={MONO} fontSize="5.4" fill={parts.length ? "#1C1A15" : "#4A4438"} letterSpacing={parts.length ? ".8" : ".4"} fontWeight={parts.length ? 500 : undefined}>{parts[0] ?? "LYOPHILIZED"}</text>
         <text x="26" y="148.5" style={MONO} fontSize="5.4" fill="#4A4438" letterSpacing=".4">RESEARCH USE ONLY</text>
         <text x="26" y="155.5" style={MONO} fontSize="5.4" fill="#4A4438" letterSpacing=".2">NOT FOR HUMAN USE</text>
       </>}

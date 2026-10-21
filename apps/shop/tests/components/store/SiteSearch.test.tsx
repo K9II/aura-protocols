@@ -38,7 +38,7 @@ describe("SiteSearch", () => {
     type("wolverine");
     const row = within(dialog).getByRole("link", { name: /^Wolverine \(BPC-157 \/ TB-500\)Blends/ });
     expect(row).toHaveAttribute("href", "/products/bpc-157-tb-500-blend");
-    expect(within(dialog).getByRole("img", { name: /^Wolverine .* vial$/ })).toBeInTheDocument();
+    expect(within(dialog).getByRole("img", { name: /^BPC-157\s\/ TB-500 .* vial$/ })).toBeInTheDocument();
     expect(within(dialog).getByRole("link", { name: "View Wolverine (BPC-157 / TB-500)" })).toBeInTheDocument();
   });
 
@@ -46,7 +46,7 @@ describe("SiteSearch", () => {
     open();
     type("bpc");
     fireEvent.keyDown(box(), { key: "ArrowDown" });
-    expect(screen.getByRole("img", { name: /^Wolverine / })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /^BPC-157\s\/ TB-500 / })).toBeInTheDocument();
     fireEvent.keyDown(box(), { key: "Enter" });
     expect(push).toHaveBeenCalledWith("/products/bpc-157-tb-500-blend");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

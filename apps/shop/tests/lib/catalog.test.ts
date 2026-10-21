@@ -59,10 +59,14 @@ describe("catalog helpers", () => {
     expect(vialName(find("retatrutide-cagrilintide"))).toEqual(["Retatrutide\u00a0/", "Cagrilintide"]);
     expect(vialName(find("cagrisema"))).toEqual(["Cagrilintide\u00a0/", "Semaglutide"]);
     expect(vialName(find("cjc-1295-ipamorelin"))).toEqual(["CJC-1295\u00a0/", "Ipamorelin"]);
-    expect(vialName(find("bpc-157-tb-500-ghk-cu-kpv"))).toEqual(["KLOW"]);
+    // nicknamed blends lead with the scientific name too (2026-10-20)
+    expect(vialName(find("bpc-157-tb-500-blend"))).toEqual(["BPC-157 /", "TB-500"]);
+    expect(vialName(find("bpc-157-tb-500-ghk-cu"))).toEqual(["BPC-157 · TB-500", "GHK-Cu"]);
+    expect(vialName(find("bpc-157-tb-500-ghk-cu-kpv"))).toEqual(["BPC-157 · TB-500", "GHK-Cu · KPV"]);
     expect(vialName(find("bpc-157"))).toEqual(["BPC-157"]);
     expect(vialName({ name: "BPC-157 / TB-500 / GHK-Cu" })).toEqual(["BPC-157 +"]);
-    for (const c of catalogContent) for (const line of vialName(c)) expect(line.length, `${c.slug}: ${line}`).toBeLessThanOrEqual(VIAL_LINE_MAX);
+    // A line past VIAL_LINE_MAX is drawn at 6.9 (Vial.tsx): "BPC-157 · TB-500" (16) ends at x≈92 of 94, measured 2026-10-20.
+    for (const c of catalogContent) for (const line of vialName(c)) expect(line.length, `${c.slug}: ${line}`).toBeLessThanOrEqual(c.designation ? 16 : VIAL_LINE_MAX);
   });
 
   it("a designation leads the vial label (blend nicknames)", () => {
@@ -81,12 +85,12 @@ describe("catalog helpers", () => {
     for (const c of glp) expect(vialLabel(c), c.slug).not.toMatch(/APro/);
   });
 
-  it("vialParts: a blend's components, two per line, for the small type under a nickname", () => {
+  it("vialParts: a nicknamed blend's nickname in capitals, for the small type under its scientific name", () => {
     const find = (slug: string) => catalogContent.find((c) => c.slug === slug)!;
-    expect(vialParts(find("bpc-157-tb-500-blend"))).toEqual(["BPC-157 · TB-500"]);
-    expect(vialParts(find("bpc-157-tb-500-ghk-cu"))).toEqual(["BPC-157 · TB-500", "GHK-Cu"]);
-    expect(vialParts(find("bpc-157-tb-500-ghk-cu-kpv"))).toEqual(["BPC-157 · TB-500", "GHK-Cu · KPV"]);
-    // no nickname, no parts line: the full name (or "first +") is already on the label
+    expect(vialParts(find("bpc-157-tb-500-blend"))).toEqual(["WOLVERINE"]);
+    expect(vialParts(find("bpc-157-tb-500-ghk-cu"))).toEqual(["GLOW"]);
+    expect(vialParts(find("bpc-157-tb-500-ghk-cu-kpv"))).toEqual(["KLOW"]);
+    // no nickname, nothing: LYOPHILIZED stays
     expect(vialParts(find("bpc-157"))).toEqual([]);
     expect(vialParts({ ...find("bpc-157-tb-500-blend"), designation: undefined })).toEqual([]);
   });

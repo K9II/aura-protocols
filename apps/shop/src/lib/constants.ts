@@ -14,6 +14,9 @@ export const ORDERS_EMAIL = "orders@auraprotocols.com";
 // The purity the site promises (homepage "99% purity floor"). The receive-a-lot
 // dialog warns below it.
 export const PURITY_FLOOR_PCT = 99;
+// The longest vial-label line at the two-line name size ("Cagrilintide /", measured 2026-10-15).
+// A blend line past it ("BPC-157 · TB-500") is drawn a size smaller (Vial.tsx, vial-3d.ts).
+export const VIAL_LINE_MAX = 14;
 // The seven tests (identity, purity, quantity, endotoxin, sterility, heavy metals,
 // fentanyl) as a claim about EVERY lot. Off since 2026-10-20 (Alvester): core lots get all
 // seven, the smaller range lots get Vanguard Gold (no heavy metals or fentanyl), so the

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import NameParts from "@/components/store/NameParts";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { ChemicalClass, Compound } from "@/data/catalog";
@@ -191,7 +192,7 @@ export default function SiteSearch() {
                             style={{ "--cls": r.kind === "compound" ? CLASS_COLOR[r.c.chemicalClass] : "var(--ink)" } as CSSProperties}
                           >
                             <span className="s-sx-row-t">
-                              <span className="s-sx-row-n">{r.kind === "compound" ? compoundTitle(r.c) : r.title}</span>
+                              <span className="s-sx-row-n">{r.kind === "compound" ? <NameParts name={compoundTitle(r.c)} /> : r.title}</span>
                               <span className="s-micro s-sx-row-m">
                                 {r.kind === "compound"
                                   ? `${cls ? "" : `${r.c.chemicalClass} · `}${strengthsText(r.c)} · from ${formatUsd(fromPackPriceUsd(r.c))}`
@@ -239,7 +240,7 @@ function Preview({ c, onNavigate }: { c: Compound; onNavigate: () => void }) {
       </span>
       <span className="s-sx-pv-info">
         <span className="s-micro s-sx-pv-cls"><i aria-hidden />{c.chemicalClass}</span>
-        <span className="s-sx-pv-n">{compoundTitle(c)}</span>
+        <span className="s-sx-pv-n"><NameParts name={compoundTitle(c)} /></span>
         <span className="s-sx-pv-p">{strengthsText(c)} · from <b>{formatUsd(fromPackPriceUsd(c))}</b></span>
         {allOut
           ? <span className="s-micro s-sx-pv-out">Out of stock</span>

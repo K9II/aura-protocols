@@ -1,15 +1,12 @@
 import { Fragment, type CSSProperties } from "react";
 import Link from "next/link";
 import type { Compound } from "@/data/catalog";
-import { fromPackPriceUsd, isPendingLot, vialCap, vialName, vialParts } from "@/lib/catalog";
+import { fromPackPriceUsd, isPendingLot, vialCap, vialName, vialNameLong, vialParts } from "@/lib/catalog";
 import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import { formatUsd } from "@/lib/cart";
 import Vial from "@/components/store/Vial";
+import NameParts from "@/components/store/NameParts";
 
-// A blend's name breaks only around its slashes, never inside a part ("TB-" / "500").
-const nameParts = (name: string) => !name.includes(" / ") ? name : name.split(" / ").map((p, i) => (
-  <Fragment key={i}>{i ? " / " : ""}<span className="s-card-nw">{p}</span></Fragment>
-));
 
 // Monograph card (approved 2026-10-10): a placard with the compound's identity
 // stands behind an upright vial on a raised tile; the text below sits on a
@@ -36,7 +33,7 @@ export default function CompoundCard({ compound: c, index = 0, idScope = "" }: {
         ) : null}
         <div className="s-placard" aria-hidden>
           <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass).split(" ").map((w, i) => <Fragment key={i}>{i ? " " : ""}<span className="whitespace-nowrap">{w}</span></Fragment>)}</span>
-          <span className="s-placard-n">{vialName(c).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
+          <span className={`s-placard-n${vialNameLong(c) ? " s-name-long" : ""}`}>{vialName(c).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
           {idLine && <span className="s-placard-id">{idLine}</span>}
           <span className="s-placard-r">Research use only · Not for human use</span>
         </div>
@@ -46,7 +43,7 @@ export default function CompoundCard({ compound: c, index = 0, idScope = "" }: {
       </div>
       <div className="s-card-info">
         <div className="s-cat s-micro"><i />{c.chemicalClass}</div>
-        <h3 className="s-card-name">{nameParts(c.name)}</h3>
+        <h3 className="s-card-name"><NameParts name={c.name} /></h3>
         <div className="s-card-meta">
           <span><small className="s-micro">Price</small><span className="s-card-price">{price}</span></span>
           <span>
