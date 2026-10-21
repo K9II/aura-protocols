@@ -57,9 +57,9 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const verified = !!humanToken;
   // Research verification, asked once on the first order.
   const [researchField, setResearchField] = useState<ResearchField>(DEFAULT_RESEARCH_FIELD);
-  // Company or institution: starts on Independent Researcher; "company" opens a name box.
-  const [orgKind, setOrgKind] = useState<"independent" | "company">("independent");
+  // Company or institution: asked only when the field isn't Independent Researcher.
   const [orgName, setOrgName] = useState("");
+  const independent = researchField === DEFAULT_RESEARCH_FIELD;
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
   const base = useMemo(() => priceOrder(lines, catalog, { protection }), [lines, catalog, protection]);
@@ -113,7 +113,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
       const r = await startCheckoutAction({
         lines, ship: addr, ruoConfirmed: ruo, termsAgreed, protection, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit,
         humanToken: humanToken ?? undefined,
-        research: needsResearch ? { field: researchField, org: orgKind === "company" ? orgName.trim() : INDEPENDENT_ORG } : undefined,
+        research: needsResearch ? { field: researchField, org: independent ? INDEPENDENT_ORG : orgName.trim() } : undefined,
       });
       if (r.url) { leaving = true; window.location.assign(r.url); return; }
       setError(r.error ?? "Something went wrong — please try again.");
@@ -185,13 +185,8 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
                     <select id="co-field" value={researchField} onChange={(e) => setResearchField(e.target.value as ResearchField)} required className={field} style={{ marginBottom: 0 }}>
                       {RESEARCH_FIELDS.map((f) => <option key={f} value={f}>{RESEARCH_FIELD_LABEL[f]}</option>)}
                     </select>
-                    <label htmlFor="co-org-kind" className="s-micro block mb-1.5 mt-4">Company or institution *</label>
-                    <select id="co-org-kind" value={orgKind} onChange={(e) => setOrgKind(e.target.value as "independent" | "company")} required className={field} style={orgKind === "company" ? undefined : { marginBottom: 0 }}>
-                      <option value="independent">{INDEPENDENT_ORG}</option>
-                      <option value="company">A company or institution</option>
-                    </select>
-                    {orgKind === "company" && <>
-                      <label htmlFor="co-org" className="s-micro block mb-1.5">Company or institution name *</label>
+                    {!independent && <>
+                      <label htmlFor="co-org" className="s-micro block mb-1.5 mt-4">Company or institution *</label>
                       <input id="co-org" value={orgName} onChange={(e) => setOrgName(e.target.value)} maxLength={RESEARCH_ORG_MAX} required autoComplete="organization" className={field} style={{ marginBottom: 0 }} />
                     </>}
                   </div>
