@@ -18,7 +18,7 @@ import HumanCheck from "@/components/account/HumanCheck";
 import TrustRow, { ICONS } from "@/components/store/TrustRow";
 import { CLASS_COLOR } from "@/lib/class-colors";
 import { PROTECTION_DECLINED_NOTICE, PROTECTION_DEFAULT, PROTECTION_LABEL, PROTECTION_OFFER, PROTECTION_PRICE_TEXT } from "@/lib/shipping-protection";
-import { DEFAULT_RESEARCH_FIELD, RESEARCH_FIELDS, RESEARCH_FIELD_LABEL, type ResearchField } from "@/lib/account/research";
+import { DEFAULT_RESEARCH_FIELD, INDEPENDENT_ORG, RESEARCH_FIELDS, RESEARCH_FIELD_LABEL, RESEARCH_ORG_MAX, type ResearchField } from "@/lib/account/research";
 
 const field = "w-full border border-[color:var(--ink)] bg-[color:var(--paper)] px-3.5 py-3 text-sm mb-4";
 const smallBtn: React.CSSProperties = { padding: "7px 13px", font: "12px Georgia,serif", letterSpacing: ".06em", textTransform: "uppercase", border: "1px solid var(--ink)", background: "transparent", color: "var(--ink)" };
@@ -45,6 +45,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const [codeMsg, setCodeMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [useCredit, setUseCredit] = useState(creditBalanceCents > 0);
   const [ruo, setRuo] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false);
   // Shipping protection: ticked by default; unticking it declines, and the decline notice shows.
   const [protection, setProtection] = useState(PROTECTION_DEFAULT);
   const [busy, setBusy] = useState(false);
@@ -56,6 +57,9 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const verified = !!humanToken;
   // Research verification, asked once on the first order.
   const [researchField, setResearchField] = useState<ResearchField>(DEFAULT_RESEARCH_FIELD);
+  // Company or institution: starts on Independent Researcher; "company" opens a name box.
+  const [orgKind, setOrgKind] = useState<"independent" | "company">("independent");
+  const [orgName, setOrgName] = useState("");
   const set = (k: keyof typeof addr) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr({ ...addr, [k]: e.target.value });
 
   const base = useMemo(() => priceOrder(lines, catalog, { protection }), [lines, catalog, protection]);
@@ -107,9 +111,9 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
       // A code typed but never explicitly applied is still sent — the server
       // either applies it or refuses it with a reason; it's never silently dropped.
       const r = await startCheckoutAction({
-        lines, ship: addr, ruoConfirmed: ruo, protection, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit,
+        lines, ship: addr, ruoConfirmed: ruo, termsAgreed, protection, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit,
         humanToken: humanToken ?? undefined,
-        research: needsResearch ? { field: researchField } : undefined,
+        research: needsResearch ? { field: researchField, org: orgKind === "company" ? orgName.trim() : INDEPENDENT_ORG } : undefined,
       });
       if (r.url) { leaving = true; window.location.assign(r.url); return; }
       setError(r.error ?? "Something went wrong — please try again.");
@@ -181,6 +185,15 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
                     <select id="co-field" value={researchField} onChange={(e) => setResearchField(e.target.value as ResearchField)} required className={field} style={{ marginBottom: 0 }}>
                       {RESEARCH_FIELDS.map((f) => <option key={f} value={f}>{RESEARCH_FIELD_LABEL[f]}</option>)}
                     </select>
+                    <label htmlFor="co-org-kind" className="s-micro block mb-1.5 mt-4">Company or institution *</label>
+                    <select id="co-org-kind" value={orgKind} onChange={(e) => setOrgKind(e.target.value as "independent" | "company")} required className={field} style={orgKind === "company" ? undefined : { marginBottom: 0 }}>
+                      <option value="independent">{INDEPENDENT_ORG}</option>
+                      <option value="company">A company or institution</option>
+                    </select>
+                    {orgKind === "company" && <>
+                      <label htmlFor="co-org" className="s-micro block mb-1.5">Company or institution name *</label>
+                      <input id="co-org" value={orgName} onChange={(e) => setOrgName(e.target.value)} maxLength={RESEARCH_ORG_MAX} required autoComplete="organization" className={field} style={{ marginBottom: 0 }} />
+                    </>}
                   </div>
                 </div>
               )}
@@ -265,7 +278,9 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
                   <span>Apply store credit <span className="text-[color:var(--ink-soft)]">(balance {usd(creditBalanceCents)})</span> — held when you continue to payment, returned automatically if it isn&apos;t completed.</span></label>
               )}
               {verified && error && <p role="alert" className="mt-3 text-sm text-[color:var(--specimen)]">{error}</p>}
-              <button type="submit" className="s-atc" disabled={!verified || !ruo || busy || priced.items.length === 0 || allRejected.length > 0 || codeNote?.tone === "bad"}>
+              <label className="s-chk mt-3"><input type="checkbox" checked={termsAgreed} onChange={(e) => setTermsAgreed(e.target.checked)} />
+                <span>I agree to the <Link href="/terms" className="p-link" target="_blank">Terms of Service</Link>, including the <Link href="/terms#ach" className="p-link" target="_blank">ACH debit authorization</Link> for bank payments.</span></label>
+              <button type="submit" className="s-atc" disabled={!verified || !ruo || !termsAgreed || busy || priced.items.length === 0 || allRejected.length > 0 || codeNote?.tone === "bad"}>
                 {busy ? "Starting secure payment…" : "Continue to secure payment →"}
               </button>
             </div>

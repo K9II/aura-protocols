@@ -69,6 +69,7 @@ const input = {
   lines: [{ slug: "bpc-157", variantId: "5mg", packQty: 1, quantity: 1 }],
   ship: { name: "Jane", line1: "1 A St", line2: "", city: "Austin", state: "TX", zip: "78701" },
   ruoConfirmed: true,
+  termsAgreed: true,
   protection: true,
   humanToken: "tok",
 };
@@ -128,8 +129,11 @@ describe("startCheckoutAction", () => {
     expect(createPendingOrder).not.toHaveBeenCalled();
     expect((await startCheckoutAction({ ...input, research: { field: "astrology", org: "X" } })).error).toBeTruthy();
     expect(createPendingOrder).not.toHaveBeenCalled();
-    expect(await startCheckoutAction({ ...input, research: { field: "independent" } })).toEqual({ url: "https://checkout.stripe.com/x" });
-    expect(saveResearchVerification).toHaveBeenCalledWith("u1", { field: "independent" }); // no company asked at checkout
+    expect((await startCheckoutAction({ ...input, research: { field: "independent" } })).error).toBeTruthy(); // company is required
+    expect((await startCheckoutAction({ ...input, research: { field: "independent", org: "  " } })).error).toBeTruthy();
+    expect(createPendingOrder).not.toHaveBeenCalled();
+    expect(await startCheckoutAction({ ...input, research: { field: "independent", org: "Independent Researcher" } })).toEqual({ url: "https://checkout.stripe.com/x" });
+    expect(saveResearchVerification).toHaveBeenCalledWith("u1", { field: "independent", org: "Independent Researcher" });
     expect(saveResearchVerification.mock.invocationCallOrder[0]).toBeLessThan(createPendingOrder.mock.invocationCallOrder[0]);
   });
 
@@ -162,6 +166,15 @@ describe("startCheckoutAction", () => {
     getCustomer.mockResolvedValue(customer);
     const { startCheckoutAction } = await import("@/app/checkout/actions");
     expect((await startCheckoutAction({ ...input, ruoConfirmed: false })).error).toBeTruthy();
+    expect(createPendingOrder).not.toHaveBeenCalled();
+  });
+
+  it("requires the Terms agreement (incl. the ACH debit authorization)", async () => {
+    getCustomer.mockResolvedValue(customer);
+    const { startCheckoutAction } = await import("@/app/checkout/actions");
+    expect((await startCheckoutAction({ ...input, termsAgreed: false })).error).toMatch(/Terms agreement/);
+    const noTerms = { ...input, termsAgreed: undefined };
+    expect((await startCheckoutAction(noTerms)).error).toBeTruthy();
     expect(createPendingOrder).not.toHaveBeenCalled();
   });
 
