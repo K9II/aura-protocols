@@ -75,6 +75,8 @@ describe("/ (home)", () => {
     const strip = screen.getByRole("region", { name: /scan the vial/i });
     expect([...strip.querySelectorAll(".s-scan-seven li")].map((li) => li.textContent)).toEqual(["Identity", "Purity", "Quantity", "Endotoxin", "Sterility", "Heavy metals", "Fentanyl"]);
     expect(strip).toHaveTextContent("Newest lot");
+    // the label prints the QR code first, LOT under it (lib/vial-label.ts)
+    expect(strip).toHaveTextContent("It's printed on every vial, above the lot number.");
   });
 
   it("rings the sphere with real lots selling now, and never example lots before the first release", async () => {
