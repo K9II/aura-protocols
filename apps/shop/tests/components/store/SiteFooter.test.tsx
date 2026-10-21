@@ -9,6 +9,11 @@ describe("SiteFooter", () => {
     expect(screen.getByText(/All products sold on this website are intended for research and identification purposes only\. They are not intended for human or animal use of any kind, including ingestion\./)).toBeInTheDocument();
   });
 
+  it("says up to a seven-point panel, never that every lot gets all seven (2026-10-20)", () => {
+    render(<SiteFooter catalog={liveFixture()} />);
+    expect(screen.getByText(/each lot put through up to a seven-point panel\. Testing includes ISO\/IEC 17025-accredited US lab\./)).toBeInTheDocument();
+  });
+
   it("lists only All compounds and Blends under Shop", () => {
     render(<SiteFooter catalog={liveFixture()} />);
     const shop = screen.getByText("Shop").nextElementSibling as HTMLElement;

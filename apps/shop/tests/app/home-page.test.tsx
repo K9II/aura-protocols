@@ -49,15 +49,20 @@ describe("/ (home)", () => {
     expect(within(card).getByRole("link", { name: /open/i })).toHaveAttribute("href", "/coa/MOT-2611-02");
   });
 
-  it("desktop: the scan strip right under the hero, the lab's copy verifying all seven tests; the lot card is phones-only", async () => {
+  // SEVEN_TEST_PANEL off (2026-10-20): range lots get Vanguard Gold, so the lab's copy shows the
+  // lot's own match (lot, purity, tested) instead of seven ticks.
+  it("desktop: the scan strip right under the hero, the lab's copy matching the lot; the lot card is phones-only", async () => {
     const lots = [{ slug: "mots-c", compoundName: "MOTS-c", variantId: "10mg", strength: "10 mg", lot: "MOT-2611-02", purityPct: 99.5, method: "HPLC+MS", testedOn: "2026-11-08", coaFile: "/c.pdf", status: "live", liveAt: "2026-11-09T10:00:00Z", onStore: true }];
     live.mockResolvedValue({ all: liveFixture(), shown: liveFixture(), lots, certificates: [] });
     await renderHome();
     const strip = screen.getByRole("region", { name: /scan the vial/i });
     expect(document.querySelector(".s-hero-band")!.compareDocumentPosition(strip) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(strip.compareDocumentPosition(lineupIn("desk")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect([...strip.querySelectorAll(".s-scan-seven li")].map((li) => li.textContent)).toEqual(["Identity", "Purity", "Quantity", "Endotoxin", "Sterility", "Heavy metals", "Fentanyl"]);
-    expect(strip).not.toHaveTextContent(/not tested|not recorded/i);
+    expect(strip.querySelector(".s-scan-seven")).toBeNull();
+    const lab = strip.querySelector(".s-scan-lab")!;
+    expect(lab).toHaveTextContent("MOT-2611-02");
+    expect(lab).toHaveTextContent("99.5%");
+    expect(strip).not.toHaveTextContent(/not recorded/i);
     expect(document.querySelector(".s-proof")!.closest(".s-proof-phone-only")).not.toBeNull();
   });
 
