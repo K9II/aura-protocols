@@ -7,6 +7,7 @@ import {
   CanvasTexture, CylinderGeometry, Group, LatheGeometry, Mesh, OrthographicCamera, Scene,
   ShaderMaterial, Vector2, Vector4, WebGLRenderer, type IUniform,
 } from "three";
+import { VIAL_LINE_MAX } from "@/lib/constants";
 import { EXAMPLE_UPC_BARS, EXAMPLE_UPC_DIGITS, LABEL, MAX_DPR, VIAL_LABEL_HEIGHT, VIAL_LABEL_RADIUS } from "@/lib/vial-label";
 
 export type VialLabelInput = {
@@ -47,7 +48,9 @@ function drawLabel(ctx: CanvasRenderingContext2D, k: number, p: VialLabelInput, 
   ctx.fillStyle = "#4A4438"; ctx.font = `500 6.6px ${f.serif}`; ctx.textAlign = "center"; ctx.fillText("Protocols", 58, 98); ctx.textAlign = "left";
   ctx.fillStyle = "#C9C2AE"; ctx.fillRect(26, 102.6, 68, 0.8); ctx.fillRect(26, 132.6, 68, 0.8);
   if (p.label2) {
-    ctx.fillStyle = "#1C1A15"; ctx.font = `600 9.6px ${f.serif}`; ctx.fillText(p.label, 26, 113); ctx.fillText(p.label2, 26, 122.4);
+    // as Vial.tsx: a line past VIAL_LINE_MAX ("BPC-157 · TB-500") drops to 6.9
+    const small = Math.max(p.label.length, p.label2.length) > VIAL_LINE_MAX;
+    ctx.fillStyle = "#1C1A15"; ctx.font = `600 ${small ? 6.9 : 9.6}px ${f.serif}`; ctx.fillText(p.label, 26, small ? 113.4 : 113); ctx.fillText(p.label2, 26, small ? 122 : 122.4);
     ctx.fillStyle = "#A32B1F"; ctx.font = `7.4px ${f.sans}`; ctx.fillText(p.strength, 26, 130.6);
   } else {
     ctx.fillStyle = "#1C1A15"; ctx.font = `600 ${nameSize}px ${f.serif}`; ctx.fillText(p.label, 26, 117);
@@ -57,8 +60,11 @@ function drawLabel(ctx: CanvasRenderingContext2D, k: number, p: VialLabelInput, 
     ctx.fillStyle = "#1C1A15"; ctx.font = `4.8px ${f.mono}`; p.parts.slice(0, 2).forEach((t, i) => ctx.fillText(t, 26, 140 + i * 5.6));
     ctx.fillStyle = "#4A4438"; ctx.font = `5px ${f.mono}`; ctx.fillText("RESEARCH USE ONLY", 26, 151.6); ctx.fillText("NOT FOR HUMAN USE", 26, 157.4);
   } else {
-    ctx.fillStyle = p.parts.length ? "#1C1A15" : "#4A4438"; ctx.font = `5.4px ${f.mono}`; ctx.fillText(p.parts[0] ?? "LYOPHILIZED", 26, 141.5);
-    ctx.fillStyle = "#4A4438"; ctx.fillText("RESEARCH USE ONLY", 26, 148.5); ctx.fillText("NOT FOR HUMAN USE", 26, 155.5);
+    // a blend's nickname in ink, weight 500, a little wider (as Vial.tsx); LYOPHILIZED otherwise
+    ctx.fillStyle = p.parts.length ? "#1C1A15" : "#4A4438"; ctx.font = `${p.parts.length ? "500 " : ""}5.4px ${f.mono}`;
+    if (p.parts.length) ctx.letterSpacing = "0.8px";
+    ctx.fillText(p.parts[0] ?? "LYOPHILIZED", 26, 141.5); ctx.letterSpacing = "0px";
+    ctx.font = `5.4px ${f.mono}`; ctx.fillStyle = "#4A4438"; ctx.fillText("RESEARCH USE ONLY", 26, 148.5); ctx.fillText("NOT FOR HUMAN USE", 26, 155.5);
   }
   ctx.restore();
 

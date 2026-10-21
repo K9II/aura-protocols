@@ -1,3 +1,4 @@
+import { VIAL_LINE_MAX } from "@/lib/constants";
 import { useId } from "react";
 import type { KitArt } from "@/lib/wholesale/rules";
 
@@ -24,6 +25,10 @@ export default function KitBox({ title, strength, art, width }: {
   const boxName = title.length > 16 ? art.vialLabel : title;
   const nameSize = boxName.length > 12 ? 11 : 13;
   const vialSize = art.vialLabel.length > 9 ? 10.5 : art.vialLabel.length > 7 ? 12.5 : 14;
+  // The vial in the box matches the store vial: a blend's scientific name on two lines (a size
+  // smaller past VIAL_LINE_MAX) and its nickname in the small print (2026-10-20). The box lid keeps the nickname.
+  const two = art.vialLines?.length === 2 ? art.vialLines : null;
+  const twoSmall = !!two && Math.max(two[0].length, two[1].length) > VIAL_LINE_MAX;
   const c = CAPS[art.cap];
   return (
     <svg width={width} height={(width * 150) / 200} viewBox="0 0 200 150" role="img" aria-label={`${title} ${strength} kit of 10 vials`}>
@@ -75,9 +80,16 @@ export default function KitBox({ title, strength, art, width }: {
         <text x="43" y="89.5" fontFamily={SERIF} fontSize="22" fontWeight="500" fill="#A32B1F">ura</text>
         <text x="58" y="98" fontFamily={SERIF} fontSize="6.6" fontWeight="500" fill="#4A4438" textAnchor="middle">Protocols</text>
         <line x1="26" y1="103" x2="94" y2="103" stroke="#C9C2AE" strokeWidth=".8" />
-        <text x="26" y="117" fontFamily={SERIF} fontSize={vialSize} fontWeight="600" fill="#1C1A15">{art.vialLabel}</text>
-        <text x="26" y="127" fontFamily={SANS} fontSize="8.5" fill="#A32B1F">{strength}</text>
+        {two ? <>
+          <text x="26" y={twoSmall ? 113.4 : 113} fontFamily={SERIF} fontSize={twoSmall ? 6.9 : 9.6} fontWeight="600" fill="#1C1A15">{two[0]}</text>
+          <text x="26" y={twoSmall ? 122 : 122.4} fontFamily={SERIF} fontSize={twoSmall ? 6.9 : 9.6} fontWeight="600" fill="#1C1A15">{two[1]}</text>
+          <text x="26" y="130.6" fontFamily={SANS} fontSize="7.4" fill="#A32B1F">{strength}</text>
+        </> : <>
+          <text x="26" y="117" fontFamily={SERIF} fontSize={vialSize} fontWeight="600" fill="#1C1A15">{art.vialLabel}</text>
+          <text x="26" y="127" fontFamily={SANS} fontSize="8.5" fill="#A32B1F">{strength}</text>
+        </>}
         <line x1="26" y1="133" x2="94" y2="133" stroke="#C9C2AE" strokeWidth=".8" />
+        {art.parts?.length === 1 && <text x="26" y="141.5" fontFamily={MONO} fontSize="5.4" fontWeight="500" letterSpacing=".8" fill="#1C1A15">{art.parts[0]}</text>}
         <text x="26" y="148.5" fontFamily={MONO} fontSize="5.4" fill="#4A4438">RESEARCH USE ONLY</text>
         <rect x="25.5" y="56" width="2.6" height="134" rx="1.3" fill="#fff" opacity=".45" />
         <rect x="38" y="38" width="44" height="8" fill={`url(#g${id})`} stroke="#9aa6ad" strokeOpacity=".5" strokeWidth=".6" />

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NameParts from "@/components/store/NameParts";
 import ProofLead from "@/components/store/ProofLead";
 import VialTurn from "@/components/store/VialTurn";
 import type { Compound } from "@/data/catalog";
@@ -35,7 +36,7 @@ export default function LotProof({ lot, compound, certs }: { lot: PublicLot; com
         <div className="s-proof-cert">
           <div className="s-proof-ch">
             <span className="s-proof-k">Lot {lot.lot}<span className="s-proof-dk"> · newest</span></span>
-            <span className="s-proof-n">{compound.name} <small>{lot.strength}</small></span>
+            <span className="s-proof-n"><NameParts name={compound.name} /> <small>{lot.strength}</small></span>
           </div>
           <div className="s-proof-nums">
             <div><b>{lot.purityPct}%</b><span>Purity<span className="s-proof-dk"> · {lot.method}</span></span></div>

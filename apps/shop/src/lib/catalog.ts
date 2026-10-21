@@ -1,5 +1,6 @@
 // RELATIVE IMPORTS ONLY (reachable from next.config.ts).
 import { CHEMICAL_CLASSES, catalogContent } from "../data/catalog";
+import { VIAL_LINE_MAX } from "./constants";
 import type { ChemicalClass, Compound, Lot, PendingLot } from "../data/catalog";
 
 // The catalog is always a parameter: storefront callers pass the live
@@ -118,10 +119,21 @@ export function vialLabel(c: { name: string; designation?: string | null }): str
 // The name as printed on the vial: one line, or two for a two-component blend
 // without a nickname ("Retatrutide /" over "Cagrilintide", Alvester 2026-10-15,
 // option A) so its full scientific name shows instead of "Retatrutide +".
-export const VIAL_LINE_MAX = 14; // "Cagrilintide /" at the two-line size, measured 2026-10-15
+// A nicknamed blend leads with its scientific name too (Alvester 2026-10-20, mock
+// https://claude.ai/artifact/5Jztza1ZdMz4z1pz5GWGV3): two components "BPC-157 /" over
+// "TB-500"; three or four two per line, "BPC-157 · TB-500" over "GHK-Cu · KPV" (Vial draws
+// a line longer than VIAL_LINE_MAX a size smaller). The nickname moves to the small print (vialParts).
+// VIAL_LINE_MAX lives in lib/constants.ts (the vial reads it without pulling in the catalog).
+export { VIAL_LINE_MAX };
 export function vialName(c: { name: string; designation?: string | null }): [string] | [string, string] {
+  if (c.designation) {
+    const parts = c.name.replace(/\s*\([^)]*\)\s*$/, "").split(" / ");
+    if (parts.length === 2) return [`${parts[0]}\u00a0/`, parts[1]];
+    if (parts.length === 3 || parts.length === 4) return [parts.slice(0, 2).join(" · "), parts.slice(2).join(" · ")];
+    return [c.designation];
+  }
   const one = vialLabel(c);
-  if (c.designation || !one.endsWith(" +")) return [one];
+  if (!one.endsWith(" +")) return [one];
   const parts = c.name.replace(/\s*\([^)]*\)\s*$/, "").split(" / ");
   // A no-break space keeps the "/" on the first line when a narrow placard wraps.
   const lines: [string, string] = [`${parts[0]}\u00a0/`, parts[1]];
@@ -129,14 +141,18 @@ export function vialName(c: { name: string; designation?: string | null }): [str
   return lines;
 }
 
-// The small type under a blend's nickname on the vial: its components, two per
-// line ("BPC-157 · TB-500" / "GHK-Cu · KPV"). Nothing for anything else.
+// A vial name with a line past VIAL_LINE_MAX ("BPC-157 · TB-500"): the vial draws it a size
+// smaller, and so do the placards beside it (.s-name-long).
+export function vialNameLong(c: { name: string; designation?: string | null }): boolean {
+  return vialName(c).some((l) => l.length > VIAL_LINE_MAX);
+}
+
+// The small type on a nicknamed blend's vial, under its scientific name: the nickname in
+// capitals ("WOLVERINE"), where LYOPHILIZED is on every other vial (2026-10-20). Nothing for
+// anything else.
 export function vialParts(c: { designation?: string | null; components?: string[] }): string[] {
   if (!c.designation || !c.components?.length) return [];
-  const names = c.components.map((slug) => (catalogContent.find((o) => o.slug === slug)?.name ?? slug).replace(/\s*\([^)]*\)\s*$/, ""));
-  const lines: string[] = [];
-  for (let i = 0; i < names.length; i += 2) lines.push(names.slice(i, i + 2).join(" · "));
-  return lines;
+  return [c.designation.toUpperCase()];
 }
 
 // Cap colors rotate through the content catalog for variety; a compound keeps
