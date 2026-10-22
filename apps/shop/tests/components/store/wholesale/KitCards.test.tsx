@@ -18,6 +18,22 @@ describe("KitCards (wholesale option C)", () => {
     expect(container.textContent).not.toMatch(/\$/);
   });
 
+  it("a blend's kit art: the carton carries its nickname, the vial in front its scientific name in the class colour", () => {
+    const glow: KitSheetRow = {
+      slug: "glow", name: "BPC-157 / TB-500 / GHK-Cu", designation: "GLOW", chemicalClass: "Blends", variantId: "70mg", strength: "70 mg", priceUsd: 99,
+      art: { cap: "black", vialLabel: "GLOW", vialLines: ["BPC-157 · TB-500", "GHK-Cu"], parts: ["GLOW"] },
+    };
+    const { container } = render(<KitCards rows={[glow]} tiers={TIERS} />);
+    const art = screen.getByRole("img", { name: "GLOW 70 mg kit of 10 vials" });
+    const carton = art.querySelector(".s-kc-carton")!;
+    const vial = art.querySelector(".s-kc-vial")!;
+    expect(carton.textContent).toContain("GLOW");
+    expect(carton.textContent).not.toContain("GHK-Cu");
+    const lines = [...vial.querySelectorAll("text")].map((t) => t.textContent);
+    expect(lines).toEqual(expect.arrayContaining(["BPC-157 · TB-500", "GHK-Cu"]));
+    expect(container.querySelector(".s-kc-card")!.getAttribute("style")).toContain("--cls");
+  });
+
   it("class pills filter the cards; All brings them back", () => {
     const { container } = render(<KitCards rows={ROWS} tiers={TIERS} />);
     fireEvent.click(screen.getByRole("button", { name: "Peptide Fragments" }));

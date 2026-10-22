@@ -47,7 +47,7 @@ export default function KitCards({ rows, tiers, seeAllHref }: { rows: KitSheetRo
           const t = kitTitle(r);
           const body = (
             <>
-              <div className="s-kc-tile"><KitBox title={t.title} strength={r.strength} art={r.art} width={220} /></div>
+              <div className="s-kc-tile"><KitBox id={`kc-${r.slug}-${r.variantId}`} title={t.title} strength={r.strength} art={r.art} rule={color(r.chemicalClass)} /></div>
               <div className="s-kc-tag">
                 <span className="s-kc-c">{r.chemicalClass}</span>
                 <span className="s-kc-nm">{t.title}{t.scientific ? ` (${t.scientific})` : ""}</span>
