@@ -45,6 +45,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
   const [codeMsg, setCodeMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [useCredit, setUseCredit] = useState(creditBalanceCents > 0);
   const [ruo, setRuo] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false);
   // Shipping protection: ticked by default; unticking it declines, and the decline notice shows.
   const [protection, setProtection] = useState(PROTECTION_DEFAULT);
   const [busy, setBusy] = useState(false);
@@ -107,7 +108,7 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
       // A code typed but never explicitly applied is still sent — the server
       // either applies it or refuses it with a reason; it's never silently dropped.
       const r = await startCheckoutAction({
-        lines, ship: addr, ruoConfirmed: ruo, protection, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit,
+        lines, ship: addr, ruoConfirmed: ruo, termsAgreed, protection, partnerCode: appliedCode ?? (codeInput.trim() || undefined), useCredit,
         humanToken: humanToken ?? undefined,
         research: needsResearch ? { field: researchField } : undefined,
       });
@@ -265,7 +266,9 @@ export default function CheckoutForm({ email, ship, initialCode, creditBalanceCe
                   <span>Apply store credit <span className="text-[color:var(--ink-soft)]">(balance {usd(creditBalanceCents)})</span> — held when you continue to payment, returned automatically if it isn&apos;t completed.</span></label>
               )}
               {verified && error && <p role="alert" className="mt-3 text-sm text-[color:var(--specimen)]">{error}</p>}
-              <button type="submit" className="s-atc" disabled={!verified || !ruo || busy || priced.items.length === 0 || allRejected.length > 0 || codeNote?.tone === "bad"}>
+              <label className="s-chk mt-3"><input type="checkbox" checked={termsAgreed} onChange={(e) => setTermsAgreed(e.target.checked)} />
+                <span>I agree to the <Link href="/terms" className="p-link" target="_blank">Terms of Service</Link>, including the <Link href="/terms#ach" className="p-link" target="_blank">ACH debit authorization</Link> for bank payments.</span></label>
+              <button type="submit" className="s-atc" disabled={!verified || !ruo || !termsAgreed || busy || priced.items.length === 0 || allRejected.length > 0 || codeNote?.tone === "bad"}>
                 {busy ? "Starting secure payment…" : "Continue to secure payment →"}
               </button>
             </div>

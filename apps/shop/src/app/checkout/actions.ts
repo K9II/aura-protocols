@@ -43,6 +43,7 @@ const schema = z.object({
   })).min(1).max(50),
   ship: shipAddressSchema,
   ruoConfirmed: z.literal(true),
+  termsAgreed: z.literal(true), // Terms incl. the ACH debit authorization, ticked just before payment (processor rule)
   protection: z.boolean(), // optional shipping protection; false = declined, with the notice shown
   partnerCode: z.string().max(40).optional(),
   useCredit: z.boolean().optional(),
@@ -123,7 +124,7 @@ export async function startCheckoutAction(input: unknown): Promise<StartCheckout
   if (!customer.emailConfirmed) return { error: "Please verify your email first — check your inbox for the link." };
 
   const parsed = schema.safeParse(input);
-  if (!parsed.success) return { error: "Please complete the shipping address, your research details and the research-use confirmation." };
+  if (!parsed.success) return { error: "Please complete the shipping address, your research details, the research-use confirmation and the Terms agreement." };
   const { lines, ship, partnerCode, useCredit, humanToken, research, protection } = parsed.data;
 
   // The human check (Cloudflare Turnstile) comes before any work: no code

@@ -1,6 +1,6 @@
 // Client-safe gate constants. Bump TERMS_VERSION whenever Terms, the Refund &
 // Dispute Policy, or the sign-up agreement wording changes.
-export const TERMS_VERSION = "2026-10-13";
+export const TERMS_VERSION = "2026-10-20";
 
 // No gate on the legal pages the sign-up agreement links to, the pages a
 // visitor needs to get into an account or to reach us, or pages landed on

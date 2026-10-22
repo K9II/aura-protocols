@@ -21,9 +21,9 @@ function expectNoLegacyReturns(text: string) {
 }
 
 describe("/terms", () => {
-  it("has the ten sections in order", () => {
+  it("has the eleven sections in order", () => {
     const { ids } = renderPolicy(<TermsPage />);
-    expect(ids).toEqual(["research-use", "eligibility", "accounts", "orders", "finality", "restrictions", "liability", "site-use", "privacy", "law"]);
+    expect(ids).toEqual(["research-use", "eligibility", "accounts", "orders", "ach", "finality", "restrictions", "liability", "site-use", "privacy", "law"]);
   });
 
   it("states order finality, buyer representations and the pending governing state", () => {

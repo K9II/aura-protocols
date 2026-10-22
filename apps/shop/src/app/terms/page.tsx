@@ -13,7 +13,7 @@ export default function TermsPage() {
     <PolicyPage
       policy="terms"
       title={<>Terms of <em>Service.</em></>}
-      updated="October 13, 2026"
+      updated="October 20, 2026"
       summary={{
         headline: <>Research use only. Cancel any time before your order ships &mdash; once it ships, the sale is final.</>,
         detail: <>Lost or damaged in transit? Orders with shipping protection get a replacement; report damage with photos within {DAMAGE_REPORT_HOURS} hours of delivery. Unprotected orders travel at your risk.</>,
@@ -36,6 +36,11 @@ export default function TermsPage() {
         { id: "orders", heading: "Orders, pricing, and payment", body: (<>
           <p>Prices are in US dollars and may change without notice. Payment is taken when you place an order, and the total &mdash; including shipping and any shipping protection you choose &mdash; is shown before you pay. We may correct pricing or listing errors and cancel any affected order with a full refund.</p>
           <p><b>Discounts.</b> Each order takes one discount code. Pack pricing, account offers, partner codes and discount codes combine only up to a store-wide maximum percentage of list price; the current maximum and your exact discount are shown at checkout before you pay. A code that would take an order past that maximum applies only up to it. Promotions may change or end at any time, have no cash value, and can&apos;t be applied to past orders.</p>
+        </>) },
+        { id: "ach", heading: "ACH and e-Check payments", body: (<>
+          <p>All ACH and e-Check payments are made payable to <b>Aura Protocols LLC</b>.</p>
+          <p><b>ACH debit authorization for order payment.</b> Each time you place an ACH/e-Check order by clicking the button that places the order, you authorize Aura Protocols LLC to initiate a single ACH/electronic debit to your account, in the amount of your order, from the bank account information you provide on the date of your order. You agree that ACH transactions you authorize comply with all applicable law. Payments made after 2 PM Eastern time are applied as of the next business day. Once payment is authorized, it cannot be changed or corrected. We recommend that you print a copy of this authorization and keep it for your records.</p>
+          <p><b>ACH debit/credit authorization for account-validation micro-entries.</b> Each time you place an ACH/e-Check order by clicking the button that places the order, you authorize Aura Protocols LLC to initiate a one-time ACH/electronic debit and/or credit entry to your account for a micro amount (less than $1) to validate the bank account information you provide on the date of your order. You also authorize Aura Protocols LLC to initiate an ACH credit to recover the amount of a micro-deposit. You agree that these ACH transactions comply with all applicable law. Once you click the button that places the order, this authorization cannot be revoked. Payments made after 2 PM Eastern time may receive account-validation micro-entries the next business day. We recommend that you print a copy of this authorization and keep it for your records.</p>
         </>) },
         { id: "finality", heading: "Cancellations and order finality", body: (
           <p>You may cancel for a full refund at any time until your order ships. Once an order has shipped it cannot be cancelled, returned, or refunded. Loss or damage in transit is covered only for orders with shipping protection; for orders without it, risk of loss passes to you when the package is handed to the carrier, as set out in our <Link href="/refund-policy#transit-loss" className="p-link">Refund &amp; Dispute Policy</Link>.</p>
