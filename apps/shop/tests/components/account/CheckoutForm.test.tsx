@@ -119,18 +119,29 @@ describe("CheckoutForm", () => {
     expect(screen.getByRole("group", { name: /order details/i })).toBeDisabled();
   });
 
-  it("first order: research box defaults to Independent Researcher, asks no company, and sends the field", async () => {
+  it("first order: Independent Researcher (the default) asks no company and sends it as the company", async () => {
     const { container } = renderForm({ needsResearch: true });
     expect(screen.getByLabelText(/field of qualified research/i)).toHaveValue("independent");
     expect(screen.queryByLabelText(/company or institution/i)).toBeNull();
     expect(screen.getByText(/one time only/i)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText(/field of qualified research/i), { target: { value: "pharmacology" } });
-    expect(screen.queryByLabelText(/company or institution/i)).toBeNull(); // no field asks for a company
     fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
     fireEvent.click(screen.getByRole("checkbox", { name: /agree to the terms of service/i }));
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(startCheckoutAction).toHaveBeenCalled());
-    expect(startCheckoutAction.mock.calls[0][0]).toEqual(expect.objectContaining({ research: { field: "pharmacology" } }));
+    expect(startCheckoutAction.mock.calls[0][0]).toEqual(expect.objectContaining({ research: { field: "independent", org: "Independent Researcher" } }));
+  });
+
+  it("first order: any other field opens a required company box and sends the name", async () => {
+    const { container } = renderForm({ needsResearch: true });
+    fireEvent.change(screen.getByLabelText(/field of qualified research/i), { target: { value: "pharmacology" } });
+    const name = screen.getByLabelText(/company or institution/i);
+    expect(name).toBeRequired();
+    fireEvent.change(name, { target: { value: "  Halden Labs " } });
+    fireEvent.click(screen.getByRole("checkbox", { name: /research use only/i }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /agree to the terms of service/i }));
+    fireEvent.submit(container.querySelector("form")!);
+    await waitFor(() => expect(startCheckoutAction).toHaveBeenCalled());
+    expect(startCheckoutAction.mock.calls[0][0]).toEqual(expect.objectContaining({ research: { field: "pharmacology", org: "Halden Labs" } }));
   });
 
   it("the pay button waits for the Terms box (incl. the ACH authorization), which links to the Terms", () => {
