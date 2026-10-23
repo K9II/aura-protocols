@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PHOTO_VIALS, photoVial } from "@/lib/email/photo-vials";
-import { brandEmail, vialBlock, para, inviteBox, signOff, turningVialBlock, sticker, sampleCertificate, vialGrid, button } from "@/lib/email/frame";
+import { brandEmail, vialBlock, para, inviteBox, signOff, turningVialBlock, sticker, sampleCertificate, vialGrid, button, checkoutCard, panelBox, note } from "@/lib/email/frame";
 import { SAMPLE_PANEL } from "@/lib/coa/sample-panel";
 
 const site = "https://auraprotocols.com";
@@ -99,5 +99,29 @@ describe("pre-launch blocks", () => {
 
   it("button: a dark button to a page on the site", () => {
     expect(button(site, "Visit auraprotocols.com", "/")).toContain(`href="${site}/"`);
+  });
+
+  it("checkoutCard: GLOW at the given price, the code with Applied under it, the percent off rounded to the cent", () => {
+    const c = checkoutCard(site, { code: "EARLY-K7QM2P", priceCents: 2999 });
+    expect(c).toContain(`src="${site}/email/vials/glow.jpg"`);
+    expect(c).toContain("GLOW · 70 mg");
+    expect(c).toContain("$29.99");
+    expect(c).toContain("&minus;$7.50");
+    expect(c).toContain("$22.49");
+    expect(c).toMatch(/EARLY-K7QM2P<\/span><span[^>]*display:block[^>]*>&#10003; Applied/);
+    expect(c).toContain('class="ap-cocell"');
+  });
+
+  it("panelBox and note", () => {
+    expect(panelBox()).toContain("ten-point</em> panel");
+    expect(panelBox()).toContain("ISO/IEC 17025&#8209;accredited US lab");
+    expect(note("Small print")).toContain("font-size:14px");
+  });
+
+  it("brandEmail: an optional button under the intro, and the phone rules for the checkout card", () => {
+    const h = brandEmail(site, { preview: "p", kicker: "k", headline: "h", intro: "i", rows: "", footer, cta: { label: "Open my early access", url: `${site}/early?t=A.b` } });
+    expect(h).toContain(`href="${site}/early?t=A.b"`);
+    expect(h).toContain(".ap-cocell{display:block!important");
+    expect(brandEmail(site, { preview: "p", kicker: "k", headline: "h", intro: "i", rows: "", footer })).not.toContain("Open my early access");
   });
 });
