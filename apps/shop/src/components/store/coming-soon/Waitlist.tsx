@@ -65,22 +65,22 @@ function Box({ site, inCode, urlRef, notice }: { site: string; inCode: string | 
       try { await navigator.clipboard.writeText(url); setCopied(true); } catch { setCopied(false); }
     };
     const share = async () => {
-      try { await navigator.share({ title: "Aura Protocols", text: `I'm on the Aura Protocols waitlist. Join with my link and your first order is ${OFFER_PCT_TEXT} off:`, url }); } catch { /* closed the share sheet */ }
+      try { await navigator.share({ title: "Aura Protocols", text: "Aura Protocols publishes an independent lab certificate for every lot of its research compounds. Join the waitlist with my link:", url }); } catch { /* closed the share sheet */ }
     };
     return (
       <div className="cs-wl cs-wl--panel">
         <p className="s-micro cs-wl-k" style={{ color: "var(--tested)" }}>✓ You&apos;re on the list</p>
         <p className="cs-wl-h">See you at <em>opening.</em></p>
-        <p className="cs-p">We&apos;ll email your early-access link the day before we open. Share your link: every friend who places a first order earns you ${REFERRAL_CREDIT_DOLLARS} in store credit. No limit.</p>
+        <p className="cs-p">We&apos;ll email your early-access link the day before we open. Share your link with fellow researchers: every colleague who places a first order earns you ${REFERRAL_CREDIT_DOLLARS} in store credit. No limit.</p>
         <div className="cs-form">
           <input readOnly value={inviteLabel(site, inCode)} aria-label="Your invite link" onFocus={(e) => e.currentTarget.select()} />
           <button type="button" className="p-btn-primary" onClick={canShare ? share : copy}>{canShare ? "Share link" : copied ? "Copied ✓" : "Copy link"}</button>
         </div>
         {canShare && <button type="button" className="cs-reset" onClick={copy}>{copied ? "Copied ✓" : "Copy it instead"}</button>}
         <div className="cs-slots">
-          <div><b>0</b><span className="s-micro">Friends ordered</span></div><div><b>$0</b><span className="s-micro">Credit earned</span></div><div><b>${REFERRAL_CREDIT_DOLLARS}</b><span className="s-micro">Per friend</span></div>
+          <div><b>0</b><span className="s-micro">Colleagues ordered</span></div><div><b>$0</b><span className="s-micro">Credit earned</span></div><div><b>${REFERRAL_CREDIT_DOLLARS}</b><span className="s-micro">Per colleague</span></div>
         </div>
-        <p className="cs-fine">Your link is in your inbox too. Credit counts from launch day, when friends can order.</p>
+        <p className="cs-fine">Your link is in your inbox too. Credit counts from launch day, when colleagues can order.</p>
       </div>
     );
   }
@@ -104,7 +104,7 @@ function Box({ site, inCode, urlRef, notice }: { site: string; inCode: string | 
       <ul className="cs-perks">
         <li><b style={{ "--c": "#33467A" } as React.CSSProperties}>Early</b><span>Shop the day before we open to everyone.</span></li>
         <li><b style={{ "--c": "#A32B1F" } as React.CSSProperties}>{OFFER_PCT_TEXT} off</b><span>Your first order, applied automatically.</span></li>
-        <li><b style={{ "--c": "#2F6B3A" } as React.CSSProperties}>${REFERRAL_CREDIT_DOLLARS} each</b><span>Store credit for every friend who places an order. No limit.</span></li>
+        <li><b style={{ "--c": "#2F6B3A" } as React.CSSProperties}>${REFERRAL_CREDIT_DOLLARS} each</b><span>Store credit for every colleague who places an order. No limit.</span></li>
       </ul>
       <form className="cs-form" action={submit}>
         <input type="email" name="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@yourinstitution.org" aria-label="Email" autoComplete="email" />

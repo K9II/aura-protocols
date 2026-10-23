@@ -2539,18 +2539,20 @@ html { scroll-padding-top: 150px; }
 .pharmacopoeia .cs-step h3 { font: 400 21px var(--font-newsreader), Georgia, serif; margin: 8px 0 0; }
 .pharmacopoeia .cs-proof { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
 .pharmacopoeia .cs-bpc-row { margin-top: 18px; display: flex; align-items: flex-end; gap: 4px; }
-.pharmacopoeia .cs-bpc-tile { flex: 0 0 auto; width: 270px; background: var(--vial-tile); border: 1px solid var(--line); box-shadow: var(--vial-tile-shadow); padding: 22px 30px 16px; }
-.pharmacopoeia .cs-bpc-tile .s-pdp-vial { position: relative; right: auto; bottom: auto; width: 205px; margin: 0 auto; }
-.pharmacopoeia .cs-scan { color: var(--specimen); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 0 70px 6px; }
+.pharmacopoeia .cs-bpc-row .cs-bpc-tile { flex: 1 1 auto; width: 100%; max-width: 440px; order: 0; }
+/* Background C (2026-10-23): a soft tint of the compound's class colour, so the clear glass reads. */
+.pharmacopoeia .cs-bpc-row .cs-bpc-tile.s-pdp-tile { background: linear-gradient(165deg, color-mix(in srgb, var(--cls) 10%, #F7F2EC) 0%, color-mix(in srgb, var(--cls) 24%, #EFE6DE) 100%); }
+.pharmacopoeia .cs-bpc-row .cs-scan { order: 1; }
+.pharmacopoeia .cs-scan { flex: 0 0 auto; color: var(--specimen); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 0 90px 6px; }
 .pharmacopoeia .cs-scan span { font: italic 400 20px/1.2 var(--font-newsreader), Georgia, serif; color: var(--ink); }
 .pharmacopoeia .cs-scan em { color: var(--specimen); }
 .pharmacopoeia .cs-scan svg { width: 118px; height: auto; }
 @media (max-width: 900px) {
   .pharmacopoeia .cs-bpc-row { flex-direction: column; align-items: center; gap: 10px; }
+  .pharmacopoeia .cs-bpc-tile { max-width: 560px; }
   .pharmacopoeia .cs-scan { align-items: center; text-align: center; padding: 0; }
   .pharmacopoeia .cs-scan svg { width: 70px; transform: rotate(125deg); margin-top: 4px; }
 }
-@media (max-width: 380px) { .pharmacopoeia .cs-bpc-tile { width: 240px; padding: 18px 20px 14px; } .pharmacopoeia .cs-bpc-tile .s-pdp-vial { width: 190px; } }
 .pharmacopoeia .cs-coa { background: var(--label); border: 1px solid var(--line); border-top: 5px solid var(--tested); box-shadow: 0 1px 0 rgba(28,26,21,.05), 12px 16px 32px -16px rgba(28,26,21,.34); min-width: 0; }
 .pharmacopoeia .cs-coa-h { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--record); border-bottom: 1px solid var(--line); padding: 12px 16px; }
 .pharmacopoeia .cs-coa-h .s-micro { color: var(--ink-soft); }
@@ -2613,8 +2615,17 @@ html { scroll-padding-top: 150px; }
   .pharmacopoeia .cs-perks b { flex-basis: 76px; }
   .pharmacopoeia .cs-wl--panel { padding: 18px 14px; }
 }
+.pharmacopoeia .cs-bar { position: relative; z-index: 5; background: linear-gradient(180deg, rgba(255,253,248,.96), rgba(246,242,233,.92)); border-bottom: 1px solid var(--line); box-shadow: 0 8px 22px -16px rgba(28,26,21,.45); }
+.pharmacopoeia .cs-bar-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 12px; }
+.pharmacopoeia .cs-bar-r { display: flex; align-items: center; gap: 18px; }
+.pharmacopoeia .cs-bar-r .s-micro { color: var(--specimen); }
+.pharmacopoeia .cs-bar-cta { font: 500 11px var(--font-jetbrains), monospace; letter-spacing: .12em; text-transform: uppercase; color: #FFFDF8; background: var(--ink); padding: 10px 14px; text-decoration: none; white-space: nowrap; }
+.pharmacopoeia .cs-bar-cta:hover { background: var(--specimen); }
+.pharmacopoeia .cs-join { scroll-margin-top: 16px; }
+@media (max-width: 560px) { .pharmacopoeia .cs-bar-r .s-micro { display: none; } }
 .pharmacopoeia .cs-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .pharmacopoeia .cs-wl-note { font-size: 14px; color: var(--ink); background: #FFF6E5; border: 1px solid #E8D3A6; border-left: 3px solid #B7791F; padding: 9px 12px; margin: 0 0 12px; }
 .pharmacopoeia .cs-wl-err { font-size: 14px; color: var(--specimen); margin: 8px 0 0; }
 .pharmacopoeia .cs-coa-note { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
 .pharmacopoeia .cs-form .p-btn-primary:disabled { opacity: .7; cursor: wait; }
+

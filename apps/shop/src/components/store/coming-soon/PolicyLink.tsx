@@ -25,7 +25,7 @@ export default function PolicyLink({ which, children, className = "cs-pop-link" 
 
 function ReferralTerms() {
   return <>
-    <p className="s-micro cs-pop-k" style={{ color: "#2F6B3A" }}>Terms · ${REFERRAL_CREDIT_DOLLARS} a friend</p>
+    <p className="s-micro cs-pop-k" style={{ color: "#2F6B3A" }}>Terms · ${REFERRAL_CREDIT_DOLLARS} a colleague</p>
     <h2 id="cs-pop-referral" className="cs-pop-h">Referral <em>credit.</em></h2>
     <p><b>How it&apos;s earned.</b> Once you&apos;re on the list you get a personal referral link. When a person who has never held an Aura Protocols account opens a new account through that link and places their first order, you earn ${REFERRAL_CREDIT_DOLLARS} in store credit (&ldquo;Referral Credit&rdquo;). There is no limit on the number of Referral Credits you can earn.</p>
     <p><b>When it&apos;s added.</b> Referral Credit is added after the referred first order ships. If that order is cancelled, refunded or disputed, no Referral Credit is earned, and Referral Credit already added for it may be removed.</p>
@@ -42,7 +42,7 @@ function PrivacyNotice() {
     <p className="s-micro cs-pop-k" style={{ color: "#33467A" }}>Privacy · the waitlist</p>
     <h2 id="cs-pop-privacy" className="cs-pop-h">What we keep, <em>and why.</em></h2>
     <p><b>What we collect.</b> Your email address, when you joined and confirmed it, your own invite code, and the invite link you came through, if any.</p>
-    <p><b>Why.</b> To email you about our launch, your early-access link, promotions, research updates and new arrivals, and to track the friends you refer so we can add your store credit.</p>
+    <p><b>Why.</b> To email you about our launch, your early-access link, promotions, research updates and new arrivals, and to track the colleagues you refer so we can add your store credit.</p>
     <p><b>Who sees it.</b> Only the services that run the list for us: hosting (Vercel), our database (Supabase) and email delivery (Amazon SES). We never sell your information.</p>
     <p><b>Unsubscribe any time.</b> Every email has an unsubscribe link. To see or delete what we hold about you, email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p>
     <p><b>How long.</b> Until you unsubscribe or ask us to delete it. If you open an account when we launch, the store&apos;s full privacy policy covers it from then on.</p>

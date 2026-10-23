@@ -19,6 +19,8 @@ Live at **https://auraprotocols.com** (Vercel project `aura-protocols`; PAUSED u
 - Type: Newsreader display (`--font-newsreader`, italic accent word in specimen), Georgia body, JetBrains Mono micro-labels (`--font-jetbrains`, class `.s-micro`).
 - **Square corners, 1px hairlines.** Storefront classes are prefixed `s-` and were ported from the approved mocks in the private repo (`docs/superpowers/specs/2026-09-27-storefront-mocks/`). Port from mocks — never freestyle UI.
 - Brand: `AuraLockup` (animated pulse-line A). Vial label art: `components/store/Vial.tsx`.
+- **Vials are CRYSTAL-CLEAR glass — never frosted or milky** (Alvester, 2026-10-14 and again 2026-10-23). The glass stops live in `Vial.tsx` and are mirrored in `vial-3d.ts` (the turning vial) — change both together; any new vial art (emails, ads, mocks, gate scenes) uses the same clear glass.
+- **A turning vial always comes to rest on its FRONT face, never on the QR code** (Alvester, 2026-10-18 and again 2026-10-23) — never pass `restOn="qr"` to `VialTurn`.
 
 ## Structure
 ```
