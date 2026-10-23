@@ -5,6 +5,8 @@ const recordClickByCode = vi.fn();
 vi.mock("@/lib/partners/data", () => ({ recordClickByCode }));
 const alertOwner = vi.fn();
 vi.mock("@/lib/notify", () => ({ alertOwner }));
+const earlyAccessOpen = vi.fn();
+vi.mock("@/lib/early/data", () => ({ earlyAccessOpen: () => earlyAccessOpen() }));
 
 // getUser() only simulates a token refresh (calling the cookies.setAll the
 // test passed via createServerClient) when a test opts in; the default
@@ -132,6 +134,31 @@ describe("proxy pre-launch lock", () => {
       expect(res.headers.get("location"), url).toBeNull();
       expect(res.status, url).toBe(200);
     }
+  });
+
+  it("lets a browser with the early-access cookie through while the switch is on", async () => {
+    process.env.EMAIL_LINK_SECRET = "s";
+    const { signEarlyCookie } = await import("@/lib/early/token");
+    const { proxy } = await import("@/proxy");
+    const req = () => new NextRequest("http://localhost/products/bpc-157", { headers: { cookie: `aura_early=${signEarlyCookie("K7QM2P")}` } });
+    earlyAccessOpen.mockReset().mockResolvedValue(true);
+    const on = await proxy(req(), event() as never);
+    expect(on.headers.get("location")).toBeNull();
+    expect(on.status).toBe(200);
+    earlyAccessOpen.mockResolvedValue(false);
+    expect((await proxy(req(), event() as never)).status).toBe(307);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    earlyAccessOpen.mockRejectedValue(new Error("db down"));
+    expect((await proxy(req(), event() as never)).status).toBe(307); // fails closed
+  });
+
+  it("a forged or missing early cookie doesn't get through (and never reads the switch)", async () => {
+    earlyAccessOpen.mockReset().mockResolvedValue(true);
+    const { proxy } = await import("@/proxy");
+    const forged = new NextRequest("http://localhost/checkout", { headers: { cookie: "aura_early=K7QM2P.1.bad" } });
+    expect((await proxy(forged, event() as never)).status).toBe(307);
+    expect((await proxy(new NextRequest("http://localhost/checkout"), event() as never)).status).toBe(307);
+    expect(earlyAccessOpen).not.toHaveBeenCalled();
   });
 
   it("is off without PRELAUNCH: API routes pass straight through", async () => {

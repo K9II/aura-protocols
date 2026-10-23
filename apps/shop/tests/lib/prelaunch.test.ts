@@ -11,7 +11,7 @@ describe("pre-launch lock", () => {
   });
 
   it("keeps the coming-soon page, the owner's way into the command center and email landings open", () => {
-    for (const p of ["/", "/admin", "/admin/email", "/sign-in", "/auth/callback", "/reset-password", "/unsubscribed", "/opengraph-image"]) {
+    for (const p of ["/", "/early", "/admin", "/admin/email", "/sign-in", "/auth/callback", "/reset-password", "/unsubscribed", "/opengraph-image"]) {
       expect(prelaunchAllows(p), p).toBe(true);
     }
   });

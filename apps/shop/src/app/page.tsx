@@ -20,6 +20,7 @@ import { isNewestLot, proofLot } from "@/lib/lot-proof";
 import { homeRecord } from "@/lib/lot-record";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 import { isPrelaunch } from "@/lib/prelaunch";
+import { showComingSoon } from "@/lib/early/access";
 import { siteUrl } from "@/lib/supabase/env";
 import ComingSoon from "@/components/store/coming-soon/ComingSoon";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
@@ -41,9 +42,13 @@ export function generateMetadata(): Metadata {
 }
 
 
-export default async function HomePage() {
-  // Before launch "/" is the coming-soon page and its waitlist (lib/prelaunch.ts).
-  if (isPrelaunch()) return <ComingSoon live={await getLiveCatalogOrNull()} site={siteUrl()} />;
+export default async function HomePage({ searchParams = Promise.resolve({}) }: { searchParams?: Promise<{ early?: string }> } = {}) {
+  // Before launch "/" is the coming-soon page and its waitlist (lib/prelaunch.ts), except
+  // for a browser with early access. /early sends a bad or closed link here with ?early=closed.
+  if (await showComingSoon()) {
+    const notice = (await searchParams).early === "closed" ? "Early access isn't open right now." : undefined;
+    return <ComingSoon live={await getLiveCatalogOrNull()} site={siteUrl()} notice={notice} />;
+  }
   const live = await getLiveCatalogOrNull();
   if (!live) return <Unavailable />;
   const featured = live.shown.filter((c) => c.featured);

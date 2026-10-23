@@ -2531,6 +2531,8 @@ html { scroll-padding-top: 150px; }
 .pharmacopoeia .cs-slots span { font-size: 9.5px; color: var(--ink-soft); }
 .pharmacopoeia .cs-sec { padding: 56px 0 8px; }
 .pharmacopoeia .cs-sec h2 { margin-bottom: 6px; }
+/* /early with a bad link or early access off (pre-launch email 3). */
+.pharmacopoeia .cs-notice { margin: 16px 0 0; padding: 10px 14px; max-width: 46ch; background: #fff7f1; border: 1px solid #f1d9c9; border-left: 3px solid var(--specimen); color: var(--ink); font-size: 15px; }
 .pharmacopoeia .cs-sec .cs-sub { color: var(--ink-soft); font-size: 16.5px; margin: 0 0 22px; max-width: 60ch; }
 .pharmacopoeia .cs-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .pharmacopoeia .cs-step { background: var(--label); border: 1px solid var(--line); border-top: 4px solid var(--edge); box-shadow: 10px 14px 28px -16px rgba(28,26,21,.32); padding: 18px 18px 16px; }

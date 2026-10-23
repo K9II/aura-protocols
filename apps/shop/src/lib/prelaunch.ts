@@ -8,8 +8,9 @@ export function isPrelaunch(): boolean {
 }
 
 // Pages that stay open: the coming-soon page itself, the owner's way into the
-// command center, and the pages an email link lands on.
-const OPEN_PAGES = ["/", "/sign-in", "/forgot-password", "/reset-password", "/unsubscribed", "/opengraph-image", "/icon", "/apple-icon"];
+// command center, the pages an email link lands on, and the early-access link
+// (pre-launch email 3: it sets the cookie that lets that browser through, proxy.ts).
+const OPEN_PAGES = ["/", "/early", "/sign-in", "/forgot-password", "/reset-password", "/unsubscribed", "/opengraph-image", "/icon", "/apple-icon"];
 const OPEN_PAGE_PREFIXES = ["/admin", "/auth/"];
 // The waitlist's confirm link, unsubscribe, email events, crons, and AIOS Send to store.
 const OPEN_API_PREFIXES = ["/api/waitlist/", "/api/unsubscribe", "/api/ses/", "/api/cron/", "/api/catalog/refresh"];

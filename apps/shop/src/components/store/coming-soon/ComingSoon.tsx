@@ -26,7 +26,7 @@ import { REFERRAL_CREDIT_DOLLARS } from "@/lib/waitlist/codes";
 import Waitlist from "./Waitlist";
 import PolicyLink from "./PolicyLink";
 
-export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalClass> | null; site: string }) {
+export default function ComingSoon({ live, site, notice }: { live: LiveCatalog<ChemicalClass> | null; site: string; notice?: string }) {
   const bpc = catalogContent.find((c) => c.slug === "bpc-157");
   const sphere = live ? sphereNodes(live.shown) : [];
   // No lot is live before launch: the QR opens the certificate lookup.
@@ -151,6 +151,7 @@ export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalC
               <DictionaryEntry />
               <p className="s-micro cs-eyebrow" style={{ marginTop: 18 }}>Opening this winter</p>
               <h1 className="s-h1">The first shelf is <em>almost stocked.</em></h1>
+              {notice && <p role="status" className="cs-notice">{notice}</p>}
               <div id="join" className="cs-join"><Waitlist site={site} /></div>
               <div style={{ marginTop: 22 }}><TrustRow /></div>
             </div>

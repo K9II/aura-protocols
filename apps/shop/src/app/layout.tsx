@@ -9,7 +9,7 @@ import CartDrawer from "@/components/store/CartDrawer";
 import AccountGate from "@/components/store/gate/AccountGate";
 import HideOnAdmin from "@/components/store/HideOnAdmin";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
-import { isPrelaunch } from "@/lib/prelaunch";
+import { showComingSoon } from "@/lib/early/access";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const spaceGrotesk = Space_Grotesk({
@@ -74,7 +74,8 @@ export default async function RootLayout({
   // (pages show "Unavailable"; the cart keeps stored lines until it's back).
   const live = await getLiveCatalogOrNull();
   const shown = live?.shown ?? [];
-  const prelaunch = isPrelaunch();
+  // Before launch (PRELAUNCH=1): the coming-soon page, unless this browser has early access.
+  const prelaunch = await showComingSoon();
   return (
     // data-scroll-behavior: Next 16 turns off globals.css smooth scrolling while it
     // changes pages; without it a new page kept the old scroll position (Sign in
