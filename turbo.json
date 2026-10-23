@@ -4,7 +4,12 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "out/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "out/**", "dist/**"],
+      "env": [
+        "SUPABASE_*", "TELEHEALTH_*", "AWS_*", "SES_*", "STRIPE_*", "TURNSTILE_*", "INBOUND_*", "INQUIRY_*",
+        "GATE_COOKIE_SECRET", "CRON_SECRET", "PARTNER_REF_SECRET", "PAYOUT_DETAILS_KEY", "ORDER_ALERT_EMAIL",
+        "EMAIL_LINK_SECRET", "MAILING_ADDRESS", "PRELAUNCH", "RELEASE_CHECK"
+      ]
     },
     "dev": {
       "cache": false,
