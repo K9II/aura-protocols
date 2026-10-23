@@ -5,10 +5,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/lib/dal";
 import {
-  createCampaign, getCampaign, lotChoices, moveCampaign, startCampaign, updateDraft, waitingLots, type CampaignRow,
+  createCampaign, getCampaign, lotChoices, moveCampaign, prelaunchCampaigns, startCampaign, updateDraft, waitingLots, type CampaignRow,
 } from "@/lib/email/campaigns/data";
 import { campaignCode, renderFor, sendCampaignBatch } from "@/lib/email/campaigns/send";
-import { announceDraft, parseCampaignForm, parseKind, scheduleError, type CampaignFields } from "@/lib/email/campaigns/rules";
+import { announceDraft, isPrelaunch, parseCampaignForm, parseKind, PRELAUNCH, scheduleError, type CampaignFields } from "@/lib/email/campaigns/rules";
 import { isBlocked, type Check } from "@/lib/email/campaigns/checks";
 import { checksFor } from "@/lib/email/campaigns/checks-server";
 import { sendTracked } from "@/lib/email/data";
@@ -165,6 +165,7 @@ export async function stopAction(f: FormData): Promise<void> {
 export async function copyAction(f: FormData): Promise<void> {
   const owner = await requirePermission("email.draft");
   const c = await target(f);
+  if (isPrelaunch(c.kind)) throw new Error("Pre-launch emails go once. Open this one from the Pre-launch box.");
   const choices = c.kind === "new_lots" ? await lotChoices(null) : [];
   const keep = new Set(choices.map((l) => l.lot));
   const lots = c.lots_snapshot.filter((l) => keep.has(l.lot));
@@ -176,6 +177,30 @@ export async function copyAction(f: FormData): Promise<void> {
   await logEmailAdminEvent({ action: "copied", target: id, actor: owner.id, note: c.id });
   refresh();
   redirect(`/admin/email/campaigns/${id}`);
+}
+
+// Email → Pre-launch → Open: the pre-launch email's campaign, made the first time
+// (fixed name, subject and audience; the wording lives in lib/email/prelaunch.ts).
+export async function setUpPrelaunchAction(f: FormData): Promise<void> {
+  const owner = await requirePermission("email.draft");
+  const kind = str(f, "kind");
+  if (!isPrelaunch(kind)) throw new Error("Unknown pre-launch email.");
+  let row = (await prelaunchCampaigns())[kind];
+  if (!row) {
+    const p = PRELAUNCH[kind];
+    try {
+      await createCampaign(kind, {
+        name: p.name, subject: p.subject, previewText: p.previewText, audience: p.audience,
+        content: { headline: "", body: "", buttonLabel: "", buttonPath: "" }, discountCodeId: null, lots: [],
+      }, [], owner.id);
+    } catch (err) {
+      // Opened in two tabs at once: the other one made it (one per kind) — open that.
+      if (!(await prelaunchCampaigns())[kind]) throw err;
+    }
+    row = (await prelaunchCampaigns())[kind];
+    refresh();
+  }
+  redirect(`/admin/email/campaigns/${row!.id}`);
 }
 
 export async function announceAction(): Promise<void> {

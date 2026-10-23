@@ -5,7 +5,7 @@ import { codeStatsById, getCodeById } from "@/lib/discounts/data";
 import { codeStatus, customerSummary, termsFromRow } from "@/lib/discounts/rules";
 import { unannouncedLots } from "@/lib/email/lots";
 import { logEmailAdminEvent, type EmailAdminAction } from "@/lib/email/admin-data";
-import { canMove, type Audience, type CampaignContent, type CampaignFields, type CampaignKind, type CampaignStatus } from "@/lib/email/campaigns/rules";
+import { canMove, PRELAUNCH_KINDS, type Audience, type CampaignContent, type CampaignFields, type CampaignKind, type CampaignStatus, type PrelaunchKind } from "@/lib/email/campaigns/rules";
 import type { CodeFacts } from "@/lib/email/campaigns/checks";
 import type { RenderCode } from "@/lib/email/campaigns/render";
 import type { AlertLot } from "@/lib/emails-marketing";
@@ -50,6 +50,13 @@ export async function campaignCounts(): Promise<Record<CampaignTab, number>> {
     scheduled: rows.filter((r) => r.status === "scheduled").length,
     sent: rows.filter((r) => ["sending", "sent", "stopped"].includes(r.status)).length,
   };
+}
+
+// The pre-launch emails, by kind (each exists at most once — prelaunch-emails.sql).
+export async function prelaunchCampaigns(): Promise<Partial<Record<PrelaunchKind, CampaignRow>>> {
+  const { data, error } = await db().from("campaigns").select("*").in("kind", [...PRELAUNCH_KINDS]);
+  if (error) fail("pre-launch campaigns read", error);
+  return Object.fromEntries(((data ?? []) as CampaignRow[]).map((r) => [r.kind, r]));
 }
 
 // ---------- lots ----------

@@ -759,6 +759,17 @@
 .adm .a-waiting .lots { display: flex; gap: 6px; flex-wrap: wrap; }
 .adm .a-waiting .a-lotpill { font: 500 11.5px var(--mono); border: 1px solid var(--line-strong); padding: 2px 7px; background: var(--surface-2); }
 .adm .a-waiting .a-btn { margin-left: auto; }
+/* Email → Pre-launch (2026-10-23) */
+.adm .a-pre { margin-bottom: 22px; }
+.adm .a-pre-row { display: flex; align-items: center; gap: 14px; padding: 11px 16px; background: var(--surface); border: 1px solid var(--line); border-top: 0; }
+.adm .a-pre-row:first-of-type { border-top: 1px solid var(--line); }
+.adm .a-sec-h + .a-pre-row { border-top: 1px solid var(--line); }
+.adm .a-pre-row .num { font: 600 18px var(--serif, Georgia, serif); color: var(--specimen); width: 18px; text-align: center; }
+.adm .a-pre-row .t { flex: 1; min-width: 0; }
+.adm .a-pre-row .t b { display: block; font-weight: 600; }
+.adm .a-pre-row .t small { display: block; color: var(--muted); font-size: 12px; }
+.adm .a-pre-row.off .t b { color: var(--ink-soft); }
+.adm .a-pre-row form { margin: 0; }
 .adm .a-camp b { display: block; font-weight: 600; }
 .adm .a-camp small { display: block; color: var(--muted); font-size: 12px; }
 .adm .a-typetag { font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); border: 1px solid var(--line); padding: 2px 6px; background: var(--surface-2); white-space: nowrap; }
@@ -861,6 +872,10 @@
   .adm .a-runline { margin-bottom: 10px; padding: 8px 10px; font-size: 12px; flex-wrap: wrap; gap: 6px 10px; }
   .adm .a-waiting { margin-bottom: 10px; flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
   .adm .a-waiting .a-btn { margin-left: 0; width: 100%; justify-content: center; height: 34px; }
+  .adm .a-pre-row { flex-wrap: wrap; gap: 8px 12px; padding: 10px 12px; }
+  .adm .a-pre-row .t { flex-basis: calc(100% - 40px); }
+  .adm .a-pre-row .a-chip { margin-left: 30px; }
+  .adm .a-pre-row .a-btn, .adm .a-pre-row form { margin-left: auto; }
   .adm .a-typeseg, .adm .a-aud { grid-template-columns: 1fr; }
   .adm .a-hide-phone { display: none; }
   .adm .a-psticky, .adm .a-pseg { display: grid; grid-template-columns: 1fr 1fr; }
