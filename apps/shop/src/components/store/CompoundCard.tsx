@@ -1,16 +1,16 @@
-import { Fragment, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import type { Compound } from "@/data/catalog";
-import { fromPackPriceUsd, isPendingLot, vialCap, vialName, vialNameLong, vialParts } from "@/lib/catalog";
-import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
+import { fromPackPriceUsd, isPendingLot, vialCap, vialName, vialParts } from "@/lib/catalog";
+import { CLASS_COLOR } from "@/lib/class-colors";
 import { formatUsd } from "@/lib/cart";
 import Vial from "@/components/store/Vial";
 import NameParts from "@/components/store/NameParts";
 
 
-// Monograph card (approved 2026-10-10): a placard with the compound's identity
-// stands behind an upright vial on a raised tile; the text below sits on a
-// joined base, so tile + base read as one object.
+// Product card: the vial fills a raised tile and the hanging tag below carries the class,
+// name, price and certificate (option C, Alvester 2026-10-23: the old placard repeated the
+// tag's name and squeezed the vial; every pictured vial must be legible on desktop and phones).
 // idScope keeps the vial's SVG ids unique when the same card is on the page twice (home: phone + desktop lineup).
 export default function CompoundCard({ compound: c, index = 0, idScope = "" }: { compound: Compound; index?: number; idScope?: string }) {
   // Lot line from the first strength with a released lot.
@@ -20,8 +20,6 @@ export default function CompoundCard({ compound: c, index = 0, idScope = "" }: {
   const anyLow = c.variants.some((v) => v.stock === "low");
   const price = `from ${formatUsd(fromPackPriceUsd(c))}`;
   const color = CLASS_COLOR[c.chemicalClass];
-  // the number never breaks (CAS hyphens would split it); "CAS" can wrap above it
-  const idLine = c.identity.cas ? <>CAS <span>{c.identity.cas}</span></> : c.identity.formula;
   return (
     <Link href={`/products/${c.slug}`} className="s-card" style={{ "--cls": color } as CSSProperties}>
       <div className="s-card-ph">
@@ -31,12 +29,6 @@ export default function CompoundCard({ compound: c, index = 0, idScope = "" }: {
         ) : anyLow ? (
           <span className="s-flag s-micro">Low stock</span>
         ) : null}
-        <div className="s-placard" aria-hidden>
-          <span className="s-placard-k">Monograph · {classShortName(c.chemicalClass).split(" ").map((w, i) => <Fragment key={i}>{i ? " " : ""}<span className="whitespace-nowrap">{w}</span></Fragment>)}</span>
-          <span className={`s-placard-n${vialNameLong(c) ? " s-name-long" : ""}`}>{vialName(c).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
-          {idLine && <span className="s-placard-id">{idLine}</span>}
-          <span className="s-placard-r">Research use only · Not for human use</span>
-        </div>
         <div className="s-card-vial">
           <Vial id={`${idScope}${c.slug}-${index}`} label={vialName(c)[0]} label2={vialName(c)[1]} cap={vialCap(c)} rule={color} parts={vialParts(c)} strength={c.variants[0].strength} tilt={0} />
         </div>

@@ -22,17 +22,13 @@ describe("CompoundCard", () => {
     expect(document.querySelector(".s-coa-tag")?.textContent).toBe("◇ COA on file");
   });
 
-  it("shows the monograph placard with the CAS number, and Price / Certificate labels", () => {
+  it("no placard: the vial fills the tile and the tag carries the name, with Price / Certificate labels", () => {
     render(<CompoundCard compound={c} />);
-    expect(document.querySelector(".s-placard-id")?.textContent).toBe("CAS 137525-51-0");
-    expect(document.querySelector(".s-placard-k")).toHaveTextContent("Monograph · Peptide Fragments");
+    expect(document.querySelector(".s-placard")).toBeNull();
+    expect(document.querySelector(".s-card-vial svg")).not.toBeNull();
+    expect(document.querySelector(".s-card-name")).toHaveTextContent("BPC-157");
     expect(screen.getByText("Price")).toBeInTheDocument();
     expect(screen.getByText("Certificate")).toBeInTheDocument();
-  });
-
-  it("falls back to the formula when there is no CAS number", () => {
-    render(<CompoundCard compound={{ ...c, identity: { formula: "C62H98N16O22" } }} />);
-    expect(screen.getByText("C62H98N16O22")).toBeInTheDocument();
   });
 
   it("colours the card with its chemical class", () => {
