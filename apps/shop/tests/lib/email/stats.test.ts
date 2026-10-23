@@ -35,11 +35,11 @@ describe("email stats", () => {
 
   it("cart recovery and audience counts", async () => {
     rpc.mockResolvedValueOnce({ data: { reminded: 140, recovered: 53, revenue_cents: 1924000 }, error: null });
-    rpc.mockResolvedValueOnce({ data: { all: 2310, ordered: 486, never_ordered: 1824 }, error: null });
+    rpc.mockResolvedValueOnce({ data: { all: 2310, ordered: 486, never_ordered: 1824, waitlist: 214, waitlist_never_ordered: 214 }, error: null });
     const { cartRecovery, audienceCounts } = await import("@/lib/email/stats");
     expect(await cartRecovery("2026-09-05T00:00:00Z")).toEqual({ reminded: 140, recovered: 53, revenueCents: 1_924_000 });
     expect(rpc).toHaveBeenCalledWith("admin_cart_recovery", { p_since: "2026-09-05T00:00:00Z", p_hours: 24 });
-    expect(await audienceCounts()).toEqual({ all: 2310, ordered: 486, never_ordered: 1824 });
+    expect(await audienceCounts()).toEqual({ all: 2310, ordered: 486, never_ordered: 1824, waitlist: 214, waitlist_never_ordered: 214 });
   });
 
   it("throws (never zeros) when a stats function fails", async () => {

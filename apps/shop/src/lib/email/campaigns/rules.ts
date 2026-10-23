@@ -5,13 +5,24 @@ import { MAX_SCHEDULE_DAYS } from "@/lib/email/constants";
 import { shortDate } from "@/lib/discounts/time";
 import type { AlertLot } from "@/lib/emails-marketing";
 
-export const CAMPAIGN_KINDS = ["new_lots", "promotion", "news"] as const;
+// The editor's kinds, plus the ready-made pre-launch emails (2026-10-23, lib/email/prelaunch.ts):
+// fixed wording, sent once each from Email → Pre-launch, never made in the editor.
+export const EDITOR_KINDS = ["new_lots", "promotion", "news"] as const;
+export const PRELAUNCH_KINDS = ["first_look", "we_are_open"] as const;
+export const CAMPAIGN_KINDS = [...EDITOR_KINDS, ...PRELAUNCH_KINDS] as const;
+export type EditorKind = (typeof EDITOR_KINDS)[number];
+export type PrelaunchKind = (typeof PRELAUNCH_KINDS)[number];
 export type CampaignKind = (typeof CAMPAIGN_KINDS)[number];
-export const KIND_LABEL: Record<CampaignKind, string> = { new_lots: "New lots", promotion: "Promotion", news: "Research news" };
+export const isPrelaunch = (k: string): k is PrelaunchKind => (PRELAUNCH_KINDS as readonly string[]).includes(k);
+export const KIND_LABEL: Record<CampaignKind, string> = {
+  new_lots: "New lots", promotion: "Promotion", news: "Research news",
+  first_look: "Pre-launch · A first look", we_are_open: "Pre-launch · We're open",
+};
 export const KIND_HELP: Record<CampaignKind, string> = {
   new_lots: "Certified lots, filled in from Catalog", promotion: "Links a code from Discounts", news: "An article or update, no offer",
+  first_look: "The turning vial and the sample certificate", we_are_open: "All six vials, on launch day",
 };
-export const parseKind = (v: string | undefined): CampaignKind => ((CAMPAIGN_KINDS as readonly string[]).includes(v ?? "") ? (v as CampaignKind) : "news");
+export const parseKind = (v: string | undefined): EditorKind => ((EDITOR_KINDS as readonly string[]).includes(v ?? "") ? (v as EditorKind) : "news");
 
 export const CAMPAIGN_STATUSES = ["draft", "scheduled", "sending", "sent", "stopped"] as const;
 export type CampaignStatus = (typeof CAMPAIGN_STATUSES)[number];
@@ -29,9 +40,26 @@ const ALLOWED: Record<CampaignStatus, readonly CampaignStatus[]> = {
 export const canMove = (from: CampaignStatus, to: CampaignStatus): boolean => ALLOWED[from].includes(to);
 export const isEditable = (s: CampaignStatus): boolean => s === "draft";
 
-export const AUDIENCES = ["all", "ordered", "never_ordered"] as const;
+export const EDITOR_AUDIENCES = ["all", "ordered", "never_ordered"] as const;
+export const AUDIENCES = [...EDITOR_AUDIENCES, "waitlist", "waitlist_never_ordered"] as const;
 export type Audience = (typeof AUDIENCES)[number];
-export const AUDIENCE_LABEL: Record<Audience, string> = { all: "Everyone", ordered: "Has ordered", never_ordered: "Never ordered" };
+export const AUDIENCE_LABEL: Record<Audience, string> = {
+  all: "Everyone", ordered: "Has ordered", never_ordered: "Never ordered", waitlist: "Waitlist", waitlist_never_ordered: "Waitlist, no order yet",
+};
+
+// The pre-launch emails' fixed fields; `step` is their number in the pre-launch sequence.
+export const PRELAUNCH: Record<PrelaunchKind, { step: number; name: string; subject: string; previewText: string; audience: Audience; when: string }> = {
+  first_look: {
+    step: 2, name: "Pre-launch · A first look", subject: "A first look at the vials", audience: "waitlist",
+    previewText: "This is the vial you'll get: the name up front, the strength, and a code that opens its own lot's report.",
+    when: "Any time before opening, once.",
+  },
+  we_are_open: {
+    step: 4, name: "Pre-launch · We're open", subject: "We're open", audience: "waitlist_never_ordered",
+    previewText: "The full lineup is live, and your first order is 25% off.",
+    when: "On launch day, after the store opens.",
+  },
+};
 
 export type CampaignContent = { headline: string; body: string; buttonLabel: string; buttonPath: string };
 export type CampaignFields = {
@@ -62,7 +90,7 @@ export function parseCampaignForm(
   if (buttonPath && !isSitePath(buttonPath)) errs.buttonPath = "Use a path on auraprotocols.com, like /products.";
   else if (buttonLabel && !buttonPath) errs.buttonPath = "Add the page the button opens.";
   if (buttonPath && !buttonLabel) errs.buttonLabel = "Add the button text.";
-  if (!(AUDIENCES as readonly string[]).includes(audience)) errs.audience = "Pick an audience.";
+  if (!(EDITOR_AUDIENCES as readonly string[]).includes(audience)) errs.audience = "Pick an audience.";
   const discountCodeId = kind === "promotion" ? t("discountCodeId") || null : null;
   if (kind === "promotion" && !discountCodeId) errs.discountCodeId = "Pick a code from Discounts.";
   if (kind === "new_lots" && lots.length === 0) errs.lots = "Tick at least one lot.";

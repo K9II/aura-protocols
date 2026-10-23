@@ -6,7 +6,7 @@ import { can } from "@/lib/staff/roles";
 import { getCampaign, lotChoices } from "@/lib/email/campaigns/data";
 import { audienceCounts } from "@/lib/email/stats";
 import { listAdminEvents } from "@/lib/email/admin-data";
-import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, currentMs, KIND_LABEL, nextHourMs } from "@/lib/email/campaigns/rules";
+import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, currentMs, isPrelaunch, KIND_LABEL, nextHourMs, type PrelaunchKind } from "@/lib/email/campaigns/rules";
 import { promotionCodes } from "@/app/admin/email/campaigns/codes";
 import { unscheduleAction } from "@/app/admin/email/actions";
 import { checksFor } from "@/lib/email/campaigns/checks-server";
@@ -16,6 +16,7 @@ import { Crumbs, Icon } from "@/components/admin/ui";
 import CampaignEditor from "@/components/admin/email/CampaignEditor";
 import EmailPreview from "@/components/admin/email/EmailPreview";
 import CampaignResults from "@/components/admin/email/CampaignResults";
+import PrelaunchCampaign from "@/components/admin/email/PrelaunchCampaign";
 
 export const metadata: Metadata = { title: "Campaign", robots: { index: false, follow: false } };
 // Send now runs a batch inside the server action invoked from this page.
@@ -45,6 +46,16 @@ export default async function CampaignPage({ params, searchParams = Promise.reso
         <p>{KIND_LABEL[c.kind]} · {AUDIENCE_LABEL[c.audience]}{c.status === "draft" ? ` · saved ${dateTime(c.updated_at)} · nothing is sent until you press Send now or Schedule.` : ""}</p></div></div>
     </>
   );
+
+  if (isPrelaunch(c.kind)) {
+    return (
+      <div className="a-page" style={{ maxWidth: 1200 }}>
+        {head}
+        <PrelaunchCampaign c={c as typeof c & { kind: PrelaunchKind }} counts={counts} site={site} mailingAddress={mailingAddress}
+          lastTest={lastTest ? `${dateTime(lastTest.at)} to ${lastTest.note}` : null} canSend={can(staff, "email.send")} />
+      </div>
+    );
+  }
 
   if (c.status === "scheduled") {
     return (

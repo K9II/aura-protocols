@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
-import { emailOverview, sendStats, attribution, cartRecovery } from "@/lib/email/stats";
+import { emailOverview, sendStats, attribution, cartRecovery, audienceCounts } from "@/lib/email/stats";
 import { statKey, sumAttribution, sumKinds } from "@/lib/email/stat-keys";
 import { getEmailSettings, listRuns, AUTOMATION_LABEL } from "@/lib/email/admin-data";
-import { campaignCounts, listCampaigns, waitingLots, type CampaignTab } from "@/lib/email/campaigns/data";
+import { campaignCounts, listCampaigns, prelaunchCampaigns, waitingLots, type CampaignTab } from "@/lib/email/campaigns/data";
 import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, currentMs, KIND_LABEL } from "@/lib/email/campaigns/rules";
 import { ATTRIBUTION_DAYS, CAMPAIGNS_PER_PAGE, STATS_DAYS } from "@/lib/email/constants";
 import { WELCOME_DAYS, CART_HOURS } from "@/lib/email/schedule";
@@ -15,6 +15,7 @@ import AutomationSwitch from "@/components/admin/email/AutomationSwitch";
 import AutomationRow from "@/components/admin/email/AutomationRow";
 import { HealthStrip, RunLine } from "@/components/admin/email/HealthStrip";
 import { announceAction } from "@/app/admin/email/actions";
+import PrelaunchBox from "@/components/admin/email/PrelaunchBox";
 
 export const metadata: Metadata = { title: "Email", robots: { index: false, follow: false } };
 
@@ -39,13 +40,14 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
 
   let loaded;
   try {
-    const [overview, stats30, attr30, cart, settings, runs, waiting, counts, list] = await Promise.all([
+    const [overview, stats30, attr30, cart, settings, runs, waiting, counts, list, prelaunch, audiences] = await Promise.all([
       emailOverview(), sendStats(since), attribution(since), cartRecovery(since), getEmailSettings(), listRuns(1), waitingLots(), campaignCounts(), listCampaigns(tab, page),
+      prelaunchCampaigns(), audienceCounts(),
     ]);
     // Orders after each listed campaign: all time since the oldest one on this page started.
     const oldest = list.rows.reduce<string | null>((m, r) => (r.started_at && (!m || r.started_at < m) ? r.started_at : m), null);
     const campAttr = oldest ? await attribution(oldest) : new Map();
-    loaded = { overview, stats30, attr30, cart, settings, runs, waiting, counts, list, campAttr };
+    loaded = { overview, stats30, attr30, cart, settings, runs, waiting, counts, list, campAttr, prelaunch, audiences };
   } catch (err) {
     console.error("email overview failed:", err);
     return (
@@ -56,7 +58,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
       </div>
     );
   }
-  const { overview, stats30, attr30, cart, settings, runs, waiting, counts, list, campAttr } = loaded;
+  const { overview, stats30, attr30, cart, settings, runs, waiting, counts, list, campAttr, prelaunch, audiences } = loaded;
   const welcome = sumKinds(stats30, "welcome_"), carts = sumKinds(stats30, "cart_");
   const welcomeAttr = sumAttribution(attr30, "welcome_");
   const href = (o: { tab?: CampaignTab; page?: number }) => {
@@ -79,6 +81,8 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
 
       <HealthStrip o={overview} />
       <RunLine last={runs[0] ?? null} />
+
+      <PrelaunchBox rows={prelaunch} counts={audiences} canDraft={can(staff, "email.draft")} />
 
       {waiting.length > 0 && can(staff, "email.draft") && (
         <form action={announceAction} className="a-waiting">

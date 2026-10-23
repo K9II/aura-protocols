@@ -3,7 +3,7 @@
 import { findViolations } from "../../../../scripts/compliance-scan.mjs";
 import type { CodeStatus } from "@/lib/discounts/rules";
 import { shortDate } from "@/lib/discounts/time";
-import { isSitePath, type CampaignKind } from "@/lib/email/campaigns/rules";
+import { isPrelaunch, isSitePath, type CampaignKind } from "@/lib/email/campaigns/rules";
 
 export type Check = { level: "block" | "warn" | "ok"; field?: string; text: string };
 export type CheckFields = { subject: string; previewText: string; headline: string; body: string; buttonLabel: string; buttonPath: string };
@@ -15,6 +15,8 @@ const FIELD_LABEL: Record<keyof Omit<CheckFields, "buttonPath">, string> = {
 };
 
 export function campaignChecks(i: { kind: CampaignKind; fields: CheckFields; lots: LotFacts[]; code: CodeFacts | null; recipients: number }, sendAtMs: number): Check[] {
+  // The pre-launch emails' wording is fixed in code and scanned at build and before sending.
+  if (isPrelaunch(i.kind)) return [{ level: "ok", text: "Ready-made pre-launch email: the wording was approved 2026-10-23." }];
   const out: Check[] = [];
   let banned = false;
   for (const [field, label] of Object.entries(FIELD_LABEL) as Array<[keyof typeof FIELD_LABEL, string]>) {

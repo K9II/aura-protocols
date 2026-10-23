@@ -7,15 +7,15 @@ import { render, screen } from "@testing-library/react";
 // throws "Cannot access ... before initialization".
 const { requirePermission, stats, admin, camp } = vi.hoisted(() => ({
   requirePermission: vi.fn(async () => (await import("../helpers/staff")).ownerStaff()),
-  stats: { emailOverview: vi.fn(), sendStats: vi.fn(), attribution: vi.fn(), cartRecovery: vi.fn() },
+  stats: { emailOverview: vi.fn(), sendStats: vi.fn(), attribution: vi.fn(), cartRecovery: vi.fn(), audienceCounts: vi.fn() },
   admin: { getEmailSettings: vi.fn(), listRuns: vi.fn() },
-  camp: { listCampaigns: vi.fn(), campaignCounts: vi.fn(), waitingLots: vi.fn() },
+  camp: { listCampaigns: vi.fn(), campaignCounts: vi.fn(), waitingLots: vi.fn(), prelaunchCampaigns: vi.fn() },
 }));
 vi.mock("@/lib/dal", () => ({ requirePermission }));
 vi.mock("@/lib/email/stats", () => stats);
 vi.mock("@/lib/email/admin-data", () => ({ ...admin, AUTOMATION_LABEL: { welcome: "Welcome series", cart: "Cart reminders" } }));
 vi.mock("@/lib/email/campaigns/data", () => camp);
-vi.mock("@/app/admin/email/actions", () => ({ announceAction: vi.fn(), setAutomationAction: vi.fn() }));
+vi.mock("@/app/admin/email/actions", () => ({ announceAction: vi.fn(), setAutomationAction: vi.fn(), setUpPrelaunchAction: vi.fn() }));
 import EmailPage from "@/app/admin/email/page";
 
 describe("/admin/email", () => {
@@ -24,6 +24,8 @@ describe("/admin/email", () => {
     stats.sendStats.mockResolvedValue(new Map([["welcome_1", { sent: 912, bounced: 9, complaints: 0, unsubscribed: 6 }], ["cart_1", { sent: 200, bounced: 1, complaints: 0, unsubscribed: 2 }], ["campaign:k1", { sent: 2196, bounced: 9, complaints: 0, unsubscribed: 11 }]]));
     stats.attribution.mockResolvedValue(new Map([["welcome_1", { orders: 24, revenueCents: 941_000 }], ["campaign:k1", { orders: 47, revenueCents: 1_890_500 }]]));
     stats.cartRecovery.mockResolvedValue({ reminded: 140, recovered: 53, revenueCents: 1_924_000 });
+    stats.audienceCounts.mockResolvedValue({ all: 2310, ordered: 486, never_ordered: 1824, waitlist: 214, waitlist_never_ordered: 214 });
+    camp.prelaunchCampaigns.mockResolvedValue({});
     admin.getEmailSettings.mockResolvedValue({ welcomePaused: false, cartPaused: true });
     admin.listRuns.mockResolvedValue([{ id: "r1", started_at: new Date(Date.now() - 14 * 60_000).toISOString(), finished_at: new Date().toISOString(), welcome_sent: 4, cart_sent: 2, cart_skipped: 0, campaign_sent: 0, failures: 0, error_text: null }]);
     camp.waitingLots.mockResolvedValue([{ compoundName: "BPC-157", strengths: "10 mg", lot: "AP-BPC-2610" }]);
@@ -39,6 +41,7 @@ describe("/admin/email", () => {
   it("renders health, run line, waiting lots, automations and campaigns", async () => {
     render(await EmailPage({ searchParams: Promise.resolve({}) }));
     expect(screen.getByRole("heading", { level: 1, name: "Email" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Pre-launch" })).toBeInTheDocument();
     expect(screen.getAllByText("2,310").length).toBeGreaterThan(0);
     expect(screen.getAllByText("0.6%").length).toBeGreaterThan(0);
     expect(screen.getByText(/Last run 14 min ago/)).toBeInTheDocument();

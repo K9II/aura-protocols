@@ -77,7 +77,7 @@ export const ACTION_PERMS: Record<string, Record<string, string>> = {
   },
   "catalog/settings/actions.ts": { setCoaSettingAction: "catalog.edit", saveLabAction: "catalog.edit", setLabActiveAction: "catalog.edit" },
   "email/actions.ts": {
-    saveCampaignAction: "email.draft", copyAction: "email.draft", announceAction: "email.draft",
+    saveCampaignAction: "email.draft", copyAction: "email.draft", announceAction: "email.draft", setUpPrelaunchAction: "email.draft",
     sendTestAction: "email.send", scheduleAction: "email.send", unscheduleAction: "email.send", sendNowAction: "email.send", stopAction: "email.send",
     setAutomationAction: "email.pause",
   },

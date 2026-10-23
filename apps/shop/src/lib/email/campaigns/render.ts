@@ -2,7 +2,8 @@
 // live preview (browser) and the sender (server) both call this.
 import { escapeHtml as e } from "@/lib/html";
 import { frameHtml, lotTable, p, SIGN, type AlertLot, type Msg } from "@/lib/emails-marketing";
-import { isSitePath, kicker, paragraphs, type CampaignContent, type CampaignKind } from "@/lib/email/campaigns/rules";
+import { isPrelaunch, isSitePath, kicker, paragraphs, type CampaignContent, type CampaignKind } from "@/lib/email/campaigns/rules";
+import { firstLookEmail, weAreOpenEmail } from "@/lib/email/prelaunch";
 import { shortDate } from "@/lib/discounts/time";
 
 export type RenderCode = { code: string; summary: string; endsAt: string | null; oncePerCustomer: boolean; minOrderCents: number | null };
@@ -25,6 +26,10 @@ function button(site: string, label: string, path: string): string {
 }
 
 export function campaignEmail(c: RenderInput, ctx: RenderCtx, opts: { test?: boolean } = {}): Msg {
+  if (isPrelaunch(c.kind)) {
+    const m = (c.kind === "first_look" ? firstLookEmail : weAreOpenEmail)(ctx);
+    return { subject: `${opts.test ? "[Test] " : ""}${m.subject}`, html: m.html };
+  }
   const body = paragraphs(c.content.body).map((t) => p(e(t))).join("")
     + (c.kind === "new_lots" && c.lots.length ? lotTable(ctx.site, c.lots) : "")
     + (c.kind === "promotion" && c.code ? codeBox(c.code) : "")
