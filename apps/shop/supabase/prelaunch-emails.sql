@@ -1,7 +1,7 @@
 -- supabase/prelaunch-emails.sql
 -- The pre-launch emails (2026-10-23): campaign kinds first_look / early_access / we_are_open (fixed wording,
 -- lib/email/prelaunch.ts), sent once each to the waitlist audiences.
--- Apply after email-admin.sql and no-charge.sql. Safe to re-run. It supersedes
+-- Apply after email-admin.sql, no-charge.sql and audit.sql. Safe to re-run. It supersedes
 -- email_audience and admin_email_audience_counts (latest were no-charge.sql / email-admin.sql):
 -- if either of those files is re-run, re-apply this one after it.
 
