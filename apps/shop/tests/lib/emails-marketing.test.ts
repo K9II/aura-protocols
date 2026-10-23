@@ -95,4 +95,19 @@ describe("marketing emails", () => {
     const { welcomeEmail } = await import("@/lib/emails-marketing");
     expect(() => welcomeEmail(2, ctx, null)).toThrow("MAILING_ADDRESS");
   });
+  it("waitlist email: the new frame with Wolverine, the 25% line, the invite box, and nothing the scan rejects", async () => {
+    const { waitlistInEmail } = await import("@/lib/emails-marketing");
+    const m = waitlistInEmail(ctx, { url: "https://auraprotocols.com/?r=K7QM2P", label: "auraprotocols.com/?r=K7QM2P" });
+    expect(m.subject).toBe("You're on the list");
+    expect(m.html.startsWith("<!doctype html>")).toBe(true);
+    expect(m.html).toContain("https://auraprotocols.com/email/vials/wolverine.jpg");
+    expect(m.html).toContain("the day before the store opens");
+    expect(m.html).toContain(`<b style="color:#1C1A15">${OFFER_PCT_TEXT} off</b>`);
+    expect(m.html).toContain('href="https://auraprotocols.com/?r=K7QM2P"');
+    expect(m.html).toContain(`href="${ctx.unsubscribeUrl}"`);
+    expect(m.html).toContain("Sheridan, WY");
+    expect(m.html).not.toMatch(/certificate for every lot/i);
+    expect(findViolations(visibleText(m.html))).toEqual([]);
+  });
 });
+
