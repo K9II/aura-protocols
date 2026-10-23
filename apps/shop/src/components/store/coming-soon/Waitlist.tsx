@@ -1,7 +1,7 @@
 "use client";
 
-// The coming-soon waitlist: join → check your email → (confirm link lands on
-// /?in=CODE) you're on the list, with the invite link to share. An invite
+// The coming-soon waitlist: join → you're on the list at once, with the invite
+// link to share (single opt-in; /?in=CODE also opens this screen). An invite
 // link's ?r=CODE is remembered in this browser so a friend who looks around
 // first still counts.
 import { Suspense, useState, useSyncExternalStore, useTransition } from "react";
@@ -41,7 +41,7 @@ function WithParams({ site }: { site: string }) {
 }
 
 function Box({ site, inCode, urlRef, notice }: { site: string; inCode: string | null; urlRef: string | null; notice: string | null }) {
-  const [step, setStep] = useState<"join" | "check" | "in">(inCode ? "in" : "join");
+  const [code, setCode] = useState<string | null>(inCode);
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -54,13 +54,13 @@ function Box({ site, inCode, urlRef, notice }: { site: string; inCode: string | 
     form.set("ref", urlRef ?? storedRef());
     start(async () => {
       const r = await joinWaitlistAction(form);
-      if (r.ok) setStep("check");
-      else setError(r.message);
+      if (!r.ok) setError(r.message);
+      else if (r.code) setCode(r.code);
     });
   };
 
-  if (step === "in" && inCode) {
-    const url = inviteUrl(site, inCode);
+  if (code) {
+    const url = inviteUrl(site, code);
     const copy = async () => {
       try { await navigator.clipboard.writeText(url); setCopied(true); } catch { setCopied(false); }
     };
@@ -73,7 +73,7 @@ function Box({ site, inCode, urlRef, notice }: { site: string; inCode: string | 
         <p className="cs-wl-h">See you at <em>opening.</em></p>
         <p className="cs-p">We&apos;ll email your early-access link the day before we open. Share your link with fellow researchers: every colleague who places a first order earns you ${REFERRAL_CREDIT_DOLLARS} in store credit. No limit.</p>
         <div className="cs-form">
-          <input readOnly value={inviteLabel(site, inCode)} aria-label="Your invite link" onFocus={(e) => e.currentTarget.select()} />
+          <input readOnly value={inviteLabel(site, code)} aria-label="Your invite link" onFocus={(e) => e.currentTarget.select()} />
           <button type="button" className="p-btn-primary" onClick={canShare ? share : copy}>{canShare ? "Share link" : copied ? "Copied ✓" : "Copy link"}</button>
         </div>
         {canShare && <button type="button" className="cs-reset" onClick={copy}>{copied ? "Copied ✓" : "Copy it instead"}</button>}
@@ -81,17 +81,6 @@ function Box({ site, inCode, urlRef, notice }: { site: string; inCode: string | 
           <div><b>0</b><span className="s-micro">Colleagues ordered</span></div><div><b>$0</b><span className="s-micro">Credit earned</span></div><div><b>${REFERRAL_CREDIT_DOLLARS}</b><span className="s-micro">Per colleague</span></div>
         </div>
         <p className="cs-fine">Your link is in your inbox too. Credit counts from launch day, when colleagues can order.</p>
-      </div>
-    );
-  }
-
-  if (step === "check") {
-    return (
-      <div className="cs-wl cs-wl--panel" aria-live="polite">
-        <p className="s-micro cs-wl-k" style={{ color: "var(--tested)" }}>✓ Almost there</p>
-        <p className="cs-wl-h">Check your <em>email.</em></p>
-        <p className="cs-p">We sent a link to <b>{email}</b>. Click it to save your spot. Not there in a few minutes? Check spam or promotions.</p>
-        <button type="button" className="cs-reset" onClick={() => setStep("join")}>Use a different email</button>
       </div>
     );
   }

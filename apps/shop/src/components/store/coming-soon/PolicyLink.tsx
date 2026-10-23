@@ -41,7 +41,7 @@ function PrivacyNotice() {
   return <>
     <p className="s-micro cs-pop-k" style={{ color: "#33467A" }}>Privacy · the waitlist</p>
     <h2 id="cs-pop-privacy" className="cs-pop-h">What we keep, <em>and why.</em></h2>
-    <p><b>What we collect.</b> Your email address, when you joined and confirmed it, your own invite code, and the invite link you came through, if any.</p>
+    <p><b>What we collect.</b> Your email address, when you joined, your own invite code, and the invite link you came through, if any.</p>
     <p><b>Why.</b> To email you about our launch, your early-access link, promotions, research updates and new arrivals, and to track the colleagues you refer so we can add your store credit.</p>
     <p><b>Who sees it.</b> Only the services that run the list for us: hosting (Vercel), our database (Supabase) and email delivery (Amazon SES). We never sell your information.</p>
     <p><b>Unsubscribe any time.</b> Every email has an unsubscribe link. To see or delete what we hold about you, email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p>

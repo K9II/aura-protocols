@@ -1,46 +1,52 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
-import { confirmSubscriber, getSubscriber, sendTracked, upsertPending } from "@/lib/email/data";
-import { hashToken, normalizeEmail, unsubscribeUrl } from "@/lib/email/links";
-import { waitlistConfirmEmail, waitlistInEmail } from "@/lib/emails-marketing";
+import { confirmSubscriber, getSubscriber, sendTracked } from "@/lib/email/data";
+import { normalizeEmail, unsubscribeUrl } from "@/lib/email/links";
+import { waitlistInEmail } from "@/lib/emails-marketing";
 import { siteUrl } from "@/lib/supabase/env";
 import { alertOwner } from "@/lib/notify";
 import { inviteLabel, inviteUrl, newReferralCode } from "./codes";
 
-// The pre-launch waitlist (2026-10-23). Joining = the Aura letter's double
-// opt-in with source 'waitlist': a confirm link first, then "You're on the
-// list" with the person's invite link. The page answers the same for a new,
-// pending, confirmed or cooling-down address — it never reveals whether
-// someone else's address is on the list.
+// The pre-launch waitlist (2026-10-23). Single opt-in since 2026-10-23
+// (Alvester: "no barriers to entry"): entering an email puts it on the list
+// (subscribers, source 'waitlist', confirmed) and the page shows the person's
+// invite link at once; "You're on the list" emails the same link with an
+// unsubscribe link. Rows left pending by the old confirm step still confirm
+// through /api/waitlist/confirm.
 
 const db = () => getSupabaseAdminClient();
 
-// Confirm emails sent to anyone in the last hour. Above it the form asks
-// people to try again shortly and the owner is alerted: a bot pasting
-// strangers' addresses would otherwise make us mail them.
+// Invite emails sent in the last hour. Above it the form asks people to try
+// again shortly and the owner is alerted: a bot pasting strangers' addresses
+// would otherwise make us mail them.
 export const WAITLIST_HOURLY_CAP = 120;
 
-export async function confirmsLastHour(nowMs: number = Date.now()): Promise<number> {
+export async function invitesLastHour(nowMs: number = Date.now()): Promise<number> {
   const { count, error } = await db().from("email_sends").select("id", { count: "exact", head: true })
-    .eq("kind", "confirm").gte("sent_at", new Date(nowMs - 3600 * 1000).toISOString());
-  if (error) throw new Error(`confirm count failed: ${JSON.stringify(error)}`);
+    .eq("kind", "waitlist_in").gte("sent_at", new Date(nowMs - 3600 * 1000).toISOString());
+  if (error) throw new Error(`invite count failed: ${JSON.stringify(error)}`);
   return count ?? 0;
 }
 
-// Throws when the sign-up can't be saved or the email can't be sent.
-export async function joinWaitlist(input: { email: string; referredBy: string | null }, nowMs: number = Date.now()): Promise<void> {
+// Returns the person's invite code. Throws when the sign-up can't be saved;
+// a failed invite email only alerts the owner (they're on the list either way).
+export async function joinWaitlist(input: { email: string; referredBy: string | null }, nowMs: number = Date.now()): Promise<string> {
   const email = normalizeEmail(input.email);
-  const r = await upsertPending({ email, source: "waitlist", partnerRef: null }, nowMs);
-  await markJoined(email, input.referredBy, nowMs);
-  if (r.state === "pending") {
-    const url = `${siteUrl()}/api/waitlist/confirm?token=${encodeURIComponent(r.token)}`;
-    await sendTracked({ email, kind: "confirm", ref: hashToken(r.token), msg: waitlistConfirmEmail(url) });
-  } else if (r.state === "confirmed") {
-    // Already confirmed (e.g. on the Aura letter): no second opt-in needed —
-    // they get their invite link (once; sendTracked dedupes waitlist_in).
-    await sendInvite(email);
+  const existing = await getSubscriber(email);
+  if (existing?.status !== "confirmed") {
+    // A "source" of "unsubscribe" is just the stub unsubscribe() creates — not a real source to keep.
+    const keepSource = existing?.source && existing.source !== "unsubscribe";
+    const { error } = await db().from("subscribers").upsert({
+      email, source: keepSource ? existing!.source : "waitlist", status: "confirmed",
+      confirmed_at: new Date(nowMs).toISOString(), unsubscribed_at: null, confirm_token_hash: null,
+    }, { onConflict: "email" });
+    if (error) throw new Error(`waitlist save failed: ${JSON.stringify(error)}`);
   }
+  await markJoined(email, input.referredBy, nowMs);
+  const code = await ensureReferralCode(email);
+  await sendInviteQuietly(email, code);
+  return code;
 }
 
 // First join time and the first invite link used are kept; later ones don't
@@ -72,10 +78,12 @@ export async function ensureReferralCode(email: string): Promise<string> {
   throw new Error(`no free referral code for ${e} after 5 tries`);
 }
 
-async function sendInvite(email: string): Promise<string> {
-  const code = await ensureReferralCode(email);
-  await sendInviteEmail(email, code);
-  return code;
+async function sendInviteQuietly(email: string, code: string): Promise<void> {
+  try {
+    await sendInviteEmail(email, code);
+  } catch (err) {
+    await alertOwner("Waitlist: invite email failed", `${email} (code ${code}): ${String(err)}`);
+  }
 }
 
 async function sendInviteEmail(email: string, code: string): Promise<void> {
@@ -89,17 +97,12 @@ async function sendInviteEmail(email: string, code: string): Promise<void> {
 
 export type WaitlistConfirm = { state: "in"; code: string } | { state: "invalid" };
 
-// The confirm link. A second click (or a link scanner) lands on the same
+// The old confirm link (rows pending from before single opt-in). A second click (or a link scanner) lands on the same
 // "you're in" screen; the invite email still goes once.
 export async function confirmWaitlist(token: string, nowMs: number = Date.now()): Promise<WaitlistConfirm> {
   const result = await confirmSubscriber(token, nowMs);
   if (!result) return { state: "invalid" };
   const code = await ensureReferralCode(result.row.email);
-  // They're on the list either way; a failed email is the owner's to resend.
-  try {
-    await sendInviteEmail(result.row.email, code);
-  } catch (err) {
-    await alertOwner("Waitlist: invite email failed", `${result.row.email} (code ${code}): ${String(err)}`);
-  }
+  await sendInviteQuietly(result.row.email, code);
   return { state: "in", code };
 }
