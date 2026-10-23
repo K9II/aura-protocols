@@ -4,12 +4,11 @@ import type { Customer } from "@/lib/dal";
 
 let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
-const { getSubscriber, recordOptIn, listVerifiedOptIn, upsertPending, sendTracked } = vi.hoisted(() => ({ getSubscriber: vi.fn(), recordOptIn: vi.fn(), listVerifiedOptIn: vi.fn(), upsertPending: vi.fn(), sendTracked: vi.fn() }));
-vi.mock("@/lib/email/data", () => ({ getSubscriber, recordOptIn, upsertPending, sendTracked }));
-vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
+const { getSubscriber, recordOptIn, listVerifiedOptIn } = vi.hoisted(() => ({ getSubscriber: vi.fn(), recordOptIn: vi.fn(), listVerifiedOptIn: vi.fn() }));
+vi.mock("@/lib/email/data", () => ({ getSubscriber, recordOptIn }));
 vi.mock("@/lib/account/welcome", () => ({ listVerifiedOptIn }));
 
-import { letterState, subscribeOtherEmail, subscribeToLetter } from "@/lib/email/letter";
+import { letterState, subscribeToLetter } from "@/lib/email/letter";
 
 const customer = (emailConfirmed: boolean) => ({ id: "c1", email: "a@lab.org", emailConfirmed } as Customer);
 
@@ -54,18 +53,4 @@ describe("The Aura letter", () => {
     await expect(subscribeToLetter(customer(true))).rejects.toThrow(/down/);
   });
 
-  it("sends a different address a confirm link (anti-bomb cooldown and already-listed look the same)", async () => {
-    upsertPending.mockResolvedValueOnce({ state: "pending", token: "tok" });
-    expect(await subscribeOtherEmail("lab@other.org")).toBe("check_inbox");
-    const arg = sendTracked.mock.calls[0][0];
-    expect(arg).toMatchObject({ email: "lab@other.org", kind: "confirm" });
-    expect(arg.msg.html).toContain("https://auraprotocols.com/api/subscribe/confirm?token=tok");
-    expect(arg.msg.html).toMatch(/promotions, research updates/i);
-    for (const state of ["confirmed", "cooldown"]) {
-      sendTracked.mockClear();
-      upsertPending.mockResolvedValueOnce({ state });
-      expect(await subscribeOtherEmail("lab@other.org")).toBe("check_inbox");
-      expect(sendTracked).not.toHaveBeenCalled();
-    }
-  });
 });

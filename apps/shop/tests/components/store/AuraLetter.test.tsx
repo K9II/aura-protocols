@@ -32,21 +32,14 @@ describe("AuraLetter", () => {
     await ready();
     send();
     expect(await screen.findByText(/you're on the list/i)).toBeInTheDocument();
-    expect((subscribeLetterAction.mock.calls[0][0] as FormData).get("email")).toBe("a@lab.org");
   });
 
-  it("takes a different address and says to check that inbox", async () => {
-    letterStatusAction.mockResolvedValue(me("confirmed"));
-    subscribeLetterAction.mockResolvedValue({ ok: true, state: "check_inbox", email: "lab@other.org" });
+  it("shows the account email in a box that can't be changed", async () => {
+    letterStatusAction.mockResolvedValue(me("none"));
     render(<AuraLetter />);
     await ready();
-    expect(screen.getByRole("button", { name: "Subscribed ✓" })).toBeDisabled();
-    fireEvent.change(box(), { target: { value: "lab@other.org" } });
-    // The account's "on the list" state no longer applies to the box.
-    expect(screen.queryByText(/you're on the list/i)).not.toBeInTheDocument();
-    send();
-    expect(await screen.findByText(/check lab@other\.org/i)).toBeInTheDocument();
-    expect((subscribeLetterAction.mock.calls[0][0] as FormData).get("email")).toBe("lab@other.org");
+    expect(box()).toHaveAttribute("readonly");
+    expect(screen.getByText(/we send to your account email/i)).toBeInTheDocument();
   });
 
   it("keeps the box when already subscribed or waiting on verification, with the state inside it", async () => {

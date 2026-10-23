@@ -1,5 +1,5 @@
 // Marketing emails: the "Paperwork" welcome series, cart reminders, lot
-// alerts, and the opt-in confirmation. Copy approved 2026-10-03 (spec
+// alerts and the waitlist email. Copy approved 2026-10-03 (spec
 // Appendix A). Every marketing email carries the RUO line, our mailing
 // address (CAN-SPAM) and a signed unsubscribe link.
 import { escapeHtml as e } from "@/lib/html";
@@ -78,17 +78,6 @@ export function waitlistInEmail(ctx: MarketingCtx, invite: { url: string; label:
       + `<table role="presentation" style="border:1px solid ${INK};border-collapse:collapse;margin:0 0 18px"><tr><td style="padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em">YOUR INVITE LINK<br><span style="font-size:17px;letter-spacing:.02em">${link(invite.url, e(invite.label))}</span></td></tr></table>`
       + p(`<span style="color:${SOFT}">Credit is added once your colleague's first order ships. The full referral terms are on ${link(ctx.site, "auraprotocols.com")}.</span>`)
       + SIGN, ctx),
-  };
-}
-
-// The Aura letter, for an address that isn't a verified account email.
-export function confirmEmail(confirmUrl: string): Msg {
-  return {
-    subject: "Confirm your email",
-    html: frame("The Aura letter", "One click to *confirm.*",
-      p("Confirm this address to get the Aura letter: promotions, research updates, store news and new lots with their certificates. Only when there's something worth sending. No spam.")
-      + p(link(confirmUrl, "Confirm my email →"))
-      + p(`<span style="color:${SOFT}">Didn't ask for this? Ignore it and you won't hear from us.</span>`), null),
   };
 }
 

@@ -8,7 +8,8 @@ import { letterStatusAction, subscribeLetterAction, type LetterStatus } from "@/
 // steps + journal masthead", approved 2026-10-14). Research updates, store
 // news and lot releases — never pitched as lots only. The "Promotions &
 // member pricing" line came off the list 2026-10-18; the consent still
-// covers promotions.
+// covers promotions. Only the account's own email joins (2026-10-23, single
+// opt-in, no confirm email): to use another address, change the account email.
 
 const CONTENTS: Array<[React.ReactNode, string]> = [
   ["Research updates", "i"],
@@ -16,12 +17,8 @@ const CONTENTS: Array<[React.ReactNode, string]> = [
   ["Research news", "iii"],
 ];
 
-const norm = (e: string) => e.trim().toLowerCase();
-
 export default function AuraLetter() {
   const [status, setStatus] = useState<LetterStatus | null>(null);
-  const [email, setEmail] = useState<string | null>(null); // null = untouched: shows the account email
-  const [sentTo, setSentTo] = useState<string | null>(null); // a different address that was sent a confirm link
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -33,22 +30,17 @@ export default function AuraLetter() {
 
   function submit(formData: FormData) {
     setError(null);
-    setSentTo(null);
     startTransition(async () => {
       const r = await subscribeLetterAction(formData);
       if (!r.ok) { setError(r.message); return; }
-      if (r.state === "check_inbox") { setSentTo(r.email); return; }
       const state = r.state;
       setStatus((s) => (s?.signedIn ? { ...s, state, verified: state === "confirmed" || s.verified } : s));
     });
   }
 
   const signedIn = status?.signedIn === true ? status : null;
-  const value = email ?? signedIn?.email ?? "";
-  // The account's own list state applies only while the box holds the account email.
-  const isAccount = !!signedIn && norm(value) === norm(signedIn.email);
-  const onList = isAccount && signedIn?.state === "confirmed";
-  const waiting = isAccount && signedIn?.state === "pending" && !signedIn.verified;
+  const onList = signedIn?.state === "confirmed";
+  const waiting = signedIn?.state === "pending" && !signedIn.verified;
   return (
     <section className="s-letter p-reveal" aria-labelledby="aura-letter">
       <div className="s-letter-head">
@@ -72,12 +64,11 @@ export default function AuraLetter() {
             <label className="s-letter-box">
               <span className="s-micro">Email address</span>
               <input
-                name="email" type="email" autoComplete="email" required
-                value={value} placeholder="you@yourlab.org" disabled={!signedIn}
-                onChange={(e) => { setEmail(e.target.value); setSentTo(null); setError(null); }}
+                type="email" readOnly
+                value={signedIn?.email ?? ""} placeholder="you@yourlab.org" disabled={!signedIn}
               />
             </label>
-            <p className="s-letter-hint">Your account email is filled in — change it to use another address.</p>
+            <p className="s-letter-hint">We send to your account email.</p>
             {onList ? (
               <p className="s-letter-done" role="status"><b>● You&apos;re on the list.</b> Promotions and updates go to this address. Unsubscribe from any email.</p>
             ) : waiting ? (
@@ -88,7 +79,6 @@ export default function AuraLetter() {
                 <span>Email me Aura Protocols promotions, research updates and new arrivals. I can unsubscribe at any time.</span>
               </label>
             )}
-            {sentTo && <p className="s-letter-done" role="status"><b>Check {sentTo}.</b> We sent a link to confirm it — the address joins the list once it&apos;s clicked.</p>}
             {error && <p className="s-letter-err" role="alert">{error}</p>}
             {status && !status.signedIn ? (
               <Link href="/sign-in" className="s-letter-btn">Sign in to subscribe →</Link>
