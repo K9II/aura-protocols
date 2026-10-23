@@ -8,13 +8,14 @@ import AuraLockup from "@/components/AuraLockup";
 import HeroLight, { PageLight } from "@/components/store/HeroLight";
 import TrustRow from "@/components/store/TrustRow";
 import VialTurn from "@/components/store/VialTurn";
+import PlacardScan from "@/components/store/PlacardScan";
 import BiosignatureSphere from "@/components/BiosignatureSphere";
 import { DictionaryEntry, HeroAura } from "@/components/store/HeroAura";
 import { catalogContent } from "@/data/catalog";
 import type { LiveCatalog } from "@/lib/catalog-merge";
 import type { ChemicalClass } from "@/data/catalog";
 import { vialCap, vialName, vialParts } from "@/lib/catalog";
-import { CLASS_COLOR } from "@/lib/class-colors";
+import { CLASS_COLOR, classShortName } from "@/lib/class-colors";
 import { auraRings } from "@/lib/hero-aura";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 import { coaLookupQrUrl, qrRows } from "@/lib/vial-qr";
@@ -48,6 +49,8 @@ const SAMPLE_GROUPS: Array<[string, Array<[string, string, string]>]> = [
 export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalClass> | null; site: string }) {
   const bpc = catalogContent.find((c) => c.slug === "bpc-157");
   const sphere = live ? sphereNodes(live.shown) : [];
+  // No lot is live before launch: the QR opens the certificate lookup.
+  const strengths = [{ id: "10mg", strength: "10 mg", lot: null, qr: qrRows(coaLookupQrUrl(site)) }];
 
   const Proof = bpc ? (
     <section className="cs-sec">
@@ -58,10 +61,22 @@ export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalC
           <p className="cs-sub">Every vial carries its lot number and a QR code. Scan it and you land on that lot&apos;s certificate: up to a ten-point panel, run by an independent ISO/IEC 17025-accredited US lab.</p>
           {/* The vial turns to its QR code and rests there; the arrow points at the certificate it opens. */}
           <div className="cs-bpc-row">
-            <div className="cs-bpc-tile">
+            {/* The product page's own tile (placard behind, turning vial in front), so the glass
+                reads as clear as it does on the store. */}
+            <div className="s-pdp-tile cs-bpc-tile" style={{ "--cls": CLASS_COLOR[bpc.chemicalClass] } as React.CSSProperties}>
+              <div className="s-pdp-placard" aria-hidden>
+                <span className="s-placard-k">Monograph · {classShortName(bpc.chemicalClass)}</span>
+                <span className="s-pdp-placard-n">{vialName(bpc).map((line, i) => <span key={i} className="s-name-line">{line}</span>)}</span>
+                <dl>
+                  {([["CAS", bpc.identity.cas], ["Formula", bpc.identity.formula], ["Mol. wt", bpc.identity.molecularWeight]] as Array<[string, string | undefined]>)
+                    .filter(([, v]) => v).map(([k, v]) => <div key={k} className={k === "Mol. wt" ? "s-pdp-mw" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
+                </dl>
+                <PlacardScan slug={bpc.slug} strengths={strengths} />
+                <span className="s-placard-r">Research use only · Not for human use</span>
+              </div>
               <div className="s-pdp-vial">
                 <VialTurn id="cs-bpc" slug={bpc.slug} label={vialName(bpc)[0]} label2={vialName(bpc)[1]} cap={vialCap(bpc)} rule={CLASS_COLOR[bpc.chemicalClass]} parts={vialParts(bpc)}
-                  strengths={[{ id: "10mg", strength: "10 mg", lot: null, qr: qrRows(coaLookupQrUrl(site)) }]} restOn="qr" />
+                  strengths={strengths} restOn="qr" />
               </div>
             </div>
             <div className="cs-scan" aria-hidden="true">

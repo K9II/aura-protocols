@@ -2539,18 +2539,18 @@ html { scroll-padding-top: 150px; }
 .pharmacopoeia .cs-step h3 { font: 400 21px var(--font-newsreader), Georgia, serif; margin: 8px 0 0; }
 .pharmacopoeia .cs-proof { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
 .pharmacopoeia .cs-bpc-row { margin-top: 18px; display: flex; align-items: flex-end; gap: 4px; }
-.pharmacopoeia .cs-bpc-tile { flex: 0 0 auto; width: 270px; background: var(--vial-tile); border: 1px solid var(--line); box-shadow: var(--vial-tile-shadow); padding: 22px 30px 16px; }
-.pharmacopoeia .cs-bpc-tile .s-pdp-vial { position: relative; right: auto; bottom: auto; width: 205px; margin: 0 auto; }
-.pharmacopoeia .cs-scan { color: var(--specimen); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 0 70px 6px; }
+.pharmacopoeia .cs-bpc-row .cs-bpc-tile { flex: 1 1 auto; width: 100%; max-width: 440px; order: 0; }
+.pharmacopoeia .cs-bpc-row .cs-scan { order: 1; }
+.pharmacopoeia .cs-scan { flex: 0 0 auto; color: var(--specimen); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 0 90px 6px; }
 .pharmacopoeia .cs-scan span { font: italic 400 20px/1.2 var(--font-newsreader), Georgia, serif; color: var(--ink); }
 .pharmacopoeia .cs-scan em { color: var(--specimen); }
 .pharmacopoeia .cs-scan svg { width: 118px; height: auto; }
 @media (max-width: 900px) {
   .pharmacopoeia .cs-bpc-row { flex-direction: column; align-items: center; gap: 10px; }
+  .pharmacopoeia .cs-bpc-tile { max-width: 560px; }
   .pharmacopoeia .cs-scan { align-items: center; text-align: center; padding: 0; }
   .pharmacopoeia .cs-scan svg { width: 70px; transform: rotate(125deg); margin-top: 4px; }
 }
-@media (max-width: 380px) { .pharmacopoeia .cs-bpc-tile { width: 240px; padding: 18px 20px 14px; } .pharmacopoeia .cs-bpc-tile .s-pdp-vial { width: 190px; } }
 .pharmacopoeia .cs-coa { background: var(--label); border: 1px solid var(--line); border-top: 5px solid var(--tested); box-shadow: 0 1px 0 rgba(28,26,21,.05), 12px 16px 32px -16px rgba(28,26,21,.34); min-width: 0; }
 .pharmacopoeia .cs-coa-h { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--record); border-bottom: 1px solid var(--line); padding: 12px 16px; }
 .pharmacopoeia .cs-coa-h .s-micro { color: var(--ink-soft); }
