@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { joinWaitlist, confirmsLastHour, checkDeliverable, alertOwner } = vi.hoisted(() => ({
-  joinWaitlist: vi.fn(), confirmsLastHour: vi.fn(), checkDeliverable: vi.fn(), alertOwner: vi.fn(),
+const { joinWaitlist, invitesLastHour, checkDeliverable, alertOwner } = vi.hoisted(() => ({
+  joinWaitlist: vi.fn(), invitesLastHour: vi.fn(), checkDeliverable: vi.fn(), alertOwner: vi.fn(),
 }));
-vi.mock("@/lib/waitlist/data", () => ({ joinWaitlist, confirmsLastHour, WAITLIST_HOURLY_CAP: 120 }));
+vi.mock("@/lib/waitlist/data", () => ({ joinWaitlist, invitesLastHour, WAITLIST_HOURLY_CAP: 120 }));
 vi.mock("@/lib/account/deliverable", () => ({ checkDeliverable }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 
@@ -15,12 +15,12 @@ describe("joinWaitlistAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     checkDeliverable.mockResolvedValue("ok");
-    confirmsLastHour.mockResolvedValue(0);
-    joinWaitlist.mockResolvedValue(undefined);
+    invitesLastHour.mockResolvedValue(0);
+    joinWaitlist.mockResolvedValue("ABCDEF");
   });
 
   it("joins with the invite code it came through", async () => {
-    expect(await joinWaitlistAction(form({ email: " A@Lab.org ", ref: "k7m2qx" }))).toEqual({ ok: true, email: "a@lab.org" });
+    expect(await joinWaitlistAction(form({ email: " A@Lab.org ", ref: "k7m2qx" }))).toEqual({ ok: true, email: "a@lab.org", code: "ABCDEF" });
     expect(joinWaitlist).toHaveBeenCalledWith({ email: "a@lab.org", referredBy: "K7M2QX" });
   });
 
@@ -42,7 +42,7 @@ describe("joinWaitlistAction", () => {
   });
 
   it("past the hourly cap: asks to try again and alerts the owner", async () => {
-    confirmsLastHour.mockResolvedValue(120);
+    invitesLastHour.mockResolvedValue(120);
     const r = await joinWaitlistAction(form({ email: "a@lab.org" }));
     expect(r.ok).toBe(false);
     expect(joinWaitlist).not.toHaveBeenCalled();
