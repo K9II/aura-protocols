@@ -2540,6 +2540,8 @@ html { scroll-padding-top: 150px; }
 .pharmacopoeia .cs-proof { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
 .pharmacopoeia .cs-bpc-row { margin-top: 18px; display: flex; align-items: flex-end; gap: 4px; }
 .pharmacopoeia .cs-bpc-row .cs-bpc-tile { flex: 1 1 auto; width: 100%; max-width: 440px; order: 0; }
+/* Background C (2026-10-23): a soft tint of the compound's class colour, so the clear glass reads. */
+.pharmacopoeia .cs-bpc-row .cs-bpc-tile.s-pdp-tile { background: linear-gradient(165deg, color-mix(in srgb, var(--cls) 10%, #F7F2EC) 0%, color-mix(in srgb, var(--cls) 24%, #EFE6DE) 100%); }
 .pharmacopoeia .cs-bpc-row .cs-scan { order: 1; }
 .pharmacopoeia .cs-scan { flex: 0 0 auto; color: var(--specimen); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 0 90px 6px; }
 .pharmacopoeia .cs-scan span { font: italic 400 20px/1.2 var(--font-newsreader), Georgia, serif; color: var(--ink); }
@@ -2626,3 +2628,4 @@ html { scroll-padding-top: 150px; }
 .pharmacopoeia .cs-wl-err { font-size: 14px; color: var(--specimen); margin: 8px 0 0; }
 .pharmacopoeia .cs-coa-note { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
 .pharmacopoeia .cs-form .p-btn-primary:disabled { opacity: .7; cursor: wait; }
+

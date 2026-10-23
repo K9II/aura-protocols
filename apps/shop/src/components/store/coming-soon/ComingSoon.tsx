@@ -59,7 +59,7 @@ export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalC
           <p className="s-micro cs-eyebrow">Behind every vial</p>
           <h2 className="s-h2">BPC-157, <em>and its certificate.</em></h2>
           <p className="cs-sub">Every vial carries its lot number and a QR code. Scan it and you land on that lot&apos;s certificate: up to a ten-point panel, run by an independent ISO/IEC 17025-accredited US lab.</p>
-          {/* The vial turns to its QR code and rests there; the arrow points at the certificate it opens. */}
+          {/* The vial turns to show its QR code, then comes to rest on its front face; the arrow points at the certificate it opens. */}
           <div className="cs-bpc-row">
             {/* The product page's own tile (placard behind, turning vial in front), so the glass
                 reads as clear as it does on the store. */}
@@ -76,7 +76,7 @@ export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalC
               </div>
               <div className="s-pdp-vial">
                 <VialTurn id="cs-bpc" slug={bpc.slug} label={vialName(bpc)[0]} label2={vialName(bpc)[1]} cap={vialCap(bpc)} rule={CLASS_COLOR[bpc.chemicalClass]} parts={vialParts(bpc)}
-                  strengths={strengths} restOn="qr" />
+                  strengths={strengths} />
               </div>
             </div>
             <div className="cs-scan" aria-hidden="true">
@@ -121,7 +121,7 @@ export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalC
   const steps: Array<[string, string, string, string]> = [
     ["I", "#33467A", "Early access", "Shop the day before we open to everyone."],
     ["II", "#A32B1F", `${OFFER_PCT_TEXT} off`, "Your first order, taken off automatically at checkout. No code."],
-    ["III", "#2F6B3A", `$${REFERRAL_CREDIT_DOLLARS} a friend`, `Share your link. Every friend who places a first order adds $${REFERRAL_CREDIT_DOLLARS} to your store credit. No limit.`],
+    ["III", "#2F6B3A", `$${REFERRAL_CREDIT_DOLLARS} a colleague`, `Share your link with fellow researchers. Every colleague who places a first order adds $${REFERRAL_CREDIT_DOLLARS} to your store credit. No limit.`],
   ];
   const Steps = (
     <section className="cs-sec">
@@ -135,10 +135,10 @@ export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalC
                 <summary>How referral credit works</summary>
                 <ul>
                   <li>Share your personal link. When someone uses it to open a new account and places their <b>first order</b>, you earn <b>${REFERRAL_CREDIT_DOLLARS} in store credit</b>.</li>
-                  <li>There&apos;s <b>no limit</b>: every friend who orders earns you another ${REFERRAL_CREDIT_DOLLARS}.</li>
-                  <li>The credit is added <b>once your friend&apos;s order has shipped</b>. If that order is cancelled or refunded, the credit doesn&apos;t apply.</li>
-                  <li>Your friend must be <b>new to Aura Protocols</b>, and it can&apos;t be you: orders to your own address or paid with your own payment details don&apos;t count.</li>
-                  <li>Each friend counts once, for the first link they used.</li>
+                  <li>There&apos;s <b>no limit</b>: every colleague who orders earns you another ${REFERRAL_CREDIT_DOLLARS}.</li>
+                  <li>The credit is added <b>once your colleague&apos;s order has shipped</b>. If that order is cancelled or refunded, the credit doesn&apos;t apply.</li>
+                  <li>Your colleague must be <b>new to Aura Protocols</b>, and it can&apos;t be you: orders to your own address or paid with your own payment details don&apos;t count.</li>
+                  <li>Each colleague counts once, for the first link they used.</li>
                   <li>Store credit is spent on orders in our store. It has <b>no cash value</b> and can&apos;t be transferred.</li>
                   <li>Bringing in a lot of customers? We may invite you to our <b>partner program</b>, which pays commission.</li>
                   <li>We may change or end the program at any time; credit you&apos;ve already earned stays yours.</li>
