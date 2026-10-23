@@ -8,6 +8,7 @@ import Discounts from "@/components/admin/guide/Discounts";
 import Orders from "@/components/admin/guide/Orders";
 import Wholesale from "@/components/admin/guide/Wholesale";
 import Customers from "@/components/admin/guide/Customers";
+import Waitlist from "@/components/admin/guide/Waitlist";
 import Disputes from "@/components/admin/guide/Disputes";
 import Activity from "@/components/admin/guide/Activity";
 import Catalog from "@/components/admin/guide/Catalog";
@@ -36,6 +37,7 @@ export default async function AdminGuidePage() {
         <Orders />
         <Wholesale />
         <Customers />
+        <Waitlist />
         <Disputes />
         <Catalog />
         <Email />

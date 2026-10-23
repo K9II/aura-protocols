@@ -4,13 +4,25 @@ import Link from "next/link";
 import { Icon } from "@/components/admin/ui";
 import { PERIODS, PERIOD_LABEL, PERIOD_SHORT, type Period } from "@/lib/today/periods";
 import type { Change, NumbersView } from "@/lib/today/numbers";
+import type { WaitlistLine } from "@/lib/today/today";
 
 function Chg({ c, suffix }: { c: Change; suffix?: string }) {
   if (!c) return null;
   return <span className={`chg ${c.dir}`}>{c.text}{suffix ? ` ${suffix}` : ""}</span>;
 }
 
-export default function Numbers({ period, view, reloadHref }: { period: Period; view: NumbersView | null; reloadHref: string }) {
+// The waitlist line doesn't follow the period: it's the list as it stands, plus today's joins.
+function Waitlist({ w }: { w: WaitlistLine }) {
+  if (!w.ok) return <div className="a-wl-line" role="alert"><Icon name="warn" />Waitlist · couldn&apos;t load</div>;
+  return (
+    <Link className="a-wl-line" href="/admin/waitlist">
+      Waitlist <b>{w.onList.toLocaleString("en-US")}</b>{w.today > 0 && <>· <b>+{w.today.toLocaleString("en-US")}</b> today</>}
+      <span className="go">Open <Icon name="arrow" /></span>
+    </Link>
+  );
+}
+
+export default function Numbers({ period, view, reloadHref, waitlist }: { period: Period; view: NumbersView | null; reloadHref: string; waitlist?: WaitlistLine | null }) {
   return (
     <section className="a-nums" aria-labelledby="t-numbers">
       <div className="a-nums-h">
@@ -74,6 +86,7 @@ export default function Numbers({ period, view, reloadHref }: { period: Period; 
           </div>
         </>
       )}
+      {waitlist && <Waitlist w={waitlist} />}
     </section>
   );
 }

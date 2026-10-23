@@ -10,9 +10,9 @@ export type PermGroup = { text: string; perms: readonly Permission[] };
 
 export const CAN_GROUPS: readonly PermGroup[] = [
   {
-    text: "See Today, orders, wholesale, customers, discounts, disputes, catalog & lots, email, inquiries, partners, payouts and Activity",
+    text: "See Today, orders, wholesale, customers, the waitlist, discounts, disputes, catalog & lots, email, inquiries, partners, payouts and Activity",
     perms: [
-      "today.view", "orders.view", "wholesale.view", "customers.view", "discounts.view", "disputes.view", "catalog.view",
+      "today.view", "orders.view", "wholesale.view", "customers.view", "waitlist.view", "discounts.view", "disputes.view", "catalog.view",
       "email.view", "inquiries.view", "partners.view", "payouts.view", "activity.view",
     ],
   },
