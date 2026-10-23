@@ -1,19 +1,15 @@
 "use server";
 
 import { getCustomer } from "@/lib/dal";
-import { z } from "zod";
-import { letterState, subscribeOtherEmail, subscribeToLetter, type LetterState } from "@/lib/email/letter";
-import { normalizeEmail } from "@/lib/email/links";
+import { letterState, subscribeToLetter, type LetterState } from "@/lib/email/letter";
 import { alertOwner } from "@/lib/notify";
 
 // The Aura letter box (components/store/AuraLetter.tsx). Signed-in shoppers only.
-// The account's own email joins through the account opt-in; any other address
-// gets a confirm-by-email link first (lib/email/letter.ts).
+// Only the account's own email joins (lib/email/letter.ts) — single opt-in,
+// no confirm email (2026-10-23).
 
 export type LetterStatus = { signedIn: false } | { signedIn: true; email: string; state: LetterState; verified: boolean };
-export type LetterResult = { ok: true; state: "confirmed" | "pending" | "check_inbox"; email: string } | { ok: false; message: string };
-
-const emailSchema = z.string().trim().toLowerCase().email().max(254);
+export type LetterResult = { ok: true; state: "confirmed" | "pending"; email: string } | { ok: false; message: string };
 
 export async function letterStatusAction(): Promise<LetterStatus> {
   const customer = await getCustomer();
@@ -25,14 +21,10 @@ export async function subscribeLetterAction(formData: FormData): Promise<LetterR
   const customer = await getCustomer();
   if (!customer) return { ok: false, message: "Please sign in to subscribe." };
   if (formData.get("consent") !== "on") return { ok: false, message: "Please tick the box to agree to the emails." };
-  const parsed = emailSchema.safeParse(formData.get("email") ?? customer.email);
-  if (!parsed.success) return { ok: false, message: "Please enter a valid email address." };
-  const email = parsed.data;
   try {
-    if (email === normalizeEmail(customer.email)) return { ok: true, state: await subscribeToLetter(customer), email: customer.email };
-    return { ok: true, state: await subscribeOtherEmail(email), email };
+    return { ok: true, state: await subscribeToLetter(customer), email: customer.email };
   } catch (err) {
-    await alertOwner("Aura letter: subscribe failed", `${email} (account ${customer.email}): ${String(err)}`);
+    await alertOwner("Aura letter: subscribe failed", `${customer.email}: ${String(err)}`);
     return { ok: false, message: "We couldn't add you just now — please try again." };
   }
 }
