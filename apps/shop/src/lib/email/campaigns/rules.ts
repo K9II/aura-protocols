@@ -8,7 +8,7 @@ import type { AlertLot } from "@/lib/emails-marketing";
 // The editor's kinds, plus the ready-made pre-launch emails (2026-10-23, lib/email/prelaunch.ts):
 // fixed wording, sent once each from Email → Pre-launch, never made in the editor.
 export const EDITOR_KINDS = ["new_lots", "promotion", "news"] as const;
-export const PRELAUNCH_KINDS = ["first_look", "we_are_open"] as const;
+export const PRELAUNCH_KINDS = ["first_look", "early_access", "we_are_open"] as const;
 export const CAMPAIGN_KINDS = [...EDITOR_KINDS, ...PRELAUNCH_KINDS] as const;
 export type EditorKind = (typeof EDITOR_KINDS)[number];
 export type PrelaunchKind = (typeof PRELAUNCH_KINDS)[number];
@@ -16,11 +16,11 @@ export type CampaignKind = (typeof CAMPAIGN_KINDS)[number];
 export const isPrelaunch = (k: string): k is PrelaunchKind => (PRELAUNCH_KINDS as readonly string[]).includes(k);
 export const KIND_LABEL: Record<CampaignKind, string> = {
   new_lots: "New lots", promotion: "Promotion", news: "Research news",
-  first_look: "Pre-launch · A first look", we_are_open: "Pre-launch · We're open",
+  first_look: "Pre-launch · A first look", early_access: "Pre-launch · Early access", we_are_open: "Pre-launch · We're open",
 };
 export const KIND_HELP: Record<CampaignKind, string> = {
   new_lots: "Certified lots, filled in from Catalog", promotion: "Links a code from Discounts", news: "An article or update, no offer",
-  first_look: "The turning vial and the sample certificate", we_are_open: "All six vials, on launch day",
+  first_look: "The turning vial and the sample certificate", early_access: "Each waitlister's early link and personal code", we_are_open: "All six vials, on launch day",
 };
 export const parseKind = (v: string | undefined): EditorKind => ((EDITOR_KINDS as readonly string[]).includes(v ?? "") ? (v as EditorKind) : "news");
 
@@ -54,6 +54,11 @@ export const PRELAUNCH: Record<PrelaunchKind, { step: number; name: string; subj
     previewText: "This is the vial you'll get: the name up front, the strength, and a code that opens its own lot's report.",
     when: "Any time before opening, once.",
   },
+  early_access: {
+    step: 3, name: "Pre-launch · Early access", subject: "Your early access is open", audience: "waitlist",
+    previewText: "Your code is already in the box.",
+    when: "The day before opening, once checkout takes payments.",
+  },
   we_are_open: {
     step: 4, name: "Pre-launch · We're open", subject: "We're open", audience: "waitlist_never_ordered",
     previewText: "The full lineup is live, and your first order is 25% off.",
@@ -61,7 +66,8 @@ export const PRELAUNCH: Record<PrelaunchKind, { step: number; name: string; subj
   },
 };
 
-export type CampaignContent = { headline: string; body: string; buttonLabel: string; buttonPath: string };
+// openingOn (YYYY-MM-DD): early access only — typed on its campaign page before sending.
+export type CampaignContent = { headline: string; body: string; buttonLabel: string; buttonPath: string; openingOn?: string };
 export type CampaignFields = {
   name: string; subject: string; previewText: string; audience: Audience;
   content: CampaignContent; discountCodeId: string | null; lots: string[];

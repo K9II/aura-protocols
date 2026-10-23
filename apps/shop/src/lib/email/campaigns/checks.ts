@@ -4,6 +4,7 @@ import { findViolations } from "../../../../scripts/compliance-scan.mjs";
 import type { CodeStatus } from "@/lib/discounts/rules";
 import { shortDate } from "@/lib/discounts/time";
 import { isPrelaunch, isSitePath, type CampaignKind } from "@/lib/email/campaigns/rules";
+import { openingLabel } from "@/lib/early/rules";
 
 export type Check = { level: "block" | "warn" | "ok"; field?: string; text: string };
 export type CheckFields = { subject: string; previewText: string; headline: string; body: string; buttonLabel: string; buttonPath: string };
@@ -14,8 +15,17 @@ const FIELD_LABEL: Record<keyof Omit<CheckFields, "buttonPath">, string> = {
   subject: "Subject", previewText: "Preview text", headline: "Headline", body: "Body", buttonLabel: "Button",
 };
 
-export function campaignChecks(i: { kind: CampaignKind; fields: CheckFields; lots: LotFacts[]; code: CodeFacts | null; recipients: number }, sendAtMs: number): Check[] {
+export function campaignChecks(i: { kind: CampaignKind; fields: CheckFields; lots: LotFacts[]; code: CodeFacts | null; recipients: number; openingOn?: string | null }, sendAtMs: number): Check[] {
   // The pre-launch emails' wording is fixed in code and scanned at build and before sending.
+  if (i.kind === "early_access") {
+    return [
+      { level: "ok", text: "Ready-made pre-launch email: the wording was approved 2026-10-23." },
+      i.openingOn
+        ? { level: "ok", text: `Opening date: ${openingLabel(i.openingOn)}.` }
+        : { level: "block", field: "openingOn", text: "Type the opening date first. The email names it and the codes end from it." },
+      { level: "warn", text: "Checkout must take payments before this goes out: the link lets people order a day early." },
+    ];
+  }
   if (isPrelaunch(i.kind)) return [{ level: "ok", text: "Ready-made pre-launch email: the wording was approved 2026-10-23." }];
   const out: Check[] = [];
   let banned = false;

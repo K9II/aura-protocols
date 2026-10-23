@@ -19,5 +19,6 @@ export async function checksFor(c: CampaignRow, sendAtMs: number): Promise<Check
     lots: c.lots_snapshot.map((l) => ({ lot: l.lot, waiting: waiting.has(l.lot) })),
     code: code?.facts ?? null,
     recipients: counts[c.audience],
+    openingOn: c.content.openingOn ?? null,
   }, sendAtMs);
 }
