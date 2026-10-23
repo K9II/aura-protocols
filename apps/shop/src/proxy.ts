@@ -5,6 +5,7 @@ import { REF_COOKIE, REF_MAX_AGE_S, readRef, signRef } from "@/lib/partners/ref-
 import { recordClickByCode } from "@/lib/partners/data";
 import { alertOwner } from "@/lib/notify";
 import { SESSION_ONLY_COOKIE, sessionCookieOptions } from "@/lib/supabase/session-only";
+import { isPrelaunch, prelaunchAllows } from "@/lib/prelaunch";
 
 // 1) Refreshes the Supabase session on signed-in routes only (authorization
 //    stays in lib/dal.ts). 2) On any page, a valid ?ref=CODE sets the signed
@@ -18,6 +19,14 @@ let warnedMissingRefSecret = false;
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const { pathname, searchParams, search } = request.nextUrl;
+  // Before launch only the coming-soon page, its waitlist and the command center
+  // are open (lib/prelaunch.ts): other pages go to "/", other API routes 404.
+  if (isPrelaunch() && !prelaunchAllows(pathname)) {
+    if (pathname.startsWith("/api/")) return NextResponse.json({ error: "not found" }, { status: 404 });
+    return NextResponse.redirect(new URL("/", request.url), 307);
+  }
+  // API routes come through here only for the pre-launch check above.
+  if (pathname.startsWith("/api/")) return NextResponse.next();
   // Admin pages: tell requirePermission which page a signed-out owner asked for.
   if (pathname === "/admin" || pathname.startsWith("/admin/")) request.headers.set("x-admin-path", pathname + search);
   let response = NextResponse.next({ request });
@@ -70,6 +79,6 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
 }
 
 export const config = {
-  // Every page (so ?ref= works anywhere), but not static assets or API routes.
-  matcher: ["/((?!_next/static|_next/image|api/|favicon\\.ico|.*\\.[a-zA-Z0-9]+$).*)"],
+  // Every page (so ?ref= works anywhere) and API route (for the pre-launch lock), but not static assets.
+  matcher: ["/((?!_next/static|_next/image|favicon\\.ico|.*\\.[a-zA-Z0-9]+$).*)"],
 };

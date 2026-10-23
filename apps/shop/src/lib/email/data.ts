@@ -9,9 +9,11 @@ import type { Msg } from "@/lib/emails-marketing";
 const db = () => getSupabaseAdminClient();
 export const SENDER_NAME = "Alvester at Aura Protocols";
 
-export type SendKind = "confirm" | "welcome_1" | "welcome_2" | "welcome_3" | "welcome_4" | "welcome_5" | "cart_1" | "cart_2" | "cart_3" | "lot_alert" | "campaign";
+export type SendKind = "confirm" | "waitlist_in" | "welcome_1" | "welcome_2" | "welcome_3" | "welcome_4" | "welcome_5" | "cart_1" | "cart_2" | "cart_3" | "lot_alert" | "campaign";
 export type SubscriberRow = {
   email: string; status: string; source: string; partner_ref: string | null; confirmed_at: string | null; unsubscribed_at: string | null;
+  // The pre-launch waitlist (waitlist.sql).
+  waitlist_at?: string | null; referral_code?: string | null; referred_by?: string | null;
 };
 
 // The only way marketing mail goes out. Claims a unique email_sends row
@@ -128,7 +130,7 @@ export const CONFIRM_DAILY_LIMIT = 3;
 // Already confirmed → nothing changes. Already unsubscribed → stays
 // unsubscribed; only a clicked confirm link undoes that. Too many recent
 // confirm emails → cooldown: no new token, nothing sent (anti email-bomb).
-export async function upsertPending(input: { email: string; source: "letter"; partnerRef: string | null }, nowMs: number = Date.now()):
+export async function upsertPending(input: { email: string; source: "letter" | "waitlist"; partnerRef: string | null }, nowMs: number = Date.now()):
   Promise<{ state: "confirmed" } | { state: "pending"; token: string } | { state: "cooldown" }> {
   const email = normalizeEmail(input.email);
   const existing = await getSubscriber(email);

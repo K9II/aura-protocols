@@ -41,8 +41,8 @@ describe("email health", () => {
 
   it("red when missing, stale, unfinished or failing", () => {
     expect(runHealth(null, now).tone).toBe("red");
-    expect(runHealth(null, now).title).toBe("No hourly email run recorded yet");
-    expect(runHealth(run({ started_at: new Date(now - 3 * H).toISOString() }), now)).toMatchObject({ tone: "red", title: "Last run 3 h ago — the hourly email run may have stopped" });
+    expect(runHealth(null, now).title).toBe("No email run recorded yet");
+    expect(runHealth(run({ started_at: new Date(now - 50 * H).toISOString() }), now)).toMatchObject({ tone: "red", title: "Last run 2 days ago — the email run may have stopped" });
     expect(runHealth(run({ finished_at: null, started_at: new Date(now - 20 * M).toISOString() }), now)).toMatchObject({ tone: "red", title: "Last run 20 min ago didn't finish" });
     expect(runHealth(run({ failures: 2 }), now)).toMatchObject({ tone: "red", detail: "sent 6 · 4 welcome, 2 cart · 2 failures" });
   });
