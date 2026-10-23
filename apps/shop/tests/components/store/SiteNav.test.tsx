@@ -4,6 +4,7 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import { CartProvider, useCart } from "@/components/store/CartProvider";
 import SiteNav from "@/components/store/SiteNav";
 import { FREE_SHIPPING_THRESHOLD_USD } from "@/lib/cart";
+import { setLotNews } from "@/lib/lot-news";
 
 vi.mock("@/components/store/AuthLinks", () => ({ default: () => <a href="/sign-in">Sign in</a>, useSessionState: () => "out", useOwner: () => false }));
 let pathname = "/";
@@ -71,6 +72,19 @@ describe("SiteNav", () => {
       `Testing includes ISO/IEC 17025-accredited US lab · COA on every lot · Fast domestic shipping · Free over $${FREE_SHIPPING_THRESHOLD_USD}`,
     );
     expect(within(bar).getByText("Fast domestic shipping").tagName).toBe("EM");
+  });
+
+  it("a returning visitor's new-lot line ends with free shipping, not the COA line", () => {
+    setLotNews("1 new lot since your last visit · BPC-157 / TB-500 10 mg");
+    try {
+      render(<CartProvider catalog={liveFixture()}><SiteNav /></CartProvider>);
+      const bar = document.querySelector(".s-topbar") as HTMLElement;
+      expect(bar.textContent?.replace(/\s+/g, " ").trim()).toBe(
+        `1 new lot since your last visit · BPC-157 / TB-500 10 mg · Free shipping over $${FREE_SHIPPING_THRESHOLD_USD}`,
+      );
+    } finally {
+      setLotNews(null);
+    }
   });
 
   it("phones get the short banner wording", () => {

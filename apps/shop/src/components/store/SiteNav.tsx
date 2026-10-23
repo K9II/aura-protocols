@@ -40,7 +40,8 @@ export default function SiteNav() {
           <span>
             <em>{newsLead}</em>
             {newsItems.map((t) => <span key={t}>{" · "}<span className="whitespace-nowrap">{t}</span></span>)}
-            {" · "}<span className="whitespace-nowrap">COA on every lot</span>
+            {/* the free-shipping line rides along with the news (Alvester 2026-10-22: in place of "COA on every lot") */}
+            {" · "}<span className="whitespace-nowrap">Free shipping over ${FREE_SHIPPING_THRESHOLD_USD}</span>
           </span>
         ) : <>
         {/* Narrow screens wrap between phrases; each dot stays at the end of the
