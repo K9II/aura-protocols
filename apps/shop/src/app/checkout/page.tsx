@@ -7,6 +7,7 @@ import { requireCustomer } from "@/lib/dal";
 import { creditBalance } from "@/lib/partners/ledger";
 import { listOpenOrdersForCustomer, releasableCreditCents } from "@/lib/orders";
 import { readRef, REF_COOKIE } from "@/lib/partners/ref-cookie";
+import { EARLY_COOKIE, earlyCode, readEarlyCookie } from "@/lib/early/token";
 import { offerForCustomer } from "@/lib/account/offer-data";
 import { getDiscountCap } from "@/lib/discounts/data";
 
@@ -14,7 +15,11 @@ export const metadata: Metadata = { title: "Checkout", robots: { index: false, f
 
 export default async function CheckoutPage() {
   const customer = await requireCustomer("/checkout");
-  const initialCode = readRef((await cookies()).get(REF_COOKIE)?.value) ?? "";
+  // A partner link's code first (keeps the partner's commission), else the early-access
+  // link's EARLY- code (pre-launch email 3) — both pre-fill the code box.
+  const jar = await cookies();
+  const early = readEarlyCookie(jar.get(EARLY_COOKIE)?.value);
+  const initialCode = readRef(jar.get(REF_COOKIE)?.value) ?? (early ? earlyCode(early) : "");
   // Credit held by this shopper's own abandoned checkout is handed back when
   // they continue (startCheckoutAction releases it first), so show it as available.
   const creditBalanceCents = customer.emailConfirmed
