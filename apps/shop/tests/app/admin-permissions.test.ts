@@ -27,6 +27,8 @@ const PAGE_PERMS: Record<string, string> = {
   "wholesale/margins/page.tsx": "wholesale.margins",
   "customers/page.tsx": "customers.view",
   "customers/[id]/page.tsx": "customers.view",
+  "waitlist/page.tsx": "waitlist.view",
+  "waitlist/waitlist.csv/route.ts": "waitlist.view",
   "discounts/page.tsx": "discounts.view",
   "discounts/[id]/page.tsx": "discounts.view",
   "discounts/batch/[id]/page.tsx": "discounts.view",

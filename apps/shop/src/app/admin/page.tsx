@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requirePermission } from "@/lib/dal";
 import { can } from "@/lib/staff/roles";
 import { currentMs } from "@/lib/clock";
-import { loadNumbers, loadTodos } from "@/lib/today/today";
+import { loadNumbers, loadTodos, loadWaitlistLine } from "@/lib/today/today";
 import { parsePeriod } from "@/lib/today/periods";
 import { headerDate } from "@/lib/today/time";
 import { Crumbs } from "@/components/admin/ui";
@@ -19,7 +19,9 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
 export default async function TodayPage({ searchParams }: { searchParams: Promise<{ p?: string | string[] }> }) {
   const staff = await requirePermission("today.view");
   const period = parsePeriod(first((await searchParams).p));
-  const [slots, numbers] = await Promise.all([loadTodos(), loadNumbers(period)]); // neither throws
+  const [slots, numbers, waitlist] = await Promise.all([ // none of them throws
+    loadTodos(), loadNumbers(period), can(staff, "waitlist.view") ? loadWaitlistLine() : Promise.resolve(null),
+  ]);
   const reloadHref = period === "today" ? "/admin" : `/admin?p=${period}`;
   return (
     <div className="a-page">
@@ -27,7 +29,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
       <div className="a-ph"><div><h1>Today</h1><p>{headerDate(currentMs())}</p></div><div className="actions"><Link className="a-ulink" href="/admin/alerts">Past alerts</Link></div></div>
       <div className="a-today">
         <Todos slots={slots} reloadHref={reloadHref} can={{ resolve: can(staff, "alerts.resolve"), warnings: can(staff, "disputes.warnings"), announce: can(staff, "email.draft"), review: can(staff, "wholesale.manage") }} />
-        <Numbers period={period} view={numbers.ok ? numbers.view : null} reloadHref={reloadHref} />
+        <Numbers period={period} view={numbers.ok ? numbers.view : null} reloadHref={reloadHref} waitlist={waitlist} />
       </div>
     </div>
   );

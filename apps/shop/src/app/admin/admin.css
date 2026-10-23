@@ -1581,3 +1581,11 @@
   .adm .a-qo-dlg .a-modal-f .r { flex-direction: column-reverse; align-items: stretch; width: 100%; }
   .adm .a-qo-dlg .a-modal-f .r .a-btn { justify-content: center; height: 40px; }
 }
+
+/* Waitlist (2026-10-23) */
+.adm .a-wl .mono { font: 500 12px var(--mono); letter-spacing: .02em; }
+.adm .a-wl .a-wl-em { overflow-wrap: anywhere; }
+.adm .a-wl-line { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12.5px; text-decoration: none; }
+.adm .a-wl-line b { color: var(--ink); font: 500 13px var(--mono); }
+.adm .a-wl-line .go { margin-left: auto; color: var(--ink-soft); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.adm a.a-wl-line:hover { background: #F8F6F0; }

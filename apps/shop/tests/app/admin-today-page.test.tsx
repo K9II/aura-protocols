@@ -6,9 +6,9 @@ import { periodRanges } from "@/lib/today/periods";
 import { warningRow } from "../helpers/dispute-fixtures";
 import { ownerStaff, assistantStaff } from "../helpers/staff";
 
-const m = vi.hoisted(() => ({ requirePermission: vi.fn(), loadTodos: vi.fn(), loadNumbers: vi.fn() }));
+const m = vi.hoisted(() => ({ requirePermission: vi.fn(), loadTodos: vi.fn(), loadNumbers: vi.fn(), loadWaitlistLine: vi.fn() }));
 vi.mock("@/lib/dal", () => ({ requirePermission: m.requirePermission }));
-vi.mock("@/lib/today/today", () => ({ loadTodos: m.loadTodos, loadNumbers: m.loadNumbers }));
+vi.mock("@/lib/today/today", () => ({ loadTodos: m.loadTodos, loadNumbers: m.loadNumbers, loadWaitlistLine: m.loadWaitlistLine }));
 vi.mock("@/lib/clock", () => ({ currentMs: () => Date.parse("2026-10-06T15:42:00Z") }));
 vi.mock("@/app/admin/actions", () => ({ resolveAlertAction: vi.fn() }));
 vi.mock("@/app/admin/email/actions", () => ({ announceAction: vi.fn() }));
@@ -31,6 +31,7 @@ describe("/admin (Today)", () => {
     for (const f of Object.values(m)) f.mockReset();
     m.requirePermission.mockResolvedValue(ownerStaff({ id: "owner1" }));
     m.loadNumbers.mockResolvedValue({ ok: true, view });
+    m.loadWaitlistLine.mockResolvedValue({ ok: true, onList: 0, today: 0 });
   });
 
   it("is owner-only", async () => {
@@ -65,6 +66,22 @@ describe("/admin (Today)", () => {
     expect(within(nums).getByRole("link", { name: /^Today/ })).toHaveAttribute("aria-current", "page");
     expect(screen.queryByText(/All/, { selector: ".big" })).toBeNull();
     expect(m.loadNumbers).toHaveBeenCalledWith("today");
+  });
+
+  it("shows the waitlist under Numbers, linking to its page; a failed load says so on that line only", async () => {
+    m.loadTodos.mockResolvedValue(slots());
+    m.loadWaitlistLine.mockResolvedValue({ ok: true, onList: 1204, today: 7 });
+    const { unmount } = render(await TodayPage(props()));
+    const nums = screen.getByRole("region", { name: "Numbers" });
+    const line = within(nums).getByRole("link", { name: /^Waitlist/ });
+    expect(line).toHaveAttribute("href", "/admin/waitlist");
+    expect(line.textContent).toContain("1,204");
+    expect(line.textContent).toContain("+7");
+    unmount();
+    m.loadWaitlistLine.mockResolvedValue({ ok: false });
+    render(await TodayPage(props()));
+    expect(screen.getAllByRole("alert").map((a) => a.textContent)).toContain("Waitlist · couldn't load");
+    expect(screen.getByText("$1,346.50")).toBeInTheDocument();
   });
 
   it("all clear when every section loaded and none has anything", async () => {

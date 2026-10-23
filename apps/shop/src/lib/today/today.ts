@@ -23,6 +23,8 @@ import {
 import { wholesaleTodos } from "@/lib/wholesale/runs-data";
 import { numbersView, type NumbersView } from "@/lib/today/numbers";
 import { periodRanges, type Period } from "@/lib/today/periods";
+import { listWaitlist } from "@/lib/waitlist/admin-data";
+import { waitlistCounts } from "@/lib/waitlist/admin";
 
 const shown = (xs: Array<TodoSection | null>): TodoSection[] => xs.filter((x): x is TodoSection => !!x);
 
@@ -101,6 +103,19 @@ export async function loadNumbers(p: Period): Promise<NumbersResult> {
     return { ok: true, view: numbersView(p, r, cur, prior, nowMs, profit) };
   } catch (err) {
     console.error("today: numbers failed:", err);
+    return { ok: false };
+  }
+}
+
+// Today's "Waitlist" line under Numbers. Its own load: a failure shows
+// "Couldn't load" on that line only, never a zero.
+export type WaitlistLine = { ok: true; onList: number; today: number } | { ok: false };
+export async function loadWaitlistLine(): Promise<WaitlistLine> {
+  try {
+    const c = waitlistCounts(await listWaitlist(), currentMs());
+    return { ok: true, onList: c.onList, today: c.today };
+  } catch (err) {
+    console.error("today: waitlist failed:", err);
     return { ok: false };
   }
 }
