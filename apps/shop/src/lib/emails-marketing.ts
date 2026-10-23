@@ -66,6 +66,31 @@ function offerBox(): string {
   return `<table role="presentation" style="border:1px solid ${INK};border-collapse:collapse;margin:0 0 18px"><tr><td style="padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em">FIRST ORDER · ${OFFER_PCT_TEXT}<br><span style="font-size:20px;letter-spacing:.04em;color:${INK}"><b>Applied automatically</b></span><br><span style="color:${SOFT};letter-spacing:0">on a first order within ${OFFER_DAYS_TEXT} of opening your account</span></td></tr></table>`;
 }
 
+// The pre-launch waitlist (2026-10-23): the confirm link, then the
+// "you're on the list" email with the friend's invite link.
+export function waitlistConfirmEmail(confirmUrl: string): Msg {
+  return {
+    subject: "Confirm your spot on the list",
+    html: frame("The waitlist", "One click to *save your spot.*",
+      p(`Confirm this address to join the Aura Protocols waitlist: early access the day before we open, ${OFFER_PCT_TEXT} off your first order, and $10 in store credit for every friend who places an order.`)
+      + p(link(confirmUrl, "Confirm my spot →"))
+      + p(`<span style="color:${SOFT}">Didn't ask for this? Ignore it and you won't hear from us.</span>`), null),
+  };
+}
+
+export function waitlistInEmail(ctx: MarketingCtx, invite: { url: string; label: string }): Msg {
+  return {
+    subject: "You're on the list",
+    html: frame("The waitlist", "See you at *opening.*",
+      p("You're in. We'll email your early-access link the day before we open, so you can shop before everyone else.")
+      + p(`Your first order is ${OFFER_PCT_TEXT} off, taken off automatically at checkout. No code to remember.`)
+      + p("Know someone who'd want in? Send them your link. Every friend who places a first order adds $10 to your store credit. No limit.")
+      + `<table role="presentation" style="border:1px solid ${INK};border-collapse:collapse;margin:0 0 18px"><tr><td style="padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em">YOUR INVITE LINK<br><span style="font-size:17px;letter-spacing:.02em">${link(invite.url, e(invite.label))}</span></td></tr></table>`
+      + p(`<span style="color:${SOFT}">Credit is added once your friend's first order ships. The full referral terms are on ${link(ctx.site, "auraprotocols.com")}.</span>`)
+      + SIGN, ctx),
+  };
+}
+
 // The Aura letter, for an address that isn't a verified account email.
 export function confirmEmail(confirmUrl: string): Msg {
   return {

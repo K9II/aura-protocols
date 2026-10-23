@@ -19,15 +19,31 @@ import { auraRings } from "@/lib/hero-aura";
 import { isNewestLot, proofLot } from "@/lib/lot-proof";
 import { homeRecord } from "@/lib/lot-record";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
+import { isPrelaunch } from "@/lib/prelaunch";
+import { siteUrl } from "@/lib/supabase/env";
+import ComingSoon from "@/components/store/coming-soon/ComingSoon";
+import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 
-export const metadata: Metadata = {
+const STORE_METADATA: Metadata = {
   title: "Aura Protocols — Research Peptides, Certificate per Lot",
   description: "Research compounds released only after independent lot testing, with the certificate for each lot published. For laboratory research use only.",
   alternates: { canonical: "/" },
 };
 
+const PRELAUNCH_METADATA: Metadata = {
+  title: "Aura Protocols — Opening this winter",
+  description: `Research peptides with a certificate for every lot. Join the waitlist for early access and ${OFFER_PCT_TEXT} off your first order. For laboratory research use only.`,
+  alternates: { canonical: "/" },
+};
+
+export function generateMetadata(): Metadata {
+  return isPrelaunch() ? PRELAUNCH_METADATA : STORE_METADATA;
+}
+
 
 export default async function HomePage() {
+  // Before launch "/" is the coming-soon page and its waitlist (lib/prelaunch.ts).
+  if (isPrelaunch()) return <ComingSoon live={await getLiveCatalogOrNull()} site={siteUrl()} />;
   const live = await getLiveCatalogOrNull();
   if (!live) return <Unavailable />;
   const featured = live.shown.filter((c) => c.featured);

@@ -35,7 +35,7 @@ export function unsubscribeUrl(site: string, email: string, tag?: string): strin
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 export function parseUnsubTag(tag: string | null | undefined): { kind: string; ref: string | null } | null {
   if (!tag) return null;
-  if (/^(welcome_[1-5]|cart_[1-3]|confirm)$/.test(tag)) return { kind: tag, ref: null };
+  if (/^(welcome_[1-5]|cart_[1-3]|confirm|waitlist_in)$/.test(tag)) return { kind: tag, ref: null };
   const m = /^campaign\.(.+)$/.exec(tag);
   if (m && UUID.test(m[1])) return { kind: "campaign", ref: m[1] };
   return null;

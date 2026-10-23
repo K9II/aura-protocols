@@ -18,6 +18,7 @@ import { checksFor } from "@/lib/email/campaigns/checks-server";
 import { isBlocked } from "@/lib/email/campaigns/checks";
 import { SEND_TIME_BUDGET_MS } from "@/lib/email/constants";
 import { runQuoteRequestChecks } from "@/lib/wholesale/quote-data";
+import { isPrelaunch } from "@/lib/prelaunch";
 
 // Vercel caps a Hobby/Pro cron function at a lower default; this run can
 // legitimately take a few minutes on a large list (see the time budget below).
@@ -44,6 +45,9 @@ export async function GET(request: Request): Promise<Response> {
   // A failed settings read skips both automations (they might be paused) and alerts.
   let settings: { welcomePaused: boolean; cartPaused: boolean } | null = null;
   try { settings = await getEmailSettings(); } catch (err) { failed.push(`email settings: ${err instanceof Error ? err.message : String(err)}`); }
+  // Before launch the welcome files and cart reminders would link a locked store:
+  // waitlist sign-ups get only their confirm + invite emails (and any campaign).
+  if (settings && isPrelaunch()) settings = { ...settings, welcomePaused: true, cartPaused: true };
 
   if (settings && !settings.welcomePaused) {
     try {

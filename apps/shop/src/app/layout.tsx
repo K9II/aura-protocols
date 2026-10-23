@@ -9,6 +9,7 @@ import CartDrawer from "@/components/store/CartDrawer";
 import AccountGate from "@/components/store/gate/AccountGate";
 import HideOnAdmin from "@/components/store/HideOnAdmin";
 import { getLiveCatalogOrNull } from "@/lib/catalog-live";
+import { isPrelaunch } from "@/lib/prelaunch";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const spaceGrotesk = Space_Grotesk({
@@ -73,6 +74,7 @@ export default async function RootLayout({
   // (pages show "Unavailable"; the cart keeps stored lines until it's back).
   const live = await getLiveCatalogOrNull();
   const shown = live?.shown ?? [];
+  const prelaunch = isPrelaunch();
   return (
     // data-scroll-behavior: Next 16 turns off globals.css smooth scrolling while it
     // changes pages; without it a new page kept the old scroll position (Sign in
@@ -80,11 +82,12 @@ export default async function RootLayout({
     <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${spaceGrotesk.variable} ${newsreader.variable} ${jetbrains.variable}`}>
       <body className="min-h-screen flex flex-col bg-[#EDE9E0]">
         <CartProvider catalog={shown}>
-          <HideOnAdmin><SiteNav /></HideOnAdmin>
+          {/* Before launch: no store chrome, cart or account gate (the coming-soon page has its own footer). */}
+          {!prelaunch && <HideOnAdmin><SiteNav /></HideOnAdmin>}
           <main className="flex-1">{children}</main>
-          <HideOnAdmin><SiteFooter catalog={shown} /></HideOnAdmin>
-          <CartDrawer />
-          <AccountGate />
+          {!prelaunch && <HideOnAdmin><SiteFooter catalog={shown} /></HideOnAdmin>}
+          {!prelaunch && <CartDrawer />}
+          {!prelaunch && <AccountGate />}
         </CartProvider>
         <Analytics />
       </body>

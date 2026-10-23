@@ -7,8 +7,10 @@ export const BOUNCE_WARN_PCT = 2;
 export const COMPLAINT_LIMIT_PCT = 0.1;
 export const COMPLAINT_WARN_PCT = 0.05;
 
-// The hourly run is "stopped" when the last one is older than this.
-export const RUN_STALE_HOURS = 2;
+// The email run is "stopped" when the last one is older than this. Daily
+// (vercel.json, 16:00 UTC) while Vercel is on the Hobby plan (2026-10-23) —
+// back to hourly and 2 here once on Pro.
+export const RUN_STALE_HOURS = 26;
 // A run that started this long ago without finishing counts as failed.
 export const RUN_UNFINISHED_MINUTES = 10;
 

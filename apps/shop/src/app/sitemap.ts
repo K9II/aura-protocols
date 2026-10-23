@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getLiveCatalog } from "@/lib/catalog-live";
+import { isPrelaunch } from "@/lib/prelaunch";
 
 const BASE_URL = "https://auraprotocols.com";
 
@@ -28,6 +29,8 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  // Before launch the only open page is the coming-soon page.
+  if (isPrelaunch()) return [{ url: `${BASE_URL}/`, lastModified: now, changeFrequency: "weekly", priority: 1.0 }];
   const compounds = (await getLiveCatalog()).shown;
   return [
     ...STATIC.map(([path, changeFrequency, priority]) => ({ url: `${BASE_URL}${path || "/"}`, lastModified: now, changeFrequency, priority })),

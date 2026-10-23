@@ -137,7 +137,7 @@ describe("to-do sections", () => {
   it("email: a late hourly run, rates at half of Amazon's limit, a campaign sending; nothing when healthy", () => {
     expect(emailSection({ lastRun: healthyRun, overview, sending: null }, NOW)).toBeNull();
     const s = emailSection({
-      lastRun: { ...healthyRun, started_at: "2026-10-06T12:00:00Z", finished_at: "2026-10-06T12:01:00Z" },
+      lastRun: { ...healthyRun, started_at: "2026-10-05T10:00:00Z", finished_at: "2026-10-05T10:01:00Z" },
       overview: { ...overview, bounces_30d: 41, complaints_30d: 2 },
       sending: { id: "k1", name: "October restock", recipients: 2198, started_at: "2026-10-06T15:00:00Z" },
     }, NOW)!;

@@ -35,11 +35,11 @@ export function runDetail(r: RunRow): string {
 }
 
 export function runHealth(last: RunRow | null, nowMs: number = Date.now()): { tone: "ok" | "red"; title: string; detail: string } {
-  if (!last) return { tone: "red", title: "No hourly email run recorded yet", detail: "Check the cron job in Vercel." };
+  if (!last) return { tone: "red", title: "No email run recorded yet", detail: "Check the cron job in Vercel." };
   const started = Date.parse(last.started_at);
   const when = ago(started, nowMs);
   const detail = runDetail(last);
-  if (nowMs - started > RUN_STALE_HOURS * 3_600_000) return { tone: "red", title: `Last run ${when} — the hourly email run may have stopped`, detail };
+  if (nowMs - started > RUN_STALE_HOURS * 3_600_000) return { tone: "red", title: `Last run ${when} — the email run may have stopped`, detail };
   if (!last.finished_at && nowMs - started > RUN_UNFINISHED_MINUTES * 60_000) return { tone: "red", title: `Last run ${when} didn't finish`, detail };
   return { tone: last.failures > 0 ? "red" : "ok", title: `Last run ${when}`, detail };
 }

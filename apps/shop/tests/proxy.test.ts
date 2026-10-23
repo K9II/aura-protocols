@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 const recordClickByCode = vi.fn();
@@ -109,5 +109,36 @@ describe("proxy session refresh — Remember me off", () => {
     const { proxy } = await import("@/proxy");
     const res = await proxy(new NextRequest("http://localhost/finish-account?next=%2F"), event() as never);
     expect(res.headers.get("set-cookie") ?? "").toContain("sb-access-token=refreshed");
+  });
+});
+
+describe("proxy pre-launch lock", () => {
+  beforeEach(() => { vi.resetModules(); process.env.PRELAUNCH = "1"; });
+  afterEach(() => { delete process.env.PRELAUNCH; });
+
+  it("sends store pages to the coming-soon page and 404s locked API routes", async () => {
+    const { proxy } = await import("@/proxy");
+    const page = await proxy(new NextRequest("http://localhost/products/bpc-157"), event() as never);
+    expect(page.status).toBe(307);
+    expect(page.headers.get("location")).toBe("http://localhost/");
+    const api = await proxy(new NextRequest("http://localhost/api/inquiry", { method: "POST" }), event() as never);
+    expect(api.status).toBe(404);
+  });
+
+  it("lets the coming-soon page, an invite link, the waitlist confirm and the command center through", async () => {
+    const { proxy } = await import("@/proxy");
+    for (const url of ["http://localhost/?r=K7M2QX", "http://localhost/api/waitlist/confirm?token=t", "http://localhost/admin/email"]) {
+      const res = await proxy(new NextRequest(url), event() as never);
+      expect(res.headers.get("location"), url).toBeNull();
+      expect(res.status, url).toBe(200);
+    }
+  });
+
+  it("is off without PRELAUNCH: API routes pass straight through", async () => {
+    delete process.env.PRELAUNCH;
+    const { proxy } = await import("@/proxy");
+    const res = await proxy(new NextRequest("http://localhost/api/inquiry", { method: "POST" }), event() as never);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-middleware-next")).toBe("1");
   });
 });
