@@ -20,31 +20,11 @@ import { auraRings } from "@/lib/hero-aura";
 import { sphereNodes, spherePairs } from "@/lib/sphere-nodes";
 import { coaLookupQrUrl, qrRows } from "@/lib/vial-qr";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
-import { PURITY_FLOOR_PCT, SUPPORT_EMAIL } from "@/lib/constants";
+import { SUPPORT_EMAIL } from "@/lib/constants";
+import { SAMPLE_PANEL, SAMPLE_PANEL_COUNT } from "@/lib/coa/sample-panel";
 import { REFERRAL_CREDIT_DOLLARS } from "@/lib/waitlist/codes";
 import Waitlist from "./Waitlist";
 import PolicyLink from "./PolicyLink";
-
-// "Up to a ten-point panel" = Vanguard Elite (8 tests, incl. solubility) + the vial seal
-// integrity and TFA add-ons (2026-10-22). No lot is live yet, so this is a labelled sample.
-const SAMPLE_GROUPS: Array<[string, Array<[string, string, string]>]> = [
-  ["Identity & content", [
-    ["Identity", "Confirmed", "spectral match"],
-    ["Purity", `≥${PURITY_FLOOR_PCT}%`, "HPLC"],
-    ["Quantity", "Within spec", "vs. labeled mg"],
-    ["Solubility", "Soluble", ""],
-  ]],
-  ["Safety", [
-    ["Endotoxin", "Pass", ""],
-    ["Sterility", "Pass", "USP <71>, 14-day"],
-    ["Heavy metals", "Pass", ""],
-    ["Fentanyl", "Not detected", ""],
-  ]],
-  ["Vial", [
-    ["Seal integrity", "Pass", ""],
-    ["TFA content", "Within limit", ""],
-  ]],
-];
 
 export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalClass> | null; site: string }) {
   const bpc = catalogContent.find((c) => c.slug === "bpc-157");
@@ -91,14 +71,14 @@ export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalC
               <p className="s-micro">Certificate of analysis</p>
               <p className="cs-coa-lot">Sample <span>· what each lot gets</span></p>
             </div>
-            <span className="cs-coa-pass">✓ 10 checks</span>
+            <span className="cs-coa-pass">✓ {SAMPLE_PANEL_COUNT} checks</span>
           </div>
           <div className="cs-coa-id">
             <p className="s-micro" style={{ color: CLASS_COLOR[bpc.chemicalClass] }}>{bpc.chemicalClass}</p>
             <p className="cs-coa-n">BPC-157 <span>10 mg</span></p>
             <p className="cs-coa-lab"><span>Independent US lab</span> <span>ISO/IEC 17025-accredited</span></p>
           </div>
-          {SAMPLE_GROUPS.map(([g, rows]) => (
+          {SAMPLE_PANEL.map(([g, rows]) => (
             <div key={g} className="cs-coa-g">
               <p className="s-micro cs-coa-gh">{g}</p>
               {rows.map(([t, r, d]) => (
