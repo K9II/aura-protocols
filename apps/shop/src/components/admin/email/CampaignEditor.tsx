@@ -2,7 +2,9 @@
 import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
 import { saveCampaignAction, sendTestAction } from "@/app/admin/email/actions";
-import { AUDIENCES, AUDIENCE_LABEL, CAMPAIGN_KINDS, KIND_HELP, KIND_LABEL, LIMITS, type Audience, type CampaignKind } from "@/lib/email/campaigns/rules";
+import { EDITOR_AUDIENCES as AUDIENCES, AUDIENCE_LABEL, EDITOR_KINDS as CAMPAIGN_KINDS, KIND_HELP, KIND_LABEL, LIMITS, type CampaignKind } from "@/lib/email/campaigns/rules";
+
+type Audience = (typeof AUDIENCES)[number]; // the editor's three; the waitlist audiences belong to the pre-launch emails
 import type { Check } from "@/lib/email/campaigns/checks";
 import type { RenderCode } from "@/lib/email/campaigns/render";
 import type { CampaignRow } from "@/lib/email/campaigns/data";

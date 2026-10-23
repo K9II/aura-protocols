@@ -35,5 +35,5 @@ export async function cartRecovery(sinceIso: string): Promise<{ reminded: number
 
 export async function audienceCounts(): Promise<Record<Audience, number>> {
   const d = await call<Record<Audience, unknown>>("admin_email_audience_counts");
-  return { all: num(d.all), ordered: num(d.ordered), never_ordered: num(d.never_ordered) };
+  return { all: num(d.all), ordered: num(d.ordered), never_ordered: num(d.never_ordered), waitlist: num(d.waitlist), waitlist_never_ordered: num(d.waitlist_never_ordered) };
 }
