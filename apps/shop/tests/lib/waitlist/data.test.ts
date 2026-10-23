@@ -3,12 +3,13 @@ import { query, fromQueue, callArgs } from "../../helpers/supabase-mock";
 
 let from: ReturnType<typeof fromQueue>;
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: () => ({ from: (t: string) => from(t) }) }));
-const { getSubscriber, sendTracked, confirmSubscriber, alertOwner } = vi.hoisted(() => ({
-  getSubscriber: vi.fn(), sendTracked: vi.fn(), confirmSubscriber: vi.fn(), alertOwner: vi.fn(),
+const { getSubscriber, sendTracked, confirmSubscriber, alertOwner, sendEmail } = vi.hoisted(() => ({
+  getSubscriber: vi.fn(), sendTracked: vi.fn(), confirmSubscriber: vi.fn(), alertOwner: vi.fn(), sendEmail: vi.fn(),
 }));
+vi.mock("@/lib/ses", () => ({ sendEmail }));
 vi.mock("@/lib/email/data", () => ({ getSubscriber, sendTracked, confirmSubscriber }));
 vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
-vi.mock("@/lib/notify", () => ({ alertOwner }));
+vi.mock("@/lib/notify", () => ({ alertOwner, alertAddress: () => "admin@auraprotocols.com" }));
 
 import { confirmWaitlist, ensureReferralCode, joinWaitlist } from "@/lib/waitlist/data";
 
@@ -84,5 +85,31 @@ describe("waitlist data (single opt-in)", () => {
     confirmSubscriber.mockResolvedValueOnce({ row: { email: "new@lab.org" }, already: false });
     getSubscriber.mockResolvedValue(withCode);
     expect(await confirmWaitlist("tok")).toEqual({ state: "in", code: "ABCDEF" });
+  });
+
+  it("emails the owner once per new sign-up, with who referred them and the list total", async () => {
+    getSubscriber.mockResolvedValue(withCode);
+    sendEmail.mockResolvedValue({ messageId: "m" });
+    from = fromQueue({ subscribers: [query({ data: [{ email: "new@lab.org" }] }), query({ data: { email: "colleague@lab.org" } }), query({ data: [{ email: "new@lab.org" }] }), query({ count: 7 })] });
+    await joinWaitlist({ email: "new@lab.org", referredBy: "K7M2QX" });
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const msg = sendEmail.mock.calls[0][0];
+    expect(msg.to).toBe("admin@auraprotocols.com");
+    expect(msg.subject).toBe("Waitlist sign-up: new@lab.org");
+    expect(msg.html).toContain("colleague@lab.org (link K7M2QX)");
+    expect(msg.html).toContain("auraprotocols.com/?r=ABCDEF");
+    expect(msg.html).toContain(">7<");
+
+    sendEmail.mockClear();
+    from = fromQueue({ subscribers: [query({ data: [] })] }); // already on the waitlist
+    await joinWaitlist({ email: "new@lab.org", referredBy: null });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("a failed notice never fails the sign-up", async () => {
+    getSubscriber.mockResolvedValue(withCode);
+    sendEmail.mockRejectedValue(new Error("ses down"));
+    from = fromQueue({ subscribers: [query({ data: [{ email: "new@lab.org" }] }), query({ count: 1 })] });
+    expect(await joinWaitlist({ email: "new@lab.org", referredBy: null })).toBe("ABCDEF");
   });
 });

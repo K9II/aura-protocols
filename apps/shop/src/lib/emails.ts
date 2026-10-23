@@ -286,6 +286,19 @@ export function opsAlertEmail(title: string, detail: string) {
   return { subject: `[Aura shop] ${title}`, html: shell(title, `<pre style="white-space:pre-wrap;font-size:13px">${e(detail)}</pre><p style="font-size:12px;color:#4A4438">An automatic alert from the shop. Mark it done on Today in the admin; replies go to ${SUPPORT_EMAIL}.</p>`) };
 }
 
+// One per new waitlist sign-up, to the owner (2026-10-23). The subject starts
+// with WAITLIST_NOTICE_SUBJECT — the owner's inbox rule files on it, so keep it.
+export const WAITLIST_NOTICE_SUBJECT = "Waitlist sign-up";
+export function waitlistSignupNotice(n: { email: string; code: string; referrerEmail: string | null; referredBy: string | null; total: number; at: string }) {
+  const via = n.referrerEmail ? `${n.referrerEmail} (link ${n.referredBy})` : "Direct (no invite link)";
+  const rows = [["Email", n.email], ["Joined", n.at], ["Came through", via], ["Their invite link", `auraprotocols.com/?r=${n.code}`], ["On the list now", String(n.total)]]
+    .map(([k, v]) => `<tr><td style="padding:4px 14px 4px 0;color:#4A4438;font-size:13px">${e(k)}</td><td style="padding:4px 0;font-size:14px">${e(v)}</td></tr>`).join("");
+  return {
+    subject: `${WAITLIST_NOTICE_SUBJECT}: ${n.email}`,
+    html: shell("New on the waitlist", `<table role="presentation" style="border-collapse:collapse">${rows}</table><p style="font-size:12px;color:#4A4438">Sent for every new sign-up on auraprotocols.com.</p>`),
+  };
+}
+
 export function verifyEmail(url: string) {
   return {
     subject: "Confirm your email",

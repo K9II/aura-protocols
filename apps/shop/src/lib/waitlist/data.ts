@@ -4,8 +4,10 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { confirmSubscriber, getSubscriber, sendTracked } from "@/lib/email/data";
 import { normalizeEmail, unsubscribeUrl } from "@/lib/email/links";
 import { waitlistInEmail } from "@/lib/emails-marketing";
+import { waitlistSignupNotice } from "@/lib/emails";
+import { sendEmail } from "@/lib/ses";
 import { siteUrl } from "@/lib/supabase/env";
-import { alertOwner } from "@/lib/notify";
+import { alertAddress, alertOwner } from "@/lib/notify";
 import { inviteLabel, inviteUrl, newReferralCode } from "./codes";
 
 // The pre-launch waitlist (2026-10-23). Single opt-in since 2026-10-23
@@ -43,25 +45,45 @@ export async function joinWaitlist(input: { email: string; referredBy: string | 
     }, { onConflict: "email" });
     if (error) throw new Error(`waitlist save failed: ${JSON.stringify(error)}`);
   }
-  await markJoined(email, input.referredBy, nowMs);
+  const joined = await markJoined(email, input.referredBy, nowMs);
   const code = await ensureReferralCode(email);
   await sendInviteQuietly(email, code);
+  if (joined.isNew) await notifyOwnerQuietly({ email, code, referrerEmail: joined.referrerEmail, referredBy: joined.referrerEmail ? input.referredBy : null }, nowMs);
   return code;
 }
 
 // First join time and the first invite link used are kept; later ones don't
 // overwrite them. A code that isn't on the list, or is the person's own, is ignored.
-async function markJoined(email: string, referredBy: string | null, nowMs: number): Promise<void> {
-  const { error } = await db().from("subscribers").update({ waitlist_at: new Date(nowMs).toISOString() })
-    .eq("email", email).is("waitlist_at", null);
+// isNew: this call put the address on the waitlist (the owner hears about it once).
+async function markJoined(email: string, referredBy: string | null, nowMs: number): Promise<{ isNew: boolean; referrerEmail: string | null }> {
+  const { data, error } = await db().from("subscribers").update({ waitlist_at: new Date(nowMs).toISOString() })
+    .eq("email", email).is("waitlist_at", null).select("email");
   if (error) throw new Error(`waitlist_at save failed: ${JSON.stringify(error)}`);
-  if (!referredBy) return;
+  const isNew = Array.isArray(data) && data.length > 0;
+  if (!referredBy) return { isNew, referrerEmail: null };
   const { data: referrer, error: rErr } = await db().from("subscribers").select("email").eq("referral_code", referredBy).maybeSingle();
   if (rErr) throw new Error(`referrer read failed: ${JSON.stringify(rErr)}`);
-  if (!referrer || (referrer as { email: string }).email === email) return;
-  const { error: uErr } = await db().from("subscribers").update({ referred_by: referredBy })
-    .eq("email", email).is("referred_by", null).is("referral_code", null);
+  const referrerEmail = (referrer as { email: string } | null)?.email ?? null;
+  if (!referrerEmail || referrerEmail === email) return { isNew, referrerEmail: null };
+  const { data: set, error: uErr } = await db().from("subscribers").update({ referred_by: referredBy })
+    .eq("email", email).is("referred_by", null).is("referral_code", null).select("email");
   if (uErr) throw new Error(`referred_by save failed: ${JSON.stringify(uErr)}`);
+  return { isNew, referrerEmail: Array.isArray(set) && set.length > 0 ? referrerEmail : null };
+}
+
+// The owner's "Waitlist sign-up" email. Never throws: a missed notice must not
+// cost anyone their place on the list (the row is the record).
+async function notifyOwnerQuietly(n: { email: string; code: string; referrerEmail: string | null; referredBy: string | null }, nowMs: number): Promise<void> {
+  const to = alertAddress();
+  if (!to) return;
+  try {
+    const { count, error } = await db().from("subscribers").select("email", { count: "exact", head: true }).not("waitlist_at", "is", null);
+    if (error) throw new Error(`waitlist count failed: ${JSON.stringify(error)}`);
+    const at = new Date(nowMs).toLocaleString("en-US", { timeZone: "America/Denver", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " MT";
+    await sendEmail({ to, ...waitlistSignupNotice({ ...n, total: count ?? 0, at }) });
+  } catch (err) {
+    console.error("waitlist sign-up notice not sent:", err);
+  }
 }
 
 // The person's invite code, made on first need. Retries a code clash.
