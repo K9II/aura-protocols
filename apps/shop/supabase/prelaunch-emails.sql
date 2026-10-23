@@ -1,7 +1,7 @@
 -- supabase/prelaunch-emails.sql
--- The pre-launch emails (2026-10-23): campaign kinds first_look / we_are_open (fixed wording,
+-- The pre-launch emails (2026-10-23): campaign kinds first_look / early_access / we_are_open (fixed wording,
 -- lib/email/prelaunch.ts), sent once each to the waitlist audiences.
--- Apply after email-admin.sql and no-charge.sql. Safe to re-run. It supersedes
+-- Apply after email-admin.sql, no-charge.sql and audit.sql. Safe to re-run. It supersedes
 -- email_audience and admin_email_audience_counts (latest were no-charge.sql / email-admin.sql):
 -- if either of those files is re-run, re-apply this one after it.
 
@@ -19,13 +19,18 @@ begin
 end $$;
 alter table campaigns drop constraint if exists campaigns_kind_check;
 alter table campaigns add constraint campaigns_kind_check
-  check (kind in ('new_lots','promotion','news','first_look','we_are_open'));
+  check (kind in ('new_lots','promotion','news','first_look','early_access','we_are_open'));
 alter table campaigns drop constraint if exists campaigns_audience_check;
 alter table campaigns add constraint campaigns_audience_check
   check (audience in ('all','ordered','never_ordered','waitlist','waitlist_never_ordered'));
 
 -- Each pre-launch email exists once (Email → Pre-launch opens it; it can't be copied).
-create unique index if not exists campaigns_one_prelaunch on campaigns (kind) where kind in ('first_look','we_are_open');
+drop index if exists campaigns_one_prelaunch;
+create unique index campaigns_one_prelaunch on campaigns (kind) where kind in ('first_look','early_access','we_are_open');
+
+-- Early access (pre-launch email 3): sending it turns this on; Email → Pre-launch has the switch.
+-- While on, a browser holding a signed aura_early cookie gets past the coming-soon page.
+alter table shop_settings add column if not exists early_access_open boolean not null default false;
 
 -- Confirmed subscribers, minus blocked accounts, by audience. Orders count as sales only
 -- (no-charge.sql). The waitlist audiences = subscribers who joined the pre-launch waitlist.
@@ -60,3 +65,10 @@ language sql stable security definer set search_path = public, pg_temp as $$
 $$;
 revoke all on function admin_email_audience_counts() from public, anon, authenticated;
 grant execute on function admin_email_audience_counts() to service_role;
+
+-- The switch's on/off is logged in the email Activity. Replaces the action check from
+-- audit.sql — if that file is re-run, re-apply this one after it.
+alter table email_admin_events drop constraint if exists email_admin_events_action_check;
+alter table email_admin_events add constraint email_admin_events_action_check check (action in (
+  'paused','resumed','created','scheduled','unscheduled','send_started','stopped','finished','test_sent','copied','edited',
+  'early_access_on','early_access_off'));

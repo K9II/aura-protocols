@@ -1,13 +1,15 @@
 // Email → Pre-launch (2026-10-23): the waitlist emails in their order. #1 sends itself on
-// joining; #2 and #4 are ready-made campaigns sent once each from here; #3 arrives with the
-// early-access build. Server component — Open posts to setUpPrelaunchAction.
+// joining; #2–#4 are ready-made campaigns sent once each from here. #3 also has the Early
+// access switch (sending #3 turns it on). Server component — Open posts to setUpPrelaunchAction.
 import { setUpPrelaunchAction } from "@/app/admin/email/actions";
 import { AUDIENCE_LABEL, CAMPAIGN_STATUS_LABEL, PRELAUNCH, type Audience, type PrelaunchKind } from "@/lib/email/campaigns/rules";
 import type { CampaignRow } from "@/lib/email/campaigns/data";
 import { shortDate } from "@/lib/discounts/time";
 import { Icon } from "@/components/admin/ui";
+import EarlySwitch from "@/components/admin/email/EarlySwitch";
 
-type Props = { rows: Partial<Record<PrelaunchKind, CampaignRow>>; counts: Record<Audience, number>; canDraft: boolean };
+// earlyOpen: the Early access switch; null when it couldn't be read.
+type Props = { rows: Partial<Record<PrelaunchKind, CampaignRow>>; counts: Record<Audience, number>; canDraft: boolean; canSend?: boolean; earlyOpen?: boolean | null };
 
 const n = (x: number) => x.toLocaleString("en-US");
 
@@ -32,7 +34,7 @@ function Row({ kind, c, counts, canDraft }: { kind: PrelaunchKind; c: CampaignRo
   );
 }
 
-export default function PrelaunchBox({ rows, counts, canDraft }: Props) {
+export default function PrelaunchBox({ rows, counts, canDraft, canSend = false, earlyOpen = null }: Props) {
   return (
     <section className="a-pre" aria-labelledby="pre-h">
       <div className="a-sec-h"><h3 id="pre-h">Pre-launch</h3><span>the waitlist emails, in order · each goes once</span></div>
@@ -42,10 +44,14 @@ export default function PrelaunchBox({ rows, counts, canDraft }: Props) {
         <span className="a-chip on">On</span>
       </div>
       <Row kind="first_look" c={rows.first_look} counts={counts} canDraft={canDraft} />
-      <div className="a-pre-row off">
-        <span className="num">3</span>
-        <div className="t"><b>Your early access is open</b><small>The day before opening. Comes with the early-access links and personal codes (next build).</small></div>
-        <span className="a-chip paused">Coming next</span>
+      <Row kind="early_access" c={rows.early_access} counts={counts} canDraft={canDraft} />
+      <div className="a-pre-row sub">
+        <span className="num" aria-hidden />
+        <div className="t"><b>Early access</b><small>Lets a browser that opened an early link past the coming-soon page. Sending email 3 turns it on.</small></div>
+        {earlyOpen === null ? <span className="a-chip paused">Couldn&apos;t load</span> : <>
+          <span className={`a-chip ${earlyOpen ? "on" : "draft"}`}>{earlyOpen ? "On" : "Off"}</span>
+          {canSend && <EarlySwitch open={earlyOpen} />}
+        </>}
       </div>
       <Row kind="we_are_open" c={rows.we_are_open} counts={counts} canDraft={canDraft} />
     </section>

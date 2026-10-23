@@ -14,6 +14,8 @@ export function emailEventText(e: EmailAdminEvent): string {
     case "send_started": return `Sending started${e.actorName ? who : " by the hourly run"} · ${e.note}`;
     case "stopped": return `Stopped${who}`;
     case "finished": return "Finished";
+    case "early_access_on": return `Early access turned on${e.actorName ? who : ""}${e.note ? ` · ${e.note}` : ""}`;
+    case "early_access_off": return `Early access turned off${who}`;
     default: return e.action;
   }
 }

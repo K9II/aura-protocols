@@ -6,6 +6,8 @@ import { recordClickByCode } from "@/lib/partners/data";
 import { alertOwner } from "@/lib/notify";
 import { SESSION_ONLY_COOKIE, sessionCookieOptions } from "@/lib/supabase/session-only";
 import { isPrelaunch, prelaunchAllows } from "@/lib/prelaunch";
+import { EARLY_COOKIE, readEarlyCookie } from "@/lib/early/token";
+import { earlyAccessOpen } from "@/lib/early/data";
 
 // 1) Refreshes the Supabase session on signed-in routes only (authorization
 //    stays in lib/dal.ts). 2) On any page, a valid ?ref=CODE sets the signed
@@ -17,11 +19,24 @@ const SESSION_PREFIXES = ["/account", "/checkout", "/order", "/admin", "/partner
 // on it, but partner links stop tracking, so it must be loud.
 let warnedMissingRefSecret = false;
 
+// A browser holding the early-access cookie (pre-launch email 3's link) gets the whole
+// store while the owner's Early access switch is on. Fails closed: the coming-soon page.
+async function earlyPass(request: NextRequest): Promise<boolean> {
+  try {
+    if (!readEarlyCookie(request.cookies.get(EARLY_COOKIE)?.value)) return false;
+    return await earlyAccessOpen();
+  } catch (err) {
+    console.error("early access check failed:", err);
+    return false;
+  }
+}
+
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const { pathname, searchParams, search } = request.nextUrl;
   // Before launch only the coming-soon page, its waitlist and the command center
-  // are open (lib/prelaunch.ts): other pages go to "/", other API routes 404.
-  if (isPrelaunch() && !prelaunchAllows(pathname)) {
+  // are open (lib/prelaunch.ts): other pages go to "/", other API routes 404 — unless
+  // this browser has early access.
+  if (isPrelaunch() && !prelaunchAllows(pathname) && !(await earlyPass(request))) {
     if (pathname.startsWith("/api/")) return NextResponse.json({ error: "not found" }, { status: 404 });
     return NextResponse.redirect(new URL("/", request.url), 307);
   }

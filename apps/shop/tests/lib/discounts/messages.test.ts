@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { CLAIM_MESSAGE, CODE_MESSAGES, outcomeMessage } from "@/lib/discounts/messages";
 import type { CodeTerms } from "@/lib/discounts/rules";
-import { OFFER_PCT_TEXT } from "@/lib/account/offer";
+import { NEW_ACCOUNT_PCT, OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 const terms: CodeTerms = { kind: "order_pct", value: 20, stackOnTop: true, freeShipping: true, minOrderCents: 15000, includeSlugs: [], excludeSlugs: [], includeClasses: [], excludeClasses: [] };
 const base = { codeOutcome: "applied" as const, cappedCents: 0, codeDiscountCents: 3382, shortOfMinCents: 0, newAccount: false };
@@ -19,6 +19,12 @@ describe("outcomeMessage", () => {
       .toEqual({ tone: "note", text: `Your new-account ${OFFER_PCT_TEXT} is already larger than this code on these items, so we kept it.` });
     expect(outcomeMessage({ ...base, codeOutcome: "no_gain" }, "X", terms, 30))
       .toEqual({ tone: "note", text: "A larger discount already applies to these items, so this code isn't used." });
+  });
+  it("a code worth the same as the new-account percent says it counts once", () => {
+    expect(outcomeMessage({ ...base, codeOutcome: "no_gain", newAccount: true }, "EARLY-K7QM2P", { ...terms, kind: "item_pct", value: NEW_ACCOUNT_PCT }, 35))
+      .toEqual({ tone: "good", text: `✓ EARLY-K7QM2P · your ${OFFER_PCT_TEXT} is taken off. It's the same ${OFFER_PCT_TEXT} as your new-account offer, so it counts once.` });
+    // A smaller item code keeps the "larger" message.
+    expect(outcomeMessage({ ...base, codeOutcome: "no_gain", newAccount: true }, "X", { ...terms, kind: "item_pct", value: 10 }, 35)?.text).toMatch(/already larger/);
   });
   it("a free-shipping code on an order that already ships free", () => {
     expect(outcomeMessage({ ...base, codeOutcome: "no_gain" }, "FREESHIP", { ...terms, kind: "ship_only" }, 30))

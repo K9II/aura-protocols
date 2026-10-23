@@ -5,6 +5,7 @@
 import { escapeHtml as e } from "@/lib/html";
 import { photoVial, type PhotoVialKey } from "@/lib/email/photo-vials";
 import { SAMPLE_PANEL, SAMPLE_PANEL_COUNT } from "@/lib/coa/sample-panel";
+import { NEW_ACCOUNT_PCT, OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 const INK = "#1C1A15", BODY = "#3a342a", RED = "#A32B1F", MUTED = "#6a6152", SLATE = "#4B5560", GREEN = "#2f6b3a", FAINT = "#7a7064";
 // Newsreader where the mail app loads web fonts (Apple Mail); Gmail doesn't, so Palatino
@@ -25,6 +26,10 @@ const HEAD_STYLE = `body{margin:0;padding:0;background:#f3eee8}a{color:${RED}}
 .ap-link{font-size:16px!important;line-height:22px!important}
 .ap-gridpad{padding:24px 6px 4px!important}
 .ap-cell{width:48%!important;margin-left:1%!important;margin-right:1%!important}
+.ap-cocell{display:block!important;width:100%!important;padding-right:0!important}
+.ap-cocell img{margin:0 auto}
+.ap-cocard{padding:14px 14px 16px!important}
+.ap-copad{padding-left:12px!important;padding-right:12px!important}
 }`;
 
 // "You're on *the list.*" → escaped, with the starred words in red italic.
@@ -120,8 +125,54 @@ export function button(site: string, label: string, path: string, pad = "30px 44
   return `<tr><td align="center" style="padding:${pad}"><a href="${attr(`${site}${path}`)}" style="${SANS};display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:15px 30px;border-radius:10px">${e(label)}</a></td></tr>`;
 }
 
+const usdText = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+
+// Email 3's "What your checkout will look like": GLOW at its live price, the person's code
+// applied, the new-account percent off. The code and "Applied" stack so a phone never overflows.
+export function checkoutCard(site: string, x: { code: string; priceCents: number }): string {
+  const v = photoVial("glow");
+  const off = Math.round((x.priceCents * NEW_ACCOUNT_PCT) / 100);
+  const alt = `Aura Protocols vial: ${v.name}, ${v.strength}${v.designation ? ` (${v.designation})` : ""}, research use only`;
+  const line = (l: string, r: string, extra = "") => `<tr><td style="${SANS};padding:6px 0;font-size:14px;color:${BODY};${extra}">${l}</td><td align="right" style="${SANS};padding:6px 0;font-size:14px;color:${BODY};${extra}">${r}</td></tr>`;
+  const green = `color:${GREEN};font-weight:600`, total = `border-top:1px solid #efe6dc;padding-top:10px`;
+  return `<tr><td class="ap-pad ap-copad" style="padding:30px 44px 8px">
+<p style="${SANS};margin:0 0 10px;font-size:11px;letter-spacing:.14em;font-weight:600;color:#8a4a2b;text-transform:uppercase;text-align:center">What your checkout will look like</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e6dccf;border-radius:16px;box-shadow:0 10px 26px rgba(120,70,30,.10)"><tr><td class="ap-cocard" style="padding:18px 20px 20px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+<td style="${SERIF};font-size:19px;font-weight:600;color:${INK}">Checkout</td>
+<td align="right"><span style="${SANS};display:inline-block;background:#eef3fa;color:#33467A;border-radius:999px;padding:5px 10px;font-size:11px;letter-spacing:.12em;font-weight:600;text-transform:uppercase">Early access</span></td></tr></table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;border-top:1px solid #efe6dc;border-bottom:1px solid #efe6dc"><tr>
+<td class="ap-cocell" width="170" style="width:170px;padding:12px 14px 12px 0;vertical-align:middle"><img src="${attr(`${site}/email/vials/${v.key}.jpg`)}" width="160" alt="${attr(alt)}" style="display:block;width:160px;height:auto;border:0"></td>
+<td class="ap-cocell" style="padding:12px 0;vertical-align:middle">
+<p style="${SERIF};margin:0;font-size:17px;line-height:22px;font-weight:600;color:${INK}">${e(v.name)}</p>
+<p style="${SANS};margin:4px 0 0;font-size:11px;letter-spacing:.16em;font-weight:600;color:${SLATE};text-transform:uppercase">${e(v.designation ? `${v.designation} · ` : "")}${e(v.strength)}</p>
+<p style="${SANS};margin:8px 0 0;font-size:13px;color:${MUTED}">Qty 1</p>
+<p style="${SANS};margin:4px 0 0;font-size:16px;font-weight:600;color:${INK}">${usdText(x.priceCents)}</p></td></tr></table>
+<p style="${SANS};margin:14px 0 6px;font-size:11px;letter-spacing:.16em;font-weight:600;color:${SLATE};text-transform:uppercase">Promotion code</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid ${GREEN};border-radius:10px;background:#f2f7ef"><tr><td style="padding:10px 12px"><span style="${SERIF};display:block;font-size:18px;line-height:24px;font-weight:600;letter-spacing:.03em;color:${INK};overflow-wrap:anywhere">${e(x.code)}</span><span style="${SANS};display:block;margin-top:2px;font-size:13px;font-weight:600;color:${GREEN}">&#10003; Applied</span></td></tr></table>
+<p style="${SANS};margin:6px 0 10px;font-size:12px;line-height:18px;color:${GREEN}">Early access · ${OFFER_PCT_TEXT} off your first order. Already filled in for you.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+${line("Items", usdText(x.priceCents))}${line(`Early access · ${OFFER_PCT_TEXT} off`, `&minus;${usdText(off)}`, green)}
+${line(`<b style="color:${INK}">Total before tax</b>`, `<b style="color:${INK};font-size:16px">${usdText(x.priceCents - off)}</b>`, total)}</table>
+</td></tr></table></td></tr>`;
+}
+
+// The testing stamp as a light blue box (email 3's one testing mention).
+export function panelBox(): string {
+  return `<tr><td class="ap-pad" style="padding:0 44px 6px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef3fa;border-radius:14px"><tr><td style="padding:20px 24px">
+<p style="${SERIF};margin:0;font-size:21px;line-height:26px;font-weight:600;color:${INK}">${accent("Up to a *ten-point* panel")}</p>
+<p style="${SANS};margin:6px 0 0;font-size:14px;line-height:21px;color:${BODY}">Testing includes ISO/IEC 17025&#8209;accredited US lab.</p></td></tr></table></td></tr>`;
+}
+
+// A smaller grey line in the body (terms under an offer).
+export function note(html: string): string {
+  return para(`<span style="font-size:14px;color:${MUTED}">${html}</span>`);
+}
+
 export type FrameInput = {
   preview: string; kicker: string; headline: string; intro: string; rows: string;
+  // A button in the top band, under the intro (email 3: the person's own early link).
+  cta?: { label: string; url: string };
   footer: { address: string; unsubscribeUrl: string; reason: string };
 };
 
@@ -134,7 +185,7 @@ export function brandEmail(site: string, o: FrameInput): string {
 <tr><td class="ap-pad" style="background:#fbe3cf;background-image:linear-gradient(160deg,#fde6d2 0%,#f7dccf 45%,#dfe9f6 100%);padding:30px 44px 34px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td>${logo}</td><td align="right" style="${SANS};font-size:11px;letter-spacing:.18em;color:#8a4a2b;font-weight:600;text-transform:uppercase">${e(o.kicker)}</td></tr></table>
 <h1 class="ap-h1" style="${SERIF};margin:26px 0 0;font-size:42px;line-height:46px;font-weight:600;color:${INK};letter-spacing:-.01em">${accent(o.headline)}</h1>
-<p style="${SANS};margin:16px 0 0;font-size:16px;line-height:25px;color:${BODY}">${o.intro}</p></td></tr>
+<p style="${SANS};margin:16px 0 0;font-size:16px;line-height:25px;color:${BODY}">${o.intro}</p>${o.cta ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 0"><tr><td><a href="${attr(o.cta.url)}" style="${SANS};display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:15px 30px;border-radius:10px">${e(o.cta.label)}</a></td></tr></table>` : ""}</td></tr>
 ${o.rows}
 <tr><td class="ap-pad" style="${SANS};background:#faf7f3;border-top:1px solid #efe6dc;padding:20px 44px 24px;font-size:11px;line-height:17px;color:#7a7064">For research use only. Not for human use.<br>You&#39;re getting this because ${e(o.footer.reason)}. <a href="${attr(o.footer.unsubscribeUrl)}" style="color:#7a7064">Unsubscribe</a><br>${e(o.footer.address)}</td></tr>
 </table></td></tr></table></body></html>`;

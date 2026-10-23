@@ -3,11 +3,12 @@
 import { escapeHtml as e } from "@/lib/html";
 import { frameHtml, lotTable, p, SIGN, type AlertLot, type Msg } from "@/lib/emails-marketing";
 import { isPrelaunch, isSitePath, kicker, paragraphs, type CampaignContent, type CampaignKind } from "@/lib/email/campaigns/rules";
-import { firstLookEmail, weAreOpenEmail } from "@/lib/email/prelaunch";
+import { earlyAccessEmail, firstLookEmail, weAreOpenEmail, type EarlyCtx } from "@/lib/email/prelaunch";
 import { shortDate } from "@/lib/discounts/time";
 
 export type RenderCode = { code: string; summary: string; endsAt: string | null; oncePerCustomer: boolean; minOrderCents: number | null };
-export type RenderInput = { kind: CampaignKind; subject: string; previewText: string; content: CampaignContent; lots: AlertLot[]; code: RenderCode | null };
+// early: email 3's per-person link and code (lib/email/campaigns/send.ts) — required for early_access.
+export type RenderInput = { kind: CampaignKind; subject: string; previewText: string; content: CampaignContent; lots: AlertLot[]; code: RenderCode | null; early?: EarlyCtx | null };
 export type RenderCtx = { site: string; unsubscribeUrl: string; mailingAddress: string };
 
 const INK = "#1C1A15", SOFT = "#4A4438";
@@ -26,6 +27,11 @@ function button(site: string, label: string, path: string): string {
 }
 
 export function campaignEmail(c: RenderInput, ctx: RenderCtx, opts: { test?: boolean } = {}): Msg {
+  if (c.kind === "early_access") {
+    if (!c.early) throw new Error("Early access email: no opening date or code yet.");
+    const m = earlyAccessEmail(ctx, c.early);
+    return { subject: `${opts.test ? "[Test] " : ""}${m.subject}`, html: m.html };
+  }
   if (isPrelaunch(c.kind)) {
     const m = (c.kind === "first_look" ? firstLookEmail : weAreOpenEmail)(ctx);
     return { subject: `${opts.test ? "[Test] " : ""}${m.subject}`, html: m.html };

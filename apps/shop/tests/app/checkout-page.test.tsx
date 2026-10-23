@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-const { requireCustomer, creditBalance, listOpenOrdersForCustomer } = vi.hoisted(() => ({
+const { requireCustomer, creditBalance, listOpenOrdersForCustomer, jar } = vi.hoisted(() => ({
+  jar: new Map<string, string>(),
   requireCustomer: vi.fn(async () => ({ id: "u1", email: "j@lab.org", emailConfirmed: false, ship: null })),
   creditBalance: vi.fn(async () => 0),
   listOpenOrdersForCustomer: vi.fn(async () => [] as unknown[]),
@@ -11,9 +12,9 @@ vi.mock("@/lib/partners/ledger", () => ({ creditBalance }));
 vi.mock("@/lib/account/offer-data", () => ({ offerForCustomer: async () => null }));
 vi.mock("@/lib/discounts/data", () => ({ getDiscountCap: vi.fn().mockResolvedValue(30) }));
 vi.mock("@/lib/orders", async (orig) => ({ ...(await orig<typeof import("@/lib/orders")>()), listOpenOrdersForCustomer }));
-vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
-vi.mock("@/components/account/CheckoutForm", () => ({ default: (p: { creditBalanceCents: number; capPct: number; needsResearch: boolean }) =>
-  <><div data-testid="credit">{p.creditBalanceCents}</div><div data-testid="cap">{p.capPct}</div><div data-testid="research">{String(p.needsResearch)}</div></> }));
+vi.mock("next/headers", () => ({ cookies: async () => ({ get: (k: string) => (jar.has(k) ? { value: jar.get(k) } : undefined) }) }));
+vi.mock("@/components/account/CheckoutForm", () => ({ default: (p: { creditBalanceCents: number; capPct: number; needsResearch: boolean; initialCode: string }) =>
+  <><div data-testid="code">{p.initialCode}</div><div data-testid="credit">{p.creditBalanceCents}</div><div data-testid="cap">{p.capPct}</div><div data-testid="research">{String(p.needsResearch)}</div></> }));
 import CheckoutPage from "@/app/checkout/page";
 
 describe("checkout page", () => {
@@ -30,6 +31,22 @@ describe("checkout page", () => {
     listOpenOrdersForCustomer.mockResolvedValueOnce([{ id: "o1", order_number: "AP-1", stripe_session_id: "cs_1", created_at: new Date().toISOString(), store_credit_cents: 3050 }]);
     render(await CheckoutPage());
     expect(screen.getByTestId("credit").textContent).toBe("3050");
+  });
+
+  it("pre-fills the early-access code from the early link's cookie; a partner link wins", async () => {
+    process.env.EMAIL_LINK_SECRET = "s"; process.env.PARTNER_REF_SECRET = "p";
+    const { signEarlyCookie } = await import("@/lib/early/token");
+    const { signRef } = await import("@/lib/partners/ref-cookie");
+    jar.set("aura_early", signEarlyCookie("K7QM2P"));
+    requireCustomer.mockResolvedValueOnce({ id: "u1", email: "j@lab.org", emailConfirmed: true, ship: null });
+    const { unmount } = render(await CheckoutPage());
+    expect(screen.getByTestId("code").textContent).toBe("EARLY-K7QM2P");
+    unmount();
+    jar.set("aura_ref", signRef("SMITHLAB"));
+    requireCustomer.mockResolvedValueOnce({ id: "u1", email: "j@lab.org", emailConfirmed: true, ship: null });
+    render(await CheckoutPage());
+    expect(screen.getByTestId("code").textContent).toBe("SMITHLAB");
+    jar.clear();
   });
 
   it("passes the store-wide discount cap to the form", async () => {

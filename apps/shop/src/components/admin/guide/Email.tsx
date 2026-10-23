@@ -5,6 +5,8 @@ import {
 } from "@/lib/email/constants";
 import { WELCOME_DAYS, CART_HOURS } from "@/lib/email/schedule";
 import { AUDIENCE_LABEL, PRELAUNCH } from "@/lib/email/campaigns/rules";
+import { OFFER_DAYS_TEXT, OFFER_PCT_TEXT } from "@/lib/account/offer";
+import { EARLY_PREFIX } from "@/lib/early/rules";
 
 export default function Email() {
   return (
@@ -13,9 +15,18 @@ export default function Email() {
       lede="Everything the store emails to subscribers: the welcome series and cart reminders that send themselves, and the campaigns you write — new lots, promotions and research news. This is where you send, pause and see what happened."
       tasks={<>
         <Task title="Send a pre-launch email" note="before the store opens">
-          <Step>In <Ui>Pre-launch</Ui>, choose <Ui>Open</Ui> next to the email: <Ui>{PRELAUNCH.first_look.subject}</Ui> any time before opening, <Ui>{PRELAUNCH.we_are_open.subject}</Ui> on launch day.</Step>
+          <Step>In <Ui>Pre-launch</Ui>, choose <Ui>Open</Ui> next to the email: <Ui>{PRELAUNCH.first_look.subject}</Ui> any time before opening, <Ui>{PRELAUNCH.early_access.subject}</Ui> the day before opening, <Ui>{PRELAUNCH.we_are_open.subject}</Ui> on launch day.</Step>
           <Step>Check the preview on <Ui>Desktop</Ui> and <Ui>Phone</Ui>, then <Ui>Send test to me</Ui> and open it on your phone.</Step>
           <Step><Ui>Send now…</Ui> shows how many people it goes to. Each pre-launch email goes once; afterwards its row says when and how many.</Step>
+        </Task>
+        <Task title="Send early access" note="the day before opening">
+          <Step>Only once checkout takes payments: the email lets the waitlist order a day early.</Step>
+          <Step>Open <Ui>{PRELAUNCH.early_access.subject}</Ui>, pick the <Ui>Opening date</Ui> and <Ui>Save date</Ui>. The preview shows the date and a sample code.</Step>
+          <Step><Ui>Send test to me</Ui>. If your email is on the waitlist, the test carries your own link and code: open the link, make sure the store opens, and go as far as checkout to see the code in the box.</Step>
+          <Step><Ui>Send now…</Ui>. Sending turns <Ui>Early access</Ui> on in the Pre-launch box, so every link works the moment it lands.</Step>
+        </Task>
+        <Task title="Close early access" note="only if something's wrong">
+          <Step>In <Ui>Pre-launch</Ui>, <Ui>Early access</Ui> → <Ui>Turn off</Ui>. Within a minute, early links and browsers that already opened one see the coming-soon page again. <Ui>Turn on</Ui> brings them back.</Step>
         </Task>
         <Task title="Announce a new lot" note="the most common send">
           <Step>When a lot goes live with its certificate, <Ui>Email</Ui> shows <Ui>Lots waiting to announce</Ui>. Choose <Ui>Announce</Ui>.</Step>
@@ -39,7 +50,8 @@ export default function Email() {
       </>}
       how={
         <Rules items={[
-          ["Pre-launch emails", <>Four emails keep the waitlist&apos;s promises. <Ui>You&apos;re on the list</Ui> sends itself when someone joins. <Ui>{PRELAUNCH.first_look.subject}</Ui> goes to <Ui>{AUDIENCE_LABEL.waitlist}</Ui>; <Ui>{PRELAUNCH.we_are_open.subject}</Ui> goes to <Ui>{AUDIENCE_LABEL.waitlist_never_ordered}</Ui>, so nobody who already ordered early is told the store just opened. Their wording is fixed and approved, so there&apos;s nothing to edit; they can&apos;t be copied or sent twice. <Ui>Your early access is open</Ui> comes with the early-access links.</>],
+          ["Pre-launch emails", <>Four emails keep the waitlist&apos;s promises. <Ui>You&apos;re on the list</Ui> sends itself when someone joins. <Ui>{PRELAUNCH.first_look.subject}</Ui> goes to <Ui>{AUDIENCE_LABEL.waitlist}</Ui>; <Ui>{PRELAUNCH.we_are_open.subject}</Ui> goes to <Ui>{AUDIENCE_LABEL.waitlist_never_ordered}</Ui>, so nobody who already ordered early is told the store just opened. Their wording is fixed and approved, so there&apos;s nothing to edit; they can&apos;t be copied or sent twice. <Ui>{PRELAUNCH.early_access.subject}</Ui> goes to <Ui>{AUDIENCE_LABEL.waitlist}</Ui> with each person&apos;s own link and code.</>],
+          ["Early access", <>Each email carries the person&apos;s own early link. Opening it sets a cookie that lets that browser past the coming-soon page while <Ui>Early access</Ui> is on, and pre-fills their code at checkout. The code is <Ui>{EARLY_PREFIX}</Ui> plus their invite code: {OFFER_PCT_TEXT} off a first order, one use, ending {OFFER_DAYS_TEXT} after the opening date. Codes are made as the emails go out and sit in one <Ui>{EARLY_PREFIX}</Ui> batch in <Ui>Discounts</Ui>. The code never adds to the automatic new-account {OFFER_PCT_TEXT}: an order gets one {OFFER_PCT_TEXT}, whichever way.</>],
           ["Who gets campaigns", <>Confirmed subscribers only: people who verified their email and haven&apos;t unsubscribed. Blocked accounts never get email. <Ui>Has ordered</Ui> means at least one paid order; <Ui>Never ordered</Ui> is everyone else. The list is fixed the moment sending starts, and nobody gets the same campaign twice.</>],
           ["Sending", <>Send now starts right away. A long list keeps going on the next hourly email run until everyone is reached. A send that fails is tried again on the next runs, up to {MAX_SEND_ATTEMPTS} tries. Only one campaign sends at a time; a scheduled one waits its turn.</>],
           ["Checks", <>Every save runs the same banned-phrase scan as the website. A banned phrase blocks sending; you can still send yourself a test. Lots must still be live and on the store; a code must not be paused, ended or used up.</>],
@@ -50,6 +62,7 @@ export default function Email() {
         ]} />
       }
       watch={[
+        <>Send <Ui>{PRELAUNCH.early_access.subject}</Ui> only when checkout takes payments. Early links can be forwarded, and each code works once for whoever uses it first.</>,
         <>Amber or red bounce or complaint figures need attention before the next campaign: a bad list or a misleading subject can get the account paused by Amazon.</>,
         <>Make the discount code in <Ui>Discounts</Ui> before writing a promotion, and give it enough uses for the whole list.</>,
         <>A red hourly-run line means welcome files, cart reminders and scheduled campaigns aren&apos;t going out. Check the cron job in Vercel.</>,

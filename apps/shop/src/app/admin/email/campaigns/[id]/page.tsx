@@ -17,6 +17,7 @@ import CampaignEditor from "@/components/admin/email/CampaignEditor";
 import EmailPreview from "@/components/admin/email/EmailPreview";
 import CampaignResults from "@/components/admin/email/CampaignResults";
 import PrelaunchCampaign from "@/components/admin/email/PrelaunchCampaign";
+import { earlyPriceCents } from "@/lib/early/data";
 
 export const metadata: Metadata = { title: "Campaign", robots: { index: false, follow: false } };
 // Send now runs a batch inside the server action invoked from this page.
@@ -48,11 +49,15 @@ export default async function CampaignPage({ params, searchParams = Promise.reso
   );
 
   if (isPrelaunch(c.kind)) {
+    // Early access's checkout card shows GLOW's live price; null = couldn't read it (said on the page).
+    const earlyPriceCentsValue = c.kind === "early_access"
+      ? await earlyPriceCents().catch((err) => { console.error("early access price:", err); return null; }) : null;
     return (
       <div className="a-page" style={{ maxWidth: 1200 }}>
         {head}
         <PrelaunchCampaign c={c as typeof c & { kind: PrelaunchKind }} counts={counts} site={site} mailingAddress={mailingAddress}
-          lastTest={lastTest ? `${dateTime(lastTest.at)} to ${lastTest.note}` : null} canSend={can(staff, "email.send")} />
+          lastTest={lastTest ? `${dateTime(lastTest.at)} to ${lastTest.note}` : null} canSend={can(staff, "email.send")}
+          canDraft={can(staff, "email.draft")} earlyPriceCents={earlyPriceCentsValue} />
       </div>
     );
   }

@@ -16,6 +16,7 @@ import AutomationRow from "@/components/admin/email/AutomationRow";
 import { HealthStrip, RunLine } from "@/components/admin/email/HealthStrip";
 import { announceAction } from "@/app/admin/email/actions";
 import PrelaunchBox from "@/components/admin/email/PrelaunchBox";
+import { earlyAccessOpen } from "@/lib/early/data";
 
 export const metadata: Metadata = { title: "Email", robots: { index: false, follow: false } };
 
@@ -59,6 +60,8 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
     );
   }
   const { overview, stats30, attr30, cart, settings, runs, waiting, counts, list, campAttr, prelaunch, audiences } = loaded;
+  // The Early access switch shows "Couldn't load" rather than a guess.
+  const earlyOpen = await earlyAccessOpen().catch((err) => { console.error("early access switch:", err); return null; });
   const welcome = sumKinds(stats30, "welcome_"), carts = sumKinds(stats30, "cart_");
   const welcomeAttr = sumAttribution(attr30, "welcome_");
   const href = (o: { tab?: CampaignTab; page?: number }) => {
@@ -82,7 +85,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
       <HealthStrip o={overview} />
       <RunLine last={runs[0] ?? null} />
 
-      <PrelaunchBox rows={prelaunch} counts={audiences} canDraft={can(staff, "email.draft")} />
+      <PrelaunchBox rows={prelaunch} counts={audiences} canDraft={can(staff, "email.draft")} canSend={can(staff, "email.send")} earlyOpen={earlyOpen} />
 
       {waiting.length > 0 && can(staff, "email.draft") && (
         <form action={announceAction} className="a-waiting">

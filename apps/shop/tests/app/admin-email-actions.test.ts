@@ -11,8 +11,10 @@ const data = {
   lotChoices: vi.fn(), waitingLots: vi.fn(), codeForCampaign: vi.fn(),
 };
 vi.mock("@/lib/email/campaigns/data", () => data);
-const sendCampaignBatch = vi.fn(), renderFor = vi.fn(), campaignCode = vi.fn();
-vi.mock("@/lib/email/campaigns/send", () => ({ sendCampaignBatch, renderFor, campaignCode }));
+const sendCampaignBatch = vi.fn(), renderFor = vi.fn(), campaignCode = vi.fn(), earlyRun = vi.fn();
+vi.mock("@/lib/email/campaigns/send", () => ({ sendCampaignBatch, renderFor, campaignCode, earlyRun }));
+const setEarlyAccessOpen = vi.fn();
+vi.mock("@/lib/early/data", () => ({ setEarlyAccessOpen }));
 const audienceCounts = vi.fn();
 vi.mock("@/lib/email/stats", () => ({ audienceCounts }));
 const sendTracked = vi.fn();
@@ -33,12 +35,13 @@ const form = { name: "N", subject: "S", previewText: "", headline: "H", body: "F
 describe("admin email actions", () => {
   beforeEach(() => {
     vi.resetModules();
-    for (const f of [...Object.values(data), sendCampaignBatch, renderFor, campaignCode, audienceCounts, sendTracked, setAutomationPaused, logEmailAdminEvent, requirePermission, alertOwner]) f.mockReset();
+    for (const f of [...Object.values(data), sendCampaignBatch, renderFor, campaignCode, earlyRun, setEarlyAccessOpen, audienceCounts, sendTracked, setAutomationPaused, logEmailAdminEvent, requirePermission, alertOwner]) f.mockReset();
     requirePermission.mockResolvedValue(ownerStaff({ id: "owner1", email: "owner@auraprotocols.com" }));
     data.getCampaign.mockResolvedValue(draft);
     data.lotChoices.mockResolvedValue([]);
     audienceCounts.mockResolvedValue({ all: 2310, ordered: 486, never_ordered: 1824 });
     campaignCode.mockResolvedValue(null);
+    earlyRun.mockResolvedValue(null);
     renderFor.mockResolvedValue({ msg: { subject: "[Test] S", html: "<p>x</p>" }, unsub: "u" });
   });
 
@@ -89,7 +92,7 @@ describe("admin email actions", () => {
   it("test send goes to the signed-in owner only, prefixed [Test], and is logged", async () => {
     const { sendTestAction } = await import("@/app/admin/email/actions");
     expect(await sendTestAction(null, fd({ id: K, updatedAt: draft.updated_at }))).toEqual({ ok: "Test sent to owner@auraprotocols.com." });
-    expect(renderFor).toHaveBeenCalledWith(draft, "owner@auraprotocols.com", null, { test: true });
+    expect(renderFor).toHaveBeenCalledWith(draft, "owner@auraprotocols.com", null, { test: true }, null);
     expect(sendTracked.mock.calls[0][0]).toMatchObject({ email: "owner@auraprotocols.com", kind: "campaign" });
     expect(sendTracked.mock.calls[0][0].ref).toMatch(new RegExp(`^test-${K}-`));
     expect(logEmailAdminEvent).toHaveBeenCalledWith({ action: "test_sent", target: K, actor: "owner1", note: "owner@auraprotocols.com" });
@@ -171,5 +174,55 @@ describe("admin email actions", () => {
     expect(data.moveCampaign).toHaveBeenCalledWith(K, "sending", "stopped", "owner1");
     requirePermission.mockRejectedValue(new Error("NOT_FOUND"));
     await expect(stopAction(fd({ id: K }))).rejects.toThrow("NOT_FOUND");
+  });
+
+  describe("early access", () => {
+    const early = { ...draft, kind: "early_access", name: "Pre-launch · Early access", subject: "Your early access is open", audience: "waitlist", content: { headline: "", body: "", buttonLabel: "", buttonPath: "" } };
+
+    it("send now turns early access on before the first email, and logs it", async () => {
+      data.getCampaign.mockResolvedValue({ ...early, content: { ...early.content, openingOn: "2099-12-01" } });
+      data.startCampaign.mockResolvedValue({ ok: true, recipients: 3 });
+      audienceCounts.mockResolvedValue({ all: 9, ordered: 0, never_ordered: 9, waitlist: 3, waitlist_never_ordered: 3 });
+      setEarlyAccessOpen.mockResolvedValue(true);
+      sendCampaignBatch.mockImplementation(async () => {
+        expect(setEarlyAccessOpen).toHaveBeenCalledWith(true);
+        return { sent: 3, skipped: 0, failed: 0, remaining: 0, finished: true, stopped: false };
+      });
+      const { sendNowAction } = await import("@/app/admin/email/actions");
+      expect(await sendNowAction(null, fd({ id: K, from: "draft" }))).toEqual({ ok: "Sent to 3 people." });
+      expect(logEmailAdminEvent).toHaveBeenCalledWith(expect.objectContaining({ action: "early_access_on", target: K }));
+    });
+
+    it("send now is blocked without an opening date", async () => {
+      data.getCampaign.mockResolvedValue(early);
+      audienceCounts.mockResolvedValue({ all: 9, ordered: 0, never_ordered: 9, waitlist: 3, waitlist_never_ordered: 3 });
+      const { sendNowAction } = await import("@/app/admin/email/actions");
+      expect(await sendNowAction(null, fd({ id: K, from: "draft" }))).toMatchObject({ error: "Fix the problems listed under Checks first." });
+      expect(data.startCampaign).not.toHaveBeenCalled();
+      expect(setEarlyAccessOpen).not.toHaveBeenCalled();
+    });
+
+    it("the opening date is saved with the inbox preview line naming it; a past date is refused", async () => {
+      data.getCampaign.mockResolvedValue(early);
+      const { setOpeningDateAction } = await import("@/app/admin/email/actions");
+      expect(await setOpeningDateAction(null, fd({ id: K, openingOn: "2099-12-01" }))).toEqual({ ok: "Opening date saved: Tuesday, December 1." });
+      expect(data.updateDraft).toHaveBeenCalledWith(K, expect.objectContaining({
+        previewText: "Your code is already in the box. The store opens to everyone on Tuesday, December 1.",
+        content: expect.objectContaining({ openingOn: "2099-12-01" }),
+      }), []);
+      expect(await setOpeningDateAction(null, fd({ id: K, openingOn: "2020-01-01" }))).toEqual({ fieldErrors: { openingOn: "The opening date must be after today." } });
+      data.getCampaign.mockResolvedValue(draft);
+      await expect(setOpeningDateAction(null, fd({ id: K, openingOn: "2099-12-01" }))).rejects.toThrow(/changed/);
+    });
+
+    it("the switch turns on and off; a stale click throws", async () => {
+      const { setEarlyAccessAction } = await import("@/app/admin/email/actions");
+      setEarlyAccessOpen.mockResolvedValue(true);
+      expect(await setEarlyAccessAction(null, fd({ open: "0" }))).toEqual({ ok: "Early access is off. Early links now show the coming-soon page." });
+      expect(setEarlyAccessOpen).toHaveBeenCalledWith(false);
+      expect(logEmailAdminEvent).toHaveBeenCalledWith({ action: "early_access_off", target: "early_access", actor: "owner1" });
+      setEarlyAccessOpen.mockResolvedValue(false);
+      await expect(setEarlyAccessAction(null, fd({ open: "1" }))).rejects.toThrow(/switch changed/);
+    });
   });
 });

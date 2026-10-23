@@ -1,6 +1,6 @@
 // Every message a customer sees about a discount code (mock screen 7). Pure.
 import { usd } from "@/lib/html";
-import { OFFER_PCT_TEXT } from "@/lib/account/offer";
+import { NEW_ACCOUNT_PCT, OFFER_PCT_TEXT } from "@/lib/account/offer";
 import { customerSummary, type CodeTerms } from "@/lib/discounts/rules";
 import type { EngineResult } from "@/lib/discounts/engine";
 
@@ -38,6 +38,10 @@ export function outcomeMessage(
         : { tone: "good", text: `${code} applied — ${customerSummary(terms)}.` };
     case "no_gain":
       if (terms.kind === "ship_only") return { tone: "note", text: "Shipping is already free on this order, so this code isn't needed." };
+      // A code worth exactly the new-account percent (the early-access EARLY- codes): the
+      // percent IS taken off — once — so don't say the offer is "larger".
+      if (r.newAccount && terms.kind === "item_pct" && terms.value === NEW_ACCOUNT_PCT)
+        return { tone: "good", text: `✓ ${code} · your ${OFFER_PCT_TEXT} is taken off. It's the same ${OFFER_PCT_TEXT} as your new-account offer, so it counts once.` };
       return r.newAccount
         ? { tone: "note", text: `Your new-account ${OFFER_PCT_TEXT} is already larger than this code on these items, so we kept it.` }
         : { tone: "note", text: "A larger discount already applies to these items, so this code isn't used." };

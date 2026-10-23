@@ -23,6 +23,10 @@ import { assertCompliant } from "@/lib/email/compliance";
 import { CAMPAIGN_BATCH, CAMPAIGN_FAIL_STREAK, CAMPAIGN_STOP_CHECK_EVERY, MAX_SEND_ATTEMPTS } from "@/lib/email/constants";
 import { alertOwner } from "@/lib/notify";
 import { siteUrl } from "@/lib/supabase/env";
+import { earlyPriceCents, ensureEarlyBatch, ensureEarlyCode, syncEarlyBatchSize } from "@/lib/early/data";
+import { earlyCode, earlyLinkUrl, EARLY_PREFIX } from "@/lib/early/token";
+import { referralCodeIfSubscriber } from "@/lib/waitlist/data";
+import type { EarlyCtx } from "@/lib/email/prelaunch";
 
 export type BatchResult = { sent: number; skipped: number; failed: number; remaining: number; finished: boolean; stopped: boolean };
 
@@ -34,12 +38,35 @@ function mailingAddress(): string {
   return a;
 }
 
-export async function renderFor(c: CampaignRow, email: string, code: RenderCode | null, opts: { test?: boolean } = {}) {
+// Early access (pre-launch email 3): what every recipient's email shares, loaded once per run.
+// The EARLY- batch is made here, the first time #3 is sent.
+export type EarlyRun = { openingOn: string; priceCents: number; batchId: string };
+export async function earlyRun(c: CampaignRow, actor: string | null): Promise<EarlyRun | null> {
+  if (c.kind !== "early_access") return null;
+  const openingOn = c.content.openingOn;
+  if (!openingOn) throw new Error(`Campaign "${c.name}": no opening date — not sent.`);
+  return { openingOn, priceCents: await earlyPriceCents(), batchId: await ensureEarlyBatch(actor) };
+}
+
+// The person's own code and link. A real send makes their EARLY- code first (idempotent), so
+// nobody gets an email whose code doesn't exist. A test send uses the owner's own invite code
+// when they're a subscriber (a link that works end to end), else a sample; the preflight a sample.
+async function earlyFor(early: EarlyRun, site: string, email: string, mode: "real" | "test" | "preflight"): Promise<EarlyCtx> {
+  const ref = mode === "preflight" ? null : mode === "test" ? await referralCodeIfSubscriber(email) : (await ensureEarlyCode(email, early.openingOn, early.batchId, null)).ref;
+  if (ref && mode === "test") await ensureEarlyCode(email, early.openingOn, early.batchId, null);
+  return {
+    openingOn: early.openingOn, priceCents: early.priceCents,
+    code: ref ? earlyCode(ref) : `${EARLY_PREFIX}XXXXXX`, url: ref ? earlyLinkUrl(site, ref) : `${site}/early`,
+  };
+}
+
+export async function renderFor(c: CampaignRow, email: string, code: RenderCode | null, opts: { test?: boolean; preflight?: boolean } = {}, early: EarlyRun | null = null) {
   const site = siteUrl();
   // A test send isn't counted against the campaign if the owner clicks unsubscribe.
   const unsub = unsubscribeUrl(site, email, opts.test ? undefined : `campaign.${c.id}`);
+  const earlyCtx = early ? await earlyFor(early, site, email, opts.preflight ? "preflight" : opts.test ? "test" : "real") : null;
   const msg = campaignEmail(
-    { kind: c.kind, subject: c.subject, previewText: c.preview_text, content: c.content, lots: c.lots_snapshot, code },
+    { kind: c.kind, subject: c.subject, previewText: c.preview_text, content: c.content, lots: c.lots_snapshot, code, early: earlyCtx },
     { site, unsubscribeUrl: unsub, mailingAddress: mailingAddress() }, opts,
   );
   return { msg, unsub };
@@ -54,9 +81,17 @@ export async function campaignCode(c: CampaignRow): Promise<RenderCode | null> {
 
 // Renders once to a placeholder address and scans it, so a config error or a
 // compliance miss throws before any real recipient is attempted.
-async function preflight(c: CampaignRow, code: RenderCode | null): Promise<void> {
-  const { msg } = await renderFor(c, PREFLIGHT_EMAIL, code);
+async function preflight(c: CampaignRow, code: RenderCode | null, early: EarlyRun | null): Promise<void> {
+  const { msg } = await renderFor(c, PREFLIGHT_EMAIL, code, { preflight: true }, early);
   assertCompliant(msg.subject, msg.html);
+}
+
+async function syncEarlyBatch(name: string, batchId: string): Promise<void> {
+  try {
+    await syncEarlyBatchSize(batchId);
+  } catch (err) {
+    await alertOwner("Early access codes: batch size not updated", `"${name}": ${err instanceof Error ? err.message : String(err)}. The codes work; Discounts may show the EARLY- batch as used up too early.`);
+  }
 }
 
 export async function sendCampaignBatch(id: string, deadlineMs: number): Promise<BatchResult> {
@@ -64,7 +99,8 @@ export async function sendCampaignBatch(id: string, deadlineMs: number): Promise
   let c = await getCampaign(id);
   if (!c || c.status !== "sending") return { ...out, stopped: c?.status === "stopped" };
   const code = await campaignCode(c);
-  await preflight(c, code);
+  const early = await earlyRun(c, null);
+  await preflight(c, code, early);
 
   const failures: string[] = [];
   let cursor = "", outOfTime = false, tripped = false, streak = 0, lastError = "", sinceCheck = 0;
@@ -93,7 +129,7 @@ export async function sendCampaignBatch(id: string, deadlineMs: number): Promise
         continue;
       }
       try {
-        const { msg, unsub } = await renderFor(c!, r.email, code);
+        const { msg, unsub } = await renderFor(c!, r.email, code, {}, early);
         await sendTracked({ email: r.email, kind: "campaign", ref: id, msg, unsubscribeUrl: unsub });
         await setRecipient(id, r.email, { state: "sent" });
         out.sent++;
@@ -114,6 +150,8 @@ export async function sendCampaignBatch(id: string, deadlineMs: number): Promise
     }
     if (out.stopped) break;
   }
+
+  if (early) await syncEarlyBatch(c?.name ?? id, early.batchId);
 
   if (tripped) {
     await alertOwner(

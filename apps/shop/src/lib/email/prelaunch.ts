@@ -1,8 +1,10 @@
 // The ready-made pre-launch emails (2026-10-23, mock https://claude.ai/artifact/SGTmkNtKkywUJhBxihHEDQ
-// tabs 2 and 4), sent once each to the waitlist from Email → Pre-launch. The wording is
+// tabs 2–4), sent once each to the waitlist from Email → Pre-launch. The wording is
 // fixed here (approved), so they have no editor. Pure — the admin preview renders them too.
 import { OFFER_DAYS_TEXT, OFFER_PCT_TEXT } from "@/lib/account/offer";
-import { brandEmail, button, para, sampleCertificate, signOff, sticker, turningVialBlock, vialGrid } from "@/lib/email/frame";
+import { brandEmail, button, checkoutCard, note, panelBox, para, sampleCertificate, signOff, sticker, turningVialBlock, vialGrid } from "@/lib/email/frame";
+import { openingLabel } from "@/lib/early/rules";
+import { escapeHtml as e } from "@/lib/html";
 import type { Msg } from "@/lib/emails-marketing";
 
 export type PrelaunchCtx = { site: string; unsubscribeUrl: string; mailingAddress: string };
@@ -18,6 +20,30 @@ export function firstLookEmail(c: PrelaunchCtx): Msg {
       headline: "This is what a vial from us *looks like.*",
       intro: "We wanted you to see one before the store opens. The name comes first, then the strength, and the back of every label carries a code that opens the lab report for that exact lot.",
       rows: turningVialBlock(c.site) + sticker() + sampleCertificate() + button(c.site, "Visit auraprotocols.com", "/") + signOff(true),
+      footer: footer(c),
+    }),
+  };
+}
+
+// The person's own early link and code, the opening date typed in at send time, and GLOW's
+// live price (lib/email/campaigns/send.ts fills these per recipient).
+export type EarlyCtx = { openingOn: string; url: string; code: string; priceCents: number };
+
+export const earlyPreview = (openingOn: string) => `Your code is already in the box. The store opens to everyone on ${openingLabel(openingOn)}.`;
+
+export function earlyAccessEmail(c: PrelaunchCtx, x: EarlyCtx): Msg {
+  return {
+    subject: "Your early access is open",
+    html: brandEmail(c.site, {
+      preview: earlyPreview(x.openingOn),
+      kicker: "Early access",
+      headline: "You're in a day *early.*",
+      intro: `The store opens to everyone on ${e(openingLabel(x.openingOn))}. You get in first, and your code is already in the box: open your link, make your account, and your first order is ${OFFER_PCT_TEXT} off.`,
+      cta: { label: "Open my early access", url: x.url },
+      rows: checkoutCard(c.site, { code: x.code, priceCents: x.priceCents })
+        + note(`The ${OFFER_PCT_TEXT} applies to a first order placed within ${OFFER_DAYS_TEXT} of making your account.`)
+        + panelBox()
+        + signOff(true),
       footer: footer(c),
     }),
   };
