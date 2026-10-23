@@ -1,13 +1,12 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { parseReferralCode } from "@/lib/waitlist/codes";
+export { EARLY_PREFIX, earlyCode } from "@/lib/early/rules";
 
 // Early access (pre-launch email 3, 2026-10-23). The link carries the waitlister's invite
 // code signed with EMAIL_LINK_SECRET (never their email); the cookie carries the same code,
 // the time it was set and a signature. No "server-only": proxy.ts reads the cookie.
 export const EARLY_COOKIE = "aura_early";
 export const EARLY_COOKIE_MAX_AGE_S = 30 * 24 * 3600;
-export const EARLY_PREFIX = "EARLY-";
-export const earlyCode = (ref: string): string => `${EARLY_PREFIX}${ref}`;
 
 function mac(payload: string): string {
   const s = process.env.EMAIL_LINK_SECRET;

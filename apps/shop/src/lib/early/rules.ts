@@ -3,6 +3,10 @@ import { NEW_ACCOUNT_DAYS, NEW_ACCOUNT_PCT } from "@/lib/account/offer";
 import { zonedToIso } from "@/lib/discounts/time";
 import type { CodeInput } from "@/lib/discounts/data";
 
+// Each waitlister's code: EARLY-<their invite code>.
+export const EARLY_PREFIX = "EARLY-";
+export const earlyCode = (ref: string): string => `${EARLY_PREFIX}${ref}`;
+
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const utcNoon = (d: string) => {
   const [y, m, day] = d.split("-").map(Number);

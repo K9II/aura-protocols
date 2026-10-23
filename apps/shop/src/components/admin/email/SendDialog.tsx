@@ -8,7 +8,7 @@ import { Icon } from "@/components/admin/ui";
 // DOM element ids (so a second instance of this dialog on the same page,
 // e.g. the phone action bar, doesn't collide with the desktop one) — never
 // suffix `id` itself to make a key, or the submitted id fails UUID validation.
-export default function SendDialog({ id, dialogKey, from, updatedAt, name, subject, audienceLabel, recipients, lastTest, disabled, triggerLabel = "Send now…" }: { id: string; dialogKey?: string; from: "draft" | "scheduled"; updatedAt: string; name: string; subject: string; audienceLabel: string; recipients: number; lastTest: string | null; disabled: boolean; triggerLabel?: string }) {
+export default function SendDialog({ id, dialogKey, from, updatedAt, name, subject, audienceLabel, recipients, lastTest, disabled, triggerLabel = "Send now…", warning }: { id: string; dialogKey?: string; from: "draft" | "scheduled"; updatedAt: string; name: string; subject: string; audienceLabel: string; recipients: number; lastTest: string | null; disabled: boolean; triggerLabel?: string; warning?: string }) {
   const key = dialogKey ?? id;
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState(sendNowAction, null);
@@ -24,6 +24,7 @@ export default function SendDialog({ id, dialogKey, from, updatedAt, name, subje
             {state?.ok ? <div className="a-callout ok" role="status"><Icon name="check" /><span>{state.ok}</span></div> : <>
               <div className="a-confirm-big">{n} <small>{recipients === 1 ? "person" : "people"} will get this email</small></div>
               <dl className="a-dl"><dt>Campaign</dt><dd>{name}</dd><dt>Subject</dt><dd>{subject}</dd><dt>Audience</dt><dd>{audienceLabel} (confirmed subscribers)</dd><dt>Test sent</dt><dd>{lastTest ?? "Not yet. Send yourself a test first."}</dd></dl>
+              {warning && <div className="a-callout warn" style={{ marginBottom: 10 }}><Icon name="warn" /><span>{warning}</span></div>}
               <div className="a-callout info"><Icon name="info" /><span>Sending starts now. If the list is too long to finish at once, the rest go out on the next hourly run. Nobody gets it twice.</span></div>
             </>}
             {state?.error && <div className="a-err" role="alert">{state.error}</div>}
