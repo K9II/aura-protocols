@@ -6,6 +6,9 @@ vi.mock("@/lib/email/campaigns/data", () => ({ getCampaign, pendingRecipients, s
 vi.mock("@/lib/email/data", () => ({ sendTracked, subscriberStatuses }));
 vi.mock("@/lib/notify", () => ({ alertOwner }));
 vi.mock("@/lib/supabase/env", () => ({ siteUrl: () => "https://auraprotocols.com" }));
+const ensureEarlyCode = vi.fn(), ensureEarlyBatch = vi.fn(), earlyPriceCents = vi.fn(), syncEarlyBatchSize = vi.fn(), referralCodeIfSubscriber = vi.fn();
+vi.mock("@/lib/early/data", () => ({ ensureEarlyCode, ensureEarlyBatch, earlyPriceCents, syncEarlyBatchSize }));
+vi.mock("@/lib/waitlist/data", () => ({ referralCodeIfSubscriber }));
 
 const campaign = { id: "k1", kind: "news", status: "sending", name: "How we read a spectrum", subject: "S", preview_text: "", content: { headline: "H", body: "B", buttonLabel: "", buttonPath: "" }, audience: "all", discount_code_id: null, lots_snapshot: [] };
 
@@ -173,5 +176,63 @@ describe("sendCampaignBatch", () => {
     expect(sendTracked).toHaveBeenCalledTimes(9);
     expect(r.finished).toBe(true);
     expect(moveCampaign).toHaveBeenCalledWith("k1", "sending", "sent", null);
+  });
+
+  describe("early access", () => {
+    const early = { ...campaign, kind: "early_access", name: "Pre-launch · Early access", audience: "waitlist", content: { headline: "", body: "", buttonLabel: "", buttonPath: "", openingOn: "2026-12-01" } };
+    beforeEach(() => {
+      for (const f of [ensureEarlyCode, ensureEarlyBatch, earlyPriceCents, syncEarlyBatchSize, referralCodeIfSubscriber]) f.mockReset();
+      getCampaign.mockResolvedValue(early);
+      ensureEarlyBatch.mockResolvedValue("b1");
+      earlyPriceCents.mockResolvedValue(17500);
+      ensureEarlyCode.mockImplementation(async (email: string) => (email === "a@b.co" ? { ref: "AAAAAA", code: "EARLY-AAAAAA" } : { ref: "CCCCCC", code: "EARLY-CCCCCC" }));
+    });
+
+    it("each recipient gets their own code and link, made before their email; the batch size is synced", async () => {
+      pendingRecipients.mockResolvedValueOnce([{ email: "a@b.co", attempts: 0 }, { email: "c@d.co", attempts: 0 }]).mockResolvedValueOnce([]);
+      subscriberStatuses.mockResolvedValue(new Map([["a@b.co", "confirmed"], ["c@d.co", "confirmed"]]));
+      const { sendCampaignBatch } = await import("@/lib/email/campaigns/send");
+      await sendCampaignBatch("k1", Date.now() + 60_000);
+      expect(ensureEarlyCode.mock.calls.map((c) => c.slice(0, 3))).toEqual([["a@b.co", "2026-12-01", "b1"], ["c@d.co", "2026-12-01", "b1"]]);
+      const [a, c] = sendTracked.mock.calls.map((x) => x[0].msg.html as string);
+      expect(a).toContain("EARLY-AAAAAA");
+      expect(a).toContain("https://auraprotocols.com/early?t=AAAAAA.");
+      expect(a).not.toContain("CCCCCC");
+      expect(c).toContain("EARLY-CCCCCC");
+      expect(a).toContain("Tuesday, December 1");
+      expect(a).toContain("$131.25");
+      expect(syncEarlyBatchSize).toHaveBeenCalledWith("b1");
+    });
+
+    it("no opening date: throws before anyone is tried", async () => {
+      getCampaign.mockResolvedValue({ ...early, content: { ...early.content, openingOn: undefined } });
+      const { sendCampaignBatch } = await import("@/lib/email/campaigns/send");
+      await expect(sendCampaignBatch("k1", Date.now() + 60_000)).rejects.toThrow(/no opening date/);
+      expect(pendingRecipients).not.toHaveBeenCalled();
+    });
+
+    it("a code that can't be made is that person's failure, retried later", async () => {
+      pendingRecipients.mockResolvedValueOnce([{ email: "a@b.co", attempts: 0 }]).mockResolvedValueOnce([]);
+      subscriberStatuses.mockResolvedValue(new Map([["a@b.co", "confirmed"]]));
+      ensureEarlyCode.mockRejectedValue(new Error("early code EARLY-AAAAAA failed"));
+      recipientCounts.mockResolvedValue({ pending: 1, sent: 0, skipped: 0, failed: 0 });
+      const { sendCampaignBatch } = await import("@/lib/email/campaigns/send");
+      await sendCampaignBatch("k1", Date.now() + 60_000);
+      expect(sendTracked).not.toHaveBeenCalled();
+      expect(setRecipient).toHaveBeenCalledWith("k1", "a@b.co", { state: "pending", attempts: 1, last_error: "early code EARLY-AAAAAA failed" });
+    });
+
+    it("a test send uses the owner's own code when they're a subscriber, else a sample", async () => {
+      const { renderFor } = await import("@/lib/email/campaigns/send");
+      const run = { openingOn: "2026-12-01", priceCents: 17500, batchId: "b1" };
+      referralCodeIfSubscriber.mockResolvedValueOnce("OWNERX").mockResolvedValueOnce(null);
+      ensureEarlyCode.mockResolvedValue({ ref: "OWNERX", code: "EARLY-OWNERX" });
+      const own = await renderFor(early as never, "owner@auraprotocols.com", null, { test: true }, run);
+      expect(own.msg.html).toContain("EARLY-OWNERX");
+      expect(own.msg.subject).toBe("[Test] Your early access is open");
+      const sample = await renderFor(early as never, "someone@x.co", null, { test: true }, run);
+      expect(sample.msg.html).toContain("EARLY-XXXXXX");
+      expect(sample.msg.html).toContain('href="https://auraprotocols.com/early"');
+    });
   });
 });

@@ -7,7 +7,10 @@ import { requirePermission } from "@/lib/dal";
 import {
   createCampaign, getCampaign, lotChoices, moveCampaign, prelaunchCampaigns, startCampaign, updateDraft, waitingLots, type CampaignRow,
 } from "@/lib/email/campaigns/data";
-import { campaignCode, renderFor, sendCampaignBatch } from "@/lib/email/campaigns/send";
+import { campaignCode, earlyRun, renderFor, sendCampaignBatch } from "@/lib/email/campaigns/send";
+import { setEarlyAccessOpen } from "@/lib/early/data";
+import { openingLabel, parseOpeningOn } from "@/lib/early/rules";
+import { earlyPreview } from "@/lib/email/prelaunch";
 import { announceDraft, isPrelaunch, parseCampaignForm, parseKind, PRELAUNCH, scheduleError, type CampaignFields } from "@/lib/email/campaigns/rules";
 import { isBlocked, type Check } from "@/lib/email/campaigns/checks";
 import { checksFor } from "@/lib/email/campaigns/checks-server";
@@ -70,7 +73,7 @@ export async function sendTestAction(_prev: EmailActionState, f: FormData): Prom
   const owner = await requirePermission("email.send");
   const c = await target(f);
   const code = await campaignCode(c);
-  const { msg, unsub } = await renderFor(c, owner.email, code, { test: true });
+  const { msg, unsub } = await renderFor(c, owner.email, code, { test: true }, await earlyRun(c, owner.id));
   await sendTracked({ email: owner.email, kind: "campaign", ref: `test-${c.id}-${Date.now()}`, msg, unsubscribeUrl: unsub });
   await logEmailAdminEvent({ action: "test_sent", target: c.id, actor: owner.id, note: owner.email });
   refresh(c.id);
@@ -127,6 +130,11 @@ export async function sendNowAction(_prev: EmailActionState, f: FormData): Promi
   if (!s.ok) {
     if (s.reason === "busy") return { error: "Another campaign is sending. Send this one when it finishes, or schedule it." };
     throw new Error(STALE);
+  }
+  // Early access: the links must work the moment the first email lands, so the switch goes
+  // on before anything is sent (already on = nothing to do).
+  if (c.kind === "early_access" && await setEarlyAccessOpen(true)) {
+    await logEmailAdminEvent({ action: "early_access_on", target: c.id, actor: owner.id, note: "sending Your early access is open" });
   }
   let r;
   try {
@@ -201,6 +209,33 @@ export async function setUpPrelaunchAction(f: FormData): Promise<void> {
     refresh();
   }
   redirect(`/admin/email/campaigns/${row!.id}`);
+}
+
+// Early access's campaign page: the opening date the email names and the codes end from.
+export async function setOpeningDateAction(_prev: EmailActionState, f: FormData): Promise<EmailActionState> {
+  const owner = await requirePermission("email.draft");
+  const c = await target(f);
+  if (c.kind !== "early_access" || c.status !== "draft") throw new Error(STALE);
+  const d = parseOpeningOn(str(f, "openingOn"), Date.now());
+  if (!d.ok) return { fieldErrors: { openingOn: d.error } };
+  await updateDraft(c.id, {
+    name: c.name, subject: c.subject, previewText: earlyPreview(d.value), audience: c.audience,
+    content: { ...c.content, openingOn: d.value }, discountCodeId: null, lots: [],
+  }, []);
+  await logEmailAdminEvent({ action: "edited", target: c.id, actor: owner.id, note: `opening date ${d.value}` });
+  refresh(c.id);
+  return { ok: `Opening date saved: ${openingLabel(d.value)}.` };
+}
+
+// Email → Pre-launch → Early access switch. Sending email 3 turns it on; off sends early
+// browsers back to the coming-soon page (within a minute).
+export async function setEarlyAccessAction(_prev: EmailActionState, f: FormData): Promise<EmailActionState> {
+  const owner = await requirePermission("email.send");
+  const open = str(f, "open") === "1";
+  if (!(await setEarlyAccessOpen(open))) throw new Error("That switch changed — reload the page.");
+  await logEmailAdminEvent({ action: open ? "early_access_on" : "early_access_off", target: "early_access", actor: owner.id });
+  refresh();
+  return { ok: open ? "Early access is on." : "Early access is off. Early links now show the coming-soon page." };
 }
 
 export async function announceAction(): Promise<void> {

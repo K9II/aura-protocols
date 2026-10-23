@@ -100,6 +100,12 @@ export async function ensureReferralCode(email: string): Promise<string> {
   throw new Error(`no free referral code for ${e} after 5 tries`);
 }
 
+// The invite code of someone already on the subscriber list (made if missing), or null
+// when the address isn't a subscriber — the owner's early-access test send uses it.
+export async function referralCodeIfSubscriber(email: string): Promise<string | null> {
+  return (await getSubscriber(normalizeEmail(email))) ? ensureReferralCode(email) : null;
+}
+
 async function sendInviteQuietly(email: string, code: string): Promise<void> {
   try {
     await sendInviteEmail(email, code);
