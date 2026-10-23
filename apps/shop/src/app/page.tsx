@@ -25,14 +25,14 @@ import ComingSoon from "@/components/store/coming-soon/ComingSoon";
 import { OFFER_PCT_TEXT } from "@/lib/account/offer";
 
 const STORE_METADATA: Metadata = {
-  title: "Aura Protocols — Research Peptides, Certificate per Lot",
+  title: "Aura Protocols — Research Peptides",
   description: "Research compounds released only after independent lot testing, with the certificate for each lot published. For laboratory research use only.",
   alternates: { canonical: "/" },
 };
 
 const PRELAUNCH_METADATA: Metadata = {
-  title: "Aura Protocols — Opening this winter",
-  description: `Research peptides with a certificate for every lot. Join the waitlist for early access and ${OFFER_PCT_TEXT} off your first order. For laboratory research use only.`,
+  title: "Aura Protocols — Research Peptides",
+  description: `Research peptides tested by an ISO/IEC 17025-accredited US lab. Join the waitlist for early access and ${OFFER_PCT_TEXT} off your first order. For laboratory research use only.`,
   alternates: { canonical: "/" },
 };
 

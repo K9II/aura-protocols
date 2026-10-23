@@ -35,23 +35,23 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, inte
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
-  title: { default: "Aura Protocols — Research Peptides, Certificate per Lot", template: "%s | Aura Protocols" },
+  title: { default: "Aura Protocols — Research Peptides", template: "%s | Aura Protocols" },
   description: "Research-grade peptides with a certificate of analysis tied to every lot. For laboratory research use only.",
   keywords: ["research peptides", "certificate of analysis", "HPLC tested peptides", "lyophilized peptides"],
   authors: [{ name: "Aura Protocols", url: BASE_URL }],
   creator: "Aura Protocols",
   openGraph: {
-    title: "Aura Protocols — Research Peptides, Certificate per Lot",
-    description: "No lot sold before independent testing; every lot's certificate published. For research use only.",
+    title: "Aura Protocols — Research Peptides",
+    description: "Research peptides tested by an ISO/IEC 17025-accredited US lab. For laboratory research use only.",
     type: "website",
     url: BASE_URL,
     siteName: "Aura Protocols",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Aura Protocols" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Aura Protocols — research peptides" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aura Protocols — Research Peptides, Certificate per Lot",
-    description: "No lot sold before independent testing; every lot's certificate published. For research use only.",
+    title: "Aura Protocols — Research Peptides",
+    description: "Research peptides tested by an ISO/IEC 17025-accredited US lab. For laboratory research use only.",
     images: ["/opengraph-image"],
   },
   robots: {
