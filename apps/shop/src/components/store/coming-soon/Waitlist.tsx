@@ -65,7 +65,7 @@ function Box({ site, inCode, urlRef, notice }: { site: string; inCode: string | 
       try { await navigator.clipboard.writeText(url); setCopied(true); } catch { setCopied(false); }
     };
     const share = async () => {
-      try { await navigator.share({ title: "Aura Protocols", text: "Aura Protocols publishes an independent lab certificate for every lot of its research compounds. Join the waitlist with my link:", url }); } catch { /* closed the share sheet */ }
+      try { await navigator.share({ title: "Aura Protocols", text: "Aura Protocols: research peptides tested by an ISO/IEC 17025-accredited US lab. Join the waitlist with my link:", url }); } catch { /* closed the share sheet */ }
     };
     return (
       <div className="cs-wl cs-wl--panel">
