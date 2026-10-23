@@ -4,6 +4,8 @@
 // address (CAN-SPAM) and a signed unsubscribe link.
 import { escapeHtml as e } from "@/lib/html";
 import { OFFER_PCT_TEXT, OFFER_DAYS_TEXT, type FirstOrderOffer } from "@/lib/account/offer";
+import { brandEmail, inviteBox, para, signOff, vialBlock } from "@/lib/email/frame";
+import { REFERRAL_CREDIT_DOLLARS } from "@/lib/waitlist/codes";
 
 export type MarketingCtx = { site: string; unsubscribeUrl: string };
 export type Msg = { subject: string; html: string };
@@ -66,18 +68,22 @@ function offerBox(): string {
   return `<table role="presentation" style="border:1px solid ${INK};border-collapse:collapse;margin:0 0 18px"><tr><td style="padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em">FIRST ORDER · ${OFFER_PCT_TEXT}<br><span style="font-size:20px;letter-spacing:.04em;color:${INK}"><b>Applied automatically</b></span><br><span style="color:${SOFT};letter-spacing:0">on a first order within ${OFFER_DAYS_TEXT} of opening your account</span></td></tr></table>`;
 }
 
-// The pre-launch waitlist (2026-10-23): "you're on the list" with the
-// colleague invite link (sent on joining; single opt-in).
+// The pre-launch waitlist (2026-10-23): "you're on the list" with the colleague invite
+// link (sent on joining; single opt-in). The photo-vial frame (lib/email/frame.ts), mock tab 1.
 export function waitlistInEmail(ctx: MarketingCtx, invite: { url: string; label: string }): Msg {
   return {
     subject: "You're on the list",
-    html: frame("The waitlist", "See you at *opening.*",
-      p("You're in. We'll email your early-access link the day before we open, so you can shop before everyone else.")
-      + p(`Your first order is ${OFFER_PCT_TEXT} off, taken off automatically at checkout. No code to remember.`)
-      + p("Working with other researchers? Send them your link. Every colleague who places a first order adds $10 to your store credit. No limit.")
-      + `<table role="presentation" style="border:1px solid ${INK};border-collapse:collapse;margin:0 0 18px"><tr><td style="padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em">YOUR INVITE LINK<br><span style="font-size:17px;letter-spacing:.02em">${link(invite.url, e(invite.label))}</span></td></tr></table>`
-      + p(`<span style="color:${SOFT}">Credit is added once your colleague's first order ships. The full referral terms are on ${link(ctx.site, "auraprotocols.com")}.</span>`)
-      + SIGN, ctx),
+    html: brandEmail(ctx.site, {
+      preview: `Your invite link is inside, and your first order is ${OFFER_PCT_TEXT} off.`,
+      kicker: "The waitlist",
+      headline: "You're on *the list.*",
+      intro: "Thanks for joining. We&#39;ll email you the day before the store opens, with a link that lets you shop before everyone else.",
+      rows: vialBlock(ctx.site, "wolverine")
+        + para(`Your first order is <b style="color:#1C1A15">${OFFER_PCT_TEXT} off</b>, taken off automatically at checkout. No code to remember.`)
+        + inviteBox({ ...invite, creditDollars: REFERRAL_CREDIT_DOLLARS })
+        + signOff(false),
+      footer: { address: mailingAddress(), unsubscribeUrl: ctx.unsubscribeUrl, reason: "you joined the Aura Protocols waitlist" },
+    }),
   };
 }
 
