@@ -4,6 +4,7 @@
 // in-page (the store's own pages are locked until launch). Shown at "/"
 // while PRELAUNCH=1 (lib/prelaunch.ts).
 import ScrollReveal from "@/components/ScrollReveal";
+import AuraLockup from "@/components/AuraLockup";
 import HeroLight, { PageLight } from "@/components/store/HeroLight";
 import TrustRow from "@/components/store/TrustRow";
 import VialTurn from "@/components/store/VialTurn";
@@ -140,6 +141,13 @@ export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalC
     <div className="pharmacopoeia s-home-lit cs-page">
       <PageLight />
       <ScrollReveal />
+      {/* The brand bar (emblem option 1, picked 2026-10-23): the animated lockup and a way to the waitlist. */}
+      <div className="cs-bar">
+        <div className="p-container cs-bar-in">
+          <AuraLockup size={58} mode="loop" />
+          <div className="cs-bar-r"><span className="s-micro">Opening this winter</span><a href="#join" className="cs-bar-cta">Join the waitlist</a></div>
+        </div>
+      </div>
       <div className="s-hero-band">
         <HeroLight />
         <div className="p-container">
@@ -148,13 +156,14 @@ export default function ComingSoon({ live, site }: { live: LiveCatalog<ChemicalC
               <DictionaryEntry />
               <p className="s-micro cs-eyebrow" style={{ marginTop: 18 }}>Opening this winter</p>
               <h1 className="s-h1">The first shelf is <em>almost stocked.</em></h1>
-              <Waitlist site={site} />
+              <div id="join" className="cs-join"><Waitlist site={site} /></div>
               <div style={{ marginTop: 22 }}><TrustRow /></div>
             </div>
             {sphere.length > 0 && live && (
               <div className="s-hero-sphere">
                 <HeroLight where="sphere" />
-                <HeroAura rings={auraRings(live.lots)}>
+                {/* No lot numbers before launch: the store DB holds demo lots (the ring falls back to its phrase). */}
+                <HeroAura rings={auraRings([])}>
                   <BiosignatureSphere nodes={sphere} pairs={spherePairs(sphere)} sidePull={0.88} />
                 </HeroAura>
               </div>

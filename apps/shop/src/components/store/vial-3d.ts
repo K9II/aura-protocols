@@ -151,17 +151,18 @@ export async function mountVial3D(canvas: HTMLCanvasElement, p: VialLabelInput):
     mat(body(`vec4 c=grad(t); vec3 col=c.rgb; if(vY<${f1(Y(17.5))}) col*=0.92; gl_FragColor=vec4(col,1.0);`),
       stops(CAPS[p.cap].map((h, i) => [[0, 0.3, 0.7, 1][i], h] as [number, string])))));
 
-  // glass: the store gradient, edge line, highlight streaks and thick base
+  // glass: the store's crystal-clear gradient (Vial.tsx, option B 2026-10-23 — never frosted;
+  // change both together), edge line, highlight streaks and thick base
   const glass = lathe([[0, 195], [29, 195], [36, 193.4], [40, 186], [40, 64], [38.8, 57], [34, 52.5], [22, 50], [22, 38], [0, 38]],
     mat(body(`vec4 c=grad(t); vec3 col=c.rgb; float a=c.a;
       if(vY>${f1(Y(186))}&&vY<${f1(Y(56))}){
-        if(t>.069&&t<.101){ col=mix(col,vec3(1.0),.45/(a+.45)); a=a+.45*(1.0-a); }
-        if(t>.119&&t<.13){ col=mix(col,vec3(1.0),.25/(a+.25)); a=a+.25*(1.0-a); }
-        if(t>.8875&&t<.9075){ col=mix(col,vec3(1.0),.25/(a+.25)); a=a+.25*(1.0-a); } }
-      if(vY<${f1(Y(189))}){ col=mix(col,vec3(.604,.651,.678),.16/(a+.16)); a=a+.16*(1.0-a); }
+        if(t>.069&&t<.101){ col=mix(col,vec3(1.0),.3/(a+.3)); a=a+.3*(1.0-a); }
+        if(t>.119&&t<.13){ col=mix(col,vec3(1.0),.15/(a+.15)); a=a+.15*(1.0-a); }
+        if(t>.8875&&t<.9075){ col=mix(col,vec3(1.0),.2/(a+.2)); a=a+.2*(1.0-a); } }
+      if(vY<${f1(Y(189))}){ col=mix(col,vec3(.604,.651,.678),.1/(a+.1)); a=a+.1*(1.0-a); }
       if(h.y<.06){ col=vec3(.604,.651,.678); a=max(a,.45); }
       gl_FragColor=vec4(col,a);`),
-      stops([[0, "#7f8b92", 0.22], [0.08, "#ffffff", 0.6], [0.16, "#eef3f5", 0.04], [0.6, "#ffffff", 0], [0.88, "#dde4e8", 0.1], [1, "#6f7b82", 0.26]]), true));
+      stops([[0, "#5f6b72", 0.3], [0.035, "#ffffff", 0.75], [0.07, "#ffffff", 0], [0.93, "#ffffff", 0], [1, "#5f6b72", 0.32]]), true));
   glass.renderOrder = 5; vial.add(glass);
 
   // The drawing buffer matches the canvas pixel for pixel (a buffer the browser has to stretch
