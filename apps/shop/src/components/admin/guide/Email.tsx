@@ -4,6 +4,7 @@ import {
   MAX_SEND_ATTEMPTS, RUN_STALE_HOURS, STATS_DAYS,
 } from "@/lib/email/constants";
 import { WELCOME_DAYS, CART_HOURS } from "@/lib/email/schedule";
+import { AUDIENCE_LABEL, PRELAUNCH } from "@/lib/email/campaigns/rules";
 
 export default function Email() {
   return (
@@ -11,6 +12,11 @@ export default function Email() {
       id="email"
       lede="Everything the store emails to subscribers: the welcome series and cart reminders that send themselves, and the campaigns you write — new lots, promotions and research news. This is where you send, pause and see what happened."
       tasks={<>
+        <Task title="Send a pre-launch email" note="before the store opens">
+          <Step>In <Ui>Pre-launch</Ui>, choose <Ui>Open</Ui> next to the email: <Ui>{PRELAUNCH.first_look.subject}</Ui> any time before opening, <Ui>{PRELAUNCH.we_are_open.subject}</Ui> on launch day.</Step>
+          <Step>Check the preview on <Ui>Desktop</Ui> and <Ui>Phone</Ui>, then <Ui>Send test to me</Ui> and open it on your phone.</Step>
+          <Step><Ui>Send now…</Ui> shows how many people it goes to. Each pre-launch email goes once; afterwards its row says when and how many.</Step>
+        </Task>
         <Task title="Announce a new lot" note="the most common send">
           <Step>When a lot goes live with its certificate, <Ui>Email</Ui> shows <Ui>Lots waiting to announce</Ui>. Choose <Ui>Announce</Ui>.</Step>
           <Step>A New lots draft opens with the lots ticked and the copy filled in. Change anything you like, then <Ui>Save draft</Ui>.</Step>
@@ -33,6 +39,7 @@ export default function Email() {
       </>}
       how={
         <Rules items={[
+          ["Pre-launch emails", <>Four emails keep the waitlist&apos;s promises. <Ui>You&apos;re on the list</Ui> sends itself when someone joins. <Ui>{PRELAUNCH.first_look.subject}</Ui> goes to <Ui>{AUDIENCE_LABEL.waitlist}</Ui>; <Ui>{PRELAUNCH.we_are_open.subject}</Ui> goes to <Ui>{AUDIENCE_LABEL.waitlist_never_ordered}</Ui>, so nobody who already ordered early is told the store just opened. Their wording is fixed and approved, so there&apos;s nothing to edit; they can&apos;t be copied or sent twice. <Ui>Your early access is open</Ui> comes with the early-access links.</>],
           ["Who gets campaigns", <>Confirmed subscribers only: people who verified their email and haven&apos;t unsubscribed. Blocked accounts never get email. <Ui>Has ordered</Ui> means at least one paid order; <Ui>Never ordered</Ui> is everyone else. The list is fixed the moment sending starts, and nobody gets the same campaign twice.</>],
           ["Sending", <>Send now starts right away. A long list keeps going on the next hourly email run until everyone is reached. A send that fails is tried again on the next runs, up to {MAX_SEND_ATTEMPTS} tries. Only one campaign sends at a time; a scheduled one waits its turn.</>],
           ["Checks", <>Every save runs the same banned-phrase scan as the website. A banned phrase blocks sending; you can still send yourself a test. Lots must still be live and on the store; a code must not be paused, ended or used up.</>],
