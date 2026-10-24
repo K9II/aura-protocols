@@ -39,8 +39,8 @@ describe("pre-launch emails", () => {
     expect(m.html).toContain("&#10003; Applied");
     for (const money of ["$175.00", "&minus;$43.75", "$131.25"]) expect(m.html).toContain(money);
     expect(m.html).toContain(`The ${OFFER_PCT_TEXT} applies to a first order placed within ${OFFER_DAYS_TEXT} of making your account.`);
-    expect(m.html).toContain("ten-point</em> panel");
-    expect(m.html).not.toContain("Scan the vial"); // one testing mention: the panel box
+    expect(m.html).not.toContain("ten-point"); // the checkout code only — no testing mention (2026-10-23)
+    expect(m.html).not.toContain("Scan the vial");
     expect(m.html).toContain("It comes straight to me.");
     clean(m.html);
   });

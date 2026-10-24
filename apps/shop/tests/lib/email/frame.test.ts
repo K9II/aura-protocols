@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PHOTO_VIALS, photoVial } from "@/lib/email/photo-vials";
-import { brandEmail, vialBlock, para, inviteBox, signOff, turningVialBlock, sticker, sampleCertificate, vialGrid, button, checkoutCard, panelBox, note } from "@/lib/email/frame";
+import { brandEmail, vialBlock, para, inviteBox, signOff, turningVialBlock, sticker, sampleCertificate, vialGrid, button, checkoutCard, note } from "@/lib/email/frame";
 import { SAMPLE_PANEL } from "@/lib/coa/sample-panel";
 
 const site = "https://auraprotocols.com";
@@ -115,9 +115,7 @@ describe("pre-launch blocks", () => {
     expect(c).toContain('class="ap-cocell"');
   });
 
-  it("panelBox and note", () => {
-    expect(panelBox()).toContain("ten-point</em> panel");
-    expect(panelBox()).toContain("ISO/IEC 17025&#8209;accredited US lab");
+  it("note", () => {
     expect(note("Small print")).toContain("font-size:14px");
   });
 

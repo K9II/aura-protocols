@@ -2,7 +2,7 @@
 // tabs 2–4), sent once each to the waitlist from Email → Pre-launch. The wording is
 // fixed here (approved), so they have no editor. Pure — the admin preview renders them too.
 import { OFFER_DAYS_TEXT, OFFER_PCT_TEXT } from "@/lib/account/offer";
-import { brandEmail, button, checkoutCard, note, panelBox, para, sampleCertificate, signOff, sticker, turningVialBlock, vialGrid } from "@/lib/email/frame";
+import { brandEmail, button, checkoutCard, note, para, sampleCertificate, signOff, sticker, turningVialBlock, vialGrid } from "@/lib/email/frame";
 import { openingLabel } from "@/lib/early/rules";
 import { escapeHtml as e } from "@/lib/html";
 import type { Msg } from "@/lib/emails-marketing";
@@ -42,7 +42,6 @@ export function earlyAccessEmail(c: PrelaunchCtx, x: EarlyCtx): Msg {
       cta: { label: "Open my early access", url: x.url },
       rows: checkoutCard(c.site, { code: x.code, priceCents: x.priceCents })
         + note(`The ${OFFER_PCT_TEXT} applies to a first order placed within ${OFFER_DAYS_TEXT} of making your account.`)
-        + panelBox()
         + signOff(true),
       footer: footer(c),
     }),

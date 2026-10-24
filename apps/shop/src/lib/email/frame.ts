@@ -157,15 +157,13 @@ ${line(`<b style="color:${INK}">Total before tax</b>`, `<b style="color:${INK};f
 </td></tr></table></td></tr>`;
 }
 
-// The testing stamp as a light blue box: email 3's one testing mention, and in email 2 it
-// heads the sample certificate (2026-10-23, Alvester: say it where the COA is shown).
+// The testing stamp as a light blue box. It heads email 2's sample certificate (2026-10-23,
+// Alvester: say it where the COA is shown); email 3 (early access) is about the checkout
+// code only, so it has no testing mention.
 function panelStamp(style = ""): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef3fa;border-radius:14px;${style}"><tr><td style="padding:20px 24px">
 <p style="${SERIF};margin:0;font-size:21px;line-height:26px;font-weight:600;color:${INK}">${accent("Up to a *ten-point* panel")}</p>
 <p style="${SANS};margin:6px 0 0;font-size:14px;line-height:21px;color:${BODY}">Testing includes ISO/IEC 17025&#8209;accredited US lab.</p></td></tr></table>`;
-}
-export function panelBox(): string {
-  return `<tr><td class="ap-pad" style="padding:0 44px 6px">${panelStamp()}</td></tr>`;
 }
 
 // A smaller grey line in the body (terms under an offer).
