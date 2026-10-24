@@ -1,5 +1,6 @@
 # Builds public/email/bpc-turn.gif from the frames email-vial-turn.mjs recorded:
 # one lap (front -> barcode -> QR, held 1.5 s -> front), 360 px wide on pure white,
+# plays twice then rests on the front (loop=1 = one repeat, like the site's MAX_TURNS 2),
 # then compresses it with gifsicle (~1.1 MB).
 # Usage: python scripts/email-vial-gif.py
 import glob, os, subprocess
@@ -37,7 +38,7 @@ for k, j in enumerate([0, len(seq) // 2, (len(seq) * 2) // 3]): pal.paste(seq[j]
 pal = pal.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
 q = [s[0].quantize(palette=pal, dither=Image.Dither.NONE) for s in seq]
 raw = OUT + ".raw.gif"
-q[0].save(raw, save_all=True, append_images=q[1:], duration=dur, loop=0, optimize=True, disposal=1)
+q[0].save(raw, save_all=True, append_images=q[1:], duration=dur, loop=1, optimize=True, disposal=1)
 subprocess.run(["npx", "-y", "gifsicle", "-O3", "--lossy=45", raw, "-o", OUT], check=True, shell=os.name == "nt")
 os.remove(raw)
 print(len(seq), "frames", os.path.getsize(OUT) // 1024, "KB")
