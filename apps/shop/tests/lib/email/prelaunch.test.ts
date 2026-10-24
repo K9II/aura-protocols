@@ -55,6 +55,10 @@ describe("pre-launch emails", () => {
     }
     expect(m.html).toContain(`${OFFER_PCT_TEXT} off</b> when you place it within ${OFFER_DAYS_TEXT} of making your account`);
     expect(m.html).toContain("Scan the vial");
+    // six from a bigger catalog, never "the lineup" (2026-10-23)
+    expect(m.html).not.toMatch(/lineup/i);
+    expect(m.html).toContain("Here are a few of the compounds on the shelf. The full catalog is on the site.");
+    expect(m.html).toMatch(new RegExp(`href="${site}/products"[^>]*>See the full catalog</a>`));
     clean(m.html);
   });
 });
