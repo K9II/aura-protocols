@@ -88,6 +88,10 @@ export default function AdminShell({ counts, testMode, who, views, canTeam, chil
         <Link href={GUIDE_PATH} className={guideOn ? "on" : undefined} aria-current={guideOn ? "page" : undefined} onClick={() => setOpen(false)}>
           <Icon name="book" />Guide
         </Link>
+        {/* Phones only: the top bar has no room for View store, so it lives in the menu. */}
+        <a className="a-nav-store" href="/" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+          <Icon name="ext" />View store
+        </a>
       </div>
       <div className="a-side-foot">
         <div className={`a-avatar${who.assistant ? " asst" : ""}`} aria-hidden>{initials}</div>

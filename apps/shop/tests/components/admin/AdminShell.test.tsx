@@ -40,6 +40,17 @@ describe("AdminShell", () => {
     expect(screen.getByRole("link", { name: /Partners/ })).toBeInTheDocument();
   });
 
+  it("View store is in the menu too (phones have no room for it in the top bar)", async () => {
+    nav.path = "/admin";
+    const { default: AdminShell } = await import("@/components/admin/AdminShell");
+    const { container } = render(<AdminShell counts={counts} testMode who={owner} views={allViews} canTeam><p /></AdminShell>);
+    const inMenu = container.querySelector(".a-nav-foot a.a-nav-store");
+    expect(inMenu).toHaveAttribute("href", "/");
+    expect(inMenu).toHaveAttribute("target", "_blank");
+    expect(inMenu).toHaveTextContent("View store");
+    expect(screen.getAllByRole("link", { name: /View store/ })).toHaveLength(2);
+  });
+
   it("hides Activity from the nav foot when activity.view is false", async () => {
     nav.path = "/admin";
     const { default: AdminShell } = await import("@/components/admin/AdminShell");

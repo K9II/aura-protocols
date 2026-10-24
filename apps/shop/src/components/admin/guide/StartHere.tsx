@@ -10,7 +10,7 @@ export default function StartHere() {
           <Step>The menu on the left groups pages by job: <Ui>Sell</Ui>, <Ui>Stock</Ui>, <Ui>Reach</Ui> and <Ui>Partners</Ui>. Greyed items marked <Ui>Soon</Ui> aren&apos;t built yet.</Step>
           <Step>A number beside <Ui>Today</Ui> counts everything on its to-do list. Beside <Ui>Orders</Ui>, it&apos;s how many paid orders are waiting to ship; beside <Ui>Disputes</Ui>, chargebacks waiting for your response and open early fraud warnings; beside <Ui>Partners</Ui>, how many applications are waiting.</Step>
           <Step>Every page has a <Ui>How this works</Ui> link in the top bar that opens its chapter here. On a phone it&apos;s the <Ui>?</Ui> button.</Step>
-          <Step><Ui>View store</Ui> opens the shop in a new tab, as customers see it. It&apos;s only in the computer layout; on a phone, open the store in another tab.</Step>
+          <Step><Ui>View store</Ui> opens the shop in a new tab, as customers see it. On a phone it&apos;s at the bottom of the menu.</Step>
         </Task>
       }
       how={
