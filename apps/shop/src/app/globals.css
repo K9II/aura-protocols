@@ -2625,6 +2625,17 @@ html { scroll-padding-top: 150px; }
 .pharmacopoeia .cs-bar-cta:hover { background: var(--specimen); }
 .pharmacopoeia .cs-join { scroll-margin-top: 16px; }
 @media (max-width: 560px) { .pharmacopoeia .cs-bar-r .s-micro { display: none; } }
+/* "Coming soon" ribbon above the brand bar (option A, 2026-10-24). */
+.pharmacopoeia .cs-soon { position: relative; z-index: 6; background: linear-gradient(100deg, #FBD3BF 0%, #F9E2C4 34%, #E4ECF8 72%, #D3E2F6 100%); border-bottom: 1px solid rgba(28,26,21,.12); box-shadow: inset 0 -10px 20px -18px rgba(28,26,21,.35); }
+.pharmacopoeia .cs-soon-in { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 11px 16px; text-align: center; }
+.pharmacopoeia .cs-soon b { font: 600 13px var(--font-jetbrains), monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--specimen); }
+.pharmacopoeia .cs-soon p { margin: 0; font-size: 16px; line-height: 1.35; color: var(--ink); }
+.pharmacopoeia .cs-soon a { font-size: 14px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--specimen); text-underline-offset: 4px; white-space: nowrap; }
+.pharmacopoeia .cs-soon a:hover { color: var(--specimen); }
+.pharmacopoeia .cs-soon-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--specimen); flex: none; animation: cs-soon-pulse 2s infinite; }
+@keyframes cs-soon-pulse { 0% { box-shadow: 0 0 0 0 rgba(163,43,31,.55); } 70% { box-shadow: 0 0 0 9px rgba(163,43,31,0); } 100% { box-shadow: 0 0 0 0 rgba(163,43,31,0); } }
+@media (prefers-reduced-motion: reduce) { .pharmacopoeia .cs-soon-dot { animation: none; } }
+@media (max-width: 640px) { .pharmacopoeia .cs-soon-in { flex-wrap: wrap; gap: 4px 10px; padding: 10px 14px; } .pharmacopoeia .cs-soon p { font-size: 14.5px; flex-basis: 100%; order: 3; } }
 .pharmacopoeia .cs-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .pharmacopoeia .cs-wl-note { font-size: 14px; color: var(--ink); background: #FFF6E5; border: 1px solid #E8D3A6; border-left: 3px solid #B7791F; padding: 9px 12px; margin: 0 0 12px; }
 .pharmacopoeia .cs-wl-err { font-size: 14px; color: var(--specimen); margin: 8px 0 0; }
