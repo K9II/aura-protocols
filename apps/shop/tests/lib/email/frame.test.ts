@@ -81,8 +81,11 @@ describe("pre-launch blocks", () => {
     expect(b).toContain("Sample");
     expect(b).toContain("10 checks");
     for (const [, rows] of SAMPLE_PANEL) for (const [t] of rows) expect(b).toContain(t);
-    expect(b).toContain("Up to a ten-point panel");
+    expect(b).toContain("ten-point</em> panel"); // the testing stamp heads the certificate
+    expect(b.indexOf("ten-point</em> panel")).toBeLessThan(b.indexOf("Certificate of analysis"));
+    expect(b).toContain("ISO/IEC 17025&#8209;accredited US lab");
     expect(b).toContain("ISO/IEC 17025-accredited");
+    expect(b.match(/ten-point/g)).toHaveLength(1); // said once, not again at the bottom
     expect(b).toContain("verify page");
     expect(b).not.toMatch(/accredited (result|test|certificate)/i);
   });
