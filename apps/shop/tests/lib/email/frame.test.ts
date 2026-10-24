@@ -35,7 +35,7 @@ describe("blocks", () => {
     const b = vialBlock(site, "wolverine");
     expect(b).toContain(`src="${site}/email/vials/wolverine.jpg"`);
     expect(b).toContain('width="240"');
-    expect(b).toContain("BPC-157 / TB-500 · 10 mg");
+    expect(b).toContain("BPC-157 / TB-500 · 20 mg");
     expect(b).toContain("Wolverine · Blends");
   });
 
@@ -56,7 +56,7 @@ describe("blocks", () => {
 
 describe("photo vials", () => {
   it("names each vial from the catalog, nickname alongside the scientific name", () => {
-    expect(photoVial("wolverine")).toMatchObject({ name: "BPC-157 / TB-500", designation: "Wolverine", strength: "10 mg", chemicalClass: "Blends", slug: "bpc-157-tb-500-blend" });
+    expect(photoVial("wolverine")).toMatchObject({ name: "BPC-157 / TB-500", designation: "Wolverine", strength: "20 mg", chemicalClass: "Blends", slug: "bpc-157-tb-500-blend" });
     expect(photoVial("nad-plus")).toMatchObject({ name: "NAD+", designation: null, strength: "500 mg" });
     expect(Object.keys(PHOTO_VIALS)).toEqual(["bpc-157", "klow", "nad-plus", "wolverine", "ghk-cu", "glow"]);
   });

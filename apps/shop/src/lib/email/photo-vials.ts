@@ -8,7 +8,7 @@ const LABELS = {
   "bpc-157": { slug: "bpc-157", strength: "10 mg" },
   klow: { slug: "bpc-157-tb-500-ghk-cu-kpv", strength: "80 mg" },
   "nad-plus": { slug: "nad-plus", strength: "500 mg" },
-  wolverine: { slug: "bpc-157-tb-500-blend", strength: "10 mg" },
+  wolverine: { slug: "bpc-157-tb-500-blend", strength: "20 mg" },
   "ghk-cu": { slug: "ghk-cu", strength: "50 mg" },
   glow: { slug: "bpc-157-tb-500-ghk-cu", strength: "70 mg" },
 } as const;
