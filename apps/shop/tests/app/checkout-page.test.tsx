@@ -33,14 +33,14 @@ describe("checkout page", () => {
     expect(screen.getByTestId("credit").textContent).toBe("3050");
   });
 
-  it("pre-fills the early-access code from the early link's cookie; a partner link wins", async () => {
+  it("the early link's cookie fills no code (there's none; the offer is automatic); a partner link does", async () => {
     process.env.EMAIL_LINK_SECRET = "s"; process.env.PARTNER_REF_SECRET = "p";
     const { signEarlyCookie } = await import("@/lib/early/token");
     const { signRef } = await import("@/lib/partners/ref-cookie");
     jar.set("aura_early", signEarlyCookie("K7QM2P"));
     requireCustomer.mockResolvedValueOnce({ id: "u1", email: "j@lab.org", emailConfirmed: true, ship: null });
     const { unmount } = render(await CheckoutPage());
-    expect(screen.getByTestId("code").textContent).toBe("EARLY-K7QM2P");
+    expect(screen.getByTestId("code").textContent).toBe("");
     unmount();
     jar.set("aura_ref", signRef("SMITHLAB"));
     requireCustomer.mockResolvedValueOnce({ id: "u1", email: "j@lab.org", emailConfirmed: true, ship: null });

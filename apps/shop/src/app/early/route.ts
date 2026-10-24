@@ -4,8 +4,8 @@ import { EARLY_COOKIE, EARLY_COOKIE_MAX_AGE_S, signEarlyCookie, verifyEarlyToken
 import { earlyAccessOpen } from "@/lib/early/data";
 
 // The link in pre-launch email 3 (/early?t=CODE.sig). A valid token while early access is
-// on (or once the store has launched) sets the signed cookie and opens the store; the
-// cookie also pre-fills the person's EARLY- code at checkout. Anything else lands on the
+// on (or once the store has launched) sets the signed cookie and opens the store. Anything
+// else lands on the
 // coming-soon page with "Early access isn't open right now."
 export async function GET(request: NextRequest) {
   const ref = verifyEarlyToken(request.nextUrl.searchParams.get("t"));

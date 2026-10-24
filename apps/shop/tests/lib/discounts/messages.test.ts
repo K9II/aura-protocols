@@ -21,8 +21,8 @@ describe("outcomeMessage", () => {
       .toEqual({ tone: "note", text: "A larger discount already applies to these items, so this code isn't used." });
   });
   it("a code worth the same as the new-account percent says it counts once", () => {
-    expect(outcomeMessage({ ...base, codeOutcome: "no_gain", newAccount: true }, "EARLY-K7QM2P", { ...terms, kind: "item_pct", value: NEW_ACCOUNT_PCT }, 35))
-      .toEqual({ tone: "good", text: `✓ EARLY-K7QM2P · your ${OFFER_PCT_TEXT} is taken off. It's the same ${OFFER_PCT_TEXT} as your new-account offer, so it counts once.` });
+    expect(outcomeMessage({ ...base, codeOutcome: "no_gain", newAccount: true }, "WELCOME25", { ...terms, kind: "item_pct", value: NEW_ACCOUNT_PCT }, 35))
+      .toEqual({ tone: "good", text: `✓ WELCOME25 · your ${OFFER_PCT_TEXT} is taken off. It's the same ${OFFER_PCT_TEXT} as your new-account offer, so it counts once.` });
     // A smaller item code keeps the "larger" message.
     expect(outcomeMessage({ ...base, codeOutcome: "no_gain", newAccount: true }, "X", { ...terms, kind: "item_pct", value: 10 }, 35)?.text).toMatch(/already larger/);
   });

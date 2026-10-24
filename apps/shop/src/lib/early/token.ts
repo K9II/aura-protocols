@@ -1,6 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { parseReferralCode } from "@/lib/waitlist/codes";
-export { EARLY_PREFIX, earlyCode } from "@/lib/early/rules";
 
 // Early access (pre-launch email 3, 2026-10-23). The link carries the waitlister's invite
 // code signed with EMAIL_LINK_SECRET (never their email); the cookie carries the same code,

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { earlyCodeEndsAt, earlyCodeInput, openingLabel, parseOpeningOn } from "@/lib/early/rules";
-import { NEW_ACCOUNT_PCT } from "@/lib/account/offer";
+import { openingLabel, parseOpeningOn } from "@/lib/early/rules";
 
 describe("opening date", () => {
   it("labels the day", () => expect(openingLabel("2026-12-01")).toBe("Tuesday, December 1"));
@@ -15,17 +14,5 @@ describe("opening date", () => {
   it("uses shop time for today", () => {
     // 2026-11-30 03:00 UTC is still Nov 29 in Denver, so Nov 30 is after today.
     expect(parseOpeningOn("2026-11-30", Date.parse("2026-11-30T03:00:00Z")).ok).toBe(true);
-  });
-  it("codes end NEW_ACCOUNT_DAYS after opening, end of day Mountain", () => {
-    expect(earlyCodeEndsAt("2026-12-01")).toBe("2026-12-05T06:59:00.000Z"); // Dec 4 23:59 MST
-  });
-});
-
-describe("early code terms", () => {
-  it("one use, the new-account percent, not tied to an email", () => {
-    expect(earlyCodeInput("2026-12-01", "a@b.co")).toMatchObject({
-      kind: "item_pct", value: NEW_ACCOUNT_PCT, max_uses: 1, once_per_customer: true, locked_email: null,
-      stack_on_top: false, starts_at: null, ends_at: "2026-12-05T06:59:00.000Z", status: "active", note: "Early access · a@b.co",
-    });
   });
 });

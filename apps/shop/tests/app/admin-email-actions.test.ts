@@ -207,7 +207,7 @@ describe("admin email actions", () => {
       const { setOpeningDateAction } = await import("@/app/admin/email/actions");
       expect(await setOpeningDateAction(null, fd({ id: K, openingOn: "2099-12-01" }))).toEqual({ ok: "Opening date saved: Tuesday, December 1." });
       expect(data.updateDraft).toHaveBeenCalledWith(K, expect.objectContaining({
-        previewText: "Your code is already in the box. The store opens to everyone on Tuesday, December 1.",
+        previewText: "No code needed: your 25% comes off automatically. The store opens to everyone on Tuesday, December 1.",
         content: expect.objectContaining({ openingOn: "2099-12-01" }),
       }), []);
       expect(await setOpeningDateAction(null, fd({ id: K, openingOn: "2020-01-01" }))).toEqual({ fieldErrors: { openingOn: "The opening date must be after today." } });

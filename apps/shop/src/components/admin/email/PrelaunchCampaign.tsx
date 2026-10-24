@@ -1,13 +1,13 @@
 "use client";
 // A pre-launch email before it's sent (2026-10-23): the fixed email, a test to the owner,
 // then Send now… to its waitlist audience. No editor — the wording lives in lib/email/prelaunch.ts.
-// Early access (#3) first needs the opening date; its preview shows a sample code and link.
+// Early access (#3) first needs the opening date. Previews show a sample invite and early link.
 import { useActionState } from "react";
 import { sendTestAction, setOpeningDateAction } from "@/app/admin/email/actions";
 import { AUDIENCE_LABEL, PRELAUNCH, type Audience, type PrelaunchKind } from "@/lib/email/campaigns/rules";
 import type { CampaignRow } from "@/lib/email/campaigns/data";
-import { EARLY_PREFIX } from "@/lib/early/rules";
-import { OFFER_DAYS_TEXT } from "@/lib/account/offer";
+import { inviteLabel, inviteUrl } from "@/lib/waitlist/codes";
+import { SAMPLE_INVITE_CODE } from "@/lib/email/campaigns/sample";
 import { Icon } from "@/components/admin/ui";
 import EmailPreview from "@/components/admin/email/EmailPreview";
 import SendDialog from "@/components/admin/email/SendDialog";
@@ -28,7 +28,7 @@ function OpeningDate({ c }: { c: Props["c"] }) {
         <input id="pre-opening" name="openingOn" type="date" className="a-input" defaultValue={c.content.openingOn ?? ""} required />
         <button type="submit" className="a-btn" disabled={pending}>{pending ? "Saving…" : "Save date"}</button>
       </div>
-      <small className="muted">The day the store opens to everyone. The email names it, and the personal codes stop working {OFFER_DAYS_TEXT} after it.</small>
+      <small className="muted">The day the store opens to everyone. The email names it.</small>
       {state?.fieldErrors?.openingOn && <div className="a-err" role="alert">{state.fieldErrors.openingOn}</div>}
       {state?.ok && <div className="a-callout ok" role="status" style={{ marginTop: 8 }}><Icon name="check" /><span>{state.ok}</span></div>}
     </form>
@@ -68,8 +68,8 @@ export default function PrelaunchCampaign({ c, counts, site, mailingAddress, las
       ) : !priceMissing && (
         <EmailPreview input={{
           kind: c.kind, subject: c.subject, previewText: c.preview_text, content: c.content, lots: [], code: null,
-          early: isEarly && openingOn && earlyPriceCents !== null
-            ? { openingOn, priceCents: earlyPriceCents, code: `${EARLY_PREFIX}XXXXXX`, url: `${site}/early` } : null,
+          invite: { url: inviteUrl(site, SAMPLE_INVITE_CODE), label: inviteLabel(site, SAMPLE_INVITE_CODE) },
+          early: isEarly && openingOn && earlyPriceCents !== null ? { openingOn, priceCents: earlyPriceCents, url: `${site}/early` } : null,
         }} site={site} mailingAddress={mailingAddress} />
       )}
     </>
