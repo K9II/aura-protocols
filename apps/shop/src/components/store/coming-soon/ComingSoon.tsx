@@ -25,6 +25,7 @@ import { SAMPLE_PANEL, SAMPLE_PANEL_COUNT } from "@/lib/coa/sample-panel";
 import { REFERRAL_CREDIT_DOLLARS } from "@/lib/waitlist/codes";
 import Waitlist from "./Waitlist";
 import PolicyLink from "./PolicyLink";
+import SoonRibbon from "./SoonRibbon";
 
 export default function ComingSoon({ live, site, notice }: { live: LiveCatalog<ChemicalClass> | null; site: string; notice?: string }) {
   const bpc = catalogContent.find((c) => c.slug === "bpc-157");
@@ -136,6 +137,7 @@ export default function ComingSoon({ live, site, notice }: { live: LiveCatalog<C
     <div className="pharmacopoeia s-home-lit cs-page">
       <PageLight />
       <ScrollReveal />
+      <SoonRibbon />
       {/* The brand bar (emblem option 1, picked 2026-10-23): the animated lockup and a way to the waitlist. */}
       <div className="cs-bar">
         <div className="p-container cs-bar-in">
