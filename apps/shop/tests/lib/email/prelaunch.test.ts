@@ -49,7 +49,10 @@ describe("pre-launch emails", () => {
     const m = weAreOpenEmail(ctx);
     expect(m.subject).toBe("We're open");
     const imgs = [...m.html.matchAll(/email\/vials\/([a-z0-9-]+)\.jpg/g)].map((x) => x[1]);
-    expect(imgs).toEqual(["bpc-157", "klow", "nad-plus", "wolverine", "ghk-cu", "glow"]);
+    expect(imgs).toEqual(["bpc-157", "ghk-cu", "glow", "wolverine", "klow", "nad-plus"]);
+    // cap colours never side by side, 3 across (desktop) or 2 across (phones)
+    const cap: Record<string, string> = { "bpc-157": "silver", klow: "silver", "nad-plus": "black", glow: "black", wolverine: "red", "ghk-cu": "red" };
+    for (const [a, b] of [[0, 1], [1, 2], [3, 4], [4, 5], [2, 3]]) expect(cap[imgs[a]]).not.toBe(cap[imgs[b]]);
     for (const slug of ["bpc-157", "bpc-157-tb-500-ghk-cu-kpv", "nad-plus", "bpc-157-tb-500-blend", "ghk-cu", "bpc-157-tb-500-ghk-cu"]) {
       expect(m.html).toContain(`href="${site}/products/${slug}"`);
     }

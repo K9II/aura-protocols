@@ -51,6 +51,12 @@ export function earlyAccessEmail(c: PrelaunchCtx, x: EarlyCtx): Msg {
 // Goes to waitlisters with no order yet, on launch day — the vials shown must all be on sale.
 // They're a few from the catalog, never "the lineup": the catalog is bigger than six, and
 // saying otherwise would mislead (Alvester, 2026-10-23). The button goes to the full catalog.
+// Cap colours mixed (2026-10-23, Alvester): silver BPC-157/KLOW, red GHK-Cu/Wolverine, black
+// GLOW/NAD+. No two of a colour side by side at 3 across (desktop) or 2 across (phones); with
+// three pairs in six cells one stacked pair per layout can't be avoided (GLOW over NAD+ on
+// desktop, GHK-Cu over Wolverine on phones). Singles and blends alternate across the rows.
+const VIAL_ORDER: Parameters<typeof vialGrid>[1] = ["bpc-157", "ghk-cu", "glow", "wolverine", "klow", "nad-plus"];
+
 export function weAreOpenEmail(c: PrelaunchCtx): Msg {
   return {
     subject: "We're open",
@@ -59,7 +65,7 @@ export function weAreOpenEmail(c: PrelaunchCtx): Msg {
       kicker: "Now open",
       headline: "The store is *open.*",
       intro: "Aura Protocols is open to everyone today. Here are a few of the compounds on the shelf. The full catalog is on the site.",
-      rows: vialGrid(c.site, ["bpc-157", "klow", "nad-plus", "wolverine", "ghk-cu", "glow"], true)
+      rows: vialGrid(c.site, VIAL_ORDER, true)
         + para(`Your first order is <b style="color:#1C1A15">${OFFER_PCT_TEXT} off</b> when you place it within ${OFFER_DAYS_TEXT} of making your account. It comes off automatically at checkout.`)
         + sticker()
         + button(c.site, "See the full catalog", "/products", "4px 44px 8px")
