@@ -41,6 +41,8 @@ describe("advanceTurn (the turning vial's automatic turn)", () => {
     }
     expect(done).toBe(MAX_TURNS);
     expect(MAX_TURNS).toBe(2); // two turns, then it rests (2026-10-18)
-    expect(frames / 60).toBeGreaterThan(25); // two slow turns, about 13-17 s each (pauses not counted here)
+    const secs = frames / 60; // two turns at the email GIF's speed, about 6.6 s each (pauses not counted here)
+    expect(secs).toBeGreaterThan(11);
+    expect(secs).toBeLessThan(15);
   });
 });

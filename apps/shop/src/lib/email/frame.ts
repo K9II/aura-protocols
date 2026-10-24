@@ -94,14 +94,14 @@ export function sampleCertificate(): string {
   ).join("");
   return `<tr><td class="ap-pad" style="padding:18px 44px 6px">
 <p style="${SERIF};margin:0 0 12px;font-size:21px;line-height:26px;font-weight:600;color:${INK};text-align:center">${accent("And this is what the code *opens.*")}</p>
+${panelStamp("margin:0 0 12px")}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f9fc;border:1px solid #dbe3ee;border-radius:14px"><tr><td style="padding:18px 20px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
 <td style="${SANS};font-size:10px;letter-spacing:.18em;font-weight:600;color:${SLATE};text-transform:uppercase">Certificate of analysis<br><span style="${SERIF};font-size:18px;letter-spacing:0;text-transform:none;color:${INK}">Sample <span style="font-weight:400;color:${MUTED}">· what each lot gets</span></span></td>
 <td align="right" style="vertical-align:top"><span style="${SANS};display:inline-block;background:#e6f2e2;color:${GREEN};border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;white-space:nowrap">&#10003; ${SAMPLE_PANEL_COUNT} checks</span></td></tr></table>
 <p style="${SANS};margin:12px 0 0;font-size:13px;line-height:19px;color:${BODY}"><b style="color:${INK}">BPC-157 · 10 mg</b><br>Independent US lab · ISO/IEC 17025-accredited</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:4px">${rows}</table>
-<p style="${SANS};margin:14px 0 0;font-size:11px;line-height:16px;letter-spacing:.14em;font-weight:600;color:${RED};text-transform:uppercase">Up to a ten-point panel · ISO/IEC 17025-accredited US lab</p>
-<p style="${SANS};margin:4px 0 0;font-size:12px;line-height:18px;color:${MUTED}">Each real certificate links to the lab&#39;s own verify page.</p>
+<p style="${SANS};margin:14px 0 0;font-size:12px;line-height:18px;color:${MUTED}">Each real certificate links to the lab&#39;s own verify page.</p>
 </td></tr></table></td></tr>`;
 }
 
@@ -157,11 +157,15 @@ ${line(`<b style="color:${INK}">Total before tax</b>`, `<b style="color:${INK};f
 </td></tr></table></td></tr>`;
 }
 
-// The testing stamp as a light blue box (email 3's one testing mention).
-export function panelBox(): string {
-  return `<tr><td class="ap-pad" style="padding:0 44px 6px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef3fa;border-radius:14px"><tr><td style="padding:20px 24px">
+// The testing stamp as a light blue box: email 3's one testing mention, and in email 2 it
+// heads the sample certificate (2026-10-23, Alvester: say it where the COA is shown).
+function panelStamp(style = ""): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef3fa;border-radius:14px;${style}"><tr><td style="padding:20px 24px">
 <p style="${SERIF};margin:0;font-size:21px;line-height:26px;font-weight:600;color:${INK}">${accent("Up to a *ten-point* panel")}</p>
-<p style="${SANS};margin:6px 0 0;font-size:14px;line-height:21px;color:${BODY}">Testing includes ISO/IEC 17025&#8209;accredited US lab.</p></td></tr></table></td></tr>`;
+<p style="${SANS};margin:6px 0 0;font-size:14px;line-height:21px;color:${BODY}">Testing includes ISO/IEC 17025&#8209;accredited US lab.</p></td></tr></table>`;
+}
+export function panelBox(): string {
+  return `<tr><td class="ap-pad" style="padding:0 44px 6px">${panelStamp()}</td></tr>`;
 }
 
 // A smaller grey line in the body (terms under an offer).
