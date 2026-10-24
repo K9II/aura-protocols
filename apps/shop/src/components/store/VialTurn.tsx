@@ -23,11 +23,15 @@ type Props = {
 
 // Turning speed in radians a second, by how far the vial has turned from its front: slow
 // while the front panel (the compound) faces out, quicker round the barcode and QR code,
-// easing smoothly between (one turn takes about 18 s with the QR hold, 8 of them within 45° of
+// easing smoothly between (one turn takes about 8 s with the QR hold, 3 of them within 45° of
 // the front). After MAX_TURNS (two) it rests facing front.
+// The speed matches the "A first look" email GIF (public/email/bpc-turn.gif): it was recorded
+// from this vial at 200 ms a frame and plays at 80 ms, so the site turns 2.5× its old speed
+// (was 0.15 / 1.1, about 18 s a turn) since 2026-10-23 (Alvester).
 // It also eases into the QR code and holds there (QR_HOLD_MS) while the caption under the
 // picture lights up ("aura:vial-qr" event → QrNote), then eases out.
-const SLOW = 0.15, FAST = 1.1;
+const SPEEDUP = 2.5; // the email GIF's playback rate (200 ms recorded → 80 ms shown)
+const SLOW = 0.15 * SPEEDUP, FAST = 1.1 * SPEEDUP;
 const HOLD_MS = 2000; // when the page opens, the front holds still this long before it starts to turn
 const QR_HOLD_MS = 1500;
 // After this many full turns it comes to rest facing front (the compound) and stays there;
