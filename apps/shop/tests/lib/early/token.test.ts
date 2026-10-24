@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { earlyCode, earlyLinkUrl, readEarlyCookie, signEarlyCookie, verifyEarlyToken, EARLY_COOKIE_MAX_AGE_S } from "@/lib/early/token";
+import { earlyLinkUrl, readEarlyCookie, signEarlyCookie, verifyEarlyToken, EARLY_COOKIE_MAX_AGE_S } from "@/lib/early/token";
 
 beforeEach(() => { process.env.EMAIL_LINK_SECRET = "test-secret"; });
 
@@ -24,7 +24,6 @@ describe("early link token", () => {
     delete process.env.EMAIL_LINK_SECRET;
     expect(() => earlyLinkUrl("https://x", "K7QM2P")).toThrow(/EMAIL_LINK_SECRET/);
   });
-  it("code text", () => expect(earlyCode("K7QM2P")).toBe("EARLY-K7QM2P"));
 });
 
 describe("early cookie", () => {

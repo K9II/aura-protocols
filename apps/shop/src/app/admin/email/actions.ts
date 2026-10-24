@@ -73,7 +73,7 @@ export async function sendTestAction(_prev: EmailActionState, f: FormData): Prom
   const owner = await requirePermission("email.send");
   const c = await target(f);
   const code = await campaignCode(c);
-  const { msg, unsub } = await renderFor(c, owner.email, code, { test: true }, await earlyRun(c, owner.id));
+  const { msg, unsub } = await renderFor(c, owner.email, code, { test: true }, await earlyRun(c));
   await sendTracked({ email: owner.email, kind: "campaign", ref: `test-${c.id}-${Date.now()}`, msg, unsubscribeUrl: unsub });
   await logEmailAdminEvent({ action: "test_sent", target: c.id, actor: owner.id, note: owner.email });
   refresh(c.id);

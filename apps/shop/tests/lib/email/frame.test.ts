@@ -35,7 +35,7 @@ describe("blocks", () => {
     const b = vialBlock(site, "wolverine");
     expect(b).toContain(`src="${site}/email/vials/wolverine.jpg"`);
     expect(b).toContain('width="240"');
-    expect(b).toContain("BPC-157 / TB-500 · 10 mg");
+    expect(b).toContain("BPC-157 / TB-500 · 20 mg");
     expect(b).toContain("Wolverine · Blends");
   });
 
@@ -56,7 +56,7 @@ describe("blocks", () => {
 
 describe("photo vials", () => {
   it("names each vial from the catalog, nickname alongside the scientific name", () => {
-    expect(photoVial("wolverine")).toMatchObject({ name: "BPC-157 / TB-500", designation: "Wolverine", strength: "10 mg", chemicalClass: "Blends", slug: "bpc-157-tb-500-blend" });
+    expect(photoVial("wolverine")).toMatchObject({ name: "BPC-157 / TB-500", designation: "Wolverine", strength: "20 mg", chemicalClass: "Blends", slug: "bpc-157-tb-500-blend" });
     expect(photoVial("nad-plus")).toMatchObject({ name: "NAD+", designation: null, strength: "500 mg" });
     expect(Object.keys(PHOTO_VIALS)).toEqual(["bpc-157", "klow", "nad-plus", "wolverine", "ghk-cu", "glow"]);
   });
@@ -104,14 +104,16 @@ describe("pre-launch blocks", () => {
     expect(button(site, "Visit auraprotocols.com", "/")).toContain(`href="${site}/"`);
   });
 
-  it("checkoutCard: GLOW at the given price, the code with Applied under it, the percent off rounded to the cent", () => {
-    const c = checkoutCard(site, { code: "EARLY-K7QM2P", priceCents: 2999 });
+  it("checkoutCard: GLOW at the given price, the offer taken off automatically (no code), the percent off rounded to the cent", () => {
+    const c = checkoutCard(site, { priceCents: 2999 });
     expect(c).toContain(`src="${site}/email/vials/glow.jpg"`);
     expect(c).toContain("GLOW · 70 mg");
     expect(c).toContain("$29.99");
     expect(c).toContain("&minus;$7.50");
     expect(c).toContain("$22.49");
-    expect(c).toMatch(/EARLY-K7QM2P<\/span><span[^>]*display:block[^>]*>&#10003; Applied/);
+    expect(c).toContain("&#10003; Taken off automatically");
+    expect(c).toContain("No code to type.");
+    expect(c).not.toMatch(/Promotion code|EARLY-|Applied/);
     expect(c).toContain('class="ap-cocell"');
   });
 

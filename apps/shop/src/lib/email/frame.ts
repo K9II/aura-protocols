@@ -127,9 +127,9 @@ export function button(site: string, label: string, path: string, pad = "30px 44
 
 const usdText = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
-// Email 3's "What your checkout will look like": GLOW at its live price, the person's code
-// applied, the new-account percent off. The code and "Applied" stack so a phone never overflows.
-export function checkoutCard(site: string, x: { code: string; priceCents: number }): string {
+// Email 3's "What your checkout will look like": GLOW at its live price and the new-account
+// percent off, taken automatically. No code (dropped 2026-10-24): nothing to type or keep.
+export function checkoutCard(site: string, x: { priceCents: number }): string {
   const v = photoVial("glow");
   const off = Math.round((x.priceCents * NEW_ACCOUNT_PCT) / 100);
   const alt = `Aura Protocols vial: ${v.name}, ${v.strength}${v.designation ? ` (${v.designation})` : ""}, research use only`;
@@ -148,18 +148,18 @@ export function checkoutCard(site: string, x: { code: string; priceCents: number
 <p style="${SANS};margin:4px 0 0;font-size:11px;letter-spacing:.16em;font-weight:600;color:${SLATE};text-transform:uppercase">${e(v.designation ? `${v.designation} · ` : "")}${e(v.strength)}</p>
 <p style="${SANS};margin:8px 0 0;font-size:13px;color:${MUTED}">Qty 1</p>
 <p style="${SANS};margin:4px 0 0;font-size:16px;font-weight:600;color:${INK}">${usdText(x.priceCents)}</p></td></tr></table>
-<p style="${SANS};margin:14px 0 6px;font-size:11px;letter-spacing:.16em;font-weight:600;color:${SLATE};text-transform:uppercase">Promotion code</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid ${GREEN};border-radius:10px;background:#f2f7ef"><tr><td style="padding:10px 12px"><span style="${SERIF};display:block;font-size:18px;line-height:24px;font-weight:600;letter-spacing:.03em;color:${INK};overflow-wrap:anywhere">${e(x.code)}</span><span style="${SANS};display:block;margin-top:2px;font-size:13px;font-weight:600;color:${GREEN}">&#10003; Applied</span></td></tr></table>
-<p style="${SANS};margin:6px 0 10px;font-size:12px;line-height:18px;color:${GREEN}">Early access · ${OFFER_PCT_TEXT} off your first order. Already filled in for you.</p>
+<p style="${SANS};margin:14px 0 6px;font-size:11px;letter-spacing:.16em;font-weight:600;color:${SLATE};text-transform:uppercase">New-account offer</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid ${GREEN};border-radius:10px;background:#f2f7ef"><tr><td style="padding:10px 12px"><span style="${SERIF};display:block;font-size:18px;line-height:24px;font-weight:600;color:${INK}">${OFFER_PCT_TEXT} off your first order</span><span style="${SANS};display:block;margin-top:2px;font-size:13px;font-weight:600;color:${GREEN}">&#10003; Taken off automatically</span></td></tr></table>
+<p style="${SANS};margin:6px 0 10px;font-size:12px;line-height:18px;color:${GREEN}">No code to type. It&#39;s there as soon as you make your account.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-${line("Items", usdText(x.priceCents))}${line(`Early access · ${OFFER_PCT_TEXT} off`, `&minus;${usdText(off)}`, green)}
+${line("Items", usdText(x.priceCents))}${line(`New account · ${OFFER_PCT_TEXT} off`, `&minus;${usdText(off)}`, green)}
 ${line(`<b style="color:${INK}">Total before tax</b>`, `<b style="color:${INK};font-size:16px">${usdText(x.priceCents - off)}</b>`, total)}</table>
 </td></tr></table></td></tr>`;
 }
 
 // The testing stamp as a light blue box. It heads email 2's sample certificate (2026-10-23,
 // Alvester: say it where the COA is shown); email 3 (early access) is about the checkout
-// code only, so it has no testing mention.
+// only, so it has no testing mention.
 function panelStamp(style = ""): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef3fa;border-radius:14px;${style}"><tr><td style="padding:20px 24px">
 <p style="${SERIF};margin:0;font-size:21px;line-height:26px;font-weight:600;color:${INK}">${accent("Up to a *ten-point* panel")}</p>

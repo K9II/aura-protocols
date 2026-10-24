@@ -28,7 +28,8 @@ describe("PrelaunchCampaign: early access", () => {
     expect(sendBtn()).toBeEnabled();
     const doc = container.querySelector("iframe")?.getAttribute("srcdoc") ?? "";
     expect(doc).toContain("Tuesday, December 1");
-    expect(doc).toContain("EARLY-XXXXXX");
+    expect(doc).not.toContain("EARLY-");
+    expect(doc).toContain("auraprotocols.com/?r=XXXXXX");
     expect(doc).toContain("$131.25");
     expect(screen.getByText(/Checkout must take payments before you send this: the link lets 214 people order a day early/)).toBeInTheDocument();
   });
@@ -41,7 +42,8 @@ describe("PrelaunchCampaign: early access", () => {
   });
 
   it("another pre-launch email has no date box and no warning", () => {
-    render(<PrelaunchCampaign c={{ ...early, kind: "first_look", subject: "A first look at the vials" } as never} {...props} />);
+    const { container } = render(<PrelaunchCampaign c={{ ...early, kind: "first_look", subject: "A first look at the vials" } as never} {...props} />);
+    expect(container.querySelector("iframe")?.getAttribute("srcdoc") ?? "").toContain("auraprotocols.com/?r=XXXXXX");
     expect(screen.queryByLabelText("Opening date")).toBeNull();
     expect(screen.queryByText(/Checkout must take payments/)).toBeNull();
     expect(sendBtn()).toBeEnabled();

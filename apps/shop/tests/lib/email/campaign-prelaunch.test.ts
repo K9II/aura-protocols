@@ -35,21 +35,24 @@ describe("pre-launch campaign kinds", () => {
     expect(PRELAUNCH.we_are_open).toMatchObject({ step: 4, name: "Pre-launch · We're open", subject: "We're open", audience: "waitlist_never_ordered" });
   });
 
-  it("render as the ready-made emails, [Test] on a test send", () => {
-    const base = { previewText: "", content: empty, lots: [], code: null };
-    expect(campaignEmail({ ...base, kind: "first_look", subject: "ignored" }, ctx).html).toBe(firstLookEmail(ctx).html);
+  const invite = { url: "https://auraprotocols.com/?r=K7QM2P", label: "auraprotocols.com/?r=K7QM2P" };
+
+  it("render as the ready-made emails with the person's invite link, [Test] on a test send, and refuse without one", () => {
+    const base = { previewText: "", content: empty, lots: [], code: null, invite };
+    expect(campaignEmail({ ...base, kind: "first_look", subject: "ignored" }, ctx).html).toBe(firstLookEmail(ctx, invite).html);
     const t = campaignEmail({ ...base, kind: "we_are_open", subject: "ignored" }, ctx, { test: true });
     expect(t.subject).toBe("[Test] We're open");
-    expect(t.html).toBe(weAreOpenEmail(ctx).html);
+    expect(t.html).toBe(weAreOpenEmail(ctx, invite).html);
+    expect(() => campaignEmail({ ...base, invite: null, kind: "first_look", subject: "s" }, ctx)).toThrow(/no invite link/);
   });
 
   it("early access renders the person's own email, and refuses without one", () => {
-    const base = { previewText: "", content: { ...empty, openingOn: "2026-12-01" }, lots: [], code: null };
-    const early = { openingOn: "2026-12-01", url: "https://auraprotocols.com/early?t=K7QM2P.s", code: "EARLY-K7QM2P", priceCents: 17500 };
+    const base = { previewText: "", content: { ...empty, openingOn: "2026-12-01" }, lots: [], code: null, invite };
+    const early = { openingOn: "2026-12-01", url: "https://auraprotocols.com/early?t=K7QM2P.s", priceCents: 17500 };
     const t = campaignEmail({ ...base, kind: "early_access", subject: "ignored", early }, ctx, { test: true });
     expect(t.subject).toBe("[Test] Your early access is open");
-    expect(t.html).toBe(earlyAccessEmail(ctx, early).html);
-    expect(() => campaignEmail({ ...base, kind: "early_access", subject: "s" }, ctx)).toThrow(/no opening date or code/);
+    expect(t.html).toBe(earlyAccessEmail(ctx, early, invite).html);
+    expect(() => campaignEmail({ ...base, kind: "early_access", subject: "s" }, ctx)).toThrow(/no opening date/);
   });
 
   it("early access is blocked until the opening date is saved, and always warns about payments", () => {

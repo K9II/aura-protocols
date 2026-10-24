@@ -38,8 +38,8 @@ export function outcomeMessage(
         : { tone: "good", text: `${code} applied — ${customerSummary(terms)}.` };
     case "no_gain":
       if (terms.kind === "ship_only") return { tone: "note", text: "Shipping is already free on this order, so this code isn't needed." };
-      // A code worth exactly the new-account percent (the early-access EARLY- codes): the
-      // percent IS taken off — once — so don't say the offer is "larger".
+      // A code worth exactly the new-account percent: the percent IS taken off — once — so
+      // don't say the offer is "larger".
       if (r.newAccount && terms.kind === "item_pct" && terms.value === NEW_ACCOUNT_PCT)
         return { tone: "good", text: `✓ ${code} · your ${OFFER_PCT_TEXT} is taken off. It's the same ${OFFER_PCT_TEXT} as your new-account offer, so it counts once.` };
       return r.newAccount

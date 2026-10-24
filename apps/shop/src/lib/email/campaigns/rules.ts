@@ -20,7 +20,7 @@ export const KIND_LABEL: Record<CampaignKind, string> = {
 };
 export const KIND_HELP: Record<CampaignKind, string> = {
   new_lots: "Certified lots, filled in from Catalog", promotion: "Links a code from Discounts", news: "An article or update, no offer",
-  first_look: "The turning vial and the sample certificate", early_access: "Each waitlister's early link and personal code", we_are_open: "All six vials, on launch day",
+  first_look: "The turning vial and the sample certificate", early_access: "Each waitlister's early link; the offer comes off automatically", we_are_open: "All six vials, on launch day",
 };
 export const parseKind = (v: string | undefined): EditorKind => ((EDITOR_KINDS as readonly string[]).includes(v ?? "") ? (v as EditorKind) : "news");
 
